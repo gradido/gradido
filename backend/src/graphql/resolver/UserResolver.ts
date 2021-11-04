@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -324,7 +324,7 @@ export class UserResolver {
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
-    const loginUser = new LoginUser()
+    let loginUser = new LoginUser()
     loginUser.email = email
     loginUser.firstName = firstName
     loginUser.lastName = lastName
@@ -339,52 +339,66 @@ export class UserResolver {
     loginUser.privKey = encryptedPrivkey
 
     // TODO transaction
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const { id: loginUserId } = await loginUserRepository.save(loginUser).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log('insert user failed', error)
-      throw new Error('insert user failed')
-    })
+    const queryRunner = getConnection().createQueryRunner()
+    // belong to debugging mysql query / typeorm line
+    // const startTime = new Date()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    try {
+      const { id: loginUserId } = await queryRunner.manager.save(loginUser).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('insert LoginUser failed', error)
+        throw new Error('insert user failed')
+      })
 
-    // Table: login_user_backups
-    const loginUserBackup = new LoginUserBackup()
-    loginUserBackup.userId = loginUserId
-    loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
-    loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      // Table: login_user_backups
+      const loginUserBackup = new LoginUserBackup()
+      loginUserBackup.userId = loginUserId
+      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-    // TODO transaction
-    const loginUserBackupRepository = getCustomRepository(LoginUserBackupRepository)
-    await loginUserBackupRepository.save(loginUserBackup).catch(() => {
-      throw new Error('insert user backup failed')
-    })
+      // TODO transaction
+      await queryRunner.manager.save(loginUserBackup).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('insert LoginUserBackup failed', error)
+        throw new Error('insert user backup failed')
+      })
 
-    // Table: state_users
-    const dbUser = new DbUser()
-    dbUser.pubkey = keyPair[0]
-    dbUser.email = email
-    dbUser.firstName = firstName
-    dbUser.lastName = lastName
-    dbUser.username = username
+      // Table: state_users
+      const dbUser = new DbUser()
+      dbUser.pubkey = keyPair[0]
+      dbUser.email = email
+      dbUser.firstName = firstName
+      dbUser.lastName = lastName
+      dbUser.username = username
 
-    // TDOO transaction
-    await userRepository.save(dbUser).catch((er) => {
-      // eslint-disable-next-line no-console
-      console.log('Error while saving dbUser', er)
-      throw new Error('error saving user')
-    })
+      // TDOO transaction
+      await queryRunner.manager.save(dbUser).catch((er) => {
+        // eslint-disable-next-line no-console
+        console.log('Error while saving dbUser', er)
+        throw new Error('error saving user')
+      })
 
-    // TODO: send EMail (EMAIL_OPT_IN_REGISTER)
-    // const emailType = 2
-    // auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-    // auto emailOptInModel = emailOptIn->getModel();
-    // if (!emailOptInModel->insertIntoDB(false)) {
-    //	emailOptInModel->sendErrorsAsEmail();
-    //	return stateError("insert emailOptIn failed");
-    // }
-    // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
-    // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
-
-    return 'success'
+      // TODO: send EMail (EMAIL_OPT_IN_REGISTER)
+      // const emailType = 2
+      // auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+      //     auto code = createEmailVerificationCode();
+      //     auto db = new model::table::EmailOptIn(code, userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
+      // auto emailOptInModel = emailOptIn->getModel();
+      // if (!emailOptInModel->insertIntoDB(false)) {
+      //	emailOptInModel->sendErrorsAsEmail();
+      //	return stateError("insert emailOptIn failed");
+      // }
+      // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
+      // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+      await queryRunner.commitTransaction()
+      return 'success'
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   @Query(() => SendPasswordResetEmailResponse)
