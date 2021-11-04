@@ -136,22 +136,7 @@ services:
      - external-net
     volumes:
      - /sessions
-     
-  #########################################################
-  ## skeema for updating dbs if changes happend ###########
-  #########################################################
-  skeema: 
-    build:
-      context: .
-      dockerfile: ./skeema/Dockerfile
-      target: skeema_dev_run
-    depends_on:
-      - mariadb
-    networks: 
-      - internal-net
-    volumes:
-      - ./login_server/skeema/gradido_login:/skeema/gradido_login
-   
+
 volumes:
   frontend_node_modules:
   backend_node_modules:
