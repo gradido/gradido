@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository } from 'typeorm'
+import { BaseEntity, getConnection, getCustomRepository, QueryRunner } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -324,7 +324,7 @@ export class UserResolver {
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
-    let loginUser = new LoginUser()
+    const loginUser = new LoginUser()
     loginUser.email = email
     loginUser.firstName = firstName
     loginUser.lastName = lastName
@@ -338,10 +338,7 @@ export class UserResolver {
     loginUser.pubKey = keyPair[0]
     loginUser.privKey = encryptedPrivkey
 
-    // TODO transaction
     const queryRunner = getConnection().createQueryRunner()
-    // belong to debugging mysql query / typeorm line
-    // const startTime = new Date()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
@@ -357,7 +354,6 @@ export class UserResolver {
       loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
       loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-      // TODO transaction
       await queryRunner.manager.save(loginUserBackup).catch((error) => {
         // eslint-disable-next-line no-console
         console.log('insert LoginUserBackup failed', error)
@@ -372,7 +368,6 @@ export class UserResolver {
       dbUser.lastName = lastName
       dbUser.username = username
 
-      // TDOO transaction
       await queryRunner.manager.save(dbUser).catch((er) => {
         // eslint-disable-next-line no-console
         console.log('Error while saving dbUser', er)
@@ -395,6 +390,9 @@ export class UserResolver {
       return 'success'
     } catch (e) {
       await queryRunner.rollbackTransaction()
+      await rollbackAutoIncrement(queryRunner, LoginUser, `login_users`)
+      await rollbackAutoIncrement(queryRunner, LoginUserBackup, `login_user_backups`)
+      await rollbackAutoIncrement(queryRunner, DbUser, `state_users`)
       throw e
     } finally {
       await queryRunner.release()
@@ -568,4 +566,20 @@ export class UserResolver {
     }
     return result.data.hasElopage
   }
+}
+
+const rollbackAutoIncrement = async (
+  queryRunner: QueryRunner,
+  entity: typeof BaseEntity,
+  entityName: string,
+) => {
+  const count = await queryRunner.manager.count(entity)
+  const queryString = 'ALTER TABLE `' + entityName + '` auto_increment = ' + count
+  // eslint-disable-next-line no-console
+  console.log('Database AlterTable Query: ', queryString)
+  await queryRunner.query(queryString).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log('problems with reset auto increment: %o', error)
+    throw new Error('Problems with reset auto increment: ' + error)
+  })
 }
