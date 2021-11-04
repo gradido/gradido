@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -21,10 +22,10 @@ import { UserTransactionRepository } from '../../typeorm/repository/UserTransact
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
-import { UserTransaction as DbUserTransaction } from '@entity/UserTransaction'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { TransactionSendCoin as DbTransactionSendCoin } from '@entity/TransactionSendCoin'
-import { Balance as DbBalance } from '@entity/Balance'
+import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import { TransactionSendCoin as dbTransactionSendCoin } from '@entity/TransactionSendCoin'
+import { Balance as dbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
@@ -36,7 +37,7 @@ import { from_hex as fromHex } from 'libsodium-wrappers'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
-  userTransactions: DbUserTransaction[],
+  userTransactions: dbUserTransaction[],
   user: dbUser,
   decay: boolean,
   skipFirstTransaction: boolean,
@@ -45,15 +46,15 @@ async function calculateAndAddDecayTransactions(
   const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
-  userTransactions.forEach((userTransaction: DbUserTransaction) => {
+  userTransactions.forEach((userTransaction: dbUserTransaction) => {
     transactionIds.push(userTransaction.transactionId)
   })
 
   const transactionRepository = getCustomRepository(TransactionRepository)
   const transactions = await transactionRepository.joinFullTransactionsByIds(transactionIds)
 
-  const transactionIndiced: DbTransaction[] = []
-  transactions.forEach((transaction: DbTransaction) => {
+  const transactionIndiced: dbTransaction[] = []
+  transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
       involvedUserIds.push(transaction.transactionSendCoin.userId)
@@ -221,11 +222,11 @@ async function updateStateBalance(
   centAmount: number,
   received: Date,
   queryRunner: QueryRunner,
-): Promise<DbBalance> {
+): Promise<dbBalance> {
   const balanceRepository = getCustomRepository(BalanceRepository)
   let balance = await balanceRepository.findByUser(user.id)
   if (!balance) {
-    balance = new DbBalance()
+    balance = new dbBalance()
     balance.userId = user.id
     balance.amount = centAmount
     balance.modified = received
@@ -250,10 +251,10 @@ async function updateStateBalance(
 // helper helper function
 async function addUserTransaction(
   user: dbUser,
-  transaction: DbTransaction,
+  transaction: dbTransaction,
   centAmount: number,
   queryRunner: QueryRunner,
-): Promise<DbUserTransaction> {
+): Promise<dbUserTransaction> {
   let newBalance = centAmount
   const userTransactionRepository = getCustomRepository(UserTransactionRepository)
   const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
@@ -273,7 +274,7 @@ async function addUserTransaction(
     throw new Error('error new balance <= 0')
   }
 
-  const newUserTransaction = new DbUserTransaction()
+  const newUserTransaction = new dbUserTransaction()
   newUserTransaction.userId = user.id
   newUserTransaction.transactionId = transaction.id
   newUserTransaction.transactionTypeId = transaction.transactionTypeId
@@ -331,12 +332,12 @@ async function sendCoins(
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
       // transaction
-      let transaction = new DbTransaction()
+      let transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
-      const insertResult = await queryRunner.manager.insert(DbTransaction, transaction)
+      const insertResult = await queryRunner.manager.insert(dbTransaction, transaction)
       transaction = await queryRunner.manager
-        .findOneOrFail(DbTransaction, insertResult.generatedMaps[0].id)
+        .findOneOrFail(dbTransaction, insertResult.generatedMaps[0].id)
         .catch((error) => {
           throw new Error('error loading saved transaction: ' + error)
         })
@@ -381,7 +382,7 @@ async function sendCoins(
       }
 
       // transactionSendCoin
-      const transactionSendCoin = new DbTransactionSendCoin()
+      const transactionSendCoin = new dbTransactionSendCoin()
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
       transactionSendCoin.senderPublic = senderUser.pubkey
@@ -404,7 +405,7 @@ async function sendCoins(
       // console.log("start time: %o, transaction log: %o", startTime.getTime(), result)
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      const count = await queryRunner.manager.count(DbTransaction)
+      const count = await queryRunner.manager.count(dbTransaction)
       // fix autoincrement value which seems not effected from rollback
       await queryRunner
         .query('ALTER TABLE `transactions` auto_increment = ?', [count])
