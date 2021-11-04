@@ -64,7 +64,7 @@ export class UserResolver {
       userEntity.email = user.email
       userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
 
-      userEntity.save().catch(() => {
+      userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
       })
     })
@@ -144,7 +144,8 @@ export class UserResolver {
     dbuser.lastName = user.lastName
     dbuser.username = user.username
 
-    dbuser.save().catch(() => {
+    const userRepository = getCustomRepository(UserRepository)
+    userRepository.save(dbuser).catch(() => {
       throw new Error('error saving user')
     })
 
@@ -246,7 +247,7 @@ export class UserResolver {
         userEntityChanged = true
       }
       if (userEntityChanged) {
-        userEntity.save().catch((error) => {
+        userRepository.save(userEntity).catch((error) => {
           throw new Error(error)
         })
       }
