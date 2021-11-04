@@ -9,8 +9,9 @@ module.exports = {
   ],
   // coverageReporters: ['lcov', 'text'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less)$': 'identity-obj-proxy',
+    '\\.(scss)$': '<rootDir>/src/assets/mocks/styleMock.js',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
     '^.+\\.vue$': 'vue-jest',
