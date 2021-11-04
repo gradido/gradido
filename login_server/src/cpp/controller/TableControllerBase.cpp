@@ -21,29 +21,18 @@ namespace controller {
 
 	void TableControllerBase::duplicate()
 	{
-		std::string name = "TableControllerBase::duplicate";
-		if (!mDBModel.isNull()) {
-			name += ": ";
-			name += mDBModel->getTableName();
-		}
-		lock(name.data());
-		mReferenceCount++;
-		//printf("[ModelBase::duplicate] new value: %d\n", mReferenceCount);
-		unlock();
+		Poco::ScopedLock<Poco::FastMutex> _lock(mReferenceMutex);
+		mReferenceCount++;		
 	}
 
 	void TableControllerBase::release()
 	{
-		lock("TableControllerBase::release");
+		Poco::ScopedLock<Poco::FastMutex> _lock(mReferenceMutex);
 		mReferenceCount--;
-		//printf("[ModelBase::release] new value: %d\n", mReferenceCount);
 		if (0 == mReferenceCount) {
-			unlock();
 			delete this;
 			return;
 		}
-		unlock();
-
 	}
 
 }

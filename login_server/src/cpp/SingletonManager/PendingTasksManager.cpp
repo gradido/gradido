@@ -193,6 +193,9 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 			for (auto list_it = list->begin(); list_it != list->end(); list_it++)
 			{
 				auto transaction = *list_it;
+				if(!transaction->canBeLocked()) {
+					continue;
+				}
 				auto json = transaction->getModel()->getResultJson();
 				bool removeIt = false;
 				if (json.IsObject()) {
