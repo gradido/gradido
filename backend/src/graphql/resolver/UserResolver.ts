@@ -384,11 +384,6 @@ export class UserResolver {
       emailOptIn.emailOptInTypeId = 2
 
       await queryRunner.manager.save(emailOptIn).catch((error) => {
-        // TODO: Send error email instead of throw error
-        // if (!emailOptInModel->insertIntoDB(false)) {
-        //	emailOptInModel->sendErrorsAsEmail();
-        //	return stateError("insert emailOptIn failed");
-        // }
         // eslint-disable-next-line no-console
         console.log('Error while saving emailOptIn', error)
         throw new Error('error saving email opt in')
@@ -397,7 +392,6 @@ export class UserResolver {
       // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
       // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
       await queryRunner.commitTransaction()
-      return 'success'
     } catch (e) {
       await queryRunner.rollbackTransaction()
       await rollbackAutoIncrement(queryRunner, LoginUser, `login_users`)
@@ -407,6 +401,7 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
+    return 'success'
   }
 
   @Query(() => SendPasswordResetEmailResponse)
