@@ -142,9 +142,9 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 
 const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
   // TODO: put that in the actual config
-  const configCryptoAppSecret = Buffer.from('21ffbbc616fe', 'hex')
-  const configCryptoServerKey = Buffer.from('a51ef8ac7ef1abf162fb7a65261acd7a', 'hex')
-  if (configCryptoServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
+  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
+  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
+  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
     throw new Error(
       `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
     )
@@ -153,7 +153,7 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
   sodium.crypto_hash_sha512_init(state)
   sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
-  sodium.crypto_hash_sha512_update(state, Buffer.from(configCryptoAppSecret))
+  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
   const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
   sodium.crypto_hash_sha512_final(state, hash)
 
@@ -171,7 +171,7 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   )
 
   const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
-  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configCryptoServerKey)
+  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
   return [encryptionKeyHash, encryptionKey]
 }
