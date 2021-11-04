@@ -3,8 +3,8 @@
 
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { from_hex as fromHex } from 'libsodium-wrappers'
+import { getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
-import { CheckUsernameResponse } from '../model/CheckUsernameResponse'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
@@ -22,10 +22,10 @@ import {
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
-import { getCustomRepository } from 'typeorm'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
+import { LoginUser } from '@entity/LoginUser'
 
 @Resolver()
 export class UserResolver {
@@ -275,15 +275,27 @@ export class UserResolver {
     return response
   }
 
-  @Query(() => CheckUsernameResponse)
-  async checkUsername(
-    @Args() { username, groupId = 1 }: CheckUsernameArgs,
-  ): Promise<CheckUsernameResponse> {
-    const response = await apiGet(
-      CONFIG.LOGIN_API_URL + `checkUsername?username=${username}&group_id=${groupId}`,
-    )
-    if (!response.success) throw new Error(response.data)
-    return new CheckUsernameResponse(response.data)
+  @Query(() => Boolean)
+  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
+    // Username empty?
+    if (username === '') {
+      throw new Error('Username must be set.')
+    }
+
+    // Do we fullfil the minimum character length?
+    const MIN_CHARACTERS_USERNAME = 2
+    if (username.length < MIN_CHARACTERS_USERNAME) {
+      throw new Error(`Username must be at minimum ${MIN_CHARACTERS_USERNAME} characters long.`)
+    }
+
+    const usersFound = await LoginUser.count({ username })
+
+    // Username already present?
+    if (usersFound !== 0) {
+      throw new Error(`Username "${username}" already taken.`)
+    }
+
+    return true
   }
 
   @Query(() => CheckEmailResponse)
