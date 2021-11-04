@@ -98,7 +98,7 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 		rapid_json_result.Accept(debugWriter);
 
 		responseStream << buffer.GetString() << std::endl;
-		printf("%s\n", debugBuffer.GetString());
+		//printf("%s\n", debugBuffer.GetString());
 	}
 	if (rapid_json_result.IsObject())
 	{
@@ -414,31 +414,31 @@ Document JsonRequestHandler::checkAndLoadSession(const Document& params)
 		if (itr->value.IsInt64()) {
 			session_id = static_cast<int>(itr->value.GetInt64());
 			mSession = sm->getSession(session_id);
-			printf("int64: %d\n", session_id);
+			//printf("int64: %d\n", session_id);
 			validTypes++;
 		}
 		if (!mSession && itr->value.IsInt()) {
 			session_id = static_cast<int>(itr->value.GetInt());
 			mSession = sm->getSession(session_id);
-			printf("int: %d\n", session_id);
+			//printf("int: %d\n", session_id);
 			validTypes++;
 		}		
 		if (!mSession && itr->value.IsUint64()) {
 			session_id = static_cast<int>(itr->value.GetUint64());
 			mSession = sm->getSession(session_id);
-			printf("Uint64: %d\n", session_id);
+			//printf("Uint64: %d\n", session_id);
 			validTypes++;
 		}
 		if (!mSession && itr->value.IsUint()) {
 			session_id = static_cast<int>(itr->value.GetUint());
 			mSession = sm->getSession(session_id);
-			printf("Uint: %d\n", session_id);
+			//printf("Uint: %d\n", session_id);
 			validTypes++;
 		}
 		if (!mSession && itr->value.IsString()) {
 			DataTypeConverter::strToInt(itr->value.GetString(), session_id);
 			mSession = sm->getSession(session_id);
-			printf("string: %d\n", session_id);
+			//printf("string: %d\n", session_id);
 			validTypes++;
 		}
 		if(!mSession && !validTypes) {

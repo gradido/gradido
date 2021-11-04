@@ -24,6 +24,7 @@ namespace controller {
 
 		// for poco auto ptr
 		int mReferenceCount;
+		Poco::FastMutex mReferenceMutex;
 
 		// 
 		Poco::AutoPtr <model::table::ModelBase> mDBModel;
