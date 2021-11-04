@@ -191,7 +191,7 @@ int PingServerTask::run()
 	auto current = Poco::DateTime();
 	if (model::table::NODE_SERVER_GRADIDO_COMMUNITY == mNodeServer->getModel()->getNodeServerType()) {
 		std::string url_port = mNodeServer->getModel()->getUrlWithPort();
-		printf("%s [PingServerTask::run] call update for %s\n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data(), url_port.data());
+		//printf("%s [PingServerTask::run] call update for %s\n", Poco::DateTimeFormatter::format(current, "%d.%m.%y %H:%M:%S.%i").data(), url_port.data());
 
 		auto json_request = mNodeServer->createJsonRequest();
 		json_request.request("updateReadNode");

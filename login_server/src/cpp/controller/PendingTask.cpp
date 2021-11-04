@@ -209,4 +209,13 @@ namespace controller {
 		JsonRequestHandler::getIntParameter(param, key.data(), iparam);	
 		return iparam;
 	}
+
+	bool PendingTask::canBeLocked()
+	{
+		if(tryLock()) {
+			unlock();
+			return true;
+		}
+		return false;
+	}
 }

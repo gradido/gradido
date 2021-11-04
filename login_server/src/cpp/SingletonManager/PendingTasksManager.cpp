@@ -203,7 +203,7 @@ void PendingTasksManager::checkForFinishedTasks(Poco::Timer& timer)
 						removeIt = true;
 					}
 				}
-				if (removeIt) {
+				if (removeIt && transaction->canBeLocked()) {
 					transaction->deleteFromDB();
 					list_it = list->erase(list_it);
 					if (!list->size() || list_it == list->end()) break;
