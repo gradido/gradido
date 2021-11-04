@@ -344,7 +344,7 @@ jobs:
           report_name: Coverage Frontend
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 83
+          min_coverage: 85
           token: ${{ github.token }}
   
   ##############################################################################
@@ -353,7 +353,7 @@ jobs:
   unit_test_backend:
     name: Unit tests - Backend
     runs-on: ubuntu-latest
-    needs: [build_test_backend]
+    needs: [build_test_backend,build_test_mariadb]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -363,6 +363,13 @@ jobs:
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
+      - name: Download Docker Image (Mariadb)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-mariadb-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/mariadb.tar
       - name: Download Docker Image (Backend)
         uses: actions/download-artifact@v2
         with:
@@ -373,10 +380,11 @@ jobs:
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
-      - name: backend | Unit tests
-        run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/backend:test yarn run test
-          cp -r ~/coverage ./coverage
+      - name: backend | docker-compose
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database
+      - name: backend Unit tests | test
+        run: cd database && yarn && cd ../backend && yarn && yarn test  
+        # run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
       ##########################################################################
@@ -385,8 +393,8 @@ jobs:
         with:
           report_name: Coverage Backend
           type: lcov
-          result_path: ./coverage/lcov.info
-          min_coverage: 1
+          result_path: ./backend/coverage/lcov.info
+          min_coverage: 45
           token: ${{ github.token }}
 
   ##############################################################################
