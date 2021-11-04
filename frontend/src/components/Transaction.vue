@@ -1,13 +1,10 @@
 <template>
   <div>
     <div class="list-group">
-      <div class="list-group-item gdt-transaction-list-item" v-b-toggle="'a' + date + ''">
+      <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
         <!-- icon  -->
         <div class="text-right" style="position: absolute">
-          <b-icon
-            :icon="getLinesByType(gdtEntryType).icon"
-            :class="getLinesByType(gdtEntryType).iconclasses"
-          ></b-icon>
+          <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
         </div>
 
         <!-- collaps Button  -->
@@ -20,10 +17,10 @@
         <!-- type  -->
         <b-row>
           <b-col cols="6" class="text-right">
-            {{ getLinesByType(gdtEntryType).description }}
+            {{ getLinesByType.description }}
           </b-col>
           <b-col cols="6">
-            {{ getLinesByType(gdtEntryType).descriptiontext }}
+            {{ getLinesByType.descriptiontext }}
           </b-col>
         </b-row>
 
@@ -33,7 +30,7 @@
             {{ $t('gdt.credit') }}
           </b-col>
           <b-col cols="6">
-            {{ getLinesByType(gdtEntryType).credittext }}
+            {{ getLinesByType.credittext }}
           </b-col>
         </b-row>
 
@@ -58,7 +55,7 @@
         </b-row>
 
         <!-- collaps trancaction info-->
-        <b-collapse :id="'a' + date + ''" class="mt-2 pb-4">
+        <b-collapse :id="collapseId" class="mt-2 pb-4">
           <transaction-collapse
             :amount="amount"
             :gdtEntryType="gdtEntryType"
@@ -86,15 +83,17 @@ export default {
     gdtEntryType: { type: String, default: GdtEntryType.FORM },
     factor: { type: Number },
     gdt: { type: Number },
+    id: { type: Number },
   },
   computed: {
-    isGlobalModificator: function () {
+    collapseId() {
+      return 'gdt-collapse-' + String(this.id)
+    },
+    isGlobalModificator() {
       return this.gdtEntryType === GdtEntryType.GLOBAL_MODIFICATOR
     },
-  },
-  methods: {
-    getLinesByType(givenType) {
-      switch (givenType) {
+    getLinesByType() {
+      switch (this.gdtEntryType) {
         case GdtEntryType.FORM:
         case GdtEntryType.CVS:
         case GdtEntryType.ELOPAGE:
@@ -127,7 +126,7 @@ export default {
           }
         }
         default:
-          throw new Error('no lines for this type: ' + givenType)
+          throw new Error('no lines for this type: ' + this.gdtEntryType)
       }
     },
   },

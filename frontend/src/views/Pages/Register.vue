@@ -205,12 +205,6 @@ export default {
           },
         })
         .then(() => {
-          this.form.email = ''
-          this.form.firstname = ''
-          this.form.lastname = ''
-          this.form.password.password = ''
-          this.form.password.passwordRepeat = ''
-          this.language = ''
           this.$router.push('/thx/register')
         })
         .catch((error) => {
@@ -226,7 +220,6 @@ export default {
       this.form.lastname = ''
       this.form.password.password = ''
       this.form.password.passwordRepeat = ''
-      this.language = ''
     },
   },
   computed: {

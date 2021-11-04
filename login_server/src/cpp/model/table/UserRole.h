@@ -4,7 +4,6 @@
 #include "ModelBase.h"
 #include "Poco/Types.h"
 #include "Poco/Tuple.h"
-//#include "Roles.h"
 
 namespace model {
 	namespace table {
@@ -25,7 +24,7 @@ namespace model {
 			UserRole();
 
 			// generic db operations
-			const char* getTableName() const { return "user_roles"; }
+			const char* getTableName() const { return "login_user_roles"; }
 			std::string toString();
 
 			inline int getUserId() const { return mUserId; }

@@ -198,4 +198,8 @@ export default {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+.gdd-transaction-list-item {
+  outline: none !important;
+}
 </style>
