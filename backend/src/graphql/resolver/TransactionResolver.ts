@@ -35,6 +35,29 @@ import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { from_hex as fromHex } from 'libsodium-wrappers'
 
+const sendEMail = async (emailDef: any): Promise<boolean> => {
+  if (!CONFIG.EMAIL) {
+    // eslint-disable-next-line no-console
+    console.log('Emails are disabled via config')
+    return false
+  }
+  const transporter = createTransport({
+    host: CONFIG.EMAIL_SMTP_URL,
+    port: Number(CONFIG.EMAIL_SMTP_PORT),
+    secure: false, // true for 465, false for other ports
+    requireTLS: true,
+    auth: {
+      user: CONFIG.EMAIL_USERNAME,
+      pass: CONFIG.EMAIL_PASSWORD,
+    },
+  })
+  const info = await transporter.sendMail(emailDef)
+  if (!info.messageId) {
+    throw new Error('error sending notification email, but transaction succeed')
+  }
+  return true
+}
+
 // Helper function
 async function calculateAndAddDecayTransactions(
   userTransactions: dbUserTransaction[],
@@ -286,48 +309,93 @@ async function addUserTransaction(
   })
 }
 
-// helper function
-/**
- *
- * @param senderPublicKey as hex string
- * @param recipiantPublicKey as hex string
- * @param amount as float
- * @param memo
- * @param groupId
- */
-async function sendCoins(
-  senderUser: dbUser,
-  recipiantPublicKey: string,
-  amount: number,
-  memo: string,
-  groupId = 0,
-): Promise<boolean> {
-  if (senderUser.pubkey.length !== 32) {
-    throw new Error('invalid sender public key')
+async function getPublicKey(email: string, sessionId: number): Promise<string | undefined> {
+  const result = await apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', {
+    session_id: sessionId,
+    email,
+    ask: ['user.pubkeyhex'],
+  })
+  if (result.success) {
+    return result.data.userData.pubkeyhex
   }
-  if (!isHexPublicKey(recipiantPublicKey)) {
-    throw new Error('invalid recipiant public key')
-  }
-  if (amount <= 0) {
-    throw new Error('invalid amount')
-  }
-  if (!hasUserAmount(senderUser, amount)) {
-    throw new Error("user hasn't enough GDD")
+}
+
+@Resolver()
+export class TransactionResolver {
+  @Authorized()
+  @Query(() => TransactionList)
+  async transactionList(
+    @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    @Ctx() context: any,
+  ): Promise<TransactionList> {
+    // load user
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+
+    const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
+
+    // get gdt sum
+    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+      email: userEntity.email,
+    })
+    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
+    transactions.gdtSum = resultGDTSum.data.sum || 0
+
+    // get balance
+    const balanceRepository = getCustomRepository(BalanceRepository)
+    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
+    if (balanceEntity) {
+      const now = new Date()
+      transactions.balance = roundFloorFrom4(balanceEntity.amount)
+      transactions.decay = roundFloorFrom4(
+        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+      )
+      transactions.decayDate = now.toString()
+    }
+
+    return transactions
   }
 
-  const userRepository = getCustomRepository(UserRepository)
-  const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
-  if (recipiantUser && recipiantUser.disabled) {
-    throw new Error('recipiant user account is disabled')
-  }
+  @Authorized()
+  @Mutation(() => String)
+  async sendCoins(
+    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Ctx() context: any,
+  ): Promise<string> {
+    // validate sender user (logged in)
+    const userRepository = getCustomRepository(UserRepository)
+    const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
+    if (senderUser.pubkey.length !== 32) {
+      throw new Error('invalid sender public key')
+    }
+    if (!hasUserAmount(senderUser, amount)) {
+      throw new Error("user hasn't enough GDD")
+    }
 
-  const centAmount = Math.trunc(amount * 10000)
+    // validate recipient user
+    // TODO: the detour over the public key is unnecessary
+    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
+    if (!recipiantPublicKey) {
+      throw new Error('recipiant not known')
+    }
+    if (!isHexPublicKey(recipiantPublicKey)) {
+      throw new Error('invalid recipiant public key')
+    }
+    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
+    if (!recipiantUser) {
+      throw new Error('Cannot find recipiant user by local send coins transaction')
+    } else if (recipiantUser.disabled) {
+      throw new Error('recipiant user account is disabled')
+    }
 
-  // no group id is given so we assume it is a local transfer
-  if (!groupId) {
+    // validate amount
+    if (amount <= 0) {
+      throw new Error('invalid amount')
+    }
+
+    const centAmount = Math.trunc(amount * 10000)
+
     const queryRunner = getConnection().createQueryRunner()
-    // belong to debugging mysql query / typeorm line
-    // const startTime = new Date()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
@@ -335,16 +403,14 @@ async function sendCoins(
       let transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
+
+      // TODO: NO! this is problematic in its construction
       const insertResult = await queryRunner.manager.insert(dbTransaction, transaction)
       transaction = await queryRunner.manager
         .findOneOrFail(dbTransaction, insertResult.generatedMaps[0].id)
         .catch((error) => {
           throw new Error('error loading saved transaction: ' + error)
         })
-
-      if (!recipiantUser) {
-        throw new Error('Cannot find recipiant user by local send coins transaction')
-      }
 
       // update state balance
       const senderStateBalance = await updateStateBalance(
@@ -399,156 +465,30 @@ async function sendCoins(
       })
 
       await queryRunner.commitTransaction()
-
-      // great way de debug mysql querys / typeorm
-      // const result = await queryRunner.query("SELECT * FROM mysql.general_log WHERE thread_id IN (SELECT ID FROM information_schema.processlist WHERE DB = 'gradido_community') AND event_time > ?; ", [startTime])
-      // console.log("start time: %o, transaction log: %o", startTime.getTime(), result)
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      const count = await queryRunner.manager.count(dbTransaction)
-      // fix autoincrement value which seems not effected from rollback
-      await queryRunner
-        .query('ALTER TABLE `transactions` auto_increment = ?', [count])
-        .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log('problems with reset auto increment: %o', error)
-        })
-
       throw e
     } finally {
-      // you need to release query runner which is manually created:
       await queryRunner.release()
     }
     // send notification email
-    if (CONFIG.EMAIL) {
-      const transporter = createTransport({
-        host: CONFIG.EMAIL_SMTP_URL,
-        port: Number(CONFIG.EMAIL_SMTP_PORT),
-        secure: false, // true for 465, false for other ports
-        requireTLS: true,
-        auth: {
-          user: CONFIG.EMAIL_USERNAME,
-          pass: CONFIG.EMAIL_PASSWORD,
-        },
-      })
-
-      // send mail with defined transport object
-      // TODO: translate
-      const info = await transporter.sendMail({
-        from: 'Gradido (nicht antworten) <' + CONFIG.EMAIL_SENDER + '>', // sender address
-        to:
-          recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>', // list of receivers
-        subject: 'Gradido Überweisung', // Subject line
-        text:
-          'Hallo ' +
-          recipiantUser.firstName +
-          ' ' +
-          recipiantUser.lastName +
-          ',\n\n' +
-          'Du hast soeben ' +
-          amount +
-          ' GDD von ' +
-          senderUser.firstName +
-          ' ' +
-          senderUser.lastName +
-          ' erhalten.\n' +
-          senderUser.firstName +
-          ' ' +
-          senderUser.lastName +
-          ' schreibt: \n\n' +
-          memo +
-          '\n\n' +
-          'Bitte antworte nicht auf diese E-Mail!\n\n' +
-          'Mit freundlichen Grüßenņ Gradido Community Server', // plain text body
-      })
-      if (!info.messageId) {
-        throw new Error('error sending notification email, but transaction succeed')
-      }
-    }
-  }
-  return true
-}
-
-// helper function
-// target can be email, username or public_key
-// groupId if not null and another community, try to get public key from there
-async function getPublicKey(target: string, sessionId: number): Promise<string | undefined> {
-  // if it is already a public key, return it
-  if (isHexPublicKey(target)) {
-    return target
-  }
-
-  // assume it is a email address if it's contain a @
-  if (/@/i.test(target)) {
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', {
-      session_id: sessionId,
-      email: target,
-      ask: ['user.pubkeyhex'],
+    // TODO: translate
+    await sendEMail({
+      from: 'Gradido (nicht antworten) <' + CONFIG.EMAIL_SENDER + '>',
+      to: recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>',
+      subject: 'Gradido Überweisung',
+      text: `Hallo ${recipiantUser.firstName} ${recipiantUser.lastName}
+      
+      Du hast soeben ${amount} GDD von ${senderUser.firstName} ${senderUser.lastName} erhalten.
+      ${senderUser.firstName} ${senderUser.lastName} schreibt:
+      
+      ${memo}
+      
+      Bitte antworte nicht auf diese E-Mail!
+      
+      Mit freundlichen Grüßen Gradido Community Server`,
     })
-    if (result.success) {
-      return result.data.userData.pubkeyhex
-    }
-  }
 
-  // if username is used add code here
-
-  // if we have multiple communities add code here
-
-  return undefined
-}
-
-@Resolver()
-export class TransactionResolver {
-  @Authorized()
-  @Query(() => TransactionList)
-  async transactionList(
-    @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Ctx() context: any,
-  ): Promise<TransactionList> {
-    // load user
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-
-    const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
-
-    // get gdt sum
-    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-      email: userEntity.email,
-    })
-    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = resultGDTSum.data.sum || 0
-
-    // get balance
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
-    if (balanceEntity) {
-      const now = new Date()
-      transactions.balance = roundFloorFrom4(balanceEntity.amount)
-      transactions.decay = roundFloorFrom4(
-        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
-      )
-      transactions.decayDate = now.toString()
-    }
-
-    return transactions
-  }
-
-  @Authorized()
-  @Mutation(() => String)
-  async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
-    @Ctx() context: any,
-  ): Promise<string> {
-    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
-    if (!recipiantPublicKey) {
-      throw new Error('recipiant not known')
-    }
-
-    // load logged in user
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-
-    await sendCoins(userEntity, recipiantPublicKey, amount, memo)
     return 'success'
   }
 }
