@@ -33,7 +33,8 @@ services:
     ports: 
       - 3306:3306
     volumes: 
-      - db_test_vol:/var/lib/mysql     
+      - db_test_vol:/var/lib/mysql
+    restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## LOGIN SERVER #########################################
