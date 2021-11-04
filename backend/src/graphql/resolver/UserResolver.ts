@@ -29,6 +29,7 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBackup'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 
 // TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
 // import {
@@ -43,6 +44,8 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 // } from 'sodium-native'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const random = require('random-bigint')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
@@ -374,16 +377,23 @@ export class UserResolver {
         throw new Error('error saving user')
       })
 
-      // TODO: send EMail (EMAIL_OPT_IN_REGISTER)
-      // const emailType = 2
-      // auto emailOptIn = controller::EmailVerificationCode::create(userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-      //     auto code = createEmailVerificationCode();
-      //     auto db = new model::table::EmailOptIn(code, userModel->getID(), model::table::EMAIL_OPT_IN_REGISTER);
-      // auto emailOptInModel = emailOptIn->getModel();
-      // if (!emailOptInModel->insertIntoDB(false)) {
-      //	emailOptInModel->sendErrorsAsEmail();
-      //	return stateError("insert emailOptIn failed");
-      // }
+      // Store EmailOptIn in DB
+      const emailOptIn = new LoginEmailOptIn()
+      emailOptIn.userId = loginUserId
+      emailOptIn.verificationCode = random(64) // TODO generate verificationCode
+      emailOptIn.emailOptInTypeId = 2
+
+      await queryRunner.manager.save(emailOptIn).catch((error) => {
+        // TODO: Send error email instead of throw error
+        // if (!emailOptInModel->insertIntoDB(false)) {
+        //	emailOptInModel->sendErrorsAsEmail();
+        //	return stateError("insert emailOptIn failed");
+        // }
+        // eslint-disable-next-line no-console
+        console.log('Error while saving emailOptIn', error)
+        throw new Error('error saving email opt in')
+      })
+      // TODO: Send EmailOptIn to user.email
       // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
       // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
       await queryRunner.commitTransaction()
