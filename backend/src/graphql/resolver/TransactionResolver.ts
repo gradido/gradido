@@ -77,8 +77,8 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 >> Verify you have 3 entries in `login_users`, `login_user_backups` and `state_users` 
 
 ### make creator an admin
-> INSERT INTO login_user_roles (id, user_id, role_id) VALUES (NULL, '4', '1');
-> UPDATE login_users SET email_checked = 1 WHERE id = 4;
+> INSERT INTO login_user_roles (id, user_id, role_id) VALUES (NULL, '3', '1');
+> UPDATE login_users SET email_checked = 1 WHERE id = 3;
 > uncomment line: 19 in community_server/src/Controller/ServerUsersController.php
 > chromium http://localhost/server-users/add
 > create user `creator` `123` `creator@different.net`
@@ -124,6 +124,81 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 > select custom
 > untick structure
 > ok
+
+## Results
+NOTE: We decided not to write the `transaction_signatures` since its unused. This is the main difference.
+NOTE: We fixed a bug in the `state_user_transactions code` with the new implementation of apollo
+
+
+Master:
+
+--
+-- Dumping data for table `state_user_transactions`
+--
+
+INSERT INTO `state_user_transactions` (`id`, `state_user_id`, `transaction_id`, `transaction_type_id`, `balance`, `balance_date`) VALUES
+(1, 2, 1, 1, 10000000, '2021-11-05 12:45:18'),
+(2, 2, 2, 2, 9900000, '2021-11-05 12:48:35'),
+(3, 1, 2, 2, 100000, '2021-11-05 12:48:35'),
+(4, 2, 3, 2, 9800000, '2021-11-05 12:49:07'),
+(5, 1, 3, 2, 200000, '2021-11-05 12:49:07'),
+(6, 2, 5, 2, 9699845, '2021-11-05 13:03:50'),
+(7, 1, 5, 2, 99996, '2021-11-05 13:03:50');
+
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `state_group_id`, `transaction_type_id`, `tx_hash`, `memo`, `received`, `blockchain_type_id`) VALUES
+(1, NULL, 1, 0x9ccdcd01ccb6320c09c2d1da2f0bf735a95ece0e7c1df6bbff51918fbaec061700000000000000000000000000000000, '', '2021-11-05 12:45:18', 1),
+(2, NULL, 2, 0x58d7706a67fa4ff4b8038168c6be39a2963d7e28e9d3872759ad09c519fe093700000000000000000000000000000000, 'Hier!', '2021-11-05 12:48:35', 1),
+(3, NULL, 2, 0x427cd214f92ef35af671129d50edc5a478c53d1e464f285b7615d9794a69f69b00000000000000000000000000000000, 'Hier!', '2021-11-05 12:49:07', 1),
+(4, NULL, 9, 0x32807368f0906a21b94c072599795bc9eeab88fb565df82e85cc62a4fdcde48500000000000000000000000000000000, '', '2021-11-05 12:51:51', 1),
+(5, NULL, 2, 0x75eb729e0f60a1c8cead1342955853d2440d7a2ea57dfef6d4a18bff0d94491e00000000000000000000000000000000, 'Hier!', '2021-11-05 13:03:50', 1);
+
+--
+-- Dumping data for table `transaction_signatures`
+--
+
+INSERT INTO `transaction_signatures` (`id`, `transaction_id`, `signature`, `pubkey`) VALUES
+(1, 1, 0x5888edcdcf77aaadad6d321882903bc831d7416f17213fd5020a764365b5fcb336e4c7917385a1278ea44ccdb31eac4a09e448053b5e3f8f1fe5da3baf53c008, 0xd5b20f8dee415038bfa2b6b0e1b40ff54850351109444863b04d6d28825b7b7d),
+(2, 2, 0xf6fef428f8f22faf7090f7d740e6088d1d90c58ae92d757117d7d91d799e659f3a3a0c65a3fd97cbde798e761f9d23eff13e8810779a184c97c411f28e7c4608, 0xdc74a589004377ab14836dce68ce2ca34e5b17147cd78ad4b3afe8137524ae8a),
+(3, 3, 0x8ebe9730c6cf61f56ef401d6f2bd229f3c298ca3c2791ee9137e4827b7af6c6d6566fca616eb1fe7adc2e4d56b5c7350ae3990c9905580630fa75ecffca8e001, 0xdc74a589004377ab14836dce68ce2ca34e5b17147cd78ad4b3afe8137524ae8a),
+(4, 5, 0x50cf418f7e217391e89ab9c2879ae68d7c7c597d846b4fe1c082b5b16e5d0c85c328fbf48ad3490bcfe94f446700ae0a4b0190e76d26cc752abced58f480c80f, 0xdc74a589004377ab14836dce68ce2ca34e5b17147cd78ad4b3afe8137524ae8a);
+
+This Feature Branch:
+
+
+--
+-- Dumping data for table `state_user_transactions`
+--
+
+INSERT INTO `state_user_transactions` (`id`, `state_user_id`, `transaction_id`, `transaction_type_id`, `balance`, `balance_date`) VALUES
+(1, 2, 1, 1, 10000000, '2021-11-05 00:25:46'),
+(12, 2, 7, 2, 9900000, '2021-11-05 00:55:37'),
+(13, 1, 7, 2, 100000, '2021-11-05 00:55:37'),
+(14, 2, 8, 2, 9800000, '2021-11-05 01:00:04'),
+(15, 1, 8, 2, 200000, '2021-11-05 01:00:04'),
+(16, 2, 10, 2, 9699772, '2021-11-05 01:17:41'),
+(17, 1, 10, 2, 299995, '2021-11-05 01:17:41');
+
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `state_group_id`, `transaction_type_id`, `tx_hash`, `memo`, `received`, `blockchain_type_id`) VALUES
+(1, NULL, 1, 0xdd030d475479877587d927ed9024784ba62266cf1f3d87862fc98ad68f7b26e400000000000000000000000000000000, '', '2021-11-05 00:25:46', 1),
+(7, NULL, 2, NULL, 'Hier!', '2021-11-05 00:55:37', 1),
+(8, NULL, 2, NULL, 'Hier!', '2021-11-05 01:00:04', 1),
+(9, NULL, 9, 0xb1cbedbf126aa35f5edbf06e181c415361d05228ab4da9d19a4595285a673dfa00000000000000000000000000000000, '', '2021-11-05 01:05:34', 1),
+(10, NULL, 2, NULL, 'Hier!', '2021-11-05 01:17:41', 1);
+
+--
+-- Dumping data for table `transaction_signatures`
+--
+
+INSERT INTO `transaction_signatures` (`id`, `transaction_id`, `signature`, `pubkey`) VALUES
+(1, 1, 0x60d632479707e5d01cdc32c3326b5a5bae11173a0c06b719ee7b552f9fd644de1a0cd4afc207253329081d39dac1a63421f51571d836995c649fc39afac7480a, 0x48c45cb4fea925e83850f68f2fa8f27a1a4ed1bcba68cdb59fcd86adef3f52ee);
 */
 
 const sendEMail = async (emailDef: any): Promise<boolean> => {
