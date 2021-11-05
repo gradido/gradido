@@ -86,7 +86,7 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 > create user `creator` `123` `creator@different.net`
 >> verify you have 1 entry in `server_users`
 > login with user on http://localhost/server-users
-> activate server user by changing the corespondign flag in the interface
+> activate server user by changing the corresponding flag in the interface
 > navigate to http://localhost/transaction-creations/create-multi
 > create 1000GDD for user sender@user.net
 > navigate to http://localhost
@@ -106,7 +106,16 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 > login with `creator` `123`
 > select `decay start`
 > press submit
-> wait for at least 0.02 display of decay on user sender@user.net on old frontend
+> wait for at least 0.02 display of decay on user sender@user.net on old frontend, this should be aprox 10min
+> chromium http://localhost:4000/graphql
+> query{login(email: "sender@user.net", password: "123!AAAb"){pubkey}}
+>> copy token from network tab (inspect)
+> mutation{sendCoins(email: "receiver@user.net", amount: 10.0, memo: "Hier!")}
+>> verify in `transaction_send_coins` that a decay was taken into account
+>> same in `state_balances`
+>> now check the old frontend
+>>> sender@user.net should have a decay of 0.02
+>>> while receiver@user.net should have zero decay on anything (old frontend)
 
 */
 
