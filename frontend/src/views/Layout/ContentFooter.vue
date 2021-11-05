@@ -56,10 +56,12 @@
         </b-nav>
       </b-col>
     </b-row>
+    <decay-calculator />
   </footer>
 </template>
 <script>
 import CONFIG from '../../config'
+import DecayCalculator from '../../components/DecayCalculator/DecayCalculator.vue'
 
 export default {
   data() {
@@ -69,6 +71,9 @@ export default {
       hash: CONFIG.BUILD_COMMIT,
       shortHash: CONFIG.BUILD_COMMIT_SHORT,
     }
+  },
+  components: {
+    DecayCalculator,
   },
 }
 </script>
