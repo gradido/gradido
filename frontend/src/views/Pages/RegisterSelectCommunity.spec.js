@@ -1,5 +1,4 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import flushPromises from 'flush-promises'
 import RegisterSelectCommunity from './RegisterSelectCommunity'
 
 const localVue = global.localVue
@@ -96,6 +95,7 @@ describe('RegisterSelectCommunity', () => {
       wrapper = Wrapper()
     })
 
+    // TODO: Tests so that resolved value order is followed
     it('commits the community info to the store', () => {
       expect(mockStoreCommit).toBeCalledWith('community', {
         name: 'test12',
@@ -131,10 +131,48 @@ describe('RegisterSelectCommunity', () => {
         jest.clearAllMocks()
         mocks.$store.state.community = {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register-community',
         }
+        apolloQueryMock
+          .mockResolvedValueOnce({
+            data: {
+              getCommunityInfo: {
+                name: 'Gradido Entwicklung',
+                url: 'http://localhost/vue/',
+                registerUrl: 'http://localhost/vue/register',
+                description: 'Die lokale Entwicklungsumgebung von Gradido.',
+              },
+            },
+          })
+          .mockResolvedValue({
+            data: {
+              communities: [
+                {
+                  id: 1,
+                  name: 'Gradido Entwicklung',
+                  description: 'Die lokale Entwicklungsumgebung von Gradido.',
+                  url: 'http://localhost/vue/',
+                  registerUrl: 'http://localhost/vue/register-community',
+                },
+                {
+                  id: 2,
+                  name: 'Gradido Staging',
+                  description: 'Der Testserver der Gradido-Akademie.',
+                  url: 'https://stage1.gradido.net/vue/',
+                  registerUrl: 'https://stage1.gradido.net/vue/register-community',
+                },
+                {
+                  id: 3,
+                  name: 'Gradido-Akademie',
+                  description: 'Freies Institut für Wirtschaftsbionik.',
+                  url: 'https://gradido.net',
+                  registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+                },
+              ],
+            },
+          })
         wrapper = Wrapper()
       })
 
@@ -151,6 +189,28 @@ describe('RegisterSelectCommunity', () => {
 
     describe('calls the apollo query', () => {
       describe('server returns data', () => {
+        beforeEach(async () => {
+          wrapper = Wrapper()
+          await wrapper.setProps({
+            communities: [
+              {
+                id: 2,
+                name: 'Gradido Staging',
+                description: 'Der Testserver der Gradido-Akademie.',
+                url: 'https://stage1.gradido.net/vue/',
+                registerUrl: 'https://stage1.gradido.net/vue/register-community',
+              },
+              {
+                id: 3,
+                name: 'Gradido-Akademie',
+                description: 'Freies Institut für Wirtschaftsbionik.',
+                url: 'https://gradido.net',
+                registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+              },
+            ],
+          })
+        })
+
         it('calls the API to get the data', () => {
           expect(apolloQueryMock).toBeCalled()
         })
@@ -166,6 +226,7 @@ describe('RegisterSelectCommunity', () => {
 
       describe('server response is error', () => {
         beforeEach(() => {
+          jest.clearAllMocks()
           apolloQueryMock.mockRejectedValue({
             message: 'Wrong thing',
           })
