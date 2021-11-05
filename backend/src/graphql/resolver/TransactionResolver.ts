@@ -52,8 +52,6 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 
 >> Database is cool
 
-
-
 ### Start login server
 > docker-compose up login-server community-server nginx
 >> Login & community servers and nginx proxy are up and running
@@ -98,6 +96,7 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 > query{login(email: "sender@user.net", password: "123!AAAb"){pubkey}}
 >> copy token from network tab (inspect)
 > mutation{sendCoins(email: "receiver@user.net", amount: 10.0, memo: "Hier!")}
+> mutation{sendCoins(email: "receiver@user.net", amount: 10.0, memo: "Hier!")}
 > Headers: {"Authorization": "Bearer ${token}"}
 >> Verify via Database that stuff is as it should see `state_balance` & `transaction_send_coins`
 
@@ -117,6 +116,14 @@ INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `descr
 >>> sender@user.net should have a decay of 0.02
 >>> while receiver@user.net should have zero decay on anything (old frontend)
 
+### Export data
+> docker-compose up phpmyadmin
+> chromium http://localhost:8074/
+> select gradido_community
+> export
+> select custom
+> untick structure
+> ok
 */
 
 const sendEMail = async (emailDef: any): Promise<boolean> => {
