@@ -35,6 +35,81 @@ import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { from_hex as fromHex } from 'libsodium-wrappers'
 
+/*
+# Test
+
+## Prepare
+> sudo systemctl start docker
+> docker-compose up mariadb
+> DROP all databases
+> docker-compose down
+> docker compose up mariadb database
+> verify there is exactly one database `gradido_community`
+
+TODO:
+INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `host`, `home`, `description`) VALUES
+  (1, 'docker', 'docker gradido group', 'localhost', 'nginx', '/', 'gradido test group for docker and stage2 with blockchain db');
+
+>> Database is cool
+
+
+
+### Start login server
+> docker-compose up login-server community-server nginx
+>> Login & community servers and nginx proxy are up and running
+
+## Build database
+> cd database
+> yarn
+> yarn build
+> cd ..
+>> Database has been built successful
+
+### Start backend (no docker for debugging)
+> cd backend
+> yarn
+> yarn dev
+>> Backend is up and running
+
+### Create users
+> chromium http://localhost:4000/graphql
+> mutation{createUser(email: "receiver@user.net", firstName: "Receiver", lastName: "user", password: "123!AAAb", language: "de")}
+> mutation{createUser(email: "sender@user.net", firstName: "Sender", lastName: "user", password: "123!AAAb", language: "de")}
+> mutation{createUser(email: "creator@user.net", firstName: "Creator", lastName: "user", password: "123!AAAb", language: "de")}
+>> Verify you have 3 entries in `login_users`, `login_user_backups` and `state_users` 
+
+### make creator an admin
+> INSERT INTO login_user_roles (id, user_id, role_id) VALUES (NULL, '4', '1');
+> UPDATE login_users SET email_checked = 1 WHERE id = 4;
+> uncomment line: 19 in community_server/src/Controller/ServerUsersController.php
+> chromium http://localhost/server-users/add
+> create user `creator` `123` `creator@different.net`
+>> verify you have 1 entry in `server_users`
+> login with user on http://localhost/server-users
+> activate server user by changing the corespondign flag in the interface
+> navigate to http://localhost/transaction-creations/create-multi
+> create 1000GDD for user sender@user.net
+> navigate to http://localhost
+> login with `creator@user.net` `123!AAAb` 
+> confirm transaction (top right corner - click the thingy, click the green button `Transaktion abschließen`)
+
+### the test:
+> chromium http://localhost:4000/graphql
+> query{login(email: "sender@user.net", password: "123!AAAb"){pubkey}}
+>> copy token from network tab (inspect)
+> mutation{sendCoins(email: "receiver@user.net", amount: 10.0, memo: "Hier!")}
+> Headers: {"Authorization": "Bearer ${token}"}
+>> Verify via Database that stuff is as it should see `state_balance` & `transaction_send_coins`
+
+### create decay block
+> chromium http://localhost/transactions/add
+> login with `creator` `123`
+> select `decay start`
+> press submit
+> wait for at least 0.02 display of decay on user sender@user.net on old frontend
+
+*/
+
 const sendEMail = async (emailDef: any): Promise<boolean> => {
   if (!CONFIG.EMAIL) {
     // eslint-disable-next-line no-console
@@ -362,6 +437,7 @@ export class TransactionResolver {
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: any,
   ): Promise<string> {
+    // TODO this is subject to replay attacks
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
     const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
