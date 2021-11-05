@@ -1,14 +1,98 @@
 <template>
   <div id="decay_calculator">
     <div>
-      <b-calendar v-model="value" :min="min" locale="en" v-on:selected="getDays"></b-calendar>
+      <!--<b-calendar v-model="value" :min="min" locale="en" v-on:selected="getDays"></b-calendar>-->
+      <label for="gdd-input">
+        Datum ab heute ({{ $moment(min).format('DD-MM-YYYY') }})
+        <br />
+        bis
+      </label>
+      <b-input-group class="mb-3">
+        <b-form-input
+          id="example-input1"
+          v-model="value"
+          type="text"
+          placeholder="DD-MM-YYYY"
+          autocomplete="off"
+        ></b-form-input>
+        <b-input-group-append>
+          <b-form-datepicker
+            v-model="value"
+            :min="min"
+            button-only
+            right
+            locale="de-DE"
+            aria-controls="example-input1"
+            @context="getDays"
+          ></b-form-datepicker>
+        </b-input-group-append>
+      </b-input-group>
     </div>
-    <b>{{ gdd }} GDD</b>
-    <div>days: {{ days }}</div>
-    <div>seconds: {{ seconds }}</div>
+    <div v-if="decays > 0">
+      <b>{{ gdd }} GDD</b>
+      <div>days: {{ days }}</div>
+      <div>seconds: {{ seconds }}</div>
+      <div>
+        Vergänglichkeit:
+        <b>{{ decays }}</b>
+      </div>
+    </div>
+    <hr />
+
     <div>
-      Vergänglichkeit:
-      <b>{{ decays }}</b>
+      <label for="gdd-input">GDD Amount</label>
+      <b-input type="text" v-model="gddInput"></b-input>
+      <label for="example-input">from</label>
+      <b-input-group class="mb-3">
+        <b-form-input
+          id="example-input2"
+          v-model="valueFrom"
+          type="text"
+          placeholder="DD-MM-YYYY"
+          autocomplete="off"
+        ></b-form-input>
+        <b-input-group-append>
+          <b-form-datepicker
+            v-model="valueFrom"
+            button-only
+            right
+            locale="de-DE"
+            aria-controls="example-input2"
+          ></b-form-datepicker>
+        </b-input-group-append>
+      </b-input-group>
+    </div>
+
+    <div>
+      <label for="example-input">to</label>
+      <b-input-group class="mb-3">
+        <b-form-input
+          id="example-input3"
+          v-model="valueTo"
+          type="text"
+          placeholder="DD-MM-YYYY"
+          autocomplete="off"
+        ></b-form-input>
+        <b-input-group-append>
+          <b-form-datepicker
+            v-model="valueTo"
+            button-only
+            right
+            locale="de-DE"
+            aria-controls="example-input3"
+            @context="onContext"
+          ></b-form-datepicker>
+        </b-input-group-append>
+      </b-input-group>
+    </div>
+    <div v-if="decays2 > 0">
+      <p>From: {{ $moment(valueFrom).format('DD-MM-YYYY') }}</p>
+      <p>To: {{ $moment(valueTo).format('DD-MM-YYYY') }}</p>
+      <p>Days: {{ days2 }}</p>
+      <p>Seconds: {{ seconds2 }}</p>
+      <p>
+        <b>Vergänglichkeit: {{ decays2 }} GDD</b>
+      </p>
     </div>
   </div>
 </template>
@@ -24,8 +108,14 @@ export default {
       end: '',
       days: 0,
       seconds: 0,
+      days2: 0,
+      seconds2: 0,
       decays: 0,
+      decays2: 0,
       gdd: 1000,
+      valueFrom: '',
+      valueTo: '',
+      gddInput: 0,
     }
   },
   methods: {
@@ -36,6 +126,15 @@ export default {
       this.days = end.diff(start, 'days')
       this.seconds = end.diff(start, 'seconds')
       this.decays = this.gdd - this.gdd * Math.pow(0.99999997802044727, this.seconds)
+    },
+    onContext(ctx) {
+      const startfrom = this.$moment(this.valueFrom)
+      const endto = this.$moment(this.valueTo)
+
+      this.days2 = endto.diff(startfrom, 'days')
+      this.seconds2 = endto.diff(startfrom, 'seconds')
+
+      this.decays2 = this.gddInput - this.gddInput * Math.pow(0.99999997802044727, this.seconds2)
     },
   },
 }
