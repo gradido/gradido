@@ -14,6 +14,8 @@ import VueApollo from 'vue-apollo'
 import CONFIG from './config'
 
 import { BootstrapVue } from 'bootstrap-vue'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+import 'bootstrap/dist/css/bootstrap.css'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
