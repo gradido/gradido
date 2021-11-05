@@ -564,6 +564,17 @@ export class TransactionResolver {
       throw e
     } finally {
       await queryRunner.release()
+      // TODO: This is broken code - we should never correct an autoincrement index in production
+      // according to dario it is required tho to properly work. The index of the table is used as
+      // index for the transaction which requires a chain without gaps
+      const count = await queryRunner.manager.count(dbTransaction)
+      // fix autoincrement value which seems not effected from rollback
+      await queryRunner
+        .query('ALTER TABLE `transactions` auto_increment = ?', [count])
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.log('problems with reset auto increment: %o', error)
+        })
     }
     // send notification email
     // TODO: translate
