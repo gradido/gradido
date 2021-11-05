@@ -39,9 +39,18 @@ const community = {
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
 
+const email = {
+  EMAIL: process.env.EMAIL === 'true' || false,
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
+  EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
+  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
+  EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+}
+
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...community }
+const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...email }
 
 export default CONFIG
