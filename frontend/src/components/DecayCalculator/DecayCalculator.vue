@@ -1,3 +1,3 @@
 <template>
-  <div>Decay Calculator</div>
+  <div id="decay_calculator">Decay Calculator</div>
 </template>
