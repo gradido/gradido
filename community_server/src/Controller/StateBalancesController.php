@@ -315,6 +315,13 @@ class StateBalancesController extends AppController
         return ($a['date'] > $b['date']) ? -1 : 1;
     }
 
+    public function autoHealAllStateUserTransactions()
+    {
+        $this->viewBuilder()->setLayout('ajax');
+        $this->StateBalances->updateAllBalances();
+        return $this->returnJson(['state' => 'success']);
+    }
+
     /**
      * View method
      *
