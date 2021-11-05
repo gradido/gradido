@@ -131,7 +131,7 @@ describe('RegisterSelectCommunity', () => {
       })
     })
 
-    describe('Community Data', () => {
+    describe('Community data already loaded', () => {
       beforeEach(() => {
         jest.clearAllMocks()
         mocks.$store.state.community = {
