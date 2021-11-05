@@ -1,4 +1,5 @@
 import { Balance } from './Balance'
+import { LoginUser } from './LoginUser'
 import { Migration } from './Migration'
 import { Transaction } from './Transaction'
 import { TransactionCreation } from './TransactionCreation'
@@ -9,6 +10,7 @@ import { UserTransaction } from './UserTransaction'
 
 export const entities = [
   Balance,
+  LoginUser,
   Migration,
   Transaction,
   TransactionCreation,
