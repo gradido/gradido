@@ -49,12 +49,11 @@
   </div>
 </template>
 <script>
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
+
 export default {
   name: 'registerCommunity',
-  data() {
-    return {}
-  },
-  methods: {},
+  mixins: [getCommunityInfoMixin],
 }
 </script>
 <style></style>
