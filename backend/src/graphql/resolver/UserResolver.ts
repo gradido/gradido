@@ -30,17 +30,6 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 
-// TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
-// import {
-//  /* eslint-disable camelcase */
-//  randombytes_random,
-//  crypto_hash_sha512_instance,
-//  crypto_hash_sha512_BYTES,
-//  crypto_sign_seed_keypair,
-//  crypto_sign_PUBLICKEYBYTES,
-//  crypto_sign_SECRETKEYBYTES,
-//  /* eslint-enable camelcase */
-// } from 'sodium-native'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -143,7 +132,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 }
 
 const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  // TODO: put that in the actual config
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
@@ -287,8 +275,6 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const username = ''
-
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -306,6 +292,7 @@ export class UserResolver {
 
     // Validate username
     // TODO: never true
+    const username = ''
     if (username.length > 3 && !this.checkUsername({ username })) {
       throw new Error('Username already in use')
     }
