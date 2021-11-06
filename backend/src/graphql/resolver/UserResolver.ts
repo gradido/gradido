@@ -584,21 +584,3 @@ export class UserResolver {
     return result.data.hasElopage
   }
 }
-
-/*
-const rollbackAutoIncrement = async (
-  queryRunner: QueryRunner,
-  entity: typeof BaseEntity,
-  entityName: string,
-) => {
-  const count = await queryRunner.manager.count(entity)
-  const queryString = 'ALTER TABLE `' + entityName + '` auto_increment = ' + count
-  // eslint-disable-next-line no-console
-  console.log('Database AlterTable Query: ', queryString)
-  await queryRunner.query(queryString).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.log('problems with reset auto increment: %o', error)
-    throw new Error('Problems with reset auto increment: ' + error)
-  })
-}
-*/
