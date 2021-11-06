@@ -28,6 +28,7 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { sendEMail } from '../../util/sendEMail'
 
 // TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
 // import {
@@ -378,7 +379,7 @@ export class UserResolver {
       // Store EmailOptIn in DB
       const emailOptIn = new LoginEmailOptIn()
       emailOptIn.userId = loginUserId
-      emailOptIn.verificationCode = random(64) // TODO generate verificationCode
+      emailOptIn.verificationCode = random(64)
       emailOptIn.emailOptInTypeId = 2
 
       await queryRunner.manager.save(emailOptIn).catch((error) => {
@@ -386,9 +387,33 @@ export class UserResolver {
         console.log('Error while saving emailOptIn', error)
         throw new Error('error saving email opt in')
       })
-      // TODO: Send EmailOptIn to user.email
-      // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
-      // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+
+      // Send EMail to user
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /\$1/g,
+        emailOptIn.verificationCode.toString(),
+      )
+      const emailSent = await sendEMail({
+        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+        to: `${firstName} ${lastName} <${email}>`,
+        subject: 'Gradido: E-Mail Überprüfung',
+        text: `Hallo ${firstName} ${lastName},
+        
+        Deine EMail wurde soeben bei Gradido registriert.
+        
+        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
+        ${activationLink}
+        oder kopiere den obigen Link in dein Browserfenster.
+        
+        Mit freundlichen Grüßen,
+        dein Gradido-Team`,
+      })
+
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()

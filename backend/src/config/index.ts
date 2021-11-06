@@ -51,6 +51,9 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
+
+  EMAIL_LINK_VERIFICATION:
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
 }
 
 // This is needed by graphql-directive-auth
