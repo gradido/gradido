@@ -75,6 +75,10 @@ const routes = [
     path: '/checkEmail/:optin',
     component: () => import('../views/Pages/CheckEmail.vue'),
   },
+  {
+    path: '/calculator',
+    component: () => import('../views/Pages/DecayCalculationTool/DecayCalculationTool.vue'),
+  },
   { path: '*', component: NotFound },
 ]
 

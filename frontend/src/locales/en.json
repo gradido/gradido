@@ -42,6 +42,10 @@
     "total": "Total",
     "year": "Years"
   },
+  "decay-calculation": {
+    "date-from-today": "Date from today",
+    "decay-calculator": "Dacay calculator"
+  },
   "error": {
     "change-password": "Error while changing password",
     "error": "Error",

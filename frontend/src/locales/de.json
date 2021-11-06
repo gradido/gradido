@@ -42,6 +42,10 @@
     "total": "Gesamt",
     "year": "Jahre"
   },
+  "decay-calculation": {
+    "date-from-today": "Datum ab heute",
+    "decay-calculator": "Vergänglichkeitsrechner"
+  },
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
     "error": "Fehler",
@@ -74,7 +78,7 @@
     "sender": "Absender",
     "send_check": "Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
     "send_now": "Jetzt senden",
-    "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
+    "send_transaction_error": "Leider konnte die Transaktion nicht ausgTeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sorry": "Entschuldigung",
     "thx": "Danke",

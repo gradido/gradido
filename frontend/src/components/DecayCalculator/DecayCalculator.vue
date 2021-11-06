@@ -1,11 +1,10 @@
 <template>
   <div id="decay_calculator">
-    <div>
-      <!--<b-calendar v-model="value" :min="min" locale="en" v-on:selected="getDays"></b-calendar>-->
+    <!-- <div>
       <label for="gdd-input">
-        Datum ab heute ({{ $moment(min).format('DD-MM-YYYY') }})
+        {{ $t('decay-calculation.date-from-today') }} ({{ $moment(min).format('DD-MM-YYYY') }})
         <br />
-        bis
+        {{ $t('form.to') }}
       </label>
       <b-input-group class="mb-3">
         <b-form-input
@@ -27,22 +26,22 @@
           ></b-form-datepicker>
         </b-input-group-append>
       </b-input-group>
-    </div>
+    </div> -->
     <div v-if="decays > 0">
       <b>{{ gdd }} GDD</b>
-      <div>days: {{ days }}</div>
-      <div>seconds: {{ seconds }}</div>
+      <div>{{ $t('decay.days') }}: {{ days }}</div>
+      <div>{{ $t('decay.seconds') }}: {{ seconds }}</div>
       <div>
-        Vergänglichkeit:
+        {{ $t('decay.decay') }}:
         <b>{{ decays }}</b>
       </div>
     </div>
     <hr />
 
     <div>
-      <label for="gdd-input">GDD Amount</label>
+      <label for="gdd-input">{{ $t('form.amount') }} GDD</label>
       <b-input type="text" v-model="gddInput"></b-input>
-      <label for="example-input">from</label>
+      <label for="example-input">{{ $t('form.from') }}</label>
       <b-input-group class="mb-3">
         <b-form-input
           id="example-input2"
@@ -86,12 +85,12 @@
       </b-input-group>
     </div>
     <div v-if="decays2 > 0">
-      <p>From: {{ $moment(valueFrom).format('DD-MM-YYYY') }}</p>
-      <p>To: {{ $moment(valueTo).format('DD-MM-YYYY') }}</p>
-      <p>Days: {{ days2 }}</p>
-      <p>Seconds: {{ seconds2 }}</p>
+      <p>{{ $t('form.from') }} {{ $moment(valueFrom).format('DD-MM-YYYY') }}</p>
+      <p>{{ $t('form.to') }}: {{ $moment(valueTo).format('DD-MM-YYYY') }}</p>
+      <p>{{ $t('decay.days') }}: {{ days2 }}</p>
+      <p>{{ $t('decay.seconds') }}: {{ seconds2 }}</p>
       <p>
-        <b>Vergänglichkeit: {{ decays2 }} GDD</b>
+        <b>{{ $t('decay.decay') }}: {{ decays2 }} GDD</b>
       </p>
     </div>
   </div>

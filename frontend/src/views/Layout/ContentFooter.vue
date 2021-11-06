@@ -53,15 +53,16 @@
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/contact/`" target="_blank">
             {{ $t('site.navbar.support') }}
           </b-nav-item>
+          <b-nav-item href="/calculator">
+            {{ $t('decay-calculation.decay-calculator') }}
+          </b-nav-item>
         </b-nav>
       </b-col>
     </b-row>
-    <decay-calculator />
   </footer>
 </template>
 <script>
 import CONFIG from '../../config'
-import DecayCalculator from '../../components/DecayCalculator/DecayCalculator.vue'
 
 export default {
   data() {
@@ -71,9 +72,6 @@ export default {
       hash: CONFIG.BUILD_COMMIT,
       shortHash: CONFIG.BUILD_COMMIT_SHORT,
     }
-  },
-  components: {
-    DecayCalculator,
   },
 }
 </script>

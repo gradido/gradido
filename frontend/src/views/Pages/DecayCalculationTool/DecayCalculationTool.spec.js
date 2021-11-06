@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import DecayCalculator from './DecayCalculator.vue'
+import DecayCalculationTool from './DecayCalculationTool.vue'
 
 const localVue = global.localVue
 
@@ -12,7 +12,7 @@ describe('Status', () => {
   }
 
   const Wrapper = () => {
-    return mount(DecayCalculator, { localVue, mocks })
+    return mount(DecayCalculationTool, { localVue, mocks })
   }
 
   describe('mount', () => {
@@ -21,8 +21,8 @@ describe('Status', () => {
     })
 
     describe('I can call the div', () => {
-      it('I can call the id', () => {
-        expect(wrapper.find('div#decay_calculator').exists()).toBeTruthy()
+      it('I can call the class', () => {
+        expect(wrapper.find('div.page_decaycalculator').exists()).toBeTruthy()
       })
     })
   })

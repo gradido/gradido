@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has fourteen routes defined', () => {
-        expect(routes).toHaveLength(14)
+        expect(routes).toHaveLength(15)
       })
 
       describe('overview', () => {
@@ -168,6 +168,13 @@ describe('router', () => {
         it('loads the "CheckEmail" component', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
           expect(component.default.name).toBe('CheckEmail')
+        })
+      })
+
+      describe('calculator', () => {
+        it('loads the "Dacay calculator" component', async () => {
+          const component = await routes.find((r) => r.path === '/calculator').component()
+          expect(component.default.name).toBe('DecayCalculatorPage')
         })
       })
 
