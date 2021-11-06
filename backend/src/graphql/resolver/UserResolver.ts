@@ -404,11 +404,6 @@ export class UserResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      // TODO: Lets not do this?! What if state_users were never updated?
-      // We would still roll back the autoincrement which would produce duplicate entries?!
-      // await rollbackAutoIncrement(queryRunner, LoginUser, `login_users`)
-      // await rollbackAutoIncrement(queryRunner, LoginUserBackup, `login_user_backups`)
-      // await rollbackAutoIncrement(queryRunner, DbUser, `state_users`)
       throw e
     } finally {
       await queryRunner.release()
