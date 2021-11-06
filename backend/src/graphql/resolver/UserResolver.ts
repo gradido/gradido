@@ -26,6 +26,7 @@ import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepos
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
+import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
@@ -570,12 +571,19 @@ export class UserResolver {
     return new CheckEmailResponse(result.data)
   }
 
+  @Authorized()
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
-    if (!result.success) {
-      throw new Error(result.data)
+    // const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
+
+    if (!userEntity) {
+      return false
     }
-    return result.data.hasElopage
+
+    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
+
+    return elopageBuyCount > 0
   }
 }
