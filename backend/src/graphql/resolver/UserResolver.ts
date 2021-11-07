@@ -577,13 +577,11 @@ export class UserResolver {
     // const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
-
     if (!userEntity) {
       return false
     }
 
     const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
-
     return elopageBuyCount > 0
   }
 }
