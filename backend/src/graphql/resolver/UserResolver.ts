@@ -7,7 +7,6 @@ import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
-import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
 import encode from '../../jwt/encode'
@@ -230,10 +229,10 @@ export class UserResolver {
     // Save publisherId if Elopage is not yet registered
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      await this.updateUserInfos(
-        { publisherId },
-        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
-      )
+
+      const loginUser = await LoginUser.findOneOrFail({ email: userEntity.email })
+      loginUser.publisherId = publisherId
+      loginUser.save()
     }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
@@ -446,7 +445,7 @@ export class UserResolver {
   }
 
   @Authorized()
-  @Mutation(() => UpdateUserInfosResponse)
+  @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
     {
@@ -455,85 +454,120 @@ export class UserResolver {
       description,
       username,
       language,
-      publisherId,
       password,
       passwordNew,
       coinanimation,
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
-  ): Promise<UpdateUserInfosResponse> {
-    const payload = {
-      session_id: context.sessionId,
-      update: {
-        'User.first_name': firstName || undefined,
-        'User.last_name': lastName || undefined,
-        'User.description': description || undefined,
-        'User.username': username || undefined,
-        'User.language': language || undefined,
-        'User.publisher_id': publisherId || undefined,
-        'User.password': passwordNew || undefined,
-        'User.password_old': password || undefined,
-      },
-    }
-    let response: UpdateUserInfosResponse | undefined
+  ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUser = await LoginUser.findOneOrFail({ email: userEntity.email })
 
-    if (
-      firstName ||
-      lastName ||
-      description ||
-      username ||
-      language ||
-      publisherId ||
-      passwordNew ||
-      password
-    ) {
-      const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
-      if (!result.success) throw new Error(result.data)
-      response = new UpdateUserInfosResponse(result.data)
-
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-      let userEntityChanged = false
-      if (firstName) {
-        userEntity.firstName = firstName
-        userEntityChanged = true
-      }
-      if (lastName) {
-        userEntity.lastName = lastName
-        userEntityChanged = true
-      }
-      if (username) {
-        userEntity.username = username
-        userEntityChanged = true
-      }
-      if (userEntityChanged) {
-        userRepository.save(userEntity).catch((error) => {
-          throw new Error(error)
-        })
-      }
+    if (username) {
+      throw new Error('change username currently not supported!')
+      // TODO: this error was thrown on login_server whenever you tried to change the username
+      // to anything except "" which is an exception to the rules below. Those were defined
+      // aswell, even tho never used.
+      // ^[a-zA-Z][a-zA-Z0-9_-]*$
+      // username must start with [a-z] or [A-Z] and than can contain also [0-9], - and _
+      // username already used
+      // userEntity.username = username
     }
-    if (coinanimation !== undefined) {
-      // load user and balance
 
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    if (firstName) {
+      loginUser.firstName = firstName
+      userEntity.firstName = firstName
+    }
 
-      const userSettingRepository = getCustomRepository(UserSettingRepository)
-      userSettingRepository
-        .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
-        .catch((error) => {
-          throw new Error(error)
-        })
+    if (lastName) {
+      loginUser.lastName = lastName
+      userEntity.lastName = lastName
+    }
 
-      if (!response) {
-        response = new UpdateUserInfosResponse({ valid_values: 1 })
-      } else {
-        response.validValues++
+    if (description) {
+      loginUser.description = description
+    }
+
+    // TODO: `disabled` can be set via this interface, the login_server allowed this.
+    // this means a user could disable his own account - sense?
+
+    // TODO this requires language validation from createUser PR
+    // "User.language isn't a valid language"
+    if (language) {
+      loginUser.language = language
+    }
+
+    if (password && passwordNew) {
+      throw new Error('Not implemented')
+      // CARE: password = password_old, passwordNew = password
+      // verify password
+      /*
+      if (isOldPasswordValid(updates, jsonErrorsArray))
+      {
+        NotificationList errors;
+        if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
+          jsonErrorsArray.add("User.password isn't valid");
+          jsonErrorsArray.add(errors.getErrorsArray());
+        }
+        else 
+        {
+          auto result_new_password = user->setNewPassword(value.toString());
+        
+          switch (result_new_password) {
+            // 0 = new and current passwords are the same
+            // 1 = password changed, private key re-encrypted and saved into db
+          case 1: 
+            extractet_values++; 
+            password_changed = true; 
+            break;
+          // 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
+          case 2: 
+            jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
+            extractet_values++;
+            password_changed = true;
+            break;
+          // -1 = stored pubkey and private key didn't match
+          case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
+          }
+        
+        }
+      }	
+      */
+    }
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      if (coinanimation) {
+        // TODO transaction
+        userSettingRepository
+          .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
+          .catch((error) => {
+            throw new Error(error)
+          })
       }
+
+      await queryRunner.manager.save(loginUser).catch((error) => {
+        throw new Error('error saving loginUser: ' + error)
+      })
+
+      await queryRunner.manager.save(userEntity).catch((error) => {
+        throw new Error('error saving user: ' + error)
+      })
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
     }
-    if (!response) {
-      throw new Error('no valid response')
-    }
-    return response
+
+    return true
   }
 
   @Query(() => Boolean)

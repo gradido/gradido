@@ -18,9 +18,6 @@ export default class UpdateUserInfosArgs {
   language?: string
 
   @Field({ nullable: true })
-  publisherId?: number
-
-  @Field({ nullable: true })
   password?: string
 
   @Field({ nullable: true })
