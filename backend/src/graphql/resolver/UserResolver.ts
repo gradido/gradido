@@ -490,9 +490,6 @@ export class UserResolver {
       loginUser.description = description
     }
 
-    // TODO: `disabled` can be set via this interface, the login_server allowed this.
-    // this means a user could disable his own account - sense?
-
     // TODO this requires language validation from createUser PR
     // "User.language isn't a valid language"
     if (language) {
