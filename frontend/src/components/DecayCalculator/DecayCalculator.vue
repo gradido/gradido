@@ -27,7 +27,7 @@
         </b-input-group-append>
       </b-input-group>
     </div> -->
-    <div v-if="decays > 0">
+    <!-- <div v-if="decays > 0">
       <b>{{ gdd }} GDD</b>
       <div>{{ $t('decay.days') }}: {{ days }}</div>
       <div>{{ $t('decay.seconds') }}: {{ seconds }}</div>
@@ -35,7 +35,7 @@
         {{ $t('decay.decay') }}:
         <b>{{ decays }}</b>
       </div>
-    </div>
+    </div> -->
     <hr />
 
     <div>
