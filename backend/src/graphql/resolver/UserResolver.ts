@@ -196,9 +196,6 @@ const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): B
 
 @Resolver()
 export class UserResolver {
-  
-  private userSettingRepository = getCustomRepository(UserSettingRepository)
-
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -208,19 +205,18 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
     // UnsecureLogin
-    const userCount = await LoginUser.count({ email })
-    if (userCount === 0) {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(email)
+    if (!loginUser) {
       throw new Error('No user with this credentials')
     }
     if (!isPassword(password)) {
       throw new Error('No user with this credentials')
     }
 
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findByEmail(email)
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    // loginUser.password = passwordHash[0].readBigUInt64LE()
-    if (loginUser.password !== passwordHash[0].readBigUInt64LE()) {
+    const loginUserPassword = BigInt(loginUser.password.toString())
+    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
       throw new Error('No user with this credentials')
     }
 
