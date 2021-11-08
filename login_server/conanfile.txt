@@ -1,12 +1,11 @@
 [requires]
-Poco/1.9.4@pocoproject/stable
-libsodium/1.0.18@bincrafters/stable
-boost/1.71.0@conan/stable
+poco/1.9.4
+libsodium/1.0.18
+boost/1.71.0
 gtest/1.10.0
 
 [options]
 Poco:enable_pagecompiler=True
-Poco:enable_json=False
 
 [generators]
 cmake
