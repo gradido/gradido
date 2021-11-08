@@ -26,9 +26,13 @@ import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepos
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 
 @Resolver()
 export class UserResolver {
+  private userRepository = getCustomRepository(UserRepository)
+  private userSettingRepository = getCustomRepository(UserSettingRepository)
+
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -36,27 +40,34 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-
-    // if there is no user, throw an authentication error
-    if (!result.success) {
-      throw new Error(result.data)
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
+    // UnsecureLogin
+    const userCount = await LoginUser.count({ email })
+    if (userCount === 0) {
+      throw new Error('No user with this credentials')
     }
+    if (!isPassword(password)) {
+      throw new Error('No user with this credentials')
+    }
+
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(email)
+    if (loginUser.password)
 
     context.setHeaders.push({
       key: 'token',
       value: encode(result.data.session_id, result.data.user.public_hex),
     })
-    const user = new User(result.data.user)
+    // const user = new User(result.data.user)
     // Hack: Database Field is not validated properly and not nullable
     if (user.publisherId === 0) {
       user.publisherId = undefined
     }
     user.hasElopage = result.data.hasElopage
     // read additional settings from settings table
-    const userRepository = getCustomRepository(UserRepository)
+    // const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
-    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+    userEntity = await this.userRepository.findByPubkeyHex(user.pubkey).catch(() => {
       userEntity = new DbUser()
       userEntity.firstName = user.firstName
       userEntity.lastName = user.lastName
@@ -64,7 +75,7 @@ export class UserResolver {
       userEntity.email = user.email
       userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
 
-      userRepository.save(userEntity).catch(() => {
+      this.userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
       })
     })
@@ -216,7 +227,7 @@ export class UserResolver {
       },
     }
     let response: UpdateUserInfosResponse | undefined
-    const userRepository = getCustomRepository(UserRepository)
+    // const userRepository = getCustomRepository(UserRepository)
 
     if (
       firstName ||
@@ -232,7 +243,7 @@ export class UserResolver {
       if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
 
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      const userEntity = await this.userRepository.findByPubkeyHex(context.pubKey)
       let userEntityChanged = false
       if (firstName) {
         userEntity.firstName = firstName
@@ -247,7 +258,7 @@ export class UserResolver {
         userEntityChanged = true
       }
       if (userEntityChanged) {
-        userRepository.save(userEntity).catch((error) => {
+        this.userRepository.save(userEntity).catch((error) => {
           throw new Error(error)
         })
       }
@@ -255,10 +266,10 @@ export class UserResolver {
     if (coinanimation !== undefined) {
       // load user and balance
 
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      const userEntity = await this.userRepository.findByPubkeyHex(context.pubKey)
 
-      const userSettingRepository = getCustomRepository(UserSettingRepository)
-      userSettingRepository
+      // const userSettingRepository = getCustomRepository(UserSettingRepository)
+      this.userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
         .catch((error) => {
           throw new Error(error)
