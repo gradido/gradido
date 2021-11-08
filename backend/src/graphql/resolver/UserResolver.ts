@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { from_hex as fromHex } from 'libsodium-wrappers'
-import { getCustomRepository } from 'typeorm'
+import { BaseEntity, getConnection, getCustomRepository, QueryRunner } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -25,12 +25,178 @@ import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
-import { LoginUser } from '@entity/LoginUser'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBackup'
+import { LoginUser } from '@entity/LoginUser'
+import { LoginUserBackup } from '@entity/LoginUserBackup'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+
+// TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
+// import {
+//  /* eslint-disable camelcase */
+//  randombytes_random,
+//  crypto_hash_sha512_instance,
+//  crypto_hash_sha512_BYTES,
+//  crypto_sign_seed_keypair,
+//  crypto_sign_PUBLICKEYBYTES,
+//  crypto_sign_SECRETKEYBYTES,
+//  /* eslint-enable camelcase */
+// } from 'sodium-native'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sodium = require('sodium-native')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const random = require('random-bigint')
+
+// We will reuse this for changePassword
+const isPassword = (password: string): boolean => {
+  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
+}
+
+const LANGUAGES = ['de', 'en']
+const DEFAULT_LANGUAGE = 'de'
+const isLanguage = (language: string): boolean => {
+  return LANGUAGES.includes(language)
+}
+
+const PHRASE_WORD_COUNT = 24
+const WORDS = fs.readFileSync('src/config/mnemonic.english.txt').toString().split('\n')
+const PassphraseGenerate = (): string[] => {
+  const result = []
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    result.push(WORDS[sodium.randombytes_random() % 2048])
+  }
+  return result
+  /*
+  return [
+    'behind',
+    'salmon',
+    'fluid',
+    'orphan',
+    'frost',
+    'elder',
+    'amateur',
+    'always',
+    'panel',
+    'palm',
+    'leopard',
+    'essay',
+    'punch',
+    'title',
+    'fun',
+    'annual',
+    'page',
+    'hundred',
+    'journey',
+    'select',
+    'figure',
+    'tunnel',
+    'casual',
+    'bar',
+  ]
+  */
+}
+
+/*
+Test results:
+INSERT INTO `login_users` (`id`, `email`, `first_name`, `last_name`, `username`, `description`, `password`, `pubkey`, `privkey`, `email_hash`, `created`, `email_checked`, `passphrase_shown`, `language`, `disabled`, `group_id`, `publisher_id`) VALUES
+// old
+(1, 'peter@lustig.de', 'peter', 'lustig', '', '', 4747956395458240931, 0x8c75edd507f470e5378f927489374694d68f3d155523f1c4402c36affd35a7ed, 0xb0e310655726b088631ccfd31ad6470ee50115c161dde8559572fa90657270ff13dc1200b2d3ea90dfbe92f3a4475ee4d9cee4989e39736a0870c33284bc73a8ae690e6da89f241a121eb3b500c22885, 0x9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036, '2021-11-03 20:05:04', 0, 0, 'de', 0, 1, 0);
+// new
+(2, 'peter@lustig.de', 'peter', 'lustig', '', '', 4747956395458240931, 0x8c75edd507f470e5378f927489374694d68f3d155523f1c4402c36affd35a7ed, 0xb0e310655726b088631ccfd31ad6470ee50115c161dde8559572fa90657270ff13dc1200b2d3ea90dfbe92f3a4475ee4d9cee4989e39736a0870c33284bc73a8ae690e6da89f241a121eb3b500c22885, 0x9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036, '2021-11-03 20:22:15', 0, 0, 'de', 0, 1, 0);
+INSERT INTO `login_user_backups` (`id`, `user_id`, `passphrase`, `mnemonic_type`) VALUES
+// old
+(1, 1, 'behind salmon fluid orphan frost elder amateur always panel palm leopard essay punch title fun annual page hundred journey select figure tunnel casual bar ', 2);
+// new
+(2, 2, 'behind salmon fluid orphan frost elder amateur always panel palm leopard essay punch title fun annual page hundred journey select figure tunnel casual bar ', 2);
+*/
+
+const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
+  if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
+    throw new Error('passphrase empty or to short')
+  }
+
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+
+  // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    const value = Buffer.alloc(8)
+    const wordIndex = WORDS.indexOf(passphrase[i])
+    value.writeBigInt64LE(BigInt(wordIndex))
+    sodium.crypto_hash_sha512_update(state, value)
+  }
+  // trailing space is part of the login_server implementation
+  const clearPassphrase = passphrase.join(' ') + ' '
+  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase))
+  const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, outputHashBuffer)
+
+  const pubKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  const privKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+
+  sodium.crypto_sign_seed_keypair(
+    pubKey,
+    privKey,
+    outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
+  )
+
+  return [pubKey, privKey]
+}
+
+const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
+  // TODO: put that in the actual config
+  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
+  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
+  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
+    throw new Error(
+      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
+    )
+  }
+
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
+  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
+  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, hash)
+
+  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
+  const opsLimit = 10
+  const memLimit = 33554432
+  const algo = 2
+  sodium.crypto_pwhash(
+    encryptionKey,
+    Buffer.from(password),
+    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
+    opsLimit,
+    memLimit,
+    algo,
+  )
+
+  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
+  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
+
+  return [encryptionKeyHash, encryptionKey]
+}
+
+const getEmailHash = (email: string): Buffer => {
+  const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash(emailHash, Buffer.from(email))
+  return emailHash
+}
+
+const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
+  const encrypted = Buffer.alloc(sodium.crypto_secretbox_MACBYTES + message.length)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
+  return encrypted
+}
 
 @Resolver()
 export class UserResolver {
-  private userRepository = getCustomRepository(UserRepository)
+  
   private userSettingRepository = getCustomRepository(UserSettingRepository)
 
   @Query(() => User)
@@ -52,54 +218,59 @@ export class UserResolver {
 
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findByEmail(email)
-    if (loginUser.password)
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // loginUser.password = passwordHash[0].readBigUInt64LE()
+    if (loginUser.password !== passwordHash[0].readBigUInt64LE()) {
+      throw new Error('No user with this credentials')
+    }
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(result.data.session_id, result.data.user.public_hex),
+      value: encode(loginUser.pubKey),
     })
+    throw new Error('WIP')
     // const user = new User(result.data.user)
     // Hack: Database Field is not validated properly and not nullable
-    if (user.publisherId === 0) {
-      user.publisherId = undefined
-    }
-    user.hasElopage = result.data.hasElopage
-    // read additional settings from settings table
+    // if (user.publisherId === 0) {
+    //   user.publisherId = undefined
+    // }
+    // user.hasElopage = result.data.hasElopage
+    // // read additional settings from settings table
     // const userRepository = getCustomRepository(UserRepository)
-    let userEntity: void | DbUser
-    userEntity = await this.userRepository.findByPubkeyHex(user.pubkey).catch(() => {
-      userEntity = new DbUser()
-      userEntity.firstName = user.firstName
-      userEntity.lastName = user.lastName
-      userEntity.username = user.username
-      userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+    // let userEntity: void | DbUser
+    // userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+    //   userEntity = new DbUser()
+    //   userEntity.firstName = user.firstName
+    //   userEntity.lastName = user.lastName
+    //   userEntity.username = user.username
+    //   userEntity.email = user.email
+    //   userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
 
-      this.userRepository.save(userEntity).catch(() => {
-        throw new Error('error by save userEntity')
-      })
-    })
-    if (!userEntity) {
-      throw new Error('error with cannot happen')
-    }
+    //   userRepository.save(userEntity).catch(() => {
+    //     throw new Error('error by save userEntity')
+    //   })
+    // })
+    // if (!userEntity) {
+    //   throw new Error('error with cannot happen')
+    // }
 
-    // Save publisherId if Elopage is not yet registered
-    if (!user.hasElopage && publisherId) {
-      user.publisherId = publisherId
-      await this.updateUserInfos(
-        { publisherId },
-        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
-      )
-    }
+    // // Save publisherId if Elopage is not yet registered
+    // if (!user.hasElopage && publisherId) {
+    //   user.publisherId = publisherId
+    //   await this.updateUserInfos(
+    //     { publisherId },
+    //     { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
+    //   )
+    // }
 
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const coinanimation = await userSettingRepository
-      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
-      .catch((error) => {
-        throw new Error(error)
-      })
-    user.coinanimation = coinanimation
-    return user
+    // const userSettingRepository = getCustomRepository(UserSettingRepository)
+    // const coinanimation = await userSettingRepository
+    //   .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+    //   .catch((error) => {
+    //     throw new Error(error)
+    //   })
+    // user.coinanimation = coinanimation
+    // return user
   }
 
   @Query(() => LoginViaVerificationCode)
@@ -132,35 +303,125 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const payload = {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      password,
-      emailType: 2,
-      login_after_register: true,
-      language: language,
-      publisher_id: publisherId,
-    }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
-    if (!result.success) {
-      throw new Error(result.data)
+    const username = ''
+
+    // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
+    // default int publisher_id = 0;
+
+    // Validate Language (no throw)
+    if (!isLanguage(language)) {
+      language = DEFAULT_LANGUAGE
     }
 
-    const user = new User(result.data.user)
-    const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
-    dbuser.email = user.email
-    dbuser.firstName = user.firstName
-    dbuser.lastName = user.lastName
-    dbuser.username = user.username
+    // Validate Password
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
 
+    // Validate username
+    // TODO: never true
+    if (username.length > 3 && !this.checkUsername({ username })) {
+      throw new Error('Username already in use')
+    }
+
+    // Validate email unique
+    // TODO: i can register an email in upper/lower case twice
     const userRepository = getCustomRepository(UserRepository)
-    userRepository.save(dbuser).catch(() => {
-      throw new Error('error saving user')
-    })
+    const usersFound = await userRepository.count({ email })
+    if (usersFound !== 0) {
+      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+      throw new Error(`User already exists.`)
+    }
 
-    return 'success'
+    const passphrase = PassphraseGenerate()
+    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    const emailHash = getEmailHash(email)
+    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+
+    // Table: login_users
+    const loginUser = new LoginUser()
+    loginUser.email = email
+    loginUser.firstName = firstName
+    loginUser.lastName = lastName
+    loginUser.username = username
+    loginUser.description = ''
+    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    loginUser.emailHash = emailHash
+    loginUser.language = language
+    loginUser.groupId = 1
+    loginUser.publisherId = publisherId
+    loginUser.pubKey = keyPair[0]
+    loginUser.privKey = encryptedPrivkey
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    try {
+      const { id: loginUserId } = await queryRunner.manager.save(loginUser).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('insert LoginUser failed', error)
+        throw new Error('insert user failed')
+      })
+
+      // Table: login_user_backups
+      const loginUserBackup = new LoginUserBackup()
+      loginUserBackup.userId = loginUserId
+      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+
+      await queryRunner.manager.save(loginUserBackup).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('insert LoginUserBackup failed', error)
+        throw new Error('insert user backup failed')
+      })
+
+      // Table: state_users
+      const dbUser = new DbUser()
+      dbUser.pubkey = keyPair[0]
+      dbUser.email = email
+      dbUser.firstName = firstName
+      dbUser.lastName = lastName
+      dbUser.username = username
+
+      await queryRunner.manager.save(dbUser).catch((er) => {
+        // eslint-disable-next-line no-console
+        console.log('Error while saving dbUser', er)
+        throw new Error('error saving user')
+      })
+
+      // Store EmailOptIn in DB
+      const emailOptIn = new LoginEmailOptIn()
+      emailOptIn.userId = loginUserId
+      emailOptIn.verificationCode = random(64) // TODO generate verificationCode
+      emailOptIn.emailOptInTypeId = 2
+
+      await queryRunner.manager.save(emailOptIn).catch((error) => {
+        // TODO: Send error email instead of throw error
+        // if (!emailOptInModel->insertIntoDB(false)) {
+        //	emailOptInModel->sendErrorsAsEmail();
+        //	return stateError("insert emailOptIn failed");
+        // }
+        // eslint-disable-next-line no-console
+        console.log('Error while saving emailOptIn', error)
+        throw new Error('error saving email opt in')
+      })
+      // TODO: Send EmailOptIn to user.email
+      // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
+      // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+      await queryRunner.commitTransaction()
+      return 'success'
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      await rollbackAutoIncrement(queryRunner, LoginUser, `login_users`)
+      await rollbackAutoIncrement(queryRunner, LoginUserBackup, `login_user_backups`)
+      await rollbackAutoIncrement(queryRunner, DbUser, `state_users`)
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   @Query(() => SendPasswordResetEmailResponse)
@@ -227,7 +488,7 @@ export class UserResolver {
       },
     }
     let response: UpdateUserInfosResponse | undefined
-    // const userRepository = getCustomRepository(UserRepository)
+    const userRepository = getCustomRepository(UserRepository)
 
     if (
       firstName ||
@@ -243,7 +504,7 @@ export class UserResolver {
       if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
 
-      const userEntity = await this.userRepository.findByPubkeyHex(context.pubKey)
+      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
       let userEntityChanged = false
       if (firstName) {
         userEntity.firstName = firstName
@@ -258,7 +519,7 @@ export class UserResolver {
         userEntityChanged = true
       }
       if (userEntityChanged) {
-        this.userRepository.save(userEntity).catch((error) => {
+        userRepository.save(userEntity).catch((error) => {
           throw new Error(error)
         })
       }
@@ -266,10 +527,10 @@ export class UserResolver {
     if (coinanimation !== undefined) {
       // load user and balance
 
-      const userEntity = await this.userRepository.findByPubkeyHex(context.pubKey)
+      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-      // const userSettingRepository = getCustomRepository(UserSettingRepository)
-      this.userSettingRepository
+      const userSettingRepository = getCustomRepository(UserSettingRepository)
+      userSettingRepository
         .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
         .catch((error) => {
           throw new Error(error)
@@ -330,4 +591,20 @@ export class UserResolver {
     }
     return result.data.hasElopage
   }
+}
+
+const rollbackAutoIncrement = async (
+  queryRunner: QueryRunner,
+  entity: typeof BaseEntity,
+  entityName: string,
+) => {
+  const count = await queryRunner.manager.count(entity)
+  const queryString = 'ALTER TABLE `' + entityName + '` auto_increment = ' + count
+  // eslint-disable-next-line no-console
+  console.log('Database AlterTable Query: ', queryString)
+  await queryRunner.query(queryString).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log('problems with reset auto increment: %o', error)
+    throw new Error('Problems with reset auto increment: ' + error)
+  })
 }
