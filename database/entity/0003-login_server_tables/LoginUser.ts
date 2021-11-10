@@ -22,7 +22,7 @@ export class LoginUser extends BaseEntity {
   description: string
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
-  password: string
+  password: BigInt
 
   @Column({ name: 'pubkey', type: 'binary', length: 32, default: null, nullable: true })
   pubKey: Buffer
