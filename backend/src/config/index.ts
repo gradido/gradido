@@ -39,6 +39,11 @@ const community = {
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
 
+const loginServer = {
+  LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET || '21ffbbc616fe',
+  LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
+}
+
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -46,11 +51,8 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-}
-
-const loginServer = {
-  LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET || '21ffbbc616fe',
-  LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
+  EMAIL_LINK_VERIFICATION:
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
 }
 
 // This is needed by graphql-directive-auth

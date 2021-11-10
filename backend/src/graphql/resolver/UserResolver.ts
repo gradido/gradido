@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { BaseEntity, getConnection, getCustomRepository, QueryRunner } from 'typeorm'
+import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
@@ -25,23 +25,11 @@ import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
-import { LoginUserBackupRepository } from '../../typeorm/repository/LoginUserBackup'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { sendEMail } from '../../util/sendEMail'
 
-// TODO apparently the types are cannot be loaded correctly? IDK whats wrong and we have to use require
-// import {
-//  /* eslint-disable camelcase */
-//  randombytes_random,
-//  crypto_hash_sha512_instance,
-//  crypto_hash_sha512_BYTES,
-//  crypto_sign_seed_keypair,
-//  crypto_sign_PUBLICKEYBYTES,
-//  crypto_sign_SECRETKEYBYTES,
-//  /* eslint-enable camelcase */
-// } from 'sodium-native'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -144,7 +132,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 }
 
 const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  // TODO: put that in the actual config
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
@@ -316,8 +303,6 @@ export class UserResolver {
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const username = ''
-
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -335,6 +320,7 @@ export class UserResolver {
 
     // Validate username
     // TODO: never true
+    const username = ''
     if (username.length > 3 && !this.checkUsername({ username })) {
       throw new Error('Username already in use')
     }
@@ -408,33 +394,49 @@ export class UserResolver {
       // Store EmailOptIn in DB
       const emailOptIn = new LoginEmailOptIn()
       emailOptIn.userId = loginUserId
-      emailOptIn.verificationCode = random(64) // TODO generate verificationCode
+      emailOptIn.verificationCode = random(64)
       emailOptIn.emailOptInTypeId = 2
 
       await queryRunner.manager.save(emailOptIn).catch((error) => {
-        // TODO: Send error email instead of throw error
-        // if (!emailOptInModel->insertIntoDB(false)) {
-        //	emailOptInModel->sendErrorsAsEmail();
-        //	return stateError("insert emailOptIn failed");
-        // }
         // eslint-disable-next-line no-console
         console.log('Error while saving emailOptIn', error)
         throw new Error('error saving email opt in')
       })
-      // TODO: Send EmailOptIn to user.email
-      // emailOptIn->setBaseUrl(user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath);
-      // em->addEmail(new model::Email(emailOptIn, user, model::Email::convertTypeFromInt(emailType)));
+
+      // Send EMail to user
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /\$1/g,
+        emailOptIn.verificationCode.toString(),
+      )
+      const emailSent = await sendEMail({
+        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+        to: `${firstName} ${lastName} <${email}>`,
+        subject: 'Gradido: E-Mail Überprüfung',
+        text: `Hallo ${firstName} ${lastName},
+        
+        Deine EMail wurde soeben bei Gradido registriert.
+        
+        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
+        ${activationLink}
+        oder kopiere den obigen Link in dein Browserfenster.
+        
+        Mit freundlichen Grüßen,
+        dein Gradido-Team`,
+      })
+
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
       await queryRunner.commitTransaction()
-      return 'success'
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      await rollbackAutoIncrement(queryRunner, LoginUser, `login_users`)
-      await rollbackAutoIncrement(queryRunner, LoginUserBackup, `login_user_backups`)
-      await rollbackAutoIncrement(queryRunner, DbUser, `state_users`)
       throw e
     } finally {
       await queryRunner.release()
     }
+    return 'success'
   }
 
   @Query(() => SendPasswordResetEmailResponse)
@@ -605,20 +607,4 @@ export class UserResolver {
     }
     return result.data.hasElopage
   }
-}
-
-const rollbackAutoIncrement = async (
-  queryRunner: QueryRunner,
-  entity: typeof BaseEntity,
-  entityName: string,
-) => {
-  const count = await queryRunner.manager.count(entity)
-  const queryString = 'ALTER TABLE `' + entityName + '` auto_increment = ' + count
-  // eslint-disable-next-line no-console
-  console.log('Database AlterTable Query: ', queryString)
-  await queryRunner.query(queryString).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.log('problems with reset auto increment: %o', error)
-    throw new Error('Problems with reset auto increment: ' + error)
-  })
 }

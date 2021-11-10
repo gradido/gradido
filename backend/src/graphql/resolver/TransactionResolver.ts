@@ -4,9 +4,9 @@
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, QueryRunner } from 'typeorm'
-import { createTransport } from 'nodemailer'
 
 import CONFIG from '../../config'
+import { sendEMail } from '../../util/sendEMail'
 
 import { Transaction } from '../model/Transaction'
 import { TransactionList } from '../model/TransactionList'
@@ -33,7 +33,6 @@ import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
-import { from_hex as fromHex } from 'libsodium-wrappers'
 
 /*
 # Test
@@ -200,29 +199,6 @@ INSERT INTO `transactions` (`id`, `state_group_id`, `transaction_type_id`, `tx_h
 INSERT INTO `transaction_signatures` (`id`, `transaction_id`, `signature`, `pubkey`) VALUES
 (1, 1, 0x60d632479707e5d01cdc32c3326b5a5bae11173a0c06b719ee7b552f9fd644de1a0cd4afc207253329081d39dac1a63421f51571d836995c649fc39afac7480a, 0x48c45cb4fea925e83850f68f2fa8f27a1a4ed1bcba68cdb59fcd86adef3f52ee);
 */
-
-const sendEMail = async (emailDef: any): Promise<boolean> => {
-  if (!CONFIG.EMAIL) {
-    // eslint-disable-next-line no-console
-    console.log('Emails are disabled via config')
-    return false
-  }
-  const transporter = createTransport({
-    host: CONFIG.EMAIL_SMTP_URL,
-    port: Number(CONFIG.EMAIL_SMTP_PORT),
-    secure: false, // true for 465, false for other ports
-    requireTLS: true,
-    auth: {
-      user: CONFIG.EMAIL_USERNAME,
-      pass: CONFIG.EMAIL_PASSWORD,
-    },
-  })
-  const info = await transporter.sendMail(emailDef)
-  if (!info.messageId) {
-    throw new Error('error sending notification email, but transaction succeed')
-  }
-  return true
-}
 
 // Helper function
 async function calculateAndAddDecayTransactions(
@@ -624,7 +600,7 @@ export class TransactionResolver {
       transactionSendCoin.userId = senderUser.id
       transactionSendCoin.senderPublic = senderUser.pubkey
       transactionSendCoin.recipiantUserId = recipiantUser.id
-      transactionSendCoin.recipiantPublic = Buffer.from(fromHex(recipiantPublicKey))
+      transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
       transactionSendCoin.amount = centAmount
       transactionSendCoin.senderFinalBalance = senderStateBalance.amount
       await queryRunner.manager.save(transactionSendCoin).catch((error) => {
@@ -656,8 +632,8 @@ export class TransactionResolver {
     // send notification email
     // TODO: translate
     await sendEMail({
-      from: 'Gradido (nicht antworten) <' + CONFIG.EMAIL_SENDER + '>',
-      to: recipiantUser.firstName + ' ' + recipiantUser.lastName + ' <' + recipiantUser.email + '>',
+      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      to: `${recipiantUser.firstName} ${recipiantUser.lastName} <${recipiantUser.email}>`,
       subject: 'Gradido Überweisung',
       text: `Hallo ${recipiantUser.firstName} ${recipiantUser.lastName}
       
@@ -668,7 +644,8 @@ export class TransactionResolver {
       
       Bitte antworte nicht auf diese E-Mail!
       
-      Mit freundlichen Grüßen Gradido Community Server`,
+      Mit freundlichen Grüßen,
+      dein Gradido-Team`,
     })
 
     return 'success'
