@@ -541,11 +541,11 @@ export class UserResolver {
 
     try {
       if (coinanimation) {
-        // TODO transaction
-        userSettingRepository
+        queryRunner.manager
+          .getCustomRepository(UserSettingRepository)
           .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
           .catch((error) => {
-            throw new Error(error)
+            throw new Error('error saving coinanimation: ' + error)
           })
       }
 
