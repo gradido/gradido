@@ -471,7 +471,6 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
     const loginUser = await LoginUser.findOneOrFail({ email: userEntity.email })
 
