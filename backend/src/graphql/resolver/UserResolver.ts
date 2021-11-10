@@ -224,6 +224,29 @@ export class UserResolver {
       key: 'token',
       value: encode(loginUser.pubKey),
     })
+
+    const userRepository = getCustomRepository(UserRepository)
+    let userEntity: void | DbUser
+    userEntity = await userRepository
+      .findByPubkeyHex(loginUser.pubKey.toString('utf8'))
+      .catch(() => {
+        // User not stored in state_users
+        userEntity = new DbUser()
+        userEntity.firstName = loginUser.firstName
+        userEntity.lastName = loginUser.lastName
+        userEntity.username = loginUser.username
+        userEntity.email = loginUser.email
+        userEntity.pubkey = Buffer.from(loginUser.pubKey.toString('utf8'), 'hex')
+
+        userRepository.save(userEntity).catch(() => {
+          throw new Error('error by save userEntity')
+        })
+      })
+    if (!userEntity) {
+      throw new Error('error with cannot happen')
+    }
+    // TODO: Check and/or store hasElopage
+    // TODO: If user has no pubKey Create it again and update user.
     throw new Error('WIP')
     // const user = new User(result.data.user)
     // Hack: Database Field is not validated properly and not nullable
@@ -232,25 +255,8 @@ export class UserResolver {
     // }
     // user.hasElopage = result.data.hasElopage
     // // read additional settings from settings table
-    // const userRepository = getCustomRepository(UserRepository)
-    // let userEntity: void | DbUser
-    // userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
-    //   userEntity = new DbUser()
-    //   userEntity.firstName = user.firstName
-    //   userEntity.lastName = user.lastName
-    //   userEntity.username = user.username
-    //   userEntity.email = user.email
-    //   userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
 
-    //   userRepository.save(userEntity).catch(() => {
-    //     throw new Error('error by save userEntity')
-    //   })
-    // })
-    // if (!userEntity) {
-    //   throw new Error('error with cannot happen')
-    // }
-
-    // // Save publisherId if Elopage is not yet registered
+    // Save publisherId if Elopage is not yet registered
     // if (!user.hasElopage && publisherId) {
     //   user.publisherId = publisherId
     //   await this.updateUserInfos(
