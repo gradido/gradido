@@ -490,9 +490,10 @@ export class UserResolver {
       loginUser.description = description
     }
 
-    // TODO this requires language validation from createUser PR
-    // "User.language isn't a valid language"
     if (language) {
+      if (!isLanguage(language)) {
+        throw new Error(`"${language}" isn't a valid language`)
+      }
       loginUser.language = language
     }
 
