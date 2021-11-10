@@ -228,21 +228,21 @@ export class UserResolver {
 
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
-    userEntity = await userRepository
-      .findByPubkeyHex(loginUser.pubKey.toString('utf8'))
-      .catch(() => {
-        // User not stored in state_users
-        userEntity = new DbUser()
-        userEntity.firstName = loginUser.firstName
-        userEntity.lastName = loginUser.lastName
-        userEntity.username = loginUser.username
-        userEntity.email = loginUser.email
-        userEntity.pubkey = Buffer.from(loginUser.pubKey.toString('utf8'), 'hex')
+    const loginUserPubKey = loginUser.pubKey
+    const loginUserPubKeyString = loginUserPubKey.toString('hex')
+    userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
+      // User not stored in state_users
+      userEntity = new DbUser()
+      userEntity.firstName = loginUser.firstName
+      userEntity.lastName = loginUser.lastName
+      userEntity.username = loginUser.username
+      userEntity.email = loginUser.email
+      userEntity.pubkey = loginUser.pubKey
 
-        userRepository.save(userEntity).catch(() => {
-          throw new Error('error by save userEntity')
-        })
+      userRepository.save(userEntity).catch(() => {
+        throw new Error('error by save userEntity')
       })
+    })
     if (!userEntity) {
       throw new Error('error with cannot happen')
     }
@@ -253,24 +253,19 @@ export class UserResolver {
     user.lastName = loginUser.lastName
     user.username = loginUser.username
     user.description = loginUser.description
-    user.pubkey = loginUser.pubKey.toString('utf8')
+    user.pubkey = loginUserPubKeyString
     user.language = loginUser.language
-    // TODO: hasElopage
+    // TODO: Get Method from PR (hasElopage)
     // auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
     // mHasElopage = elopage_buy->isExistInDB("payer_email", mEmail);
     // else undefined
+    // user.hasElopage = result.data.hasElopage
 
-    // TODO: coinAnimation
-    return user
-    throw new Error('WIP')
-    // const user = new User(result.data.user)
+    // TODO: Get Method from PR (publisherId)
     // Hack: Database Field is not validated properly and not nullable
     // if (user.publisherId === 0) {
     //   user.publisherId = undefined
     // }
-    // user.hasElopage = result.data.hasElopage
-    // // read additional settings from settings table
-
     // Save publisherId if Elopage is not yet registered
     // if (!user.hasElopage && publisherId) {
     //   user.publisherId = publisherId
@@ -280,14 +275,15 @@ export class UserResolver {
     //   )
     // }
 
-    // const userSettingRepository = getCustomRepository(UserSettingRepository)
-    // const coinanimation = await userSettingRepository
-    //   .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
-    //   .catch((error) => {
-    //     throw new Error(error)
-    //   })
-    // user.coinanimation = coinanimation
-    // return user
+    // coinAnimation
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    return user
   }
 
   @Query(() => LoginViaVerificationCode)
@@ -521,7 +517,8 @@ export class UserResolver {
       if (!result.success) throw new Error(result.data)
       response = new UpdateUserInfosResponse(result.data)
 
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      const pubKeyString = Buffer.from(context.pubKey).toString('hex')
+      const userEntity = await userRepository.findByPubkeyHex(pubKeyString)
       let userEntityChanged = false
       if (firstName) {
         userEntity.firstName = firstName
@@ -543,8 +540,8 @@ export class UserResolver {
     }
     if (coinanimation !== undefined) {
       // load user and balance
-
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+      const pubKeyString = Buffer.from(context.pubKey).toString('hex')
+      const userEntity = await userRepository.findByPubkeyHex(pubKeyString)
 
       const userSettingRepository = getCustomRepository(UserSettingRepository)
       userSettingRepository
