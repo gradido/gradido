@@ -23,6 +23,7 @@ import {
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
