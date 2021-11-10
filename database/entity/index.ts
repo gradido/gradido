@@ -1,4 +1,5 @@
 import { Balance } from './Balance'
+import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { LoginUser } from './LoginUser'
 import { LoginUserBackup } from './LoginUserBackup'
@@ -12,9 +13,10 @@ import { UserTransaction } from './UserTransaction'
 
 export const entities = [
   Balance,
+  LoginElopageBuys,
+  LoginEmailOptIn,
   LoginUser,
   LoginUserBackup,
-  LoginEmailOptIn,
   Migration,
   Transaction,
   TransactionCreation,
