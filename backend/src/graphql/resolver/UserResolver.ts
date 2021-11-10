@@ -219,6 +219,7 @@ export class UserResolver {
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
       throw new Error('No user with this credentials')
     }
+    // TODO: If user has no pubKey Create it again and update user.
 
     context.setHeaders.push({
       key: 'token',
@@ -245,8 +246,22 @@ export class UserResolver {
     if (!userEntity) {
       throw new Error('error with cannot happen')
     }
-    // TODO: Check and/or store hasElopage
-    // TODO: If user has no pubKey Create it again and update user.
+
+    const user = new User()
+    user.email = email
+    user.firstName = loginUser.firstName
+    user.lastName = loginUser.lastName
+    user.username = loginUser.username
+    user.description = loginUser.description
+    user.pubkey = loginUser.pubKey.toString('utf8')
+    user.language = loginUser.language
+    // TODO: hasElopage
+    // auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
+    // mHasElopage = elopage_buy->isExistInDB("payer_email", mEmail);
+    // else undefined
+
+    // TODO: coinAnimation
+    return user
     throw new Error('WIP')
     // const user = new User(result.data.user)
     // Hack: Database Field is not validated properly and not nullable
