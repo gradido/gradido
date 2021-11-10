@@ -173,12 +173,22 @@ const getEmailHash = (email: string): Buffer => {
 }
 
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
-  const encrypted = Buffer.alloc(sodium.crypto_secretbox_MACBYTES + message.length)
+  const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
 
   sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
   return encrypted
+}
+
+const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
+  const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
+
+  return message
 }
 
 @Resolver()
@@ -498,41 +508,20 @@ export class UserResolver {
     }
 
     if (password && passwordNew) {
-      throw new Error('Not implemented')
-      // CARE: password = password_old, passwordNew = password
-      // verify password
-      /*
-      if (isOldPasswordValid(updates, jsonErrorsArray))
-      {
-        NotificationList errors;
-        if (!sm->checkPwdValidation(value.toString(), &errors, LanguageManager::getInstance()->getFreeCatalog(LANG_EN))) {
-          jsonErrorsArray.add("User.password isn't valid");
-          jsonErrorsArray.add(errors.getErrorsArray());
-        }
-        else 
-        {
-          auto result_new_password = user->setNewPassword(value.toString());
-        
-          switch (result_new_password) {
-            // 0 = new and current passwords are the same
-            // 1 = password changed, private key re-encrypted and saved into db
-          case 1: 
-            extractet_values++; 
-            password_changed = true; 
-            break;
-          // 2 = password changed, only hash stored in db, couldn't load private key for re-encryption
-          case 2: 
-            jsonErrorsArray.add("password changed, couldn't load private key for re-encryption"); 
-            extractet_values++;
-            password_changed = true;
-            break;
-          // -1 = stored pubkey and private key didn't match
-          case -1: jsonErrorsArray.add("stored pubkey and private key didn't match"); break;
-          }
-        
-        }
-      }	
-      */
+      // TODO: This had some error cases defined - like missing private key. This is no longer checked.
+      const oldPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, password)
+      if (loginUser.password !== oldPasswordHash[0].readBigUInt64LE()) {
+        throw new Error(`Old password is invalid`)
+      }
+
+      const privKey = SecretKeyCryptographyDecrypt(loginUser.privKey, oldPasswordHash[1])
+
+      const newPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, passwordNew) // return short and long hash
+      const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
+
+      // Save new password hash and newly encrypted private key
+      loginUser.password = newPasswordHash[0].readBigInt64LE()
+      loginUser.privKey = encryptedPrivkey
     }
 
     const queryRunner = getConnection().createQueryRunner()
