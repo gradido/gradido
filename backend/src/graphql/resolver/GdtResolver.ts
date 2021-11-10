@@ -22,7 +22,8 @@ export class GdtResolver {
   ): Promise<GdtEntryList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const pubKeyString = Buffer.from(context.pubKey).toString('hex')
+    const userEntity = await userRepository.findByPubkeyHex(pubKeyString)
 
     const resultGDT = await apiGet(
       `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,

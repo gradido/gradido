@@ -496,7 +496,8 @@ export class TransactionResolver {
   ): Promise<TransactionList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const pubKeyString = Buffer.from(context.pubKey).toString('hex')
+    const userEntity = await userRepository.findByPubkeyHex(pubKeyString)
 
     const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
 
@@ -531,7 +532,8 @@ export class TransactionResolver {
     // TODO this is subject to replay attacks
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
-    const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const pubKeyString = Buffer.from(context.pubKey).toString('hex')
+    const senderUser = await userRepository.findByPubkeyHex(pubKeyString)
     if (senderUser.pubkey.length !== 32) {
       throw new Error('invalid sender public key')
     }
