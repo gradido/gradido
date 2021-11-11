@@ -27,10 +27,10 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
+import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -236,10 +236,11 @@ export class UserResolver {
     user.language = loginUser.language
 
     // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage({ pubkey: loginUser.pubKey })
+    user.hasElopage = await this.hasElopage({ pubKey: loginUser.pubKey })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
+      // TODO: Merge login_call_updateUserInfos
+      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
     }
 
     // coinAnimation
@@ -589,12 +590,14 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
+    const pubKey = Buffer.from(context.pubKey).toString('hex')
+    const userEntity = await userRepository.findByPubkeyHex(pubKey).catch()
     if (!userEntity) {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
+    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
+    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
     return elopageBuyCount > 0
   }
 }
