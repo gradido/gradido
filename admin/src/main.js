@@ -17,6 +17,8 @@ import { BootstrapVue } from 'bootstrap-vue'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'bootstrap/dist/css/bootstrap.css'
 
+import moment from 'vue-moment'
+
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
@@ -50,10 +52,12 @@ const apolloProvider = new VueApollo({
 })
 
 Vue.use(BootstrapVue)
+Vue.use(moment)
 
 addNavigationGuards(router, store)
 
 new Vue({
+  moment,
   router,
   store,
   i18n,
