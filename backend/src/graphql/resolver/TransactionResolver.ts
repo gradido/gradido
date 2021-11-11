@@ -516,7 +516,7 @@ export class TransactionResolver {
     }
 
     // validate recipient user
-    // TODO: the detour over the public key is unnecessary
+    // TODO: the detour over the public key is unnecessary sessionId is removed
     const recipiantPublicKey = await getPublicKey(email, context.sessionId)
     if (!recipiantPublicKey) {
       throw new Error('recipiant not known')

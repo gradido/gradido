@@ -200,7 +200,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(result.data.session_id, result.data.user.public_hex),
+      value: encode(result.data.user.public_hex),
     })
     const user = new User(result.data.user)
     // Hack: Database Field is not validated properly and not nullable
