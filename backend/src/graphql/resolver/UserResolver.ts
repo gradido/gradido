@@ -31,7 +31,6 @@ import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
-import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -235,24 +234,13 @@ export class UserResolver {
     user.description = loginUser.description
     user.pubkey = loginUserPubKeyString
     user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ pubkey: loginUser.pubKey })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
     }
-    // TODO: Get Method from PR (publisherId)
-    // Hack: Database Field is not validated properly and not nullable
-    // if (user.publisherId === 0) {
-    //   user.publisherId = undefined
-    // }
-    // Save publisherId if Elopage is not yet registered
-    // if (!user.hasElopage && publisherId) {
-    //   user.publisherId = publisherId
-    //   await this.updateUserInfos(
-    //     { publisherId },
-    //     { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
-    //   )
-    // }
 
     // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
@@ -600,7 +588,6 @@ export class UserResolver {
   @Authorized()
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    // const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
     if (!userEntity) {
