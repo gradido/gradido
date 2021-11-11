@@ -236,7 +236,10 @@ export class UserResolver {
     user.pubkey = loginUserPubKeyString
     user.language = loginUser.language
     user.hasElopage = await this.hasElopage({ pubkey: loginUser.pubKey })
-
+    if (!user.hasElopage && publisherId) {
+      user.publisherId = publisherId
+      await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
+    }
     // TODO: Get Method from PR (publisherId)
     // Hack: Database Field is not validated properly and not nullable
     // if (user.publisherId === 0) {
