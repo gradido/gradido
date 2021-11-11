@@ -31,6 +31,7 @@ import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
+import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -195,25 +196,15 @@ export class UserResolver {
     // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
     // UnsecureLogin
     const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findByEmail(email)
-    if (!loginUser) {
+    const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
       throw new Error('No user with this credentials')
-    }
-    if (!isPassword(password)) {
-      throw new Error('No user with this credentials')
-    }
-
+    })
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const loginUserPassword = BigInt(loginUser.password.toString())
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
       throw new Error('No user with this credentials')
     }
     // TODO: If user has no pubKey Create it again and update user.
-
-    context.setHeaders.push({
-      key: 'token',
-      value: encode(loginUser.pubKey),
-    })
 
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
@@ -244,11 +235,7 @@ export class UserResolver {
     user.description = loginUser.description
     user.pubkey = loginUserPubKeyString
     user.language = loginUser.language
-    // TODO: Get Method from PR (hasElopage)
-    // auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
-    // mHasElopage = elopage_buy->isExistInDB("payer_email", mEmail);
-    // else undefined
-    // user.hasElopage = result.data.hasElopage
+    user.hasElopage = await this.hasElopage({ pubkey: loginUser.pubKey })
 
     // TODO: Get Method from PR (publisherId)
     // Hack: Database Field is not validated properly and not nullable
@@ -272,6 +259,12 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(loginUser.pubKey),
+    })
+
     return user
   }
 
