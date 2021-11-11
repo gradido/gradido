@@ -3,6 +3,7 @@
 #include "../lib/DataTypeConverter.h"
 #include "../controller/User.h"
 #include "../SingletonManager/SessionManager.h"
+#include "../SingletonManager/CronManager.h"
 
 using namespace rapidjson;
 
@@ -67,6 +68,11 @@ Document JsonSearch::handle(const Document& params)
 			if (user_model->getID()) {
 				auto public_key_base64 = DataTypeConverter::binToBase64(user_model->getPublicKey(), user_model->getPublicKeySize());
 				resultFields.AddMember("account_publickey", Value(public_key_base64.data(), alloc), alloc);
+				// if this was called it was maybe for a cross group transfer transaction
+				// so better we ping community server to get this update in the near future
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(15,0));
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(30,0));
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(65,0));
 			}
 		}
 	}

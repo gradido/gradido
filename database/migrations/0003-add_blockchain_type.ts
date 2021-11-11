@@ -10,13 +10,12 @@
  */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-    await queryFn(`
+  await queryFn(`
         INSERT IGNORE INTO \`blockchain_types\` (\`id\`, \`name\`, \`text\`, \`symbol\`) VALUES
         (3, 'iota', 'use iota for transactions', 'IOTA');`)
-  }
-  
-  export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-    // write downgrade logic as parameter of queryFn
-    await queryFn(`DELETE FROM \`blockchain_types\` where id = 3;`)
-  }
-  
+}
+
+export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // write downgrade logic as parameter of queryFn
+  await queryFn(`DELETE FROM \`blockchain_types\` where id = 3;`)
+}
