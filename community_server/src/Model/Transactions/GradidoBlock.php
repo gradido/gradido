@@ -60,6 +60,7 @@ class GradidoBlock extends TransactionBase {
     {
         $result = $this->mTransaction->validate();
         if(!$result) {
+            $this->addErrors($this->mTransaction->getErrors());
             return false;
         }
         $versionNumber = $this->mProtoGradidoBlock->getVersionNumber();
