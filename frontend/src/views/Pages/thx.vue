@@ -36,6 +36,16 @@ const textFields = {
     button: 'login',
     linkTo: '/login',
   },
+  login: {
+    subtitle: 'site.thx.activateEmail',
+    button: 'Send Activation Link',
+    linkTo: '/activateEmail',
+  },
+  activateEmail: {
+    subtitle: 'site.thx.emailActivated',
+    button: 'login',
+    linkTo: '/login',
+  },
 }
 
 export default {

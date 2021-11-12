@@ -103,11 +103,13 @@ export default {
           loader.hide()
         })
         .catch((error) => {
+          if (!error.message.includes('user email not validated')) {
+            this.$toasted.error(this.$t('error.no-account'))
+          } else {
+            // : this.$t('error.no-email-verify')
+            this.$router.push('/thx/login')
+          }
           loader.hide()
-          const toastedError = !error.message.includes('user email not validated')
-            ? this.$t('error.no-account')
-            : this.$t('error.no-email-verify')
-          this.$toasted.error(toastedError)
         })
     },
     async onCreated() {
