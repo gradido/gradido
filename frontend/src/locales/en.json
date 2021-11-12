@@ -153,6 +153,10 @@
       "ooops": "Ooops!",
       "text": "Page not found. Do not worry though, we have plenty of other pages to explore"
     },
+    "activateEmail": {
+      "headline": "",
+      "subtitle": ""
+    },
     "checkEmail": {
       "errorText": "Could not verify the email.",
       "title": "Verifing email"
@@ -179,8 +183,10 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
+      "activateEmail": "Your email has not been activated yet, send again the activation email?",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
+      "emailActivated": "Thank you your email has been activated.",
       "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "title": "Thank you!"

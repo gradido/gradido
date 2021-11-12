@@ -153,6 +153,10 @@
       "ooops": "Ooops!",
       "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden"
     },
+    "activateEmail": {
+      "headline": "",
+      "subtitle": ""
+    },
     "checkEmail": {
       "errorText": "Email konnte nicht verifiziert werden.",
       "title": "Email wird verifiziert"
@@ -179,8 +183,10 @@
       "uppercase": "Ein Großbuchstabe erforderlich."
     },
     "thx": {
+      "activateEmail": "Deine Email wurde noch nicht aktiviert, email erneut senden?",
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
+      "emailActivated": "Danke dass Du deine Email bestätigt hast.",
       "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
