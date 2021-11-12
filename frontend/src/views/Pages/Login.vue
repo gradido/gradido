@@ -102,9 +102,12 @@ export default {
           this.$router.push('/overview')
           loader.hide()
         })
-        .catch(() => {
+        .catch((error) => {
           loader.hide()
-          this.$toasted.error(this.$t('error.no-account'))
+          const toastedError = !error.message.includes('user email not validated')
+            ? this.$t('error.no-account')
+            : this.$t('error.no-email-verify')
+          this.$toasted.error(toastedError)
         })
     },
     async onCreated() {

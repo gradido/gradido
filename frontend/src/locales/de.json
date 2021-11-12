@@ -46,7 +46,8 @@
     "change-password": "Fehler beim Ändern des Passworts",
     "error": "Fehler",
     "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
-    "session-expired": "Sitzung abgelaufen!"
+    "session-expired": "Sitzung abgelaufen!",
+    "no-email-verify": "Email wurde noch nicht bestätigt, bitte überprüfen Sie ihre Emails und clicken Sie den Registrierungslink!"
   },
   "form": {
     "amount": "Betrag",
