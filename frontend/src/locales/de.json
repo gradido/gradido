@@ -183,10 +183,11 @@
       "uppercase": "Ein Großbuchstabe erforderlich."
     },
     "thx": {
-      "activateEmail": "Deine Email wurde noch nicht aktiviert, email erneut senden?",
+      "activateEmail": "Deine Email wurde noch nicht aktiviert, bitte überprüfe deine Email und Klicke den Aktivierungslink!",
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
       "emailActivated": "Danke dass Du deine Email bestätigt hast.",
+      "errorTitle": "Achtung!",
       "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"

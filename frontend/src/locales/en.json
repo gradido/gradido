@@ -183,10 +183,11 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
-      "activateEmail": "Your email has not been activated yet, send again the activation email?",
+      "activateEmail": "Your email has not been activated yet, please check your emails and click the activation link!",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
+      "errorTitle": "Attention!",
       "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "title": "Thank you!"
