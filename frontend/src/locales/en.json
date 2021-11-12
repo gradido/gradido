@@ -47,7 +47,7 @@
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "session-expired": "The session expired",
-    "no-email-verify": "Your email is not validated yet, please check your emails and click on the activation link!"
+    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!"
   },
   "form": {
     "amount": "Amount",
@@ -181,7 +181,7 @@
     "thx": {
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
-      "register": "You are registred now.",
+      "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "title": "Thank you!"
     }
