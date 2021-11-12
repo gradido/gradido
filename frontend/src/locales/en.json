@@ -46,8 +46,8 @@
     "change-password": "Error while changing password",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
-    "session-expired": "The session expired",
-    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!"
+    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
+    "session-expired": "The session expired"
   },
   "form": {
     "amount": "Amount",
