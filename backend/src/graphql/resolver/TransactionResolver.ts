@@ -33,6 +33,7 @@ import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 
 /*
 # Test
@@ -451,15 +452,15 @@ async function addUserTransaction(
   })
 }
 
-async function getPublicKey(email: string, sessionId: number): Promise<string | undefined> {
-  const result = await apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', {
-    session_id: sessionId,
-    email,
-    ask: ['user.pubkeyhex'],
-  })
-  if (result.success) {
-    return result.data.userData.pubkeyhex
+async function getPublicKey(email: string): Promise<string | null> {
+  const loginUserRepository = getCustomRepository(LoginUserRepository)
+  const loginUser = await loginUserRepository.findOne({ email: email })
+  // User not found
+  if (!loginUser) {
+    return null
   }
+
+  return loginUser.pubKey.toString('hex')
 }
 
 @Resolver()
@@ -517,7 +518,7 @@ export class TransactionResolver {
 
     // validate recipient user
     // TODO: the detour over the public key is unnecessary
-    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
+    const recipiantPublicKey = await getPublicKey(email)
     if (!recipiantPublicKey) {
       throw new Error('recipiant not known')
     }
