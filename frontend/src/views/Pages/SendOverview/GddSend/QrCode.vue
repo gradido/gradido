@@ -44,6 +44,7 @@ export default {
   data() {
     return {
       scan: false,
+      detect: false,
     }
   },
   methods: {
@@ -54,6 +55,10 @@ export default {
       const arr = JSON.parse(decodedString)
       this.$emit('set-transaction', { email: arr[0].email, amount: arr[0].amount })
       this.scan = false
+    },
+    async onDetect() {
+      // what is this for? I added the detect data to test that the method is called
+      this.detect = !this.detect
     },
   },
 }
