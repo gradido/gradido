@@ -466,6 +466,7 @@ export class UserResolver {
       description,
       username,
       language,
+      publisherId,
       password,
       passwordNew,
       coinanimation,
@@ -524,6 +525,11 @@ export class UserResolver {
       // Save new password hash and newly encrypted private key
       loginUser.password = newPasswordHash[0].readBigInt64LE()
       loginUser.privKey = encryptedPrivkey
+    }
+
+    // Save publisherId only if Elopage is not yet registered
+    if (publisherId && !(await this.hasElopage(context))) {
+      loginUser.publisherId = publisherId
     }
 
     const queryRunner = getConnection().createQueryRunner()
