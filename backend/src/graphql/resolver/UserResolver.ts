@@ -240,9 +240,10 @@ export class UserResolver {
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
 
-      const loginUser = await LoginUser.findOneOrFail({ email: userEntity.email })
+      const loginUserRepository = getCustomRepository(LoginUserRepository)
+      const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
       loginUser.publisherId = publisherId
-      loginUser.save()
+      loginUserRepository.save(loginUser)
     }
 
     const userSettingRepository = getCustomRepository(UserSettingRepository)
