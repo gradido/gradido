@@ -263,13 +263,13 @@ export class UserResolver {
 
   @Authorized()
   @Query(() => String)
-  async logout(@Ctx() context: any): Promise<string> {
-    const payload = { session_id: context.sessionId }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return 'success'
+  async logout(): Promise<boolean> {
+    // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
+    // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
+    // The functionality is fully client side - the client just needs to delete his token with the current implementation.
+    // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
+    // we should just return true for now.
+    return true
   }
 
   @Mutation(() => String)
@@ -574,7 +574,6 @@ export class UserResolver {
   @Authorized()
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    // const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
     if (!userEntity) {
