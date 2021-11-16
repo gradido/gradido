@@ -473,7 +473,8 @@ export class UserResolver {
   ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const loginUser = await LoginUser.findOneOrFail({ email: userEntity.email })
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
 
     if (username) {
       throw new Error('change username currently not supported!')
