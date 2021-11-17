@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
 
@@ -39,10 +39,8 @@ describe('Login', () => {
       commit: mockStoreCommit,
       state: {
         community: {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+          name: '',
+          description: '',
         },
         publisherId: 12345,
       },
@@ -74,10 +72,6 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Login form', () => {
-      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
-    })
-
     it('commits the community info to the store', () => {
       expect(mockStoreCommit).toBeCalledWith('community', {
         name: 'test12',
@@ -85,6 +79,10 @@ describe('Login', () => {
         url: 'http://test12.test12/',
         registerUrl: 'http://test12.test12/vue/register',
       })
+    })
+
+    it('renders the Login form', () => {
+      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
     describe('communities gives back error', () => {
@@ -106,7 +104,18 @@ describe('Login', () => {
       })
     })
 
-    describe('Community Data', () => {
+    describe('Community data already loaded', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+        wrapper = Wrapper()
+      })
+
       it('has a Community name', () => {
         expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
       })
@@ -115,6 +124,10 @@ describe('Login', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
+      })
+
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 

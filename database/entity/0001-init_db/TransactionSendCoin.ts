@@ -24,6 +24,9 @@ export class TransactionSendCoin extends BaseEntity {
   @Column()
   amount: number
 
+  @Column({ name: 'sender_final_balance' })
+  senderFinalBalance: number
+
   @OneToOne(() => Transaction)
   @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction
