@@ -57,7 +57,7 @@ export default {
       this.scan = false
     },
     async onDetect() {
-      // what is this for? I added the detect data to test that the method is called
+      // TODO: what is this for? I added the detect data to test that the method is called
       this.detect = !this.detect
     },
   },
