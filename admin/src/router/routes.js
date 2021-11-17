@@ -28,6 +28,13 @@ const routes = [
     },
   },
   {
+    path: '/creation-confirm',
+    component: () => import('@/views/CreationConfirm.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '*',
     component: () => import('@/components/NotFoundPage.vue'),
   },

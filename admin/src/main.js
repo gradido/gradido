@@ -13,9 +13,9 @@ import VueApollo from 'vue-apollo'
 
 import CONFIG from './config'
 
-import { BootstrapVue } from 'bootstrap-vue'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import moment from 'vue-moment'
 
@@ -52,6 +52,8 @@ const apolloProvider = new VueApollo({
 })
 
 Vue.use(BootstrapVue)
+Vue.use(IconsPlugin)
+
 Vue.use(moment)
 
 addNavigationGuards(router, store)
