@@ -13,6 +13,7 @@
 #include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
+#include "JsonSignTransaction.h"
 #include "JsonUnknown.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
@@ -76,6 +77,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
+	}
+	else if (url_first_part == "/signTransaction") {
+		return new JsonSignTransaction;
 	}
 	else if (url_first_part == "/checkUsername") {
 		return new JsonCheckUsername;

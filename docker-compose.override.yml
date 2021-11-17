@@ -72,6 +72,9 @@ services:
   login-server:
     build:
       dockerfile: Dockerfiles/ubuntu/Dockerfile.debug
+    networks:
+      - external-net
+      - internal-net
     security_opt:
       - seccomp:unconfined
     cap_add:
