@@ -21,7 +21,7 @@ import { BootstrapVue } from 'bootstrap-vue'
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
-  const token = '' // store.state.token
+  const token = store.state.token
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',

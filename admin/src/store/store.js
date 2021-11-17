@@ -12,7 +12,7 @@ export const mutations = {
 const store = new Vuex.Store({
   mutations,
   state: {
-    token: null,
+    token: 'some-token',
   },
 })
 

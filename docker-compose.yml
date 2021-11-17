@@ -15,6 +15,7 @@ services:
       context: ./frontend
       target: production
     networks:
+      - external-net
       - internal-net
     ports:
       - 3000:3000
@@ -39,6 +40,7 @@ services:
       context: ./admin
       target: production
     networks:
+      - external-net
       - internal-net
     ports:
       - 8080:8080
