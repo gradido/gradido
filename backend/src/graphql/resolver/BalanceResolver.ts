@@ -18,8 +18,7 @@ export class BalanceResolver {
     const balanceRepository = getCustomRepository(BalanceRepository)
     const userRepository = getCustomRepository(UserRepository)
 
-    const pubKeyString = Buffer.from(context.pubKey).toString('hex')
-    const userEntity = await userRepository.findByPubkeyHex(pubKeyString)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
     const balanceEntity = await balanceRepository.findByUser(userEntity.id)
     const now = new Date()
 

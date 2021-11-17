@@ -10,7 +10,7 @@ const isAuthorized: AuthChecker<any> = async (
 ) => {
   if (context.token) {
     const decoded = decode(context.token)
-    context.pubKey = decoded.pubKey
+    context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
     context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
     return true
   }

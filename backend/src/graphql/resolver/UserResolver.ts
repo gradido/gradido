@@ -621,8 +621,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
-    const pubKey = Buffer.from(context.pubKey).toString('hex')
-    const userEntity = await userRepository.findByPubkeyHex(pubKey).catch()
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
     if (!userEntity) {
       return false
     }
