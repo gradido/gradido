@@ -145,14 +145,19 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
       randomBytes(8).toString('hex') + email + '!aA1' + randomBytes(8).toString('hex')
 
     const userResolver = new UserResolver()
-    userResolver.createUser({
-      email,
-      firstName,
-      lastName,
-      password,
-      language: 'default',
-      publisherId: loginElopgaeBuy.publisherId,
-    })
+    try {
+      await userResolver.createUser({
+        email,
+        firstName,
+        lastName,
+        password,
+        language: 'default',
+        publisherId: loginElopgaeBuy.publisherId,
+      })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(`Could not create User for ${email}. Following Error occured:`, error)
+    }
   }
 }
 
