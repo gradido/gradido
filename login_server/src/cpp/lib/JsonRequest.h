@@ -1,20 +1,21 @@
 /*!
  *
  * \author: Dario Rekowski
- * 
+ *
  * \date: 13.12.2019
- * 
+ *
  * \brief: Class for Json Requests to php server
  *
 */
 
 #include "NotificationList.h"
 #include "Poco/Net/NameValueCollection.h"
+#include "Poco/Net/HTTPClientSession.h"
 
 #ifndef __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
 #define __GRADIDO_LOGIN_SERVER_LIB_JSON_REQUEST_
 
-enum JsonRequestReturn 
+enum JsonRequestReturn
 {
 	JSON_REQUEST_RETURN_OK,
 	JSON_REQUEST_RETURN_PARSE_ERROR,
@@ -32,7 +33,9 @@ public:
 	JsonRequestReturn request(const char* methodName);
 	JsonRequestReturn request(const char* methodName, rapidjson::Value& payload);
 
-	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); } 
+	rapidjson::Document requestLogin(const char* path, rapidjson::Value& payload);
+
+	rapidjson::Document::AllocatorType& getJsonAllocator() { return mJsonDocument.GetAllocator(); }
 
 protected:
 	Poco::SharedPtr<Poco::Net::HTTPClientSession> createClientSession();

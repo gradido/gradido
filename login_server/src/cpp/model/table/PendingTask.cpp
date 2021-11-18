@@ -20,7 +20,7 @@ namespace model
 		}
 		PendingTask::PendingTask(int userId, std::string serializedProtoRequest, TaskType type)
 			: mUserId(userId), mRequest((const unsigned char*)serializedProtoRequest.data(), serializedProtoRequest.size()),
-			  mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
+			mTaskTypeId(TASK_TYPE_NONE), mChildPendingTaskId(0), mParentPendingTaskId(0)
 		{
 
 		}
@@ -44,7 +44,7 @@ namespace model
 
 		void PendingTask::setResultJson(Document& result)
 		{
-			
+
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			result.Accept(writer);
@@ -62,8 +62,8 @@ namespace model
 			UNIQUE_LOCK;
 			mParamJsonString = std::string(buffer.GetString(), buffer.GetSize());
 		}
-		
-	
+
+
 		Document PendingTask::getResultJson() const
 		{
 			std::string temp;
@@ -173,6 +173,32 @@ namespace model
 			return false;
 		}
 
+		bool PendingTask::updateParentAndChildIds()
+		{
+			Poco::ScopedLock<Poco::Mutex> _poco_lock(mWorkMutex);
+			SHARED_LOCK;
+			if (!mID) {
+				return 0;
+			}
+			auto cm = ConnectionManager::getInstance();
+			auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
+
+			Poco::Data::Statement update(session);
+
+			update << "UPDATE " << getTableName() << " SET child_pending_task_id = ?, parent_pending_task_id = ? where id = ?;",
+				use(mChildPendingTaskId), use(mParentPendingTaskId), use(mID);
+
+			try {
+				return 1 == update.execute();
+			}
+			catch (Poco::Exception& ex) {
+				addError(new ParamError(getTableName(), "[updateParentAndChildIds] mysql error by update", ex.displayText().data()));
+				addError(new ParamError(getTableName(), "data set: \n", toString().data()));
+			}
+			//printf("data valid: %s\n", toString().data());
+			return false;
+		}
+
 
 
 		std::string PendingTask::toString()
@@ -233,7 +259,7 @@ namespace model
 			Poco::Data::Statement select(session);
 
 			select << "SELECT id, user_id, request, created, finished, result_json, param_json, task_type_id, child_pending_task_id, parent_pending_task_id FROM "
-				   << getTableName() << " order by id";
+				<< getTableName() << " order by id";
 
 			return select;
 		}

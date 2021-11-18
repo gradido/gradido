@@ -30,7 +30,7 @@ namespace model {
 
 
 			// generic db operations
-			const char* getTableName() const { return "login_pending_tasks"; }
+			const char* getTableName() const { return "pending_tasks"; }
 			std::string toString();
 
 			//! \brief update table row with current request
@@ -38,6 +38,7 @@ namespace model {
 
 			bool updateFinishedAndResult();
 			bool updateParam();
+			bool updateParentAndChildIds();
 
 			inline int getUserId() const { SHARED_LOCK; return mUserId; }
 			inline const std::vector<unsigned char>& getRequest() const { SHARED_LOCK; return mRequest.content(); }
@@ -56,7 +57,7 @@ namespace model {
 			void setResultJson(rapidjson::Document& result);
 			void setParamJson(rapidjson::Document& param);
 			inline void setTaskType(TaskType type) { UNIQUE_LOCK; mTaskTypeId = type; }
-			inline void setChildPendingTaskId(int childPendingTaskId) {UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId;}
+			inline void setChildPendingTaskId(int childPendingTaskId) { UNIQUE_LOCK; mChildPendingTaskId = childPendingTaskId; }
 			inline void setParentPendingTaskId(int parentPendingTaskId) { UNIQUE_LOCK; mParentPendingTaskId = parentPendingTaskId; }
 
 			inline bool isGradidoTransaction() { SHARED_LOCK; return isGradidoTransaction((TaskType)mTaskTypeId); }

@@ -110,6 +110,7 @@ namespace model {
 			inline void setPublisherId(int publisherId) { UNIQUE_LOCK; mPublisherId = publisherId; }
 
 			rapidjson::Value getJson(rapidjson::Document::AllocatorType& alloc);
+			static MemoryBin* createEmailHash(const std::string& email);
 
 		protected:
 			~User();

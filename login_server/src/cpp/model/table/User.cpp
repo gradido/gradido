@@ -65,17 +65,27 @@ namespace model {
 			}
 		}
 
-		void User::setEmail(const std::string& email) 
+		void User::setEmail(const std::string& email)
 		{
-			std::unique_lock<std::shared_mutex> _lock(mSharedMutex); 
+			auto emailHash = createEmailHash(email);
+
+			std::unique_lock<std::shared_mutex> _lock(mSharedMutex);
 			mEmail = email;
 
-			unsigned char email_hash[crypto_generichash_BYTES];
+			mEmailHash = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(emailHash->data(), emailHash->size()));
+			MemoryManager::getInstance()->releaseMemory(emailHash);
+		}
 
-			crypto_generichash(email_hash, crypto_generichash_BYTES,
+		// TODO: add server specific key to make usage of rainbow tables harder
+		MemoryBin* User::createEmailHash(const std::string& email)
+		{
+			auto mm = MemoryManager::getInstance();
+			auto hash = mm->getFreeMemory(crypto_generichash_BYTES);
+			// uses BLAKE2b, maybe better use argon2 too, like for password hashing
+			crypto_generichash(hash->data(), crypto_generichash_BYTES,
 				(const unsigned char*)email.data(), email.size(),
 				NULL, 0);
-			mEmailHash = Poco::Nullable<Poco::Data::BLOB>(Poco::Data::BLOB(email_hash, crypto_generichash_BYTES));
+			return hash;
 		}
 
 		Poco::Data::Statement User::_insertIntoDB(Poco::Data::Session session)

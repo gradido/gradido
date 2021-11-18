@@ -21,11 +21,11 @@ namespace model {
 			if (mIsPrepared) return 0;
 
 			const static char functionName[] = { "TransactionCreation::prepare" };
-			if (!mProtoCreation.has_receiver()) {
+			if (!mProtoCreation.has_recipiant()) {
 				addError(new Error(functionName, "hasn't receiver amount"));
 				return -1;
 			}
-			auto receiver_amount = mProtoCreation.receiver();
+			auto receiver_amount = mProtoCreation.recipiant();
 
 			auto receiverPublic = receiver_amount.pubkey();
 			if (receiverPublic.size() != KeyPairEd25519::getPublicKeySize()) {
@@ -103,7 +103,7 @@ namespace model {
 					return TRANSACTION_VALID_INVALID_TARGET_DATE;
 				}
 			}
-			auto amount = mProtoCreation.receiver().amount();
+			auto amount = mProtoCreation.recipiant().amount();
 			if (amount > 1000 * 10000) {
 				addError(new Error(function_name, "creation amount to high, max 1000 per month"));
 				return TRANSACTION_VALID_CREATION_OUT_OF_BORDER;
@@ -114,7 +114,7 @@ namespace model {
 			}
 			
 
-			if (mProtoCreation.receiver().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
+			if (mProtoCreation.recipiant().pubkey().size() != KeyPairEd25519::getPublicKeySize()) {
 				addError(new Error(function_name, "receiver pubkey has invalid size"));
 				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}

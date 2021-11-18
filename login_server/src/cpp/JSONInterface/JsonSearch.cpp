@@ -7,6 +7,8 @@
 
 using namespace rapidjson;
 
+// TODO: monitor caller ip and allow not to much calls per second to prevent attackers using this function to check against with hundreds of email addresses
+// TODO: block requester which call with to many unknown email hashes / usernames in a row
 Document JsonSearch::handle(const Document& params)
 {
 	auto sm = SessionManager::getInstance();
@@ -34,12 +36,14 @@ Document JsonSearch::handle(const Document& params)
 			string_value = std::string(it->value.GetString(), it->value.GetStringLength());
 		}
 
-
 		if (ask_name == "account_publickey") {
-			if (!string_value.size()) {
+			auto user = controller::User::create();
+			if (!string_value.size())
+			{
 				jsonErrors.PushBack("account_publickey isn't a string or empty", alloc);
 			}
-			else {
+			else
+			{
 				MemoryBin* email_hash = nullptr;
 				if (sm->isValid(string_value, VALIDATE_ONLY_HEX)) {
 					email_hash = DataTypeConverter::hexToBin(string_value);
@@ -47,16 +51,18 @@ Document JsonSearch::handle(const Document& params)
 				if (!email_hash) {
 					email_hash = DataTypeConverter::base64ToBin(string_value);
 				}
-				if (!email_hash) {
-					jsonErrors.PushBack("account_publickey isn't valid base64 or hex", alloc);
+				if (!email_hash)
+				{
+					if (sm->isValid(string_value, VALIDATE_USERNAME)) {
+						user->load(string_value);
+					}
+					else {
+						jsonErrors.PushBack("account_publickey isn't valid base64 or hex or username", alloc);
+					}
 				}
 				else {
-					auto user = controller::User::create();
 					user->load(email_hash);
 					mm->releaseMemory(email_hash);
-					auto user_model = user->getModel();
-					auto public_key_base64 = DataTypeConverter::binToBase64(user_model->getPublicKey(), user_model->getPublicKeySize());
-					resultFields.AddMember("account_publickey", Value(public_key_base64.data(), alloc), alloc);
 				}
 			}
 			auto user_model = user->getModel();
@@ -65,16 +71,16 @@ Document JsonSearch::handle(const Document& params)
 				resultFields.AddMember("account_publickey", Value(public_key_base64.data(), alloc), alloc);
 				// if this was called it was maybe for a cross group transfer transaction
 				// so better we ping community server to get this update in the near future
-				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(15,0));
-				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(30,0));
-				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(65,0));
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(15, 0));
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(30, 0));
+				CronManager::getInstance()->scheduleUpdateRun(Poco::Timespan(65, 0));
 			}
 		}
 	}
 
 	result.AddMember("state", "success", alloc);
 	result.AddMember("errors", jsonErrors, alloc);
-	result.AddMember("results", resultFields, alloc);	
+	result.AddMember("results", resultFields, alloc);
 
 	return result;
 }

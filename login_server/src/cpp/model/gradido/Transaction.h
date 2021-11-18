@@ -30,22 +30,24 @@ namespace model {
 
 			// create group add member transaction
 			// groupMemberUpdate
-			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
+			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(
+				Poco::AutoPtr<controller::User> user,
+				Poco::AutoPtr<controller::Group> group,
+				BlockchainType blockchainType
+			);
 			//! \brief transfer
 			//! \return
-			static Poco::AutoPtr<Transaction> createTransfer(
+			static Poco::AutoPtr<Transaction> createTransferLocal(
+				Poco::AutoPtr<controller::User> sender,
+				const MemoryBin* receiverPubkey,
+				Poco::UInt32 amount,
+				const std::string& memo,
+				BlockchainType blockchainType
+			);
+			static Poco::AutoPtr<Transaction> createTransferCrossGroup(
 				Poco::AutoPtr<controller::User> sender,
 				const MemoryBin* receiverPubkey,
 				Poco::AutoPtr<controller::Group> receiverGroup,
-				Poco::UInt32 amount,
-				const std::string& memo,
-				BlockchainType blockchainType,
-				bool inbound = true);
-
-			Poco::AutoPtr<Transaction> createTransfer(
-				const MemoryBin* senderPubkey,
-				Poco::AutoPtr<controller::User> receiver,
-				std::string senderGroupAlias,
 				Poco::UInt32 amount,
 				const std::string& memo,
 				BlockchainType blockchainType);
@@ -85,16 +87,18 @@ namespace model {
 			bool needSomeoneToSign(Poco::AutoPtr<controller::User> user);
 
 			std::string getTransactionAsJson(bool replaceBase64WithHex = false);
+
+			// use with care, only available after freshly creating cross group transfer transaction, not after loading from db
 			inline Poco::AutoPtr<Transaction> getPairedTransaction() { return mPairedTransaction; }
 
 			bool isTheSameTransaction(Poco::AutoPtr<Transaction> other);
-
 
 		protected:
 
 			bool ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user);
 
-			int runSendTransactionMysql();
+			int runSendTransactionMysql(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group);
+			int runSendTransactionIota(const std::string& transaction_hex, Poco::AutoPtr<controller::Group> group);
 
 			Poco::AutoPtr<Transaction> mPairedTransaction;
 

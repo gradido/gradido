@@ -1,9 +1,10 @@
 #include "TransactionBody.h"
 
+#include "../../SingletonManager/MemoryManager.h"
 
 namespace model {
 	namespace gradido {
-	
+
 		TransactionBody::TransactionBody()
 			: mTransactionSpecific(nullptr), mType(TRANSACTION_NONE), mBlockchainType(BLOCKCHAIN_NULL)
 		{
@@ -21,7 +22,12 @@ namespace model {
 			unlock();
 		}
 
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias)
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(
+			const std::string& memo,
+			Poco::AutoPtr<controller::User> user,
+			proto::gradido::GroupMemberUpdate_MemberUpdateType type,
+			const std::string& targetGroupAlias,
+			BlockchainType blockchainType)
 		{
 			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
 			obj->mTransactionBody.set_memo(memo);
@@ -32,6 +38,7 @@ namespace model {
 			group_member_update->set_target_group(targetGroupAlias);
 
 			obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
+			obj->mBlockchainType = blockchainType;
 			obj->mTransactionSpecific = new GroupMemberUpdate(memo, obj->mTransactionBody.group_member_update());
 			obj->mTransactionSpecific->prepare();
 
@@ -39,99 +46,13 @@ namespace model {
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::create(
-			const std::string& memo, 
-			Poco::AutoPtr<controller::User> sender, 
-			const MemoryBin* receiverPublicKey, 
-			Poco::UInt32 amount, 
-			BlockchainType blockchainType,
-			Poco::Timestamp pairedTransactionId, 
-			Poco::AutoPtr<controller::Group> group/* = nullptr*/)
-		{
-			if (sender.isNull() || !sender->getModel()) {
-				return nullptr;
-			}
-			auto sender_model = sender->getModel();
-			
-
-			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
-			obj->mTransactionBody.set_memo(memo);
-			auto gradido_transfer = obj->mTransactionBody.mutable_transfer();
-			proto::gradido::TransferAmount* transfer_amount = nullptr;
-			std::string* receiver = nullptr;
-			
-
-			if (group.isNull()) 
-			{
-				auto local = gradido_transfer->mutable_local();
-				transfer_amount = local->mutable_sender();
-				receiver = local->mutable_receiver();
-			} 
-			else 
-			{
-				auto group_model = group->getModel();
-				proto::gradido::CrossGroupTransfer* cross_group_transfer = nullptr;
-				if (group->getModel()->getID() != sender->getModel()->getGroupId()) {
-					cross_group_transfer = gradido_transfer->mutable_outbound();
-				}
-				else {
-					cross_group_transfer = gradido_transfer->mutable_inbound();
-				}
-				transfer_amount = cross_group_transfer->mutable_sender();
-				receiver = cross_group_transfer->mutable_receiver();
-				auto paired_transaction_id = cross_group_transfer->mutable_paired_transaction_id();
-				DataTypeConverter::convertToProtoTimestamp(pairedTransactionId, paired_transaction_id);
-				cross_group_transfer->set_other_group(group_model->getAlias());
-			}
-			transfer_amount->set_amount(amount);
-			transfer_amount->set_pubkey(sender_model->getPublicKey(), sender_model->getPublicKeySize());
-			*receiver = std::string((const char*)receiverPublicKey->data(), receiverPublicKey->size());
-
-			obj->mType = TRANSACTION_TRANSFER;
-			obj->mBlockchainType = blockchainType;
-			obj->mTransactionSpecific = new TransactionTransfer(memo, obj->mTransactionBody.transfer());
-			obj->mTransactionSpecific->prepare();
-
-			return obj;
-		}
-
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, const MemoryBin* senderPublicKey, Poco::AutoPtr<controller::User> receiver, Poco::UInt32 amount, Poco::Timestamp pairedTransactionId /*= Poco::Timestamp()*/, Poco::AutoPtr<controller::Group> group/* = nullptr*/)
-		{
-			if (receiver.isNull() || !receiver->getModel()) {
-				return nullptr;
-			}
-			auto receiver_model = receiver->getModel();
-
-
-			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
-			obj->mTransactionBody.set_memo(memo);
-			auto gradido_transfer = obj->mTransactionBody.mutable_transfer();
-			proto::gradido::TransferAmount* transfer_amount = nullptr;
-			std::string* sender = nullptr;
-
-			auto group_model = group->getModel();
-			proto::gradido::CrossGroupTransfer* cross_group_transfer = nullptr;
-
-			cross_group_transfer = gradido_transfer->mutable_inbound();
-			
-			transfer_amount = cross_group_transfer->mutable_sender();
-			sender = transfer_amount->mutable_pubkey();
-			auto paired_transaction_id = cross_group_transfer->mutable_paired_transaction_id();
-			DataTypeConverter::convertToProtoTimestamp(pairedTransactionId, paired_transaction_id);
-			cross_group_transfer->set_other_group(group_model->getAlias());
-			
-			transfer_amount->set_amount(amount);
-			transfer_amount->set_pubkey(senderPublicKey, KeyPairEd25519::getPublicKeySize());
-			cross_group_transfer->set_receiver(receiver_model->getPublicKey(), receiver_model->getPublicKeySize());
-			*sender = std::string((const char*)senderPublicKey->data(), senderPublicKey->size());
-
-			obj->mType = TRANSACTION_TRANSFER;
-			obj->mTransactionSpecific = new TransactionTransfer(memo, obj->mTransactionBody.transfer());
-			obj->mTransactionSpecific->prepare();
-
-			return obj;
-		}
-
-		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, const MemoryBin* senderPublicKey, const MemoryBin* receiverPublicKey, Poco::UInt32 amount, const std::string groupAlias, TransactionTransferType transferType, Poco::Timestamp pairedTransactionId/* = Poco::Timestamp()*/)
+			const std::string& memo,
+			const MemoryBin* senderPublicKey,
+			const MemoryBin* receiverPublicKey,
+			Poco::UInt32 amount,
+			TransactionTransferType transferType,
+			const std::string groupAlias/* = ""*/,
+			Poco::Timestamp pairedTransactionId/* = Poco::Timestamp()*/)
 		{
 			assert(transferType == TRANSFER_CROSS_GROUP_INBOUND || transferType == TRANSFER_CROSS_GROUP_OUTBOUND || transferType == TRANSFER_LOCAL);
 			if (!senderPublicKey || !receiverPublicKey) {
@@ -155,23 +76,20 @@ namespace model {
 				break;
 			case TRANSFER_LOCAL:
 				local_transfer = gradido_transfer->mutable_local();
-				break;			
+				break;
 			}
 
-
-			if (local_transfer) {
-				transfer_amount = local_transfer->mutable_sender();
-				local_transfer->set_receiver((const char*)receiverPublicKey->data(), receiverPublicKey->size());
-			}
-			else if (cross_group_transfer) {
-				transfer_amount = cross_group_transfer->mutable_sender();
+			if (cross_group_transfer) {
+				local_transfer = cross_group_transfer->mutable_transfer();
 				auto paired_transaction_id = cross_group_transfer->mutable_paired_transaction_id();
 				DataTypeConverter::convertToProtoTimestamp(pairedTransactionId, paired_transaction_id);
 				cross_group_transfer->set_other_group(groupAlias);
-
-				cross_group_transfer->set_receiver((const char*)receiverPublicKey->data(), receiverPublicKey->size());
 			}
-			
+
+			if (local_transfer) {
+				transfer_amount = local_transfer->mutable_sender();
+				local_transfer->set_recipiant((const char*)receiverPublicKey->data(), receiverPublicKey->size());
+			}
 
 			transfer_amount->set_amount(amount);
 			transfer_amount->set_pubkey((const unsigned char*)senderPublicKey->data(), senderPublicKey->size());
@@ -184,12 +102,12 @@ namespace model {
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::create(
-			const std::string& memo, 
-			Poco::AutoPtr<controller::User> receiver, 
-			Poco::UInt32 amount, 
+			const std::string& memo,
+			Poco::AutoPtr<controller::User> receiver,
+			Poco::UInt32 amount,
 			Poco::DateTime targetDate,
 			BlockchainType blockchainType
-			)
+		)
 		{
 			if (receiver.isNull() || !receiver->getModel()) {
 				return nullptr;
@@ -203,7 +121,7 @@ namespace model {
 			auto target_date_timestamp_seconds = creation->mutable_target_date();
 			target_date_timestamp_seconds->set_seconds(targetDate.timestamp().epochTime());
 
-			auto transfer_amount = creation->mutable_receiver();
+			auto transfer_amount = creation->mutable_recipiant();
 			transfer_amount->set_amount(amount);
 			std::string* pubkey_str = transfer_amount->mutable_pubkey();
 			*pubkey_str = std::string((const char*)receiver_model->getPublicKey(), receiver_model->getPublicKeySize());
@@ -214,7 +132,7 @@ namespace model {
 			obj->mTransactionSpecific->prepare();
 
 			return obj;
-			
+
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::load(const std::string& protoMessageBin)
@@ -248,7 +166,7 @@ namespace model {
 			Poco::ScopedLock<Poco::Mutex> _lock(mWorkMutex);
 			if (mTransactionBody.IsInitialized()) {
 				std::string result(mTransactionBody.memo());
-				
+
 				return result;
 			}
 			return "<uninitalized>";
@@ -290,7 +208,7 @@ namespace model {
 			return "<unknown>";
 		}
 
-		
+
 
 		TransactionCreation* TransactionBody::getCreationTransaction()
 		{
@@ -302,12 +220,12 @@ namespace model {
 			return dynamic_cast<TransactionTransfer*>(mTransactionSpecific);
 		}
 
-		GroupMemberUpdate*  TransactionBody::getGroupMemberUpdate()
+		GroupMemberUpdate* TransactionBody::getGroupMemberUpdate()
 		{
 			return dynamic_cast<GroupMemberUpdate*>(mTransactionSpecific);
 		}
 
-		TransactionBase*  TransactionBody::getTransactionBase()
+		TransactionBase* TransactionBody::getTransactionBase()
 		{
 			return mTransactionSpecific;
 		}
@@ -320,6 +238,9 @@ namespace model {
 			else if (blockainTypeString == "hedera") {
 				return BLOCKCHAIN_HEDERA;
 			}
+			else if (blockainTypeString == "iota") {
+				return BLOCKCHAIN_IOTA;
+			}
 			return BLOCKCHAIN_UNKNOWN;
 		}
 
@@ -328,6 +249,7 @@ namespace model {
 			switch (mBlockchainType) {
 			case BLOCKCHAIN_HEDERA: return "hedera";
 			case BLOCKCHAIN_MYSQL: return "mysql";
+			case BLOCKCHAIN_IOTA: return "iota";
 			case BLOCKCHAIN_UNKNOWN: return "unknown";
 			}
 			return "invalid";

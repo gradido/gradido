@@ -47,6 +47,7 @@ namespace DataTypeConverter {
 	std::string binToHex(const Poco::Nullable<Poco::Data::BLOB>& nullableBin);
 	inline std::string binToHex(const MemoryBin* data) { return binToHex(data->data(), data->size());}
 	inline std::string binToHex(const std::vector<unsigned char>& data) { return binToHex(data.data(), data.size()); }
+	inline std::string binToHex(const std::string& str) { return binToHex((const unsigned char*)str.data(), str.size()); }
 
 	//! \param pubkey pointer to array with crypto_sign_PUBLICKEYBYTES size
 	std::string pubkeyToHex(const unsigned char* pubkey);

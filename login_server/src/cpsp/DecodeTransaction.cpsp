@@ -104,12 +104,12 @@
 			<% if(transfer.has_local()) { 
 				auto local_transfer = transfer.local();
 				auto sender_pubkey = local_transfer.sender().pubkey();
-				auto receiver_pubkey = local_transfer.receiver();
+				auto recipiant_pubkey = local_transfer.recipiant();
 				sodium_bin2hex(hex, 65, (const unsigned char*)sender_pubkey.data(), sender_pubkey.size());
 			%>
 				<h3>Local Transfer</h3>
 				<b>From: </b><%= hex %>
-				<% sodium_bin2hex(hex, 65, (const unsigned char*)receiver_pubkey.data(), receiver_pubkey.size()); %>
+				<% sodium_bin2hex(hex, 65, (const unsigned char*)recipiant_pubkey.data(), recipiant_pubkey.size()); %>
 				<b>To: </b><%= hex %>
 				<b>Amount: </b><%= model::gradido::TransactionBase::amountToString(local_transfer.sender().amount()) %>
 			<% } else { %>
@@ -120,14 +120,14 @@
 			auto creation = transactionBody.creation();
 			model::gradido::TransactionCreation creationObject("", creation);
 			//TransactionCreation creationObject("", creation);
-			auto receiver = creation.receiver();
+			auto recipiant = creation.recipiant();
 			char hex[65]; memset(hex, 0, 65);
-			sodium_bin2hex(hex, 65, (const unsigned char*)receiver.pubkey().data(), receiver.pubkey().size());
+			sodium_bin2hex(hex, 65, (const unsigned char*)recipiant.pubkey().data(), recipiant.pubkey().size());
 			
 			Poco::AutoPtr<controller::User> user = nullptr;
 			if(adminUser) {
 				user = controller::User::create();
-				if(!user->load((const unsigned char*)receiver.pubkey().data())) {
+				if(!user->load((const unsigned char*)recipiant.pubkey().data())) {
 					user.assign(nullptr);
 				}
 			}
@@ -140,7 +140,7 @@
 		<p>user: </p>
 		<p><%= user->getModel()->toHTMLString() %></p>
 		<% } %>
-		<p>amount: <%= model::gradido::TransactionBase::amountToString(receiver.amount()) %> GDD</p>
+		<p>amount: <%= model::gradido::TransactionBase::amountToString(recipiant.amount()) %> GDD</p>
 		<p>target date: <%= creationObject.getTargetDateString() %></p>
 		<% } else if(transactionBody.has_group_member_update()) { 
 			auto group_member_update = transactionBody.group_member_update();

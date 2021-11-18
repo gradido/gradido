@@ -22,10 +22,10 @@ Document JsonCreateUser::handle(const Document& params)
 
 	auto sm = SessionManager::getInstance();
 	auto em = EmailManager::getInstance();
+	auto lm = LanguageManager::getInstance();
 
 	auto paramError = getStringParameter(params, "email", email);
 	if (paramError.IsObject()) { return paramError; }
-			auto language_obj = paramJsonObject->get("language");
 
 	auto user = controller::User::create();
 	if (user->load(email) > 0) {
@@ -34,6 +34,9 @@ Document JsonCreateUser::handle(const Document& params)
 
 	paramError = getStringParameter(params, "password", password);
 	if (paramError.IsObject()) { return paramError; }
+
+	getStringParameter(params, "language", language);
+	auto languageKey = lm->languageFromString(language);
 
 	if (password.size()) {
 		NotificationList errors;

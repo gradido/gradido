@@ -1,16 +1,19 @@
 #include "JsonHasElopage.h"
 #include "../model/table/ElopageBuy.h"
 
-Poco::JSON::Object* JsonHasElopage::handle(Poco::Dynamic::Var params)
+using namespace rapidjson;
+
+Document JsonHasElopage::handle(const Document& params)
 {
 	auto result = checkAndLoadSession(params);
-	if (result) {
+	if (result.IsObject()) {
 		return result;
 	}
 	auto elopage_buy = Poco::AutoPtr<model::table::ElopageBuy>(new model::table::ElopageBuy);
 	
 	result = stateSuccess();
-	result->set("hasElopage", elopage_buy->isExistInDB("payer_email", mSession->getNewUser()->getModel()->getEmail()));
+	auto alloc = result.GetAllocator();
+	result.AddMember("hasElopage", elopage_buy->isExistInDB("payer_email", mSession->getNewUser()->getModel()->getEmail()), alloc);
 
 	return result;
 }

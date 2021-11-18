@@ -30,7 +30,7 @@ namespace model {
 			TransactionValidation validate();
 
 			inline Poco::AutoPtr<controller::User> getUser() { return mReceiverUser; }
-			inline google::protobuf::int64 getAmount() { return mProtoCreation.receiver().amount(); }
+			inline google::protobuf::int64 getAmount() { return mProtoCreation.recipiant().amount(); }
 			inline char* getPublicHex() { return mReceiverPublicHex; }
 
 			inline std::string getAmountString() { return amountToString(getAmount()); }

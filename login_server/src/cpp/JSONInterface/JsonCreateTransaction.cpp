@@ -11,6 +11,7 @@
 #include "Poco/DateTimeParser.h"
 
 #include "rapidjson/document.h"
+#include "rapidjson/pointer.h"
 
 using namespace rapidjson;
 
@@ -43,7 +44,7 @@ Document JsonCreateTransaction::handle(const Document& params)
 	}
 
 	auto user = mSession->getNewUser();
-	
+
 	if (mBlockchainType != model::gradido::BLOCKCHAIN_MYSQL) {
 		getTargetGroup(params);
 	}
@@ -84,7 +85,16 @@ Document JsonCreateTransaction::transfer(const Document& params)
 	Value warnings(kArrayType);
 
 	try {
-		auto transaction = model::gradido::Transaction::createTransfer(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		Poco::AutoPtr<model::gradido::Transaction> transaction;
+		if (!mTargetGroup.isNull() && sender_user->getModel()->getGroupId() != mTargetGroup->getModel()->getID()) {
+			// cross group transfer transaction
+			transaction = model::gradido::Transaction::createTransferCrossGroup(sender_user, target_pubkey, mTargetGroup, amount, mMemo, mBlockchainType);
+		}
+		else {
+			// local transfer transaction
+			transaction = model::gradido::Transaction::createTransferLocal(sender_user, target_pubkey, amount, mMemo, mBlockchainType);
+		}
+
 		mm->releaseMemory(target_pubkey);
 		target_pubkey = nullptr;
 
@@ -105,15 +115,15 @@ Document JsonCreateTransaction::transfer(const Document& params)
 
 		if (mAutoSign) {
 			Value errors(kArrayType);
+
 			transaction->sign(sender_user);
 			if (transaction->errorCount() > 0) {
 				errors = transaction->getErrorsArray(alloc);
 			}
-
 			if (transaction->warningCount() > 0) {
 				warnings = transaction->getWarningsArray(alloc);
 				result.AddMember("warnings", warnings, alloc);
-			} 
+			}
 
 			if (errors.Size() > 0) {
 				result.AddMember("state", "error", alloc);
@@ -121,7 +131,7 @@ Document JsonCreateTransaction::transfer(const Document& params)
 				result.AddMember("details", errors, alloc);
 				return result;
 			}
-			
+
 		}
 	}
 	catch (Poco::Exception& ex) {
@@ -162,7 +172,7 @@ Document JsonCreateTransaction::creation(const Document& params)
 	}
 
 	auto mm = MemoryManager::getInstance();
-	
+
 	auto target_pubkey = getTargetPubkey(params);
 	if (!target_pubkey) {
 		return customStateError("not found", "recipient not found");
@@ -184,7 +194,7 @@ Document JsonCreateTransaction::creation(const Document& params)
 		}
 	}
 
-	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType, false);
+	auto transaction = model::gradido::Transaction::createCreation(mReceiverUser, amount, target_date, mMemo, mBlockchainType, true);
 	auto creation_transaction = transaction->getTransactionBody()->getCreationTransaction();
 	if (creation_transaction->prepare()) {
 		return stateError("error in transaction details", creation_transaction);
@@ -214,7 +224,7 @@ Document JsonCreateTransaction::groupMemberUpdate(const Document& params)
 	if (mTargetGroup.isNull()) {
 		return stateError("group not found");
 	}
-	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup);
+	auto transaction = model::gradido::Transaction::createGroupMemberUpdate(mSession->getNewUser(), mTargetGroup, mBlockchainType);
 	auto group_member_update_transaction = transaction->getTransactionBody()->getGroupMemberUpdate();
 	if (group_member_update_transaction->prepare()) {
 		return stateError("error in transaction details", group_member_update_transaction);
@@ -246,18 +256,19 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(const Document& params)
 	mReceiverUser = controller::User::create();
 	int result_count = 0;
 
+	int group_id = 0;
+	if (!mTargetGroup.isNull()) {
+		group_id = mTargetGroup->getModel()->getID();
+	}
+	else {
+		mSession->getNewUser()->getModel()->getGroupId();
+	}
+
 	MemoryBin* result = nullptr;
 	if (email.size()) {
-		result_count = mReceiverUser->load(email);
+		result_count = mReceiverUser->getModel()->loadFromDB({ "email", "group_id" }, email, group_id, model::table::MYSQL_CONDITION_AND);
 	}
 	else if (username.size()) {
-		int group_id = 0;
-		if (!mTargetGroup.isNull()) {
-			group_id = mTargetGroup->getModel()->getID();
-		}
-		else {
-			mSession->getNewUser()->getModel()->getGroupId();
-		}
 		result_count = mReceiverUser->getModel()->loadFromDB({ "username", "group_id" }, username, group_id, model::table::MYSQL_CONDITION_AND);
 	}
 	else if (pubkeyHex != "") {
@@ -269,6 +280,33 @@ MemoryBin* JsonCreateTransaction::getTargetPubkey(const Document& params)
 	else {
 		mReceiverUser.assign(nullptr);
 	}
+	if (!result && !mTargetGroup.isNull())
+	{
+		// assume that login-server is running on same url as community server under login_api
+		auto request = mTargetGroup->createJsonRequest();
+		auto alloc = request.getJsonAllocator();
+
+		Value params(kObjectType);
+		Value ask(kObjectType);
+
+		if (email.size()) {
+			auto emailHash = model::table::User::createEmailHash(email);
+			auto emailHashBase64 = DataTypeConverter::binToBase64(emailHash);
+			MemoryManager::getInstance()->releaseMemory(emailHash);
+			ask.AddMember("account_publickey", Value(emailHashBase64.data(), alloc), alloc);
+		}
+		else if (username.size()) {
+			ask.AddMember("account_publickey", Value(username.data(), alloc), alloc);
+		}
+		params.AddMember("ask", ask, alloc);
+		auto response = request.requestLogin("/login_api/search", params);
+
+		Value* pubkeyJson = Pointer("/results/account_publickey").Get(response);
+		if (pubkeyJson && pubkeyJson->IsString()) {
+			result = DataTypeConverter::base64ToBin(pubkeyJson->GetString(), pubkeyJson->GetStringLength());
+		}
+	}
+
 	return result;
 }
 

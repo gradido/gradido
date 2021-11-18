@@ -50,19 +50,13 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 	auto alloc = mJsonDocument.GetAllocator();
 	mJsonDocument.AddMember("method", Value(methodName, alloc), alloc);
 
-	if (mServerHost.empty() || !mServerPort) {
-		addError(new Error(functionName, "server host or server port not given"));
-		return JSON_REQUEST_PARAMETER_ERROR;
-	}
 	try {
 		Profiler phpRequestTime;
 
-		Poco::SharedPtr<Poco::Net::HTTPClientSession> clientSession;
-		if (mServerPort == 443) {
-			clientSession = new Poco::Net::HTTPSClientSession(mServerHost, mServerPort);
-		}
-		else {
-			clientSession = new Poco::Net::HTTPClientSession(mServerHost, mServerPort);
+		auto  clientSession = createClientSession();
+		if (clientSession.isNull()) {
+			addError(new Error(functionName, "server host or server port not given"));
+			return JSON_REQUEST_PARAMETER_ERROR;
 		}
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, "/JsonRequestHandler");
 
@@ -90,8 +84,8 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 		// extract parameter from request
 		Document resultJson;
 		resultJson.Parse(responseStringStream.str().data());
-		
-		if(resultJson.HasParseError()) 
+
+		if (resultJson.HasParseError())
 		{
 			addError(new ParamError(functionName, "error parsing request answer", resultJson.GetParseError()));
 			addError(new ParamError(functionName, "position of last parsing error", resultJson.GetErrorOffset()));
@@ -150,6 +144,16 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 				if (details != "") {
 					addError(new ParamError(functionName, "details:", details));
 				}
+				else {
+					Value::ConstMemberIterator itr = resultJson.FindMember("details");
+					if (itr != resultJson.MemberEnd()) {
+						StringBuffer buffer;
+						Writer<StringBuffer> writer(buffer);
+						const auto& obj = itr->value;
+						obj.Accept(writer);
+						addError(new ParamError(functionName, "details", buffer.GetString()));
+					}
+				}
 				sendErrorsAsEmail("", true);
 				return JSON_REQUEST_RETURN_ERROR;
 			}
@@ -163,7 +167,7 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 						}
 						std::string name(it->name.GetString(), it->name.GetStringLength());
 						std::string value(it->value.GetString(), it->value.GetStringLength());
-						
+
 						addWarning(new Warning(name, value));
 					}
 				}
@@ -181,6 +185,118 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 	return JSON_REQUEST_RETURN_OK;
 }
 
+Document JsonRequest::requestLogin(const char* path, Value& payload)
+{
+	static const char* functionName = "JsonRequest::requestLogin";
+
+	auto alloc = mJsonDocument.GetAllocator();
+
+	if (payload.IsObject()) {
+		for (auto it = payload.MemberBegin(); it != payload.MemberEnd(); it++) {
+			mJsonDocument.AddMember(it->name, it->value, alloc);
+		}
+	}
+	auto responseString = POST(path);
+	auto responseJson = parseResponse(responseString);
+	if (!responseJson.IsObject()) {
+		sendErrorsAsEmail(responseString);
+		return nullptr;
+	}
+	return responseJson;
+}
 
 
+Poco::SharedPtr<Poco::Net::HTTPClientSession> JsonRequest::createClientSession()
+{
+	if (mServerHost.empty() || !mServerPort) {
+		addError(new Error("IotaRequest::createClientSession", "server host or server port not given"));
+		return nullptr;
+	}
+	try {
 
+		Poco::SharedPtr<Poco::Net::HTTPClientSession> clientSession;
+		if (mServerPort == 443) {
+			clientSession = new Poco::Net::HTTPSClientSession(mServerHost, mServerPort, ServerConfig::g_SSL_CLient_Context);
+		}
+		else {
+			clientSession = new Poco::Net::HTTPClientSession(mServerHost, mServerPort);
+		}
+		return clientSession;
+	}
+	catch (Poco::Exception& ex) {
+		addError(new ParamError("IotaRequest::createClientSession", "exception by creating client session", ex.displayText()));
+		return nullptr;
+	}
+}
+
+std::string JsonRequest::GET(const char* path)
+{
+	Profiler requestTime;
+	auto clientSession = createClientSession();
+	if (clientSession.isNull()) {
+		return "client session zero";
+	}
+	Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, path);
+
+	request.setChunkedTransferEncoding(true);
+	std::ostream& request_stream = clientSession->sendRequest(request);
+
+	Poco::Net::HTTPResponse response;
+	std::istream& response_stream = clientSession->receiveResponse(response);
+
+	std::string responseString;
+	for (std::string line; std::getline(response_stream, line); ) {
+		responseString += line + "\n";
+	}
+	Poco::Logger& speedLog = Poco::Logger::get("SpeedLog");
+	speedLog.information("[%s/%s] server time: %s", mServerHost, path, requestTime.string());
+
+	return responseString;
+}
+std::string JsonRequest::POST(const char* path)
+{
+	Profiler requestTime;
+	auto clientSession = createClientSession();
+	if (clientSession.isNull()) {
+		return "client session zero";
+	}
+
+	Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path);
+
+	request.setChunkedTransferEncoding(true);
+	std::ostream& request_stream = clientSession->sendRequest(request);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	mJsonDocument.Accept(writer);
+	request_stream << std::string(buffer.GetString(), buffer.GetSize());
+
+	Poco::Net::HTTPResponse response;
+	std::istream& response_stream = clientSession->receiveResponse(response);
+
+	// debugging answer
+
+	std::string responseString;
+	for (std::string line; std::getline(response_stream, line); ) {
+		responseString += line + "\n";
+	}
+	Poco::Logger& speedLog = Poco::Logger::get("SpeedLog");
+
+	speedLog.information("[%s/%s] php server time: %s", mServerHost, path, requestTime.string());
+	return responseString;
+}
+
+Document JsonRequest::parseResponse(std::string responseString)
+{
+	static const char* functionName = "JsonRequest::parseResponse";
+
+	Document result;
+	// extract parameter from request
+	result.Parse(responseString.data());
+
+	if (result.HasParseError()) {
+		addError(new ParamError(functionName, "error parsing request answer", result.GetParseError()));
+		addError(new ParamError(functionName, "position of last parsing error", result.GetErrorOffset()));
+	}
+	return result;
+}

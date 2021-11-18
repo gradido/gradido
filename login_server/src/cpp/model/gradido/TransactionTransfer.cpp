@@ -73,24 +73,20 @@ namespace model {
 
 			proto::gradido::TransferAmount* sender = nullptr;
 			std::string* receiver_pubkey = nullptr;
+			proto::gradido::LocalTransfer local_transfer;
 			if (mProtoTransfer.has_local()) {
-				auto local_transfer = mProtoTransfer.local();
-				sender = local_transfer.mutable_sender();
-				receiver_pubkey = local_transfer.mutable_receiver();
-				return prepare(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.local();
 			}
 			else if (mProtoTransfer.has_inbound()) {
-				auto inbound_transfer = mProtoTransfer.inbound();
-				sender = inbound_transfer.mutable_sender();
-				receiver_pubkey = inbound_transfer.mutable_receiver();
-				return prepare(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.inbound().transfer();
 			}
 			else if (mProtoTransfer.has_outbound()) {
-				auto outbound_transfer = mProtoTransfer.outbound();
-				sender = outbound_transfer.mutable_sender();
-				receiver_pubkey = outbound_transfer.mutable_receiver();
-				return prepare(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.outbound().transfer();
 			}
+			sender = local_transfer.mutable_sender();
+			receiver_pubkey = local_transfer.mutable_recipiant();
+			return prepare(sender, receiver_pubkey);
+
 			return -1;
 		}
 
@@ -139,24 +135,20 @@ namespace model {
 			}*/
 			proto::gradido::TransferAmount* sender = nullptr;
 			std::string* receiver_pubkey = nullptr;
+			proto::gradido::LocalTransfer local_transfer;
 			if (mProtoTransfer.has_local()) {
-				auto local_transfer = mProtoTransfer.local();
-				sender = local_transfer.mutable_sender();
-				receiver_pubkey = local_transfer.mutable_receiver();
-				return validate(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.local();
 			}
 			else if (mProtoTransfer.has_inbound()) {
-				auto inbound_transfer = mProtoTransfer.inbound();
-				sender = inbound_transfer.mutable_sender();
-				receiver_pubkey = inbound_transfer.mutable_receiver();
-				return validate(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.inbound().transfer();
 			}
 			else if (mProtoTransfer.has_outbound()) {
-				auto outbound_transfer = mProtoTransfer.outbound();
-				sender = outbound_transfer.mutable_sender();
-				receiver_pubkey = outbound_transfer.mutable_receiver();
-				return validate(sender, receiver_pubkey);
+				local_transfer = mProtoTransfer.outbound().transfer();
 			}
+
+			sender = local_transfer.mutable_sender();
+			receiver_pubkey = local_transfer.mutable_recipiant();
+			return validate(sender, receiver_pubkey);
 
 			return TRANSACTION_VALID_CODE_ERROR;
 		}
@@ -183,7 +175,7 @@ namespace model {
 				addError(new Error(function_name, "invalid size of sender pubkey"));
 				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
-			if(0 == memcmp(sender->pubkey().data(), receiver_pubkey->data(), KeyPairEd25519::getPublicKeySize())) {
+			if (0 == memcmp(sender->pubkey().data(), receiver_pubkey->data(), KeyPairEd25519::getPublicKeySize())) {
 				addError(new Error(function_name, "sender and receiver are the same"));
 				return TRANSACTION_VALID_INVALID_PUBKEY;
 			}
@@ -226,67 +218,6 @@ namespace model {
 				return outbound_transfer.other_group();
 			}
 			return "<unkown>";
-		}
-
-		Poco::AutoPtr<Transaction> TransactionTransfer::createOutbound(const std::string& memo)
-		{
-			const char* function_name = "TransactionTransfer::createOutbound";
-			auto mm = MemoryManager::getInstance();
-			auto em = ErrorManager::getInstance();
-			if (!mProtoTransfer.has_inbound()) {
-				return nullptr;
-			}
-			// Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo
-			//Transaction::createTransfer()
-			auto inbound = mProtoTransfer.inbound();
-
-			auto sender_pubkey = mm->getFreeMemory(inbound.sender().pubkey().size());
-			memcpy(*sender_pubkey, inbound.sender().pubkey().data(), inbound.sender().pubkey().size());
-			auto receiver_pubkey = mm->getFreeMemory(inbound.receiver().size());
-			memcpy(*receiver_pubkey, inbound.receiver().data(), inbound.receiver().size());
-
-			auto body = TransactionBody::create(
-				memo, sender_pubkey, receiver_pubkey,
-				inbound.sender().amount(), mTargetGroupAlias, TRANSFER_CROSS_GROUP_OUTBOUND,
-				DataTypeConverter::convertFromProtoTimestamp(inbound.paired_transaction_id())
-			);
-
-			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
-
-			mm->releaseMemory(receiver_pubkey);
-			mm->releaseMemory(sender_pubkey);
-			return transaction;
-
-		}
-
-		Poco::AutoPtr<Transaction> TransactionTransfer::createInbound(const std::string& memo)
-		{
-			const char* function_name = "TransactionTransfer::createInbound";
-			auto mm = MemoryManager::getInstance();
-
-			if (!mProtoTransfer.has_outbound()) {
-				return nullptr;
-			}
-			// Poco::AutoPtr<controller::User> sender, const MemoryBin* receiverPubkey, Poco::AutoPtr<controller::Group> receiverGroup, Poco::UInt32 amount, const std::string& memo
-			//Transaction::createTransfer()
-			auto outbound = mProtoTransfer.outbound();
-
-			auto sender_pubkey = mm->getFreeMemory(outbound.sender().pubkey().size());
-			memcpy(*sender_pubkey, outbound.sender().pubkey().data(), outbound.sender().pubkey().size());
-			auto receiver_pubkey = mm->getFreeMemory(outbound.receiver().size());
-			memcpy(*receiver_pubkey, outbound.receiver().data(), outbound.receiver().size());
-
-			auto body = TransactionBody::create(
-				memo, sender_pubkey, receiver_pubkey,
-				outbound.sender().amount(), mOwnGroupAlias, TRANSFER_CROSS_GROUP_INBOUND,
-				DataTypeConverter::convertFromProtoTimestamp(outbound.paired_transaction_id())
-			);
-
-			auto transaction = Poco::AutoPtr<Transaction>(new Transaction(body));
-
-			mm->releaseMemory(receiver_pubkey);
-			mm->releaseMemory(sender_pubkey);
-			return transaction;
 		}
 
 		const std::string& TransactionTransfer::getKontoNameCell(int index)

@@ -83,8 +83,8 @@ Document JsonUnsecureLogin::handle(const Document& params)
 	// AUTOMATIC ERROR CORRECTION
 	// if something went wrong by initial key generation for user, generate keys again
 	if (user_state >= USER_LOADED_FROM_DB && !user_model->getPublicKey()) {
-		if (session->generateKeys(true, true)) {
-			user_state = session->getNewUser()->getUserState();
+		if (mSession->generateKeys(true, true)) {
+			user_state = mSession->getNewUser()->getUserState();
 		}
 	}
 	
@@ -121,7 +121,7 @@ Document JsonUnsecureLogin::handle(const Document& params)
 			result.AddMember("info", infos, alloc);
 		}		
 		AWAIT(hasElopageTask)
-		result->set("hasElopage", hasElopageTask->hasElopage());
+		result.AddMember("hasElopage", hasElopageTask->hasElopage(), alloc);
 		return result;
 	default:
 		result.AddMember("state", "error", alloc);
