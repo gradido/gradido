@@ -18,7 +18,7 @@ export class UserSettingRepository extends Repository<UserSetting> {
     let entity = await this.findOne({ userId: userId, key: key })
 
     if (!entity) {
-      entity = new UserSetting()
+      entity = this.create()
       entity.userId = userId
       entity.key = key
     }
