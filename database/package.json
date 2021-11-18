@@ -19,6 +19,7 @@
     "lint": "eslint . --ext .js,.ts"
   },
   "devDependencies": {
+    "@types/faker": "^5.5.9",
     "@types/node": "^16.10.3",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
@@ -39,6 +40,7 @@
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
-    "typeorm": "^0.2.38"
+    "typeorm": "^0.2.38",
+    "typeorm-seeding": "^1.6.1"
   }
 }
