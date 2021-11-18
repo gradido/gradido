@@ -16,7 +16,9 @@
     "dev_up": "nodemon -w ./ --ext ts --exec ts-node src/index.ts up",
     "dev_down": "nodemon -w ./ --ext ts --exec ts-node src/index.ts down",
     "dev_reset": "nodemon -w ./ --ext ts --exec ts-node src/index.ts reset",
-    "lint": "eslint . --ext .js,.ts"
+    "lint": "eslint . --ext .js,.ts",
+    "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
+    "seed": "nodemon -w ./ --ext ts --exec ts-node src/index.ts seed"
   },
   "devDependencies": {
     "@types/faker": "^5.5.9",

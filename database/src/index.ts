@@ -4,6 +4,8 @@ import { Migration } from 'ts-mysql-migrate'
 import CONFIG from './config'
 import prepare from './prepare'
 import connection from './typeorm/connection'
+import { useSeeding, runSeeder } from 'typeorm-seeding'
+import { CreateUserSeed } from './seeds/create-user.seed'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
@@ -46,6 +48,13 @@ const run = async (command: string) => {
       break
     case 'reset':
       await migration.reset() // use for resetting database
+      break
+    case 'seed':
+      await useSeeding({
+        root: process.cwd(),
+        configName: 'ormconfig.js',
+      })
+      await runSeeder(CreateUserSeed)
       break
     default:
       throw new Error(`Unsupported command ${command}`)

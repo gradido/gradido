@@ -12,9 +12,10 @@ interface UserContext {
   disabled?: boolean
 }
 
-define(User, (faker: typeof Faker, context: UserContext) => {
-  const user = new User()
+define(User, (faker: typeof Faker, context?: UserContext) => {
+  if (!context) context = {}
 
+  const user = new User()
   user.pubkey = context.pubkey ? context.pubkey : randomBytes(32)
   user.email = context.email ? context.email : faker.internet.email()
   user.firstName = context.firstName ? context.firstName : faker.name.firstName()
