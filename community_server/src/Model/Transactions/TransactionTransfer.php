@@ -183,7 +183,7 @@ class TransactionTransfer extends TransactionBase {
           if(!$this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received)) {
               return false;
           }
-          if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
+          if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
             return false;
         }
       }
@@ -196,7 +196,7 @@ class TransactionTransfer extends TransactionBase {
           if(!$this->updateStateBalance($recipiantUserId, $senderAmount->getAmount(), $received)) {
              return false;
           }
-          if(!$this->addStateUserTransaction($recipiantUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
+          if(!$this->addStateUserTransaction($recipiantUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
             return false;
           }
       }
