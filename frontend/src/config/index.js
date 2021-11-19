@@ -18,8 +18,9 @@ const environment = {
   DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID || 2896,
 }
 
-const server = {
+const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
+  ADMIN_AUTH_URL: process.env.ADMIN_AUTH_URL || 'http://localhost/admin/authenticate?token=$1'
 }
 
 const options = {}
@@ -27,7 +28,7 @@ const options = {}
 const CONFIG = {
   ...version,
   ...environment,
-  ...server,
+  ...endpoints,
   ...options,
 }
 

@@ -45,11 +45,20 @@
           <slot name="links"></slot>
         </ul>
         <hr class="my-2" />
+
         <ul class="navbar-nav ml-3">
           <li class="nav-item">
             <a :href="getElopageLink()" class="nav-link" target="_blank">
               {{ $t('members_area') }}&nbsp;
               <b-badge v-if="!this.$store.state.hasElopage" pill variant="danger">!</b-badge>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="navbar-nav ml-3" v-if="this.$store.state.isAdmin">
+          <li class="nav-item">
+            <a class="nav-link ponter" @click="admin">
+              {{ $t('admin_area') }}
             </a>
           </li>
         </ul>
@@ -111,6 +120,10 @@ export default {
     },
     logout() {
       this.$emit('logout')
+    },
+    admin() {
+      window.location = CONFIG.ADMIN_AUTH_URL.replace('$1',this.$store.state.token)
+      this.$store.dispatch('logout') // logout without redirect
     },
     getElopageLink() {
       const pId = this.$store.state.publisherId

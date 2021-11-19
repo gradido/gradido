@@ -87,6 +87,7 @@ export const store = new Vuex.Store({
     username: '',
     description: '',
     token: null,
+    isAdmin: true, // TODO implement this properly
     coinanimation: true,
     newsletterState: null,
     community: {
