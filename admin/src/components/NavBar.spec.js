@@ -3,11 +3,19 @@ import NavBar from './NavBar.vue'
 
 const localVue = global.localVue
 
+const mocks = {
+  $store: {
+    state: {
+      openCreations: 1,
+    },
+  },
+}
+
 describe('NavBar', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(NavBar, { localVue })
+    return mount(NavBar, { localVue, mocks })
   }
 
   describe('mount', () => {
