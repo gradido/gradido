@@ -16,6 +16,8 @@
           >
             | {{ $store.state.openCreations }} offene Schöpfungen
           </b-nav-item>
+          <b-nav-item class="mr-auto">Wallet</b-nav-item>
+          <b-nav-item class="mr-auto">Logout</b-nav-item>
           <!-- <b-nav-item v-show="open < 1" to="/creation-confirm">| keine offene Schöpfungen</b-nav-item> -->
         </b-navbar-nav>
       </b-collapse>
