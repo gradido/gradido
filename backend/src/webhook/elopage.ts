@@ -138,18 +138,12 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
       return
     }
 
-    // generate a random password - 8 random bytes, the email, special char, capital & small letter, number and another set of 8 random bytes
-    // TODO: The user will be forced to reset his password - how was this done before?
-    const password =
-      randomBytes(8).toString('hex') + email + '!aA1' + randomBytes(8).toString('hex')
-
     const userResolver = new UserResolver()
     try {
       await userResolver.createUser({
         email,
         firstName,
         lastName,
-        password,
         publisherId: loginElopgaeBuy.publisherId,
       })
     } catch (error) {

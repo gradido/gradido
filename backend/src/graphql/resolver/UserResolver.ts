@@ -274,7 +274,7 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
+    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
@@ -284,12 +284,13 @@ export class UserResolver {
       language = DEFAULT_LANGUAGE
     }
 
+    // TODO: Register process
     // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
+    // if (!isPassword(password)) {
+    //   throw new Error(
+    //     'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+    //   )
+    // }
 
     // Validate username
     // TODO: never true
@@ -307,11 +308,13 @@ export class UserResolver {
       throw new Error(`User already exists.`)
     }
 
-    const passphrase = PassphraseGenerate()
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // TODO: Register process
+    // const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+
     const emailHash = getEmailHash(email)
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -320,13 +323,15 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // TODO: Register process
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
-    loginUser.pubKey = keyPair[0]
-    loginUser.privKey = encryptedPrivkey
+    // TODO: Register process
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -338,21 +343,24 @@ export class UserResolver {
         throw new Error('insert user failed')
       })
 
+      // TODO: Register process
       // Table: login_user_backups
-      const loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      // const loginUserBackup = new LoginUserBackup()
+      // loginUserBackup.userId = loginUserId
+      // loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      // loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-      await queryRunner.manager.save(loginUserBackup).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('insert LoginUserBackup failed', error)
-        throw new Error('insert user backup failed')
-      })
+      // TODO: Register process
+      // await queryRunner.manager.save(loginUserBackup).catch((error) => {
+      //   // eslint-disable-next-line no-console
+      //   console.log('insert LoginUserBackup failed', error)
+      //   throw new Error('insert user backup failed')
+      // })
 
       // Table: state_users
       const dbUser = new DbUser()
-      dbUser.pubkey = keyPair[0]
+      // TODO: Register process
+      // dbUser.pubkey = keyPair[0]
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
