@@ -6,8 +6,15 @@ const localVue = global.localVue
 describe('UserTable', () => {
   let wrapper
 
+  const propsData = {
+    type: 'Type',
+    itemsUser: [],
+    fieldsTable: [],
+    creation: {},
+  }
+
   const Wrapper = () => {
-    return mount(UserTable, { localVue })
+    return mount(UserTable, { localVue, propsData })
   }
 
   describe('mount', () => {

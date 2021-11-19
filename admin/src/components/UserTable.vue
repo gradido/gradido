@@ -119,11 +119,11 @@ export default {
       required: true,
     },
     itemsUser: {
-      type: Object,
+      type: Array,
       required: true,
     },
     fieldsTable: {
-      type: Object,
+      type: Array,
       required: true,
     },
     criteria: {
