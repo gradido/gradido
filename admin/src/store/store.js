@@ -19,6 +19,13 @@ export const mutations = {
   },
 }
 
+export const actions = {
+  logout: ({ commit, state }) => {
+    commit('token', null)
+    localStorage.clear()
+  },
+}
+
 const store = new Vuex.Store({
   plugins: [
     createPersistedState({
@@ -32,6 +39,7 @@ const store = new Vuex.Store({
   },
   // Syncronous mutation of the state
   mutations,
+  actions,
 })
 
 export default store
