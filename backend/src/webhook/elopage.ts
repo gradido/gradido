@@ -37,7 +37,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   let firstName = ''
   let lastName = ''
   const entries = req.body.split('&')
-  entries.map((entry: string) => {
+  entries.foreach((entry: string) => {
     const keyVal = entry.split('=')
     if (keyVal.length !== 2) {
       throw new Error(`Error parsing entry '${entry}'`)
@@ -90,7 +90,6 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         // eslint-disable-next-line no-console
         console.log(`Unknown Elopage Value '${entry}'`)
     }
-    return null // we write things into the loginElopgaeBuy object, no return value needed
   })
 
   // Do not process certain events
