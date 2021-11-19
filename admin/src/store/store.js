@@ -14,6 +14,9 @@ export const mutations = {
   resetOpenCreations: (state) => {
     state.openCreations = 0
   },
+  token: (state, token) => {
+    state.token = token
+  }
 }
 
 const store = new Vuex.Store({
@@ -23,7 +26,7 @@ const store = new Vuex.Store({
     }),
   ],
   state: {
-    token: 'some-valid-token',
+    token: null,
     moderator: 'Dertest Moderator',
     openCreations: 0,
   },
