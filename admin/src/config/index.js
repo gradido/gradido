@@ -23,6 +23,10 @@ const endpoints = {
   WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost:3000/vue/authenticate?token=$1'
 }
 
+const debug = {
+  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' || false
+}
+
 const options = {}
 
 const CONFIG = {
@@ -30,6 +34,7 @@ const CONFIG = {
   ...environment,
   ...endpoints,
   ...options,
+  ...debug,
 }
 
 export default CONFIG
