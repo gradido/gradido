@@ -150,7 +150,6 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         firstName,
         lastName,
         password,
-        language: 'default',
         publisherId: loginElopgaeBuy.publisherId,
       })
     } catch (error) {

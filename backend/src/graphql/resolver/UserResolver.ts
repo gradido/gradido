@@ -280,7 +280,7 @@ export class UserResolver {
     // default int publisher_id = 0;
 
     // Validate Language (no throw)
-    if (!isLanguage(language)) {
+    if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
 

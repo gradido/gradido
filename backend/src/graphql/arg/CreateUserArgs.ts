@@ -15,7 +15,7 @@ export default class CreateUserArgs {
   password: string
 
   @Field(() => String)
-  language: string
+  language?: string
 
   @Field(() => Int, { nullable: true })
   publisherId: number
