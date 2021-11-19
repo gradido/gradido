@@ -58,8 +58,8 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         loginElopgaeBuy.productId = parseInt(val)
         break
       case 'product[price]':
-        // TODO: static_cast<Poco::Int32>(round(stof(temp) * 100.0f));
-        loginElopgaeBuy.productPrice = parseFloat(val)
+        // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
+        loginElopgaeBuy.productPrice = Math.trunc(parseFloat(val) * 100)
         break
       case 'payer[email]':
         loginElopgaeBuy.payerEmail = val
