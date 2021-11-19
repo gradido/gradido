@@ -15,8 +15,8 @@ describe('NavBar', () => {
       wrapper = Wrapper()
     })
 
-    it('have a DIV element with the class.componente-nabvar', () => {
-      expect(wrapper.find('.componente-nabvar').exists()).toBeTruthy()
+    it('has a DIV element with the class.component-nabvar', () => {
+      expect(wrapper.find('.component-nabvar').exists()).toBeTruthy()
     })
   })
 })

@@ -15,8 +15,8 @@ describe('UserTable', () => {
       wrapper = Wrapper()
     })
 
-    it('have a DIV element with the class.componente-user-table', () => {
-      expect(wrapper.find('.componente-user-table').exists()).toBeTruthy()
+    it('has a DIV element with the class.component-user-table', () => {
+      expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
     })
   })
 })

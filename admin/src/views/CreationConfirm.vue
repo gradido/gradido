@@ -1,10 +1,15 @@
 <template>
   <div>
+    <small class="bg-danger text-light p-1">
+      Die anzahl der offene Schöpfungen stimmen nicht! Diese wird bei absenden im $store
+      hochgezählt. Die Liste die hier angezeigt wird ist SIMULIERT!
+    </small>
     <user-table
+      class="mt-4"
       type="PageCreationConfirm"
       :itemsUser="confirmResult"
+      :creation="creation"
       :fieldsTable="fields"
-      :criteria="criteria"
       @update-confirm-result="updateConfirmResult"
     />
   </div>
@@ -21,14 +26,16 @@ export default {
     return {
       showArrays: false,
       fields: [
+        { key: 'bookmark', label: 'löschen' },
         { key: 'email', label: 'Email' },
-        { key: 'first_name', label: 'Firstname' },
-        { key: 'last_name', label: 'Lastname' },
-        { key: 'creation_gdd', label: 'Creation GDD' },
+        { key: 'first_name', label: 'Vorname' },
+        { key: 'last_name', label: 'Nachname' },
+        { key: 'creation_gdd', label: 'GDD' },
+        { key: 'text', label: 'Text' },
         { key: 'creation_date', label: 'Datum' },
         { key: 'creation_moderator', label: 'Moderator' },
-        { key: 'show_details', label: 'Details' },
-        { key: 'bookmark', label: 'Bookmark' },
+        { key: 'edit_creation', label: 'ändern' },
+        { key: 'confirm', label: 'speichern' },
       ],
       confirmResult: [
         {
@@ -36,8 +43,10 @@ export default {
           email: 'dickerson@web.de',
           first_name: 'Dickerson',
           last_name: 'Macdonald',
-          creation_old: '450,200,700',
+          creation: '450,200,700',
           creation_gdd: '1000',
+          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
+
           creation_date: '01/11/2021',
           creation_moderator: 'Manuela Gast',
         },
@@ -46,8 +55,10 @@ export default {
           email: 'larsen@woob.de',
           first_name: 'Larsen',
           last_name: 'Shaw',
-          creation_old: '300,200,1000',
+          creation: '300,200,1000',
           creation_gdd: '1000',
+          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
+
           creation_date: '01/11/2021',
           creation_moderator: 'Manuela Gast',
         },
@@ -56,8 +67,9 @@ export default {
           email: 'geneva@tete.de',
           first_name: 'Geneva',
           last_name: 'Wilson',
-          creation_old: '350,200,900',
+          creation: '350,200,900',
           creation_gdd: '1000',
+          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam',
           creation_date: '01/11/2021',
           creation_moderator: 'Manuela Gast',
         },
@@ -67,6 +79,8 @@ export default {
           first_name: 'Soledare',
           last_name: 'Takker',
           creation_gdd: '500',
+          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo ',
+
           creation_date: '01/10/2021',
           creation_moderator: 'Evelyn Roller',
         },
@@ -75,14 +89,14 @@ export default {
           email: 'dickerson@web.de',
           first_name: 'Dickerson',
           last_name: 'Macdonald',
-          creation_old: '100,400,800',
+          creation: '100,400,800',
           creation_gdd: '200',
+          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At',
           creation_date: '01/09/2021',
           creation_moderator: 'Manuela Gast',
         },
       ],
-      massCreation: [],
-      criteria: '',
+      creation: [null, null, null],
     }
   },
 
@@ -94,15 +108,17 @@ export default {
 
         findArr = this.confirmResult.find((arr) => arr.id === e.id)
 
-        // console.log('findArr ', findArr)
-
         index = this.confirmResult.indexOf(findArr)
 
-        // console.log('index ', index)
-
         this.confirmResult.splice(index, 1)
+
+        this.$store.commit('openCreationsMinus', 1)
       }
     },
+  },
+  created() {
+    this.$store.commit('resetOpenCreations')
+    this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
   },
 }
 </script>

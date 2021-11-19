@@ -1,59 +1,110 @@
 <template>
-  <div class="componente-user-table">
-    <b-table :items="itemsUser" :fields="fieldsTable" :filter="criteria" caption-top striped hover>
+  <div class="component-user-table">
+    <div v-show="overlay" id="overlay" class="">
+      <b-jumbotron class="bg-light p-4">
+        <template #header>{{ overlayText.header }}</template>
+
+        <template #lead>
+          {{ overlayText.text1 }}
+        </template>
+
+        <hr class="my-4" />
+
+        <p>
+          {{ overlayText.text2 }}
+        </p>
+
+        <b-button size="lg" variant="danger" class="m-3" @click="overlayCancel">
+          {{ overlayText.button_cancel }}
+        </b-button>
+        <b-button
+          size="lg"
+          variant="success"
+          class="m-3 text-right"
+          @click="overlayOK(overlayBookmarkType, overlayItem)"
+        >
+          {{ overlayText.button_ok }}
+        </b-button>
+      </b-jumbotron>
+    </div>
+    <b-table-lite
+      :items="itemsUser"
+      :fields="fieldsTable"
+      :filter="criteria"
+      caption-top
+      striped
+      hover
+      stacked="md"
+    >
+      <template #cell(edit_creation)="row">
+        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+          <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
+          <b-icon v-else icon="pencil-square" aria-label="Help"></b-icon>
+        </b-button>
+      </template>
+
       <template #cell(show_details)="row">
-        <b-button variant="info" size="sm" @click="row.toggleDetails" class="mr-2">
-          {{ row.detailsShowing ? 'Hide' : 'Show' }} Details
+        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+          <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
+          <b-icon v-else icon="eye-slash-fill" aria-label="Help"></b-icon>
         </b-button>
       </template>
 
       <template #row-details="row">
-        <b-card>
+        <b-card class="shadow-lg p-3 mb-5 bg-white rounded">
           <b-row class="mb-2">
-            <b-col>
-              <h3>{{ row.item.first_name }} {{ row.item.last_name }}</h3>
-            </b-col>
+            <b-col></b-col>
           </b-row>
 
           <creation-formular
             type="singleCreation"
             :creation="getCreationInMonths(row.item.creation)"
+            :item="row.item"
           />
 
-          <b-button size="sm" @click="row.toggleDetails">Hide Details</b-button>
+          <b-button size="sm" @click="row.toggleDetails">
+            <b-icon
+              :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
+              aria-label="Help"
+            ></b-icon>
+            Details verbergen von {{ row.item.first_name }} {{ row.item.last_name }}
+          </b-button>
         </b-card>
       </template>
 
       <template #cell(bookmark)="row">
         <b-button
           variant="warning"
-          v-show="type == 'UserListSearch'"
-          size="sm"
-          @click="bookmarkPush(row.item, row.index, $event.target)"
+          v-show="type === 'UserListSearch'"
+          size="md"
+          @click="bookmarkPush(row.item)"
           class="mr-2"
         >
-          merken
+          <b-icon icon="plus" variant="success"></b-icon>
         </b-button>
         <b-button
           variant="danger"
-          v-show="type == 'UserListMassCreation' || type == 'PageCreationConfirm'"
-          size="sm"
-          @click="bookmarkRemove(row.item, row.index, $event.target)"
+          v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
+          size="lg"
+          @click="overlayShow('remove', row.item)"
           class="mr-2"
         >
-          löschen
-        </b-button>
-        <b-button
-          variant="success"
-          v-show="type == 'PageCreationConfirm'"
-          size="sm"
-          @click="bookmarkConfirm(row.item, row.index, $event.target)"
-          class="mr-2"
-        >
-          bestätigen
+          <b-icon icon="x" variant="light"></b-icon>
         </b-button>
       </template>
-    </b-table>
+
+      <template #cell(confirm)="row">
+        <b-button
+          variant="success"
+          v-show="type === 'PageCreationConfirm'"
+          size="lg"
+          @click="overlayShow('confirm', row.item)"
+          class="mr-2"
+        >
+          <b-icon icon="check" scale="2" variant=""></b-icon>
+        </b-button>
+      </template>
+    </b-table-lite>
   </div>
 </template>
 
@@ -62,25 +113,88 @@ import CreationFormular from '../components/CreationFormular.vue'
 
 export default {
   name: 'UserTable',
-  props: ['type', 'itemsUser', 'fieldsTable', 'criteria', 'creation'],
+  props: {
+    type: {
+      type: String,
+      required: true,
+    },
+    itemsUser: {
+      type: Object,
+      required: true,
+    },
+    fieldsTable: {
+      type: Object,
+      required: true,
+    },
+    criteria: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    creation: {
+      type: Object,
+      required: false,
+    },
+  },
   components: {
     CreationFormular,
   },
   data() {
-    return {}
+    return {
+      overlay: false,
+      overlayBookmarkType: '',
+      overlayItem: [],
+      overlayText: [
+        {
+          header: '-',
+          text1: '--',
+          text2: '---',
+          button_ok: 'OK',
+          button_cancel: 'Cancel',
+        },
+      ],
+    }
   },
   methods: {
-    bookmarkPush(item, index, button) {
-      // console.log('bookmarking item', item)
-      // console.log('bookmarking index', index)
-      // console.log('bookmarking button', button)
+    overlayShow(bookmarkType, item) {
+      this.overlay = true
+      this.overlayBookmarkType = bookmarkType
+      this.overlayItem = item
 
+      if (bookmarkType === 'remove') {
+        this.overlayText.header = 'Achtung! Schöpfung löschen!'
+        this.overlayText.text1 =
+          'Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.'
+        this.overlayText.text2 = 'Willst du die vorgespeicherte Schöpfung wirklich löschen? '
+        this.overlayText.button_ok = 'Ja, Schöpfung löschen!'
+        this.overlayText.button_cancel = 'Nein, nicht löschen.'
+      }
+      if (bookmarkType === 'confirm') {
+        this.overlayText.header = 'Schöpfung bestätigen!'
+        this.overlayText.text1 =
+          'Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.'
+        this.overlayText.text2 =
+          'Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?'
+        this.overlayText.button_ok = 'Ja, Schöpfung speichern und bestätigen!'
+        this.overlayText.button_cancel = 'Nein, nicht speichern.'
+      }
+    },
+    overlayOK(bookmarkType, item) {
+      if (bookmarkType === 'remove') {
+        this.bookmarkRemove(item)
+      }
+      if (bookmarkType === 'confirm') {
+        this.bookmarkConfirm(item)
+      }
+      this.overlay = false
+    },
+    overlayCancel() {
+      this.overlay = false
+    },
+    bookmarkPush(item) {
       this.$emit('update-item', item, 'push')
     },
-    bookmarkRemove(item, index, button) {
-      // console.log('bookmarking item', item)
-      // console.log('bookmarking index', index)
-      // console.log('bookmarking button', button)
+    bookmarkRemove(item) {
       if (this.type === 'UserListMassCreation') {
         this.$emit('update-item', item, 'remove')
       }
@@ -89,15 +203,31 @@ export default {
         this.$emit('update-confirm-result', item, 'remove')
       }
     },
-    bookmarkConfirm(item, index, button) {
+    bookmarkConfirm(item) {
       alert('die schöpfung bestätigen und abschließen')
       alert(JSON.stringify(item))
       this.$emit('update-confirm-result', item, 'remove')
     },
     getCreationInMonths(creation) {
-      // console.log('getCreationInMonths', creation)
       return creation.split(',')
     },
   },
 }
 </script>
+<style>
+#overlay {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-left: 5%;
+  background-color: rgba(12, 11, 11, 0.781);
+  z-index: 1000000;
+  cursor: pointer;
+}
+</style>

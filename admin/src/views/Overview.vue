@@ -1,6 +1,7 @@
 <template>
   <div>
     <b-card
+      v-show="$store.state.openCreations > 0"
       border-variant="primary"
       header="offene Schöpfungen"
       header-bg-variant="danger"
@@ -8,7 +9,23 @@
       align="center"
     >
       <b-card-text>
-        <b-link to="creation-confirm"><h1>3</h1></b-link>
+        <b-link to="creation-confirm">
+          <h1>{{ $store.state.openCreations }}</h1>
+        </b-link>
+      </b-card-text>
+    </b-card>
+    <b-card
+      v-show="$store.state.openCreations < 1"
+      border-variant="success"
+      header="keine offene Schöpfungen"
+      header-bg-variant="success"
+      header-text-variant="white"
+      align="center"
+    >
+      <b-card-text>
+        <b-link to="creation-confirm">
+          <h1>{{ $store.state.openCreations }}</h1>
+        </b-link>
       </b-card-text>
     </b-card>
     <br />
@@ -53,15 +70,9 @@
         <b-badge class="bg-warning text-dark" pill>2</b-badge>
       </b-list-group-item>
     </b-list-group>
-    <hr />
-    <br />
-    <div class="text-center">
-      Gradido Akademie Adminkonsole
-      <div><small>Version: 0.0.1</small></div>
-    </div>
-    <br />
-    <br />
-    <hr />
+    <b-button @click="$store.commit('resetOpenCreations')">
+      lösche alle offenen Test Schöpfungen
+    </b-button>
   </div>
 </template>
 <script>

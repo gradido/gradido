@@ -1,8 +1,7 @@
 <template>
   <div>
     <b-row>
-      <b-col>
-        <div>UserListe zum auswählen (itemsList)</div>
+      <b-col cols="12" lg="5">
         <label>Usersuche</label>
         <b-input
           type="text"
@@ -19,14 +18,9 @@
           @update-item="updateItem"
         />
       </b-col>
-      <b-col class="shadow p-3 mb-5 rounded bg-info">
-        <div>UserListe zum schöpfen (massCreation)</div>
-        <creation-formular
-          type="massCreation"
-          :creation="creation"
-          @update-radio-selected="updateRadioSelected"
-        />
+      <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
+          v-show="Object.keys(this.massCreation).length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
           :itemsUser="massCreation"
@@ -35,14 +29,16 @@
           :creation="creation"
           @update-item="updateItem"
         />
+
+        <creation-formular
+          type="massCreation"
+          :creation="creation"
+          :itemsMassCreation="massCreation"
+          @update-radio-selected="updateRadioSelected"
+          @remove-all-bookmark="removeAllBookmark"
+        />
       </b-col>
     </b-row>
-    <hr />
-    Schöpfen
-    <ul>
-      <li>radioSelectedMass = {{ radioSelectedMass }}</li>
-      <li>Tabelle Creationen</li>
-    </ul>
   </div>
 </template>
 <script>
@@ -59,19 +55,19 @@ export default {
     return {
       showArrays: false,
       Searchfields: [
-        { key: 'email', label: 'Email' },
+        { key: 'bookmark', label: 'merken' },
+
         { key: 'first_name', label: 'Firstname' },
         { key: 'last_name', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
-        { key: 'bookmark', label: 'Bookmark' },
+        { key: 'email', label: 'Email' },
       ],
       fields: [
         { key: 'email', label: 'Email' },
         { key: 'first_name', label: 'Firstname' },
         { key: 'last_name', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
-        { key: 'show_details', label: 'Details' },
-        { key: 'bookmark', label: 'Bookmark' },
+        { key: 'bookmark', label: 'löschen' },
       ],
       searchResult: [
         {
@@ -114,64 +110,41 @@ export default {
     this.itemsList = this.searchResult
   },
   methods: {
-    // updateMassCreation(newMassCreationItem, even) {
-    //  console.log('even', even)
-    //  console.log('>>>>>>>>>>>>>>>>  newMassCreationItem overview: ', newMassCreationItem)
-    //  this.massCreation.push(newMassCreationItem)
-    // },
-    // getSearchResult() {
-    //  console.log('setSearchResult')
-    //  this.itemsList = this.searchResult
-    // },
-
     updateItem(e, event) {
-      // console.log('even', even)
-      // console.log('>>>>>>>>>>>>>>>> updateItem e: ', e)
-
       let index = 0
       let findArr = {}
 
-      // console.log("array1.find((arr) => arr.id === 2).text ", array1.find((arr) => arr.id === 2))
-
-      // console.log('this.massCreation bevor: ', this.massCreation)
-      if (event === 'push') {
-        findArr = this.itemsList.find((arr) => arr.id === e.id)
-
-        // console.log('findArr ', findArr)
-
-        index = this.itemsList.indexOf(findArr)
-
-        // console.log('index ', index)
-
-        this.itemsList.splice(index, 1)
-
-        // console.log(this.itemsList)
-
-        this.massCreation.push(e)
+      switch (event) {
+        case 'push':
+          findArr = this.itemsList.find((arr) => arr.id === e.id)
+          index = this.itemsList.indexOf(findArr)
+          this.itemsList.splice(index, 1)
+          this.massCreation.push(e)
+          break
+        case 'remove':
+          findArr = this.massCreation.find((arr) => arr.id === e.id)
+          index = this.massCreation.indexOf(findArr)
+          this.massCreation.splice(index, 1)
+          this.itemsList.push(e)
+          break
+        default:
+          throw new Error(event)
       }
-      if (event === 'remove') {
-        findArr = this.massCreation.find((arr) => arr.id === e.id)
-
-        // console.log('findArr ', findArr)
-
-        index = this.massCreation.indexOf(findArr)
-
-        // console.log('index ', index)
-
-        this.massCreation.splice(index, 1)
-
-        // console.log(this.massCreation)
-
-        this.itemsList.push(e)
-      }
-      // console.log('this.massCreation after: ', this.massCreation)
-
-      // console.log('this items after', this.items)
     },
 
     updateRadioSelected(obj) {
-      // console.log('Creation.vue updateRadioSelected', obj)
       this.radioSelectedMass = obj[0]
+    },
+
+    removeAllBookmark() {
+      alert('remove all bookmarks')
+      const index = 0
+      let i = 0
+
+      for (i; i < this.massCreation.length; i++) {
+        this.itemsList.push(this.massCreation[i])
+      }
+      this.massCreation.splice(index, this.massCreation.length)
     },
   },
 }
