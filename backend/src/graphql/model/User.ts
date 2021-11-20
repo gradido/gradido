@@ -19,6 +19,7 @@ export class User {
     this.pubkey = json.public_hex
     this.language = json.language
     this.publisherId = json.publisher_id
+    this.isAdmin = json.isAdmin
   }
 
   @Field(() => String)
@@ -68,6 +69,9 @@ export class User {
   // what is publisherId?
   @Field(() => Int, { nullable: true })
   publisherId?: number
+
+  @Field(() => Boolean)
+  isAdmin: boolean
 
   @Field(() => Boolean)
   coinanimation: boolean

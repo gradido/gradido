@@ -194,6 +194,36 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
+  /*
+  @Authorized()
+  @Query(() => User)
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    loginUser = loginUserRepository.findByPubkeyHex()
+    const user = new User(result.data.user)
+
+    this.email = json.email
+    this.firstName = json.first_name
+    this.lastName = json.last_name
+    this.username = json.username
+    this.description = json.description
+    this.pubkey = json.public_hex
+    this.language = json.language
+    this.publisherId = json.publisher_id
+    this.isAdmin = json.isAdmin
+
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
+    return user
+  }
+  */
+
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -254,6 +284,7 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
     return user
   }
 
