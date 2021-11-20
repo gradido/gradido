@@ -50,9 +50,9 @@ export default {
       this.$router.push('/logout')
     },
     wallet() {
-      window.location = CONFIG.WALLET_AUTH_URL.replace('$1',this.$store.state.token)
+      window.location = CONFIG.WALLET_AUTH_URL.replace('$1', this.$store.state.token)
       this.$store.dispatch('logout') // logout without redirect
     },
-  }
+  },
 }
 </script>

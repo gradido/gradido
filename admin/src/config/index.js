@@ -19,12 +19,11 @@ const environment = {
 
 const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
-  // TODO port
-  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/vue/authenticate?token=$1'
+  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/vue/authenticate?token=$1',
 }
 
 const debug = {
-  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' || false
+  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' || false,
 }
 
 const options = {}

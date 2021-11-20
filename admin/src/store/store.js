@@ -16,7 +16,7 @@ export const mutations = {
   },
   token: (state, token) => {
     state.token = token
-  }
+  },
 }
 
 export const actions = {
