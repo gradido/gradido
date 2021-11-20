@@ -1,4 +1,5 @@
 {
+  "admin_area": "Admin's area",
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -110,7 +111,6 @@
   "login": "Login",
   "logout": "Logout",
   "members_area": "Member's area",
-  "admin_area": "Admin's area",
   "message": "hello gradido !!",
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
