@@ -1,6 +1,7 @@
 import Vuex from 'vuex'
 import Vue from 'vue'
 import createPersistedState from 'vuex-persistedstate'
+import CONFIG from '../config'
 
 Vue.use(Vuex)
 
@@ -33,7 +34,7 @@ const store = new Vuex.Store({
     }),
   ],
   state: {
-    token: null,
+    token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
     moderator: 'Dertest Moderator',
     openCreations: 0,
   },
