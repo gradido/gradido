@@ -34,6 +34,9 @@ export const mutations = {
     if (isNaN(pubId)) pubId = null
     state.publisherId = pubId
   },
+  isAdmin: (state, isAdmin) => {
+    state.isAdmin = !!isAdmin
+  },
   community: (state, community) => {
     state.community = community
   },
@@ -57,6 +60,7 @@ export const actions = {
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
+    commit('isAdmin', data.isAdmin)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -69,6 +73,7 @@ export const actions = {
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
+    commit('isAdmin', false)
     localStorage.clear()
   },
 }
@@ -87,7 +92,7 @@ export const store = new Vuex.Store({
     username: '',
     description: '',
     token: null,
-    isAdmin: true, // TODO implement this properly
+    isAdmin: false,
     coinanimation: true,
     newsletterState: null,
     community: {
