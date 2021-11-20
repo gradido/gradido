@@ -9,7 +9,7 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
-import encode from '../../jwt/encode'
+import { encode } from '../../auth/JWT'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
@@ -30,6 +30,7 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
+import { RIGHTS } from '../../auth/RIGHTS'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -224,6 +225,7 @@ export class UserResolver {
   }
   */
 
+  @Authorized([RIGHTS.LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -307,6 +309,7 @@ export class UserResolver {
     return user
   }
 
+  @Authorized([RIGHTS.LOGIN_VIA_EMAIL_VERIFICATION_CODE])
   @Query(() => LoginViaVerificationCode)
   async loginViaEmailVerificationCode(
     @Arg('optin') optin: string,
@@ -322,7 +325,7 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.LOGOUT])
   @Query(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
@@ -333,6 +336,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => String)
   async createUser(
     @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
@@ -481,6 +485,7 @@ export class UserResolver {
     return 'success'
   }
 
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => SendPasswordResetEmailResponse)
   async sendResetPasswordEmail(
     @Arg('email') email: string,
@@ -497,6 +502,7 @@ export class UserResolver {
     return new SendPasswordResetEmailResponse(response.data)
   }
 
+  @Authorized([RIGHTS.RESET_PASSWORD])
   @Mutation(() => String)
   async resetPassword(
     @Args()
@@ -514,7 +520,7 @@ export class UserResolver {
     return 'success'
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
@@ -623,6 +629,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
   async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
     // Username empty?
@@ -646,6 +653,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_EMAIL])
   @Query(() => CheckEmailResponse)
   @UseMiddleware(klicktippRegistrationMiddleware)
   async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
@@ -658,7 +666,7 @@ export class UserResolver {
     return new CheckEmailResponse(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
