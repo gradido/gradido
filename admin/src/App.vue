@@ -14,8 +14,8 @@ export default {
   components: { defaultLayout },
   data() {
     return {
-      showLayout: CONFIG.DEBUG_DISABLE_AUTH || this.$store.state.token
+      showLayout: CONFIG.DEBUG_DISABLE_AUTH || this.$store.state.token,
     }
-  }
+  },
 }
 </script>
