@@ -122,7 +122,7 @@ export default {
       this.$emit('logout')
     },
     admin() {
-      window.location = CONFIG.ADMIN_AUTH_URL.replace('$1',this.$store.state.token)
+      window.location = CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token)
       this.$store.dispatch('logout') // logout without redirect
     },
     getElopageLink() {
