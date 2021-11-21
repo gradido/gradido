@@ -8,4 +8,8 @@ export class Role {
     this.id = id
     this.rights = rights
   }
+
+  hasRight = (right: RIGHTS): boolean => {
+    return this.rights.includes(right)
+  }
 }

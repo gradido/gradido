@@ -3,12 +3,11 @@
 import { AuthChecker } from 'type-graphql'
 
 import { decode, encode } from '../../auth/JWT'
-import { ROLES } from '../../auth/ROLES'
-import { hasRight } from '../../auth/hasRight'
+import { ROLE_USER, ROLE_UNAUTHORIZED } from '../../auth/ROLES'
 import { RIGHTS } from '../../auth/RIGHTS'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
-  context.role = ROLES[0] // unauthorized user
+  context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // Do we have a token?
   if (context.token) {
@@ -22,11 +21,11 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     // set new header token
     context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
     // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
-    context.role = ROLES[1] // logged in user
+    context.role = ROLE_USER // logged in user
   }
 
   // check for correct rights
-  const missingRights = (<RIGHTS[]>rights).filter((right) => !hasRight(right, context.role))
+  const missingRights = (<RIGHTS[]>rights).filter((right) => !context.role.hasRight(right))
   if (missingRights.length !== 0) {
     throw new Error('401 Unauthorized')
   }
