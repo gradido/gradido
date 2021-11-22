@@ -7,10 +7,24 @@ describe('UserTable', () => {
   let wrapper
 
   const propsData = {
+<<<<<<< HEAD
     type: 'Type',
     itemsUser: [],
     fieldsTable: [],
     creation: {},
+=======
+    type: 'TableName',
+    itemUser: [
+      {
+        id: 1,
+        email: 'dickerson@web.de',
+        first_name: 'Dickerson',
+        last_name: 'Macdonald',
+        creation: '450,200,700',
+      },
+    ],
+    creation: [null, null, null],
+>>>>>>> ddaaab9c (add Tests, CreationFormular.spec.js, NavBar.spec.js, UserTable.spec.js)
   }
 
   const Wrapper = () => {
