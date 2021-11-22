@@ -24,6 +24,7 @@ describe('SideBar', () => {
         hasElopage: false,
       },
       commit: jest.fn(),
+      dispatch: jest.fn(),
     },
     $i18n: {
       locale: 'en',
@@ -152,6 +153,33 @@ describe('SideBar', () => {
           wrapper.findAll('li').at(1).find('a').trigger('click')
           await wrapper.vm.$nextTick()
           expect(wrapper.emitted('logout')).toEqual([[]])
+        })
+      })
+
+      describe('admin-area', () => {
+        it('is not visible when not an admin', () => {
+          expect(wrapper.findAll('li').at(1).text()).not.toBe('admin_area')
+        })
+        describe('logged in as admin', () => {
+          const assignLocationSpy = jest.fn()
+          beforeEach(() => {
+            mocks.$store.state.isAdmin = true
+            mocks.$store.state.token = 'valid token'
+            // const { location } = window;
+            delete window.location
+            window.location = {}
+            Object.defineProperty(window, 'location', assignLocationSpy)
+            wrapper = Wrapper()
+          })
+
+          it('is visible', () => {
+            expect(wrapper.findAll('li').at(1).text()).toBe('admin_area')
+          })
+          it.skip('opens a new window when clicked', async () => {
+            wrapper.findAll('li').at(1).find('a').trigger('click')
+            await wrapper.vm.$nextTick()
+            expect(assignLocationSpy).toHaveBeenCalledWith('peter')
+          })
         })
       })
     })
