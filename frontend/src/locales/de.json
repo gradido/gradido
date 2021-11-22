@@ -153,10 +153,6 @@
       "ooops": "Ooops!",
       "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden"
     },
-    "activateEmail": {
-      "headline": "",
-      "subtitle": ""
-    },
     "checkEmail": {
       "errorText": "Email konnte nicht verifiziert werden.",
       "title": "Email wird verifiziert"
