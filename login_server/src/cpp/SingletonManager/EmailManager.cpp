@@ -58,7 +58,7 @@ bool EmailManager::init(const Poco::Util::LayeredConfiguration& cfg)
 void EmailManager::addEmail(model::Email* email) {
 	if (mDisableEmail) { 
 		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		std::string log_message = dateTimeString + " Email should be sended to: ";
+		std::string log_message = dateTimeString + " Email should have been sent to: ";
 		auto email_user = email->getUser();
 		Poco::AutoPtr<model::table::User> email_model;
 		if (email_user) {

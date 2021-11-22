@@ -97,9 +97,10 @@
     "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
     "factor": "Faktor",
-    "formula": "Berechungsformel",
+    "formula": "Berechnungsformel",
+    "funding": "Zu den Förderbeiträgen",
     "gdt-received": "Gradido Transform (GDT) erhalten",
-    "no-transactions": "Du hast zur Zeit keine Transaktionen",
+    "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Geworbenes Mitglied"
@@ -110,6 +111,7 @@
   "logout": "Abmelden",
   "members_area": "Mitgliederbereich",
   "message": "hallo gradido !!",
+  "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
   "send": "Senden",
   "settings": {
@@ -131,8 +133,8 @@
     },
     "newsletter": {
       "newsletter": "Newsletter",
-      "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
-      "newsletterTrue": "Du bist im Newslettersystem eingetraten."
+      "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
+      "newsletterTrue": "Du erhältst Informationen per E-Mail."
     },
     "password": {
       "change-password": "Passwort ändern",

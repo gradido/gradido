@@ -98,8 +98,9 @@
     "credit": "Credit",
     "factor": "Factor",
     "formula": "Calculation formula",
+    "funding": "Regarding the funding contributions",
     "gdt-received": "Gradido Transform (GDT) received",
-    "no-transactions": "You currently have no transactions",
+    "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Recruited Member"
@@ -110,6 +111,7 @@
   "logout": "Logout",
   "members_area": "Member's area",
   "message": "hello gradido !!",
+  "overview": "Overview",
   "privacy_policy": "Privacy policy",
   "send": "Send",
   "settings": {
@@ -131,8 +133,8 @@
     },
     "newsletter": {
       "newsletter": "Newsletter",
-      "newsletterFalse": "You are unsubscribed from newsletter system.",
-      "newsletterTrue": "You are subscribed to newsletter system."
+      "newsletterFalse": "You will not receive any information by e-mail.",
+      "newsletterTrue": "You will receive information by e-mail."
     },
     "password": {
       "change-password": "Change password",

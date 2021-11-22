@@ -161,10 +161,12 @@ import InputEmail from '../../components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { registerUser } from '../../graphql/mutations'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
   name: 'register',
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -205,12 +207,6 @@ export default {
           },
         })
         .then(() => {
-          this.form.email = ''
-          this.form.firstname = ''
-          this.form.lastname = ''
-          this.form.password.password = ''
-          this.form.password.passwordRepeat = ''
-          this.language = ''
           this.$router.push('/thx/register')
         })
         .catch((error) => {
@@ -226,7 +222,6 @@ export default {
       this.form.lastname = ''
       this.form.password.password = ''
       this.form.password.passwordRepeat = ''
-      this.language = ''
     },
   },
   computed: {

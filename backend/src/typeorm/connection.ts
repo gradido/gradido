@@ -1,6 +1,6 @@
 import { createConnection, Connection } from 'typeorm'
 import CONFIG from '../config'
-import path from 'path'
+import { entities } from '@entity/index'
 
 const connection = async (): Promise<Connection | null> => {
   let con = null
@@ -13,10 +13,13 @@ const connection = async (): Promise<Connection | null> => {
       username: CONFIG.DB_USER,
       password: CONFIG.DB_PASSWORD,
       database: CONFIG.DB_DATABASE,
-      entities: [path.join(__dirname, 'entity', '*.{ts,js}')],
+      entities,
       synchronize: false,
     })
-  } catch (error) {}
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(error)
+  }
 
   return con
 }

@@ -62,7 +62,8 @@
 <script>
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
-import { login, communityInfo } from '../../graphql/queries'
+import { login } from '../../graphql/queries'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   name: 'login',
@@ -70,6 +71,7 @@ export default {
     InputPassword,
     InputEmail,
   },
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -112,21 +114,6 @@ export default {
           loader.hide()
         })
     },
-    async onCreated() {
-      this.$apollo
-        .query({
-          query: communityInfo,
-        })
-        .then((result) => {
-          this.$store.commit('community', result.data.getCommunityInfo)
-        })
-        .catch((error) => {
-          this.$toasted.error(error.message)
-        })
-    },
-  },
-  created() {
-    this.onCreated()
   },
 }
 </script>

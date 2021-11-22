@@ -3,6 +3,19 @@ import RegisterCommunity from './RegisterCommunity'
 
 const localVue = global.localVue
 
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    getCommunityInfo: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
+    },
+  },
+})
+const toastErrorMock = jest.fn()
+const mockStoreCommit = jest.fn()
+
 describe('RegisterCommunity', () => {
   let wrapper
 
@@ -11,15 +24,20 @@ describe('RegisterCommunity', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $apollo: {
+      query: apolloQueryMock,
+    },
     $store: {
+      commit: mockStoreCommit,
       state: {
         community: {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+          name: '',
+          description: '',
         },
       },
+    },
+    $toasted: {
+      error: toastErrorMock,
     },
   }
 
@@ -36,23 +54,56 @@ describe('RegisterCommunity', () => {
       wrapper = Wrapper()
     })
 
+    it('commits the community info to the store', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        name: 'test12',
+        description: 'test community 12',
+        url: 'http://test12.test12/',
+        registerUrl: 'http://test12.test12/vue/register',
+      })
+    })
+
     it('renders the Div Element "#register-community"', () => {
       expect(wrapper.find('div#register-community').exists()).toBeTruthy()
     })
 
-    describe('Displaying the current community info', () => {
-      it('has a current community name', () => {
-        expect(wrapper.find('.header h1').text()).toBe('Gradido Entwicklung')
+    describe('communities gives back error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Failed to get communities',
+        })
+        wrapper = Wrapper()
       })
 
-      it('has a current community description', () => {
-        expect(wrapper.find('.header p').text()).toBe(
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+      })
+    })
+
+    describe('Community data already loaded', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+        wrapper = Wrapper()
+      })
+
+      it('has a Community name', () => {
+        expect(wrapper.find('.justify-content-center h1').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description', () => {
+        expect(wrapper.find('.justify-content-center p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
       })
 
-      it('has a current community location', () => {
-        expect(wrapper.find('.header p.community-location').text()).toBe('http://localhost/vue/')
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 

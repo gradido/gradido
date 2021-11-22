@@ -1,6 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm'
 import { Order } from '../../graphql/enum/Order'
-import { UserTransaction } from '../entity/UserTransaction'
+import { UserTransaction } from '@entity/UserTransaction'
 
 @EntityRepository(UserTransaction)
 export class UserTransactionRepository extends Repository<UserTransaction> {
@@ -16,5 +16,12 @@ export class UserTransactionRepository extends Repository<UserTransaction> {
       .limit(limit)
       .offset(offset)
       .getManyAndCount()
+  }
+
+  findLastForUser(userId: number): Promise<UserTransaction | undefined> {
+    return this.createQueryBuilder('userTransaction')
+      .where('userTransaction.userId = :userId', { userId })
+      .orderBy('userTransaction.transactionId', 'DESC')
+      .getOne()
   }
 }
