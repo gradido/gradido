@@ -613,9 +613,6 @@ export class TransactionResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw e
-    } finally {
-      await queryRunner.release()
       // TODO: This is broken code - we should never correct an autoincrement index in production
       // according to dario it is required tho to properly work. The index of the table is used as
       // index for the transaction which requires a chain without gaps
@@ -627,6 +624,9 @@ export class TransactionResolver {
           // eslint-disable-next-line no-console
           console.log('problems with reset auto increment: %o', error)
         })
+      throw e
+    } finally {
+      await queryRunner.release()
     }
     // send notification email
     // TODO: translate

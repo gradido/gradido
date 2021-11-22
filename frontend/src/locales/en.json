@@ -46,6 +46,7 @@
     "change-password": "Error while changing password",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
+    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
     "session-expired": "The session expired"
   },
   "form": {
@@ -180,9 +181,12 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
+      "activateEmail": "Your email has not been activated yet, please check your emails and click the activation link!",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
-      "register": "You are registred now.",
+      "emailActivated": "Thank you your email has been activated.",
+      "errorTitle": "Attention!",
+      "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "title": "Thank you!"
     }
