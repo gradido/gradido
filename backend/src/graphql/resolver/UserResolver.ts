@@ -220,6 +220,7 @@ export class UserResolver {
     const loginUserPubKeyString = loginUserPubKey.toString('hex')
     userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
       // User not stored in state_users
+      // TODO: Check with production data - email is unique which can cause problems
       userEntity = new DbUser()
       userEntity.firstName = loginUser.firstName
       userEntity.lastName = loginUser.lastName
