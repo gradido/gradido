@@ -190,7 +190,6 @@ export default {
   methods: {
     updateLanguage(e) {
       this.language = e
-      console.log('language', this.language)
       this.$store.commit('language', this.language)
       this.$i18n.locale = this.language
       localeChanged(this.language)
