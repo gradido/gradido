@@ -104,9 +104,14 @@ export default {
           this.$router.push('/overview')
           loader.hide()
         })
-        .catch(() => {
+        .catch((error) => {
+          if (!error.message.includes('user email not validated')) {
+            this.$toasted.error(this.$t('error.no-account'))
+          } else {
+            // : this.$t('error.no-email-verify')
+            this.$router.push('/thx/login')
+          }
           loader.hide()
-          this.$toasted.error(this.$t('error.no-account'))
         })
     },
   },
