@@ -89,7 +89,10 @@ export const store = new Vuex.Store({
     token: null,
     coinanimation: true,
     newsletterState: null,
-    community: null,
+    community: {
+      name: '',
+      description: '',
+    },
     hasElopage: false,
     publisherId: null,
   },

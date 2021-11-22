@@ -62,7 +62,8 @@
 <script>
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
-import { login, communityInfo } from '../../graphql/queries'
+import { login } from '../../graphql/queries'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   name: 'login',
@@ -70,6 +71,7 @@ export default {
     InputPassword,
     InputEmail,
   },
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -102,26 +104,16 @@ export default {
           this.$router.push('/overview')
           loader.hide()
         })
-        .catch(() => {
-          loader.hide()
-          this.$toasted.error(this.$t('error.no-account'))
-        })
-    },
-    async onCreated() {
-      this.$apollo
-        .query({
-          query: communityInfo,
-        })
-        .then((result) => {
-          this.$store.commit('community', result.data.getCommunityInfo)
-        })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          if (!error.message.includes('user email not validated')) {
+            this.$toasted.error(this.$t('error.no-account'))
+          } else {
+            // : this.$t('error.no-email-verify')
+            this.$router.push('/thx/login')
+          }
+          loader.hide()
         })
     },
-  },
-  created() {
-    this.onCreated()
   },
 }
 </script>

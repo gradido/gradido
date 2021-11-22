@@ -46,6 +46,7 @@
     "change-password": "Fehler beim Ändern des Passworts",
     "error": "Fehler",
     "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
+    "no-email-verify": "Die Email wurde noch nicht bestätigt, bitte überprüfe deine Emails und klicke auf den Aktivierungslink!",
     "session-expired": "Sitzung abgelaufen!"
   },
   "form": {
@@ -96,7 +97,7 @@
     "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
     "factor": "Faktor",
-    "formula": "Berechungsformel",
+    "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
@@ -132,8 +133,8 @@
     },
     "newsletter": {
       "newsletter": "Newsletter",
-      "newsletterFalse": "Du bist aus Newslettersystem ausgetragen.",
-      "newsletterTrue": "Du bist im Newslettersystem eingetragen."
+      "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
+      "newsletterTrue": "Du erhältst Informationen per E-Mail."
     },
     "password": {
       "change-password": "Passwort ändern",
@@ -180,9 +181,12 @@
       "uppercase": "Ein Großbuchstabe erforderlich."
     },
     "thx": {
+      "activateEmail": "Deine Email wurde noch nicht aktiviert, bitte überprüfe deine Email und Klicke den Aktivierungslink!",
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
-      "register": "Du bist jetzt registriert.",
+      "emailActivated": "Danke dass Du deine Email bestätigt hast.",
+      "errorTitle": "Achtung!",
+      "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
     }
