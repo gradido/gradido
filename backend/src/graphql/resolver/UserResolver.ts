@@ -554,7 +554,7 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      if (coinanimation) {
+      if (coinanimation !== null && coinanimation !== undefined) {
         queryRunner.manager
           .getCustomRepository(UserSettingRepository)
           .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
