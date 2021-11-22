@@ -246,7 +246,7 @@ export class UserResolver {
     user.language = loginUser.language
 
     // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage({ pubKey: loginUser.pubKey })
+    user.hasElopage = await this.hasElopage({ pubKey: loginUserPubKeyString })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       // TODO: Check if we can use updateUserInfos
