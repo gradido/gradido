@@ -17,8 +17,8 @@ export class ServerUser extends BaseEntity {
   @Column({ length: 20, default: 'admin' })
   role: string
 
-  @Column({ length: 20, default: 0 })
-  activated: TinyInt
+  @Column({ default: 0 })
+  activated: number
 
   @Column({ name: 'last_login', default: null, nullable: true })
   lastLogin: Date
