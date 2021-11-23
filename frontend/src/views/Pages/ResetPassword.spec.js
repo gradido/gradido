@@ -72,9 +72,7 @@ describe('ResetPassword', () => {
 
       it('has a message suggesting to contact the support', () => {
         expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
-        expect(wrapper.find('div.header').text()).toContain(
-          'settings.password.reset-password.not-authenticated',
-        )
+        expect(wrapper.find('div.header').text()).toContain('settings.password.not-authenticated')
       })
     })
 
