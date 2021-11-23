@@ -11,4 +11,7 @@ export class UserAdmin {
 
   @Field(() => String)
   lastName: string
+
+  @Field(() => [Number])
+  creation: number[]
 }
