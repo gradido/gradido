@@ -1,14 +1,21 @@
-import { Resolver, Query } from 'type-graphql'
+import { Resolver, Query, Arg } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
-import { LoginUser } from '@entity/LoginUser'
+import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 
 @Resolver()
 export class AdminResolver {
-  @Query(() => [LoginUser])
-  async getUsers(searchText: string): Promise<LoginUser[]> {
+  @Query(() => [UserAdmin])
+  async getUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const users = loginUserRepository.findUserByFilter(searchText)
+    const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
+    const users = loginUsers.map((loginUser) => {
+      const user = new UserAdmin()
+      user.firstName = loginUser.firstName
+      user.lastName = loginUser.lastName
+      user.email = loginUser.email
+      return user
+    })
     return users
   }
 }
