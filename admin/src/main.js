@@ -25,7 +25,6 @@ import moment from 'vue-moment'
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
-
   const token = store.state.token
 
   operation.setContext({
