@@ -275,21 +275,6 @@ export class UserResolver {
     return user
   }
 
-  @Query(() => LoginViaVerificationCode)
-  async loginViaEmailVerificationCode(
-    @Arg('optin') optin: string,
-  ): Promise<LoginViaVerificationCode> {
-    // I cannot use number as type here.
-    // The value received is not the same as sent by the query
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return new LoginViaVerificationCode(result.data)
-  }
-
   @Authorized()
   @Query(() => String)
   async logout(): Promise<boolean> {
@@ -468,7 +453,7 @@ export class UserResolver {
 
     if (emailAlreadySend) {
       const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-      if (timeElapsed < 10 * 60 * 1000) {
+      if (timeElapsed <= 10 * 60 * 1000) {
         throw new Error('email already sent less than 10 minutes before')
       }
     }
@@ -511,6 +496,56 @@ export class UserResolver {
       throw new Error(result.data)
     }
     return 'success'
+  }
+
+  @Query(() => CheckEmailResponse)
+  @UseMiddleware(klicktippRegistrationMiddleware)
+  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
+    const result = await apiGet(
+      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
+    )
+    if (!result.success) {
+      throw new Error(result.data)
+    }
+    return new CheckEmailResponse(result.data)
+  }
+
+  @Query(() => Boolean)
+  async setPassword(
+    @Arg('code') code: string,
+    @Arg('password') password: string,
+  ): Promise<boolean> {
+
+    const optInCode = await LoginEmailOptIn.findOneOrFail({verificationCode: code}).catch(()=>{
+      throw new Error('Could not login with emailVerificationCode')
+    })
+
+    // Code is only valid for 10minutes
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed > 10 * 60 * 1000) {
+      throw new Error('Code is older than 10 minutes')
+    }
+
+    // load user
+    const loginUser = await LoginUser.findOneOrFail({id: optInCode.userId}).catch(()=> {
+      throw new Error('Could not find corresponding User')
+    })
+
+    // Activate EMail
+    loginUser.emailChecked = true
+
+    // Update Password
+
+    // Save loginUser
+    await loginUser.save()
+
+    // Sign into Klicktipp
+    if(optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER){
+      // TODO
+    }
+
+    // Delete Code
+    await optInCode.remove()
   }
 
   @Authorized()
@@ -643,18 +678,6 @@ export class UserResolver {
     }
 
     return true
-  }
-
-  @Query(() => CheckEmailResponse)
-  @UseMiddleware(klicktippRegistrationMiddleware)
-  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return new CheckEmailResponse(result.data)
   }
 
   @Authorized()
