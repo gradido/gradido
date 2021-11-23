@@ -160,25 +160,26 @@ describe('SideBar', () => {
         it('is not visible when not an admin', () => {
           expect(wrapper.findAll('li').at(1).text()).not.toBe('admin_area')
         })
+
         describe('logged in as admin', () => {
           const assignLocationSpy = jest.fn()
           beforeEach(() => {
             mocks.$store.state.isAdmin = true
-            mocks.$store.state.token = 'valid token'
-            // const { location } = window;
-            delete window.location
-            window.location = {}
-            Object.defineProperty(window, 'location', assignLocationSpy)
+            mocks.$store.state.token = 'valid-token'
+            window.location.assign = assignLocationSpy
             wrapper = Wrapper()
           })
 
           it('is visible', () => {
             expect(wrapper.findAll('li').at(1).text()).toBe('admin_area')
           })
-          it.skip('opens a new window when clicked', async () => {
+
+          it('opens a new window when clicked', async () => {
             wrapper.findAll('li').at(1).find('a').trigger('click')
             await wrapper.vm.$nextTick()
-            expect(assignLocationSpy).toHaveBeenCalledWith('peter')
+            expect(assignLocationSpy).toHaveBeenCalledWith(
+              'http://localhost/admin/authenticate?token=valid-token',
+            )
           })
         })
       })
