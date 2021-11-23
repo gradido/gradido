@@ -31,6 +31,9 @@ import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { randomBytes } from 'crypto'
 
+const EMAIL_OPT_IN_RESET_PASSWORD = 2
+const EMAIL_OPT_IN_REGISTER = 1
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -394,7 +397,7 @@ export class UserResolver {
       const emailOptIn = new LoginEmailOptIn()
       emailOptIn.userId = loginUserId
       emailOptIn.verificationCode = random(64)
-      emailOptIn.emailOptInTypeId = 1
+      emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
 
       await queryRunner.manager.save(emailOptIn).catch((error) => {
         // eslint-disable-next-line no-console
@@ -441,7 +444,6 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     let emailAlreadySend = false
-    const EMAIL_OPT_IN_RESET_PASSWORD = 2
 
     const loginUser = await LoginUser.findOneOrFail({ email })
 
