@@ -14,6 +14,9 @@ export const mutations = {
   resetOpenCreations: (state) => {
     state.openCreations = 0
   },
+  token: (state, token) => {
+    state.token = token
+  },
 }
 
 const store = new Vuex.Store({

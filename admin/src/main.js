@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+// without this async calls are not working
+import 'regenerator-runtime'
+
 import store from './store/store'
 
 import router from './router/router'
@@ -22,7 +25,9 @@ import moment from 'vue-moment'
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
-  const token = '' // store.state.token
+
+  const token = store.state.token
+
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
@@ -52,6 +57,7 @@ const apolloProvider = new VueApollo({
 })
 
 Vue.use(BootstrapVue)
+
 Vue.use(IconsPlugin)
 
 Vue.use(moment)
