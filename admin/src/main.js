@@ -62,6 +62,8 @@ Vue.use(IconsPlugin)
 
 Vue.use(moment)
 
+Vue.use(VueApollo)
+
 addNavigationGuards(router, store)
 
 new Vue({
