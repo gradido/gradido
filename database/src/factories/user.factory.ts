@@ -22,6 +22,8 @@ define(User, (faker: typeof Faker, context?: UserContext) => {
   user.lastName = context.lastName ? context.lastName : faker.name.lastName()
   user.username = context.username ? context.username : faker.internet.userName()
   user.disabled = context.disabled ? context.disabled : false
+  user.groupId = 0
+  user.indexId = 0
 
   return user
 })
