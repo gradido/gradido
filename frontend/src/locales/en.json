@@ -144,7 +144,12 @@
         "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
         "text": "Now you can save a new password to login to the Gradido-App in the future."
       },
-      "send_now": "Send now",
+      "send_now": "Jetzt senden",
+      "set": "Passwort festsetzen",
+      "set-password": {
+        "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
+        "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
+      },
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
