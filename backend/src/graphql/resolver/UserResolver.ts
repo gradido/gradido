@@ -19,7 +19,6 @@ import {
   klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
-import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
@@ -288,7 +287,7 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
+    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
@@ -296,13 +295,6 @@ export class UserResolver {
     // Validate Language (no throw)
     if (!isLanguage(language)) {
       language = DEFAULT_LANGUAGE
-    }
-
-    // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
     }
 
     // Validate username
@@ -322,10 +314,7 @@ export class UserResolver {
     }
 
     const passphrase = PassphraseGenerate()
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const emailHash = getEmailHash(email)
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -334,13 +323,13 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
-    loginUser.pubKey = keyPair[0]
-    loginUser.privKey = encryptedPrivkey
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -498,25 +487,12 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => CheckEmailResponse)
-  @UseMiddleware(klicktippRegistrationMiddleware)
-  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return new CheckEmailResponse(result.data)
-  }
-
   @Query(() => Boolean)
   async setPassword(
     @Arg('code') code: string,
     @Arg('password') password: string,
   ): Promise<boolean> {
-
-    const optInCode = await LoginEmailOptIn.findOneOrFail({verificationCode: code}).catch(()=>{
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
       throw new Error('Could not login with emailVerificationCode')
     })
 
@@ -527,25 +503,54 @@ export class UserResolver {
     }
 
     // load user
-    const loginUser = await LoginUser.findOneOrFail({id: optInCode.userId}).catch(()=> {
+    const loginUser = await LoginUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
       throw new Error('Could not find corresponding User')
     })
+
+    const loginUserBackup = await LoginUserBackup.findOneOrFail({ userId: loginUser.id }).catch(
+      () => {
+        throw new Error('Could not find corresponding BackupUser')
+      },
+    )
+
+    const passphrase = loginUserBackup.passphrase.slice(0, -1).split(' ')
+    if (passphrase.length < PHRASE_WORD_COUNT) {
+      // TODO if this can happen we cannot recover from that
+      throw new Error('Could not load a correct passphrase')
+    }
 
     // Activate EMail
     loginUser.emailChecked = true
 
+    // Validate Password
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
+
     // Update Password
+    const passwordHash = SecretKeyCryptographyCreateKey(loginUser.email, password) // return short and long hash
+    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    loginUser.pubKey = keyPair[0]
+    loginUser.privKey = encryptedPrivkey
 
     // Save loginUser
+    // TODO transaction
     await loginUser.save()
 
     // Sign into Klicktipp
-    if(optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER){
-      // TODO
+    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
+      // TODO klicktippRegistrationMiddleware
     }
 
     // Delete Code
+    // TODO transaction
     await optInCode.remove()
+
+    return true
   }
 
   @Authorized()

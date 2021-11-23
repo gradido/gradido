@@ -95,15 +95,6 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const checkEmailQuery = gql`
-  query($optin: String!) {
-    checkEmail(optin: $optin) {
-      email
-      sessionId
-    }
-  }
-`
-
 export const communityInfo = gql`
   query {
     getCommunityInfo {

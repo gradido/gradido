@@ -12,9 +12,6 @@ export default class CreateUserArgs {
   lastName: string
 
   @Field(() => String)
-  password: string
-
-  @Field(() => String)
   language: string
 
   @Field(() => Int, { nullable: true })
