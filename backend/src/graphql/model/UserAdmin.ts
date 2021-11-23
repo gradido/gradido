@@ -1,5 +1,4 @@
-import { ObjectType, Field, Int } from 'type-graphql'
-import { KlickTipp } from './KlickTipp'
+import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
 export class UserAdmin {
