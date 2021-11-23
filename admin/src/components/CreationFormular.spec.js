@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
 
 const localVue = global.localVue
-<<<<<<< HEAD
 
 const mocks = {
   $moment: jest.fn(() => {
@@ -23,14 +22,6 @@ const propsData = {
   creation: {},
   itemsMassCreation: {},
 }
-=======
-const propsData = {
-  type: 'STRING',
-  creation: [100, 500, 1000],
-  itemUser: [],
-}
-const mocks = { $moment: jest.fn() }
->>>>>>> ddaaab9c (add Tests, CreationFormular.spec.js, NavBar.spec.js, UserTable.spec.js)
 
 describe('CreationFormular', () => {
   let wrapper

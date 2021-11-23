@@ -26,7 +26,7 @@
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
-              {{ beforeLastMonth }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
           <b-col>
@@ -36,7 +36,7 @@
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
-              {{ lastMonth }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
           <b-col class="text-right">
@@ -46,7 +46,7 @@
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
-              {{ currentMonth }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
         </b-row>
@@ -73,6 +73,7 @@
             :min="rangeMin"
             :max="rangeMax"
             step="10"
+            @load="checkFormForUpdate('range')"
           ></b-input>
         </b-row>
         <b-row class="m-4">
@@ -83,6 +84,7 @@
               v-model="text"
               :state="text.length >= 10"
               placeholder="Mindestens 10 Zeichen eingeben"
+              @load="checkFormForUpdate('text')"
               rows="3"
             ></b-form-textarea>
           </div>
@@ -96,6 +98,18 @@
           <b-col class="text-center">
             <div class="text-right">
               <b-button
+                v-if="pagetype === 'PageCreationConfirm'"
+                type="button"
+                variant="success"
+                @click="submitCreation"
+                :disabled="radioSelected === '' || value <= 0 || text.length < 10"
+              >
+                Update Schöpfung ({{ type }},{{ pagetype }})
+                {{ creationUserData }}
+              </b-button>
+
+              <b-button
+                v-else
                 type="button"
                 variant="success"
                 @click="submitCreation"
@@ -118,7 +132,16 @@ export default {
       type: String,
       required: true,
     },
+    pagetype: {
+      type: String,
+      required: false,
+      default: '',
+    },
     item: {
+      type: Object,
+      required: false,
+    },
+    creationUserData: {
       type: Object,
       required: false,
     },
@@ -138,9 +161,18 @@ export default {
       value: 0,
       rangeMin: 0,
       rangeMax: 1000,
-      currentMonth: this.$moment().format('MMMM'),
-      lastMonth: this.$moment().subtract(1, 'month').format('MMMM'),
-      beforeLastMonth: this.$moment().subtract(2, 'month').format('MMMM'),
+      currentMonth: {
+        short: this.$moment().format('MMMM'),
+        long: this.$moment().format('DD/MM/YYYY'),
+      },
+      lastMonth: {
+        short: this.$moment().subtract(1, 'month').format('MMMM'),
+        long: this.$moment().subtract(1, 'month').format('DD/MM/YYYY'),
+      },
+      beforeLastMonth: {
+        short: this.$moment().subtract(2, 'month').format('MMMM'),
+        long: this.$moment().subtract(2, 'month').format('DD/MM/YYYY'),
+      },
       submitObj: null,
       isdisabled: true,
     }
@@ -158,6 +190,18 @@ export default {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
+      }
+    },
+    checkFormForUpdate(input) {
+      switch (input) {
+        case 'text':
+          this.text = this.creationUserData.text
+          break
+        case 'range':
+          this.value = this.creationUserData.creation_gdd
+          break
+        default:
+          alert("I don't know such values")
       }
     },
     submitCreation() {
@@ -207,16 +251,29 @@ export default {
         this.submitObj = [
           {
             item: this.item,
-            datum: this.radioSelected,
+            datum: this.radioSelected.long,
             amount: this.value,
             text: this.text,
             moderator: this.$store.state.moderator,
           },
         ]
-        // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-        alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.first_name + '')
-        // $store - offene Schöpfungen hochzählen
-        this.$store.commit('openCreationsPlus', 1)
+
+        if (this.pagetype === 'PageCreationConfirm') {
+          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+          alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
+          // umschreiben, update eine bestehende Schöpfung eine
+
+          this.creationUserData.datum = this.radioSelected.long
+          this.creationUserData.creation_gdd = this.value
+          this.creationUserData.text = this.text
+
+          // this.$store.commit('update-creation-user-data', this.submitObj)
+        } else {
+          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.first_name + '')
+          // $store - offene Schöpfungen hochzählen
+          this.$store.commit('openCreationsPlus', 1)
+        }
       }
 
       // das absendeergebniss im string ansehen

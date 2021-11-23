@@ -37,7 +37,12 @@
       stacked="md"
     >
       <template #cell(edit_creation)="row">
-        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+        <b-button
+          variant="info"
+          size="lg"
+          @click="editCreationUserTable(row, row.item)"
+          class="mr-2"
+        >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
           <b-icon v-else icon="pencil-square" aria-label="Help"></b-icon>
         </b-button>
@@ -58,8 +63,11 @@
 
           <creation-formular
             type="singleCreation"
+            :pagetype="type"
             :creation="getCreationInMonths(row.item.creation)"
             :item="row.item"
+            :creationUserData="creationData"
+            @update-creation-user-data="UpdateCreationUserData"
           />
 
           <b-button size="sm" @click="row.toggleDetails">
@@ -141,6 +149,7 @@ export default {
   },
   data() {
     return {
+      creationData: [],
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -200,16 +209,26 @@ export default {
       }
 
       if (this.type === 'PageCreationConfirm') {
-        this.$emit('update-confirm-result', item, 'remove')
+        this.$emit('remove-confirm-result', item, 'remove')
       }
     },
     bookmarkConfirm(item) {
       alert('die schöpfung bestätigen und abschließen')
       alert(JSON.stringify(item))
-      this.$emit('update-confirm-result', item, 'remove')
+      this.$emit('remove-confirm-result', item, 'remove')
     },
     getCreationInMonths(creation) {
       return creation.split(',')
+    },
+    editCreationUserTable(row, rowItem) {
+      alert('editCreationUserTable')
+      if (!row.detailsShowing) {
+        alert('offen edit loslegen')
+        // this.item = rowItem
+        this.creationData = rowItem
+        // alert(this.creationData)
+      }
+      row.toggleDetails()
     },
   },
 }
