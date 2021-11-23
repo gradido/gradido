@@ -394,7 +394,7 @@ export class UserResolver {
       const emailOptIn = new LoginEmailOptIn()
       emailOptIn.userId = loginUserId
       emailOptIn.verificationCode = random(64)
-      emailOptIn.emailOptInTypeId = 2
+      emailOptIn.emailOptInTypeId = 1
 
       await queryRunner.manager.save(emailOptIn).catch((error) => {
         // eslint-disable-next-line no-console
