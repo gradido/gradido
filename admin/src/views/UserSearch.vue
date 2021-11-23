@@ -33,7 +33,7 @@ export default {
         { key: 'firstName', label: 'Firstname' },
         { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
-        { key: 'showDetails', label: 'Details' },
+        { key: 'show_details', label: 'Details' },
       ],
       searchResult: [],
       massCreation: [],
@@ -53,11 +53,11 @@ export default {
           },
         })
         .then((result) => {
-           console.log('getUsers result', result)
+          console.log('getUsers result', result)
           this.searchResult = result.data.searchUsers.map((user) => {
             return {
               ...user,
-              showDetails: false,
+              // showDetails: true,
             }
           })
         })

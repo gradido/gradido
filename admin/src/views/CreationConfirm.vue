@@ -27,8 +27,8 @@ export default {
       fields: [
         { key: 'bookmark', label: 'löschen' },
         { key: 'email', label: 'Email' },
-        { key: 'first_name', label: 'Vorname' },
-        { key: 'last_name', label: 'Nachname' },
+        { key: 'firstName', label: 'Vorname' },
+        { key: 'lastName', label: 'Nachname' },
         {
           key: 'creation_gdd',
           label: 'Schöpfung',
@@ -52,9 +52,9 @@ export default {
         {
           id: 1,
           email: 'dickerson@web.de',
-          first_name: 'Dickerson',
-          last_name: 'Macdonald',
-          creation: '450,200,700',
+          firstName: 'Dickerson',
+          lastName: 'Macdonald',
+          creation: '[450,200,700]',
           creation_gdd: '1000',
           text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
 
@@ -67,9 +67,9 @@ export default {
         {
           id: 2,
           email: 'larsen@woob.de',
-          first_name: 'Larsen',
-          last_name: 'Shaw',
-          creation: '300,200,1000',
+          firstName: 'Larsen',
+          lastName: 'Shaw',
+          creation: '[300,200,1000]',
           creation_gdd: '1000',
           text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
 
@@ -82,9 +82,9 @@ export default {
         {
           id: 3,
           email: 'geneva@tete.de',
-          first_name: 'Geneva',
-          last_name: 'Wilson',
-          creation: '350,200,900',
+          firstName: 'Geneva',
+          lastName: 'Wilson',
+          creation: '[350,200,900]',
           creation_gdd: '1000',
           text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam',
           creation_date: {
@@ -96,8 +96,9 @@ export default {
         {
           id: 4,
           email: 'viewrter@asdfvb.com',
-          first_name: 'Soledare',
-          last_name: 'Takker',
+          firstName: 'Soledare',
+          lastName: 'Takker',
+          creation: '[100,400,800]',
           creation_gdd: '500',
           text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo ',
           creation_date: {
@@ -109,9 +110,9 @@ export default {
         {
           id: 5,
           email: 'dickerson@web.de',
-          first_name: 'Dickerson',
-          last_name: 'Macdonald',
-          creation: '100,400,800',
+          firstName: 'Dickerson',
+          lastName: 'Macdonald',
+          creation: '[100,400,800]',
           creation_gdd: '200',
           text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At',
           creation_date: {

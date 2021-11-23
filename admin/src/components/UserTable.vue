@@ -64,10 +64,9 @@
           <creation-formular
             type="singleCreation"
             :pagetype="type"
-            :creation="getCreationInMonths(row.item.creation)"
+            :creation="row.item.creation"
             :item="row.item"
             :creationUserData="creationData"
-            @update-creation-user-data="UpdateCreationUserData"
           />
 
           <b-button size="sm" @click="row.toggleDetails">
@@ -75,7 +74,7 @@
               :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
               aria-label="Help"
             ></b-icon>
-            Details verbergen von {{ row.item.first_name }} {{ row.item.last_name }}
+            Details verbergen von {{ row.item.firstName }} {{ row.item.lastName }}
           </b-button>
         </b-card>
       </template>
@@ -149,7 +148,7 @@ export default {
   },
   data() {
     return {
-      creationData: [],
+      creationData: {},
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -216,9 +215,6 @@ export default {
       alert('die schöpfung bestätigen und abschließen')
       alert(JSON.stringify(item))
       this.$emit('remove-confirm-result', item, 'remove')
-    },
-    getCreationInMonths(creation) {
-      return creation.split(',')
     },
     editCreationUserTable(row, rowItem) {
       alert('editCreationUserTable')

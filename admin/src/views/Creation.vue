@@ -44,6 +44,7 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import UserTable from '../components/UserTable.vue'
+import { searchUsers } from '../graphql/searchUsers'
 
 export default {
   name: 'overview',
@@ -57,49 +58,19 @@ export default {
       Searchfields: [
         { key: 'bookmark', label: 'merken' },
 
-        { key: 'first_name', label: 'Firstname' },
-        { key: 'last_name', label: 'Lastname' },
+        { key: 'firstName', label: 'Firstname' },
+        { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
         { key: 'email', label: 'Email' },
       ],
       fields: [
         { key: 'email', label: 'Email' },
-        { key: 'first_name', label: 'Firstname' },
-        { key: 'last_name', label: 'Lastname' },
+        { key: 'firstName', label: 'Firstname' },
+        { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
         { key: 'bookmark', label: 'löschen' },
       ],
-      searchResult: [
-        {
-          id: 1,
-          email: 'dickerson@web.de',
-          first_name: 'Dickerson',
-          last_name: 'Macdonald',
-          creation: '450,200,700',
-        },
-        {
-          id: 2,
-          email: 'larsen@woob.de',
-          first_name: 'Larsen',
-          last_name: 'Shaw',
-          creation: '300,200,1000',
-        },
-        {
-          id: 3,
-          email: 'geneva@tete.de',
-          first_name: 'Geneva',
-          last_name: 'Wilson',
-          creation: '350,200,900',
-        },
-        {
-          id: 4,
-          email: 'viewrter@asdfvb.com',
-          first_name: 'Soledare',
-          last_name: 'Takker',
-          creation: '100,400,800',
-        },
-      ],
-      itemsList: this.searchResult,
+      itemsList: [],
       massCreation: [],
       radioSelectedMass: '',
       criteria: '',
@@ -107,9 +78,30 @@ export default {
     }
   },
   created() {
-    this.itemsList = this.searchResult
+     this.getUsers()
   },
   methods: {
+     getUsers() {
+      this.$apollo
+        .query({
+          query: searchUsers,
+          variables: {
+            searchText: this.criteria,
+          },
+        })
+        .then((result) => {
+          console.log('getUsers result', result)
+          this.itemsList = result.data.searchUsers.map((user) => {
+            return {
+              ...user,
+              // showDetails: true,
+            }
+          })
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
     updateItem(e, event) {
       let index = 0
       let findArr = {}

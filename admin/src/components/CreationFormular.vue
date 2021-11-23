@@ -4,9 +4,10 @@
       <h3>
         {{
           this.type === 'singleCreation'
-            ? 'Einzelschöpfung für ' + item.first_name + ' ' + item.last_name + ''
+            ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
             : 'Massenschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
+        {{ item }}
       </h3>
       <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
         Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
@@ -105,7 +106,6 @@
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
                 Update Schöpfung ({{ type }},{{ pagetype }})
-                {{ creationUserData }}
               </b-button>
 
               <b-button
@@ -130,7 +130,7 @@ export default {
   props: {
     type: {
       type: String,
-      required: true,
+      required: false,
     },
     pagetype: {
       type: String,
@@ -246,7 +246,7 @@ export default {
 
       if (this.type === 'singleCreation') {
         // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.first_name + '')
+        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
         // erstellen eines Arrays (submitObj) mit allen Daten
         this.submitObj = [
           {
@@ -262,15 +262,12 @@ export default {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
           alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
           // umschreiben, update eine bestehende Schöpfung eine
-
           this.creationUserData.datum = this.radioSelected.long
           this.creationUserData.creation_gdd = this.value
           this.creationUserData.text = this.text
-
-          // this.$store.commit('update-creation-user-data', this.submitObj)
         } else {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.first_name + '')
+          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
           // $store - offene Schöpfungen hochzählen
           this.$store.commit('openCreationsPlus', 1)
         }
