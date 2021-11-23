@@ -5,18 +5,15 @@ import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
-import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
 import encode from '../../jwt/encode'
-import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
 import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
 import { apiPost, apiGet } from '../../apis/HttpRequest'
 import {
-  klicktippRegistrationMiddleware,
   klicktippNewsletterStateMiddleware,
 } from '../../middleware/klicktippMiddleware'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
@@ -29,6 +26,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { randomBytes } from 'crypto'
+import { signIn } from '../../apis/KlicktippController'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -355,7 +353,6 @@ export class UserResolver {
 
       // Table: state_users
       const dbUser = new DbUser()
-      dbUser.pubkey = keyPair[0]
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
@@ -475,6 +472,14 @@ export class UserResolver {
     @Arg('code') code: string,
     @Arg('password') password: string,
   ): Promise<boolean> {
+    // Validate Password
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
+
+    // Load code
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
       throw new Error('Could not login with emailVerificationCode')
     })
@@ -485,8 +490,13 @@ export class UserResolver {
       throw new Error('Code is older than 10 minutes')
     }
 
-    // load user
+    // load loginUser
     const loginUser = await LoginUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
+      throw new Error('Could not find corresponding Login User')
+    })
+
+    // load user
+    const dbUser = await DbUser.findOneOrFail({ email: loginUser.email }).catch(() => {
       throw new Error('Could not find corresponding User')
     })
 
@@ -505,13 +515,6 @@ export class UserResolver {
     // Activate EMail
     loginUser.emailChecked = true
 
-    // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
-
     // Update Password
     const passwordHash = SecretKeyCryptographyCreateKey(loginUser.email, password) // return short and long hash
     const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
@@ -519,14 +522,20 @@ export class UserResolver {
     loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.pubKey = keyPair[0]
     loginUser.privKey = encryptedPrivkey
+    dbUser.pubkey = keyPair[0]
 
     // Save loginUser
     // TODO transaction
     await loginUser.save()
 
+    // Save user
+    // TODO transaction
+    await dbUser.save()
+
     // Sign into Klicktipp
+    // TODO do we always signUp the user? How to handle things with old users?
     if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
-      // TODO klicktippRegistrationMiddleware
+      await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
     }
 
     // Delete Code
