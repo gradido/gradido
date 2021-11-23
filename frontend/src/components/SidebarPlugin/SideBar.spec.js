@@ -3,6 +3,8 @@ import SideBar from './SideBar'
 
 const localVue = global.localVue
 
+const storeDispatchMock = jest.fn()
+
 describe('SideBar', () => {
   let wrapper
 
@@ -23,8 +25,7 @@ describe('SideBar', () => {
         lastName: 'example',
         hasElopage: false,
       },
-      commit: jest.fn(),
-      dispatch: jest.fn(),
+      dispatch: storeDispatchMock,
     },
     $i18n: {
       locale: 'en',
@@ -163,7 +164,7 @@ describe('SideBar', () => {
 
         describe('logged in as admin', () => {
           const assignLocationSpy = jest.fn()
-          beforeEach(() => {
+          beforeEach(async () => {
             mocks.$store.state.isAdmin = true
             mocks.$store.state.token = 'valid-token'
             window.location.assign = assignLocationSpy
@@ -174,12 +175,20 @@ describe('SideBar', () => {
             expect(wrapper.findAll('li').at(1).text()).toBe('admin_area')
           })
 
-          it('opens a new window when clicked', async () => {
-            wrapper.findAll('li').at(1).find('a').trigger('click')
-            await wrapper.vm.$nextTick()
-            expect(assignLocationSpy).toHaveBeenCalledWith(
-              'http://localhost/admin/authenticate?token=valid-token',
-            )
+          describe('click on admin area', () => {
+            beforeEach(async () => {
+              await wrapper.findAll('li').at(1).find('a').trigger('click')
+            })
+
+            it('opens a new window when clicked', () => {
+              expect(assignLocationSpy).toHaveBeenCalledWith(
+                'http://localhost/admin/authenticate?token=valid-token',
+              )
+            })
+
+            it('dispatches logout to store', () => {
+              expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+            })
           })
         })
       })
