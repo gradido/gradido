@@ -68,6 +68,22 @@ export default {
     }
   },
 
-  methods: {},
+  methods: {
+    getUsers() {
+      this.$apollo
+        .query({
+          query: gql`{ query{getUsers(searchText) {} } }`,
+          variables: {
+            searchText: this.criteria,
+          },
+        })
+        .then((result) => {
+
+        })
+        .catch((error) => {
+
+        })
+    },
+  },
 }
 </script>
