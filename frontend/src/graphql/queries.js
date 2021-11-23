@@ -67,9 +67,7 @@ export const transactionsQuery = gql`
 
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
-    sendResetPasswordEmail(email: $email) {
-      state
-    }
+    sendResetPasswordEmail(email: $email)
   }
 `
 

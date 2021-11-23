@@ -6,7 +6,6 @@ import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } 
 import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
-import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
 import encode from '../../jwt/encode'
@@ -30,6 +29,7 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
+import { randomBytes } from 'crypto'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -201,8 +201,6 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-    // UnsecureLogin
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
       throw new Error('No user with this credentials')
@@ -440,20 +438,60 @@ export class UserResolver {
     return 'success'
   }
 
-  @Query(() => SendPasswordResetEmailResponse)
-  async sendResetPasswordEmail(
-    @Arg('email') email: string,
-  ): Promise<SendPasswordResetEmailResponse> {
-    const payload = {
-      email,
-      email_text: 7,
-      email_verification_code_type: 'resetPassword',
+  @Query(() => Boolean)
+  async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
+    let emailAlreadySend = false
+    const EMAIL_OPT_IN_RESET_PASSWORD = 2
+
+    const loginUser = await LoginUser.findOneOrFail({ email })
+
+    let optInCode = await LoginEmailOptIn.findOne({
+      userId: loginUser.id,
+      emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
+    })
+    if (optInCode) {
+      emailAlreadySend = true
+    } else {
+      optInCode = new LoginEmailOptIn()
+      optInCode.verificationCode = randomBytes(16).readBigInt64LE()
+      optInCode.userId = loginUser.id
+      optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+      await optInCode.save()
     }
-    const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
-    if (!response.success) {
-      throw new Error(response.data)
+
+    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
+      /\$1/g,
+      optInCode.verificationCode.toString(),
+    )
+
+    if (emailAlreadySend) {
+      const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+      if (timeElapsed < 10 * 60 * 1000) {
+        throw new Error('email already sent less than a 10 minutes before')
+      }
     }
-    return new SendPasswordResetEmailResponse(response.data)
+
+    const emailSent = await sendEMail({
+      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      to: `${loginUser.firstName} ${loginUser.lastName} <${email}>`,
+      subject: 'Gradido: Reset Password',
+      text: `Hallo ${loginUser.firstName} ${loginUser.lastName},
+      
+      Du oder jemand anderes hat für dieses Konto ein Zurücksetzen des Passworts angefordert.
+      Wenn du es warst, klicke bitte auf den Link: ${link}
+      oder kopiere den obigen Link in Dein Browserfenster.
+      
+      Mit freundlichen Grüßen,
+      dein Gradido-Team`,
+    })
+
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+      // eslint-disable-next-line no-console
+      console.log(`Reset password link: ${link}`)
+    }
+
+    return true
   }
 
   @Mutation(() => String)
