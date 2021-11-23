@@ -467,7 +467,7 @@ export class UserResolver {
     if (emailAlreadySend) {
       const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
       if (timeElapsed < 10 * 60 * 1000) {
-        throw new Error('email already sent less than a 10 minutes before')
+        throw new Error('email already sent less than 10 minutes before')
       }
     }
 
