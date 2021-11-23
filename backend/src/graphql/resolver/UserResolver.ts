@@ -7,7 +7,6 @@ import { getConnection, getCustomRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
-import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
 import encode from '../../jwt/encode'
@@ -23,13 +22,14 @@ import {
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
+import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -174,12 +174,22 @@ const getEmailHash = (email: string): Buffer => {
 }
 
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
-  const encrypted = Buffer.alloc(sodium.crypto_secretbox_MACBYTES + message.length)
+  const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
 
   sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
   return encrypted
+}
+
+const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
+  const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
+
+  return message
 }
 
 @Resolver()
@@ -191,33 +201,32 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-
-    // if there is no user, throw an authentication error
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: encode(result.data.session_id, result.data.user.public_hex),
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
+    // UnsecureLogin
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
+      throw new Error('No user with this credentials')
     })
-    const user = new User(result.data.user)
-    // Hack: Database Field is not validated properly and not nullable
-    if (user.publisherId === 0) {
-      user.publisherId = undefined
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    const loginUserPassword = BigInt(loginUser.password.toString())
+    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+      throw new Error('No user with this credentials')
     }
-    user.hasElopage = result.data.hasElopage
-    // read additional settings from settings table
+    // TODO: If user has no pubKey Create it again and update user.
+
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
-    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+    const loginUserPubKey = loginUser.pubKey
+    const loginUserPubKeyString = loginUserPubKey.toString('hex')
+    userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
+      // User not stored in state_users
+      // TODO: Check with production data - email is unique which can cause problems
       userEntity = new DbUser()
-      userEntity.firstName = user.firstName
-      userEntity.lastName = user.lastName
-      userEntity.username = user.username
-      userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
+      userEntity.firstName = loginUser.firstName
+      userEntity.lastName = loginUser.lastName
+      userEntity.username = loginUser.username
+      userEntity.email = loginUser.email
+      userEntity.pubkey = loginUser.pubKey
 
       userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
@@ -227,15 +236,28 @@ export class UserResolver {
       throw new Error('error with cannot happen')
     }
 
-    // Save publisherId if Elopage is not yet registered
+    const user = new User()
+    user.email = email
+    user.firstName = loginUser.firstName
+    user.lastName = loginUser.lastName
+    user.username = loginUser.username
+    user.description = loginUser.description
+    user.pubkey = loginUserPubKeyString
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage({ pubKey: loginUserPubKeyString })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      await this.updateUserInfos(
-        { publisherId },
-        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
-      )
+      // TODO: Check if we can use updateUserInfos
+      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
+      const loginUserRepository = getCustomRepository(LoginUserRepository)
+      const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
+      loginUser.publisherId = publisherId
+      loginUserRepository.save(loginUser)
     }
 
+    // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
@@ -243,6 +265,12 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(loginUser.pubKey),
+    })
+
     return user
   }
 
@@ -454,7 +482,7 @@ export class UserResolver {
   }
 
   @Authorized()
-  @Mutation(() => UpdateUserInfosResponse)
+  @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
     {
@@ -469,79 +497,97 @@ export class UserResolver {
       coinanimation,
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
-  ): Promise<UpdateUserInfosResponse> {
-    const payload = {
-      session_id: context.sessionId,
-      update: {
-        'User.first_name': firstName || undefined,
-        'User.last_name': lastName || undefined,
-        'User.description': description || undefined,
-        'User.username': username || undefined,
-        'User.language': language || undefined,
-        'User.publisher_id': publisherId || undefined,
-        'User.password': passwordNew || undefined,
-        'User.password_old': password || undefined,
-      },
-    }
-    let response: UpdateUserInfosResponse | undefined
+  ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
 
-    if (
-      firstName ||
-      lastName ||
-      description ||
-      username ||
-      language ||
-      publisherId ||
-      passwordNew ||
-      password
-    ) {
-      const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
-      if (!result.success) throw new Error(result.data)
-      response = new UpdateUserInfosResponse(result.data)
-
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-      let userEntityChanged = false
-      if (firstName) {
-        userEntity.firstName = firstName
-        userEntityChanged = true
-      }
-      if (lastName) {
-        userEntity.lastName = lastName
-        userEntityChanged = true
-      }
-      if (username) {
-        userEntity.username = username
-        userEntityChanged = true
-      }
-      if (userEntityChanged) {
-        userRepository.save(userEntity).catch((error) => {
-          throw new Error(error)
-        })
-      }
+    if (username) {
+      throw new Error('change username currently not supported!')
+      // TODO: this error was thrown on login_server whenever you tried to change the username
+      // to anything except "" which is an exception to the rules below. Those were defined
+      // aswell, even tho never used.
+      // ^[a-zA-Z][a-zA-Z0-9_-]*$
+      // username must start with [a-z] or [A-Z] and than can contain also [0-9], - and _
+      // username already used
+      // userEntity.username = username
     }
-    if (coinanimation !== undefined) {
-      // load user and balance
 
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    if (firstName) {
+      loginUser.firstName = firstName
+      userEntity.firstName = firstName
+    }
 
-      const userSettingRepository = getCustomRepository(UserSettingRepository)
-      userSettingRepository
-        .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
-        .catch((error) => {
-          throw new Error(error)
-        })
+    if (lastName) {
+      loginUser.lastName = lastName
+      userEntity.lastName = lastName
+    }
 
-      if (!response) {
-        response = new UpdateUserInfosResponse({ valid_values: 1 })
-      } else {
-        response.validValues++
+    if (description) {
+      loginUser.description = description
+    }
+
+    if (language) {
+      if (!isLanguage(language)) {
+        throw new Error(`"${language}" isn't a valid language`)
       }
+      loginUser.language = language
     }
-    if (!response) {
-      throw new Error('no valid response')
+
+    if (password && passwordNew) {
+      // TODO: This had some error cases defined - like missing private key. This is no longer checked.
+      const oldPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, password)
+      if (loginUser.password !== oldPasswordHash[0].readBigUInt64LE()) {
+        throw new Error(`Old password is invalid`)
+      }
+
+      const privKey = SecretKeyCryptographyDecrypt(loginUser.privKey, oldPasswordHash[1])
+
+      const newPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, passwordNew) // return short and long hash
+      const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
+
+      // Save new password hash and newly encrypted private key
+      loginUser.password = newPasswordHash[0].readBigInt64LE()
+      loginUser.privKey = encryptedPrivkey
     }
-    return response
+
+    // Save publisherId only if Elopage is not yet registered
+    if (publisherId && !(await this.hasElopage(context))) {
+      loginUser.publisherId = publisherId
+    }
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      if (coinanimation !== null && coinanimation !== undefined) {
+        queryRunner.manager
+          .getCustomRepository(UserSettingRepository)
+          .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
+          .catch((error) => {
+            throw new Error('error saving coinanimation: ' + error)
+          })
+      }
+
+      await queryRunner.manager.save(loginUser).catch((error) => {
+        throw new Error('error saving loginUser: ' + error)
+      })
+
+      await queryRunner.manager.save(userEntity).catch((error) => {
+        throw new Error('error saving user: ' + error)
+      })
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+
+    return true
   }
 
   @Query(() => Boolean)
@@ -588,7 +634,8 @@ export class UserResolver {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
+    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
+    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
     return elopageBuyCount > 0
   }
 }

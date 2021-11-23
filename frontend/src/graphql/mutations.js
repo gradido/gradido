@@ -38,9 +38,7 @@ export const updateUserInfos = gql`
       passwordNew: $passwordNew
       language: $locale
       coinanimation: $coinanimation
-    ) {
-      validValues
-    }
+    )
   }
 `
 
