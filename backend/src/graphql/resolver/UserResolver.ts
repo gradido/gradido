@@ -479,23 +479,39 @@ export class UserResolver {
     loginUser.privKey = encryptedPrivkey
     dbUser.pubkey = keyPair[0]
 
-    // Save loginUser
-    // TODO transaction
-    await loginUser.save()
-
-    // Save user
-    // TODO transaction
-    await dbUser.save()
-
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
     if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
       await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
     }
 
-    // Delete Code
-    // TODO transaction
-    await optInCode.remove()
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      // Save loginUser
+      await queryRunner.manager.save(loginUser).catch((error) => {
+        throw new Error('error saving loginUser: ' + error)
+      })
+
+      // Save user
+      await queryRunner.manager.save(dbUser).catch((error) => {
+        throw new Error('error saving user: ' + error)
+      })
+
+      // Delete Code
+      await queryRunner.manager.remove(optInCode).catch((error) => {
+        throw new Error('error deleting code: ' + error)
+      })
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
 
     return true
   }
