@@ -28,7 +28,7 @@ namespace model {
 			~NodeServer();
 
 			// generic db operations
-			const char* getTableName() const { return "node_servers"; }
+			const char* getTableName() const { return "login_node_servers"; }
 			std::string toString();
 
 			static const char* nodeServerTypeToString(NodeServerType type);

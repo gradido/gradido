@@ -9,6 +9,7 @@
 #include "SingletonManager/SessionManager.h"
 #include "SingletonManager/EmailManager.h"
 #include "SingletonManager/PendingTasksManager.h"
+#include "SingletonManager/CronManager.h"
 
 #include "controller/User.h"
 
@@ -259,6 +260,8 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		controller::User::checkIfVerificationEmailsShouldBeResend(ServerConfig::g_CronJobsTimer);
 		controller::User::addMissingEmailHashes();
 
+		ServerConfig::initIota(config());
+
 		// HTTP Interface Server
 		// set-up a server socket
 		Poco::Net::ServerSocket svs(port);
@@ -280,6 +283,7 @@ int Gradido_LoginServer::main(const std::vector<std::string>& args)
 		// load pending tasks not finished in last session
 		PendingTasksManager::getInstance()->load();
 		int php_server_ping = config().getInt("phpServer.ping", 600000);
+		CronManager::getInstance()->init(php_server_ping);
 
 		printf("[Gradido_LoginServer::main] started in %s\n", usedTime.string().data());
 		std::clog << "[Gradido_LoginServer::main] started in " << usedTime.string().data() << std::endl;
