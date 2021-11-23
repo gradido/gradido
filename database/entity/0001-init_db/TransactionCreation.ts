@@ -7,7 +7,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm'
-import { Transaction } from './Transaction'
+import { Transaction } from '../Transaction'
 
 @Entity('transaction_creations')
 export class TransactionCreation extends BaseEntity {
