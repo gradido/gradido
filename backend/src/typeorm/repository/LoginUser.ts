@@ -8,4 +8,17 @@ export class LoginUserRepository extends Repository<LoginUser> {
       .where('loginUser.email = :email', { email })
       .getOneOrFail()
   }
+
+  async findBySearchCriteria(searchCriteria: string): Promise<LoginUser[]> {
+    return await this.createQueryBuilder('user')
+      .where(
+        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+        {
+          name: `%${searchCriteria}%`,
+          lastName: `%${searchCriteria}%`,
+          email: `%${searchCriteria}%`,
+        },
+      )
+      .getMany()
+  }
 }
