@@ -470,23 +470,6 @@ export class UserResolver {
     return true
   }
 
-  @Mutation(() => String)
-  async resetPassword(
-    @Args()
-    { sessionId, email, password }: ChangePasswordArgs,
-  ): Promise<string> {
-    const payload = {
-      session_id: sessionId,
-      email,
-      password,
-    }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return 'success'
-  }
-
   @Query(() => Boolean)
   async setPassword(
     @Arg('code') code: string,

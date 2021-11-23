@@ -49,7 +49,7 @@
 <script>
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
 import { loginViaEmailVerificationCode } from '../../graphql/queries'
-import { resetPassword } from '../../graphql/mutations'
+import { setPassword } from '../../graphql/mutations'
 
 export default {
   name: 'ResetPassword',
@@ -73,10 +73,9 @@ export default {
     async onSubmit() {
       this.$apollo
         .mutate({
-          mutation: resetPassword,
+          mutation: setPassword,
           variables: {
-            sessionId: this.sessionId,
-            email: this.email,
+            code: this.$route.params.optin,
             password: this.form.password,
           },
         })
@@ -89,27 +88,8 @@ export default {
         })
     },
     async authenticate() {
-      const loader = this.$loading.show({
-        container: this.$refs.header,
-      })
+      // TODO validate somehow if present and looks good?
       const optin = this.$route.params.optin
-      this.$apollo
-        .query({
-          query: loginViaEmailVerificationCode,
-          variables: {
-            optin: optin,
-          },
-        })
-        .then((result) => {
-          this.authenticated = true
-          this.sessionId = result.data.loginViaEmailVerificationCode.sessionId
-          this.email = result.data.loginViaEmailVerificationCode.email
-        })
-        .catch((error) => {
-          this.$toasted.error(error.message)
-        })
-      loader.hide()
-      this.pending = false
     },
   },
   mounted() {

@@ -12,9 +12,9 @@ export const unsubscribeNewsletter = gql`
   }
 `
 
-export const resetPassword = gql`
-  mutation($sessionId: Float!, $email: String!, $password: String!) {
-    resetPassword(sessionId: $sessionId, email: $email, password: $password)
+export const setPassword = gql`
+  mutation($code: String!, $password: String!) {
+    setPassword(code: $code, password: $password)
   }
 `
 
