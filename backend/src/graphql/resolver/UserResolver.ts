@@ -332,6 +332,7 @@ export class UserResolver {
       })
 
       // Store EmailOptIn in DB
+      // TODO: this has duplicate code with sendResetPasswordEmail
       const emailOptIn = new LoginEmailOptIn()
       emailOptIn.userId = loginUserId
       emailOptIn.verificationCode = random(64)
@@ -381,6 +382,7 @@ export class UserResolver {
 
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
+    // TODO: this has duplicate code with createUser
     let emailAlreadySend = false
 
     const loginUser = await LoginUser.findOneOrFail({ email })
