@@ -49,8 +49,8 @@ async function getUserCreations(id: number): Promise<number[]> {
   //   targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   // })
   const transactionCreations = await getCustomRepository(TransactionCreationRepository)
-    .createQueryBuilder()
-    .select(['SUM(amount)'])
+    .createQueryBuilder('login_pending_tasks_admin')
+    .select(['SUM(login_pending_tasks_admin.amount)'])
     .where('login_pending_tasks_admin.userId = :id', { id })
     .getMany()
   console.log('transactionCreations', transactionCreations)
