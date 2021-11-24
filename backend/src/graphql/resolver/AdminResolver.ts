@@ -48,25 +48,36 @@ async function getUserCreations(id: number): Promise<number[]> {
   //   userId: id,
   //   targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   // })
-  const transactionCreationsQuery = await getCustomRepository(TransactionCreationRepository)
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
-    .andWhere({
-      targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+  const findAllUserTransactionCreations = await getCustomRepository(TransactionCreationRepository)
+    .createQueryBuilder('transaction_creations')
+    .select('SUM(transaction_creations.amount)', 'sum')
+    .where('transaction_creations.state_user_id = :id', { id })
+  const transactionCreationsBeforeLastMonthQuery = findAllUserTransactionCreations.andWhere({
+      targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
     })
-  console.log('transactionCreationsQuery', transactionCreationsQuery, id)
-  const transactionCreations = await transactionCreationsQuery.getRawOne()
-  console.log('transactionCreations', transactionCreations)
+  const createdAmountBeforeLastMonth = await transactionCreationsBeforeLastMonthQuery.getRawOne()
+  console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
+
+  const transactionCreationsLastMonthQuery = await findAllUserTransactionCreations.andWhere({
+      targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+    })
+  const createdAmountLastMonth = await transactionCreationsLastMonthQuery.getRawOne()
+  console.log('createdAmountLastMonth', createdAmountLastMonth)
+
+  const transactionCreationsMonthQuery = await findAllUserTransactionCreations.andWhere({
+    targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+  })
+  const createdAmountMonth = await transactionCreationsMonthQuery.getRawOne()
+  console.log('createdAmountMonth', createdAmountMonth)
+  // const transactionCreationsLastThreeMonth = await transactionCreationsQuery.getRawOne()
+  // console.log('transactionCreations', transactionCreations)
   // SELECT * FROM pending_creations WHERE userId = id
   const pendingCreations = await getCustomRepository(PendingCreationRepository).find({
     userId: id,
     date: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   })
   console.log('pendingCreations', pendingCreations)
-  // const createdAmountBeforeLastMonth = transactionCreations.forEach(element => {
-  //   element.targetDate
-  // })
+  
   // const createdAmountLastMonth = ...
   // const createdAmountCurrentMonth = ...
 
