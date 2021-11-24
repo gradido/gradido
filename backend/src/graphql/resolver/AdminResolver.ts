@@ -3,6 +3,7 @@ import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { UserRepository } from '../../typeorm/repository/User'
+import { CreatePendingCreationArgs } from '../arg/CreatePendingCreationArgs'
 
 @Resolver()
 export class AdminResolver {
@@ -15,11 +16,7 @@ export class AdminResolver {
       user.firstName = loginUser.firstName
       user.lastName = loginUser.lastName
       user.email = loginUser.email
-      user.creation = [
-        (Math.floor(Math.random() * 50) + 1) * 20,
-        (Math.floor(Math.random() * 50) + 1) * 20,
-        (Math.floor(Math.random() * 50) + 1) * 20,
-      ]
+      user.creation = getUserCreations(loginUser.id)
       return user
     })
     return users
@@ -33,17 +30,27 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
     // TODO: Check user open creation state (Open creation)
-    const creations = getUserCreations(user.id)
-    // UserAdmin.creations()
-    // TODO: Write pending creation to DB
-    return true
+    const creations = await getUserCreations(user.id)
+    if (isCreationValid(creations, amount, creationDate)) {
+      // UserAdmin.creations()
+      // TODO: Write pending creation to DB
+    }
+    return false
   }
 }
 
 function getUserCreations(id: number): Promise<number[]> {
-  // SELECT * FROM transaction_creations WHERE state_user_id = loginUser.id AND target_date > Date - 2 Monat
-  // SELECT * FROM pending_creations WHERE userId = loginUser.id
+  // SELECT * FROM transaction_creations WHERE state_user_id = id AND target_date > Date - 2 Monat
+  // SELECT * FROM pending_creations WHERE userId = id
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
-  throw new Error('Function not implemented.')
+  return [
+    (Math.floor(Math.random() * 50) + 1) * 20,
+    (Math.floor(Math.random() * 50) + 1) * 20,
+    (Math.floor(Math.random() * 50) + 1) * 20,
+  ]
+}
+
+function isCreationValid(creations: number[], amount: any, creationDate: any) {
+  return true
 }
