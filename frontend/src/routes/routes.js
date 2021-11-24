@@ -73,7 +73,7 @@ const routes = [
   },
   {
     path: '/checkEmail/:optin',
-    component: () => import('../views/Pages/CheckEmail.vue'),
+    component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]
