@@ -16,15 +16,43 @@
           >
             | {{ $store.state.openCreations }} offene Schöpfungen
           </b-nav-item>
+          <b-nav-item @click="wallet">Wallet</b-nav-item>
+          <b-nav-item @click="logout">Logout</b-nav-item>
           <!-- <b-nav-item v-show="open < 1" to="/creation-confirm">| keine offene Schöpfungen</b-nav-item> -->
         </b-navbar-nav>
       </b-collapse>
-      <b-navbar-brand href="http://localhost:3000/vue/login">Profilbereich</b-navbar-brand>
     </b-navbar>
   </div>
 </template>
 <script>
+import CONFIG from '../config'
+
 export default {
   name: 'navbar',
+  methods: {
+    logout() {
+      // TODO
+      // this.$emit('logout')
+      /* this.$apollo
+        .query({
+          query: logout,
+        })
+        .then(() => {
+          this.$store.dispatch('logout')
+          this.$router.push('/logout')
+        })
+        .catch(() => {
+          this.$store.dispatch('logout')
+          if (this.$router.currentRoute.path !== '/logout') this.$router.push('/logout')
+        })
+      */
+      this.$store.dispatch('logout')
+      this.$router.push('/logout')
+    },
+    wallet() {
+      window.location = CONFIG.WALLET_AUTH_URL.replace('$1', this.$store.state.token)
+      this.$store.dispatch('logout') // logout without redirect
+    },
+  },
 }
 </script>

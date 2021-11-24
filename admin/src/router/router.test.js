@@ -44,19 +44,19 @@ describe('router', () => {
     })
 
     describe('routes', () => {
+      it('has seven routes defined', () => {
+        expect(routes).toHaveLength(7)
+      })
+
       it('has "/overview" as default', async () => {
         const component = await routes.find((r) => r.path === '/').component()
         expect(component.default.name).toBe('overview')
       })
 
-      it('has fourteen routes defined', () => {
-        expect(routes).toHaveLength(6)
-      })
-
-      describe('overview', () => {
-        it('loads the "Overview" component', async () => {
-          const component = await routes.find((r) => r.path === '/overview').component()
-          expect(component.default.name).toBe('overview')
+      describe('logout', () => {
+        it('loads the "NotFoundPage" component', async () => {
+          const component = await routes.find((r) => r.path === '/logout').component()
+          expect(component.default.name).toBe('not-found')
         })
       })
 

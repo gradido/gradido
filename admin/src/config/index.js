@@ -17,8 +17,13 @@ const environment = {
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
-const server = {
+const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
+  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/vue/authenticate?token=$1',
+}
+
+const debug = {
+  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' || false,
 }
 
 const options = {}
@@ -26,8 +31,9 @@ const options = {}
 const CONFIG = {
   ...version,
   ...environment,
-  ...server,
+  ...endpoints,
   ...options,
+  ...debug,
 }
 
 export default CONFIG

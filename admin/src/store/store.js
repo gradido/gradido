@@ -1,6 +1,7 @@
 import Vuex from 'vuex'
 import Vue from 'vue'
 import createPersistedState from 'vuex-persistedstate'
+import CONFIG from '../config'
 
 Vue.use(Vuex)
 
@@ -19,6 +20,13 @@ export const mutations = {
   },
 }
 
+export const actions = {
+  logout: ({ commit, state }) => {
+    commit('token', null)
+    window.localStorage.clear()
+  },
+}
+
 const store = new Vuex.Store({
   plugins: [
     createPersistedState({
@@ -26,12 +34,13 @@ const store = new Vuex.Store({
     }),
   ],
   state: {
-    token: 'some-valid-token',
+    token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
     moderator: 'Dertest Moderator',
     openCreations: 0,
   },
   // Syncronous mutation of the state
   mutations,
+  actions,
 })
 
 export default store

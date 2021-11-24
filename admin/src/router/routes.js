@@ -1,38 +1,27 @@
 const routes = [
   {
-    path: '/',
-    component: () => import('@/views/Overview.vue'),
-    meta: {
-      requiresAuth: true,
-    },
+    path: '/authenticate',
   },
   {
-    path: '/overview',
-    component: () => import('@/views/Overview.vue'),
-    meta: {
-      requiresAuth: true,
-    },
+    path: '/',
+    component: () => import('@/pages/Overview.vue'),
+  },
+  {
+    // TODO: Implement a "You are logged out"-Page
+    path: '/logout',
+    component: () => import('@/components/NotFoundPage.vue'),
   },
   {
     path: '/user',
-    component: () => import('@/views/UserSearch.vue'),
-    meta: {
-      requiresAuth: true,
-    },
+    component: () => import('@/pages/UserSearch.vue'),
   },
   {
     path: '/creation',
-    component: () => import('@/views/Creation.vue'),
-    meta: {
-      requiresAuth: true,
-    },
+    component: () => import('@/pages/Creation.vue'),
   },
   {
     path: '/creation-confirm',
-    component: () => import('@/views/CreationConfirm.vue'),
-    meta: {
-      requiresAuth: true,
-    },
+    component: () => import('@/pages/CreationConfirm.vue'),
   },
   {
     path: '*',

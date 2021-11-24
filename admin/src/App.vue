@@ -1,19 +1,15 @@
 <template>
   <div id="app">
-    <nav-bar class="wrapper-nav" />
-    <router-view class="wrapper p-3"></router-view>
-    <content-footer />
+    <default-layout v-if="$store.state.token" />
+    <router-view v-else></router-view>
   </div>
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue'
-import ContentFooter from '@/components/ContentFooter.vue'
+import defaultLayout from '@/layouts/defaultLayout.vue'
+
 export default {
-  name: 'App',
-  components: {
-    NavBar,
-    ContentFooter,
-  },
+  name: 'app',
+  components: { defaultLayout },
 }
 </script>
