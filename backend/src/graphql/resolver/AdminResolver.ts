@@ -2,6 +2,7 @@ import { Resolver, Query, Arg, Args } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 
@@ -41,7 +42,10 @@ export class AdminResolver {
 }
 
 function getUserCreations(id: number): number[] {
-  // SELECT * FROM transaction_creations WHERE state_user_id = id AND target_date > Date - 2 Monate
+  // SELECT count(amount) FROM transaction_creations WHERE state_user_id = id AND target_date > (NOW()-ActualDays - 2 Monate)
+  const transactionCreations = await getCustomRepository(TransactionCreationRepository).find({
+    currentDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' */ }),
+  })
   // SELECT * FROM pending_creations WHERE userId = id
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
