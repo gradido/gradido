@@ -39,6 +39,7 @@ export class AdminResolver {
     // if amount < 3000 => Store in pending_creations
     const creations = getUserCreations(user.id)
     // UserAdmin.creations()
+    // TODO: Write pending creation to DB
     return true
   }
 }
