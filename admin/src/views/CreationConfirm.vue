@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="creation-confirm">
     <small class="bg-danger text-light p-1">
       Die anzahl der offene Schöpfungen stimmen nicht! Diese wird bei absenden im $store
       hochgezählt. Die Liste die hier angezeigt wird ist SIMULIERT!
@@ -17,7 +17,7 @@
 import UserTable from '../components/UserTable.vue'
 
 export default {
-  name: 'creation_confirm',
+  name: 'CreationConfirm',
   components: {
     UserTable,
   },
