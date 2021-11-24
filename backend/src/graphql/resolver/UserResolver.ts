@@ -540,6 +540,7 @@ export class UserResolver {
         await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
       } catch {
         // TODO is this a problem?
+        // eslint-disable-next-line no-console
         console.log('Could not subscribe to klicktipp')
       }
     }
