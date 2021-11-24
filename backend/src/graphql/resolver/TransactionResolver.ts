@@ -26,6 +26,7 @@ import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionSendCoin as dbTransactionSendCoin } from '@entity/TransactionSendCoin'
 import { Balance as dbBalance } from '@entity/Balance'
+import { TransactionSignature as DbTransactionSignature } from '@entity/TransactionSignature'
 
 import { apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
@@ -35,6 +36,11 @@ import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
+
+import { proto } from '../../proto/gradido.proto'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sodium = require('sodium-native')
 
 /*
 # Test
@@ -509,11 +515,13 @@ export class TransactionResolver {
     // TODO this is subject to replay attacks
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
-    const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
-    if (senderUser.pubkey.length !== 32) {
+    const stateUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const senderUser = await loginUserRepository.findByEmail(stateUser.email)
+    if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
-    if (!hasUserAmount(senderUser, amount)) {
+    if (!hasUserAmount(stateUser, amount)) {
       throw new Error("user hasn't enough GDD")
     }
 
@@ -538,14 +546,83 @@ export class TransactionResolver {
       throw new Error('invalid amount')
     }
 
+    let transaction = new dbTransaction()
+
     const centAmount = Math.trunc(amount * 10000)
+    // PROTOBUFF START
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const transferAmount = new proto.gradido.TransferAmount({
+      pubkey: senderUser.pubKey,
+      amount: centAmount,
+    })
+    const localTransfer = new proto.gradido.LocalTransfer({
+      sender: transferAmount,
+      receiver: Buffer.from(recipiantPublicKey, 'hex'),
+    })
+    const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
+    const transactionBody = new proto.gradido.TransactionBody({
+      memo: memo,
+      created: { seconds: new Date().getTime() / 1000 },
+      transfer: transferTransaction,
+    })
+
+    const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+    // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
+
+    if (!senderUser.pubKey || !senderUser.privKey) {
+      throw new Error('error reading keys')
+    }
+
+    const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
+    sodium.crypto_sign_detached(sign, bodyBytes, senderUser.privKey)
+
+    if (!sign) {
+      throw new Error('error signing transaction')
+    }
+
+    // TODO why generate and then verify?
+    /*
+    if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+      throw new Error('Could not verify signature')
+    }
+    */
+
+    const sigPair = new proto.gradido.SignaturePair({
+      pubKey: senderUser.pubKey,
+      ed25519: sign,
+    })
+    const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
+
+    // tx hash
+    const state = sodium.crypto_generichash_init(null, sodium.crypto_generic_hash_bytes)
+    if (transaction.id > 1) {
+      const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
+      if (!previousTransaction) {
+        throw new Error('Error previous transaction not found')
+      }
+      sodium.crypto_generichash_update(state, previousTransaction.txHash)
+    }
+    sodium.crypto_generichash_update(state, transaction.id.toString())
+    // should match previous used format: yyyy-MM-dd HH:mm:ss
+    const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
+    sodium.crypto_generichash_update(state, receivedString)
+    sodium.crypto_generichash_update(state, proto.gradido.SignatureMap.encode(sigMap).finish())
+    transaction.txHash = Buffer.from(
+      sodium.crypto_generichash_final(state, sodium.crypto_generic_hash_bytes),
+    )
+
+    // save signature
+    const signature = new DbTransactionSignature()
+    signature.transactionId = transaction.id
+    signature.signature = Buffer.from(sign)
+    signature.pubkey = senderUser.pubKey
+    // PROTOBUFF END
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
       // transaction
-      let transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
 
@@ -559,7 +636,7 @@ export class TransactionResolver {
 
       // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
-        senderUser,
+        stateUser,
         transaction,
         -centAmount,
         queryRunner,
@@ -574,7 +651,7 @@ export class TransactionResolver {
 
       // Update Balance: sender - amount
       const senderStateBalance = await updateStateBalance(
-        senderUser,
+        stateUser,
         -centAmount,
         transaction.received,
         queryRunner,
@@ -598,7 +675,7 @@ export class TransactionResolver {
       const transactionSendCoin = new dbTransactionSendCoin()
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
-      transactionSendCoin.senderPublic = senderUser.pubkey
+      transactionSendCoin.senderPublic = senderUser.pubKey
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
       transactionSendCoin.amount = centAmount
@@ -609,6 +686,10 @@ export class TransactionResolver {
 
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
+      })
+
+      await queryRunner.manager.save(signature).catch((error) => {
+        throw new Error('error saving signature: ' + error)
       })
 
       await queryRunner.commitTransaction()
