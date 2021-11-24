@@ -5,7 +5,7 @@
         {{
           this.type === 'singleCreation'
             ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
-            : 'Massenschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
+            : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
         {{ item }}
       </h3>
@@ -180,7 +180,7 @@ export default {
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
-      // Wenn Massenschöpfung
+      // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
         this.$emit('update-radio-selected', [name, index])
@@ -222,9 +222,9 @@ export default {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
       if (this.type === 'massCreation') {
-        // Die anzahl der Mitglieder aus der Massenschöpfung
+        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
-        // hinweis das eine Massenschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
+        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
         alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
@@ -235,12 +235,12 @@ export default {
             moderator: this.$store.state.moderator,
           },
         ]
-        alert('MassenSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)
 
-        // lösche alle Mitglieder aus der MassenSchöpfungsListe nach dem alle Massenschpfungen zum bestätigen gesendet wurden.
+        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
       }
 

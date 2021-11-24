@@ -78,10 +78,10 @@ export default {
     }
   },
   created() {
-     this.getUsers()
+    this.getUsers()
   },
   methods: {
-     getUsers() {
+    getUsers() {
       this.$apollo
         .query({
           query: searchUsers,
@@ -90,7 +90,6 @@ export default {
           },
         })
         .then((result) => {
-          console.log('getUsers result', result)
           this.itemsList = result.data.searchUsers.map((user) => {
             return {
               ...user,

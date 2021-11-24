@@ -51,7 +51,7 @@
       <template #cell(show_details)="row">
         <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
-          <b-icon v-else icon="eye-slash-fill" aria-label="Help"></b-icon>
+          <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
       </template>
 

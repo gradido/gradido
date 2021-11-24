@@ -43,8 +43,6 @@ export default {
 
   methods: {
     getUsers() {
-      console.log('getUsers function', this.criteria)
-      console.log(this.$apollo)
       this.$apollo
         .query({
           query: searchUsers,
@@ -53,7 +51,6 @@ export default {
           },
         })
         .then((result) => {
-          console.log('getUsers result', result)
           this.searchResult = result.data.searchUsers.map((user) => {
             return {
               ...user,
