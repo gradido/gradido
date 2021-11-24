@@ -6,12 +6,9 @@
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
               <h1>{{ $t('settings.password.reset') }}</h1>
-              <div class="pb-4" v-if="!pending">
-                <span v-if="authenticated">
+              <div class="pb-4">
+                <span>
                   {{ $t('settings.password.reset-password.text') }}
-                </span>
-                <span v-else>
-                  {{ $t('settings.password.reset-password.not-authenticated') }}
                 </span>
               </div>
             </b-col>
@@ -20,13 +17,13 @@
       </div>
     </b-container>
     <b-container class="mt--8 p-1">
-      <b-row class="justify-content-center" v-if="authenticated">
+      <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <input-password-confirmation v-model="form" :register="register" />
+                  <input-password-confirmation v-model="form" />
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
                       {{ $t('settings.password.reset') }}
@@ -61,11 +58,6 @@ export default {
         password: '',
         passwordRepeat: '',
       },
-      authenticated: false,
-      sessionId: null,
-      email: null,
-      pending: true,
-      register: false,
     }
   },
   methods: {

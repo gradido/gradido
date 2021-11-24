@@ -25,15 +25,6 @@ export const logout = gql`
   }
 `
 
-export const loginViaEmailVerificationCode = gql`
-  query($optin: String!) {
-    loginViaEmailVerificationCode(optin: $optin) {
-      sessionId
-      email
-    }
-  }
-`
-
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
