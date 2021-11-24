@@ -3,7 +3,7 @@ import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { UserRepository } from '../../typeorm/repository/User'
-import { CreatePendingCreationArgs } from '../arg/CreatePendingCreationArgs'
+import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 
 @Resolver()
 export class AdminResolver {
@@ -39,7 +39,7 @@ export class AdminResolver {
   }
 }
 
-function getUserCreations(id: number): Promise<number[]> {
+function getUserCreations(id: number): number[] {
   // SELECT * FROM transaction_creations WHERE state_user_id = id AND target_date > Date - 2 Monate
   // SELECT * FROM pending_creations WHERE userId = id
   // COUNT amount from 2 tables
