@@ -3,6 +3,7 @@ import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
+import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 
@@ -12,7 +13,7 @@ export class AdminResolver {
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = loginUsers.map((loginUser) => {
+    const users = gloginUsers.map((loginUser) => {
       const user = new UserAdmin()
       user.firstName = loginUser.firstName
       user.lastName = loginUser.lastName
@@ -42,13 +43,18 @@ export class AdminResolver {
 }
 
 async function getUserCreations(id: number): Promise<number[]> {
-  // SELECT count(amount) FROM transaction_creations WHERE state_user_id = id AND target_date > (NOW()-ActualDays - 2 Monate)
+  // TODO: NOW()-ActualDays - 2 Monate
   const transactionCreations = await getCustomRepository(TransactionCreationRepository).find({
     userId: id,
-    targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' */ }),
+    targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   })
   console.log('transactionCreations', transactionCreations)
   // SELECT * FROM pending_creations WHERE userId = id
+  const pendingCreations = await getCustomRepository(PendingCreationRepository).find({
+    userId: id,
+    date: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
+  })
+  console.log('pendingCreations', pendingCreations^)
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
   return [
