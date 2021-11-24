@@ -49,7 +49,7 @@ import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 
 export default {
-  name: 'overview',
+  name: 'Creation',
   components: {
     CreationFormular,
     UserTable,

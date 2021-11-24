@@ -21,7 +21,7 @@ import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 
 export default {
-  name: 'overview',
+  name: 'UserSearch',
   components: {
     UserTable,
   },
