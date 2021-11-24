@@ -33,13 +33,17 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
     // TODO: Check user open creation state (Open creation)
-    // SELECT * FROM transaction_creations WHERE state_user_id = loginUser.id AND target_date > Date - 2 Monat
-    // SELECT * FROM pending_creations WHERE userId = loginUser.id
-    // COUNT amount from 2 tables
-    // if amount < 3000 => Store in pending_creations
     const creations = getUserCreations(user.id)
     // UserAdmin.creations()
     // TODO: Write pending creation to DB
     return true
   }
+}
+
+function getUserCreations(id: number): Promise<number[]> {
+  // SELECT * FROM transaction_creations WHERE state_user_id = loginUser.id AND target_date > Date - 2 Monat
+  // SELECT * FROM pending_creations WHERE userId = loginUser.id
+  // COUNT amount from 2 tables
+  // if amount < 3000 => Store in pending_creations
+  throw new Error('Function not implemented.')
 }
