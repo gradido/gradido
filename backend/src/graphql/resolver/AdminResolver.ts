@@ -52,6 +52,9 @@ async function getUserCreations(id: number): Promise<number[]> {
     .createQueryBuilder('login_pending_tasks_admin')
     .select('SUM(login_pending_tasks_admin.amount)', 'sum')
     .where('login_pending_tasks_admin.userId = :id', { id })
+    .andWhere({
+      targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+    })
   console.log('transactionCreationsQuery', transactionCreationsQuery, id)
   const transactionCreations = await transactionCreationsQuery.getRawOne()
   console.log('transactionCreations', transactionCreations)
