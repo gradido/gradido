@@ -31,6 +31,7 @@ export class AdminResolver {
     const user = await userRepository.findByEmail(email)
     // TODO: Check user open creation state (Open creation)
     const creations = await getUserCreations(user.id)
+    console.log('creations', creations)
     if (isCreationValid(creations, amount, creationDate)) {
       // UserAdmin.creations()
       // TODO: Write pending creation to DB
