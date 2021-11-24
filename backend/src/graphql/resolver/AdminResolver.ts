@@ -1,5 +1,5 @@
 import { Resolver, Query, Arg, Args } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
@@ -17,7 +17,7 @@ export class AdminResolver {
       user.firstName = loginUser.firstName
       user.lastName = loginUser.lastName
       user.email = loginUser.email
-      user.creation = getUserCreations(loginUser.id)
+      user.creation = [] // await getUserCreations(loginUser.id)
       return user
     })
     return users
@@ -41,11 +41,13 @@ export class AdminResolver {
   }
 }
 
-function getUserCreations(id: number): number[] {
+async function getUserCreations(id: number): Promise<number[]> {
   // SELECT count(amount) FROM transaction_creations WHERE state_user_id = id AND target_date > (NOW()-ActualDays - 2 Monate)
   const transactionCreations = await getCustomRepository(TransactionCreationRepository).find({
-    currentDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' */ }),
+    userId: id,
+    targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' */ }),
   })
+  console.log('transactionCreations', transactionCreations)
   // SELECT * FROM pending_creations WHERE userId = id
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
