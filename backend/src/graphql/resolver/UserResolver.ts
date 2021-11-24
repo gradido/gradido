@@ -393,7 +393,7 @@ export class UserResolver {
       emailAlreadySend = true
     } else {
       optInCode = new LoginEmailOptIn()
-      optInCode.verificationCode = randomBytes(16).readBigInt64LE()
+      optInCode.verificationCode = random(64)
       optInCode.userId = loginUser.id
       optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
       await optInCode.save()
