@@ -22,14 +22,14 @@ import {
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -231,33 +231,33 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-
-    // if there is no user, throw an authentication error
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: encode(result.data.user.public_hex),
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
+    // UnsecureLogin
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
+      throw new Error('No user with this credentials')
     })
-    const user = new User(result.data.user)
-    // Hack: Database Field is not validated properly and not nullable
-    if (user.publisherId === 0) {
-      user.publisherId = undefined
+    if (!loginUser.emailChecked) throw new Error('user email not validated')
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    const loginUserPassword = BigInt(loginUser.password.toString())
+    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+      throw new Error('No user with this credentials')
     }
-    user.hasElopage = result.data.hasElopage
-    // read additional settings from settings table
+    // TODO: If user has no pubKey Create it again and update user.
+
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
-    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+    const loginUserPubKey = loginUser.pubKey
+    const loginUserPubKeyString = loginUserPubKey.toString('hex')
+    userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
+      // User not stored in state_users
+      // TODO: Check with production data - email is unique which can cause problems
       userEntity = new DbUser()
-      userEntity.firstName = user.firstName
-      userEntity.lastName = user.lastName
-      userEntity.username = user.username
-      userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
+      userEntity.firstName = loginUser.firstName
+      userEntity.lastName = loginUser.lastName
+      userEntity.username = loginUser.username
+      userEntity.email = loginUser.email
+      userEntity.pubkey = loginUser.pubKey
 
       userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
@@ -267,16 +267,28 @@ export class UserResolver {
       throw new Error('error with cannot happen')
     }
 
-    // Save publisherId if Elopage is not yet registered
+    const user = new User()
+    user.email = email
+    user.firstName = loginUser.firstName
+    user.lastName = loginUser.lastName
+    user.username = loginUser.username
+    user.description = loginUser.description
+    user.pubkey = loginUserPubKeyString
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage({ pubKey: loginUserPubKeyString })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-
+      // TODO: Check if we can use updateUserInfos
+      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
       const loginUserRepository = getCustomRepository(LoginUserRepository)
       const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
       loginUser.publisherId = publisherId
       loginUserRepository.save(loginUser)
     }
 
+    // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
@@ -285,6 +297,12 @@ export class UserResolver {
       })
     user.coinanimation = coinanimation
     user.isAdmin = true // TODO implement
+
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(loginUser.pubKey),
+    })
+
     return user
   }
 
@@ -316,22 +334,23 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
+    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
     // Validate Language (no throw)
-    if (!isLanguage(language)) {
+    if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
 
+    // TODO: Register process
     // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
+    // if (!isPassword(password)) {
+    //   throw new Error(
+    //     'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+    //   )
+    // }
 
     // Validate username
     // TODO: never true
@@ -349,11 +368,13 @@ export class UserResolver {
       throw new Error(`User already exists.`)
     }
 
-    const passphrase = PassphraseGenerate()
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // TODO: Register process
+    // const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+
     const emailHash = getEmailHash(email)
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -362,13 +383,15 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // TODO: Register process
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
-    loginUser.pubKey = keyPair[0]
-    loginUser.privKey = encryptedPrivkey
+    // TODO: Register process
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -380,21 +403,24 @@ export class UserResolver {
         throw new Error('insert user failed')
       })
 
+      // TODO: Register process
       // Table: login_user_backups
-      const loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      // const loginUserBackup = new LoginUserBackup()
+      // loginUserBackup.userId = loginUserId
+      // loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      // loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-      await queryRunner.manager.save(loginUserBackup).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('insert LoginUserBackup failed', error)
-        throw new Error('insert user backup failed')
-      })
+      // TODO: Register process
+      // await queryRunner.manager.save(loginUserBackup).catch((error) => {
+      //   // eslint-disable-next-line no-console
+      //   console.log('insert LoginUserBackup failed', error)
+      //   throw new Error('insert user backup failed')
+      // })
 
       // Table: state_users
       const dbUser = new DbUser()
-      dbUser.pubkey = keyPair[0]
+      // TODO: Register process
+      // dbUser.pubkey = keyPair[0]
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
@@ -568,7 +594,7 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      if (coinanimation) {
+      if (coinanimation !== null && coinanimation !== undefined) {
         queryRunner.manager
           .getCustomRepository(UserSettingRepository)
           .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
@@ -640,7 +666,8 @@ export class UserResolver {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
+    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
+    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
     return elopageBuyCount > 0
   }
 }

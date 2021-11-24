@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="creation">
     <b-row>
       <b-col cols="12" lg="5">
         <label>Usersuche</label>
@@ -10,6 +10,7 @@
           placeholder="User suche"
         ></b-input>
         <user-table
+          v-if="itemsList.length > 0"
           type="UserListSearch"
           :itemsUser="itemsList"
           :fieldsTable="Searchfields"
@@ -20,7 +21,7 @@
       </b-col>
       <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
-          v-show="Object.keys(this.massCreation).length > 0"
+          v-if="massCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
           :itemsUser="massCreation"
@@ -31,6 +32,7 @@
         />
 
         <creation-formular
+          v-if="massCreation.length > 0"
           type="massCreation"
           :creation="creation"
           :itemsMassCreation="massCreation"
@@ -44,9 +46,10 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import UserTable from '../components/UserTable.vue'
+import { searchUsers } from '../graphql/searchUsers'
 
 export default {
-  name: 'overview',
+  name: 'Creation',
   components: {
     CreationFormular,
     UserTable,
@@ -56,60 +59,49 @@ export default {
       showArrays: false,
       Searchfields: [
         { key: 'bookmark', label: 'merken' },
-
-        { key: 'first_name', label: 'Firstname' },
-        { key: 'last_name', label: 'Lastname' },
+        { key: 'firstName', label: 'Firstname' },
+        { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
         { key: 'email', label: 'Email' },
       ],
       fields: [
         { key: 'email', label: 'Email' },
-        { key: 'first_name', label: 'Firstname' },
-        { key: 'last_name', label: 'Lastname' },
+        { key: 'firstName', label: 'Firstname' },
+        { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
         { key: 'bookmark', label: 'löschen' },
       ],
-      searchResult: [
-        {
-          id: 1,
-          email: 'dickerson@web.de',
-          first_name: 'Dickerson',
-          last_name: 'Macdonald',
-          creation: '450,200,700',
-        },
-        {
-          id: 2,
-          email: 'larsen@woob.de',
-          first_name: 'Larsen',
-          last_name: 'Shaw',
-          creation: '300,200,1000',
-        },
-        {
-          id: 3,
-          email: 'geneva@tete.de',
-          first_name: 'Geneva',
-          last_name: 'Wilson',
-          creation: '350,200,900',
-        },
-        {
-          id: 4,
-          email: 'viewrter@asdfvb.com',
-          first_name: 'Soledare',
-          last_name: 'Takker',
-          creation: '100,400,800',
-        },
-      ],
-      itemsList: this.searchResult,
+      itemsList: [],
       massCreation: [],
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
     }
   },
-  created() {
-    this.itemsList = this.searchResult
+  async created() {
+    await this.getUsers()
   },
   methods: {
+    async getUsers() {
+      this.$apollo
+        .query({
+          query: searchUsers,
+          variables: {
+            searchText: this.criteria,
+          },
+        })
+        .then((result) => {
+          this.itemsList = result.data.searchUsers.map((user) => {
+            return {
+              ...user,
+              showDetails: false,
+            }
+          })
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
     updateItem(e, event) {
       let index = 0
       let findArr = {}

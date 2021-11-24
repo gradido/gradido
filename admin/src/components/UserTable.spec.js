@@ -10,7 +10,7 @@ describe('UserTable', () => {
     type: 'Type',
     itemsUser: [],
     fieldsTable: [],
-    creation: {},
+    creation: [],
   }
 
   const Wrapper = () => {

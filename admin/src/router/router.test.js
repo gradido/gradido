@@ -1,0 +1,92 @@
+import router from './router'
+
+describe('router', () => {
+  describe('options', () => {
+    const { options } = router
+    const { scrollBehavior, routes } = options
+
+    it('has "/admin" as base', () => {
+      expect(options).toEqual(
+        expect.objectContaining({
+          base: '/admin',
+        }),
+      )
+    })
+
+    it('has "active" as linkActiveClass', () => {
+      expect(options).toEqual(
+        expect.objectContaining({
+          linkActiveClass: 'active',
+        }),
+      )
+    })
+
+    it('has "history" as mode', () => {
+      expect(options).toEqual(
+        expect.objectContaining({
+          mode: 'history',
+        }),
+      )
+    })
+
+    describe('scroll behavior', () => {
+      it('returns save position when given', () => {
+        expect(scrollBehavior({}, {}, 'given')).toBe('given')
+      })
+
+      it('returns selector when hash is given', () => {
+        expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ selector: '#to' })
+      })
+
+      it('returns top left coordinates as default', () => {
+        expect(scrollBehavior({}, {})).toEqual({ x: 0, y: 0 })
+      })
+    })
+
+    describe('routes', () => {
+      it('has "/overview" as default', async () => {
+        const component = await routes.find((r) => r.path === '/').component()
+        expect(component.default.name).toBe('overview')
+      })
+
+      it('has fourteen routes defined', () => {
+        expect(routes).toHaveLength(6)
+      })
+
+      describe('overview', () => {
+        it('loads the "Overview" component', async () => {
+          const component = await routes.find((r) => r.path === '/overview').component()
+          expect(component.default.name).toBe('overview')
+        })
+      })
+
+      describe('user', () => {
+        it('loads the "UserSearch" component', async () => {
+          const component = await routes.find((r) => r.path === '/user').component()
+          expect(component.default.name).toBe('UserSearch')
+        })
+      })
+
+      describe('creation', () => {
+        it('loads the "Creation" component', async () => {
+          const component = await routes.find((r) => r.path === '/creation').component()
+          expect(component.default.name).toBe('Creation')
+        })
+      })
+
+      describe('creation-confirm', () => {
+        it('loads the "CreationConfirm" component', async () => {
+          const component = await routes.find((r) => r.path === '/creation-confirm').component()
+          expect(component.default.name).toBe('CreationConfirm')
+        })
+      })
+
+      describe('not found page', () => {
+        it('renders the "NotFound" component', async () => {
+          const component = await routes.find((r) => r.path === '*').component()
+          expect(component.default.name).toEqual('not-found')
+        })
+      })
+    })
+  })
+})

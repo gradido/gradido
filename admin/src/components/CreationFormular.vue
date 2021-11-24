@@ -4,9 +4,10 @@
       <h3>
         {{
           this.type === 'singleCreation'
-            ? 'Einzelschöpfung für ' + item.first_name + ' ' + item.last_name + ''
-            : 'Massenschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
+            ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
+            : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
+        {{ item }}
       </h3>
       <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
         Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
@@ -26,7 +27,7 @@
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
-              {{ beforeLastMonth }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
           <b-col>
@@ -36,7 +37,7 @@
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
-              {{ lastMonth }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
           <b-col class="text-right">
@@ -46,7 +47,7 @@
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
-              {{ currentMonth }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
             </b-form-radio>
           </b-col>
         </b-row>
@@ -73,6 +74,7 @@
             :min="rangeMin"
             :max="rangeMax"
             step="10"
+            @load="checkFormForUpdate('range')"
           ></b-input>
         </b-row>
         <b-row class="m-4">
@@ -83,6 +85,7 @@
               v-model="text"
               :state="text.length >= 10"
               placeholder="Mindestens 10 Zeichen eingeben"
+              @load="checkFormForUpdate('text')"
               rows="3"
             ></b-form-textarea>
           </div>
@@ -96,6 +99,17 @@
           <b-col class="text-center">
             <div class="text-right">
               <b-button
+                v-if="pagetype === 'PageCreationConfirm'"
+                type="button"
+                variant="success"
+                @click="submitCreation"
+                :disabled="radioSelected === '' || value <= 0 || text.length < 10"
+              >
+                Update Schöpfung ({{ type }},{{ pagetype }})
+              </b-button>
+
+              <b-button
+                v-else
                 type="button"
                 variant="success"
                 @click="submitCreation"
@@ -116,14 +130,23 @@ export default {
   props: {
     type: {
       type: String,
-      required: true,
+      required: false,
+    },
+    pagetype: {
+      type: String,
+      required: false,
+      default: '',
     },
     item: {
       type: Object,
       required: false,
     },
-    creation: {
+    creationUserData: {
       type: Object,
+      required: false,
+    },
+    creation: {
+      type: Array,
       required: true,
     },
     itemsMassCreation: {
@@ -138,9 +161,18 @@ export default {
       value: 0,
       rangeMin: 0,
       rangeMax: 1000,
-      currentMonth: this.$moment().format('MMMM'),
-      lastMonth: this.$moment().subtract(1, 'month').format('MMMM'),
-      beforeLastMonth: this.$moment().subtract(2, 'month').format('MMMM'),
+      currentMonth: {
+        short: this.$moment().format('MMMM'),
+        long: this.$moment().format('DD/MM/YYYY'),
+      },
+      lastMonth: {
+        short: this.$moment().subtract(1, 'month').format('MMMM'),
+        long: this.$moment().subtract(1, 'month').format('DD/MM/YYYY'),
+      },
+      beforeLastMonth: {
+        short: this.$moment().subtract(2, 'month').format('MMMM'),
+        long: this.$moment().subtract(2, 'month').format('DD/MM/YYYY'),
+      },
       submitObj: null,
       isdisabled: true,
     }
@@ -148,7 +180,7 @@ export default {
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
-      // Wenn Massenschöpfung
+      // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
         this.$emit('update-radio-selected', [name, index])
@@ -158,6 +190,19 @@ export default {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
+      }
+    },
+    checkFormForUpdate(input) {
+      switch (input) {
+        case 'text':
+          this.text = this.creationUserData.text
+          break
+        case 'range':
+          this.value = this.creationUserData.creationGdd
+          break
+        default:
+          // TODO: Toast
+          alert("I don't know such values")
       }
     },
     submitCreation() {
@@ -178,9 +223,9 @@ export default {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
       if (this.type === 'massCreation') {
-        // Die anzahl der Mitglieder aus der Massenschöpfung
+        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
-        // hinweis das eine Massenschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
+        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
         alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
@@ -191,32 +236,44 @@ export default {
             moderator: this.$store.state.moderator,
           },
         ]
-        alert('MassenSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)
 
-        // lösche alle Mitglieder aus der MassenSchöpfungsListe nach dem alle Massenschpfungen zum bestätigen gesendet wurden.
+        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
       }
 
       if (this.type === 'singleCreation') {
         // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.first_name + '')
+        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
         // erstellen eines Arrays (submitObj) mit allen Daten
         this.submitObj = [
           {
             item: this.item,
-            datum: this.radioSelected,
+            datum: this.radioSelected.long,
             amount: this.value,
             text: this.text,
             moderator: this.$store.state.moderator,
           },
         ]
-        // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-        alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.first_name + '')
-        // $store - offene Schöpfungen hochzählen
-        this.$store.commit('openCreationsPlus', 1)
+
+        if (this.pagetype === 'PageCreationConfirm') {
+          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+          alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
+          // umschreiben, update eine bestehende Schöpfung eine
+          this.$emit('update-creation-data', {
+            datum: this.radioSelected.long,
+            creationGdd: this.value,
+            text: this.text,
+          })
+        } else {
+          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
+          // $store - offene Schöpfungen hochzählen
+          this.$store.commit('openCreationsPlus', 1)
+        }
       }
 
       // das absendeergebniss im string ansehen

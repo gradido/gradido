@@ -15,7 +15,7 @@ describe('NavBar', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(NavBar, { localVue, mocks })
+    return mount(NavBar, { mocks, localVue })
   }
 
   describe('mount', () => {

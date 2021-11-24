@@ -37,7 +37,12 @@
       stacked="md"
     >
       <template #cell(edit_creation)="row">
-        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+        <b-button
+          variant="info"
+          size="lg"
+          @click="editCreationUserTable(row, row.item)"
+          class="mr-2"
+        >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
           <b-icon v-else icon="pencil-square" aria-label="Help"></b-icon>
         </b-button>
@@ -46,7 +51,7 @@
       <template #cell(show_details)="row">
         <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
-          <b-icon v-else icon="eye-slash-fill" aria-label="Help"></b-icon>
+          <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
       </template>
 
@@ -58,8 +63,11 @@
 
           <creation-formular
             type="singleCreation"
-            :creation="getCreationInMonths(row.item.creation)"
+            :pagetype="type"
+            :creation="row.item.creation"
             :item="row.item"
+            :creationUserData="creationData"
+            @update-creation-data="updateCreationData"
           />
 
           <b-button size="sm" @click="row.toggleDetails">
@@ -67,7 +75,7 @@
               :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
               aria-label="Help"
             ></b-icon>
-            Details verbergen von {{ row.item.first_name }} {{ row.item.last_name }}
+            Details verbergen von {{ row.item.firstName }} {{ row.item.lastName }}
           </b-button>
         </b-card>
       </template>
@@ -132,7 +140,7 @@ export default {
       default: '',
     },
     creation: {
-      type: Object,
+      type: Array,
       required: false,
     },
   },
@@ -141,6 +149,7 @@ export default {
   },
   data() {
     return {
+      creationData: {},
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -200,16 +209,28 @@ export default {
       }
 
       if (this.type === 'PageCreationConfirm') {
-        this.$emit('update-confirm-result', item, 'remove')
+        this.$emit('remove-confirm-result', item, 'remove')
       }
     },
     bookmarkConfirm(item) {
       alert('die schöpfung bestätigen und abschließen')
       alert(JSON.stringify(item))
-      this.$emit('update-confirm-result', item, 'remove')
+      this.$emit('remove-confirm-result', item, 'remove')
     },
-    getCreationInMonths(creation) {
-      return creation.split(',')
+    editCreationUserTable(row, rowItem) {
+      alert('editCreationUserTable')
+      if (!row.detailsShowing) {
+        alert('offen edit loslegen')
+        // this.item = rowItem
+        this.creationData = rowItem
+        // alert(this.creationData)
+      }
+      row.toggleDetails()
+    },
+    updateCreationData(data) {
+      this.creationData = {
+        ...data,
+      }
     },
   },
 }

@@ -7,10 +7,10 @@ Vue.use(Vuex)
 
 export const mutations = {
   openCreationsPlus: (state, i) => {
-    state.openCreations = state.openCreations + i
+    state.openCreations += i
   },
   openCreationsMinus: (state, i) => {
-    state.openCreations = state.openCreations - i
+    state.openCreations -= i
   },
   resetOpenCreations: (state) => {
     state.openCreations = 0
