@@ -42,12 +42,11 @@ export const updateUserInfos = gql`
   }
 `
 
-export const registerUser = gql`
+export const createUser = gql`
   mutation(
     $firstName: String!
     $lastName: String!
     $email: String!
-    $password: String!
     $language: String!
     $publisherId: Int
   ) {
@@ -55,7 +54,6 @@ export const registerUser = gql`
       email: $email
       firstName: $firstName
       lastName: $lastName
-      password: $password
       language: $language
       publisherId: $publisherId
     )
