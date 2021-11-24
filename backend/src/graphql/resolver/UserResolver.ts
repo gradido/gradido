@@ -160,6 +160,7 @@ export class UserResolver {
     const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
       throw new Error('No user with this credentials')
     })
+    if (!loginUser.emailChecked) throw new Error('user email not validated')
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const loginUserPassword = BigInt(loginUser.password.toString())
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
