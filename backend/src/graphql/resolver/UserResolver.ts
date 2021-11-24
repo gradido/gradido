@@ -323,6 +323,9 @@ export class UserResolver {
       dbUser.firstName = firstName
       dbUser.lastName = lastName
       dbUser.username = username
+      // TODO this field has no null allowed unlike the loginServer table
+      dbUser.pubkey = Buffer.alloc(32, 0) // defualt to 0000...
+      // dbUser.pubkey = keyPair[0]
 
       await queryRunner.manager.save(dbUser).catch((er) => {
         // eslint-disable-next-line no-console
