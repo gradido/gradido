@@ -140,7 +140,7 @@ export default {
       default: '',
     },
     creation: {
-      type: Object,
+      type: Array,
       required: false,
     },
   },

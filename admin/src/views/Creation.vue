@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="creation">
     <b-row>
       <b-col cols="12" lg="5">
         <label>Usersuche</label>
@@ -10,6 +10,7 @@
           placeholder="User suche"
         ></b-input>
         <user-table
+          v-if="itemsList.length > 0"
           type="UserListSearch"
           :itemsUser="itemsList"
           :fieldsTable="Searchfields"
@@ -20,7 +21,7 @@
       </b-col>
       <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
-          v-show="Object.keys(this.massCreation).length > 0"
+          v-if="massCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
           :itemsUser="massCreation"
@@ -31,6 +32,7 @@
         />
 
         <creation-formular
+          v-if="massCreation.length > 0"
           type="massCreation"
           :creation="creation"
           :itemsMassCreation="massCreation"
@@ -57,7 +59,6 @@ export default {
       showArrays: false,
       Searchfields: [
         { key: 'bookmark', label: 'merken' },
-
         { key: 'firstName', label: 'Firstname' },
         { key: 'lastName', label: 'Lastname' },
         { key: 'creation', label: 'Creation' },
@@ -77,11 +78,11 @@ export default {
       creation: [null, null, null],
     }
   },
-  created() {
-    this.getUsers()
+  async created() {
+    await this.getUsers()
   },
   methods: {
-    getUsers() {
+    async getUsers() {
       this.$apollo
         .query({
           query: searchUsers,
@@ -93,7 +94,7 @@ export default {
           this.itemsList = result.data.searchUsers.map((user) => {
             return {
               ...user,
-              // showDetails: true,
+              showDetails: false,
             }
           })
         })
