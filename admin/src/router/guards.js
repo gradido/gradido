@@ -3,7 +3,7 @@ import CONFIG from '../config'
 const addNavigationGuards = (router, store) => {
   // store token on `authenticate`
   router.beforeEach((to, from, next) => {
-    if (to.path === '/authenticate' && to.query.token) {
+    if (to.path === '/authenticate' && to.query && to.query.token) {
       // TODO verify user to get user data
       store.commit('token', to.query.token)
       next({ path: '/' })
