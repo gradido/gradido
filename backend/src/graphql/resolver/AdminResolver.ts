@@ -49,33 +49,33 @@ async function getUserCreations(id: number): Promise<number[]> {
   //   targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   // })
   const createdAmountBeforeLastMonth = await getCustomRepository(TransactionCreationRepository)
-    .createQueryBuilder()
+    .createQueryBuilder('transaction_creations')
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
     })
     .getRawOne()
   console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
-
+  
   const createdAmountLastMonth = await getCustomRepository(TransactionCreationRepository)
-  .createQueryBuilder('transaction_creations')
-  .select('SUM(transaction_creations.amount)', 'sum')
-  .where('transaction_creations.state_user_id = :id', { id })
-  .andWhere({
-    targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
-  })
-  .getRawOne()
+    .createQueryBuilder('transaction_creations')
+    .select('SUM(transaction_creations.amount)', 'sum')
+    .where('transaction_creations.state_user_id = :id', { id })
+    .andWhere({
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+    })
+    .getRawOne()
   console.log('createdAmountLastMonth', createdAmountLastMonth)
 
   const createdAmountMonth = await getCustomRepository(TransactionCreationRepository)
-  .createQueryBuilder('transaction_creations')
-  .select('SUM(transaction_creations.amount)', 'sum')
-  .where('transaction_creations.state_user_id = :id', { id })
-  .andWhere({
-    targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
-  })
-  .getRawOne()
+    .createQueryBuilder('transaction_creations')
+    .select('SUM(transaction_creations.amount)', 'sum')
+    .where('transaction_creations.state_user_id = :id', { id })
+    .andWhere({
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+    })
+    .getRawOne()
   console.log('createdAmountMonth', createdAmountMonth)
 
   // const transactionCreationsMonthQuery = await findAllUserTransactionCreations.andWhere({
