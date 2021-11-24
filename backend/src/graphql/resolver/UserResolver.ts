@@ -224,6 +224,39 @@ export class UserResolver {
   }
   */
 
+  @Authorized()
+  @Query(() => User)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    // TODO refactor and do not have duplicate code with login(see below)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(userEntity.email)
+    const user = new User()
+    user.email = userEntity.email
+    user.firstName = userEntity.firstName
+    user.lastName = userEntity.lastName
+    user.username = userEntity.username
+    user.description = loginUser.description
+    user.pubkey = userEntity.pubkey.toString('hex')
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage(context)
+
+    // coinAnimation
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
+    return user
+  }
+
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
