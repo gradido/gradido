@@ -505,12 +505,6 @@ export class UserResolver {
     loginUser.privKey = encryptedPrivkey
     dbUser.pubkey = keyPair[0]
 
-    // Sign into Klicktipp
-    // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
-      await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
-    }
-
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
@@ -537,6 +531,17 @@ export class UserResolver {
       throw e
     } finally {
       await queryRunner.release()
+    }
+
+    // Sign into Klicktipp
+    // TODO do we always signUp the user? How to handle things with old users?
+    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
+      try {
+        await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
+      } catch {
+        // TODO is this a problem?
+        console.log('Could not subscribe to klicktipp')
+      }
     }
 
     return true
