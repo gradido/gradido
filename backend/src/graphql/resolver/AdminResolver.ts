@@ -13,7 +13,7 @@ export class AdminResolver {
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = gloginUsers.map((loginUser) => {
+    const users = loginUsers.map((loginUser) => {
       const user = new UserAdmin()
       user.firstName = loginUser.firstName
       user.lastName = loginUser.lastName
@@ -54,7 +54,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     userId: id,
     date: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   })
-  console.log('pendingCreations', pendingCreations^)
+  console.log('pendingCreations', pendingCreations)
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
   return [
