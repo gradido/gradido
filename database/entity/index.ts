@@ -8,6 +8,7 @@ import { ServerUser } from './ServerUser'
 import { Transaction } from './Transaction'
 import { TransactionCreation } from './TransactionCreation'
 import { TransactionSendCoin } from './TransactionSendCoin'
+import { TransactionSignature } from './TransactionSignature'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
 import { UserTransaction } from './UserTransaction'
@@ -23,6 +24,7 @@ export const entities = [
   Transaction,
   TransactionCreation,
   TransactionSendCoin,
+  TransactionSignature,
   User,
   UserSetting,
   UserTransaction,
