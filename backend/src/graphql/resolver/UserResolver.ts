@@ -168,6 +168,10 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no password set yet')
     }
+    if (!loginUser.pubKey || !loginUser.privKey) {
+      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
+      throw new Error('User has no private or publicKey')
+    }
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const loginUserPassword = BigInt(loginUser.password.toString())
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
