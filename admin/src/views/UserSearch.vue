@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="user-search">
     <label>Usersuche</label>
     <b-input
       type="text"
