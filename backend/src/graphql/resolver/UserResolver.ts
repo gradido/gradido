@@ -402,7 +402,7 @@ export class UserResolver {
       optInCode.verificationCode = random(64)
       optInCode.userId = loginUser.id
       optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
-      await optInCode.save()
+      await loginEmailOptInRepository.save(optInCode)
     }
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
