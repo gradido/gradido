@@ -51,7 +51,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   const transactionCreations = await getCustomRepository(TransactionCreationRepository)
     .createQueryBuilder()
     .select(['SUM(amount)'])
-    .where('userId = :id', { id })
+    .where('login_pending_tasks_admin.userId = :id', { id })
     .getMany()
   console.log('transactionCreations', transactionCreations)
   // SELECT * FROM pending_creations WHERE userId = id
