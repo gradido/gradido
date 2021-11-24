@@ -49,7 +49,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   //   targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
   // })
   const createdAmountBeforeLastMonth = await getCustomRepository(TransactionCreationRepository)
-    .createQueryBuilder('transaction_creations')
+    .createQueryBuilder()
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
@@ -57,7 +57,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     })
     .getRawOne()
   console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
-  
+
   const createdAmountLastMonth = await getCustomRepository(TransactionCreationRepository)
   .createQueryBuilder('transaction_creations')
   .select('SUM(transaction_creations.amount)', 'sum')
