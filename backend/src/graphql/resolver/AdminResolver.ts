@@ -53,7 +53,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .select(['SUM(login_pending_tasks_admin.amount) as summe'])
     .where('login_pending_tasks_admin.userId = :id', { id })
   console.log('transactionCreationsQuery', transactionCreationsQuery, id)
-  const transactionCreations = transactionCreationsQuery.getMany()
+  const transactionCreations = await transactionCreationsQuery.getMany()
   console.log('transactionCreations', transactionCreations)
   // SELECT * FROM pending_creations WHERE userId = id
   const pendingCreations = await getCustomRepository(PendingCreationRepository).find({
