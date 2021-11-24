@@ -40,7 +40,7 @@ export class AdminResolver {
 }
 
 function getUserCreations(id: number): Promise<number[]> {
-  // SELECT * FROM transaction_creations WHERE state_user_id = id AND target_date > Date - 2 Monat
+  // SELECT * FROM transaction_creations WHERE state_user_id = id AND target_date > Date - 2 Monate
   // SELECT * FROM pending_creations WHERE userId = id
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
