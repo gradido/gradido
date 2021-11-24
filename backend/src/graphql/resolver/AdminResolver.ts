@@ -55,7 +55,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
     })
-    .getRawOne()
+    .getOne()
   console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
   
   const createdAmountLastMonth = await getCustomRepository(TransactionCreationRepository)
@@ -65,7 +65,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
     })
-    .getRawOne()
+    .getOne()
   console.log('createdAmountLastMonth', createdAmountLastMonth)
 
   const createdAmountMonth = await getCustomRepository(TransactionCreationRepository)
@@ -75,7 +75,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
     })
-    .getRawOne()
+    .getOne()
   console.log('createdAmountMonth', createdAmountMonth)
 
   // const transactionCreationsMonthQuery = await findAllUserTransactionCreations.andWhere({
