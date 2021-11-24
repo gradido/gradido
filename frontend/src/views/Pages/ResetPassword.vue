@@ -48,7 +48,6 @@
 </template>
 <script>
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
-import { loginViaEmailVerificationCode } from '../../graphql/queries'
 import { setPassword } from '../../graphql/mutations'
 
 export default {
@@ -89,7 +88,7 @@ export default {
     },
     async authenticate() {
       // TODO validate somehow if present and looks good?
-      const optin = this.$route.params.optin
+      // const optin = this.$route.params.optin
     },
   },
   mounted() {
