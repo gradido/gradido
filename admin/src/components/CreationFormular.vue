@@ -4,9 +4,10 @@
       <h3>
         {{
           this.type === 'singleCreation'
-            ? 'Einzelschöpfung für ' + item.first_name + ' ' + item.last_name + ''
-            : 'Massenschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
+            ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
+            : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
+        {{ item }}
       </h3>
       <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
         Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
@@ -105,7 +106,6 @@
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
                 Update Schöpfung ({{ type }},{{ pagetype }})
-                {{ creationUserData }}
               </b-button>
 
               <b-button
@@ -130,7 +130,7 @@ export default {
   props: {
     type: {
       type: String,
-      required: true,
+      required: false,
     },
     pagetype: {
       type: String,
@@ -180,7 +180,7 @@ export default {
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
-      // Wenn Massenschöpfung
+      // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
         this.$emit('update-radio-selected', [name, index])
@@ -222,9 +222,9 @@ export default {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
       if (this.type === 'massCreation') {
-        // Die anzahl der Mitglieder aus der Massenschöpfung
+        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
-        // hinweis das eine Massenschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
+        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
         alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
@@ -235,18 +235,18 @@ export default {
             moderator: this.$store.state.moderator,
           },
         ]
-        alert('MassenSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)
 
-        // lösche alle Mitglieder aus der MassenSchöpfungsListe nach dem alle Massenschpfungen zum bestätigen gesendet wurden.
+        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
       }
 
       if (this.type === 'singleCreation') {
         // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.first_name + '')
+        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
         // erstellen eines Arrays (submitObj) mit allen Daten
         this.submitObj = [
           {
@@ -262,15 +262,12 @@ export default {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
           alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
           // umschreiben, update eine bestehende Schöpfung eine
-
           this.creationUserData.datum = this.radioSelected.long
           this.creationUserData.creation_gdd = this.value
           this.creationUserData.text = this.text
-
-          // this.$store.commit('update-creation-user-data', this.submitObj)
         } else {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.first_name + '')
+          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
           // $store - offene Schöpfungen hochzählen
           this.$store.commit('openCreationsPlus', 1)
         }

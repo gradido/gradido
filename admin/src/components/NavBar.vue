@@ -8,7 +8,7 @@
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
           <b-nav-item to="/user">Usersuche |</b-nav-item>
-          <b-nav-item to="/creation">Massenschöpfung</b-nav-item>
+          <b-nav-item to="/creation">Mehrfachschöpfung</b-nav-item>
           <b-nav-item
             v-show="$store.state.openCreations > 0"
             class="h5 bg-danger"
