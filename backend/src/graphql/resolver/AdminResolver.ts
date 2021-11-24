@@ -125,13 +125,13 @@ async function getUserCreations(id: number): Promise<number[]> {
 
   // COUNT amount from 2 tables
   // if amount < 3000 => Store in pending_creations
-  const usedCreationBeforeLastMonth = Number(createdAmountBeforeLastMonth.sum) + Number()
-  const usedCreationLastMonth = Number(createdAmountLastMonth.sum) + Number()
-  const usedCreationMonth = Number(createdAmountMonth.sum) + Number()
+  const usedCreationBeforeLastMonth = Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)
+  const usedCreationLastMonth = Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)
+  const usedCreationMonth = Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)
   return [
-    10000000 - usedCreationBeforeLastMonth,
-    10000000 - usedCreationLastMonth,
-    10000000 - usedCreationMonth,
+    ( 10000000 - usedCreationBeforeLastMonth ) / 1000,
+    ( 10000000 - usedCreationLastMonth ) / 1000,
+    ( 10000000 - usedCreationMonth ) / 1000,
   ]
 }
 
