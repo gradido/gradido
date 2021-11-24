@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository } from 'typeorm'
+import { getConnection, getCustomRepository, getRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
@@ -387,9 +387,11 @@ export class UserResolver {
     // TODO: this has duplicate code with createUser
     let emailAlreadySend = false
 
-    const loginUser = await LoginUser.findOneOrFail({ email })
+    const loginUserRepository = await getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email })
 
-    let optInCode = await LoginEmailOptIn.findOne({
+    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+    let optInCode = await loginEmailOptInRepository.findOne({
       userId: loginUser.id,
       emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
     })
@@ -438,7 +440,7 @@ export class UserResolver {
     return true
   }
 
-  @Query(() => Boolean)
+  @Mutation(() => Boolean)
   async setPassword(
     @Arg('code') code: string,
     @Arg('password') password: string,
@@ -451,9 +453,12 @@ export class UserResolver {
     }
 
     // Load code
-    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
-      throw new Error('Could not login with emailVerificationCode')
-    })
+    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+    const optInCode = await loginEmailOptInRepository
+      .findOneOrFail({ verificationCode: code })
+      .catch(() => {
+        throw new Error('Could not login with emailVerificationCode')
+      })
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
@@ -462,20 +467,25 @@ export class UserResolver {
     }
 
     // load loginUser
-    const loginUser = await LoginUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
-      throw new Error('Could not find corresponding Login User')
-    })
+    const loginUserRepository = await getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository
+      .findOneOrFail({ id: optInCode.userId })
+      .catch(() => {
+        throw new Error('Could not find corresponding Login User')
+      })
 
     // load user
-    const dbUser = await DbUser.findOneOrFail({ email: loginUser.email }).catch(() => {
+    const dbUserRepository = await getCustomRepository(UserRepository)
+    const dbUser = await dbUserRepository.findOneOrFail({ email: loginUser.email }).catch(() => {
       throw new Error('Could not find corresponding User')
     })
 
-    const loginUserBackup = await LoginUserBackup.findOneOrFail({ userId: loginUser.id }).catch(
-      () => {
+    const loginUserBackupRepository = await getRepository(LoginUserBackup)
+    const loginUserBackup = await loginUserBackupRepository
+      .findOneOrFail({ userId: loginUser.id })
+      .catch(() => {
         throw new Error('Could not find corresponding BackupUser')
-      },
-    )
+      })
 
     const passphrase = loginUserBackup.passphrase.slice(0, -1).split(' ')
     if (passphrase.length < PHRASE_WORD_COUNT) {
