@@ -194,6 +194,69 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
+  /*
+  @Authorized()
+  @Query(() => User)
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    loginUser = loginUserRepository.findByPubkeyHex()
+    const user = new User(result.data.user)
+
+    this.email = json.email
+    this.firstName = json.first_name
+    this.lastName = json.last_name
+    this.username = json.username
+    this.description = json.description
+    this.pubkey = json.public_hex
+    this.language = json.language
+    this.publisherId = json.publisher_id
+    this.isAdmin = json.isAdmin
+
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
+    return user
+  }
+  */
+
+  @Authorized()
+  @Query(() => User)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    // TODO refactor and do not have duplicate code with login(see below)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(userEntity.email)
+    const user = new User()
+    user.email = userEntity.email
+    user.firstName = userEntity.firstName
+    user.lastName = userEntity.lastName
+    user.username = userEntity.username
+    user.description = loginUser.description
+    user.pubkey = userEntity.pubkey.toString('hex')
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage(context)
+
+    // coinAnimation
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
+    return user
+  }
+
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -266,6 +329,7 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+    user.isAdmin = true // TODO implement
 
     context.setHeaders.push({
       key: 'token',
@@ -303,22 +367,23 @@ export class UserResolver {
 
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
+    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
     // Validate Language (no throw)
-    if (!isLanguage(language)) {
+    if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
 
+    // TODO: Register process
     // Validate Password
-    if (!isPassword(password)) {
-      throw new Error(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
+    // if (!isPassword(password)) {
+    //   throw new Error(
+    //     'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+    //   )
+    // }
 
     // Validate username
     // TODO: never true
@@ -336,11 +401,13 @@ export class UserResolver {
       throw new Error(`User already exists.`)
     }
 
-    const passphrase = PassphraseGenerate()
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // TODO: Register process
+    // const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+
     const emailHash = getEmailHash(email)
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -349,13 +416,15 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // TODO: Register process
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
-    loginUser.pubKey = keyPair[0]
-    loginUser.privKey = encryptedPrivkey
+    // TODO: Register process
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -367,21 +436,24 @@ export class UserResolver {
         throw new Error('insert user failed')
       })
 
+      // TODO: Register process
       // Table: login_user_backups
-      const loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      // const loginUserBackup = new LoginUserBackup()
+      // loginUserBackup.userId = loginUserId
+      // loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      // loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-      await queryRunner.manager.save(loginUserBackup).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('insert LoginUserBackup failed', error)
-        throw new Error('insert user backup failed')
-      })
+      // TODO: Register process
+      // await queryRunner.manager.save(loginUserBackup).catch((error) => {
+      //   // eslint-disable-next-line no-console
+      //   console.log('insert LoginUserBackup failed', error)
+      //   throw new Error('insert user backup failed')
+      // })
 
       // Table: state_users
       const dbUser = new DbUser()
-      dbUser.pubkey = keyPair[0]
+      // TODO: Register process
+      // dbUser.pubkey = keyPair[0]
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName

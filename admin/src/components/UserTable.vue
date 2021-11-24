@@ -67,6 +67,7 @@
             :creation="row.item.creation"
             :item="row.item"
             :creationUserData="creationData"
+            @update-creation-data="updateCreationData"
           />
 
           <b-button size="sm" @click="row.toggleDetails">
@@ -139,7 +140,7 @@ export default {
       default: '',
     },
     creation: {
-      type: Object,
+      type: Array,
       required: false,
     },
   },
@@ -225,6 +226,11 @@ export default {
         // alert(this.creationData)
       }
       row.toggleDetails()
+    },
+    updateCreationData(data) {
+      this.creationData = {
+        ...data,
+      }
     },
   },
 }

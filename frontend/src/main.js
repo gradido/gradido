@@ -51,7 +51,7 @@ Vue.config.productionTip = false
 
 loadAllRules(i18n)
 
-addNavigationGuards(router, store)
+addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 /* eslint-disable no-new */
 new Vue({

@@ -146,7 +146,7 @@ export default {
       required: false,
     },
     creation: {
-      type: Object,
+      type: Array,
       required: true,
     },
     itemsMassCreation: {
@@ -198,9 +198,10 @@ export default {
           this.text = this.creationUserData.text
           break
         case 'range':
-          this.value = this.creationUserData.creation_gdd
+          this.value = this.creationUserData.creationGdd
           break
         default:
+          // TODO: Toast
           alert("I don't know such values")
       }
     },
@@ -262,9 +263,11 @@ export default {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
           alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
           // umschreiben, update eine bestehende Schöpfung eine
-          this.creationUserData.datum = this.radioSelected.long
-          this.creationUserData.creation_gdd = this.value
-          this.creationUserData.text = this.text
+          this.$emit('update-creation-data', {
+            datum: this.radioSelected.long,
+            creationGdd: this.value,
+            text: this.text,
+          })
         } else {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
           alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
