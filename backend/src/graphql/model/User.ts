@@ -10,16 +10,18 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number
   */
-  constructor(json: any) {
-    this.email = json.email
-    this.firstName = json.first_name
-    this.lastName = json.last_name
-    this.username = json.username
-    this.description = json.description
-    this.pubkey = json.public_hex
-    this.language = json.language
-    this.publisherId = json.publisher_id
-    this.isAdmin = json.isAdmin
+  constructor(json?: any) {
+    if (json) {
+      this.email = json.email
+      this.firstName = json.first_name
+      this.lastName = json.last_name
+      this.username = json.username
+      this.description = json.description
+      this.pubkey = json.public_hex
+      this.language = json.language
+      this.publisherId = json.publisher_id
+      this.isAdmin = json.isAdmin
+    }
   }
 
   @Field(() => String)
