@@ -49,15 +49,8 @@ describe('router', () => {
         expect(component.default.name).toBe('overview')
       })
 
-      it('has fourteen routes defined', () => {
-        expect(routes).toHaveLength(6)
-      })
-
-      describe('overview', () => {
-        it('loads the "Overview" component', async () => {
-          const component = await routes.find((r) => r.path === '/overview').component()
-          expect(component.default.name).toBe('overview')
-        })
+      it('has seven routes defined', () => {
+        expect(routes).toHaveLength(7)
       })
 
       describe('user', () => {
