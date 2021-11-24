@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+message GroupFriendsUpdate {
+    // char[16], alias
+    string group = 1;
+    
+    enum Action {
+        ADD_FRIEND=0;
+        REMOVE_FRIEND=1;
+    };
+    Action action = 2;
+}

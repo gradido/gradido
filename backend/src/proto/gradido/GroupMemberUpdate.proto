@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/BasicTypes.proto";
+
+message GroupMemberUpdate {
+    bytes user_pubkey = 1;
+
+    enum MemberUpdateType {
+        ADD_USER=0;
+        MOVE_USER_INBOUND=1;
+        MOVE_USER_OUTBOUND=2;
+    };
+    MemberUpdateType member_update_type = 2;
+
+    // this only makes sense for user move, TODO: probably restructure
+    Timestamp paired_transaction_id = 3;
+    string target_group = 4;
+}

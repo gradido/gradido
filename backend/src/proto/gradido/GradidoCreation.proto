@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/BasicTypes.proto";
+
+// need signature from group admin or 
+// percent of group users another than the receiver
+message GradidoCreation {
+	TransferAmount receiver = 1; // 40 Byte
+	TimestampSeconds target_date = 3; // 8 Byte
+}

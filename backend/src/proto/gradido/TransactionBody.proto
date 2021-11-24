@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/GradidoTransfer.proto";
+import "gradido/GradidoCreation.proto";
+import "gradido/GroupFriendsUpdate.proto";
+import "gradido/GroupMemberUpdate.proto";
+import "gradido/BasicTypes.proto";
+
+
+message TransactionBody {
+    string memo = 1; // max 150 chars
+    TimestampSeconds created = 2;
+    uint64 version_number = 3;
+    oneof data {
+        GradidoTransfer transfer = 6;
+        GradidoCreation creation = 7;
+        GroupFriendsUpdate group_friends_update = 8;
+        GroupMemberUpdate group_member_update = 9;
+    }    
+}
+

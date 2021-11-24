@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/BasicTypes.proto";
+
+message ManageNodeGroupAdd {
+    string   group_name = 1;
+	string   group_alias = 2;
+	HederaID hedera_topic_id = 3;
+	//string parent_group_alias = 4; 
+}

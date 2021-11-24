@@ -1,0 +1,18 @@
+
+syntax = "proto3";
+
+package proto.gradido;
+
+
+import "gradido/ManageNodeGroupAdd.proto";
+import "gradido/BasicTypes.proto";
+
+
+message ManageNodeBody {
+    uint64 version_number = 1;
+	
+	oneof data {
+        ManageNodeGroupAdd group_add = 3;
+	}
+}
+

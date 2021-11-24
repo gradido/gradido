@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/BasicTypes.proto";
+
+/*
+	used for controlling node server by login-server
+*/
+
+message ManageNodeRequest {
+    SignatureMap sig_map = 1;
+	bytes body_bytes = 2; // ManageNodeBody
+}
+
+message ManageNodeResponse {
+	bool success = 1;
+	enum ErrorCode {
+		INVALID_BODY = 0;
+		INVALID_SIGNATURE = 1;
+		SIGNER_NOT_KNOWN = 2;
+		GROUP_ALIAS_ALREADY_EXIST = 3;
+	}
+	ErrorCode error = 2;
+}

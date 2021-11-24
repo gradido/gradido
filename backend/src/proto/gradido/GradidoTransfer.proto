@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto.gradido;
+
+import "gradido/BasicTypes.proto";
+
+
+message LocalTransfer {
+    TransferAmount sender = 1;
+    bytes receiver = 2;
+}
+
+message CrossGroupTransfer {
+    TransferAmount sender = 1;
+    bytes receiver = 2;
+    string other_group = 3;
+    // this matches related OutboundTransfer.paired_transaction_id
+    Timestamp paired_transaction_id = 4;
+}
+
+message GradidoTransfer {
+    oneof data {
+        LocalTransfer local = 1;
+        CrossGroupTransfer inbound = 2;
+        CrossGroupTransfer outbound = 3;
+    }
+}
