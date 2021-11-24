@@ -9,11 +9,12 @@
   "private": false,
   "scripts": {
     "build": "tsc --build",
+    "build-protobuff": "pbjs -t static-module -w commonjs -o src/proto/bundle.js src/proto/gradido/*.proto && pbts -o src/proto/bundle.d.ts src/proto/bundle.js",
     "clean": "tsc --build --clean",
     "start": "node build/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts",
-    "test": "jest --runInBand --coverage "
+    "test": "jest --runInBand --coverage"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
@@ -52,10 +53,14 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^5.1.0",
+    "jsdoc": "^3.6.7",
     "nodemon": "^2.0.7",
     "prettier": "^2.3.1",
+    "protobufjs": "^6.11.2",
+    "semver": "^7.3.5",
     "ts-node": "^10.0.0",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "uglify-js": "^3.14.3"
   },
   "_moduleAliases": {
     "@entity": "../database/build/entity"
