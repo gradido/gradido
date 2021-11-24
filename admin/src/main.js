@@ -16,12 +16,17 @@ import VueApollo from 'vue-apollo'
 
 import CONFIG from './config'
 
-import { BootstrapVue } from 'bootstrap-vue'
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
+import moment from 'vue-moment'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
   const token = store.state.token
+
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
@@ -52,9 +57,16 @@ const apolloProvider = new VueApollo({
 
 Vue.use(BootstrapVue)
 
+Vue.use(IconsPlugin)
+
+Vue.use(moment)
+
+Vue.use(VueApollo)
+
 addNavigationGuards(router, store)
 
 new Vue({
+  moment,
   router,
   store,
   i18n,

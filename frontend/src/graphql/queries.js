@@ -15,6 +15,27 @@ export const login = gql`
       }
       hasElopage
       publisherId
+      isAdmin
+    }
+  }
+`
+
+export const verifyLogin = gql`
+  query {
+    verifyLogin {
+      email
+      username
+      firstName
+      lastName
+      language
+      description
+      coinanimation
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
     }
   }
 `

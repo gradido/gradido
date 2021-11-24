@@ -148,11 +148,12 @@ describe('Vuex store', () => {
         },
         hasElopage: false,
         publisherId: 1234,
+        isAdmin: true,
       }
 
-      it('calls ten commits', () => {
+      it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(10)
+        expect(commit).toHaveBeenCalledTimes(11)
       })
 
       it('commits email', () => {
@@ -204,15 +205,20 @@ describe('Vuex store', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', 1234)
       })
+
+      it('commits isAdmin', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(11, 'isAdmin', true)
+      })
     })
 
     describe('logout', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls ten commits', () => {
+      it('calls eleven commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(10)
+        expect(commit).toHaveBeenCalledTimes(11)
       })
 
       it('commits token', () => {
@@ -263,6 +269,11 @@ describe('Vuex store', () => {
       it('commits publisherId', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', null)
+      })
+
+      it('commits isAdmin', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(11, 'isAdmin', false)
       })
 
       // how to get this working?

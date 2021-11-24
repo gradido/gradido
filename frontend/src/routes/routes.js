@@ -2,6 +2,9 @@ import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
+    path: '/authenticate',
+  },
+  {
     path: '/',
     redirect: (to) => {
       return { path: '/login' }
