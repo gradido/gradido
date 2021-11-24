@@ -1,7 +1,8 @@
-import { Resolver, Query, Arg } from 'type-graphql'
+import { Resolver, Query, Arg, Args } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { UserRepository } from '../../typeorm/repository/User'
 
 @Resolver()
 export class AdminResolver {
@@ -22,5 +23,15 @@ export class AdminResolver {
       return user
     })
     return users
+  }
+
+  @Query(() => Boolean)
+  async createPendingCreation(
+    @Args() { email, amount, note, creationDate }: CreatePendingCreationArgs,
+  ): Promise<boolean> {
+    // TODO: Check user validity
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByEmail(email)
+    return true
   }
 }
