@@ -1,5 +1,5 @@
 import { EntityRepository, Repository } from 'typeorm'
-import { PendingCreation } from '@entity/PendingCreation'
+import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 
-@EntityRepository(PendingCreation)
-export class PendingCreationRepository extends Repository<PendingCreation> {}
+@EntityRepository(LoginPendingTasksAdmin)
+export class PendingCreationRepository extends Repository<LoginPendingTasksAdmin> {}
