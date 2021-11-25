@@ -31,15 +31,12 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, note, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<boolean> {
-    // TODO: Check user validity
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-    // TODO: Check user open creation state (Open creation)
+
     const creations = await getUserCreations(user.id)
-    console.log('creations', creations)
+
     if (isCreationValid(creations, amount, creationDate)) {
-      // UserAdmin.creations()
-      // TODO: Write pending creation to DB
       const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
       const loginPendingTaskAdmin = pendingCreationRepository.create()
       loginPendingTaskAdmin.userId = user.id
@@ -60,13 +57,6 @@ async function getUserCreations(id: number): Promise<number[]> {
   const dateMonth = moment().format('YYYY-MM') + '-01'
   const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM') + '-01'
   const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-  console.log(
-    'Searching creation amount for: ',
-    dateNextMonth,
-    dateMonth,
-    dateLastMonth,
-    dateBeforeLastMonth,
-  )
 
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
@@ -80,7 +70,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('createdAmountBeforeLastMonth.sum', Number(createdAmountBeforeLastMonth.sum))
 
   const createdAmountLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
@@ -93,7 +82,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('createdAmountLastMonth.sum', Number(createdAmountLastMonth.sum))
 
   const createdAmountMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
@@ -106,7 +94,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('createdAmountMonth.sum', Number(createdAmountMonth.sum))
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
   const pendingAmountMounth = await pendingCreationRepository
@@ -120,7 +107,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('pendingAmountMounth', Number(pendingAmountMounth.sum))
 
   const pendingAmountLastMounth = await pendingCreationRepository
     .createQueryBuilder('login_pending_tasks_admin')
@@ -133,7 +119,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('pendingAmountLastMounth', Number(pendingAmountLastMounth.sum))
 
   const pendingAmountBeforeLastMounth = await pendingCreationRepository
     .createQueryBuilder('login_pending_tasks_admin')
@@ -146,7 +131,6 @@ async function getUserCreations(id: number): Promise<number[]> {
       }),
     })
     .getRawOne()
-  console.log('pendingAmountBeforeLastMounth', Number(pendingAmountBeforeLastMounth.sum))
 
   // COUNT amount from 2 tables
   const usedCreationBeforeLastMonth =
@@ -155,9 +139,6 @@ async function getUserCreations(id: number): Promise<number[]> {
     (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
   const usedCreationMonth =
     (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
-  console.log('1000 - usedCreationBeforeLastMonth', 1000 - usedCreationBeforeLastMonth)
-  console.log('1000 - usedCreationLastMonth', 1000 - usedCreationLastMonth)
-  console.log('1000 - usedCreationMonth', 1000 - usedCreationMonth)
   return [
     1000 - usedCreationBeforeLastMonth,
     1000 - usedCreationLastMonth,
@@ -165,13 +146,12 @@ async function getUserCreations(id: number): Promise<number[]> {
   ]
 }
 
-function isCreationValid(creations: number[], amount: number, creationDate: any) {
+function isCreationValid(creations: number[], amount: number, creationDate: Date) {
   const dateMonth = moment().format('YYYY-MM')
   const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
   const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  // moment()
   const creationDateMonth = moment(creationDate).format('YYYY-MM')
-  console.log('CHECK: ', creationDateMonth, dateMonth, dateLastMonth, dateBeforeLastMonth)
+
   let openCreation
   switch (creationDateMonth) {
     case dateMonth:
@@ -186,7 +166,7 @@ function isCreationValid(creations: number[], amount: number, creationDate: any)
     default:
       throw new Error('CreationDate is not in last three months')
   }
-  console.log('creation >= amount', openCreation >= amount, openCreation, amount)
+
   if (openCreation < amount) {
     throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
   }
