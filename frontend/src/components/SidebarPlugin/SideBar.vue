@@ -50,7 +50,15 @@
           <li class="nav-item">
             <a :href="getElopageLink()" class="nav-link" target="_blank">
               {{ $t('members_area') }}&nbsp;
-              <b-badge v-if="!this.$store.state.hasElopage" pill variant="danger">!</b-badge>
+              <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="navbar-nav ml-3" v-if="$store.state.isAdmin">
+          <li class="nav-item">
+            <a class="nav-link pointer" @click="admin">
+              {{ $t('admin_area') }}
             </a>
           </li>
         </ul>
@@ -122,7 +130,7 @@ export default {
       this.$emit('logout')
     },
     admin() {
-      window.location = CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token)
+      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
     },
     getElopageLink() {

@@ -1,6 +1,11 @@
-import { mutations } from './store'
+import store, { mutations, actions } from './store'
 
 const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations } = mutations
+const { logout } = actions
+
+const CONFIG = {
+  DEBUG_DISABLE_AUTH: true,
+}
 
 describe('Vuex store', () => {
   describe('mutations', () => {
@@ -33,6 +38,45 @@ describe('Vuex store', () => {
         const state = { openCreations: 24 }
         resetOpenCreations(state)
         expect(state.openCreations).toEqual(0)
+      })
+    })
+  })
+
+  describe('actions', () => {
+    describe('logout', () => {
+      const windowStorageMock = jest.fn()
+      const commit = jest.fn()
+      const state = {}
+      beforeEach(() => {
+        jest.clearAllMocks()
+        window.localStorage.clear = windowStorageMock
+      })
+
+      it('deletes the token in store', () => {
+        logout({ commit, state })
+        expect(commit).toBeCalledWith('token', null)
+      })
+
+      it.skip('clears the window local storage', () => {
+        expect(windowStorageMock).toBeCalled()
+      })
+    })
+  })
+
+  describe('state', () => {
+    describe('authentication enabled', () => {
+      it('has no token', () => {
+        expect(store.state.token).toBe(null)
+      })
+    })
+
+    describe('authentication enabled', () => {
+      beforeEach(() => {
+        CONFIG.DEBUG_DISABLE_AUTH = false
+      })
+
+      it.skip('has a token', () => {
+        expect(store.state.token).toBe('validToken')
       })
     })
   })

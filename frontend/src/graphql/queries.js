@@ -20,6 +20,26 @@ export const login = gql`
   }
 `
 
+export const verifyLogin = gql`
+  query {
+    verifyLogin {
+      email
+      username
+      firstName
+      lastName
+      language
+      description
+      coinanimation
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+    }
+  }
+`
+
 export const logout = gql`
   query {
     logout

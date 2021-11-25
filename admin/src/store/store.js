@@ -23,7 +23,7 @@ export const mutations = {
 export const actions = {
   logout: ({ commit, state }) => {
     commit('token', null)
-    localStorage.clear()
+    window.localStorage.clear()
   },
 }
 

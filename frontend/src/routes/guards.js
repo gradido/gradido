@@ -1,4 +1,6 @@
-const addNavigationGuards = (router, store) => {
+import { verifyLogin } from '../graphql/queries'
+
+const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
   router.beforeEach((to, from, next) => {
     const publisherId = to.query.pid
@@ -10,10 +12,14 @@ const addNavigationGuards = (router, store) => {
   })
 
   // store token on authenticate
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query.token) {
-      // TODO verify user in order to get user data
       store.commit('token', to.query.token)
+      const result = await apollo.query({
+        query: verifyLogin,
+        fetchPolicy: 'network-only',
+      })
+      store.dispatch('login', result.data.verifyLogin)
       next({ path: '/overview' })
     } else {
       next()

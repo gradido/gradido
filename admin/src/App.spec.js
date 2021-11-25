@@ -7,11 +7,19 @@ const stubs = {
   RouterView: true,
 }
 
+const mocks = {
+  $store: {
+    state: {
+      token: null,
+    },
+  },
+}
+
 describe('App', () => {
   let wrapper
 
   const Wrapper = () => {
-    return shallowMount(App, { localVue, stubs })
+    return shallowMount(App, { localVue, stubs, mocks })
   }
 
   describe('shallowMount', () => {

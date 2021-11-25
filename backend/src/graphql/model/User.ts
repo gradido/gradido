@@ -49,7 +49,7 @@ export class User {
   @Field(() => number)
   created: number
 
-  @Field(() => Boolean)
+  @Field(() =>>> Boolean)
   emailChecked: boolean
 
   @Field(() => Boolean)
