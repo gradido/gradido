@@ -7,7 +7,6 @@
             ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
             : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
-        {{ item }}
       </h3>
       <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
         Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
@@ -277,6 +276,7 @@ export default {
             .then((result) => {
               this.$emit('update-user-data', this.item, result.data.createPendingCreation)
               this.$store.commit('openCreationsPlus', 1)
+              this.$toasted.success('Schöpfung eingereicht')
             })
             .catch((error) => {
               this.$toasted.error(error.message)
