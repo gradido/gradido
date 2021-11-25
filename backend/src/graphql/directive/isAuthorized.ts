@@ -3,8 +3,11 @@
 import { AuthChecker } from 'type-graphql'
 
 import { decode, encode } from '../../auth/JWT'
-import { ROLE_USER, ROLE_UNAUTHORIZED } from '../../auth/ROLES'
+import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '../../auth/ROLES'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
+import { getCustomRepository } from 'typeorm'
+import { UserRepository } from '../../typeorm/repository/User'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -19,9 +22,15 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     // Set context pubKey
     context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
     // set new header token
-    context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
     // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
-    context.role = ROLE_USER // logged in user
+    // TODO this implementation is bullshit
+    const userRepository = await getCustomRepository(UserRepository)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
+
+    context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
   }
 
   // check for correct rights
