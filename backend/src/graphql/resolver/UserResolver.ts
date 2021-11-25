@@ -195,7 +195,7 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
-  @Authorized()
+  @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: any): Promise<User> {

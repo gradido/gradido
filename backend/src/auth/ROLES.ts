@@ -5,6 +5,7 @@ import { Role } from './Role'
 export const ROLE_UNAUTHORIZED = new Role('unauthorized', INALIENABLE_RIGHTS)
 export const ROLE_USER = new Role('user', [
   ...INALIENABLE_RIGHTS,
+  RIGHTS.VERIFY_LOGIN,
   RIGHTS.BALANCE,
   RIGHTS.LIST_GDT_ENTRIES,
   RIGHTS.EXIST_PID,
