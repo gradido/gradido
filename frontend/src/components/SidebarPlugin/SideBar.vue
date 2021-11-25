@@ -63,14 +63,6 @@
           </li>
         </ul>
 
-        <ul class="navbar-nav ml-3" v-if="this.$store.state.isAdmin">
-          <li class="nav-item">
-            <a class="nav-link ponter" @click="admin">
-              {{ $t('admin_area') }}
-            </a>
-          </li>
-        </ul>
-
         <ul class="navbar-nav ml-3">
           <li class="nav-item">
             <a class="nav-link pointer" @click="logout">
