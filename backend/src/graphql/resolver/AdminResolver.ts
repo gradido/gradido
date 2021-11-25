@@ -6,6 +6,7 @@ import { TransactionCreationRepository } from '../../typeorm/repository/Transact
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
+import moment from 'moment'
 
 @Resolver()
 export class AdminResolver {
@@ -13,14 +14,16 @@ export class AdminResolver {
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = await Promise.all(loginUsers.map(async (loginUser) => {
-      const user = new UserAdmin()
-      user.firstName = loginUser.firstName
-      user.lastName = loginUser.lastName
-      user.email = loginUser.email
-      user.creation = await getUserCreations(loginUser.id)
-      return user
-    }))
+    const users = await Promise.all(
+      loginUsers.map(async (loginUser) => {
+        const user = new UserAdmin()
+        user.firstName = loginUser.firstName
+        user.lastName = loginUser.lastName
+        user.email = loginUser.email
+        user.creation = await getUserCreations(loginUser.id)
+        return user
+      }),
+    )
     return users
   }
 
@@ -44,13 +47,24 @@ export class AdminResolver {
 
 async function getUserCreations(id: number): Promise<number[]> {
   // TODO: NOW()-ActualDays - 2 Monate
+  // const actualDate = new Date()
+  const dateNextMonth = moment().add(1, 'month').format('YYYY-MM') + '-01'
+  const dateMonth = moment().format('YYYY-MM') + '-01'
+  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM') + '-01'
+  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
+
+  console.log('Searching creation amount for: ', dateNextMonth, dateMonth, dateLastMonth, dateBeforeLastMonth)
+
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: dateBeforeLastMonth, // DATE
+        enddate: dateLastMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
   console.log('createdAmountBeforeLastMonth.sum', Number(createdAmountBeforeLastMonth.sum))
@@ -60,7 +74,10 @@ async function getUserCreations(id: number): Promise<number[]> {
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: dateLastMonth,
+        enddate: dateMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
   console.log('createdAmountLastMonth.sum', Number(createdAmountLastMonth.sum))
@@ -70,43 +87,61 @@ async function getUserCreations(id: number): Promise<number[]> {
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: dateMonth,
+        enddate: dateNextMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
   console.log('createdAmountMonth.sum', Number(createdAmountMonth.sum))
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-  const pendingAmountMounth = await pendingCreationRepository.createQueryBuilder('login_pending_tasks_admin')
+  const pendingAmountMounth = await pendingCreationRepository
+    .createQueryBuilder('login_pending_tasks_admin')
     .select('SUM(login_pending_tasks_admin.amount)', 'sum')
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: '2021-11-01',
+        enddate: '2021-12-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
   console.log('pendingAmountMounth', Number(pendingAmountMounth.sum))
 
-  const pendingAmountLastMounth = await pendingCreationRepository.createQueryBuilder('login_pending_tasks_admin')
+  const pendingAmountLastMounth = await pendingCreationRepository
+    .createQueryBuilder('login_pending_tasks_admin')
     .select('SUM(login_pending_tasks_admin.amount)', 'sum')
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-10-01", enddate: "2021-11-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: '2021-10-01',
+        enddate: '2021-11-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
   console.log('pendingAmountLastMounth', Number(pendingAmountLastMounth.sum))
 
-  const pendingAmountBeforeLastMounth = await pendingCreationRepository.createQueryBuilder('login_pending_tasks_admin')
+  const pendingAmountBeforeLastMounth = await pendingCreationRepository
+    .createQueryBuilder('login_pending_tasks_admin')
     .select('SUM(login_pending_tasks_admin.amount)', 'sum')
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, { date: "2021-09-01", enddate: "2021-10-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
+      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+        date: '2021-09-01',
+        enddate: '2021-10-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+      }),
     })
     .getRawOne()
-  console.log('pendingAmountBeforeLastMounth', Number(pendingAmountBeforeLastMounth.sum))  
+  console.log('pendingAmountBeforeLastMounth', Number(pendingAmountBeforeLastMounth.sum))
 
   // COUNT amount from 2 tables
-  const usedCreationBeforeLastMonth = (Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)) / 10000
-  const usedCreationLastMonth = (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
-  const usedCreationMonth = (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
+  const usedCreationBeforeLastMonth =
+    (Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)) / 10000
+  const usedCreationLastMonth =
+    (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
+  const usedCreationMonth =
+    (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
   return [
     1000 - usedCreationBeforeLastMonth,
     1000 - usedCreationLastMonth,

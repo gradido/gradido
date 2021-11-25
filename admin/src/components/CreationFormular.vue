@@ -163,15 +163,15 @@ export default {
       rangeMax: 1000,
       currentMonth: {
         short: this.$moment().format('MMMM'),
-        long: this.$moment().format('DD/MM/YYYY'),
+        long: this.$moment().format('YYYY-MM-DD'),
       },
       lastMonth: {
         short: this.$moment().subtract(1, 'month').format('MMMM'),
-        long: this.$moment().subtract(1, 'month').format('DD/MM/YYYY'),
+        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
       },
       beforeLastMonth: {
         short: this.$moment().subtract(2, 'month').format('MMMM'),
-        long: this.$moment().subtract(2, 'month').format('DD/MM/YYYY'),
+        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
       },
       submitObj: null,
       isdisabled: true,
