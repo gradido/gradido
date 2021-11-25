@@ -32,6 +32,7 @@ import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
+import { ROLE_ADMIN } from '../../auth/ROLES'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -226,9 +227,7 @@ export class UserResolver {
       })
     user.coinanimation = coinanimation
 
-    const serverUserRepository = await getCustomRepository(ServerUserRepository)
-    const countServerUsers = await serverUserRepository.count({ email: user.email })
-    user.isAdmin = countServerUsers > 0
+    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
@@ -306,6 +305,7 @@ export class UserResolver {
       })
     user.coinanimation = coinanimation
 
+    // context.role is not set to the actual role yet on login
     const serverUserRepository = await getCustomRepository(ServerUserRepository)
     const countServerUsers = await serverUserRepository.count({ email: user.email })
     user.isAdmin = countServerUsers > 0
