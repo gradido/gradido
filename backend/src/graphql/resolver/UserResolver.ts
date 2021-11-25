@@ -303,7 +303,7 @@ export class UserResolver {
     user.coinanimation = coinanimation
     user.isAdmin = true // TODO implement
 
-	user.isAdmin = true // TODO implement
+    user.isAdmin = true // TODO implement
 
     context.setHeaders.push({
       key: 'token',
