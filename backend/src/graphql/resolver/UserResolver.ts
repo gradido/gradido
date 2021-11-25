@@ -31,6 +31,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -224,7 +225,10 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
+
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
     return user
   }
 
@@ -301,9 +305,10 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
 
-    user.isAdmin = true // TODO implement
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
       key: 'token',
