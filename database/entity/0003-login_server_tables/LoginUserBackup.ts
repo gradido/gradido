@@ -9,6 +9,9 @@ export class LoginUserBackup extends BaseEntity {
   @Column({ type: 'text', name: 'passphrase', nullable: false })
   passphrase: string
 
+  @Column({ name: 'user_id', nullable: false })
+  userId: number
+
   @Column({ name: 'mnemonic_type', default: -1 })
   mnemonicType: number
 
