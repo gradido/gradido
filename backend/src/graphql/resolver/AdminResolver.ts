@@ -35,14 +35,14 @@ export class AdminResolver {
     const user = await userRepository.findByEmail(email)
 
     const creations = await getUserCreations(user.id)
-
-    if (isCreationValid(creations, amount, creationDate)) {
+    const creationDateObj = new Date(creationDate)
+    if (isCreationValid(creations, amount, creationDateObj)) {
       const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
       const loginPendingTaskAdmin = pendingCreationRepository.create()
       loginPendingTaskAdmin.userId = user.id
       loginPendingTaskAdmin.amount = BigInt(amount * 10000)
       loginPendingTaskAdmin.created = new Date()
-      loginPendingTaskAdmin.date = new Date(creationDate)
+      loginPendingTaskAdmin.date = creationDateObj
       loginPendingTaskAdmin.note = note
       loginPendingTaskAdmin.moderator = moderator
 

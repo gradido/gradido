@@ -1,19 +1,19 @@
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 
 @ArgsType()
 export default class CreatePendingCreationArgs {
   @Field(() => String)
   email: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   amount: number
 
   @Field(() => String)
   note: string
 
-  @Field(() => Date)
-  creationDate: Date
+  @Field(() => String)
+  creationDate: string
 
-  @Field(() => Number)
+  @Field(() => Int)
   moderator: number
 }
