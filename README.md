@@ -84,6 +84,7 @@ The first command `git fetch --all` will make sure you have all tags previously 
 After generating a new version you should commit the changes. This will be the CHANGELOG.md and several package.json files. This commit will be omitted in the changelog.
 
 Note: The Changelog will be regenerated with all tags on release on the external builder tool, but will not be checked in there. The Changelog on the github release will therefore always be correct, on the repo it might be incorrect due to missing tags when executing the `yarn release` command.
+
 ## Troubleshooting
 
 | Problem | Issue | Solution | Description |
