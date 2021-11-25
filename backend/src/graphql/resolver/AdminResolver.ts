@@ -13,14 +13,14 @@ export class AdminResolver {
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = loginUsers.map((loginUser) => {
+    const users = await Promise.all(loginUsers.map(async (loginUser) => {
       const user = new UserAdmin()
       user.firstName = loginUser.firstName
       user.lastName = loginUser.lastName
       user.email = loginUser.email
-      user.creation = [10000000, 10000000, 10000000] // await getUserCreations(loginUser.id)
+      user.creation = await getUserCreations(loginUser.id)
       return user
-    })
+    }))
     return users
   }
 
@@ -44,10 +44,6 @@ export class AdminResolver {
 
 async function getUserCreations(id: number): Promise<number[]> {
   // TODO: NOW()-ActualDays - 2 Monate
-  // const transactionCreations = await getCustomRepository(TransactionCreationRepository).find({
-  //   userId: id,
-  //   targetDate: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
-  // })
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
@@ -58,7 +54,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     })
     .getRawOne()
   console.log('createdAmountBeforeLastMonth.sum', Number(createdAmountBeforeLastMonth.sum))
-  
+
   const createdAmountLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
     .select('SUM(transaction_creations.amount)', 'sum')
@@ -79,14 +75,6 @@ async function getUserCreations(id: number): Promise<number[]> {
     .getRawOne()
   console.log('createdAmountMonth.sum', Number(createdAmountMonth.sum))
 
-  // const transactionCreationsMonthQuery = await findAllUserTransactionCreations.andWhere({
-  //   targetDate: Raw((alias) => `${alias} > :date and ${alias} < :enddate`, { date: "2021-11-01", enddate: "2021-12-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ })
-  // })
-  // const createdAmountMonth = await transactionCreationsMonthQuery.getRawOne()
-  // console.log('createdAmountMonth', createdAmountMonth)
-  // const transactionCreationsLastThreeMonth = await transactionCreationsQuery.getRawOne()
-  // console.log('transactionCreations', transactionCreations)
-  // SELECT * FROM pending_creations WHERE userId = id
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
   const pendingAmountMounth = await pendingCreationRepository.createQueryBuilder('login_pending_tasks_admin')
     .select('SUM(login_pending_tasks_admin.amount)', 'sum')
@@ -114,27 +102,18 @@ async function getUserCreations(id: number): Promise<number[]> {
     })
     .getRawOne()
   console.log('pendingAmountBeforeLastMounth', Number(pendingAmountBeforeLastMounth.sum))  
-  // const pendingCreations = await getCustomRepository(PendingCreationRepository).find({
-  //   userId: id,
-  //   date: Raw((alias) => `${alias} > :date`, { date: "2021-09-01" /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */ }),
-  // })
-  
-  
-  // const createdAmountLastMonth = ...
-  // const createdAmountCurrentMonth = ...
 
   // COUNT amount from 2 tables
-  // if amount < 3000 => Store in pending_creations
-  const usedCreationBeforeLastMonth = Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)
-  const usedCreationLastMonth = Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)
-  const usedCreationMonth = Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)
+  const usedCreationBeforeLastMonth = (Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)) / 10000
+  const usedCreationLastMonth = (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
+  const usedCreationMonth = (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
   return [
-    ( 10000000 - usedCreationBeforeLastMonth ) / 1000,
-    ( 10000000 - usedCreationLastMonth ) / 1000,
-    ( 10000000 - usedCreationMonth ) / 1000,
+    1000 - usedCreationBeforeLastMonth,
+    1000 - usedCreationLastMonth,
+    1000 - usedCreationMonth,
   ]
 }
 
-function isCreationValid(creations: number[], amount: any, creationDate: any) {
+function isCreationValid(creations: number[], amount: number, creationDate: any) {
   return true
 }
