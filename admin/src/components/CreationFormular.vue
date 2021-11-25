@@ -233,10 +233,12 @@ export default {
         this.submitObj = [
           {
             item: this.itemsMassCreation,
-            datum: this.radioSelected,
+            email: this.item.email,
+            creationDate: this.radioSelected.long,
             amount: this.value,
-            text: this.text,
-            moderator: this.$store.state.moderator,
+            note: this.text,
+            moderator: this.$store.state.moderator.id,
+
           },
         ]
         alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
@@ -252,15 +254,13 @@ export default {
         // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
         alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
         // erstellen eines Arrays (submitObj) mit allen Daten
-        this.submitObj = [
-          {
-            item: this.item,
-            datum: this.radioSelected.long,
-            amount: this.value,
-            text: this.text,
-            moderator: this.$store.state.moderator,
-          },
-        ]
+        this.submitObj = {
+          email: this.item.email,
+          creationDate: this.radioSelected.long,
+          amount: this.value,
+          note: this.text,
+          moderator: this.$store.state.moderator.id,
+        }
 
         if (this.pagetype === 'PageCreationConfirm') {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
