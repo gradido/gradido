@@ -69,6 +69,21 @@ We are currently restructuring the service to reduce dependencies and unify busi
 
 Once you have `docker-compose` up and running, you can open [http://localhost/vue](http://localhost/vue) and create yourself a new wallet account.
 
+## How to release
+
+A release is tagged on Github by its version number and published as github release. This is done automatically when a new version is defined in the [package.json](./package.json) and merged into master - furthermore we set all our sub-package-versions to the same version as the main package.json version to make version management as simple as possible.
+Each release is accompanied with release notes automatically generated from the git log which is available as [CHANGELOG.md](./CHANGELOG.md).
+
+To generate the Changelog and set a new Version you should use the following commands in the main folder
+```bash
+git fetch --all
+yarn release
+```
+
+The first command `git fetch --all` will make sure you have all tags previously defined which is required to generate a correct changelog. The second command `yarn release` will execute the changelog tool and set version numbers in the main package and sub-packages. It is required to do `yarn install` before you can use this command.
+After generating a new version you should commit the changes. This will be the CHANGELOG.md and several package.json files. This commit will be omitted in the changelog.
+
+Note: The Changelog will be regenerated with all tags on release on the external builder tool, but will not be checked in there. The Changelog on the github release will therefore always be correct, on the repo it might be incorrect due to missing tags when executing the `yarn release` command.
 ## Troubleshooting
 
 | Problem | Issue | Solution | Description |
