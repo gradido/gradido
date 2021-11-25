@@ -35,7 +35,7 @@ const store = new Vuex.Store({
   ],
   state: {
     token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
-    moderator: 'Dertest Moderator',
+    moderator: { name: 'Dertest Moderator', id: -1 },
     openCreations: 0,
   },
   // Syncronous mutation of the state
