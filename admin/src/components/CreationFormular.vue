@@ -128,6 +128,7 @@
   </div>
 </template>
 <script>
+import { createPendingCreation } from '../graphql/createPendingCreation'
 export default {
   name: 'CreationFormular',
   props: {
@@ -238,7 +239,6 @@ export default {
             amount: this.value,
             note: this.text,
             moderator: this.$store.state.moderator.id,
-
           },
         ]
         alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
@@ -251,15 +251,12 @@ export default {
       }
 
       if (this.type === 'singleCreation') {
-        // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
-        // erstellen eines Arrays (submitObj) mit allen Daten
         this.submitObj = {
           email: this.item.email,
           creationDate: this.radioSelected.long,
-          amount: this.value,
+          amount: Number(this.value),
           note: this.text,
-          moderator: this.$store.state.moderator.id,
+          moderator: Number(this.$store.state.moderator.id),
         }
 
         if (this.pagetype === 'PageCreationConfirm') {
@@ -272,15 +269,23 @@ export default {
             text: this.text,
           })
         } else {
-          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
-          // $store - offene Schöpfungen hochzählen
-          this.$store.commit('openCreationsPlus', 1)
+          this.$apollo
+            .query({
+              query: createPendingCreation,
+              variables: this.submitObj,
+            })
+            .then((result) => {
+              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+              this.$store.commit('openCreationsPlus', 1)
+            })
+            .catch((error) => {
+              this.$toasted.error(error.message)
+            })
         }
       }
 
       // das absendeergebniss im string ansehen
-      alert(JSON.stringify(this.submitObj))
+      // alert(JSON.stringify(this.submitObj))
       // das submitObj zurücksetzen
       this.submitObj = null
       // das creation Formular reseten
