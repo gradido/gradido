@@ -27,10 +27,10 @@ export class AdminResolver {
     return users
   }
 
-  @Query(() => Boolean)
+  @Query(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, note, creationDate, moderator }: CreatePendingCreationArgs,
-  ): Promise<boolean> {
+  ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
@@ -48,7 +48,7 @@ export class AdminResolver {
 
       pendingCreationRepository.save(loginPendingTaskAdmin)
     }
-    return false
+    return await getUserCreations(user.id)
   }
 }
 
