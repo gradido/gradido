@@ -24,6 +24,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="beforeLastMonth"
+              :disabled="creation[0] === 0"
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
@@ -34,6 +35,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="lastMonth"
+              :disabled="creation[1] === 0"
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
@@ -44,6 +46,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="currentMonth"
+              :disabled="creation[2] === 0"
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
