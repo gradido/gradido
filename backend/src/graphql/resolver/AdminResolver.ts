@@ -29,7 +29,7 @@ export class AdminResolver {
 
   @Query(() => Boolean)
   async createPendingCreation(
-    @Args() { email, amount, note, creationDate }: CreatePendingCreationArgs,
+    @Args() { email, amount, note, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<boolean> {
     // TODO: Check user validity
     const userRepository = getCustomRepository(UserRepository)
@@ -40,7 +40,16 @@ export class AdminResolver {
     if (isCreationValid(creations, amount, creationDate)) {
       // UserAdmin.creations()
       // TODO: Write pending creation to DB
-    } else {
+      const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+      const loginPendingTaskAdmin = pendingCreationRepository.create()
+      loginPendingTaskAdmin.userId = user.id
+      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
+      loginPendingTaskAdmin.created = new Date()
+      loginPendingTaskAdmin.date = new Date(creationDate)
+      loginPendingTaskAdmin.note = note
+      loginPendingTaskAdmin.moderator = moderator
+
+      pendingCreationRepository.save(loginPendingTaskAdmin)
     }
     return false
   }

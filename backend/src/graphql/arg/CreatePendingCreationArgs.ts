@@ -13,4 +13,7 @@ export default class CreatePendingCreationArgs {
 
   @Field(() => Date)
   creationDate: Date
+
+  @Field(() => Number)
+  moderator: number
 }
