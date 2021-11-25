@@ -23,7 +23,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
     // set new header token
     // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
-    // TODO this implementation is bullshit
+    // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
     const userRepository = await getCustomRepository(UserRepository)
     const user = await userRepository.findByPubkeyHex(context.pubKey)
     const serverUserRepository = await getCustomRepository(ServerUserRepository)
