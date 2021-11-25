@@ -40,6 +40,7 @@ export class AdminResolver {
     if (isCreationValid(creations, amount, creationDate)) {
       // UserAdmin.creations()
       // TODO: Write pending creation to DB
+    } else {
     }
     return false
   }
@@ -50,7 +51,13 @@ async function getUserCreations(id: number): Promise<number[]> {
   const dateMonth = moment().format('YYYY-MM') + '-01'
   const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM') + '-01'
   const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-  console.log('Searching creation amount for: ', dateNextMonth, dateMonth, dateLastMonth, dateBeforeLastMonth)
+  console.log(
+    'Searching creation amount for: ',
+    dateNextMonth,
+    dateMonth,
+    dateLastMonth,
+    dateBeforeLastMonth,
+  )
 
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
@@ -139,6 +146,9 @@ async function getUserCreations(id: number): Promise<number[]> {
     (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
   const usedCreationMonth =
     (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
+  console.log('1000 - usedCreationBeforeLastMonth', 1000 - usedCreationBeforeLastMonth)
+  console.log('1000 - usedCreationLastMonth', 1000 - usedCreationLastMonth)
+  console.log('1000 - usedCreationMonth', 1000 - usedCreationMonth)
   return [
     1000 - usedCreationBeforeLastMonth,
     1000 - usedCreationLastMonth,
@@ -147,5 +157,29 @@ async function getUserCreations(id: number): Promise<number[]> {
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: any) {
+  const dateMonth = moment().format('YYYY-MM')
+  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
+  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
+  // moment()
+  const creationDateMonth = moment(creationDate).format('YYYY-MM')
+  console.log('CHECK: ', creationDateMonth, dateMonth, dateLastMonth, dateBeforeLastMonth)
+  let openCreation
+  switch (creationDateMonth) {
+    case dateMonth:
+      openCreation = creations[2]
+      break
+    case dateLastMonth:
+      openCreation = creations[1]
+      break
+    case dateBeforeLastMonth:
+      openCreation = creations[0]
+      break
+    default:
+      throw new Error('CreationDate is not in last three months')
+  }
+  console.log('creation >= amount', openCreation >= amount, openCreation, amount)
+  if (openCreation < amount) {
+    throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
+  }
   return true
 }
