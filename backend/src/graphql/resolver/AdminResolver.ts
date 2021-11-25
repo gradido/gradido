@@ -46,13 +46,10 @@ export class AdminResolver {
 }
 
 async function getUserCreations(id: number): Promise<number[]> {
-  // TODO: NOW()-ActualDays - 2 Monate
-  // const actualDate = new Date()
   const dateNextMonth = moment().add(1, 'month').format('YYYY-MM') + '-01'
   const dateMonth = moment().format('YYYY-MM') + '-01'
   const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM') + '-01'
   const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-
   console.log('Searching creation amount for: ', dateNextMonth, dateMonth, dateLastMonth, dateBeforeLastMonth)
 
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
@@ -62,8 +59,8 @@ async function getUserCreations(id: number): Promise<number[]> {
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateBeforeLastMonth, // DATE
-        enddate: dateLastMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        date: dateBeforeLastMonth,
+        enddate: dateLastMonth,
       }),
     })
     .getRawOne()
@@ -76,7 +73,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
         date: dateLastMonth,
-        enddate: dateMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        enddate: dateMonth,
       }),
     })
     .getRawOne()
@@ -89,7 +86,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
         date: dateMonth,
-        enddate: dateNextMonth /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        enddate: dateNextMonth,
       }),
     })
     .getRawOne()
@@ -102,8 +99,8 @@ async function getUserCreations(id: number): Promise<number[]> {
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
       date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: '2021-11-01',
-        enddate: '2021-12-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        date: dateMonth,
+        enddate: dateNextMonth,
       }),
     })
     .getRawOne()
@@ -115,8 +112,8 @@ async function getUserCreations(id: number): Promise<number[]> {
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
       date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: '2021-10-01',
-        enddate: '2021-11-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        date: dateLastMonth,
+        enddate: dateMonth,
       }),
     })
     .getRawOne()
@@ -128,8 +125,8 @@ async function getUserCreations(id: number): Promise<number[]> {
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
       date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: '2021-09-01',
-        enddate: '2021-10-01' /* TODO: NOW().format("YYYY-MM") + '-01' - 2 Month */,
+        date: dateBeforeLastMonth,
+        enddate: dateLastMonth,
       }),
     })
     .getRawOne()
