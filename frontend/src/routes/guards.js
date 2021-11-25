@@ -14,7 +14,6 @@ const addNavigationGuards = (router, store, apollo) => {
   // store token on authenticate
   router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query.token) {
-      // TODO verify user in order to get user data
       store.commit('token', to.query.token)
       const result = await apollo.query({
         query: verifyLogin,
