@@ -285,9 +285,6 @@ export default {
       }
 
       // das absendeergebniss im string ansehen
-      // alert(JSON.stringify(this.submitObj))
-      // das submitObj zurücksetzen
-      this.submitObj = null
       // das creation Formular reseten
       this.$refs.creationForm.reset()
       // Den geschöpften Wert auf o setzen
