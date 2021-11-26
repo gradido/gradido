@@ -2,8 +2,14 @@ import { Resolver, Query, Arg, Authorized } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { proto } from '../../proto/gradido.proto'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sodium = require('sodium-native')
 
 const pendingTasksRequestProto = (
   amount: number,
@@ -11,6 +17,7 @@ const pendingTasksRequestProto = (
   receiverPubKey: Buffer,
   date: Date,
 ) => {
+  // TODO: signing user is not part of the transaction?
   const receiver = new proto.gradido.TransferAmount({
     amount,
     pubkey: receiverPubKey,
@@ -34,10 +41,117 @@ const pendingTasksRequestProto = (
   const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
 
   return bodyBytes // not sure this is the correct value yet
+
+  /*
+  // As fas as I understand it request contaisn just the transaction body
+  $transaction = new \Proto\Gradido\GradidoTransaction();
+  $transaction->setBodyBytes($body_bytes);
+
+  $protoSigMap = new \Proto\Gradido\SignatureMap();
+  $sigPairs = $protoSigMap->getSigPair();
+  //echo "sigPairs: "; var_dump($sigPairs); echo "<br>";
+  //return null;
+
+  // sign with keys
+  //foreach($keys as $key) {
+    $sigPair = new \Proto\Gradido\SignaturePair();  
+    $sigPair->setPubKey(hex2bin($data['signer_public_key']));
+    
+    $signature = sodium_crypto_sign_detached($body_bytes, hex2bin($data['signer_private_key']));
+    echo "signature: " . bin2hex($signature). "<br>";
+    $sigPair->setEd25519($signature);
+
+    $sigPairs[] = $sigPair;
+    // SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING
+    // SODIUM_BASE64_VARIANT_ORIGINAL
+    $transaction->setSigMap($protoSigMap);
+    //var_dump($protoSigMap);
+    $transaction_bin = $transaction->serializeToString();
+  */
+}
+
+const protoTransaction = (
+  senderPubKey: Buffer,
+  senderPrivKey: Buffer,
+  memo: string,
+  previousTransactionTxHash: Buffer | null,
+  transactionId: number,
+  transactionReceived: Date,
+) => {
+  const transactionBody = new proto.gradido.TransactionBody({
+    memo,
+    created: { seconds: new Date().getTime() / 1000 },
+  })
+
+  const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+
+  const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
+  sodium.crypto_sign_detached(
+    sign,
+    bodyBytes,
+    senderPrivKey.slice(0, sodium.crypto_sign_SECRETKEYBYTES),
+  )
+
+  if (!sign) {
+    throw new Error('error signing transaction')
+  }
+
+  // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
+  // TODO why generate and then verify?
+  /*
+  if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+    throw new Error('Could not verify signature')
+  }
+  */
+
+  const sigPair = new proto.gradido.SignaturePair({
+    pubKey: senderPubKey,
+    ed25519: sign,
+  })
+  // TODO: Why an array of sigPair?
+  const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
+
+  // tx hash
+  const state = Buffer.alloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(state, null, sodium.crypto_generichash_BYTES)
+  if (previousTransactionTxHash) {
+    sodium.crypto_generichash_update(state, previousTransactionTxHash)
+  }
+  sodium.crypto_generichash_update(state, Buffer.from(transactionId.toString()))
+  // TODO wtf - this looks scary
+  // should match previous used format: yyyy-MM-dd HH:mm:ss
+  const receivedString = transactionReceived.toISOString().slice(0, 19).replace('T', ' ')
+  sodium.crypto_generichash_update(state, Buffer.from(receivedString))
+  sodium.crypto_generichash_update(state, 'start decay')
+  const sigMapFinish = proto.gradido.SignatureMap.encode(sigMap).finish()
+  sodium.crypto_generichash_update(state, sigMapFinish)
+  const result = Buffer.alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash_final(state, result)
+  return [sign, result]
 }
 
 @Resolver()
 export class AdminResolver {
+  @Authorized([RIGHTS.CREATE_DECAY_START_BLOCK])
+  @Query(() => Boolean)
+  async createDecayStartBlock(@Arg('memo') memo?: string): Promise<boolean> {
+    const transactionRepository = await getCustomRepository(TransactionRepository)
+    if (
+      (await transactionRepository.count({ transactionTypeId: TransactionTypeId.DECAY_START })) > 0
+    ) {
+      throw new Error('Only one start decay block is allowed')
+    }
+
+    const [sign, txHash] = protoTransaction()
+    let transaction = new dbTransaction()
+    transaction.transactionTypeId = TransactionTypeId.DECAY_START
+    transaction.memo = memo || ''
+    transaction.txHash = txHash
+    // TODO this should be defined in the entity model aswell
+    // transaction.received = new Date()
+    return true
+  }
+
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => [UserAdmin])
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
