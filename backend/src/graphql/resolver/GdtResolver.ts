@@ -9,10 +9,11 @@ import Paginated from '../arg/Paginated'
 import { apiGet } from '../../apis/HttpRequest'
 import { UserRepository } from '../../typeorm/repository/User'
 import { Order } from '../enum/Order'
+import { RIGHTS } from '../../auth/RIGHTS'
 
 @Resolver()
 export class GdtResolver {
-  @Authorized()
+  @Authorized([RIGHTS.LIST_GDT_ENTRIES])
   @Query(() => GdtEntryList)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listGDTEntries(
@@ -33,7 +34,7 @@ export class GdtResolver {
     return new GdtEntryList(resultGDT.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.EXIST_PID])
   @Query(() => Number)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async existPid(@Arg('pid') pid: number): Promise<number> {

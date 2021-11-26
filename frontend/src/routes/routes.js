@@ -2,6 +2,9 @@ import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
+    path: '/authenticate',
+  },
+  {
     path: '/',
     redirect: (to) => {
       return { path: '/login' }
@@ -47,7 +50,7 @@ const routes = [
     path: '/thx/:comingFrom',
     component: () => import('../views/Pages/thx.vue'),
     beforeEnter: (to, from, next) => {
-      const validFrom = ['password', 'reset', 'register']
+      const validFrom = ['password', 'reset', 'register', 'login']
       if (!validFrom.includes(from.path.split('/')[1])) {
         next({ path: '/login' })
       } else {

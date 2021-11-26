@@ -1,4 +1,5 @@
 {
+  "admin_area": "Adminbereich",
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -46,6 +47,7 @@
     "change-password": "Fehler beim Ändern des Passworts",
     "error": "Fehler",
     "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
+    "no-email-verify": "Die Email wurde noch nicht bestätigt, bitte überprüfe deine Emails und klicke auf den Aktivierungslink!",
     "session-expired": "Sitzung abgelaufen!"
   },
   "form": {
@@ -180,9 +182,12 @@
       "uppercase": "Ein Großbuchstabe erforderlich."
     },
     "thx": {
+      "activateEmail": "Deine Email wurde noch nicht aktiviert, bitte überprüfe deine Email und Klicke den Aktivierungslink!",
       "checkEmail": "Deine Email würde erfolgreich verifiziert.",
       "email": "Wir haben dir eine eMail gesendet.",
-      "register": "Du bist jetzt registriert.",
+      "emailActivated": "Danke dass Du deine Email bestätigt hast.",
+      "errorTitle": "Achtung!",
+      "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
     }

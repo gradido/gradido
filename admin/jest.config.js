@@ -1,6 +1,11 @@
 module.exports = {
   verbose: true,
-  collectCoverageFrom: ['src/**/*.{js,vue}', '!**/node_modules/**', '!**/?(*.)+(spec|test).js?(x)'],
+  collectCoverageFrom: [
+    'src/**/*.{js,vue}',
+    '!**/node_modules/**',
+    '!src/assets/**',
+    '!**/?(*.)+(spec|test).js?(x)',
+  ],
   moduleFileExtensions: [
     'js',
     // 'jsx',

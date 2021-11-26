@@ -9,7 +9,7 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
-import encode from '../../jwt/encode'
+import { encode } from '../../auth/JWT'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
@@ -22,14 +22,17 @@ import {
 } from '../../middleware/klicktippMiddleware'
 import { CheckEmailResponse } from '../model/CheckEmailResponse'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
+import { RIGHTS } from '../../auth/RIGHTS'
+import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
+import { ROLE_ADMIN } from '../../auth/ROLES'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -194,6 +197,41 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
+  @Authorized([RIGHTS.VERIFY_LOGIN])
+  @Query(() => User)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    // TODO refactor and do not have duplicate code with login(see below)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(userEntity.email)
+    const user = new User()
+    user.email = userEntity.email
+    user.firstName = userEntity.firstName
+    user.lastName = userEntity.lastName
+    user.username = userEntity.username
+    user.description = loginUser.description
+    user.pubkey = userEntity.pubkey.toString('hex')
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage(context)
+
+    // coinAnimation
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+
+    user.isAdmin = context.role === ROLE_ADMIN
+    return user
+  }
+
+  @Authorized([RIGHTS.LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -201,33 +239,33 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-
-    // if there is no user, throw an authentication error
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: encode(result.data.user.public_hex),
+    // const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
+    // UnsecureLogin
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
+      throw new Error('No user with this credentials')
     })
-    const user = new User(result.data.user)
-    // Hack: Database Field is not validated properly and not nullable
-    if (user.publisherId === 0) {
-      user.publisherId = undefined
+    if (!loginUser.emailChecked) throw new Error('user email not validated')
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    const loginUserPassword = BigInt(loginUser.password.toString())
+    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+      throw new Error('No user with this credentials')
     }
-    user.hasElopage = result.data.hasElopage
-    // read additional settings from settings table
+    // TODO: If user has no pubKey Create it again and update user.
+
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: void | DbUser
-    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
+    const loginUserPubKey = loginUser.pubKey
+    const loginUserPubKeyString = loginUserPubKey.toString('hex')
+    userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
+      // User not stored in state_users
+      // TODO: Check with production data - email is unique which can cause problems
       userEntity = new DbUser()
-      userEntity.firstName = user.firstName
-      userEntity.lastName = user.lastName
-      userEntity.username = user.username
-      userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(user.pubkey, 'hex')
+      userEntity.firstName = loginUser.firstName
+      userEntity.lastName = loginUser.lastName
+      userEntity.username = loginUser.username
+      userEntity.email = loginUser.email
+      userEntity.pubkey = loginUser.pubKey
 
       userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
@@ -237,16 +275,28 @@ export class UserResolver {
       throw new Error('error with cannot happen')
     }
 
-    // Save publisherId if Elopage is not yet registered
+    const user = new User()
+    user.email = email
+    user.firstName = loginUser.firstName
+    user.lastName = loginUser.lastName
+    user.username = loginUser.username
+    user.description = loginUser.description
+    user.pubkey = loginUserPubKeyString
+    user.language = loginUser.language
+
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage({ pubKey: loginUserPubKeyString })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-
+      // TODO: Check if we can use updateUserInfos
+      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
       const loginUserRepository = getCustomRepository(LoginUserRepository)
       const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
       loginUser.publisherId = publisherId
       loginUserRepository.save(loginUser)
     }
 
+    // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
@@ -254,9 +304,21 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+
+    // context.role is not set to the actual role yet on login
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
+
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(loginUser.pubKey),
+    })
+
     return user
   }
 
+  @Authorized([RIGHTS.LOGIN_VIA_EMAIL_VERIFICATION_CODE])
   @Query(() => LoginViaVerificationCode)
   async loginViaEmailVerificationCode(
     @Arg('optin') optin: string,
@@ -272,7 +334,7 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.LOGOUT])
   @Query(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
@@ -283,6 +345,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => String)
   async createUser(
     @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
@@ -291,7 +354,7 @@ export class UserResolver {
     // default int publisher_id = 0;
 
     // Validate Language (no throw)
-    if (!isLanguage(language)) {
+    if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
 
@@ -423,6 +486,7 @@ export class UserResolver {
     return 'success'
   }
 
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => SendPasswordResetEmailResponse)
   async sendResetPasswordEmail(
     @Arg('email') email: string,
@@ -439,6 +503,7 @@ export class UserResolver {
     return new SendPasswordResetEmailResponse(response.data)
   }
 
+  @Authorized([RIGHTS.RESET_PASSWORD])
   @Mutation(() => String)
   async resetPassword(
     @Args()
@@ -456,7 +521,7 @@ export class UserResolver {
     return 'success'
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
@@ -537,7 +602,7 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      if (coinanimation) {
+      if (coinanimation !== null && coinanimation !== undefined) {
         queryRunner.manager
           .getCustomRepository(UserSettingRepository)
           .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
@@ -565,6 +630,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
   async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
     // Username empty?
@@ -588,6 +654,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_EMAIL])
   @Query(() => CheckEmailResponse)
   @UseMiddleware(klicktippRegistrationMiddleware)
   async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
@@ -600,7 +667,7 @@ export class UserResolver {
     return new CheckEmailResponse(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
@@ -609,7 +676,8 @@ export class UserResolver {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
+    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
+    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
     return elopageBuyCount > 0
   }
 }

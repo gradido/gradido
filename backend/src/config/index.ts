@@ -51,14 +51,25 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
+}
+
+const webhook = {
+  WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...email, ...loginServer }
+const CONFIG = {
+  ...server,
+  ...database,
+  ...klicktipp,
+  ...community,
+  ...email,
+  ...loginServer,
+  ...webhook,
+}
 
 export default CONFIG
