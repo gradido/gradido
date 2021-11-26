@@ -151,16 +151,10 @@ describe('Register', () => {
         expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
       })
 
-      it('has password input fields', () => {
-        expect(wrapper.find('input[name="form.password"]').exists()).toBeTruthy()
-      })
-
-      it('has password repeat input fields', () => {
-        expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
-      })
       it('has Language selected field', () => {
         expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
       })
+
       it('selects Language value en', async () => {
         wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
         expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
@@ -218,8 +212,6 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456_')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
       })
 
@@ -270,7 +262,6 @@ describe('Register', () => {
                 email: 'max.mustermann@gradido.net',
                 firstName: 'Max',
                 lastName: 'Mustermann',
-                password: 'Aa123456_',
                 language: 'en',
                 publisherId: 12345,
               },

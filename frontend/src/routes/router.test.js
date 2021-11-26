@@ -167,7 +167,7 @@ describe('router', () => {
       describe('checkEmail', () => {
         it('loads the "CheckEmail" component', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
-          expect(component.default.name).toBe('CheckEmail')
+          expect(component.default.name).toBe('ResetPassword')
         })
       })
 
