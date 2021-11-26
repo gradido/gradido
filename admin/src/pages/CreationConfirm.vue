@@ -1,9 +1,5 @@
 <template>
   <div class="creation-confirm">
-    <small class="bg-danger text-light p-1">
-      Die anzahl der offene Schöpfungen stimmen nicht! Diese wird bei absenden im $store
-      hochgezählt. Die Liste die hier angezeigt wird ist SIMULIERT!
-    </small>
     <user-table
       class="mt-4"
       type="PageCreationConfirm"
