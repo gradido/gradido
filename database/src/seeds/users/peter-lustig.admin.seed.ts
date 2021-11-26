@@ -2,7 +2,8 @@ import { Factory, Seeder } from 'typeorm-seeding'
 import { User } from '../../../entity/User'
 import { LoginUser } from '../../../entity/LoginUser'
 import { LoginUserBackup } from '../../../entity/LoginUserBackup'
-// import { ServerUser } from '../../../entity/ServerUser'
+import { ServerUser } from '../../../entity/ServerUser'
+import { LoginUserRoles } from '../../../entity/LoginUserRoles'
 
 const peterLustig = {
   email: 'peter@lustig.de',
@@ -17,7 +18,7 @@ const peterLustig = {
     'hex',
   ),
   emailHash: Buffer.from('9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036', 'hex'),
-  createdAt: new Date('2021-11-25T10:48:43'),
+  createdAt: new Date('2020-11-25T10:48:43'),
   emailChecked: true,
   passphraseShown: false,
   language: 'de',
@@ -28,9 +29,10 @@ const peterLustig = {
     'okay property choice naive calm present weird increase stuff royal vibrant frame attend wood one else tribe pull hedgehog woman kitchen hawk snack smart ',
   mnemonicType: 2,
   role: 'admin',
-  activated: 0,
+  serverUserPassword: '$2y$10$TzIWLeZoKs251gwrhSQmHeKhKI/EQ4EV5ClfAT8Ufnb4lcUXPa5X.',
+  activated: 1,
   lastLogin: new Date('2021-10-27T12:25:57'),
-  modified: new Date('2021-10-27T12:25:57'),
+  modified: new Date('2021-09-27T12:25:57'),
   isAdmin: true,
 }
 
@@ -68,6 +70,22 @@ export class CreatePeterLustigSeed implements Seeder {
       passphrase: peterLustig.passphrase,
       mnemonicType: peterLustig.mnemonicType,
       userId: loginUser.id,
+    }).create()
+
+    await factory(ServerUser)({
+      role: peterLustig.role,
+      username: peterLustig.username,
+      password: peterLustig.serverUserPassword,
+      email: peterLustig.email,
+      activated: peterLustig.activated,
+      created: peterLustig.createdAt,
+      lastLogin: peterLustig.lastLogin,
+      modified: peterLustig.modified,
+    }).create()
+
+    await factory(LoginUserRoles)({
+      userId: loginUser.id,
+      roleId: 1,
     }).create()
   }
 }

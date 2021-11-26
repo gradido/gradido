@@ -4,7 +4,7 @@ import { ServerUser } from '../../entity/ServerUser'
 
 interface ServerUserContext {
   username?: string
-  password?: BigInt
+  password?: string
   email?: string
   role?: string
   activated?: number
@@ -18,7 +18,7 @@ define(ServerUser, (faker: typeof Faker, context?: ServerUserContext) => {
 
   const user = new ServerUser()
   user.username = context.username ? context.username : faker.internet.userName()
-  user.password = context.password ? context.password : BigInt(0)
+  user.password = context.password ? context.password : faker.internet.password()
   user.email = context.email ? context.email : faker.internet.email()
   user.role = context.role ? context.role : 'admin'
   user.activated = context.activated ? context.activated : 0
