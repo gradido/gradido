@@ -3,6 +3,38 @@ import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { proto } from '../../proto/gradido.proto'
+
+const pendingTasksRequestProto = (
+  amount: number,
+  memo: string,
+  receiverPubKey: Buffer,
+  date: Date,
+) => {
+  const receiver = new proto.gradido.TransferAmount({
+    amount,
+    pubkey: receiverPubKey,
+  })
+
+  const targetDate = new proto.gradido.TimestampSeconds({
+    seconds: date.getTime() / 1000,
+  })
+
+  const creation = new proto.gradido.GradidoCreation({
+    receiver,
+    targetDate,
+  })
+
+  const transactionBody = new proto.gradido.TransactionBody({
+    memo,
+    created: { seconds: new Date().getTime() / 1000 },
+    creation,
+  })
+
+  const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+
+  return bodyBytes // not sure this is the correct value yet
+}
 
 @Resolver()
 export class AdminResolver {
