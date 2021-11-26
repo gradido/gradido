@@ -476,6 +476,9 @@ const protoTransaction = (
   recipiantPublicKey: string,
   centAmount: number,
   memo: string,
+  previousTransactionTxHash: Buffer | null,
+  transactionId: number,
+  transactionReceived: Date,
 ) => {
   const transferAmount = new proto.gradido.TransferAmount({
     pubkey: senderPubKey,
@@ -504,19 +507,21 @@ const protoTransaction = (
     senderPrivKey.slice(0, sodium.crypto_sign_SECRETKEYBYTES),
   )
 
-  return [bodyBytes, sign]
-}
+  if (!sign) {
+    throw new Error('error signing transaction')
+  }
 
-const protoTransactionTxSignature = (
-  senderPubKey: Buffer,
-  transactionSign: Buffer | Uint8Array,
-  previousTransactionTxHash: Buffer | null,
-  transactionId: number,
-  transactionReceived: Date,
-) => {
+  // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
+  // TODO why generate and then verify?
+  /*
+  if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+    throw new Error('Could not verify signature')
+  }
+  */
+
   const sigPair = new proto.gradido.SignaturePair({
     pubKey: senderPubKey,
-    ed25519: transactionSign,
+    ed25519: sign,
   })
   // TODO: Why an array of sigPair?
   const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
@@ -536,7 +541,7 @@ const protoTransactionTxSignature = (
   sodium.crypto_generichash_update(state, sigMapFinish)
   const result = Buffer.alloc(sodium.crypto_generichash_BYTES)
   sodium.crypto_generichash_final(state, result)
-  return result
+  return [sign, result]
 }
 
 @Resolver()
@@ -645,27 +650,6 @@ export class TransactionResolver {
         throw new Error('error reading keys')
       }
 
-      // TODO Why don't we save the bodybytes? Thats is the blockchain values we would be writing to the blockchain
-      const [bodyBytes, sign] = protoTransaction(
-        senderUser.pubKey,
-        senderUser.privKey,
-        recipiantPublicKey,
-        centAmount,
-        memo,
-      )
-
-      if (!sign) {
-        throw new Error('error signing transaction')
-      }
-
-      // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
-      // TODO why generate and then verify?
-      /*
-      if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
-        throw new Error('Could not verify signature')
-      }
-      */
-
       let previousTransactionTxHash = null
       if (transaction.id > 1) {
         const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
@@ -675,15 +659,22 @@ export class TransactionResolver {
         previousTransactionTxHash = previousTransaction.txHash
       }
 
-      // TODO this should be defined in the entity model aswell
-      // transaction.received = new Date()
-      transaction.txHash = protoTransactionTxSignature(
+      // TODO Why don't we save the bodybytes? Thats is the blockchain values we would be writing to the blockchain
+      const [sign, txHash] = protoTransaction(
         senderUser.pubKey,
-        sign,
+        senderUser.privKey,
+        recipiantPublicKey,
+        centAmount,
+        memo,
         previousTransactionTxHash,
         transaction.id,
         transaction.received,
       )
+
+      transaction.txHash = txHash
+
+      // TODO this should be defined in the entity model aswell
+      // transaction.received = new Date()
 
       // save signature
       const signature = new DbTransactionSignature()
