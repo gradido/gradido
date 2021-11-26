@@ -277,19 +277,26 @@ export default {
             })
             .then((result) => {
               this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+              this.$toasted.success(
+                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
+              )
               this.$store.commit('openCreationsPlus', 1)
-              this.$toasted.success('Schöpfung eingereicht')
+              this.submitObj = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
             })
             .catch((error) => {
               this.$toasted.error(error.message)
+              this.submitObj = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
             })
         }
       }
-      // das absendeergebniss im string ansehen
-      // das creation Formular reseten
-      this.$refs.creationForm.reset()
-      // Den geschöpften Wert auf o setzen
-      this.value = 0
     },
   },
 }
