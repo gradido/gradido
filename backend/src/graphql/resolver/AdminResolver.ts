@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Authorized } from 'type-graphql'
+import { Resolver, Query, Arg, Authorized, Ctx } from 'type-graphql'
 import { getCustomRepository } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
@@ -6,7 +6,9 @@ import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { proto } from '../../proto/gradido.proto'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { Transaction as dbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionSignature as DbTransactionSignature } from '@entity/TransactionSignature'
+import { UserRepository } from '../../typeorm/repository/User'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -134,21 +136,62 @@ const protoTransaction = (
 export class AdminResolver {
   @Authorized([RIGHTS.CREATE_DECAY_START_BLOCK])
   @Query(() => Boolean)
-  async createDecayStartBlock(@Arg('memo') memo?: string): Promise<boolean> {
+  async createDecayStartBlock(@Arg('memo') memo: string, @Ctx() context: any): Promise<boolean> {
     const transactionRepository = await getCustomRepository(TransactionRepository)
     if (
       (await transactionRepository.count({ transactionTypeId: TransactionTypeId.DECAY_START })) > 0
     ) {
       throw new Error('Only one start decay block is allowed')
     }
+    const userRepository = getCustomRepository(UserRepository)
+    const stateUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const senderUser = await loginUserRepository.findByEmail(stateUser.email)
+    if (senderUser.pubKey.length !== 32) {
+      throw new Error('invalid sender public key')
+    }
 
-    const [sign, txHash] = protoTransaction()
-    let transaction = new dbTransaction()
-    transaction.transactionTypeId = TransactionTypeId.DECAY_START
-    transaction.memo = memo || ''
-    transaction.txHash = txHash
+    if (!senderUser.pubKey || !senderUser.privKey) {
+      throw new Error('error reading keys')
+    }
+
+    let transaction = new DbTransaction()
     // TODO this should be defined in the entity model aswell
     // transaction.received = new Date()
+    transaction = await transactionRepository.save(transaction)
+
+    let previousTransactionTxHash = null
+    if (transaction.id > 1) {
+      const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
+      if (!previousTransaction) {
+        throw new Error('Error previous transaction not found')
+      }
+      previousTransactionTxHash = previousTransaction.txHash
+    }
+
+    const [sign, txHash] = protoTransaction(
+      senderUser.pubKey,
+      senderUser.privKey,
+      memo,
+      previousTransactionTxHash,
+      transaction.id,
+      transaction.received,
+    )
+    transaction.transactionTypeId = TransactionTypeId.DECAY_START
+    transaction.memo = memo
+    transaction.txHash = txHash
+
+    await transactionRepository.save(transaction).catch((error) => {
+      throw new Error('error saving transaction with tx hash: ' + error)
+    })
+
+    // save signature
+    // This was not done before - no signature was saved for the decay start block
+    const signature = new DbTransactionSignature()
+    signature.transactionId = transaction.id
+    signature.signature = Buffer.from(sign)
+    signature.pubkey = senderUser.pubKey
+
     return true
   }
 
