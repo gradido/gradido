@@ -66,7 +66,7 @@
               ></b-form-input>
             </b-input-group>
 
-            <b-input-group prepend="0" :append="rangeMax" class="mt-3">
+            <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
                 type="range"
                 v-model="value"
