@@ -1,6 +1,7 @@
 import { Resolver, Query, Arg, Args, Authorized } from 'type-graphql'
 import { getCustomRepository, Raw, Any } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
+import { PendingCreation } from '../model/PendingCreation'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
@@ -54,12 +55,28 @@ export class AdminResolver {
     return await getUserCreations(user.id)
   }
 
-  @Query(() => String)
-  async getPendingCreations(): Promise<string> {
+  @Query(() => [PendingCreation])
+  async getPendingCreations(): Promise<PendingCreation[]> {
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const pendingCreations = await pendingCreationRepository.find()
-    console.log('pendingCreations', pendingCreations)
-    return pendingCreations.toString()
+
+    const pendingCreationsPromise = await Promise.all(
+      pendingCreations.map(async (pendingCreation) => {
+        const userRepository = getCustomRepository(UserRepository)
+        const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
+
+        const newPendingCreation = {
+          ...pendingCreation,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        }
+
+        return newPendingCreation
+      }),
+    )
+    console.log('pendingCreations', pendingCreationsPromise)
+    return pendingCreationsPromise
   }
 }
 
