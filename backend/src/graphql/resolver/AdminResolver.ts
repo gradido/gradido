@@ -84,7 +84,7 @@ export class AdminResolver {
     const entity = await pendingCreationRepository.findOne(id)
     if (!entity) throw new Error('Not pending creation with this id.')
     const res = await pendingCreationRepository.manager.remove(entity)
-    return res ? true : false
+    return !!res
   }
 }
 
