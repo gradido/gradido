@@ -732,9 +732,9 @@ export class TransactionResolver {
       // transactionSendCoin
       const transactionSendCoin = new dbTransactionSendCoin()
       transactionSendCoin.transactionId = transaction.id
-      transactionSendCoin.userId = senderUser.id
+      transactionSendCoin.userId = stateUser.id // = senderUser but != senderUser.id // TODO careful user ids of login user and state_users are not the same
       transactionSendCoin.senderPublic = senderUser.pubKey
-      transactionSendCoin.recipiantUserId = recipiantUser.id
+      transactionSendCoin.recipiantUserId = recipiantUser.id // TODO careful user ids of login user and state_users are not the same
       transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
       transactionSendCoin.amount = centAmount
       transactionSendCoin.senderFinalBalance = senderStateBalance.amount
