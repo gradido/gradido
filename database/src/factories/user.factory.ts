@@ -2,15 +2,7 @@ import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { User } from '../../entity/User'
 import { randomBytes } from 'crypto'
-
-interface UserContext {
-  pubkey?: Buffer
-  email?: string
-  firstName?: string
-  lastName?: string
-  username?: string
-  disabled?: boolean
-}
+import { UserContext } from '../interface/UserContext'
 
 define(User, (faker: typeof Faker, context?: UserContext) => {
   if (!context) context = {}

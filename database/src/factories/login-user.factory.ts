@@ -2,25 +2,7 @@ import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { LoginUser } from '../../entity/LoginUser'
 import { randomBytes } from 'crypto'
-
-interface LoginUserContext {
-  email?: string
-  firstName?: string
-  lastName?: string
-  username?: string
-  description?: string
-  password?: BigInt
-  pubKey?: Buffer
-  privKey?: Buffer
-  emailHash?: Buffer
-  createdAt?: Date
-  emailChecked?: boolean
-  passphraseShown?: boolean
-  language?: string
-  disabled?: boolean
-  groupId?: number
-  publisherId?: number
-}
+import { LoginUserContext } from '../interface/UserContext'
 
 define(LoginUser, (faker: typeof Faker, context?: LoginUserContext) => {
   if (!context) context = {}

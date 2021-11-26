@@ -1,17 +1,7 @@
 import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { ServerUser } from '../../entity/ServerUser'
-
-interface ServerUserContext {
-  username?: string
-  password?: string
-  email?: string
-  role?: string
-  activated?: number
-  lastLogin?: Date
-  created?: Date
-  modified?: Date
-}
+import { ServerUserContext } from '../interface/UserContext'
 
 define(ServerUser, (faker: typeof Faker, context?: ServerUserContext) => {
   if (!context) context = {}

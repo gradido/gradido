@@ -1,11 +1,7 @@
 import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { LoginUserRoles } from '../../entity/LoginUserRoles'
-
-interface LoginUserRolesContext {
-  userId?: number
-  roleId?: number
-}
+import { LoginUserRolesContext } from '../interface/UserContext'
 
 define(LoginUserRoles, (faker: typeof Faker, context?: LoginUserRolesContext) => {
   if (!context) context = {}

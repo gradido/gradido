@@ -1,13 +1,5 @@
-export interface UserContext {
-  pubkey?: Buffer
-  email?: string
-  firstName?: string
-  lastName?: string
-  username?: string
-  disabled?: boolean
-}
-
-export interface LoginUserContext {
+export interface UserInterface {
+  // from login user (contains state user)
   email?: string
   firstName?: string
   lastName?: string
@@ -24,26 +16,15 @@ export interface LoginUserContext {
   disabled?: boolean
   groupId?: number
   publisherId?: number | null
-}
-
-export interface LoginUserBackupContext {
-  userId?: number
+  // from login user backup
   passphrase?: string
   mnemonicType?: number
-}
-
-export interface ServerUserContext {
-  username?: string
-  password?: string
-  email?: string
+  // from server user
+  serverUserPassword?: string
   role?: string
   activated?: number
   lastLogin?: Date
-  created?: Date
   modified?: Date
-}
-
-export interface LoginUserRolesContext {
-  userId?: number
-  roleId?: number
+  // flag for admin
+  isAdmin?: boolean
 }

@@ -1,12 +1,7 @@
 import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { LoginUserBackup } from '../../entity/LoginUserBackup'
-
-interface LoginUserBackupContext {
-  userId?: number
-  passphrase?: string
-  mnemonicType?: number
-}
+import { LoginUserBackupContext } from '../interface/UserContext'
 
 define(LoginUserBackup, (faker: typeof Faker, context?: LoginUserBackupContext) => {
   if (!context) context = {}
