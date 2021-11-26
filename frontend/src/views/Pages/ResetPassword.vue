@@ -26,7 +26,7 @@
                   <input-password-confirmation v-model="form" />
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
-                      {{ $t('settings.password.reset') }}
+                      {{ $t(displaySetup.button) }}
                     </b-button>
                   </div>
                 </b-form>
@@ -35,9 +35,9 @@
           </b-card>
         </b-col>
       </b-row>
-      <b-row>
+      <b-row v-if="displaySetup.linkTo">
         <b-col class="text-center py-lg-4">
-          <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+          <router-link :to="displaySetup.linkTo" class="mt-3">{{ $t('back') }}</router-link>
         </b-col>
       </b-row>
     </b-container>
@@ -46,6 +46,25 @@
 <script>
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
 import { setPassword } from '../../graphql/mutations'
+
+const textFields = {
+  reset: {
+    authenticated: 'settings.password.reset-password.text',
+    notAuthenticated: 'settings.password.not-authenticated',
+    button: 'settings.password.reset',
+    linkTo: '/login',
+  },
+  checkEmail: {
+    authenticated: 'settings.password.set-password.text',
+    notAuthenticated: 'settings.password.not-authenticated',
+    button: 'settings.password.set',
+    linkTo: '/login',
+  },
+  login: {
+    headline: 'site.thx.errorTitle',
+    subtitle: 'site.thx.activateEmail',
+  },
+}
 
 export default {
   name: 'ResetPassword',
@@ -82,9 +101,13 @@ export default {
       // TODO validate somehow if present and looks good?
       // const optin = this.$route.params.optin
     },
+    setDisplaySetup(from) {
+      this.displaySetup = textFields[this.$route.params.comingFrom]
+    },
   },
   mounted() {
     this.authenticate()
+    this.setDisplaySetup()
   },
 }
 </script>
