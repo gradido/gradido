@@ -18,6 +18,9 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
   },
+  setOpenCreations: (state, openCreations) => {
+    state.openCreations = openCreations
+  },
 }
 
 export const actions = {

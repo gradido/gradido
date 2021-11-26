@@ -76,7 +76,24 @@
   </div>
 </template>
 <script>
+import { countPendingCreations } from '../graphql/getCountPendingCreations'
+
 export default {
   name: 'overview',
+  methods: {
+    getCountPendingCreation() {
+      this.$apollo
+        .query({
+          query: countPendingCreations,
+        })
+        .then((result) => {
+          this.$store.commit('setOpenCreations', result.data.countPendingCreations)
+        })
+        .catch()
+    },
+  },
+  created() {
+    this.getCountPendingCreation()
+  },
 }
 </script>
