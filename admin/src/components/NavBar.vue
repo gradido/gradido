@@ -1,7 +1,9 @@
 <template>
   <div class="component-nabvar">
     <b-navbar toggleable="sm" type="dark" variant="success">
-      <b-navbar-brand to="/"></b-navbar-brand>
+      <b-navbar-brand to="/">
+        <img :src="logo" class="navbar-brand-img" alt="..." />
+      </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -30,6 +32,11 @@ import CONFIG from '../config'
 
 export default {
   name: 'navbar',
+  data() {
+    return {
+      logo: 'img/brand/green.png',
+    }
+  },
   methods: {
     logout() {
       // TODO
@@ -57,3 +64,8 @@ export default {
   },
 }
 </script>
+<style>
+.navbar-brand-img {
+  height: 2.5 rem;
+}
+</style>
