@@ -498,7 +498,11 @@ const protoTransaction = (
   const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
 
   const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
-  sodium.crypto_sign_detached(sign, bodyBytes, senderPrivKey)
+  sodium.crypto_sign_detached(
+    sign,
+    bodyBytes,
+    senderPrivKey.slice(0, sodium.crypto_sign_SECRETKEYBYTES),
+  )
 
   return [bodyBytes, sign]
 }
@@ -518,17 +522,21 @@ const protoTransactionTxSignature = (
   const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
 
   // tx hash
-  const state = sodium.crypto_generichash_init(null, sodium.crypto_generic_hash_bytes)
+  const state = Buffer.alloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(state, null, sodium.crypto_generichash_BYTES)
   if (previousTransactionTxHash) {
     sodium.crypto_generichash_update(state, previousTransactionTxHash)
   }
-  sodium.crypto_generichash_update(state, transactionId.toString())
+  sodium.crypto_generichash_update(state, Buffer.from(transactionId.toString()))
   // TODO wtf - this looks scary
   // should match previous used format: yyyy-MM-dd HH:mm:ss
   const receivedString = transactionReceived.toISOString().slice(0, 19).replace('T', ' ')
-  sodium.crypto_generichash_update(state, receivedString)
-  sodium.crypto_generichash_update(state, proto.gradido.SignatureMap.encode(sigMap).finish())
-  return Buffer.from(sodium.crypto_generichash_final(state, sodium.crypto_generic_hash_bytes))
+  sodium.crypto_generichash_update(state, Buffer.from(receivedString))
+  const sigMapFinish = proto.gradido.SignatureMap.encode(sigMap).finish()
+  sodium.crypto_generichash_update(state, sigMapFinish)
+  const result = Buffer.alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash_final(state, result)
+  return result
 }
 
 @Resolver()
@@ -607,68 +615,19 @@ export class TransactionResolver {
       throw new Error('invalid amount')
     }
 
-    let transaction = new dbTransaction()
-
-    const centAmount = Math.trunc(amount * 10000)
-    // PROTOBUFF START
-
     const transactionRepository = getCustomRepository(TransactionRepository)
 
-    // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
-
-    if (!senderUser.pubKey || !senderUser.privKey) {
-      throw new Error('error reading keys')
-    }
-
-    // TODO Why don't we save the bodybytes? Thats is the blockchain values we would be writing to the blockchain
-    const [bodyBytes, sign] = protoTransaction(
-      senderUser.pubKey,
-      senderUser.privKey,
-      recipiantPublicKey,
-      centAmount,
-      memo,
-    )
-
-    if (!sign) {
-      throw new Error('error signing transaction')
-    }
-
-    // TODO why generate and then verify?
-    /*
-    if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
-      throw new Error('Could not verify signature')
-    }
-    */
-
-    let previousTransactionTxHash = null
-    if (transaction.id > 1) {
-      const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
-      if (!previousTransaction) {
-        throw new Error('Error previous transaction not found')
-      }
-      previousTransactionTxHash = previousTransaction.txHash
-    }
-
-    transaction.txHash = protoTransactionTxSignature(
-      senderUser.pubKey,
-      sign,
-      previousTransactionTxHash,
-      transaction.id,
-      transaction.received,
-    )
-
-    // save signature
-    const signature = new DbTransactionSignature()
-    signature.transactionId = transaction.id
-    signature.signature = Buffer.from(sign)
-    signature.pubkey = senderUser.pubKey
-
-    // PROTOBUFF END
+    const centAmount = Math.trunc(amount * 10000)
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
+      let transaction = new dbTransaction()
+      // TODO wtf - very very scary - this is required since we need the correct id for the transaction. This requires the auto increment to be sequential
+      // Also apparently the autoincrement starts from 1 not 0
+      // transaction.id = (await transactionRepository.count()) + 1
+
       // transaction
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
@@ -680,6 +639,58 @@ export class TransactionResolver {
         .catch((error) => {
           throw new Error('error loading saved transaction: ' + error)
         })
+
+      // PROTOBUFF START
+      if (!senderUser.pubKey || !senderUser.privKey) {
+        throw new Error('error reading keys')
+      }
+
+      // TODO Why don't we save the bodybytes? Thats is the blockchain values we would be writing to the blockchain
+      const [bodyBytes, sign] = protoTransaction(
+        senderUser.pubKey,
+        senderUser.privKey,
+        recipiantPublicKey,
+        centAmount,
+        memo,
+      )
+
+      if (!sign) {
+        throw new Error('error signing transaction')
+      }
+
+      // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
+      // TODO why generate and then verify?
+      /*
+      if (!cryptoSignVerifyDetached(sign, bodyBytesBase64, senderUser.pubkey)) {
+        throw new Error('Could not verify signature')
+      }
+      */
+
+      let previousTransactionTxHash = null
+      if (transaction.id > 1) {
+        const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
+        if (!previousTransaction) {
+          throw new Error('Error previous transaction not found')
+        }
+        previousTransactionTxHash = previousTransaction.txHash
+      }
+
+      // TODO this should be defined in the entity model aswell
+      // transaction.received = new Date()
+      transaction.txHash = protoTransactionTxSignature(
+        senderUser.pubKey,
+        sign,
+        previousTransactionTxHash,
+        transaction.id,
+        transaction.received,
+      )
+
+      // save signature
+      const signature = new DbTransactionSignature()
+      signature.transactionId = transaction.id
+      signature.signature = Buffer.from(sign)
+      signature.pubkey = senderUser.pubKey
+      // PROTOBUFF END
 
       // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
