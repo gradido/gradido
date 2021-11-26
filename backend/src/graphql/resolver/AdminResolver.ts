@@ -8,6 +8,7 @@ import { PendingCreationRepository } from '../../typeorm/repository/PendingCreat
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import moment from 'moment'
+import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 
 @Resolver()
 export class AdminResolver {
@@ -75,6 +76,15 @@ export class AdminResolver {
       }),
     )
     return pendingCreationsPromise
+  }
+
+  @Query(() => Boolean)
+  async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const entity = await pendingCreationRepository.findOne(id)
+    if (!entity) throw new Error('Not pending creation with this id.')
+    const res = await pendingCreationRepository.manager.remove(entity)
+    return res ? true : false
   }
 }
 
