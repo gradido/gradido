@@ -76,7 +76,7 @@ export default {
         .then((result) => {
           this.confirmResult = result.data.getPendingCreations
           this.$store.commit('resetOpenCreations')
-          this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
+          this.$store.commit('openCreationsPlus', result.data.getPendingCreations.length)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
