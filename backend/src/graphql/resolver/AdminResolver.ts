@@ -38,7 +38,6 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
-    console.log('User', user)
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
@@ -77,7 +76,6 @@ export class AdminResolver {
         return newPendingCreation
       }),
     )
-    console.log('pendingCreations', pendingCreationsPromise)
     return pendingCreationsPromise
   }
 }
