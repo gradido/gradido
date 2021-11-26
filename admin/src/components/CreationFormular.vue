@@ -56,28 +56,27 @@
 
         <b-row class="m-4" v-show="createdIndex != null">
           <label>Betrag Auswählen</label>
-          <b-input-group>
-            <template #append>
-              <b-input-group-text><strong class="text-danger">GDD</strong></b-input-group-text>
-            </template>
-            <b-form-input
-              type="number"
-              v-model="value"
-              :min="rangeMin"
-              :max="rangeMax"
-            ></b-form-input>
-          </b-input-group>
+          <div>
+            <b-input-group prepend="GDD" append=".00">
+              <b-form-input
+                type="number"
+                v-model="value"
+                :min="rangeMin"
+                :max="rangeMax"
+              ></b-form-input>
+            </b-input-group>
 
-          <b-input
-            id="range-2"
-            class="mt-2"
-            v-model="value"
-            type="range"
-            :min="rangeMin"
-            :max="rangeMax"
-            step="10"
-            @load="checkFormForUpdate('range')"
-          ></b-input>
+            <b-input-group prepend="0" :append="rangeMax" class="mt-3">
+              <b-form-input
+                type="range"
+                v-model="value"
+                :min="rangeMin"
+                :max="rangeMax"
+                step="10"
+                @load="checkFormForUpdate('range')"
+              ></b-form-input>
+            </b-input-group>
+          </div>
         </b-row>
         <b-row class="m-4">
           <label>Text eintragen</label>
