@@ -70,36 +70,30 @@
         <b-badge class="bg-warning text-dark" pill>2</b-badge>
       </b-list-group-item>
     </b-list-group>
-    <b-button @click="$store.commit('resetOpenCreations')">
-      lösche alle offenen Test Schöpfungen
-    </b-button>
   </div>
 </template>
 <script>
-// import { getPendingCreations } from '../graphql/getPendingCreations'
+import { getPendingCreations } from '../graphql/getPendingCreations'
 
 export default {
   name: 'overview',
   methods: {
-    /*
     async getPendingCreations() {
       this.$apollo
         .query({
           query: getPendingCreations,
         })
         .then((result) => {
-          this.confirmResult = result.data.getPendingCreations
           this.$store.commit('resetOpenCreations')
-          this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
+          this.$store.commit('openCreationsPlus', result.data.getPendingCreations.length)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
     },
-    */
   },
   created() {
-    this.getCountPendingCreation()
+    this.getPendingCreations()
   },
 }
 </script>
