@@ -54,7 +54,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4">
+        <b-row class="m-4" v-show="createdIndex != null">
           <label>Betrag Auswählen</label>
           <b-input-group>
             <template #append>
@@ -178,11 +178,14 @@ export default {
       },
       submitObj: null,
       isdisabled: true,
+      createdIndex: null,
+      createdRangeIndexSum: 0,
     }
   },
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
+      this.createdIndex = index
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
@@ -283,7 +286,6 @@ export default {
             })
         }
       }
-
       // das absendeergebniss im string ansehen
       // das creation Formular reseten
       this.$refs.creationForm.reset()
