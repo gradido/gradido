@@ -105,8 +105,8 @@ export default {
       this.displaySetup = textFields[this.$route.params.comingFrom]
     },
   },
-  mounted() {
-    this.authenticate()
+  async mounted() {
+    await this.authenticate()
     this.setDisplaySetup()
   },
 }

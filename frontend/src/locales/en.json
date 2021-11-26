@@ -148,7 +148,7 @@
       "send_now": "Send now",
       "set": "Set password",
       "set-password": {
-        "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
+        "text": "Now you can save a new password to login to the Gradido-App in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
     }

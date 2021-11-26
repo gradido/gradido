@@ -433,6 +433,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
+    // TODO: Moriz: I think we do not need this variable.
     let emailAlreadySend = false
 
     const loginUserRepository = await getCustomRepository(LoginUserRepository)
