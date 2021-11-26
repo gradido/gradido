@@ -7,7 +7,7 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ default: 0, name: 'index_id' })
+  @Column({ name: 'index_id', default: 0 })
   indexId: number
 
   @Column({ default: 0, name: 'group_id', unsigned: true })
