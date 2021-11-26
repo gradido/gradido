@@ -140,15 +140,14 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
+      "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
-        "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
         "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
       },
       "send_now": "Jetzt senden",
       "set": "Passwort festlegen",
       "set-password": {
-        "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
         "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
