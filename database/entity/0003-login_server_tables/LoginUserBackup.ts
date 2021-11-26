@@ -15,7 +15,7 @@ export class LoginUserBackup extends BaseEntity {
   @Column({ name: 'mnemonic_type', default: -1 })
   mnemonicType: number
 
-  @OneToOne(() => LoginUser, { nullable: false })
+  @OneToOne(() => LoginUser, (loginUser) => loginUser.loginUserBackup, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   loginUser: LoginUser
 }
