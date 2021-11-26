@@ -470,6 +470,67 @@ async function getPublicKey(email: string): Promise<string | null> {
   return loginUser.pubKey.toString('hex')
 }
 
+const protoTransaction = (
+  senderPubKey: Buffer,
+  senderPrivKey: Buffer,
+  recipiantPublicKey: string,
+  centAmount: number,
+  memo: string,
+) => {
+  const transferAmount = new proto.gradido.TransferAmount({
+    pubkey: senderPubKey,
+    amount: centAmount,
+  })
+
+  const localTransfer = new proto.gradido.LocalTransfer({
+    sender: transferAmount,
+    receiver: Buffer.from(recipiantPublicKey, 'hex'),
+  })
+
+  const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
+
+  const transactionBody = new proto.gradido.TransactionBody({
+    memo,
+    created: { seconds: new Date().getTime() / 1000 },
+    transfer: transferTransaction,
+  })
+
+  const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+
+  const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
+  sodium.crypto_sign_detached(sign, bodyBytes, senderPrivKey)
+
+  return [bodyBytes, sign]
+}
+
+const protoTransactionTxSignature = (
+  senderPubKey: Buffer,
+  transactionSign: Buffer | Uint8Array,
+  previousTransactionTxHash: Buffer | null,
+  transactionId: number,
+  transactionReceived: Date,
+) => {
+  const sigPair = new proto.gradido.SignaturePair({
+    pubKey: senderPubKey,
+    ed25519: transactionSign,
+  })
+  // TODO: Why an array of sigPair?
+  const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
+
+  // tx hash
+  const state = sodium.crypto_generichash_init(null, sodium.crypto_generic_hash_bytes)
+  if (previousTransactionTxHash) {
+    sodium.crypto_generichash_update(state, previousTransactionTxHash)
+  }
+  sodium.crypto_generichash_update(state, transactionId.toString())
+  // TODO wtf - this looks scary
+  // should match previous used format: yyyy-MM-dd HH:mm:ss
+  const receivedString = transactionReceived.toISOString().slice(0, 19).replace('T', ' ')
+  sodium.crypto_generichash_update(state, receivedString)
+  sodium.crypto_generichash_update(state, proto.gradido.SignatureMap.encode(sigMap).finish())
+  return Buffer.from(sodium.crypto_generichash_final(state, sodium.crypto_generic_hash_bytes))
+}
+
 @Resolver()
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
@@ -550,31 +611,23 @@ export class TransactionResolver {
 
     const centAmount = Math.trunc(amount * 10000)
     // PROTOBUFF START
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const transferAmount = new proto.gradido.TransferAmount({
-      pubkey: senderUser.pubKey,
-      amount: centAmount,
-    })
-    const localTransfer = new proto.gradido.LocalTransfer({
-      sender: transferAmount,
-      receiver: Buffer.from(recipiantPublicKey, 'hex'),
-    })
-    const transferTransaction = new proto.gradido.GradidoTransfer({ local: localTransfer })
-    const transactionBody = new proto.gradido.TransactionBody({
-      memo: memo,
-      created: { seconds: new Date().getTime() / 1000 },
-      transfer: transferTransaction,
-    })
 
-    const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
+    const transactionRepository = getCustomRepository(TransactionRepository)
+
     // const bodyBytesBase64 = Buffer.from(bodyBytes).toString('base64')
 
     if (!senderUser.pubKey || !senderUser.privKey) {
       throw new Error('error reading keys')
     }
 
-    const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
-    sodium.crypto_sign_detached(sign, bodyBytes, senderUser.privKey)
+    // TODO Why don't we save the bodybytes? Thats is the blockchain values we would be writing to the blockchain
+    const [bodyBytes, sign] = protoTransaction(
+      senderUser.pubKey,
+      senderUser.privKey,
+      recipiantPublicKey,
+      centAmount,
+      memo,
+    )
 
     if (!sign) {
       throw new Error('error signing transaction')
@@ -587,28 +640,21 @@ export class TransactionResolver {
     }
     */
 
-    const sigPair = new proto.gradido.SignaturePair({
-      pubKey: senderUser.pubKey,
-      ed25519: sign,
-    })
-    const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
-
-    // tx hash
-    const state = sodium.crypto_generichash_init(null, sodium.crypto_generic_hash_bytes)
+    let previousTransactionTxHash = null
     if (transaction.id > 1) {
       const previousTransaction = await transactionRepository.findOne({ id: transaction.id - 1 })
       if (!previousTransaction) {
         throw new Error('Error previous transaction not found')
       }
-      sodium.crypto_generichash_update(state, previousTransaction.txHash)
+      previousTransactionTxHash = previousTransaction.txHash
     }
-    sodium.crypto_generichash_update(state, transaction.id.toString())
-    // should match previous used format: yyyy-MM-dd HH:mm:ss
-    const receivedString = transaction.received.toISOString().slice(0, 19).replace('T', ' ')
-    sodium.crypto_generichash_update(state, receivedString)
-    sodium.crypto_generichash_update(state, proto.gradido.SignatureMap.encode(sigMap).finish())
-    transaction.txHash = Buffer.from(
-      sodium.crypto_generichash_final(state, sodium.crypto_generic_hash_bytes),
+
+    transaction.txHash = protoTransactionTxSignature(
+      senderUser.pubKey,
+      sign,
+      previousTransactionTxHash,
+      transaction.id,
+      transaction.received,
     )
 
     // save signature
@@ -616,6 +662,7 @@ export class TransactionResolver {
     signature.transactionId = transaction.id
     signature.signature = Buffer.from(sign)
     signature.pubkey = senderUser.pubKey
+
     // PROTOBUFF END
 
     const queryRunner = getConnection().createQueryRunner()
