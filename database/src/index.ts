@@ -6,6 +6,7 @@ import prepare from './prepare'
 import connection from './typeorm/connection'
 import { useSeeding, runSeeder } from 'typeorm-seeding'
 import { CreatePeterLustigSeed } from './seeds/users/peter-lustig.admin.seed'
+import { CreateBibiBloxbergSeed } from './seeds/users/bibi-bloxberg.seed'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
@@ -57,6 +58,7 @@ const run = async (command: string) => {
         configName: 'ormconfig.js',
       })
       await runSeeder(CreatePeterLustigSeed)
+      await runSeeder(CreateBibiBloxbergSeed)
       break
     default:
       throw new Error(`Unsupported command ${command}`)
