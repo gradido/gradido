@@ -179,7 +179,6 @@ export default {
       submitObj: null,
       isdisabled: true,
       createdIndex: null,
-      createdRangeIndexSum: 0,
     }
   },
   methods: {
