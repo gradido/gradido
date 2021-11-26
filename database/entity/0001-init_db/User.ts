@@ -9,7 +9,7 @@ export class User extends BaseEntity {
   @Column({ name: 'index_id', default: 0 })
   indexId: number
 
-  @Column({ default: 0, name: 'group_id', unsigned: true })
+  @Column({ name: 'group_id', default: 0, unsigned: true })
   groupId: number
 
   @Column({ type: 'binary', length: 32, name: 'public_key' })
