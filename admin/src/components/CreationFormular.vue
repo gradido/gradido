@@ -281,6 +281,7 @@ export default {
               )
               this.$store.commit('openCreationsPlus', 1)
               this.submitObj = null
+              this.createdIndex = null
               // das creation Formular reseten
               this.$refs.creationForm.reset()
               // Den geschöpften Wert auf o setzen
