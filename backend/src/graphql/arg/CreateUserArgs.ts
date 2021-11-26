@@ -12,6 +12,9 @@ export default class CreateUserArgs {
   lastName: string
 
   @Field(() => String)
+  password: string
+
+  @Field(() => String)
   language?: string // Will default to DEFAULT_LANGUAGE
 
   @Field(() => Int, { nullable: true })

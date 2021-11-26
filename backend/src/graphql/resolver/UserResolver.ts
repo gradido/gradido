@@ -7,7 +7,8 @@ import { getConnection, getCustomRepository, getRepository } from 'typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
-import encode from '../../jwt/encode'
+import { encode } from '../../auth/JWT'
+import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
 import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
@@ -23,6 +24,9 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { signIn } from '../../apis/KlicktippController'
+import { RIGHTS } from '../../auth/RIGHTS'
+import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
+import { ROLE_ADMIN } from '../../auth/ROLES'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -148,37 +152,7 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
-  /*
-  @Authorized()
-  @Query(() => User)
-  async verifyLogin(@Ctx() context: any): Promise<User> {
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    loginUser = loginUserRepository.findByPubkeyHex()
-    const user = new User(result.data.user)
-
-    this.email = json.email
-    this.firstName = json.first_name
-    this.lastName = json.last_name
-    this.username = json.username
-    this.description = json.description
-    this.pubkey = json.public_hex
-    this.language = json.language
-    this.publisherId = json.publisher_id
-    this.isAdmin = json.isAdmin
-
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const coinanimation = await userSettingRepository
-      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
-      .catch((error) => {
-        throw new Error(error)
-      })
-    user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
-    return user
-  }
-  */
-
-  @Authorized()
+  @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: any): Promise<User> {
@@ -207,10 +181,12 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
+
+    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
+  @Authorized([RIGHTS.LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -292,7 +268,11 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
+
+    // context.role is not set to the actual role yet on login
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
       key: 'token',
@@ -302,7 +282,7 @@ export class UserResolver {
     return user
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.LOGOUT])
   @Query(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
@@ -313,6 +293,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => String)
   async createUser(
     @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
@@ -342,6 +323,9 @@ export class UserResolver {
     }
 
     const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
     // Table: login_users
@@ -388,7 +372,7 @@ export class UserResolver {
       dbUser.lastName = lastName
       dbUser.username = username
       // TODO this field has no null allowed unlike the loginServer table
-      dbUser.pubkey = Buffer.alloc(32, 0) // defualt to 0000...
+      dbUser.pubkey = Buffer.alloc(32, 0) // default to 0000...
       // dbUser.pubkey = keyPair[0]
 
       await queryRunner.manager.save(dbUser).catch((er) => {
@@ -446,6 +430,7 @@ export class UserResolver {
     return 'success'
   }
 
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
@@ -504,6 +489,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.SET_PASSWORD])
   @Mutation(() => Boolean)
   async setPassword(
     @Arg('code') code: string,
@@ -612,7 +598,7 @@ export class UserResolver {
     return true
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
@@ -721,6 +707,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
   async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
     // Username empty?
@@ -744,7 +731,7 @@ export class UserResolver {
     return true
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)

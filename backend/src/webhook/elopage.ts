@@ -27,7 +27,6 @@
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUser } from '@entity/LoginUser'
-import { randomBytes } from 'crypto'
 import { UserResolver } from '../graphql/resolver/UserResolver'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
@@ -145,6 +144,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         firstName,
         lastName,
         publisherId: loginElopgaeBuy.publisherId,
+        password: '123', // TODO remove
       })
     } catch (error) {
       // eslint-disable-next-line no-console
