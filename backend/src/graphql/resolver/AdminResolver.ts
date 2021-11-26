@@ -16,19 +16,19 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => [UserAdmin])
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = await Promise.all(
-      loginUsers.map(async (loginUser) => {
-        const user = new UserAdmin()
-        user.firstName = loginUser.firstName
-        user.lastName = loginUser.lastName
-        user.email = loginUser.email
-        user.creation = await getUserCreations(loginUser.id)
-        return user
+    const userRepository = getCustomRepository(UserRepository)
+    const users = await userRepository.findBySearchCriteria(searchText)
+    const adminUsers = await Promise.all(
+      users.map(async (user) => {
+        const adminUser = new UserAdmin()
+        adminUser.firstName = user.firstName
+        adminUser.lastName = user.lastName
+        adminUser.email = user.email
+        adminUser.creation = await getUserCreations(user.id)
+        return adminUser
       }),
     )
-    return users
+    return adminUsers
   }
 
   @Query(() => [Number])
@@ -38,6 +38,7 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
+    console.log('User', user)
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
@@ -70,6 +71,7 @@ export class AdminResolver {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          creation: await getUserCreations(user.id),
         }
 
         return newPendingCreation

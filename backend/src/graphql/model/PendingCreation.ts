@@ -28,4 +28,7 @@ export class PendingCreation {
 
   @Field(() => Number)
   moderator: number
+
+  @Field(() => [Number])
+  creation: number[]
 }

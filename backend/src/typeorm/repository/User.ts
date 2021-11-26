@@ -30,4 +30,17 @@ export class UserRepository extends Repository<User> {
     })
     return usersIndiced
   }
+
+  async findBySearchCriteria(searchCriteria: string): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .where(
+        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+        {
+          name: `%${searchCriteria}%`,
+          lastName: `%${searchCriteria}%`,
+          email: `%${searchCriteria}%`,
+        },
+      )
+      .getMany()
+  }
 }

@@ -31,98 +31,25 @@ export default {
         { key: 'firstName', label: 'Vorname' },
         { key: 'lastName', label: 'Nachname' },
         {
-          key: 'creation_gdd',
+          key: 'amount',
           label: 'Schöpfung',
           formatter: (value) => {
             return value + ' GDD'
           },
         },
-        { key: 'text', label: 'Text' },
+        { key: 'note', label: 'Text' },
         {
-          key: 'creation_date',
+          key: 'date',
           label: 'Datum',
           formatter: (value) => {
-            return value.long
+            return this.$moment(value).format('ll')
           },
         },
-        { key: 'creation_moderator', label: 'Moderator' },
+        { key: 'moderator', label: 'Moderator' },
         { key: 'edit_creation', label: 'ändern' },
         { key: 'confirm', label: 'speichern' },
       ],
-      confirmResult: [
-        {
-          id: 1,
-          email: 'dickerson@web.de',
-          firstName: 'Dickerson',
-          lastName: 'Macdonald',
-          creation: '[450,200,700]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
-
-          creation_date: {
-            short: 'November',
-            long: '22/11/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 2,
-          email: 'larsen@woob.de',
-          firstName: 'Larsen',
-          lastName: 'Shaw',
-          creation: '[300,200,1000]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
-
-          creation_date: {
-            short: 'November',
-            long: '03/11/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 3,
-          email: 'geneva@tete.de',
-          firstName: 'Geneva',
-          lastName: 'Wilson',
-          creation: '[350,200,900]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam',
-          creation_date: {
-            short: 'September',
-            long: '27/09/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 4,
-          email: 'viewrter@asdfvb.com',
-          firstName: 'Soledare',
-          lastName: 'Takker',
-          creation: '[100,400,800]',
-          creation_gdd: '500',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo ',
-          creation_date: {
-            short: 'Oktober',
-            long: '12/10/2021',
-          },
-          creation_moderator: 'Evelyn Roller',
-        },
-        {
-          id: 5,
-          email: 'dickerson@web.de',
-          firstName: 'Dickerson',
-          lastName: 'Macdonald',
-          creation: '[100,400,800]',
-          creation_gdd: '200',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At',
-          creation_date: {
-            short: 'September',
-            long: '05/09/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-      ],
+      confirmResult: [],
     }
   },
 
@@ -141,20 +68,21 @@ export default {
         this.$store.commit('openCreationsMinus', 1)
       }
     },
-    getPendingCreations() {
+    async getPendingCreations() {
       this.$apollo
         .query({
           query: getPendingCreations,
         })
         .then((result) => {
-          console.log('getPendingCreations.Result', result)
+          this.confirmResult = result.data.getPendingCreations
         })
-        .catch()
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
   },
-  created() {
-    this.getPendingCreations()
-    this.$store.commit('resetOpenCreations')
+  async created() {
+    await this.getPendingCreations()
     this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
   },
 }

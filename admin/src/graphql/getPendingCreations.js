@@ -10,6 +10,7 @@ export const getPendingCreations = gql`
       note
       date
       moderator
+      creation
     }
   }
 `
