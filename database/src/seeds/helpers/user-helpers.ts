@@ -6,7 +6,26 @@ import {
   LoginUserRolesContext,
 } from '../../interface/UserContext'
 import { UserInterface } from '../../interface/UserInterface'
+import { User } from '../../../entity/User'
 import { LoginUser } from '../../../entity/LoginUser'
+import { LoginUserBackup } from '../../../entity/LoginUserBackup'
+import { ServerUser } from '../../../entity/ServerUser'
+import { LoginUserRoles } from '../../../entity/LoginUserRoles'
+import { Factory } from 'typeorm-seeding'
+
+export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
+  await factory(User)(createUserContext(userData)).create()
+  const loginUser = await factory(LoginUser)(createLoginUserContext(userData)).create()
+  await factory(LoginUserBackup)(createLoginUserBackupContext(userData, loginUser)).create()
+
+  if (userData.isAdmin) {
+    await factory(ServerUser)(createServerUserContext(userData)).create()
+
+    // This is crazy: we just need the relation to roleId but no role at all
+    // It works with LoginRoles empty!!
+    await factory(LoginUserRoles)(createLoginUserRolesContext(loginUser)).create()
+  }
+}
 
 export const createUserContext = (context: UserInterface): UserContext => {
   return {

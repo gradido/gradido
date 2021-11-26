@@ -12,7 +12,6 @@
     "clean": "tsc --build --clean",
     "up": "cd build && node src/index.js up",
     "down": "cd build && node src/index.js down",
-    "reset": "cd build && node src/index.js reset",
     "dev_up": "nodemon -w ./ --ext ts --exec ts-node src/index.ts up",
     "dev_down": "nodemon -w ./ --ext ts --exec ts-node src/index.ts down",
     "dev_reset": "nodemon -w ./ --ext ts --exec ts-node src/index.ts reset",

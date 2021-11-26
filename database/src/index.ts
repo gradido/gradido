@@ -47,9 +47,11 @@ const run = async (command: string) => {
       await migration.down() // use for downgrade script
       break
     case 'reset':
+      // TODO protect from production
       await migration.reset() // use for resetting database
       break
     case 'seed':
+      // TODO protect from production
       await useSeeding({
         root: process.cwd(),
         configName: 'ormconfig.js',
