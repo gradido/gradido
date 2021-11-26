@@ -1,14 +1,12 @@
 import { Resolver, Query, Arg, Args, Authorized } from 'type-graphql'
-import { getCustomRepository, Raw, Any } from 'typeorm'
+import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
-import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 import moment from 'moment'
 
 @Resolver()
