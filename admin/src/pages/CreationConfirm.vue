@@ -153,6 +153,7 @@ export default {
     },
   },
   created() {
+    this.getPendingCreations()
     this.$store.commit('resetOpenCreations')
     this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
   },

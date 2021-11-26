@@ -1,5 +1,5 @@
 import { Resolver, Query, Arg, Args, Authorized } from 'type-graphql'
-import { getCustomRepository, Raw } from 'typeorm'
+import { getCustomRepository, Raw, Any } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
@@ -7,6 +7,7 @@ import { TransactionCreationRepository } from '../../typeorm/repository/Transact
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
+import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 import moment from 'moment'
 
 @Resolver()
@@ -51,6 +52,14 @@ export class AdminResolver {
       pendingCreationRepository.save(loginPendingTaskAdmin)
     }
     return await getUserCreations(user.id)
+  }
+
+  @Query(() => String)
+  async getPendingCreations(): Promise<string> {
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const pendingCreations = await pendingCreationRepository.find()
+    console.log('pendingCreations', pendingCreations)
+    return pendingCreations.toString()
   }
 }
 
