@@ -14,11 +14,11 @@
           {{ overlayText.text2 }}
         </p>
 
-        <b-button size="lg" variant="danger" class="m-3" @click="overlayCancel">
+        <b-button size="md" variant="danger" class="m-3" @click="overlayCancel">
           {{ overlayText.button_cancel }}
         </b-button>
         <b-button
-          size="lg"
+          size="md"
           variant="success"
           class="m-3 text-right"
           @click="overlayOK(overlayBookmarkType, overlayItem)"
@@ -39,7 +39,7 @@
       <template #cell(edit_creation)="row">
         <b-button
           variant="info"
-          size="lg"
+          size="md"
           @click="editCreationUserTable(row, row.item)"
           class="mr-2"
         >
@@ -49,7 +49,7 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+        <b-button variant="info" size="md" @click="row.toggleDetails" class="mr-2">
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
           <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
@@ -94,7 +94,7 @@
         <b-button
           variant="danger"
           v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
-          size="lg"
+          size="md"
           @click="overlayShow('remove', row.item)"
           class="mr-2"
         >
@@ -106,7 +106,7 @@
         <b-button
           variant="success"
           v-show="type === 'PageCreationConfirm'"
-          size="lg"
+          size="md"
           @click="overlayShow('confirm', row.item)"
           class="mr-2"
         >
