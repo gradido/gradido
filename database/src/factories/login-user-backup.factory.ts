@@ -4,8 +4,9 @@ import { LoginUserBackup } from '../../entity/LoginUserBackup'
 import { LoginUserBackupContext } from '../interface/UserContext'
 
 define(LoginUserBackup, (faker: typeof Faker, context?: LoginUserBackupContext) => {
-  if (!context) context = {}
-  if (!context.userId) throw new Error('LoginUserBackup: No userId present!')
+  if (!context || !context.userId) {
+    throw new Error('LoginUserBackup: No userId present!')
+  }
 
   const userBackup = new LoginUserBackup()
   // TODO: Get the real passphrase
