@@ -15,6 +15,7 @@
 </template>
 <script>
 import UserTable from '../components/UserTable.vue'
+import { getPendingCreations } from '../graphql/getPendingCreations'
 
 export default {
   name: 'CreationConfirm',
@@ -139,6 +140,16 @@ export default {
 
         this.$store.commit('openCreationsMinus', 1)
       }
+    },
+    getPendingCreations() {
+      this.$apollo
+        .query({
+          query: getPendingCreations,
+        })
+        .then((result) => {
+          console.log('getPendingCreations.Result', result)
+        })
+        .catch()
     },
   },
   created() {
