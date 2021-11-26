@@ -66,6 +66,6 @@ export default {
 </script>
 <style>
 .navbar-brand-img {
-  height: 2.5 rem;
+  height: 2rem;
 }
 </style>
