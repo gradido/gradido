@@ -34,7 +34,7 @@ export default {
   name: 'navbar',
   data() {
     return {
-      logo: 'img/brand/green.png',
+      logo: 'img/brand/gradido_logo_w.png',
     }
   },
   methods: {
@@ -67,5 +67,6 @@ export default {
 <style>
 .navbar-brand-img {
   height: 2rem;
+  padding-left: 10px;
 }
 </style>
