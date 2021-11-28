@@ -73,7 +73,6 @@
                 :min="rangeMin"
                 :max="rangeMax"
                 step="10"
-                @load="checkFormForUpdate('range')"
               ></b-form-input>
             </b-input-group>
           </div>
@@ -86,7 +85,6 @@
               v-model="text"
               :state="text.length >= 10"
               placeholder="Mindestens 10 Zeichen eingeben"
-              @load="checkFormForUpdate('text')"
               rows="3"
             ></b-form-textarea>
           </div>
@@ -159,7 +157,7 @@ export default {
   data() {
     return {
       radioSelected: '',
-      text: '',
+      text: !this.creationUserData.note ? '' : this.creationUserData.note,
       value: 0,
       rangeMin: 0,
       rangeMax: 1000,
@@ -180,6 +178,7 @@ export default {
       createdIndex: null,
     }
   },
+
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
@@ -196,7 +195,10 @@ export default {
         this.rangeMax = openCreation
       }
     },
+    /*
     checkFormForUpdate(input) {
+      console.log('checkFormForUpdate', input)
+      console.log('checkFormForUpdate creationUserData', this.creationUserData)
       switch (input) {
         case 'text':
           this.text = this.creationUserData.text
@@ -209,6 +211,7 @@ export default {
           alert("I don't know such values")
       }
     },
+    */
     submitCreation() {
       // Formular Prüfen ob ein Zeitraum ausgewählt wurde. Ansonsten abbrechen und Hinweis anzeigen
       if (this.radioSelected === '') {

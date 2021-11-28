@@ -66,7 +66,7 @@
             :pagetype="type"
             :creation="row.item.creation"
             :item="row.item"
-            :creationUserData="creationData"
+            :creationUserData="creationUserData"
             @update-creation-data="updateCreationData"
             @update-user-data="updateUserData"
           />
@@ -150,7 +150,7 @@ export default {
   },
   data() {
     return {
-      creationData: {},
+      creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -223,18 +223,24 @@ export default {
       if (!row.detailsShowing) {
         alert('offen edit loslegen')
         // this.item = rowItem
-        this.creationData = rowItem
-        // alert(this.creationData)
+        this.creationUserData = rowItem
+        console.log('editCreationUserTable creationUserData', this.creationUserData)
       }
       row.toggleDetails()
     },
     updateCreationData(data) {
-      this.creationData = {
+      this.creationUserData = {
         ...data,
       }
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+  },
+    watch: {
+    creationUserData: function () {
+      alert('yolo')
+      console.log(this.creationUserData)
     },
   },
 }
