@@ -21,24 +21,29 @@
       </b-col>
       <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
-          v-if="massCreation.length > 0"
+          v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
-          :itemsUser="massCreation"
+          :itemsUser="itemsMassCreation"
           :fieldsTable="fields"
           :criteria="null"
           :creation="creation"
           @update-item="updateItem"
         />
-
+        {{ itemsMassCreation.length === 0 }}
+        {{ itemsMassCreation.length < 0 }}
+        {{ itemsMassCreation.length > 0 }}
+        <div v-if="itemsMassCreation.length === 0">
+          Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
+        </div>
         <creation-formular
-          v-if="massCreation.length > 0"
+          v-else
           type="massCreation"
           :creation="creation"
-          :itemsMassCreation="massCreation"
-          @update-radio-selected="updateRadioSelected"
+          :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
+        {{itemsMassCreation}}
       </b-col>
     </b-row>
   </div>
@@ -72,7 +77,7 @@ export default {
         { key: 'bookmark', label: 'löschen' },
       ],
       itemsList: [],
-      massCreation: [],
+      itemsMassCreation: [],
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
@@ -111,12 +116,12 @@ export default {
           findArr = this.itemsList.find((arr) => arr.id === e.id)
           index = this.itemsList.indexOf(findArr)
           this.itemsList.splice(index, 1)
-          this.massCreation.push(e)
+          this.itemsMassCreation.push(e)
           break
         case 'remove':
-          findArr = this.massCreation.find((arr) => arr.id === e.id)
-          index = this.massCreation.indexOf(findArr)
-          this.massCreation.splice(index, 1)
+          findArr = this.itemsMassCreation.find((arr) => arr.id === e.id)
+          index = this.itemsMassCreation.indexOf(findArr)
+          this.itemsMassCreation.splice(index, 1)
           this.itemsList.push(e)
           break
         default:
@@ -124,19 +129,19 @@ export default {
       }
     },
 
-    updateRadioSelected(obj) {
-      this.radioSelectedMass = obj[0]
-    },
+    //updateRadioSelected(obj) {
+    //  this.radioSelectedMass = obj[0]
+    //},
 
     removeAllBookmark() {
       alert('remove all bookmarks')
       const index = 0
       let i = 0
 
-      for (i; i < this.massCreation.length; i++) {
-        this.itemsList.push(this.massCreation[i])
+      for (i; i < this.itemsMassCreation.length; i++) {
+        this.itemsList.push(this.itemsMassCreation[i])
       }
-      this.massCreation.splice(index, this.massCreation.length)
+      this.itemsMassCreation.splice(index, this.itemsMassCreation.length)
     },
   },
 }
