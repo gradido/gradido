@@ -60,7 +60,7 @@
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-
+         {{type}}
           <creation-formular
             type="singleCreation"
             :pagetype="type"
@@ -225,6 +225,8 @@ export default {
         // this.item = rowItem
         this.creationUserData = rowItem
         console.log('editCreationUserTable creationUserData', this.creationUserData)
+      } else {
+        this.creationUserData = {}
       }
       row.toggleDetails()
     },
@@ -235,12 +237,6 @@ export default {
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
-    },
-  },
-    watch: {
-    creationUserData: function () {
-      alert('yolo')
-      console.log(this.creationUserData)
     },
   },
 }

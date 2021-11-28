@@ -1,21 +1,6 @@
 <template>
   <div class="component-creation-formular">
-    <div>
-      <h3>
-        {{
-          this.type === 'singleCreation'
-            ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
-            : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
-        }}
-      </h3>
-      <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
-        Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
-      </div>
-    </div>
-    <div
-      v-show="this.type === 'singleCreation' || Object.keys(this.itemsMassCreation).length > 0"
-      class="shadow p-3 mb-5 bg-white rounded"
-    >
+    <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
         <b-row class="m-4">
           <label>Monat Auswählen</label>
@@ -140,25 +125,34 @@ export default {
     item: {
       type: Object,
       required: false,
+      default() {
+        return {}
+      },
+    },
+    items: {
+      type: Array,
+      required: false,
+      default() {
+        return []
+      },
     },
     creationUserData: {
       type: Object,
       required: false,
+      default() {
+        return {}
+      },
     },
     creation: {
       type: Array,
       required: true,
-    },
-    itemsMassCreation: {
-      type: Object,
-      required: false,
     },
   },
   data() {
     return {
       radioSelected: '',
       text: !this.creationUserData.note ? '' : this.creationUserData.note,
-      value: 0,
+      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount / 10000,
       rangeMin: 0,
       rangeMax: 1000,
       currentMonth: {
@@ -193,6 +187,12 @@ export default {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
+      }
+      // Wenn Einzelschöpfung
+      if (this.pagetype === 'PageCreationConfirm') {
+        this.rangeMin = 0
+        this.rangeMax = openCreation + ( this.creationUserData.amount / 10000 )
+        this.creation[index] = this.creation[index] + ( this.creationUserData.amount / 10000 )
       }
     },
     /*
@@ -229,6 +229,7 @@ export default {
       if (this.text.length < 10) {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
+      /*
       if (this.type === 'massCreation') {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
@@ -252,7 +253,7 @@ export default {
         // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
       }
-
+      */
       if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
