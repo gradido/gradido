@@ -14,6 +14,8 @@
         </template>
         <template #transaction-confirmation>
           <transaction-confirmation
+            :balance="balance"
+            :decay="decay"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
