@@ -154,21 +154,6 @@ export default {
       required: true,
     },
   },
-  created() {
-    console.log(' created this.pagetype', this.pagetype)
-    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
-      console.log('if created CreationFormular.vue', this.creationUserData.date)
-      console.log(
-        'this.$moment(this.creationUserData.date).format("MMMM")',
-        this.$moment(this.creationUserData.date).format('MMMM'),
-      )
-      console.log(
-        'this.$moment(this.creationUserData.date).format("YYYY-MM-DD")',
-        this.$moment(this.creationUserData.date).format('YYYY-MM-DD'),
-      )
-      // const id = this.$moment(this.creationUserData.date).format('MMMM')
-    }
-  },
   data() {
     return {
       radioSelected: '',
@@ -198,7 +183,6 @@ export default {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
-      console.log('radioSelected', this.radioSelected)
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
@@ -209,23 +193,6 @@ export default {
         this.rangeMax = openCreation
       }
     },
-    /*
-    checkFormForUpdate(input) {
-      console.log('checkFormForUpdate', input)
-      console.log('checkFormForUpdate creationUserData', this.creationUserData)
-      switch (input) {
-        case 'text':
-          this.text = this.creationUserData.text
-          break
-        case 'range':
-          this.value = this.creationUserData.creationGdd
-          break
-        default:
-          // TODO: Toast
-          alert("I don't know such values")
-      }
-    },
-    */
     submitCreation() {
       // Formular Prüfen ob ein Zeitraum ausgewählt wurde. Ansonsten abbrechen und Hinweis anzeigen
       if (this.radioSelected === '') {
@@ -243,31 +210,6 @@ export default {
       if (this.text.length < 10) {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
-      /*
-      if (this.type === 'massCreation') {
-        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
-        const i = Object.keys(this.itemsMassCreation).length
-        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
-        this.submitObj = [
-          {
-            item: this.itemsMassCreation,
-            email: this.item.email,
-            creationDate: this.radioSelected.long,
-            amount: this.value,
-            note: this.text,
-            moderator: this.$store.state.moderator.id,
-          },
-        ]
-        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
-
-        // $store - offene Schöpfungen hochzählen
-        this.$store.commit('openCreationsPlus', i)
-
-        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
-        this.$emit('remove-all-bookmark')
-      }
-      */
       if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
@@ -277,43 +219,32 @@ export default {
           moderator: Number(this.$store.state.moderator.id),
         }
 
-        if (this.pagetype === 'PageCreationConfirm') {
-          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
-          // umschreiben, update eine bestehende Schöpfung eine
-          this.$emit('update-creation-data', {
-            datum: this.radioSelected.long,
-            creationGdd: this.value,
-            text: this.text,
+        this.$apollo
+          .query({
+            query: createPendingCreation,
+            variables: this.submitObj,
           })
-        } else {
-          this.$apollo
-            .query({
-              query: createPendingCreation,
-              variables: this.submitObj,
-            })
-            .then((result) => {
-              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
-              this.$toasted.success(
-                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
-              )
-              this.$store.commit('openCreationsPlus', 1)
-              this.submitObj = null
-              this.createdIndex = null
-              // das creation Formular reseten
-              this.$refs.creationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-            .catch((error) => {
-              this.$toasted.error(error.message)
-              this.submitObj = null
-              // das creation Formular reseten
-              this.$refs.creationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-        }
+          .then((result) => {
+            this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+            this.$toasted.success(
+              `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
+            )
+            this.$store.commit('openCreationsPlus', 1)
+            this.submitObj = null
+            this.createdIndex = null
+            // das creation Formular reseten
+            this.$refs.creationForm.reset()
+            // Den geschöpften Wert auf o setzen
+            this.value = 0
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+            this.submitObj = null
+            // das creation Formular reseten
+            this.$refs.creationForm.reset()
+            // Den geschöpften Wert auf o setzen
+            this.value = 0
+          })
       }
     },
   },

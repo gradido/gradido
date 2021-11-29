@@ -232,12 +232,8 @@ export default {
       this.$emit('remove-confirm-result', item, 'remove')
     },
     editCreationUserTable(row, rowItem) {
-      alert('editCreationUserTable')
       if (!row.detailsShowing) {
-        alert('offen edit loslegen')
-        // this.item = rowItem
         this.creationUserData = rowItem
-        console.log('editCreationUserTable creationUserData', this.creationUserData)
       } else {
         this.creationUserData = {}
       }

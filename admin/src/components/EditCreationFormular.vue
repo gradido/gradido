@@ -13,7 +13,12 @@
               @change="updateRadioSelected(beforeLastMonth, 0, selectedOpenCreationAmount[0])"
             >
               <label for="beforeLastMonth">
-                {{ beforeLastMonth.short }} {{ selectedOpenCreationAmount[0] != null ? selectedOpenCreationAmount[0] + ' GDD' : '' }}
+                {{ beforeLastMonth.short }}
+                {{
+                  selectedOpenCreationAmount[0] != null
+                    ? selectedOpenCreationAmount[0] + ' GDD'
+                    : ''
+                }}
               </label>
             </b-form-radio>
           </b-col>
@@ -26,7 +31,12 @@
               @change="updateRadioSelected(lastMonth, 1, selectedOpenCreationAmount[1])"
             >
               <label for="lastMonth">
-                {{ lastMonth.short }} {{ selectedOpenCreationAmount[1] != null ? selectedOpenCreationAmount[1] + ' GDD' : '' }}
+                {{ lastMonth.short }}
+                {{
+                  selectedOpenCreationAmount[1] != null
+                    ? selectedOpenCreationAmount[1] + ' GDD'
+                    : ''
+                }}
               </label>
             </b-form-radio>
           </b-col>
@@ -39,7 +49,12 @@
               @change="updateRadioSelected(currentMonth, 2, selectedOpenCreationAmount[2])"
             >
               <label for="currentMonth">
-                {{ currentMonth.short }} {{ selectedOpenCreationAmount[2] != null ? selectedOpenCreationAmount[2] + ' GDD' : '' }}
+                {{ currentMonth.short }}
+                {{
+                  selectedOpenCreationAmount[2] != null
+                    ? selectedOpenCreationAmount[2] + ' GDD'
+                    : ''
+                }}
               </label>
             </b-form-radio>
           </b-col>
@@ -144,17 +159,7 @@ export default {
     },
   },
   created() {
-    console.log(' created this.pagetype', this.pagetype)
     if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
-      console.log('if created CreationFormular.vue', this.creationUserData.date)
-      console.log(
-        'this.$moment(this.creationUserData.date).format("MMMM")',
-        this.$moment(this.creationUserData.date).format('MMMM'),
-      )
-      console.log(
-        'this.$moment(this.creationUserData.date).format("YYYY-MM")',
-        this.$moment(this.creationUserData.date).format('YYYY-MM'),
-      )
       switch (this.$moment(this.creationUserData.date).format('MMMM')) {
         case this.currentMonth.short:
           this.createdIndex = 2
@@ -171,10 +176,8 @@ export default {
         default:
           throw new Error('Something went wrong')
       }
-      console.log(this.creation)
-      const openCreations = this.creationUserData.creation
-      this.selectedOpenCreationAmount = openCreations
-      this.selectedOpenCreationAmount[this.createdIndex] = this.selectedOpenCreationAmount[this.createdIndex] + this.creationUserData.amount / 10000
+      this.selectedOpenCreationAmount[this.createdIndex] =
+        this.creation[this.createdIndex] + this.creationUserData.amount / 10000
       this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
     }
   },
@@ -206,11 +209,7 @@ export default {
 
   methods: {
     updateRadioSelected(name, index, openCreation) {
-      console.log('createdIndex before update', this.createdIndex)
       this.createdIndex = index
-      console.log('radioSelected', this.radioSelected)
-      console.log('openCreation', openCreation)
-
       this.rangeMin = 0
       this.rangeMax = this.creation[index]
     },
@@ -242,8 +241,6 @@ export default {
 
         if (this.pagetype === 'PageCreationConfirm') {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('UPDATE EINZELSCHÖPFUNG ABSENDEN FÜR >> ' + JSON.stringify(this.submitObj))
-
           this.$apollo
             .query({
               query: updatePendingCreation,
