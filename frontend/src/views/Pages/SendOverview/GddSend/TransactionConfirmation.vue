@@ -3,7 +3,7 @@
     <b-row>
       <b-col>
         <div class="display-4 pb-4 gray-background">{{ $t('form.send_check') }}</div>
-        <b-list-group>
+        <b-list-group class="gray-background">
           <b-input-group id="input-group-1" class="border border-default" size="lg">
             <b-input-group-prepend class="d-none d-md-block">
               <b-icon icon="envelope" class="display-4 m-3"></b-icon>
@@ -17,12 +17,22 @@
               :value="email"
             ></b-form-input>
           </b-input-group>
-          <b-list-group-item
-            class="d-flex justify-content-between align-items-center gray-background"
-          >
-            {{ $n(amount, 'decimal') }} GDD
-            <b-badge variant="primary" pill>{{ $t('form.amount') }}</b-badge>
-          </b-list-group-item>
+          <br />
+          <b-input-group id="input-group-2" class="border border-default" size="lg">
+            <b-input-group-prepend class="p-2 d-none d-md-block">
+              <div class="m-1 mt-2">GDD</div>
+            </b-input-group-prepend>
+
+            <b-form-input
+              id="input-2"
+              :value="$n(amount, 'decimal')"
+              type="text"
+              style="font-size: large"
+              class="pl-3 gray-background"
+            ></b-form-input>
+          </b-input-group>
+
+           <br />
           <b-list-group-item
             class="d-flex justify-content-between align-items-center gray-background"
           >
