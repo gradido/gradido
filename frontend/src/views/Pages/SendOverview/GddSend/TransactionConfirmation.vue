@@ -4,12 +4,19 @@
       <b-col>
         <div class="display-4 pb-4 gray-background">{{ $t('form.send_check') }}</div>
         <b-list-group>
-          <b-list-group-item
-            class="d-flex justify-content-between align-items-center gray-background"
-          >
-            {{ email }}
-            <b-badge variant="primary" pill>{{ $t('form.recipient') }}</b-badge>
-          </b-list-group-item>
+          <b-input-group id="input-group-1" class="border border-default" size="lg">
+            <b-input-group-prepend class="d-none d-md-block">
+              <b-icon icon="envelope" class="display-4 m-3"></b-icon>
+            </b-input-group-prepend>
+            <b-form-input
+              id="input-1"
+              type="text"
+              style="font-size: large"
+              class="pl-3"
+              :readonly="true"
+              :value="email"
+            ></b-form-input>
+          </b-input-group>
           <b-list-group-item
             class="d-flex justify-content-between align-items-center gray-background"
           >
