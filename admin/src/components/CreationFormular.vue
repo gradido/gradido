@@ -193,27 +193,26 @@ export default {
       createdIndex: null,
     }
   },
+
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
-      console.log("radioSelected", this.radioSelected)
+      console.log('radioSelected', this.radioSelected)
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
         this.$emit('update-radio-selected', [name, index])
-      }
-      // Wenn Einzelschöpfung
-      if (this.type === 'singleCreation') {
+      } else if (this.type === 'singleCreation') {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
-      }
-      // Wenn Einzelschöpfung
-      if (this.pagetype === 'PageCreationConfirm') {
-        this.rangeMin = 0
-        this.rangeMax = openCreation + this.creationUserData.amount / 10000
-        this.creation[index] = this.creation[index] + this.creationUserData.amount / 10000
+        // Wenn Einzelschöpfung
+        if (this.pagetype === 'PageCreationConfirm') {
+          this.rangeMin = 0
+          this.rangeMax = openCreation + this.creationUserData.amount / 10000
+          this.creation[index] = this.creation[index] + ( this.creationUserData.amount / 10000 )
+        }
       }
     },
     /*
