@@ -8,12 +8,12 @@
             <b-form-radio
               v-model="radioSelected"
               :value="beforeLastMonth"
-              :disabled="creation[0] === 0"
+              :disabled="selectedOpenCreationAmount[0] === 0"
               size="lg"
-              @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
+              @change="updateRadioSelected(beforeLastMonth, 0, selectedOpenCreationAmount[0])"
             >
               <label for="beforeLastMonth">
-                {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+                {{ beforeLastMonth.short }} {{ selectedOpenCreationAmount[0] != null ? selectedOpenCreationAmount[0] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -21,12 +21,12 @@
             <b-form-radio
               v-model="radioSelected"
               :value="lastMonth"
-              :disabled="creation[1] === 0"
+              :disabled="selectedOpenCreationAmount[1] === 0"
               size="lg"
-              @change="updateRadioSelected(lastMonth, 1, creation[1])"
+              @change="updateRadioSelected(lastMonth, 1, selectedOpenCreationAmount[1])"
             >
               <label for="lastMonth">
-                {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+                {{ lastMonth.short }} {{ selectedOpenCreationAmount[1] != null ? selectedOpenCreationAmount[1] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -34,12 +34,12 @@
             <b-form-radio
               v-model="radioSelected"
               :value="currentMonth"
-              :disabled="creation[2] === 0"
+              :disabled="selectedOpenCreationAmount[2] === 0"
               size="lg"
-              @change="updateRadioSelected(currentMonth, 2, creation[2])"
+              @change="updateRadioSelected(currentMonth, 2, selectedOpenCreationAmount[2])"
             >
               <label for="currentMonth">
-                {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+                {{ currentMonth.short }} {{ selectedOpenCreationAmount[2] != null ? selectedOpenCreationAmount[2] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -158,18 +158,24 @@ export default {
       switch (this.$moment(this.creationUserData.date).format('MMMM')) {
         case this.currentMonth.short:
           this.createdIndex = 2
+          this.radioSelected = this.currentMonth
           break
         case this.lastMonth.short:
           this.createdIndex = 1
+          this.radioSelected = this.lastMonth
           break
         case this.beforeLastMonth.short:
           this.createdIndex = 0
+          this.radioSelected = this.beforeLastMonth
           break
         default:
           throw new Error('Something went wrong')
       }
-      this.selectedOpenCreationAmount = this.creation
-      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex] + this.creationUserData.amount / 10000
+      console.log(this.creation)
+      const openCreations = this.creationUserData.creation
+      this.selectedOpenCreationAmount = openCreations
+      this.selectedOpenCreationAmount[this.createdIndex] = this.selectedOpenCreationAmount[this.createdIndex] + this.creationUserData.amount / 10000
+      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
     }
   },
   data() {
