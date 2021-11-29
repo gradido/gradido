@@ -2,17 +2,23 @@
   <div>
     <b-row>
       <b-col>
-        <div class="display-4 p-4">{{ $t('form.send_check') }}</div>
+        <div class="display-4 pb-4 gray-background">{{ $t('form.send_check') }}</div>
         <b-list-group>
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
+          <b-list-group-item
+            class="d-flex justify-content-between align-items-center gray-background"
+          >
             {{ email }}
             <b-badge variant="primary" pill>{{ $t('form.recipient') }}</b-badge>
           </b-list-group-item>
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
+          <b-list-group-item
+            class="d-flex justify-content-between align-items-center gray-background"
+          >
             {{ $n(amount, 'decimal') }} GDD
             <b-badge variant="primary" pill>{{ $t('form.amount') }}</b-badge>
           </b-list-group-item>
-          <b-list-group-item class="d-flex justify-content-between align-items-center">
+          <b-list-group-item
+            class="d-flex justify-content-between align-items-center gray-background"
+          >
             {{ memo ? memo : '-' }}
             <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
           </b-list-group-item>
@@ -42,3 +48,8 @@ export default {
   },
 }
 </script>
+<style>
+.gray-background {
+  background-color: #ebebeba3 !important;
+}
+</style>
