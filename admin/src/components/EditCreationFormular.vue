@@ -168,8 +168,8 @@ export default {
         default:
           throw new Error('Something went wrong')
       }
-      this.selectedOpenCreationAmount = this.creation[this.createdIndex]
-      this.rangeMax =  this.selectedOpenCreationAmount 
+      this.selectedOpenCreationAmount = this.creation
+      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex] + this.creationUserData.amount / 10000
     }
   },
   data() {
@@ -194,7 +194,7 @@ export default {
       submitObj: null,
       isdisabled: true,
       createdIndex: null,
-      selectedOpenCreationAmount:{},
+      selectedOpenCreationAmount: {},
     }
   },
 
