@@ -34,6 +34,7 @@ import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { RIGHTS } from '../../auth/RIGHTS'
 
 /*
 # Test
@@ -465,7 +466,7 @@ async function getPublicKey(email: string): Promise<string | null> {
 
 @Resolver()
 export class TransactionResolver {
-  @Authorized()
+  @Authorized([RIGHTS.TRANSACTION_LIST])
   @Query(() => TransactionList)
   async transactionList(
     @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
@@ -499,7 +500,7 @@ export class TransactionResolver {
     return transactions
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => String)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,

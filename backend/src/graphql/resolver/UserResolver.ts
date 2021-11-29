@@ -9,7 +9,7 @@ import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
 import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
-import encode from '../../jwt/encode'
+import { encode } from '../../auth/JWT'
 import ChangePasswordArgs from '../arg/ChangePasswordArgs'
 import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
@@ -30,6 +30,9 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
+import { RIGHTS } from '../../auth/RIGHTS'
+import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
+import { ROLE_ADMIN } from '../../auth/ROLES'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -194,37 +197,7 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
 @Resolver()
 export class UserResolver {
-  /*
-  @Authorized()
-  @Query(() => User)
-  async verifyLogin(@Ctx() context: any): Promise<User> {
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    loginUser = loginUserRepository.findByPubkeyHex()
-    const user = new User(result.data.user)
-
-    this.email = json.email
-    this.firstName = json.first_name
-    this.lastName = json.last_name
-    this.username = json.username
-    this.description = json.description
-    this.pubkey = json.public_hex
-    this.language = json.language
-    this.publisherId = json.publisher_id
-    this.isAdmin = json.isAdmin
-
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const coinanimation = await userSettingRepository
-      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
-      .catch((error) => {
-        throw new Error(error)
-      })
-    user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
-    return user
-  }
-  */
-
-  @Authorized()
+  @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: any): Promise<User> {
@@ -253,10 +226,12 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
+
+    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
+  @Authorized([RIGHTS.LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
@@ -329,7 +304,11 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-    user.isAdmin = true // TODO implement
+
+    // context.role is not set to the actual role yet on login
+    const serverUserRepository = await getCustomRepository(ServerUserRepository)
+    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
       key: 'token',
@@ -339,6 +318,7 @@ export class UserResolver {
     return user
   }
 
+  @Authorized([RIGHTS.LOGIN_VIA_EMAIL_VERIFICATION_CODE])
   @Query(() => LoginViaVerificationCode)
   async loginViaEmailVerificationCode(
     @Arg('optin') optin: string,
@@ -354,7 +334,7 @@ export class UserResolver {
     return new LoginViaVerificationCode(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.LOGOUT])
   @Query(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
@@ -365,9 +345,10 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => String)
   async createUser(
-    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
+    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
@@ -377,13 +358,12 @@ export class UserResolver {
       language = DEFAULT_LANGUAGE
     }
 
-    // TODO: Register process
     // Validate Password
-    // if (!isPassword(password)) {
-    //   throw new Error(
-    //     'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-    //   )
-    // }
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
 
     // Validate username
     // TODO: never true
@@ -401,13 +381,11 @@ export class UserResolver {
       throw new Error(`User already exists.`)
     }
 
-    // TODO: Register process
-    // const passphrase = PassphraseGenerate()
-    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-
+    const passphrase = PassphraseGenerate()
+    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const emailHash = getEmailHash(email)
+    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
     // Table: login_users
     const loginUser = new LoginUser()
@@ -416,15 +394,13 @@ export class UserResolver {
     loginUser.lastName = lastName
     loginUser.username = username
     loginUser.description = ''
-    // TODO: Register process
-    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.emailHash = emailHash
     loginUser.language = language
     loginUser.groupId = 1
     loginUser.publisherId = publisherId
-    // TODO: Register process
-    // loginUser.pubKey = keyPair[0]
-    // loginUser.privKey = encryptedPrivkey
+    loginUser.pubKey = keyPair[0]
+    loginUser.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
@@ -436,24 +412,21 @@ export class UserResolver {
         throw new Error('insert user failed')
       })
 
-      // TODO: Register process
       // Table: login_user_backups
-      // const loginUserBackup = new LoginUserBackup()
-      // loginUserBackup.userId = loginUserId
-      // loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
-      // loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      const loginUserBackup = new LoginUserBackup()
+      loginUserBackup.userId = loginUserId
+      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
-      // TODO: Register process
-      // await queryRunner.manager.save(loginUserBackup).catch((error) => {
-      //   // eslint-disable-next-line no-console
-      //   console.log('insert LoginUserBackup failed', error)
-      //   throw new Error('insert user backup failed')
-      // })
+      await queryRunner.manager.save(loginUserBackup).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('insert LoginUserBackup failed', error)
+        throw new Error('insert user backup failed')
+      })
 
       // Table: state_users
       const dbUser = new DbUser()
-      // TODO: Register process
-      // dbUser.pubkey = keyPair[0]
+      dbUser.pubkey = keyPair[0]
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
@@ -513,6 +486,7 @@ export class UserResolver {
     return 'success'
   }
 
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => SendPasswordResetEmailResponse)
   async sendResetPasswordEmail(
     @Arg('email') email: string,
@@ -529,6 +503,7 @@ export class UserResolver {
     return new SendPasswordResetEmailResponse(response.data)
   }
 
+  @Authorized([RIGHTS.RESET_PASSWORD])
   @Mutation(() => String)
   async resetPassword(
     @Args()
@@ -546,7 +521,7 @@ export class UserResolver {
     return 'success'
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
@@ -655,6 +630,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
   async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
     // Username empty?
@@ -678,6 +654,7 @@ export class UserResolver {
     return true
   }
 
+  @Authorized([RIGHTS.CHECK_EMAIL])
   @Query(() => CheckEmailResponse)
   @UseMiddleware(klicktippRegistrationMiddleware)
   async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
@@ -690,7 +667,7 @@ export class UserResolver {
     return new CheckEmailResponse(result.data)
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
