@@ -12,7 +12,9 @@
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
-              {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              <label for="beforeLastMonth">
+                {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
           <b-col>
@@ -23,7 +25,9 @@
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
-              {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              <label for="lastMonth">
+                {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
           <b-col class="text-right">
@@ -34,7 +38,9 @@
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
-              {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              <label for="currentMonth">
+                {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
         </b-row>
@@ -148,6 +154,21 @@ export default {
       required: true,
     },
   },
+  created() {
+    console.log(' created this.pagetype', this.pagetype)
+    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
+      console.log('if created CreationFormular.vue', this.creationUserData.date)
+      console.log(
+        'this.$moment(this.creationUserData.date).format("MMMM")',
+        this.$moment(this.creationUserData.date).format('MMMM'),
+      )
+      console.log(
+        'this.$moment(this.creationUserData.date).format("YYYY-MM-DD")',
+        this.$moment(this.creationUserData.date).format('YYYY-MM-DD'),
+      )
+      // const id = this.$moment(this.creationUserData.date).format('MMMM')
+    }
+  },
   data() {
     return {
       radioSelected: '',
@@ -172,11 +193,11 @@ export default {
       createdIndex: null,
     }
   },
-
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
+      console.log("radioSelected", this.radioSelected)
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
@@ -191,8 +212,8 @@ export default {
       // Wenn Einzelschöpfung
       if (this.pagetype === 'PageCreationConfirm') {
         this.rangeMin = 0
-        this.rangeMax = openCreation + ( this.creationUserData.amount / 10000 )
-        this.creation[index] = this.creation[index] + ( this.creationUserData.amount / 10000 )
+        this.rangeMax = openCreation + this.creationUserData.amount / 10000
+        this.creation[index] = this.creation[index] + this.creationUserData.amount / 10000
       }
     },
     /*
