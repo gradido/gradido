@@ -3,50 +3,31 @@
     <b-row>
       <b-col>
         <div class="display-4 pb-4">{{ $t('form.send_check') }}</div>
-        <b-list-group class="gray-background">
+        <b-list-group class="">
+          <label class="input-1" for="input-1">{{ $t('form.recipient') }}</label>
           <b-input-group id="input-group-1" class="border border-default" size="lg">
-            <b-input-group-prepend class="d-none d-md-block">
+            <b-input-group-prepend class="d-none d-md-block gray-background">
               <b-icon icon="envelope" class="display-4 m-3"></b-icon>
             </b-input-group-prepend>
-            <b-form-input
-              id="input-1"
-              type="text"
-              style="font-size: large"
-              class="pl-3"
-              :readonly="true"
-              :value="email"
-            ></b-form-input>
+            <div class="p-3">{{ email }}</div>
           </b-input-group>
           <br />
+          <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
           <b-input-group id="input-group-2" class="border border-default" size="lg">
-            <b-input-group-prepend class="p-2 d-none d-md-block">
+            <b-input-group-prepend class="p-2 d-none d-md-block gray-background">
               <div class="m-1 mt-2">GDD</div>
             </b-input-group-prepend>
 
-            <b-form-input
-              id="input-2"
-              :value="$n(amount, 'decimal')"
-              type="text"
-              style="font-size: large"
-              class="pl-3 gray-background"
-              :readonly="true"
-            ></b-form-input>
+            <div class="p-3">{{ $n(amount, 'decimal') }}</div>
           </b-input-group>
 
           <br />
-
+          <label class="input-3" for="input-3">{{ $t('form.message') }}</label>
           <b-input-group id="input-group-3" class="border border-default">
-            <b-input-group-prepend class="d-none d-md-block">
+            <b-input-group-prepend class="d-none d-md-block gray-background">
               <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
             </b-input-group-prepend>
-            <b-form-textarea
-              id="input-3"
-              rows="3"
-              :value="memo ? memo : '-'"
-              class="pl-3 gray-background"
-              style="font-size: large"
-              :readonly="true"
-            ></b-form-textarea>
+            <div class="p-3">{{ memo ? memo : '-' }}</div>
           </b-input-group>
         </b-list-group>
       </b-col>
