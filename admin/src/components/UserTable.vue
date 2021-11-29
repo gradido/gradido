@@ -60,7 +60,7 @@
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-         {{ type }}
+          {{ type }}
           <creation-formular
             v-if="type === 'PageUserSearch'"
             type="singleCreation"
