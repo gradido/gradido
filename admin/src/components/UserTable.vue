@@ -60,8 +60,19 @@
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-         {{type}}
+         {{ type }}
           <creation-formular
+            v-if="type === 'PageUserSearch'"
+            type="singleCreation"
+            :pagetype="type"
+            :creation="row.item.creation"
+            :item="row.item"
+            :creationUserData="creationUserData"
+            @update-creation-data="updateCreationData"
+            @update-user-data="updateUserData"
+          />
+          <edit-creation-formular
+            v-else
             type="singleCreation"
             :pagetype="type"
             :creation="row.item.creation"
@@ -119,6 +130,7 @@
 
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
+import EditCreationFormular from '../components/EditCreationFormular.vue'
 
 export default {
   name: 'UserTable',
@@ -147,6 +159,7 @@ export default {
   },
   components: {
     CreationFormular,
+    EditCreationFormular,
   },
   data() {
     return {
