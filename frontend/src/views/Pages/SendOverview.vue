@@ -3,13 +3,7 @@
     <b-container fluid>
       <b-row>
         <b-col class="bg-gray text-white text-center p-3">
-          <status
-            class="gdd-status-gdd"
-            v-if="showContext"
-            :pending="pending"
-            :balance="balance"
-            status-text="GDD"
-          />
+          <status class="gdd-status-gdd" :pending="pending" :balance="balance" status-text="GDD" />
         </b-col>
       </b-row>
 
@@ -84,11 +78,6 @@ export default {
     pending: {
       type: Boolean,
       default: true,
-    },
-  },
-  computed: {
-    showContext() {
-      return this.currentTransactionStep === 0
     },
   },
   methods: {
