@@ -30,9 +30,6 @@
           :creation="creation"
           @update-item="updateItem"
         />
-        {{ itemsMassCreation.length === 0 }}
-        {{ itemsMassCreation.length < 0 }}
-        {{ itemsMassCreation.length > 0 }}
         <div v-if="itemsMassCreation.length === 0">
           Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
         </div>
@@ -43,7 +40,7 @@
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
-        {{itemsMassCreation}}
+        {{ itemsMassCreation }}
       </b-col>
     </b-row>
   </div>
@@ -129,9 +126,9 @@ export default {
       }
     },
 
-    //updateRadioSelected(obj) {
+    // updateRadioSelected(obj) {
     //  this.radioSelectedMass = obj[0]
-    //},
+    // },
 
     removeAllBookmark() {
       alert('remove all bookmarks')
