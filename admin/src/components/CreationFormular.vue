@@ -207,12 +207,6 @@ export default {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
-        // Wenn Einzelschöpfung
-        if (this.pagetype === 'PageCreationConfirm') {
-          this.rangeMin = 0
-          this.rangeMax = openCreation + this.creationUserData.amount / 10000
-          this.creation[index] = this.creation[index] + ( this.creationUserData.amount / 10000 )
-        }
       }
     },
     /*
