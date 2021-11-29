@@ -2,7 +2,7 @@
   <div>
     <b-row>
       <b-col>
-        <div class="display-4 pb-4 gray-background">{{ $t('form.send_check') }}</div>
+        <div class="display-4 pb-4">{{ $t('form.send_check') }}</div>
         <b-list-group class="gray-background">
           <b-input-group id="input-group-1" class="border border-default" size="lg">
             <b-input-group-prepend class="d-none d-md-block">
@@ -29,16 +29,25 @@
               type="text"
               style="font-size: large"
               class="pl-3 gray-background"
+              :readonly="true"
             ></b-form-input>
           </b-input-group>
 
-           <br />
-          <b-list-group-item
-            class="d-flex justify-content-between align-items-center gray-background"
-          >
-            {{ memo ? memo : '-' }}
-            <b-badge variant="primary" pill>{{ $t('form.message') }}</b-badge>
-          </b-list-group-item>
+          <br />
+
+          <b-input-group id="input-group-3" class="border border-default">
+            <b-input-group-prepend class="d-none d-md-block">
+              <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
+            </b-input-group-prepend>
+            <b-form-textarea
+              id="input-3"
+              rows="3"
+              :value="memo ? memo : '-'"
+              class="pl-3 gray-background"
+              style="font-size: large"
+              :readonly="true"
+            ></b-form-textarea>
+          </b-input-group>
         </b-list-group>
       </b-col>
     </b-row>
