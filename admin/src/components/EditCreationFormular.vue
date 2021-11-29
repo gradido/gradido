@@ -45,7 +45,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex != null">
+        <b-row class="m-4">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -103,3 +103,169 @@
     </div>
   </div>
 </template>
+<script>
+import { updatePendingCreation } from '../graphql/updatePendingCreation'
+export default {
+  name: 'CreationFormular',
+  props: {
+    type: {
+      type: String,
+      required: false,
+    },
+    pagetype: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    item: {
+      type: Object,
+      required: false,
+      default() {
+        return {}
+      },
+    },
+    items: {
+      type: Array,
+      required: false,
+      default() {
+        return []
+      },
+    },
+    creationUserData: {
+      type: Object,
+      required: false,
+      default() {
+        return {}
+      },
+    },
+    creation: {
+      type: Array,
+      required: true,
+    },
+  },
+  created() {
+    console.log(' created this.pagetype', this.pagetype)
+    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
+      console.log('if created CreationFormular.vue', this.creationUserData.date)
+      console.log(
+        'this.$moment(this.creationUserData.date).format("MMMM")',
+        this.$moment(this.creationUserData.date).format('MMMM'),
+      )
+      console.log(
+        'this.$moment(this.creationUserData.date).format("YYYY-MM")',
+        this.$moment(this.creationUserData.date).format('YYYY-MM'),
+      )
+      switch (this.$moment(this.creationUserData.date).format('MMMM')) {
+        case this.currentMonth.short:
+          this.createdIndex = 2
+          break
+        case this.lastMonth.short:
+          this.createdIndex = 1
+          break
+        case this.beforeLastMonth.short:
+          this.createdIndex = 0
+          break
+        default:
+          throw new Error('Something went wrong')
+      }
+      this.selectedOpenCreationAmount = this.creation[this.createdIndex]
+      this.rangeMax =  this.selectedOpenCreationAmount 
+    }
+  },
+  data() {
+    return {
+      radioSelected: '',
+      text: !this.creationUserData.note ? '' : this.creationUserData.note,
+      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount / 10000,
+      rangeMin: 0,
+      rangeMax: 1000,
+      currentMonth: {
+        short: this.$moment().format('MMMM'),
+        long: this.$moment().format('YYYY-MM-DD'),
+      },
+      lastMonth: {
+        short: this.$moment().subtract(1, 'month').format('MMMM'),
+        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
+      },
+      beforeLastMonth: {
+        short: this.$moment().subtract(2, 'month').format('MMMM'),
+        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
+      },
+      submitObj: null,
+      isdisabled: true,
+      createdIndex: null,
+      selectedOpenCreationAmount:{},
+    }
+  },
+
+  methods: {
+    updateRadioSelected(name, index, openCreation) {
+      console.log('createdIndex before update', this.createdIndex)
+      this.createdIndex = index
+      console.log('radioSelected', this.radioSelected)
+      console.log('openCreation', openCreation)
+
+      this.rangeMin = 0
+      this.rangeMax = this.creation[index]
+    },
+    submitCreation() {
+      // Formular Prüfen ob ein Zeitraum ausgewählt wurde. Ansonsten abbrechen und Hinweis anzeigen
+      if (this.radioSelected === '') {
+        return alert('Bitte wähle einen Zeitraum!')
+      }
+      // Formular Prüfen ob der GDD Betrag grösser 0 ist. Ansonsten abbrechen und Hinweis anzeigen
+      if (this.value <= 0) {
+        return alert('Bitte gib einen GDD Betrag an!')
+      }
+      // Formular Prüfen ob der Text vorhanden ist. Ansonsten abbrechen und Hinweis anzeigen
+      if (this.text === '') {
+        return alert('Bitte gib einen Text ein!')
+      }
+      // Formular Prüfen ob der Text länger als 10 Zeichen hat. Ansonsten abbrechen und Hinweis anzeigen
+      if (this.text.length < 10) {
+        return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
+      }
+      if (this.type === 'singleCreation') {
+        this.submitObj = {
+          email: this.item.email,
+          creationDate: this.radioSelected.long,
+          amount: Number(this.value),
+          note: this.text,
+          moderator: Number(this.$store.state.moderator.id),
+        }
+
+        if (this.pagetype === 'PageCreationConfirm') {
+          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+          alert('UPDATE EINZELSCHÖPFUNG ABSENDEN FÜR >> ' + JSON.stringify(this.submitObj))
+
+          this.$apollo
+            .query({
+              query: updatePendingCreation,
+              variables: this.submitObj,
+            })
+            .then((result) => {
+              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+              this.$toasted.success(
+                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,
+              )
+              this.submitObj = null
+              this.createdIndex = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
+            })
+            .catch((error) => {
+              this.$toasted.error(error.message)
+              this.submitObj = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
+            })
+        }
+      }
+    },
+  },
+}
+</script>
