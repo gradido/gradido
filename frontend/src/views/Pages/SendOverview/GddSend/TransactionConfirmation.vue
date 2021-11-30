@@ -32,6 +32,7 @@
         </b-list-group>
       </b-col>
     </b-row>
+    {{transactions}}
     <b-row>{{$n(balance, 'decimal')}}, {{ $n(decay, 'decimal') }}, {{ $n(amount, 'decimal') }}</b-row>
     <b-row class="mt-4">
       <b-col>
@@ -50,11 +51,13 @@ export default {
   name: 'TransactionConfirmation',
   props: {
     balance: { type: Number, default: 0 },
-    decay: { type: Number, default: 0 },
     email: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
     loading: { type: Boolean, default: false },
+    transactions: {
+      default: () => [],
+    },
   },
 }
 </script>
