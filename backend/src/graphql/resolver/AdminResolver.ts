@@ -31,7 +31,7 @@ export class AdminResolver {
 
   @Query(() => [Number])
   async createPendingCreation(
-    @Args() { email, amount, note, creationDate, moderator }: CreatePendingCreationArgs,
+    @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
@@ -45,7 +45,7 @@ export class AdminResolver {
       loginPendingTaskAdmin.amount = BigInt(amount * 10000)
       loginPendingTaskAdmin.created = new Date()
       loginPendingTaskAdmin.date = creationDateObj
-      loginPendingTaskAdmin.note = note
+      loginPendingTaskAdmin.memo = memo
       loginPendingTaskAdmin.moderator = moderator
 
       pendingCreationRepository.save(loginPendingTaskAdmin)

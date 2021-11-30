@@ -2,7 +2,7 @@
   <div class="component-nabvar">
     <b-navbar toggleable="sm" type="dark" variant="success">
       <b-navbar-brand to="/">
-        <img :src="logo" class="navbar-brand-img" alt="..." />
+        <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -32,28 +32,8 @@ import CONFIG from '../config'
 
 export default {
   name: 'navbar',
-  data() {
-    return {
-      logo: 'img/brand/green.png',
-    }
-  },
   methods: {
     logout() {
-      // TODO
-      // this.$emit('logout')
-      /* this.$apollo
-        .query({
-          query: logout,
-        })
-        .then(() => {
-          this.$store.dispatch('logout')
-          this.$router.push('/logout')
-        })
-        .catch(() => {
-          this.$store.dispatch('logout')
-          if (this.$router.currentRoute.path !== '/logout') this.$router.push('/logout')
-        })
-      */
       this.$store.dispatch('logout')
       this.$router.push('/logout')
     },

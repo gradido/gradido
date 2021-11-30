@@ -54,7 +54,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex != null">
+        <b-row class="m-4" v-show="createdIndex">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -237,7 +237,7 @@ export default {
             email: this.item.email,
             creationDate: this.radioSelected.long,
             amount: this.value,
-            note: this.text,
+            memo: this.text,
             moderator: this.$store.state.moderator.id,
           },
         ]
@@ -255,7 +255,7 @@ export default {
           email: this.item.email,
           creationDate: this.radioSelected.long,
           amount: Number(this.value),
-          note: this.text,
+          memo: this.text,
           moderator: Number(this.$store.state.moderator.id),
         }
 
