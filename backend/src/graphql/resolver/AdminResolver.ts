@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Args, Authorized } from 'type-graphql'
+import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
@@ -29,7 +29,7 @@ export class AdminResolver {
     return users
   }
 
-  @Query(() => [Number])
+  @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {

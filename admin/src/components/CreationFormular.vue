@@ -270,8 +270,8 @@ export default {
           })
         } else {
           this.$apollo
-            .query({
-              query: createPendingCreation,
+            .mutate({
+              mutation: createPendingCreation,
               variables: this.submitObj,
             })
             .then((result) => {

@@ -1,11 +1,17 @@
 import gql from 'graphql-tag'
 
 export const createPendingCreation = gql`
-  query ($email: String!, $amount: Int!, $note: String!, $creationDate: String!, $moderator: Int!) {
+  mutation (
+    $email: String!
+    $amount: Int!
+    $memo: String!
+    $creationDate: String!
+    $moderator: Int!
+  ) {
     createPendingCreation(
       email: $email
       amount: $amount
-      note: $note
+      memo: $memo
       creationDate: $creationDate
       moderator: $moderator
     )
