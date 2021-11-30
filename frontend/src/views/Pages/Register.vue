@@ -121,8 +121,37 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
+                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3">
+                    <b-col>PublisherId</b-col>
+                    <b-col class="text-right">
+                      <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col>
+                      <b-collapse id="my-collapse" class="">
+                        <b-input-group class="shadow-sm p-2 bg-white rounded">
+                          <b-input-group-prepend is-text>
+                            <b-icon icon="person-fill"></b-icon>
+                          </b-input-group-prepend>
+                          <b-form-input type="text" placeholder="User ID"></b-form-input>
+                        </b-input-group>
+                        <div
+                          v-b-toggle:my-collapse
+                          class="text-center mt-1 shadow-lg p-3 mb-5 rounded"
+                        >
+                          Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte
+                          lehr lassen.
+                          <span class="text-dark">Dies ist für die Registrieung nicht nötig!</span>
+                          <div class="text-center">
+                            <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
+                          </div>
+                        </div>
+                      </b-collapse>
+                    </b-col>
+                  </b-row>
 
-                  <div class="text-center">
+                  <div class="text-center mt-5">
                     <div class="text-center">
                       <router-link class="test-button-back" to="/login">
                         <b-button variant="outline-secondary" class="mr-4">
