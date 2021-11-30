@@ -1,5 +1,6 @@
 import { TransactionSendCoin } from '../../entity/TransactionSendCoin'
 import { TransactionCreation } from '../../entity/TransactionCreation'
+import { User } from '../../entity/User'
 
 export interface TransactionContext {
   transactionTypeId?: number
@@ -9,4 +10,11 @@ export interface TransactionContext {
   blockchainTypeId?: number
   transactionSendCoin?: TransactionSendCoin
   transactionCreation?: TransactionCreation
+}
+
+export interface BalanceContext {
+  modified?: Date
+  recordDate?: Date
+  amount?: number
+  user?: User
 }

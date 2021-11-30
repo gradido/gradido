@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm'
+import { User } from '../User'
 
 @Entity('state_balances')
 export class Balance extends BaseEntity {
@@ -16,4 +17,8 @@ export class Balance extends BaseEntity {
 
   @Column({ type: 'bigint' })
   amount: number
+
+  @OneToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'user_id' })
+  user: User
 }
