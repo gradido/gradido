@@ -9,7 +9,7 @@ export default class CreatePendingCreationArgs {
   amount: number
 
   @Field(() => String)
-  note: string
+  memo: string
 
   @Field(() => String)
   creationDate: string

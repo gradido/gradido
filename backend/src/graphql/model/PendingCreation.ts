@@ -21,7 +21,7 @@ export class PendingCreation {
   date: Date
 
   @Field(() => String)
-  note: string
+  memo: string
 
   @Field(() => Number)
   amount: BigInt

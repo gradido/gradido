@@ -16,7 +16,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     \`userId\` int UNSIGNED DEFAULT 0,
     \`created\` datetime NOT NULL,
     \`date\` datetime NOT NULL,
-    \`note\` text DEFAULT NULL,
+    \`memo\` text DEFAULT NULL,
     \`amount\` bigint(20) NOT NULL,
     \`moderator\` int UNSIGNED DEFAULT 0,
     PRIMARY KEY (\`id\`)
