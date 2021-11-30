@@ -2,7 +2,7 @@
   <div class="component-nabvar">
     <b-navbar toggleable="sm" type="dark" variant="success">
       <b-navbar-brand to="/">
-        <img :src="logo" class="navbar-brand-img" alt="..." />
+        <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
