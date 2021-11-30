@@ -151,7 +151,7 @@
   },
   "signup": "Registrieren",
   "publisher": {
-    "publisherId": "Herausgeber ID",
+    "publisherId": "PublisherID",
     "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte lehr lassen.",
     "infoNoRegister": "Dies ist für die Registrieung nicht nötig!"
   },
