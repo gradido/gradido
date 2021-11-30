@@ -242,8 +242,8 @@ export default {
         if (this.pagetype === 'PageCreationConfirm') {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
           this.$apollo
-            .query({
-              query: updatePendingCreation,
+            .mutate({
+              mutation: updatePendingCreation,
               variables: this.submitObj,
             })
             .then((result) => {
