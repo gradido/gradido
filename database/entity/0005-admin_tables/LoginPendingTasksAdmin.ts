@@ -15,7 +15,7 @@ export class LoginPendingTasksAdmin extends BaseEntity {
   date: Date
 
   @Column({ length: 256, nullable: true, default: null })
-  note: string
+  memo: string
 
   @Column({ type: 'bigint', nullable: false })
   amount: BigInt
