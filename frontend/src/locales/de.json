@@ -114,6 +114,11 @@
   "message": "hallo gradido !!",
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
+  "publisher": {
+    "infoNoRegister": "Dies ist für die Registrieung nicht nötig!",
+    "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte lehr lassen.",
+    "publisherId": "PublisherID"
+  },
   "send": "Senden",
   "settings": {
     "coinanimation": {
@@ -150,11 +155,6 @@
     }
   },
   "signup": "Registrieren",
-  "publisher": {
-    "publisherId": "PublisherID",
-    "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte lehr lassen.",
-    "infoNoRegister": "Dies ist für die Registrieung nicht nötig!"
-  },
   "site": {
     "404": {
       "back": "Zurück zur Übersicht!",
