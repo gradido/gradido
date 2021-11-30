@@ -54,7 +54,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex != null">
+        <b-row class="m-4" v-show="createdIndex">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
