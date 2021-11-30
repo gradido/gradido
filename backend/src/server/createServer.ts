@@ -25,7 +25,7 @@ import schema from '../graphql/schema'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-const DB_VERSION = '0005-community_transaction_add_state'
+const DB_VERSION = '0004-login_server_data'
 
 const createServer = async (context: any = serverContext): Promise<any> => {
   // open mysql connection
