@@ -15,7 +15,7 @@
 - docker-compose up
 http://localhost/vue should be same as https://gdd1.gradido.com/vue
 
-##git basics to update this document
+## git basics to update this document
 - git status
 - git branch onboarding_process
 - git checkout onboarding_process
