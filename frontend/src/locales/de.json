@@ -169,6 +169,11 @@
       "my-profil": "Mein Profil",
       "support": "Support"
     },
+    "publisher": {
+      "publisherId": "Herausgeber ID",
+      "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte lehr lassen.",
+      "infoNoRegister": "Dies ist für die Registrieung nicht nötig!"
+    },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",

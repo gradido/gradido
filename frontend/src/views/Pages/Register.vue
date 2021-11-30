@@ -122,7 +122,7 @@
                     </span>
                   </b-alert>
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3">
-                    <b-col>PublisherId</b-col>
+                    <b-col>{{ $t('publisher.publisherId') }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
                     </b-col>
@@ -140,9 +140,8 @@
                           v-b-toggle:my-collapse
                           class="text-center mt-1 shadow-lg p-3 mb-5 rounded"
                         >
-                          Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte
-                          lehr lassen.
-                          <span class="text-dark">Dies ist für die Registrieung nicht nötig!</span>
+                          {{ $t('publisher.infoText') }}
+                          <span class="text-dark">{{ $t('publisher.infoNoRegister') }}</span>
                           <div class="text-center">
                             <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
                           </div>
