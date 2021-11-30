@@ -122,7 +122,7 @@
                     </span>
                   </b-alert>
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3">
-                    <b-col>{{ $t('publisher.publisherId') }}</b-col>
+                    <b-col>{{ $t('publisher.publisherId') }} : {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
                     </b-col>
@@ -134,7 +134,7 @@
                           <b-input-group-prepend is-text>
                             <b-icon icon="person-fill"></b-icon>
                           </b-input-group-prepend>
-                          <b-form-input type="text" placeholder="User ID"></b-form-input>
+                          <b-form-input type="text" placeholder="User ID" v-model="$store.state.publisherId"></b-form-input>
                         </b-input-group>
                         <div
                           v-b-toggle:my-collapse
