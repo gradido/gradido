@@ -657,4 +657,4 @@ jobs:
       - name: database | up
         run: docker-compose -f docker-compose.yml run -T database yarn up
       - name: database | reset
-        run: docker-compose -f docker-compose.yml run -T database yarn dev_reset
+        run: docker-compose -f docker-compose.yml run -T database yarn reset
