@@ -116,18 +116,22 @@ describe('SendOverview', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockRejectedValue({ message: 'receiver not found' })
+          sendMock.mockRejectedValue({ message: 'recipiant not known' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmation' })
             .vm.$emit('send-transaction')
         })
 
         it('shows the error page', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_error')
+          expect(wrapper.find('.test-send_transaction_error').text()).toContain(
+            'form.send_transaction_error',
+          )
         })
 
         it('shows recipient not found', () => {
-          expect(wrapper.text()).toContain('transaction.receiverNotFound')
+          expect(wrapper.find('.test-receiver-not-found').text()).toContain(
+            'transaction.receiverNotFound',
+          )
         })
       })
     })
