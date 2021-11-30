@@ -235,7 +235,7 @@ export default {
           email: this.item.email,
           creationDate: this.radioSelected.long,
           amount: Number(this.value),
-          note: this.text,
+          memo: this.text,
           moderator: Number(this.$store.state.moderator.id),
         }
 
