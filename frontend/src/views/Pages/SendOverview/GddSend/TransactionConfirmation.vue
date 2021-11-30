@@ -32,33 +32,33 @@
         </b-list-group>
       </b-col>
     </b-row>
-    
-      <b-container class="bv-example-row mt-3 gray-background p-2">
-  <b-row>
-    <b-col></b-col>
-    <b-col>aktueller Kontostand</b-col>
-    <b-col>{{$n(balance, 'decimal')}}</b-col>
-  </b-row>
-  <b-row>
-    <b-col> </b-col>
-    <b-col>   <strong>Dein Betrag   </strong></b-col>
-    <b-col>   <strong>- {{$n(amount, 'decimal')}}   </strong></b-col>
- 
-  </b-row>
-    <b-row >
-    <b-col> </b-col>
-    <b-col>Vergänglichkeit</b-col>
-    <b-col style="border-bottom: double;">- {{$n(decay, 'decimal')}}</b-col>
-  </b-row>
-   
- 
-   <b-row>
-    <b-col></b-col>
-    <b-col>neuer Kontostand</b-col>
-    <b-col>~ {{$n(balance - amount - decay, 'decimal')}}</b-col>
-  </b-row>
-</b-container>
-    
+
+    <b-container class="bv-example-row mt-3 gray-background p-2">
+      <b-row>
+        <b-col></b-col>
+        <b-col>aktueller Kontostand</b-col>
+        <b-col>{{ $n(balance, 'decimal') }}</b-col>
+      </b-row>
+      <b-row>
+        <b-col></b-col>
+        <b-col><strong>Dein Betrag</strong></b-col>
+        <b-col>
+          <strong>- {{ $n(amount, 'decimal') }}</strong>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col></b-col>
+        <b-col>Vergänglichkeit</b-col>
+        <b-col style="border-bottom: double">- {{ $n(decay, 'decimal') }}</b-col>
+      </b-row>
+
+      <b-row>
+        <b-col></b-col>
+        <b-col>neuer Kontostand</b-col>
+        <b-col>~ {{ $n(balance - amount - decay, 'decimal') }}</b-col>
+      </b-row>
+    </b-container>
+
     <b-row class="mt-4">
       <b-col>
         <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
