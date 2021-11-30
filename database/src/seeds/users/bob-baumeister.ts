@@ -22,4 +22,8 @@ export const bobBaumeister = {
     'detail master source effort unable waste tilt flush domain orchard art truck hint barrel response gate impose peanut secret merry three uncle wink resource ',
   mnemonicType: 2,
   isAdmin: false,
+  addBalance: true,
+  balanceModified: new Date('2021-11-30T10:37:14'),
+  recordDate: new Date('2021-11-30T10:37:14'),
+  amount: 10000000,
 }

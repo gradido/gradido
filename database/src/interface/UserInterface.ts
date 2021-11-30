@@ -27,4 +27,10 @@ export interface UserInterface {
   modified?: Date
   // flag for admin
   isAdmin?: boolean
+  // flag for balance
+  addBalance?: boolean
+  // balance
+  balanceModified?: Date
+  recordDate?: Date
+  amount?: number
 }

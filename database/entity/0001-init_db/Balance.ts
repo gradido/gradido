@@ -19,6 +19,6 @@ export class Balance extends BaseEntity {
   amount: number
 
   @OneToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'state_user_id' })
   user: User
 }

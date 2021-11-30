@@ -60,11 +60,11 @@ const run = async (command: string) => {
         root: process.cwd(),
         configName: 'ormconfig.js',
       })
+      await runSeeder(DecayStartBlockSeed)
       await runSeeder(CreatePeterLustigSeed)
       await runSeeder(CreateBibiBloxbergSeed)
       await runSeeder(CreateRaeuberHotzenplotzSeed)
       await runSeeder(CreateBobBaumeisterSeed)
-      await runSeeder(DecayStartBlockSeed)
       break
     default:
       throw new Error(`Unsupported command ${command}`)

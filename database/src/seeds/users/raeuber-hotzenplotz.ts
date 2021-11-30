@@ -22,4 +22,8 @@ export const raeuberHotzenplotz = {
     'gospel trip tenant mouse spider skill auto curious man video chief response same little over expire drum display fancy clinic keen throw urge basket ',
   mnemonicType: 2,
   isAdmin: false,
+  addBalance: true,
+  balanceModified: new Date('2021-11-30T10:37:13'),
+  recordDate: new Date('2021-11-30T10:37:13'),
+  amount: 10000000,
 }

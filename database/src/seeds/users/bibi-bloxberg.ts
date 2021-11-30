@@ -22,4 +22,8 @@ export const bibiBloxberg = {
     'knife normal level all hurdle crucial color avoid warrior stadium road bachelor affair topple hawk pottery right afford immune two ceiling budget glance hour ',
   mnemonicType: 2,
   isAdmin: false,
+  addBalance: true,
+  balanceModified: new Date('2021-11-30T10:37:11'),
+  recordDate: new Date('2021-11-30T10:37:11'),
+  amount: 10000000,
 }
