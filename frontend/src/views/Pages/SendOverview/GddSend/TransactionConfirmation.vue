@@ -36,25 +36,27 @@
     <b-container class="bv-example-row mt-3 gray-background p-2">
       <b-row>
         <b-col></b-col>
-        <b-col>aktueller Kontostand</b-col>
+        <b-col>{{ $t('form.current_balance') }}</b-col>
         <b-col>{{ $n(balance, 'decimal') }}</b-col>
       </b-row>
       <b-row>
         <b-col></b-col>
-        <b-col><strong>Dein Betrag</strong></b-col>
+        <b-col>
+          <strong>{{ $t('form.your_amount') }}</strong>
+        </b-col>
         <b-col>
           <strong>- {{ $n(amount, 'decimal') }}</strong>
         </b-col>
       </b-row>
       <b-row>
         <b-col></b-col>
-        <b-col>Vergänglichkeit</b-col>
+        <b-col>{{ $t('decay.decay') }}</b-col>
         <b-col style="border-bottom: double">- {{ $n(decay, 'decimal') }}</b-col>
       </b-row>
 
       <b-row>
         <b-col></b-col>
-        <b-col>neuer Kontostand</b-col>
+        <b-col>{{ $t('form.new_balance') }}</b-col>
         <b-col>~ {{ $n(balance - amount - decay, 'decimal') }}</b-col>
       </b-row>
     </b-container>

@@ -52,6 +52,9 @@
   },
   "form": {
     "amount": "Betrag",
+    "your_amount": "Dein Betrag",
+    "current_balance": "aktueller Kontostand",
+    "new_balance": "neuer Kontostand",
     "at": "am",
     "cancel": "Abbrechen",
     "close": "schließen",

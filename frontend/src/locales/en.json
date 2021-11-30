@@ -52,6 +52,9 @@
   },
   "form": {
     "amount": "Amount",
+    "your_amount": "Your amount",
+    "current_balance": "current balance",
+    "new_balance": "new balance",
     "at": "at",
     "cancel": "Cancel",
     "close": "Close",
