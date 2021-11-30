@@ -19,10 +19,11 @@
 namespace model {
 	namespace gradido {
 
-
+		class SendTransactionTask;
 
 		class Transaction : public GradidoTask
 		{
+			friend SendTransactionTask;
 		public:
 			Transaction(Poco::AutoPtr<TransactionBody> body);
 			Transaction(const std::string& protoMessageBin, model::table::PendingTask* dbModel);
@@ -93,12 +94,14 @@ namespace model {
 
 			bool isTheSameTransaction(Poco::AutoPtr<Transaction> other);
 
+			const proto::gradido::GradidoTransaction& getProtoTransaction() { return mProtoTransaction; }
+
 		protected:
 
 			bool ifEnoughSignsProceed(Poco::AutoPtr<controller::User> user);
 
 			int runSendTransactionMysql(const std::string& transaction_base64, Poco::AutoPtr<controller::Group> group);
-			int runSendTransactionIota(const std::string& transaction_hex, Poco::AutoPtr<controller::Group> group);
+			int runSendTransactionIota(const std::string& transaction_hex, const std::string& groupAlias);
 
 			Poco::AutoPtr<Transaction> mPairedTransaction;
 
@@ -110,12 +113,13 @@ namespace model {
 		class SendTransactionTask : public UniLib::controller::CPUTask
 		{
 		public:
-			SendTransactionTask(Poco::AutoPtr<Transaction> transaction);
+			SendTransactionTask(Poco::AutoPtr<Transaction> transaction, const std::string& groupAlias);
 
 			const char* getResourceType() const { return "SendTransactionTask"; };
 			int run();
 		protected:
 			Poco::AutoPtr<Transaction> mTransaction;
+			std::string mGroupAlias;
 		};
 
 	}

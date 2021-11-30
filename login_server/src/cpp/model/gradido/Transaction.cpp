@@ -548,22 +548,38 @@ namespace model {
 				if (!user.isNull()) {
 					group = user->getGroup();
 				}
-
+				std::string groupAlias;
 				if (group.isNull()) {
 					if (mTransactionBody->isGroupMemberUpdate()) {
-						auto alias = mTransactionBody->getGroupMemberUpdate()->getTargetGroupAlias();
-						auto groups = controller::Group::load(alias);
+						groupAlias = mTransactionBody->getGroupMemberUpdate()->getTargetGroupAlias();
+						auto groups = controller::Group::load(groupAlias);
 						if (groups.size() == 1) {
 							group = groups[0];
 						}
 						else {
-							addError(new ParamError(function_name, "invalid or unknown group alias in group member update", alias));
+							addError(new ParamError(function_name, "invalid or unknown group alias in group member update", groupAlias));
 							return -8;
 						}
 					}
 				}
 
-				if (mTransactionBody->isMysqlBlockchain()) {
+				if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isCrossGroup()) {
+					auto groups = controller::Group::load(mTransactionBody->getTransferTransaction()->getOwnGroupAlias());
+					if (groups.size() == 1) {
+						group = groups[0];
+					}
+				}
+
+
+				if (mTransactionBody->isIotaBlockchain()) {
+					Poco::AutoPtr<SendTransactionTask> task(new SendTransactionTask(this, groupAlias));
+					// add reference count
+					duplicate();
+					task->scheduleTask(task);
+				}
+				// send it to community server so it knows its transaction was processed,
+				// but depending on type it is not confirmed yet
+				if (!group.isNull()) {
 					// finale to base64
 					auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
 
@@ -574,25 +590,8 @@ namespace model {
 
 					return runSendTransactionMysql(base_64_message, group);
 				}
-				else if (mTransactionBody->isIotaBlockchain()) {
-
-					// finale to hex for iota
-					auto hex_message = DataTypeConverter::binToHex(raw_message);
-					if (hex_message == "") {
-						addError(new Error(function_name, "error convert final transaction to hex"));
-						return -7;
-					}
-					if (mTransactionBody->isTransfer() && mTransactionBody->getTransferTransaction()->isCrossGroup()) {
-						auto groups = controller::Group::load(mTransactionBody->getTransferTransaction()->getOwnGroupAlias());
-						if (groups.size() == 1) {
-							group = groups[0];
-						}
-					}
-
-					return runSendTransactionIota(hex_message, group);
-				}
-				addError(new ParamError(function_name, "not implemented blockchain type", mTransactionBody->getBlockchainTypeString()));
-				return -10;
+				return 1;
+				
 			}
 
 		}
@@ -606,6 +605,7 @@ namespace model {
 			auto alloc = json_request.getJsonAllocator();
 			Value param(kObjectType);
 			param.AddMember("transaction", Value(transaction_base64.data(), transaction_base64.size(), alloc), alloc);
+			param.AddMember("type", Value(mTransactionBody->getBlockchainTypeString(), alloc), alloc);
 			auto result = json_request.request("putTransaction", param.Move());
 			json_request.getWarnings(&json_request);
 
@@ -627,11 +627,11 @@ namespace model {
 			return -1;
 		}
 
-		int Transaction::runSendTransactionIota(const std::string& transaction_hex, Poco::AutoPtr<controller::Group> group)
+		int Transaction::runSendTransactionIota(const std::string& transaction_hex, const std::string& groupAlias)
 		{
 			static const char* function_name = "Transaction::runSendTransactionIota";
 
-			std::string index = "GRADIDO." + group->getModel()->getAlias();
+			std::string index = "GRADIDO." + groupAlias;
 			std::string message = transaction_hex;
 
 			/*
@@ -736,48 +736,26 @@ namespace model {
 
 
 		/// TASK ////////////////////////
-		SendTransactionTask::SendTransactionTask(Poco::AutoPtr<Transaction> transaction)
-			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mTransaction(transaction)
+		SendTransactionTask::SendTransactionTask(Poco::AutoPtr<Transaction> transaction, const std::string& groupAlias)
+			: UniLib::controller::CPUTask(ServerConfig::g_CPUScheduler), mTransaction(transaction), mGroupAlias(groupAlias)
 		{
 
 		}
 
 		int SendTransactionTask::run()
 		{
-			int result = 1;
-			// if transfer inbound, create also transfer outbound
-			/*if (mTransaction->getTransactionBody()->isTransfer()) {
-				auto transfer = mTransaction->getTransactionBody()->getTransferTransaction();
-				if (transfer->isInbound()) {
-					auto outbound = transfer->createOutbound(mTransaction->getTransactionBody()->getMemo());
-					if (outbound.isNull()) { result = -1;}
+			std::string raw_message = mTransaction->getProtoTransaction().SerializeAsString();
 
-					result = outbound->runSendTransaction();
+			if (mTransaction->getTransactionBody()->isIotaBlockchain()) 
+			{
+				// finale to hex for iota
+				auto hex_message = DataTypeConverter::binToHex(raw_message);
+				if (hex_message == "") {
+					mTransaction->addError(new Error("SendTransactionTask::run", "error convert final transaction to hex"));
+					return -7;
 				}
-			}
-			if (result != 1) {
-				mTransaction->deleteFromDB();
-				return 0;
-			}*/
-			result = mTransaction->runSendTransaction();
-			//printf("[SendTransactionTask::run] result: %d\n", result);
-			// delete because of error
-			if (-1 == result) {
-				//mTransaction->deleteFromDB();
-				Document errors(kObjectType);
-				auto alloc = errors.GetAllocator();
-				errors.AddMember("errors", mTransaction->getErrorsArray(alloc), alloc);
-				errors.AddMember("state", "error", alloc);
-				auto model = mTransaction->getModel();
-				model->setResultJson(errors);
-				model->updateFinishedAndResult();
-			}
-			if (result < -1) {
-				mTransaction->sendErrorsAsEmail();
-			}
-			// delete because succeed, maybe change later
-			if (1 == result) {
-				//mTransaction->deleteFromDB();
+
+				mTransaction->runSendTransactionIota(hex_message, mGroupAlias);
 			}
 
 			return 0;
