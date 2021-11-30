@@ -45,7 +45,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex != null">
+        <b-row class="m-4" v-show="createdIndex">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -210,12 +210,35 @@ export default {
       if (this.text.length < 10) {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
-      if (this.type === 'singleCreation') {
+
+      if (this.type === 'massCreation') {
+        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
+        const i = Object.keys(this.itemsMassCreation).length
+        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
+        alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
+        this.submitObj = [
+          {
+            item: this.itemsMassCreation,
+            email: this.item.email,
+            creationDate: this.radioSelected.long,
+            amount: this.value,
+            memo: this.text,
+            moderator: this.$store.state.moderator.id,
+          },
+        ]
+        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+
+        // $store - offene Schöpfungen hochzählen
+        this.$store.commit('openCreationsPlus', i)
+
+        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
+        this.$emit('remove-all-bookmark')
+      } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
           creationDate: this.radioSelected.long,
           amount: Number(this.value),
-          note: this.text,
+          memo: this.text,
           moderator: Number(this.$store.state.moderator.id),
         }
 
