@@ -6,7 +6,6 @@
           <status class="gdd-status-gdd" :pending="pending" :balance="balance" status-text="GDD" />
         </b-col>
       </b-row>
-
       <br />
       <gdd-send :currentTransactionStep="currentTransactionStep">
         <template #transaction-form>
@@ -15,7 +14,7 @@
         <template #transaction-confirmation>
           <transaction-confirmation
             :balance="balance"
-            :decay="decay"
+            :transactions="transactions"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
