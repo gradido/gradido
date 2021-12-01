@@ -33,7 +33,7 @@ export interface TransactionSendCoinContext {
 export interface TransactionCreationContext {
   userId?: number
   amount?: number
-  targetDate?: Timestamp
+  targetDate?: Date
   transaction?: Transaction
 }
 
