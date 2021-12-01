@@ -13,6 +13,7 @@ use Cake\I18n\FrozenTime;
  * @property \App\Model\Table\StateGroupsTable&\Cake\ORM\Association\BelongsTo $StateGroups
  * @property \App\Model\Table\TransactionTypesTable&\Cake\ORM\Association\BelongsTo $TransactionTypes
  * @property \App\Model\Table\StateCreatedTable&\Cake\ORM\Association\HasMany $StateCreated
+ * @property \App\Model\Table\TransactionStatesTable&\Cake\ORM\Association\BelongsTo $TransactionStates
  * @property \App\Model\Table\TransactionCreationsTable&\Cake\ORM\Association\HasMany $TransactionCreations
  * @property \App\Model\Table\TransactionGroupAddaddressTable&\Cake\ORM\Association\HasMany $TransactionGroupAddaddress
  * @property \App\Model\Table\TransactionGroupAllowtradesTable&\Cake\ORM\Association\HasMany $TransactionGroupAllowtrades
@@ -59,6 +60,10 @@ class TransactionsTable extends Table
         ]);
         $this->hasMany('StateCreated', [
             'foreignKey' => 'transaction_id'
+        ]);
+        $this->belongsTo('TransactionStates', [
+          'foreignKey' => 'transaction_state_id',
+          'joinType' => 'INNER'
         ]);
         $this->hasOne('TransactionCreations', [
             'foreignKey' => 'transaction_id'
@@ -120,6 +125,7 @@ class TransactionsTable extends Table
         $rules->add($rules->existsIn(['state_group_id'], 'StateGroups'));
         $rules->add($rules->existsIn(['transaction_type_id'], 'TransactionTypes'));
         $rules->add($rules->existsIn(['blockchain_type_id'], 'BlockchainTypes'));
+        $rules->add($rules->existsIn(['transaction_state_id'], 'TransactionStates'));
 
         return $rules;
     }

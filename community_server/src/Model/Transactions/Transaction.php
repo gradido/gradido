@@ -149,13 +149,13 @@ class Transaction extends TransactionBase {
         return true;
     }
     
-    public function save()
+    public function save($blockchainType)
     {
       $connection = ConnectionManager::get('default');
       $connection->begin();
       //id transaction_id signature     pubkey 
       
-       if (!$this->mTransactionBody->save($this->getFirstPublic(), $this->mProtoTransaction->getSigMap())) {
+       if (!$this->mTransactionBody->save($this->getFirstPublic(), $this->mProtoTransaction->getSigMap(), $blockchainType)) {
           $this->addErrors($this->mTransactionBody->getErrors());
           $connection->rollback();
           // correct auto-increment value to prevent gaps

@@ -11,9 +11,11 @@ use Cake\ORM\Entity;
  * @property int $transaction_type_id
  * @property string|resource $tx_hash
  * @property \Cake\I18n\FrozenTime $received
+ * @property int $transaction_state_id
  *
  * @property \App\Model\Entity\StateGroup $state_group
  * @property \App\Model\Entity\TransactionType $transaction_type
+ * @property \App\Model\Entity\TransactionState $transaction_state
  * @property \App\Model\Entity\StateCreated[] $state_created
  * @property \App\Model\Entity\TransactionCreation[] $transaction_creations
  * @property \App\Model\Entity\TransactionGroupAddaddres[] $transaction_group_addaddress
@@ -43,6 +45,7 @@ class Transaction extends Entity
         'state_group' => true,
         'transaction_type' => true,
         'state_created' => true,
+        'transaction_state_id' => true,
         'transaction_creations' => true,
         'transaction_group_addaddress' => true,
         'transaction_group_allowtrades' => true,

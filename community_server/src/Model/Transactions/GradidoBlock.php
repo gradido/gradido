@@ -85,6 +85,22 @@ class GradidoBlock extends TransactionBase {
         return $result;
     }
 
+    public function checkWithDb()
+    {
+        $id = $this->getId();
+        $transactionsTable = $this->getTable('transactions');
+        $dbTransaction = $transactionsTable
+                            ->find('all')
+                            ->contain(['transactionSendCoins', 'transactionCreations', 'transactionSignatures', 'stateUserTransactions'])
+                            ->where(['id' => $id])
+                            ->first()
+                            ;
+        if(!$dbTransaction) {
+            return false;
+        }
+        
+    }
+
     public function calculateTxHash()
     {
         $transactionId = $this->getId();

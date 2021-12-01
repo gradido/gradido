@@ -3,7 +3,7 @@
 namespace Model\Transactions;
 
 use Cake\ORM\TableRegistry;
-use Cake\I18n\Date;
+use Cake\I18n\FrozenDate;
 
 class TransactionBody extends TransactionBase {
   private $mProtoTransactionBody = null;
@@ -46,7 +46,7 @@ class TransactionBody extends TransactionBase {
       $this->addError('TransactionBody::validate', 'Transaction were created in the future!');
       return false;
     }
-    if(!$this->mSpecificTransaction->validate($sigPairs)) {
+    if(!$this->mSpecificTransaction->validate($sigPairs, new FrozenDate($this->mProtoTransactionBody->getCreated()->getSeconds()))) {
       $this->addErrors($this->mSpecificTransaction->getErrors());
       return false;
     }   
@@ -67,13 +67,14 @@ class TransactionBody extends TransactionBase {
     return $this->mProtoTransactionBody->getData(); 
   }
   
-  public function save($firstPublic, $sigMap) {
+  public function save($firstPublic, $sigMap, $blockchainType) {
       $transactionsTable = TableRegistry::getTableLocator()->get('transactions');
       $transactionEntity = $transactionsTable->newEntity();
       
       
       $transactionEntity->transaction_type_id = $this->transactionTypeId;
       $transactionEntity->memo = $this->getMemo();
+      $transactionEntity->transaction_state_id = 1;
       
       if ($transactionsTable->save($transactionEntity)) {
           // reload entity to get received date filled from mysql
@@ -89,11 +90,12 @@ class TransactionBody extends TransactionBase {
         return false;
       }
       $previousTxHash = null;
+      $previousTxState = 0;
       if($this->mTransactionID > 1) {
         try {
           $previousTransaction = $transactionsTable
                   ->find('all', ['contain' => false])
-                  ->select(['tx_hash'])
+                  ->select(['tx_hash', 'transaction_state_id'])
                   ->where(['id' => $this->mTransactionID - 1])
                   ->first();
           /*$previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
@@ -110,6 +112,7 @@ class TransactionBody extends TransactionBase {
           return false;
         }
         $previousTxHash = $previousTransaction->tx_hash;
+        $previousTxState = $previousTransaction->transaction_state_id;
       }
       try {
         //$transactionEntity->received = $transactionsTable->get($transactionEntity->id, ['contain' => false, 'fields' => ['received']])->received;
@@ -137,6 +140,10 @@ class TransactionBody extends TransactionBase {
       \Sodium\crypto_generichash_update($state, $transactionEntity->received->i18nFormat('yyyy-MM-dd HH:mm:ss'));
       \Sodium\crypto_generichash_update($state, $sigMap->serializeToString());
       $transactionEntity->tx_hash = \Sodium\crypto_generichash_final($state);
+      $transactionEntity->transaction_state_id = 2;
+      if($previousTxState == 3 && $blockchainType == 'mysql') {
+        $transactionEntity->transaction_state_id = 3;
+      }
       if ($transactionsTable->save($transactionEntity)) {
         return true;
       }
