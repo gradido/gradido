@@ -121,7 +121,7 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
-                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3">
+                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>
                       {{ $t('publisher.publisherId') }} : {{ $store.state.publisherId }}
                     </b-col>
@@ -137,6 +137,7 @@
                             <b-icon icon="person-fill"></b-icon>
                           </b-input-group-prepend>
                           <b-form-input
+                            id="publisherid"
                             type="text"
                             placeholder="Publisher ID"
                             v-model="publisherId"
