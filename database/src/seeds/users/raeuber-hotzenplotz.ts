@@ -25,5 +25,10 @@ export const raeuberHotzenplotz = {
   addBalance: true,
   balanceModified: new Date('2021-11-30T10:37:13'),
   recordDate: new Date('2021-11-30T10:37:13'),
+  targetDate: new Date('2021-08-01 00:00:00'),
   amount: 10000000,
+  creationTxHash: Buffer.from(
+    '23ba44fd84deb59b9f32969ad0cb18bfa4588be1bdb99c396888506474c16c1900000000000000000000000000000000',
+    'hex',
+  ),
 }

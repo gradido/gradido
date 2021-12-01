@@ -36,3 +36,11 @@ export interface TransactionCreationContext {
   targetDate?: Timestamp
   transaction?: Transaction
 }
+
+export interface UserTransactionContext {
+  userId?: number
+  transactionId?: number
+  transactionTypeId?: number
+  balance?: number
+  balanceDate?: Date
+}

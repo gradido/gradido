@@ -25,5 +25,10 @@ export const bibiBloxberg = {
   addBalance: true,
   balanceModified: new Date('2021-11-30T10:37:11'),
   recordDate: new Date('2021-11-30T10:37:11'),
+  targetDate: new Date('2021-08-01 00:00:00'),
   amount: 10000000,
+  creationTxHash: Buffer.from(
+    '51103dc0fc2ca5d5d75a9557a1e899304e5406cfdb1328d8df6414d527b0118100000000000000000000000000000000',
+    'hex',
+  ),
 }

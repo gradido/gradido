@@ -25,5 +25,10 @@ export const bobBaumeister = {
   addBalance: true,
   balanceModified: new Date('2021-11-30T10:37:14'),
   recordDate: new Date('2021-11-30T10:37:14'),
+  targetDate: new Date('2021-08-01 00:00:00'),
   amount: 10000000,
+  creationTxHash: Buffer.from(
+    'be095dc87acb94987e71168fee8ecbf50ecb43a180b1006e75d573b35725c69c00000000000000000000000000000000',
+    'hex',
+  ),
 }

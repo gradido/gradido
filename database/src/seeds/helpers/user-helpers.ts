@@ -5,7 +5,12 @@ import {
   ServerUserContext,
   LoginUserRolesContext,
 } from '../../interface/UserContext'
-import { BalanceContext } from '../../interface/TransactionContext'
+import {
+  BalanceContext,
+  TransactionContext,
+  TransactionCreationContext,
+  UserTransactionContext,
+} from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
 import { User } from '../../../entity/User'
 import { LoginUser } from '../../../entity/LoginUser'
@@ -13,6 +18,9 @@ import { LoginUserBackup } from '../../../entity/LoginUserBackup'
 import { ServerUser } from '../../../entity/ServerUser'
 import { LoginUserRoles } from '../../../entity/LoginUserRoles'
 import { Balance } from '../../../entity/Balance'
+import { Transaction } from '../../../entity/Transaction'
+import { UserTransaction } from '../../../entity/UserTransaction'
+import { TransactionCreation } from '../../../entity/TransactionCreation'
 import { Factory } from 'typeorm-seeding'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
@@ -29,7 +37,17 @@ export const userSeeder = async (factory: Factory, userData: UserInterface): Pro
   }
 
   if (userData.addBalance) {
+    // create some GDD for the user
     await factory(Balance)(createBalanceContext(userData, user)).create()
+    const transaction = await factory(Transaction)(
+      createTransactionContext(userData, 1, 'Herzlich Willkommen bei Gradido!'),
+    ).create()
+    await factory(TransactionCreation)(
+      createTransactionCreationContext(userData, user, transaction),
+    ).create()
+    await factory(UserTransaction)(
+      createUserTransactionContext(userData, user, transaction),
+    ).create()
   }
 }
 
@@ -102,5 +120,45 @@ const createBalanceContext = (context: UserInterface, user: User): BalanceContex
     recordDate: context.recordDate,
     amount: context.amount,
     user,
+  }
+}
+
+const createTransactionContext = (
+  context: UserInterface,
+  type: number,
+  memo: string,
+): TransactionContext => {
+  return {
+    transactionTypeId: type,
+    txHash: context.creationTxHash,
+    memo,
+    received: context.recordDate,
+  }
+}
+
+const createTransactionCreationContext = (
+  context: UserInterface,
+  user: User,
+  transaction: Transaction,
+): TransactionCreationContext => {
+  return {
+    userId: user.id,
+    amount: context.amount,
+    targetDate: context.targetDate,
+    transaction,
+  }
+}
+
+const createUserTransactionContext = (
+  context: UserInterface,
+  user: User,
+  transaction: Transaction,
+): UserTransactionContext => {
+  return {
+    userId: user.id,
+    transactionId: transaction.id,
+    transactionTypeId: transaction.transactionTypeId,
+    balance: context.amount,
+    balanceDate: context.recordDate,
   }
 }
