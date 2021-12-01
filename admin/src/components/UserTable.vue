@@ -240,9 +240,18 @@ export default {
       row.toggleDetails()
     },
     updateCreationData(data) {
-      this.creationUserData = {
-        ...data,
-      }
+      // console.log('updateCreationData this.creationUserData11=> ', this.creationUserData)
+      // console.log('updateCreationData data=> ', data)
+      // this.creationUserData = {
+      //   ...this.creationUserData,
+      //   ...data,
+      // }
+      // console.log('updateCreationData this.creationUserData22=> ', this.creationUserData)
+
+      this.creationUserData.amount = data.amount
+      this.creationUserData.date = data.date
+      this.creationUserData.memo = data.memo
+      this.creationUserData.moderator = data.moderator
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation

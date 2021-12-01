@@ -232,6 +232,7 @@ export default {
       }
       if (this.type === 'singleCreation') {
         this.submitObj = {
+          id: this.item.id,
           email: this.item.email,
           creationDate: this.radioSelected.long,
           amount: Number(this.value),
@@ -247,14 +248,20 @@ export default {
               variables: this.submitObj,
             })
             .then((result) => {
-              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+              this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
+              this.$emit('update-creation-data', {
+                amount: Number(result.data.updatePendingCreation.amount),
+                date: result.data.updatePendingCreation.date,
+                memo: result.data.updatePendingCreation.memo,
+                moderator: Number(result.data.updatePendingCreation.moderator),
+              })
               this.$toasted.success(
                 `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,
               )
               this.submitObj = null
               this.createdIndex = null
               // das creation Formular reseten
-              this.$refs.creationForm.reset()
+              this.$refs.updateCreationForm.reset()
               // Den geschöpften Wert auf o setzen
               this.value = 0
             })
@@ -262,7 +269,7 @@ export default {
               this.$toasted.error(error.message)
               this.submitObj = null
               // das creation Formular reseten
-              this.$refs.creationForm.reset()
+              this.$refs.updateCreationForm.reset()
               // Den geschöpften Wert auf o setzen
               this.value = 0
             })

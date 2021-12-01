@@ -2,11 +2,13 @@ import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
+import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
+import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import moment from 'moment'
 import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 
@@ -30,6 +32,7 @@ export class AdminResolver {
     return adminUsers
   }
 
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
@@ -52,6 +55,55 @@ export class AdminResolver {
       pendingCreationRepository.save(loginPendingTaskAdmin)
     }
     return await getUserCreations(user.id)
+  }
+
+  // @Authorized([RIGHTS.SEARCH_USERS])
+  @Mutation(() => UpdatePendingCreation)
+  async updatePendingCreation(
+    @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
+  ): Promise<UpdatePendingCreation> {
+    console.log('UpdatePendingCreationArgs', { id, email, amount, memo, creationDate, moderator })
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByEmail(email)
+
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const updatedCreation = await pendingCreationRepository.findOneOrFail({ id })
+    console.log('updatedCreation', updatedCreation)
+
+    if (updatedCreation.userId !== user.id)
+      throw new Error('user of the pending creation and send user does not correspond')
+
+    updatedCreation.amount = BigInt(amount * 10000)
+    updatedCreation.memo = memo
+    updatedCreation.date = new Date(creationDate)
+    updatedCreation.moderator = moderator
+
+    await pendingCreationRepository.save(updatedCreation)
+    const result = new UpdatePendingCreation()
+    result.amount = parseInt(updatedCreation.amount.toString())
+    result.memo = updatedCreation.memo
+    result.date = updatedCreation.date
+    result.moderator = updatedCreation.moderator
+    result.creation = await getUserCreations(user.id)
+
+    console.log('result', result)
+    return result
+
+    // const creations = await getUserCreations(user.id)
+    // const creationDateObj = new Date(creationDate)
+    // if (isCreationValid(creations, amount, creationDateObj)) {
+    //   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    //   const loginPendingTaskAdmin = pendingCreationRepository.create()
+    //   loginPendingTaskAdmin.userId = user.id
+    //   loginPendingTaskAdmin.amount = BigInt(amount * 10000)
+    //   loginPendingTaskAdmin.created = new Date()
+    //   loginPendingTaskAdmin.date = creationDateObj
+    //   loginPendingTaskAdmin.memo = memo
+    //   loginPendingTaskAdmin.moderator = moderator
+    //
+    //   pendingCreationRepository.save(loginPendingTaskAdmin)
+    // }
+    // return await getUserCreations(user.id)
   }
 
   @Query(() => [PendingCreation])
