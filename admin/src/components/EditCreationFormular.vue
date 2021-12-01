@@ -184,7 +184,7 @@ export default {
   data() {
     return {
       radioSelected: '',
-      text: !this.creationUserData.note ? '' : this.creationUserData.note,
+      text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : this.creationUserData.amount / 10000,
       rangeMin: 0,
       rangeMax: 1000,
