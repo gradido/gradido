@@ -545,10 +545,12 @@ namespace model {
 
 				Poco::AutoPtr<controller::Group> group;
 				auto user = getUser();
+				
 				if (!user.isNull()) {
 					group = user->getGroup();
 				}
 				std::string groupAlias;
+				
 				if (group.isNull()) {
 					if (mTransactionBody->isGroupMemberUpdate()) {
 						groupAlias = mTransactionBody->getGroupMemberUpdate()->getTargetGroupAlias();
@@ -569,17 +571,22 @@ namespace model {
 						group = groups[0];
 					}
 				}
-
-
-				if (mTransactionBody->isIotaBlockchain()) {
-					Poco::AutoPtr<SendTransactionTask> task(new SendTransactionTask(this, groupAlias));
-					// add reference count
-					duplicate();
-					task->scheduleTask(task);
+				if (!groupAlias.size() && !group.isNull()) {
+					groupAlias = group->getModel()->getAlias();
 				}
+				if (groupAlias.size()) {
+					if (mTransactionBody->isIotaBlockchain()) {
+						Poco::AutoPtr<SendTransactionTask> task(new SendTransactionTask(this, groupAlias));
+						// add reference count
+						duplicate();
+						task->scheduleTask(task);
+					}
+				}
+
 				// send it to community server so it knows its transaction was processed,
 				// but depending on type it is not confirmed yet
 				if (!group.isNull()) {
+
 					// finale to base64
 					auto base_64_message = DataTypeConverter::binToBase64(raw_message, sodium_base64_VARIANT_URLSAFE_NO_PADDING);
 

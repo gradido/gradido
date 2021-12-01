@@ -51,10 +51,10 @@ class JsonRequestHandlerController extends AppController {
         
           switch($method) {
             case 'putTransaction': 
-              if(!isset($jsonData->transaction)) {
+              if(!isset($jsonData->transaction) || !isset($jsonData->type)) {
                 return $this->returnJson(['state' => 'error', 'msg' => 'parameter error']);
               } else {
-                return $this->putTransaction($jsonData->transaction);
+                return $this->putTransaction($jsonData->transaction, $jsonData->type);
               }
             case 'userDelete': return $this->userDelete($jsonData->user);
             case 'moveTransaction': return $this->moveTransaction($jsonData->pubkeys, $jsonData->memo, $jsonData->session_id);
@@ -220,7 +220,7 @@ class JsonRequestHandlerController extends AppController {
        }
     }
   
-    private function putTransaction($transactionBase64) {
+    private function putTransaction($transactionBase64, $blockchainType) {
       $transaction = new Transaction($transactionBase64);
       
       if($transaction->hasErrors()) {
@@ -238,7 +238,7 @@ class JsonRequestHandlerController extends AppController {
         ]);
       }
       
-      if ($transaction->save()) {
+      if ($transaction->save($blockchainType)) {
           $result = ['state' => 'success'];
           if($transaction->hasWarnings()) {
               $result['warnings'] = $transaction->getWarnings();
