@@ -234,7 +234,6 @@ export default {
       return dirty || validated ? valid : null
     },
     commitStore(val) {
-      console.log('commitStore', val)
       this.$store.commit('publisherId', val)
     },
     async onSubmit() {
