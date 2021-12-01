@@ -146,6 +146,13 @@ export default {
         return []
       },
     },
+    row: {
+      type: Array,
+      required: Object,
+      default() {
+        return []
+      },
+    },
     creationUserData: {
       type: Object,
       required: false,
@@ -254,6 +261,7 @@ export default {
                 date: result.data.updatePendingCreation.date,
                 memo: result.data.updatePendingCreation.memo,
                 moderator: Number(result.data.updatePendingCreation.moderator),
+                row: this.row,
               })
               this.$toasted.success(
                 `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,

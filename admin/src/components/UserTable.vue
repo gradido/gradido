@@ -77,6 +77,7 @@
             :pagetype="type"
             :creation="row.item.creation"
             :item="row.item"
+            :row="row"
             :creationUserData="creationUserData"
             @update-creation-data="updateCreationData"
             @update-user-data="updateUserData"
@@ -232,6 +233,7 @@ export default {
       this.$emit('remove-confirm-result', item, 'remove')
     },
     editCreationUserTable(row, rowItem) {
+      console.log(row.index)
       if (!row.detailsShowing) {
         this.creationUserData = rowItem
       } else {
@@ -252,6 +254,9 @@ export default {
       this.creationUserData.date = data.date
       this.creationUserData.memo = data.memo
       this.creationUserData.moderator = data.moderator
+
+       data.row.toggleDetails()
+
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
