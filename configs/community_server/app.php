@@ -410,7 +410,8 @@ return [
         // type:
         //   - db: centralized blockchain in mysql db, no cross group transactions
         //   - hedera: send transaction over hedera
-      'type' => 'db',
+        //   - iota: send transaction over iota
+      'type' => 'iota',
         // gradido nodes with blockchain (if type != db)
       'nodes' => [
           ['host' => 'node', 'port' => 13702]

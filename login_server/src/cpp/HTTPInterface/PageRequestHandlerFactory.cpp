@@ -28,6 +28,7 @@
 #include "AdminUserPasswordResetPage.h"
 #include "RegisterDirectPage.h"
 #include "AdminGroupsPage.h"
+#include "AdminNodeServerPage.h"
 
 #include "DecodeTransactionPage.h"
 
@@ -187,6 +188,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			}
 			if (url_first_part == "/groups") {
 				return basicSetup(new AdminGroupsPage(s), request, timeUsed);
+			}
+			if (url_first_part == "/nodes") {
+				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
 			}
 		}
 

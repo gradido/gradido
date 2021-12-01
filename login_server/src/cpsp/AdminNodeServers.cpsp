@@ -1,0 +1,154 @@
+<%@ page class="AdminNodeServerPage" %>
+<%@ page form="true" %>
+<%@ page baseClass="SessionHTTPRequestHandler" %>
+<%@ page ctorArg="Session*" %>
+<%@ header include="HTTPInterface/SessionHTTPRequestHandler.h" %>
+<%!
+
+#include "controller/NodeServer.h"
+#include "controller/Group.h"
+#include "SingletonManager/SessionManager.h"
+#include "lib/DataTypeConverter.h"
+
+%>
+<%%
+	const char* pageName = "Node Server";
+	auto sm = SessionManager::getInstance();
+	auto user = mSession->getNewUser();
+	
+	// add 
+	if(!form.empty()) {
+		// collect
+		auto url = form.get("node-server-url", "");
+		auto portString = form.get("node-server-port", "");
+		auto nodeServerTypeString = form.get("node-server-type", "0");
+		auto nodeServerGroupString = form.get("node-server-group", "");
+		
+		int port  = 0;
+		model::table::NodeServerType nodeServerType = model::table::NODE_SERVER_NONE;
+		int group_id = 0;
+				
+		// validate
+		if(!sm->isValid(url, VALIDATE_ONLY_URL)) {
+			addError(new ParamError("Node Server", "Url not valid, must start with http or https", url));
+			
+		}
+		if(!sm->isValid(portString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Node Server", "Port isn't valid integer"));
+		} else {
+			if(DataTypeConverter::strToInt(portString, port) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int convert error", "Error converting port to int"));
+			}
+		}
+		
+		if(!sm->isValid(nodeServerTypeString, VALIDATE_ONLY_INTEGER)) {
+			addError(new Error("Node Server Type", "not integer"));
+		} else {
+			int node_server_type_int = 0;
+			if(DataTypeConverter::strToInt(nodeServerTypeString, node_server_type_int) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+				addError(new Error("Int Convert Error", "Error converting node server type to int"));
+			}
+			if(node_server_type_int < 0 || node_server_type_int >= (int)model::table::NODE_SERVER_TYPE_COUNT) {
+				addError(new Error("Node Server Type", "invalid value"));
+			} else {
+				nodeServerType = (model::table::NodeServerType)node_server_type_int;
+			}
+		}
+		 
+		if(model::table::NodeServerHasGroup(nodeServerType)) {
+			if(!sm->isValid(nodeServerGroupString, VALIDATE_ONLY_INTEGER)) {
+				addError(new Error("Group id", "group_id not integer"));
+			} else {
+				if(DataTypeConverter::strToInt(nodeServerGroupString, group_id) != DataTypeConverter::NUMBER_PARSE_OKAY) {
+					addError(new Error("Int Convert Error", "Error converting group_id to int"));
+				}
+			}
+		}
+		
+		
+		
+		if(0 == errorCount()) {			
+			auto node_server = controller::NodeServer::create(
+				url, port, group_id, (model::table::NodeServerType)nodeServerType
+			);
+			if(!node_server->getModel()->insertIntoDB(false)) {
+				addError(new Error("DB Error", "Error saving Node Server in DB"));
+			}
+		}
+	}		
+	auto groups = controller::Group::listAll();
+	std::map<int, int> group_indices;
+	int count = 0;
+	for(auto it = groups.begin(); it != groups.end(); it++) {
+		group_indices.insert(std::pair<int, int>((*it)->getModel()->getID(), count));
+		count++;
+	}
+	
+	auto node_servers = controller::NodeServer::listAll();
+	
+	
+%><%@ include file="include/header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+	<div class="content-list">
+		<div class="content-list-title">
+			<h2>Alle Node Server</h2>
+		</div>	
+		<div class="content-list-table">
+			<div class="row">
+				<div class="cell header-cell c4">Server Type</div>
+				<div class="cell header-cell c5">Url:Port</div>
+				<div class="cell header-cell c3">Group</div>
+			</div>
+			<% for(auto it = node_servers.begin(); it != node_servers.end(); it++) {
+					auto node_server_model = (*it)->getModel();  
+					%>
+				<div class="row">
+					<div class="cell c4"><%= model::table::NodeServer::nodeServerTypeToString(node_server_model->getNodeServerType()) %></div>
+					<div class="cell c5"><%= node_server_model->getUrlWithPort() %></div>
+					<div class="cell c3">
+						<% if(node_server_model->hasGroup()){ 
+							auto groupIt = group_indices.find(node_server_model->getGroupId());
+							if(groupIt != group_indices.end()) { 
+								auto group_model = groups[groupIt->second]->getModel(); %>
+								<span title="<%= group_model->getDescription() %>"><%= group_model->getName() %></span>
+							<% } else { %>
+								<%= node_server_model->getGroupId() %>
+							<% } %>
+						<% } %>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	<div class="center-form-title">
+	    <h3>Ein Node Server hinzufügen</h3>
+	</div>
+	<div class="center-form-form">
+		<form method="POST">
+			<label class="form-label" for="node-server-url">URL</label>
+			<input required class="form-control" id="node-server-url" name="node-server-url"/>
+			<label class="form-label" for="node-server-port">Port</label>
+			<input required class="form-control" id="node-server-port" name="node-server-port" type="number"/>
+			<label class="form-label" for="node-server-type">Network Type</label>
+			<select class="form-control" name="node-server-type" id="node-server-type">
+			<% for(int i = 1; i < model::table::NODE_SERVER_TYPE_COUNT; i++) { %>
+				<option value="<%= i %>"><%= model::table::NodeServer::nodeServerTypeToString((model::table::NodeServerType)i) %></option>
+			<% } %>
+			</select>
+			<fieldset>
+				<label class="form-label" for="node-server-group">Gradido Gruppe</label>
+				<select class="form-control" name="node-server-group">
+					<option value="-1">Keine Gruppe</option>
+					<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+						auto group_model = (*it)->getModel(); %>
+						<option title="<%= group_model->getDescription() %>" value="<%= group_model->getID() %>"><%= group_model->getName() %></option>
+					<% } %>
+				</select>
+			</fieldset>
+			
+			<input class="center-form-submit form-button" type="submit" name="submit" value="<%= gettext("Add Node") %>">
+	</form>
+</div>
+
+<%@ include file="include/footer.cpsp" %>
