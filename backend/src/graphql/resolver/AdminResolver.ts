@@ -62,13 +62,11 @@ export class AdminResolver {
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
   ): Promise<UpdatePendingCreation> {
-    console.log('UpdatePendingCreationArgs', { id, email, amount, memo, creationDate, moderator })
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const updatedCreation = await pendingCreationRepository.findOneOrFail({ id })
-    console.log('updatedCreation', updatedCreation)
 
     if (updatedCreation.userId !== user.id)
       throw new Error('user of the pending creation and send user does not correspond')
@@ -86,7 +84,6 @@ export class AdminResolver {
     result.moderator = updatedCreation.moderator
     result.creation = await getUserCreations(user.id)
 
-    console.log('result', result)
     return result
 
     // const creations = await getUserCreations(user.id)
