@@ -234,17 +234,9 @@ export default {
         // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
       } else if (this.type === 'singleCreation') {
-        this.submitObj = {
-          email: this.item.email,
-          creationDate: this.radioSelected.long,
-          amount: Number(this.value),
-          memo: this.text,
-          moderator: Number(this.$store.state.moderator.id),
-        }
-
         this.$apollo
-          .query({
-            query: createPendingCreation,
+          .mutate({
+            mutation: createPendingCreation,
             variables: this.submitObj,
           })
           .then((result) => {
