@@ -138,7 +138,7 @@
                           </b-input-group-prepend>
                           <b-form-input
                             type="text"
-                            placeholder="User ID"
+                            placeholder="Publisher ID"
                             v-model="$store.state.publisherId"
                           ></b-form-input>
                         </b-input-group>
