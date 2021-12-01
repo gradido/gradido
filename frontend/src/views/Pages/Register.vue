@@ -139,7 +139,8 @@
                           <b-form-input
                             type="text"
                             placeholder="Publisher ID"
-                            v-model="$store.state.publisherId"
+                            v-model="publisherId"
+                            @input="commitStore(publisherId)"
                           ></b-form-input>
                         </b-input-group>
                         <div
@@ -219,6 +220,7 @@ export default {
       showError: false,
       messageError: '',
       register: true,
+      publisherId: this.$store.state.publisherId,
     }
   },
   methods: {
@@ -230,6 +232,10 @@ export default {
     },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
+    },
+    commitStore(val) {
+      console.log('commitStore', val)
+      this.$store.commit('publisherId', val)
     },
     async onSubmit() {
       this.$apollo
