@@ -2,6 +2,13 @@ import addNavigationGuards from './guards'
 import router from './router'
 
 const storeCommitMock = jest.fn()
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    verifyLogin: {
+      isAdmin: true,
+    },
+  },
+})
 
 const store = {
   commit: storeCommitMock,
@@ -10,7 +17,11 @@ const store = {
   },
 }
 
-addNavigationGuards(router, store)
+const apollo = {
+  query: apolloQueryMock,
+}
+
+addNavigationGuards(router, store, apollo)
 
 describe('navigation guards', () => {
   beforeEach(() => {
@@ -21,15 +32,67 @@ describe('navigation guards', () => {
     const navGuard = router.beforeHooks[0]
     const next = jest.fn()
 
-    describe('with valid token', () => {
-      it('commits the token to the store', async () => {
+    describe('with valid token and as admin', () => {
+      beforeEach(() => {
         navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      })
+
+      it('commits the token to the store', async () => {
         expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
       })
 
+      it('commits the moderator to the store', () => {
+        expect(storeCommitMock).toBeCalledWith('moderator', { isAdmin: true })
+      })
+
       it('redirects to /', async () => {
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
         expect(next).toBeCalledWith({ path: '/' })
+      })
+    })
+
+    describe('with valid token and not as admin', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockResolvedValue({
+          data: {
+            verifyLogin: {
+              isAdmin: false,
+            },
+          },
+        })
+        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      })
+
+      it('commits the token to the store', async () => {
+        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
+      })
+
+      it('does not commit the moderator to the store', () => {
+        expect(storeCommitMock).not.toBeCalledWith('moderator', { isAdmin: false })
+      })
+
+      it('redirects to /not-found', async () => {
+        expect(next).toBeCalledWith({ path: '/not-found' })
+      })
+    })
+
+    describe('with valid token and server error on verification', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Ouch!',
+        })
+        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      })
+
+      it('commits the token to the store', async () => {
+        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
+      })
+
+      it('does not commit the moderator to the store', () => {
+        expect(storeCommitMock).not.toBeCalledWith('moderator', { isAdmin: false })
+      })
+
+      it('redirects to /not-found', async () => {
+        expect(next).toBeCalledWith({ path: '/not-found' })
       })
     })
 
@@ -55,8 +118,15 @@ describe('navigation guards', () => {
       expect(next).toBeCalledWith({ path: '/not-found' })
     })
 
-    it('does not redirect when token in store', () => {
+    it('redirects to not found with token in store and not moderator', () => {
       store.state.token = 'valid token'
+      navGuard({ path: '/' }, {}, next)
+      expect(next).toBeCalledWith({ path: '/not-found' })
+    })
+
+    it('does not redirect with token in store and as moderator', () => {
+      store.state.token = 'valid token'
+      store.state.moderator = { isAdmin: true }
       navGuard({ path: '/' }, {}, next)
       expect(next).toBeCalledWith()
     })
