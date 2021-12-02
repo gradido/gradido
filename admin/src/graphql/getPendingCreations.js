@@ -7,7 +7,7 @@ export const getPendingCreations = gql`
       lastName
       email
       amount
-      note
+      memo
       date
       moderator
       creation

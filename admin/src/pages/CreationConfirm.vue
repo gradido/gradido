@@ -37,7 +37,7 @@ export default {
             return value + ' GDD'
           },
         },
-        { key: 'note', label: 'Text' },
+        { key: 'memo', label: 'Text' },
         {
           key: 'date',
           label: 'Datum',
