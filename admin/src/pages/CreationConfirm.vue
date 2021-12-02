@@ -68,14 +68,14 @@ export default {
         this.$store.commit('openCreationsMinus', 1)
       }
     },
-    async getPendingCreations() {
+    getPendingCreations() {
       this.$apollo
         .query({
           query: getPendingCreations,
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations
+          this.confirmResult = result.data.getPendingCreations.reverse()
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
@@ -83,8 +83,9 @@ export default {
         })
     },
   },
-  async created() {
-    await this.getPendingCreations()
+  created() {
+    alert('neu laden')
+    this.getPendingCreations()
   },
 }
 </script>
