@@ -132,6 +132,7 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
   name: 'UserTable',
@@ -228,9 +229,22 @@ export default {
       }
     },
     bookmarkConfirm(item) {
-      alert('die schöpfung bestätigen und abschließen')
-      alert(JSON.stringify(item))
-      this.$emit('remove-confirm-result', item, 'remove')
+      console.log('die schöpfung bestätigen und abschließen')
+      console.log(JSON.stringify(item))
+      this.$apollo
+        .mutate({
+          mutation: confirmPendingCreation,
+          variables: {
+            id: item.id,
+          },
+        })
+        .then((result) => {
+          console.log('result', result)
+          this.$emit('remove-confirm-result', item, 'remove')
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
     editCreationUserTable(row, rowItem) {
       if (!row.detailsShowing) {
@@ -241,14 +255,6 @@ export default {
       row.toggleDetails()
     },
     updateCreationData(data) {
-      // console.log('updateCreationData this.creationUserData11=> ', this.creationUserData)
-      // console.log('updateCreationData data=> ', data)
-      // this.creationUserData = {
-      //   ...this.creationUserData,
-      //   ...data,
-      // }
-      // console.log('updateCreationData this.creationUserData22=> ', this.creationUserData)
-
       this.creationUserData.amount = data.amount
       this.creationUserData.date = data.date
       this.creationUserData.memo = data.memo
