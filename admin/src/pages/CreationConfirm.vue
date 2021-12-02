@@ -79,8 +79,9 @@ export default {
         })
     },
   },
-  created() {
-    this.getPendingCreations()
+  async created() {
+    console.log('wir sind da ')
+    await this.getPendingCreations()
   },
 }
 </script>
