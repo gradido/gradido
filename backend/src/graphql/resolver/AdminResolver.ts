@@ -1,9 +1,10 @@
 import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
-import { getCustomRepository, Raw } from 'typeorm'
+import { getCustomRepository, Raw, Timestamp } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
@@ -11,6 +12,8 @@ import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import moment from 'moment'
 import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
+import { Transaction } from '@entity/Transaction'
+import { TransactionCreation } from '@entity/TransactionCreation'
 
 @Resolver()
 export class AdminResolver {
@@ -134,6 +137,35 @@ export class AdminResolver {
     if (!entity) throw new Error('Not pending creation with this id.')
     const res = await pendingCreationRepository.manager.remove(entity)
     return !!res
+  }
+
+  @Mutation(() => Boolean)
+  async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const pendingCreation = await pendingCreationRepository.findOneOrFail({ id: id })
+    console.log('pendingCreation', pendingCreation)
+
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    let transaction = new Transaction()
+    transaction.transactionTypeId = 1
+    transaction.memo = pendingCreation.memo
+    transaction.received = new Date()
+    transaction.blockchainTypeId = 1
+    transaction = await transactionRepository.save(transaction)
+    console.log('transactionCreation', transaction)
+    if (!transaction) throw new Error('Could not create transaction')
+
+    const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
+    let transactionCreation = new TransactionCreation()
+    transactionCreation.transactionId = transaction.id
+    transactionCreation.userId = pendingCreation.userId
+    transactionCreation.amount = parseInt(pendingCreation.amount.toString())
+    // transactionCreation.targetDate = new Timestamp(pendingCreation.date.getTime())
+    transactionCreation = await transactionCreationRepository.save(transactionCreation)
+    console.log('transactionCreation', transactionCreation)
+    if (!transactionCreation) throw new Error('Could not create transactionCreation')
+
+    return true
   }
 }
 

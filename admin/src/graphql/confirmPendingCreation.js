@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-export const createPendingCreation = gql`
+export const confirmPendingCreation = gql`
   mutation ($id: Int!) {
     confirmPendingCreation(id: $id)
   }
