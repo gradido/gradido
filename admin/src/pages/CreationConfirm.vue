@@ -74,7 +74,9 @@ export default {
           query: getPendingCreations,
         })
         .then((result) => {
+          this.$store.commit('resetOpenCreations')
           this.confirmResult = result.data.getPendingCreations
+          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
@@ -83,7 +85,6 @@ export default {
   },
   async created() {
     await this.getPendingCreations()
-    this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
   },
 }
 </script>
