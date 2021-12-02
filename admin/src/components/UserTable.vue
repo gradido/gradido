@@ -231,6 +231,7 @@ export default {
     bookmarkConfirm(item) {
       console.log('die schöpfung bestätigen und abschließen')
       console.log(JSON.stringify(item))
+      console.log(typeof item.id)
       this.$apollo
         .mutate({
           mutation: confirmPendingCreation,
