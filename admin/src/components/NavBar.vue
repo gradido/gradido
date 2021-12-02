@@ -1,12 +1,15 @@
 <template>
   <div class="component-nabvar">
     <b-navbar toggleable="sm" type="dark" variant="success">
-      <b-navbar-brand to="/">Adminbereich</b-navbar-brand>
+      <b-navbar-brand to="/">
+        <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
+      </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
+          <b-nav-item to="/">Übersicht |</b-nav-item>
           <b-nav-item to="/user">Usersuche |</b-nav-item>
           <b-nav-item to="/creation">Mehrfachschöpfung</b-nav-item>
           <b-nav-item
@@ -31,21 +34,6 @@ export default {
   name: 'navbar',
   methods: {
     logout() {
-      // TODO
-      // this.$emit('logout')
-      /* this.$apollo
-        .query({
-          query: logout,
-        })
-        .then(() => {
-          this.$store.dispatch('logout')
-          this.$router.push('/logout')
-        })
-        .catch(() => {
-          this.$store.dispatch('logout')
-          if (this.$router.currentRoute.path !== '/logout') this.$router.push('/logout')
-        })
-      */
       this.$store.dispatch('logout')
       this.$router.push('/logout')
     },
@@ -56,3 +44,8 @@ export default {
   },
 }
 </script>
+<style>
+.navbar-brand-img {
+  height: 2rem;
+}
+</style>

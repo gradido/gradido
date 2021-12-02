@@ -32,7 +32,13 @@ export default {
         { key: 'email', label: 'Email' },
         { key: 'firstName', label: 'Firstname' },
         { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
+        {
+          key: 'creation',
+          label: 'Creation',
+          formatter: (value, key, item) => {
+            return String(value)
+          },
+        },
         { key: 'show_details', label: 'Details' },
       ],
       searchResult: [],
