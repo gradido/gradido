@@ -3,6 +3,16 @@ import CreationFormular from './CreationFormular.vue'
 
 const localVue = global.localVue
 
+const apolloMock = jest.fn().mockResolvedValue({
+  data: {
+    verifyLogin: {
+      name: 'success',
+      id: 0,
+    },
+  },
+})
+const stateCommitMock = jest.fn()
+
 const mocks = {
   $moment: jest.fn(() => {
     return {
@@ -14,6 +24,12 @@ const mocks = {
       }),
     }
   }),
+  $apollo: {
+    query: apolloMock,
+  },
+  $store: {
+    commit: stateCommitMock,
+  },
 }
 
 const propsData = {
@@ -37,6 +53,23 @@ describe('CreationFormular', () => {
 
     it('has a DIV element with the class.component-creation-formular', () => {
       expect(wrapper.find('.component-creation-formular').exists()).toBeTruthy()
+    })
+
+    describe('server sends back moderator data', () => {
+      it('called store commit with mocked data', () => {
+        expect(stateCommitMock).toBeCalledWith('moderator', { name: 'success', id: 0 })
+      })
+    })
+
+    describe('server throws error for moderator data call', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        apolloMock.mockRejectedValue({ message: 'Ouch!' })
+        wrapper = Wrapper()
+      })
+      it('has called store commit with fake data', () => {
+        expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
+      })
     })
 
     describe('radio buttons to selcet month', () => {
