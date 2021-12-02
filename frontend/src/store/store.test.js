@@ -105,7 +105,6 @@ describe('Vuex store', () => {
       })
     })
 
-
     describe('isAdmin', () => {
       it('sets the state of isAdmin', () => {
         const state = { isAdmin: null }
