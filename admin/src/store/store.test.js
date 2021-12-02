@@ -1,6 +1,6 @@
 import store, { mutations, actions } from './store'
 
-const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations } = mutations
+const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations, moderator } = mutations
 const { logout } = actions
 
 const CONFIG = {
@@ -40,6 +40,14 @@ describe('Vuex store', () => {
         expect(state.openCreations).toEqual(0)
       })
     })
+
+    describe('moderator', () => {
+      it('sets the moderator object in state', () => {
+        const state = { moderator: null }
+        moderator(state, { id: 1 })
+        expect(state.moderator).toEqual({ id: 1 })
+      })
+    })
   })
 
   describe('actions', () => {
@@ -55,6 +63,11 @@ describe('Vuex store', () => {
       it('deletes the token in store', () => {
         logout({ commit, state })
         expect(commit).toBeCalledWith('token', null)
+      })
+
+      it('deletes the moderator in store', () => {
+        logout({ commit, state })
+        expect(commit).toBeCalledWith('moderator', null)
       })
 
       it.skip('clears the window local storage', () => {
