@@ -115,6 +115,7 @@
   </div>
 </template>
 <script>
+import { verifyLogin } from '../graphql/verifyLogin'
 import { createPendingCreation } from '../graphql/createPendingCreation'
 export default {
   name: 'CreationFormular',
@@ -270,6 +271,19 @@ export default {
           })
       }
     },
+    searchModeratorData() {
+      this.$apollo
+        .query({ query: verifyLogin })
+        .then((result) => {
+          this.$store.commit('moderator', result.data.verifyLogin)
+        })
+        .catch(() => {
+          this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
+        })
+    },
+  },
+  created() {
+    this.searchModeratorData()
   },
 }
 </script>
