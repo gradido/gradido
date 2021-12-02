@@ -87,7 +87,6 @@ export default {
           query: getPendingCreations,
         })
         .then((result) => {
-          console.log(result.data)
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch()
