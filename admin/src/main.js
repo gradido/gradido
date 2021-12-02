@@ -75,7 +75,7 @@ Vue.use(Toasted, {
   },
 })
 
-addNavigationGuards(router, store)
+addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 new Vue({
   moment,
