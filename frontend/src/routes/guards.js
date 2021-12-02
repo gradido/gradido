@@ -15,12 +15,19 @@ const addNavigationGuards = (router, store, apollo) => {
   router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query.token) {
       store.commit('token', to.query.token)
-      const result = await apollo.query({
-        query: verifyLogin,
-        fetchPolicy: 'network-only',
-      })
-      store.dispatch('login', result.data.verifyLogin)
-      next({ path: '/overview' })
+      await apollo
+        .query({
+          query: verifyLogin,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          store.dispatch('login', result.data.verifyLogin)
+          next({ path: '/overview' })
+        })
+        .catch(() => {
+          store.dispatch('logout')
+          next()
+        })
     } else {
       next()
     }
