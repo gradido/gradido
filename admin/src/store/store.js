@@ -18,6 +18,9 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
   },
+  moderator: (state, moderator) => {
+    state.moderator = moderator
+  },
 }
 
 export const actions = {
