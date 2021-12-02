@@ -11,6 +11,7 @@ const {
   coinanimation,
   newsletterState,
   publisherId,
+  isAdmin,
   community,
   hasElopage,
 } = mutations
@@ -101,6 +102,15 @@ describe('Vuex store', () => {
         const state = {}
         publisherId(state, 'abc')
         expect(state.publisherId).toEqual(null)
+      })
+    })
+
+
+    describe('isAdmin', () => {
+      it('sets the state of isAdmin', () => {
+        const state = { isAdmin: null }
+        isAdmin(state, true)
+        expect(state.isAdmin).toEqual(true)
       })
     })
 

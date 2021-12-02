@@ -229,8 +229,8 @@ describe('Register', () => {
         wrapper.find('#publisherid').setValue('12345')
       })
 
-      it('commits openCreationsMinus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('publisherId', 12345)
+      it('commits publisherId to store', () => {
+        expect(mockStoreCommit).toBeCalledWith('publisherId', 12345)
       })
 
       it('has enabled submit button when completely filled', () => {
