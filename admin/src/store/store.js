@@ -21,6 +21,9 @@ export const mutations = {
   setOpenCreations: (state, openCreations) => {
     state.openCreations = openCreations
   },
+  moderator: (state, moderator) => {
+    state.moderator = moderator
+  },
 }
 
 export const actions = {
