@@ -80,7 +80,6 @@ export default {
     },
   },
   async created() {
-    console.log('wir sind da ')
     await this.getPendingCreations()
   },
 }
