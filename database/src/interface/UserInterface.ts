@@ -35,4 +35,6 @@ export interface UserInterface {
   targetDate?: Date
   amount?: number
   creationTxHash?: Buffer
+  signature?: Buffer
+  signaturePubkey?: Buffer
 }

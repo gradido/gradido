@@ -10,6 +10,7 @@ import {
   TransactionContext,
   TransactionCreationContext,
   UserTransactionContext,
+  TransactionSignatureContext,
 } from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
 import { User } from '../../../entity/User'
@@ -19,6 +20,7 @@ import { ServerUser } from '../../../entity/ServerUser'
 import { LoginUserRoles } from '../../../entity/LoginUserRoles'
 import { Balance } from '../../../entity/Balance'
 import { Transaction } from '../../../entity/Transaction'
+import { TransactionSignature } from '../../../entity/TransactionSignature'
 import { UserTransaction } from '../../../entity/UserTransaction'
 import { TransactionCreation } from '../../../entity/TransactionCreation'
 import { Factory } from 'typeorm-seeding'
@@ -47,6 +49,9 @@ export const userSeeder = async (factory: Factory, userData: UserInterface): Pro
     ).create()
     await factory(UserTransaction)(
       createUserTransactionContext(userData, user, transaction),
+    ).create()
+    await factory(TransactionSignature)(
+      createTransactionSignatureContext(userData, transaction),
     ).create()
   }
 }
@@ -160,5 +165,16 @@ const createUserTransactionContext = (
     transactionTypeId: transaction.transactionTypeId,
     balance: context.amount,
     balanceDate: context.recordDate,
+  }
+}
+
+const createTransactionSignatureContext = (
+  context: UserInterface,
+  transaction: Transaction,
+): TransactionSignatureContext => {
+  return {
+    signature: context.signature,
+    pubkey: context.signaturePubkey,
+    transaction,
   }
 }

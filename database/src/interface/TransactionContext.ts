@@ -44,3 +44,9 @@ export interface UserTransactionContext {
   balance?: number
   balanceDate?: Date
 }
+
+export interface TransactionSignatureContext {
+  signature?: Buffer
+  pubkey?: Buffer
+  transaction?: Transaction
+}

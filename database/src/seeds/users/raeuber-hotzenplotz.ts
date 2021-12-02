@@ -31,4 +31,12 @@ export const raeuberHotzenplotz = {
     '23ba44fd84deb59b9f32969ad0cb18bfa4588be1bdb99c396888506474c16c1900000000000000000000000000000000',
     'hex',
   ),
+  signature: Buffer.from(
+    '756d3da061687c575d1dbc5073908f646aa5f498b0927b217c83b48af471450e571dfe8421fb8e1f1ebd1104526b7e7c6fa78684e2da59c8f7f5a8dc3d9e5b0b',
+    'hex',
+  ),
+  signaturePubkey: Buffer.from(
+    '7281e0ee3258b08801f3ec73e431b4519677f65c03b0382c63a913b5784ee770',
+    'hex',
+  ),
 }
