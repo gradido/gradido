@@ -29,7 +29,7 @@ import { elopageWebhook } from '../webhook/elopage'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-const DB_VERSION = '0004-login_server_data'
+const DB_VERSION = '0005-admin_tables'
 
 const createServer = async (context: any = serverContext): Promise<any> => {
   // open mysql connection
