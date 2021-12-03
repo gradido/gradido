@@ -1,0 +1,420 @@
+<%@ page class="TestIotaPage" %>
+<%@ page form="true" %>
+<%@ page baseClass="PageRequestMessagedHandler" %>
+<%@ header include="HTTPInterface/PageRequestMessagedHandler.h" %>
+<%!
+
+
+#include "controller/NodeServer.h"
+#include "controller/User.h"
+#include "controller/Group.h"
+#include "SingletonManager/MemoryManager.h"
+#include "lib/DataTypeConverter.h"
+#include "lib/Profiler.h"
+#include "lib/JsonRPCRequest.h"
+#include "model/gradido/Transaction.h"
+#include "model/gradido/GradidoBlock.h"
+
+#include "Poco/Thread.h"
+#include "Poco/DateTime.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+
+
+enum PageType
+{
+	PAGE_CHOOSE_TEST,
+	PAGE_RUN_4_SET_TEST,
+	PAGE_GET_TRANSACTION_RPC_CALL
+};
+
+%>
+<%%
+	const char* pageName = "Node Server Test";
+	PageType page = PAGE_CHOOSE_TEST;
+	Poco::AutoPtr<controller::NodeServer> node_server;
+	Poco::AutoPtr<controller::User> user;
+	Poco::AutoPtr<controller::Group> group;
+	Poco::AutoPtr<controller::Group> group2;
+	int iota_timeout = 4;
+	
+	bool steps[8]; memset(steps, 0, 8 * sizeof(bool));
+    steps[2] = true;
+	
+	
+	if(!form.empty()) 
+	{
+		auto node_server_id_string = form.get("test-node-servers", "");
+		if(node_server_id_string != "") {
+			int node_server_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(node_server_id_string, node_server_id )) {
+				node_server = controller::NodeServer::load(node_server_id);
+			}
+		}
+
+		auto group_id_string = form.get("test-group", "");
+		if(group_id_string != "") {
+			int group_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(group_id_string, group_id)) {
+				group = controller::Group::load(group_id);
+			}
+		}
+        group_id_string = form.get("test-group2", "");
+		if(group_id_string != "") {
+			int group_id = 0;
+			if(DataTypeConverter::NUMBER_PARSE_OKAY == DataTypeConverter::strToInt(group_id_string, group_id)) {
+				group2 = controller::Group::load(group_id);
+			}
+		}
+		
+		auto test_timeout_string = form.get("test-timeout", "");
+		if(test_timeout_string != "") {
+			DataTypeConverter::strToInt(test_timeout_string, iota_timeout);
+		}
+		
+		auto submit = form.get("submit", "");
+		if(submit == "Run 6-Test") {
+			page = PAGE_RUN_4_SET_TEST;
+		} else if(submit == "json-rpc getTransactions") {
+			page = PAGE_GET_TRANSACTION_RPC_CALL;
+		}
+		std::string step_temp;
+		for(int i = 0; i < 8; i++) {
+			std::string name = "step-";
+			name += std::to_string(i+2);
+			step_temp = form.get(name, "");
+			if(step_temp == "1") {
+				steps[i] = true;
+			} else {
+				steps[i] = false;
+			}
+		}
+	}		
+
+	auto node_servers = controller::NodeServer::load(model::table::NODE_SERVER_GRADIDO_NODE);	
+	//auto hedera_topics = controller::HederaTopic::listAll();
+    auto groups = controller::Group::listAll();
+	
+%><%@ include file="include/header_large.cpsp" %>
+<%= getErrorsHtml() %>
+<div class="center-form-container">
+	<!-- Tab links -->
+	<div class="tab">
+	  <button class="tablinks <% if(PAGE_RUN_4_SET_TEST == page) { %> active <% } %>" onclick="openTab(event, 'test-4')">Test 6-Set (3 AddMember, Creation, 2 Transfer)</button>
+	  <button class="tablinks <% if(PAGE_GET_TRANSACTION_RPC_CALL == page) { %> active <% } %>" onclick="openTab(event, 'gn-jsonrpc')" title="call via json-rpc to gradido node with getTransactions">getTransactions</button>
+	</div>
+	<div id="test-4" class="tabcontent" <% if(PAGE_RUN_4_SET_TEST == page) { %> style="display:block" <% } %>>
+		<div class="center-form-title">
+			<h3>Test 6-Set (3 AddMember, Creation, 2 Transfer)</</h3>
+		</div>
+		<div class="center-form-form">
+			<form method="POST" action="<%= getBaseUrl() %>/testIota">
+				<p>1. Create three new accounts and show user public keys for comparisation</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[0]) { %> checked="checked" <% } %> name="step-2" value="1"/> 2. Send a add-member transaction to group with one signature (first user)</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[1]) { %> checked="checked" <% } %> name="step-3" value="1"/> 3. Send a add-member transaction to group with two signatures (first user and second user)</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[2]) { %> checked="checked" <% } %> name="step-4" value="1"/> 4. Send a creation transaction to second user, signed by first user</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[3]) { %> checked="checked" <% } %> name="step-5" value="1"/> 5. Send a transfer transaction from second user to first user signed by second user</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[4]) { %> checked="checked" <% } %> name="step-6" value="1"/> 6. Send a add-member transaction to group 2 with one signature (third user)</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[5]) { %> checked="checked" <% } %> name="step-7" value="1"/> 7. Send a cross group transfer from second user to third user signed by second user</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[6]) { %> checked="checked" <% } %> name="step-8" value="1"/> 8. Wait x seconds to give iota time to process transactions</p>
+				<p><input class="form-checkbox" type="checkbox" <% if(steps[7]) { %> checked="checked" <% } %> name="step-9" value="1"/> 9. Ask choosen node for transaction and print result</p>
+				<fieldset>
+					<legend>Group 1 </legend>		
+					<label class="form-label" for="test-hedera-topic">Groups for tests</label>
+					<% if(groups.size() == 0) { %>
+						<a href="<%= getBaseUrl() %>/groups"><span class="link-title">Edit Groups</span></a>
+					<% } %>
+					<select name="test-group" id="test-group">
+						<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+							auto model = (*it)->getModel();
+						%>
+							<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!group.isNull() && group->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getName() %>: <%= model->getAlias() %></option>
+						<% } %>
+					</select>
+				</fieldset>
+				<fieldset>
+					<legend>Group 2 </legend>
+					<label class="form-label" for="test-group2">Group for tests</label>
+					<% if(groups.size() < 2) { %>
+						<a href="<%= getBaseUrl() %>/groups"><span class="link-title">Edit Groups</span></a>
+					<% } %>
+					<select name="test-group2" id="test-group2">
+						<% for(auto it = groups.begin(); it != groups.end(); it++) { 
+							auto model = (*it)->getModel();
+						%>
+							<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!group2.isNull() && group2->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getName() %>: <%= model->getAlias() %></option>
+						<% } %>
+					</select>
+				</fieldset>
+				<fieldset>
+					<legend>Node Server</legend>
+					<label class="form-label" for="test-node-servers">Node Server for tests</label>
+					<% if(node_servers.size() == 0) { %>
+						<a href="<%= getBaseUrl() %>/nodes"><span class="link-title">Edit Node-Servers</span></a>
+					<% } %>
+					<select name="test-node-servers" id="test-node-servers">
+						<% for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
+							auto model = (*it)->getModel();
+						%>
+							<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!node_server.isNull() && node_server->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getUrlWithPort() %>, group: <%= model->getGroupId() %></option>
+						<% } %>
+					</select>
+				</fieldset>
+				
+				<label class="form-label" for="test-timeout">Timeout waiting for iota in seconds</label>
+				<input name="test-timeout" id="test-timeout" type="number" value="<%= iota_timeout %>"> seconds 
+				<input class="center-form-submit form-button" type="submit" name="submit" value="Run 6-Test">
+			</form>
+		</div>
+	</div>
+	<div id="gn-jsonrpc" class="tabcontent" <% if(PAGE_GET_TRANSACTION_RPC_CALL == page) { %> style="display:block" <% } %>>
+		<div class="center-form-title">
+			<h3>getTransactions</</h3>
+		</div>
+		<div class="center-form-form">
+			<form method="POST" action="<%= getBaseUrl() %>/testIota">
+				<label class="form-label" for="test-node-servers">Node Server to call</label>
+				<% if(node_servers.size() == 0) { %>
+					<a href="<%= getBaseUrl() %>/nodes"><span class="link-title">Edit Node-Servers</span></a>
+				<% } %>
+				<select name="test-node-servers" id="test-node-servers">
+					<% for(auto it = node_servers.begin(); it != node_servers.end(); it++) { 
+						auto model = (*it)->getModel();
+					%>
+						<option title="<%= model->toString() %>" value="<%= model->getID() %>" <% if(!node_server.isNull() && node_server->getModel()->getID() == model->getID()) {%>selected="selected"<% } %>><%= model->getUrlWithPort() %>, group: <%= model->getGroupId() %></option>
+					<% } %>
+				</select>
+				<input class="center-form-submit form-button" type="submit" name="submit" value="json-rpc getTransactions">
+			</form>
+		</div>
+	</div>
+	<% if(PAGE_RUN_4_SET_TEST == page && !group.isNull() ) { %>
+	<ul>
+		<li>
+			<p>1. Create three new accounts and show user public keys for comparisation: </p>
+			<% 
+			Profiler time2;
+			auto mnemonic_type = ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+			
+			std::string password1 = "hsaj(2askaslASlllak3wjjeudsaj";
+			auto user_1 = controller::User::create("testEmail@google.de", "Max", "Mustermann", group->getModel()->getID());
+			auto passphrase_1 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_1 = KeyPairEd25519::create(passphrase_1);
+			user_1->setGradidoKeyPair(gradido_key_pair_1);
+			user_1->login(password1);
+			
+			std::string password2 = "uweia8saiSale,dsasA";
+			auto user_2 = controller::User::create("testEmail2@google.de", "MJax", "Mustrermann", group->getModel()->getID());
+			auto passphrase_2 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_2 = KeyPairEd25519::create(passphrase_2);
+			user_2->setGradidoKeyPair(gradido_key_pair_2);
+			user_2->login(password2);
+			
+			std::string password3 = "jaue_skaiellasealaK";
+			auto user_3 = controller::User::create("testEmail3@gmail.com", "Morpheus", "Miaufull", group2->getModel()->getID());
+			auto passphrase_3 = Passphrase::generate(&ServerConfig::g_Mnemonic_WordLists[mnemonic_type]);
+			auto gradido_key_pair_3 = KeyPairEd25519::create(passphrase_3);
+			user_3->setGradidoKeyPair(gradido_key_pair_3);
+			user_3->login(password3);
+			%>			
+			<fieldset><legend><%= group->getModel()->getName() %></legend>
+				<p>User 1: <%= user_1->getPublicHex() %></p>
+				<p>User 2: <%= user_2->getPublicHex() %></p>
+			</fieldset>
+			<fieldset><legend><%= group2->getModel()->getName() %></legend>
+				<p>User 3: <%= user_3->getPublicHex() %></p>
+			</fieldset>
+			<p>Time: <%= time2.string() %>
+		</li>
+		<li>
+			<p>2. Send a add-member transaction to iota with one signature (first user)</p>
+			<% 
+			time2.reset(); 
+			if(!steps[0]) { %>
+				<p>skipped</p>
+			<% } else {
+			auto transaction1 = model::gradido::Transaction::createGroupMemberUpdate(user_1, group, model::gradido::BLOCKCHAIN_IOTA);
+			transaction1->sign(user_1);
+			auto transaction1_json = transaction1->getTransactionAsJson(true);
+			%>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction1_json) %></p>
+			<% } %>
+			<p>Time: <%= time2.string() %>
+		</li>
+		<li>
+			<p>3. Send a add-member transaction to iota with one signature </p>
+			<% 
+			time2.reset();  
+			if(!steps[1]) { %>
+				<p>skipped</p>
+			<% } else {
+			auto transaction2 = model::gradido::Transaction::createGroupMemberUpdate(user_2, group, model::gradido::BLOCKCHAIN_IOTA);
+			transaction2->sign(user_2);
+			// wait before sending fourth transaction, gn seems to crash by more than 3 transaction at nearly the same time
+			auto transaction2_json = transaction2->getTransactionAsJson(true);
+			%>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction2_json) %></p>
+			<% } %>
+			<p>Time: <%= time2.string() %>
+		</li>
+		<li>
+			<p>4. Send a creation transaction to second user, signed by first user</p>
+			<%
+			time2.reset();
+			if(!steps[2]) { %>
+				<p>skipped</p>
+			<% } else {
+			auto transaction3 = model::gradido::Transaction::createCreation(user_2, 10000000, Poco::DateTime(), "Test Creation",  model::gradido::BLOCKCHAIN_IOTA);
+			//transaction3->setUser(user_2);
+			transaction3->sign(user_1);
+			auto transaction3_json = transaction3->getTransactionAsJson(true);
+			%>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction3_json) %></p>
+			<% } %>
+			<p>Time: <%= time2.string() %></p>
+		</li>
+		<li>
+			<p>5. Send a transfer transaction from second user to first user signed by second user</p>
+			<% 
+			time2.reset(); 
+			if(!steps[3]) { %>
+				<p>skipped</p>
+			<% } else {
+			auto user_1_pubkey = user_1->getModel()->getPublicKeyCopy();
+			auto transaction4 = model::gradido::Transaction::createTransferLocal(user_2, user_1_pubkey, 5000000, "Test Transfer", model::gradido::BLOCKCHAIN_IOTA);
+			//transaction4->setUser(user_2);
+			transaction4->sign(user_2);
+			auto transaction4_json = transaction4->getTransactionAsJson(true);
+			%>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction4_json) %></p>
+			<% } %>
+			<p>Time: <%= time2.string() %></p>
+		</li>
+		<li>
+			<p>6. Send a add-member transaction to group 2 with one signature (third user)</p>
+			<% 
+			time2.reset();
+			if(!steps[4]) { %>
+				<p>skipped</p>
+			<% } else { 
+			auto transaction5 = model::gradido::Transaction::createGroupMemberUpdate(user_3, group2, model::gradido::BLOCKCHAIN_IOTA);
+			
+			transaction5->sign(user_3);
+			auto transaction5_json = transaction5->getTransactionAsJson(true);
+			%>
+			<p><%= DataTypeConverter::replaceNewLineWithBr(transaction5_json) %></p>
+			<% } %>
+			<p>Time: <%= time2.string() %></p>
+		</li>
+		<li>
+			<p>7. Send a cross group transfer from second user to third user signed by second user</p>
+			<% 
+			time2.reset(); 
+			if(!steps[5]) { %>
+				<p>skipped</p>
+			<% } else {
+				auto user_3_pubkey = user_3->getModel()->getPublicKeyCopy();
+				auto transaction6 = model::gradido::Transaction::createTransferCrossGroup(user_2, user_3_pubkey, group2, 4000000, "Test Group Transfer", model::gradido::BLOCKCHAIN_IOTA);
+				if(transaction6.isNull()) {
+					%>
+				<div class="alert alert-error" role="alert">
+					<i class="material-icons-outlined">report_problem</i>
+					<span>Error creating Transaction</span>
+				</div>
+				<% 
+				} else {
+					
+					transaction6->sign(user_2);
+					auto transaction6_json = transaction6->getTransactionAsJson(true);
+					auto paired_transaction = transaction6->getPairedTransaction();
+					%>
+					<p><%= DataTypeConverter::replaceNewLineWithBr(transaction6_json) %></p>		
+					<% if(!paired_transaction.isNull()) { 
+					    auto transaction6_2_json = paired_transaction->getTransactionAsJson(true);
+					%><p><%= DataTypeConverter::replaceNewLineWithBr(transaction6_2_json) %></p>
+					<% } %>
+				<% } %>
+			<% } %> 
+			<p>Time: <%= time2.string() %></p>
+		</li>
+		<li>
+			<p>8. Wait <%= iota_timeout %> seconds to give iota time to process transactions</p>
+			<% if(!steps[6]) { %>
+				<p>skipped</p>
+			<% } else { 
+				Poco::Thread::sleep(iota_timeout * 1000); 
+			   } %>
+		</li>
+		<li>
+			<p>9. Ask choosen node for transaction and print result</p>
+			<%  time2.reset(); 
+				if(!steps[7]) { 
+				%><p>skipped</p>
+			<% } else { 
+				/*auto node_server_model = node_server->getModel();
+				JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
+				Poco::JSON::Object params;
+				params.set("groupAlias", user_group->getModel()->getAlias());
+				params.set("lastKnownSequenceNumber", 0);
+				auto gn_answear = jsonrpc.request("getTransactions", params);
+				if(!gn_answear.isNull()) {
+					std::stringstream ss;
+					Poco::JSON::Stringifier::stringify(gn_answear, ss, 4, -1, Poco::JSON_PRESERVE_KEY_ORDER); 
+					std::string answear_string = ss.str(); %>
+					<%= DataTypeConverter::replaceNewLineWithBr(answear_string) %><%
+				}*/
+			   } %>
+			<p>Time: <%= time2.string() %></p>
+		</li>
+	</ul>
+	<% } else if(PAGE_GET_TRANSACTION_RPC_CALL == page) { 
+		Profiler time3;
+		auto node_server_model = node_server->getModel();
+		auto user_group = controller::Group::load(node_server_model->getGroupId());
+		JsonRPCRequest jsonrpc(node_server_model->getUrl(), node_server_model->getPort());
+		rapidjson::Document params(rapidjson::kObjectType);
+		auto alloc = params.GetAllocator();
+		params.AddMember("group", rapidjson::Value(user_group->getModel()->getAlias().data(), alloc), alloc);
+		params.AddMember("fromTransactionId", 0, alloc);
+		auto gn_answear = jsonrpc.request("getTransactions", params);
+		auto mm = MemoryManager::getInstance();
+		if (!gn_answear.IsNull()) {
+			auto resultIt = gn_answear.FindMember("result");
+			std::string state = resultIt->value["state"].GetString();
+			if(state == "success") {
+				//auto result = gn_answear["result"];
+				auto transactionsIt = resultIt->value.FindMember("transactions");
+				auto transactions = transactionsIt->value.GetArray();
+				std::string gradidoBlockJson; %>
+				timeUsed: <%= resultIt->value["timeUsed"].GetString() %><br><%
+				for(auto it = transactions.Begin(); it != transactions.End(); it++) 
+				{
+					MemoryBin* rawTransaction = DataTypeConverter::base64ToBin(it->GetString());
+					if(rawTransaction) {
+						model::gradido::GradidoBlock gradidoBlock(rawTransaction->copyAsString());
+						gradidoBlockJson = gradidoBlock.toJson();
+						%><%= DataTypeConverter::replaceNewLineWithBr(gradidoBlockJson) %><%
+						mm->releaseMemory(rawTransaction);
+					} else {
+						%><error>Error, couldn't decode base64: <%= it->GetString() %></error><%
+					}
+				}
+			} else {			
+				// 3. Stringify the DOM
+				rapidjson::StringBuffer buffer;
+				rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+				gn_answear.Accept(writer);
+				std::string jsonString(buffer.GetString());%>
+				<%= DataTypeConverter::replaceNewLineWithBr(jsonString) %><br><%
+			}
+		}
+		%>
+		<p>Time: <%= time3.string() %></p>
+	<% } %>
+	
+</div>
+<script type="text/javascript" src="<%= ServerConfig::g_php_serverPath %>/js/tabs.js"></script>
+<%@ include file="include/footer.cpsp" %>

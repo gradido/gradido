@@ -119,7 +119,10 @@ Document JsonRPCRequest::request(const char* methodName, Value& params)
 		}
 
 		std::string state;		
-		JsonRequestHandler::getStringParameter(jsonAnswear, "state", state);
+		Value& stateValue = Pointer("/result/state").GetWithDefault(jsonAnswear, "");
+		if (stateValue.GetStringLength()) {
+			state = stateValue.GetString();
+		}
 				
 		if (state == "error") {
 			addError(new Error(functionName, "node server return error"));

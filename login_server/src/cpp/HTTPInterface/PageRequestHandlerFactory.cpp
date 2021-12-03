@@ -13,6 +13,7 @@
 #include "PassphrasePage.h"
 #include "SaveKeysPage.h"
 #include "TestUserGenerator.h"
+#include "TestIotaPage.h"
 #include "ElopageWebhook.h"
 #include "ElopageWebhookLight.h"
 #include "UserUpdatePasswordPage.h"
@@ -192,6 +193,7 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 			if (url_first_part == "/nodes") {
 				return basicSetup(new AdminNodeServerPage(s), request, timeUsed);
 			}
+			
 		}
 
 		if(url_first_part == "/logout") {
@@ -200,6 +202,9 @@ Poco::Net::HTTPRequestHandler* PageRequestHandlerFactory::createRequestHandler(c
 
 			//printf("session released\n");
 			return basicSetup(new LoginPage(nullptr), request, timeUsed);
+		}
+		if (url_first_part == "/testIota") {
+			return basicSetup(new TestIotaPage(), request, timeUsed);
 		}
 		if(url_first_part == "/user_delete") {
 			if(s->deleteUser()) {

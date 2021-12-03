@@ -34,6 +34,11 @@ std::string MemoryBin::convertToHex()
 	return hex;
 }
 
+std::string MemoryBin::copyAsString()
+{
+	return std::string((const char*)mData, mSize);
+}
+
 int MemoryBin::convertFromHex(const std::string& hex)
 {
 	auto mm = MemoryManager::getInstance();
