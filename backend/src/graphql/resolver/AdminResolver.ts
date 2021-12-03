@@ -1,5 +1,5 @@
-import { Resolver, Query, Arg, Args, Authorized, Mutation, Int } from 'type-graphql'
-import { getCustomRepository, Raw, Timestamp } from 'typeorm'
+import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
+import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
@@ -165,7 +165,6 @@ export class AdminResolver {
     transactionCreation.amount = parseInt(pendingCreation.amount.toString())
     transactionCreation.targetDate = pendingCreation.date
     transactionCreation = await transactionCreationRepository.save(transactionCreation)
-    console.log('transactionCreation', transactionCreation)
     if (!transactionCreation) throw new Error('Could not create transactionCreation')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
