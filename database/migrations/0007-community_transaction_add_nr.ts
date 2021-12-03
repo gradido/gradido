@@ -12,8 +12,8 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
     await queryFn(`
       ALTER TABLE \`transactions\`
-      ADD \`nr\` bigint(20) unsigned NOT NULL AUTO_INCREMENT AFTER \`id\`,
-      INDEX(\`nr\`)
+      ADD \`nr\` bigint(20) unsigned NOT NULL AFTER \`id\`,
+      ADD INDEX (\`nr\`)
       ;`)
     
     await queryFn(`UPDATE \`transactions\` set \`nr\` = \`id\``)
