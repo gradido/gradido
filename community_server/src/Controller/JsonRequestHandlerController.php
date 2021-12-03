@@ -92,21 +92,26 @@ class JsonRequestHandlerController extends AppController {
         }
     }
 
-    // Called from login server like a cron job every 10 minutes or after sending transaction to hedera
+    // Called from login server like a cron job every 10 minutes or after sending transaction to iota
     private function updateReadNode()
     {
       $this->autoRender = false;
       $response = $this->response->withType('application/json');
       
       $transactionsTable = TableRegistry::getTableLocator()->get('Transactions');
-      $last_transaction_query = $transactionsTable->find('all')->order(['id' => 'DESC']);
-      $last_transaction_id = 0;
+      $last_transaction_query = $transactionsTable
+                                    ->find('all')
+                                    ->where(['transaction_state_id' => 3]) // use only confirmed transactions as orientation
+                                    ->order(['nr' => 'DESC'])
+                                    ->limit(1)
+                                    ;
+      $last_transaction_nr = 0;
       if(!$last_transaction_query->isEmpty()) {
-        $last_transaction_id = $last_transaction_query->first()->id;
+        $last_transaction_nr = $last_transaction_query->first()->nr;
       }     
       
       $group_alias = Configure::read('GroupAlias');
-      $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['group' => $group_alias, 'fromTransactionId' => $last_transaction_id+1]);
+      $result = (array)$this->JsonRpcRequestClient->request('getTransactions', ['group' => $group_alias, 'fromTransactionId' => $last_transaction_nr+1]);
       if(isset($result['state']) && $result['state'] == 'error') {
         return $this->returnJson(['state' => 'error', 'msg' => 'jsonrpc error', 'details' => ['return' => $result, 'group' => $group_alias]]);
       }
@@ -116,13 +121,19 @@ class JsonRequestHandlerController extends AppController {
           if($gradidoBlock->hasErrors()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'parse from base64 failed', 'details' => $gradidoBlock->getErrors()]);
           }
-          if($gradidoBlock->getId() != $last_transaction_id + $i + 1) {
+          if($gradidoBlock->getId() != $last_transaction_nr + $i + 1) {
             return $this->returnJson(['state' => 'error', 'msg' => 'transaction id not expected', 'details' => [
               'id' => $gradidoBlock->getId(),
-              'expected' => $last_transaction_id + $i + 1
+              'expected' => $last_transaction_nr + $i + 1
             ]]);
           }
-          
+          if($gradidoBlock->checkWithDb()) {
+            $gradidoBlock->updateState(3);
+            continue;
+          }
+          if($gradidoBlock->hasErrors()) {
+            return $this->returnJson(['state' => 'error', 'msg' => 'compare with in db saved transactions failed', 'details' => $gradidoBlock->getErrors()]);
+          }
           if(!$gradidoBlock->validate()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'validate failed', 'details' =>  $gradidoBlock->getErrors()]);
           }
@@ -220,6 +231,7 @@ class JsonRequestHandlerController extends AppController {
        }
     }
   
+    // TODO: save transaction by iota blockchain in another way 
     private function putTransaction($transactionBase64, $blockchainType) {
       $transaction = new Transaction($transactionBase64);
       

@@ -16,6 +16,7 @@ class GradidoBlock extends TransactionBase {
   
     private $mProtoGradidoBlock = null;
     private $mTransaction = null;
+    private $mTransactionId = 0;
   
     public function __construct($base64Data) 
     {
@@ -88,38 +89,71 @@ class GradidoBlock extends TransactionBase {
     public function checkWithDb()
     {
         $id = $this->getId();
+        $functionName = 'GradidoBlock::checkWithDb';
         $transactionsTable = $this->getTable('transactions');
         $dbTransaction = $transactionsTable
                             ->find('all')
-                            ->contain(['transactionSendCoins', 'transactionCreations', 'transactionSignatures', 'stateUserTransactions'])
-                            ->where(['id' => $id])
+                            ->contain(['TransactionTypes'])
+                            ->where(['nr' => $id])
                             ->first()
                             ;
         if(!$dbTransaction) {
             return false;
         }
-        
+        $stored_txHash = stream_get_contents($dbTransaction->tx_hash);
+        if(stored_txHash == $this->mProtoGradidoBlock->getRunningHash()) {
+            return true;
+        }
+        $this->addError($functionName, 'error with  tx hash'. json_encode([
+            'stored' => \Sodium\bin2hex($stored_txHash),
+            'received' => \Sodium\bin2hex($this->mProtoGradidoBlock->getRunningHash())
+        ]));
+        // if tx hashes not the same maybe only the tx hash aren't the same, but the rest is correct
+        if($this->getReceived() != $dbTransaction->received) {
+            $this->addError($functionName, 'received are different' . json_encode([
+                'stored' => $dbTransaction->received,
+                'received' => $this->getReceived()
+            ]));
+            return false;
+        }
+        $result = $this->mTransaction->checkWithDb($dbTransaction);
+        $this->addErrors($this->mTransaction->getErrors());
+        return $result;
+    }
+
+    public function updateState($transactionStateId)
+    {
+        $transactionsTable = $this->getTable('transactions');
+        $dbTransaction = $transactionsTable->getByNr($this->getId(), ['contain' => false]);
+        $dbTransaction->transaction_state_id = $transactionStateId;
+        if(!$transactionsTable->save($dbTransaction)) {
+            $errors = $dbTransaction->getErrors();
+            $this->addError('GradidoBlock::updateState', "error saving transaction_state_id ($transactionStateId) with: " . json_encode($errors));
+            return false;
+        }
+        return true;
+
     }
 
     public function calculateTxHash()
     {
-        $transactionId = $this->getId();
+        $transactionNr = $this->getId();
         $previousTxHash = null;
-        if($transactionId > 1) {
+        if($transactionNr > 1) {
             $transactionsTable = $this->getTable('transactions');
             try {
                 $previousTransaction = $transactionsTable
                         ->find('all', ['contain' => false])
                         ->select(['tx_hash'])
-                        ->where(['id' => $transactionId - 1])
+                        ->where(['nr' => $transactionNr - 1])
                         ->first();
             } catch(Cake\Datasource\Exception\RecordNotFoundException $ex) {
-                $this->addError('GradidoBlock::calculateTxHash', 'previous transaction (with id ' . ($transactionId-1) . ' not found');
+                $this->addError('GradidoBlock::calculateTxHash', 'previous transaction (with id ' . ($transactionNr-1) . ' not found');
                 return false;
             }
             if(!$previousTransaction) {
                 // shouldn't occur
-                $this->addError('GradidoBlock::calculateTxHash', 'previous transaction (with id ' . ($transactionId-1) . ' not found');
+                $this->addError('GradidoBlock::calculateTxHash', 'previous transaction (with id ' . ($transactionNr-1) . ' not found');
                 return false;
             }
             $previousTxHash = $previousTransaction->tx_hash;
@@ -134,7 +168,7 @@ class GradidoBlock extends TransactionBase {
             \Sodium\crypto_generichash_update($state, $previousTxHashCutted);
             //$this->addError("prev tx hash", \Sodium\bin2hex($previousTxHashCutted));
         }
-        \Sodium\crypto_generichash_update($state, strval($transactionId));        
+        \Sodium\crypto_generichash_update($state, strval($transactionNr));        
         \Sodium\crypto_generichash_update($state, $this->getReceived()->i18nFormat('yyyy-MM-dd HH:mm:ss'));
         $sigMap = $this->mProtoGradidoBlock->getTransaction()->getSigMap();
         \Sodium\crypto_generichash_update($state, $sigMap->serializeToString());
@@ -151,14 +185,14 @@ class GradidoBlock extends TransactionBase {
         if (!$this->saveTransactionBody($transactionBody)) {
           $connection->rollback();
           // correct auto-increment value to prevent gaps
-          $this->fixAutoIncrement();  
+          //$this->fixAutoIncrement();  
           
           return false;
       }
       
       // save transaction signatures
       $transactionsSignaturesTable = $this->getTable('transaction_signatures');
-      $transactionId = $this->getId();
+      $transactionId = $this->mTransactionId;
             
       $sigPairs = $this->mProtoGradidoBlock->getTransaction()->getSigMap()->getSigPair();
       
@@ -201,7 +235,8 @@ class GradidoBlock extends TransactionBase {
       
       $specificTransaction = $transactionBody->getSpecificTransaction();
       
-      $transactionEntity->id = $this->getId();
+      //$transactionEntity->id = $this->getId();
+      $transactionEntity->nr = $this->getId();
       $transactionEntity->transaction_type_id = $transactionBody->getTransactionTypeId();
       $txHash =  $this->calculateTxHash();
       if(!$txHash) {
@@ -216,6 +251,7 @@ class GradidoBlock extends TransactionBase {
             
       if ($transactionsTable->save($transactionEntity)) {
         $firstPublic = $this->mTransaction->getFirstPublic();
+        $this->mTransactionId = $transactionEntity->id;
         if(!$specificTransaction->save($transactionEntity->id, $firstPublic, new FrozenTime($transactionEntity->received))) {
           $this->addErrors($specificTransaction->getErrors());
           return false;
@@ -225,15 +261,5 @@ class GradidoBlock extends TransactionBase {
         return false;
       }
       return true;
-    }
-
-    
-    private function fixAutoIncrement()
-    {
-        $transactionsTable = $this->getTable('transactions');
-        $transactions = $transactionsTable->find()->select(['id'])->contain(false);
-        $count = $transactions->count();
-        $connection = ConnectionManager::get('default');
-        $connection->execute("ALTER TABLE `transactions` auto_increment = $count;");
     }
 }

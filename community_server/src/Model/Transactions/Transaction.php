@@ -148,6 +148,44 @@ class Transaction extends TransactionBase {
         
         return true;
     }
+
+    public function checkWithDb($dbTransaction)
+    {
+       $functionName = 'Transaction::checkWithDb';
+       $transactionsSignaturesTable = $this->getTable('transaction_signatures');
+       $dbSignatures = $transactionsSignaturesTable->find('all')->where(['transaction_id' => $dbTransaction->id]);
+       $sortedDBSignatures = [];
+       foreach($dbSignatures as $dbSignature) {
+         $publicKeyHex = \Sodium\bin2hex(stream_get_contents($dbSignature->pubkey));
+         $sortedDBSignatures[$publicKeyHex] = $dbSignature->signature;
+       }
+       $sigPairs = $this->mProtoTransaction->getSigMap()->getSigPair();
+       $signaturesMatch = true;
+       if(count($sortedDBSignatures) == count($sigPairs)) {
+          foreach($sigPairs as $sigPair) {
+            $publicKeyHex = \Sodium\bin2hex($sigPair->getPubKey());
+            if(!isset($sortedDBSignatures[$publicKeyHex])) {
+              $this->addError($functionName, 'couldn\'t find public key from received transaction in db: ' . $publicKeyHex);
+              $signaturesMatch = false;
+              break;
+            }
+            if($sortedDBSignatures[$publicKeyHex] != $sigPair->getSignature()) {
+              $this->addError($functionName, 'signatures for pubkey: ' . $publicKeyHex . ' don\'t match');
+              $signaturesMatch = false;
+              break;
+            }
+          }
+       }
+       if($signaturesMatch) {
+         return true;
+       }
+       $this->addError($functionName, 'signatures don\'t match');
+       // check more parameter
+       $result = $this->mTransactionBody->checkWithDb($dbTransaction);
+       $this->addErrors($this->mTransactionBody->getErrors());
+       return $result;
+
+    }
     
     public function save($blockchainType)
     {
@@ -158,18 +196,12 @@ class Transaction extends TransactionBase {
        if (!$this->mTransactionBody->save($this->getFirstPublic(), $this->mProtoTransaction->getSigMap(), $blockchainType)) {
           $this->addErrors($this->mTransactionBody->getErrors());
           $connection->rollback();
-          // correct auto-increment value to prevent gaps
-          $transactionsTable = $this->getTable('transactions');
-          $transactions = $transactionsTable->find()->select(['id'])->contain(false);
-          $count = $transactions->count();
-          $connection = ConnectionManager::get('default');
-          $connection->execute("ALTER TABLE `transactions` auto_increment = $count;");
-          
+
           return false;
       }
       
       // save transaction signatures
-      $transactionsSignaturesTable = TableRegistry::getTableLocator()->get('transaction_signatures');
+      $transactionsSignaturesTable = $this->getTable('transaction_signatures');
       $transactionId = $this->mTransactionBody->getTransactionID();
       //signature     pubkey
       

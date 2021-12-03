@@ -7,6 +7,7 @@ use Cake\ORM\Entity;
  * Transaction Entity
  *
  * @property int $id
+ * @property int $nr
  * @property int $state_group_id
  * @property int $transaction_type_id
  * @property string|resource $tx_hash
@@ -36,6 +37,7 @@ class Transaction extends Entity
      * @var array
      */
     protected $_accessible = [
+        'nr' => true,
         'state_group_id' => true,
         'transaction_type_id' => true,
         'tx_hash' => true,

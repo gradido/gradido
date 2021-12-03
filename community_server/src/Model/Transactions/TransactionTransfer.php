@@ -161,6 +161,11 @@ class TransactionTransfer extends TransactionBase {
         
         return true;
     }
+
+    public function checkWithDb($dbTransaction)
+    {
+      
+    }
     
     public function save($transaction_id, $firstPublic, $received) {
       

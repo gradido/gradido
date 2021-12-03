@@ -53,6 +53,36 @@ class TransactionBody extends TransactionBase {
       
     return true;
   }
+
+  public function checkWithDb($dbTransaction)
+  {
+     $functionName = 'TransactionBody::checkWithDb';
+     if($this->getMemo() != $dbTransaction->memo) {
+        $this->addError($functionName, 'memos don\'t match');
+        return false;
+     }
+     $created = new FrozenTime($this->mProtoTransactionBody->getCreated()->getSeconds());
+     if($created != $dbTransaction->created) {
+        $this->addError($functionName, 'created date don\'t match');
+        return false;
+     }
+     if($this->getTransactionTypeName() != $dbTransaction->transaction_type->name) {
+       $this->addError($functionName, 'transaction types not the same: ' .  json_encode([
+         'stored' => $dbTransaction->transaction_type->name,
+         'received' => $this->getTransactionTypeName()
+       ]));
+       return false;
+     }
+     $specificTransaction = $this->getSpecificTransaction();
+     if($specificTransaction) {
+        $result = $specificTransaction->checkWithDb($dbTransaction);
+        $this->addErrors($specificTransaction->getErrors());
+        return $result;
+     }
+     $this->addError($functionName, 'no specific transaction');
+     return false;
+
+  }
   
   public function getSpecificTransaction() {
     return $this->mSpecificTransaction;
@@ -68,14 +98,27 @@ class TransactionBody extends TransactionBase {
   }
   
   public function save($firstPublic, $sigMap, $blockchainType) {
-      $transactionsTable = TableRegistry::getTableLocator()->get('transactions');
+      $transactionsTable = $this->getTable('transactions');
       $transactionEntity = $transactionsTable->newEntity();
-      
-      
+            
       $transactionEntity->transaction_type_id = $this->transactionTypeId;
       $transactionEntity->memo = $this->getMemo();
       $transactionEntity->transaction_state_id = 1;
       
+      // find out next transaction nr
+      $lastTransaction = $transactionsTable
+                          ->find('all', ['contain' => false])
+                          ->select(['nr', 'tx_hash'])
+                          ->order(['nr' => 'DESC'])
+                          ->limit(1)
+                          ->epilog('FOR UPDATE') // lock indexes from updates in other sessions
+                          ;
+      if($lastTransaction->count() == 1) {
+        $transactionEntity->nr = $lastTransaction->first()->nr + 1;
+      } else {
+        $transactionEntity->nr = 1;
+      }                       
+
       if ($transactionsTable->save($transactionEntity)) {
           // reload entity to get received date filled from mysql
         $transactionEntity = $transactionsTable->get($transactionEntity->id);
@@ -91,12 +134,12 @@ class TransactionBody extends TransactionBase {
       }
       $previousTxHash = null;
       $previousTxState = 0;
-      if($this->mTransactionID > 1) {
+      if($transactionEntity->nr > 1) {
         try {
           $previousTransaction = $transactionsTable
                   ->find('all', ['contain' => false])
                   ->select(['tx_hash', 'transaction_state_id'])
-                  ->where(['id' => $this->mTransactionID - 1])
+                  ->where(['nr' => $transactionEntity->nr - 1])
                   ->first();
           /*$previousTransaction = $transactionsTable->get($this->mTransactionID - 1, [
               'contain' => false, 
@@ -135,7 +178,7 @@ class TransactionBody extends TransactionBase {
         \Sodium\crypto_generichash_update($state, stream_get_contents($previousTxHash));
       }
       //echo "id: " . $transactionEntity->id . "\n";
-      \Sodium\crypto_generichash_update($state, strval($transactionEntity->id));
+      \Sodium\crypto_generichash_update($state, strval($transactionEntity->nr));
       //echo "received: " . $transactionEntity->received;
       \Sodium\crypto_generichash_update($state, $transactionEntity->received->i18nFormat('yyyy-MM-dd HH:mm:ss'));
       \Sodium\crypto_generichash_update($state, $sigMap->serializeToString());
