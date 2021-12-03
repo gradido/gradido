@@ -133,7 +133,9 @@ export default {
         })
         .catch((error) => {
           this.pending = true
-          this.$toasted.error(error.message)
+          if (error.message === 'GraphQL error: 403.13 - Client certificate revoked') {
+            this.$toasted.error(this.$t('error.session-expired'))
+          }
           // what to do when loading balance fails?
         })
     },

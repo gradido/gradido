@@ -24,7 +24,7 @@ const authLink = new ApolloLink((operation, forward) => {
   })
   return forward(operation).map((response) => {
     if (response.errors && response.errors[0].message === '403.13 - Client certificate revoked') {
-      response.errors[0].message = i18n.t('error.session-expired')
+      // response.errors[0].message = i18n.t('error.session-expired')
       store.dispatch('logout', null)
       if (router.currentRoute.path !== '/login') router.push('/login')
       return response
