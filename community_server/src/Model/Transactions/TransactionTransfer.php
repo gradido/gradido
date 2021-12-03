@@ -164,7 +164,31 @@ class TransactionTransfer extends TransactionBase {
 
     public function checkWithDb($dbTransaction)
     {
-      
+        $functionName = 'TransactionTransfer::checkWithDb';
+        $transactionTransferTable = $this->getTable('TransactionSendCoins'); 
+        $transactionSendCoinQuery = $transactionTransferTable->find('all')->where(['transaction_id' => $dbTransaction->id]);
+        if($transactionSendCoinQuery->count() == 0) {
+          $this->addError($functionName, 'no send coin transaction find for transaction id: ' . $dbTransaction->id);
+          return false;
+        }
+        $transactionSendCoin = $transactionSendCoinQuery->first();
+        if($transactionSendCoin->amount != $this->getAmount()) {
+          $this->addError($functionName, 'amounts don\'t match');
+          return false;
+        }
+        $senderPublicKeyDb = stream_get_contents($transactionSendCoin->sender_public_key);
+        $local_transfer = $this->getTransfer();
+        if($senderPublicKeyDb != $local_transfer->getSender()->getPubkey()) {
+          $this->addError($functionName, 'sender public keys don\'t match');
+          return false;
+        }
+        $recipiantPublicKeyDb = stream_get_contents($transactionSendCoin->receiver_public_key);
+        if($recipiantPublicKeyDb != $local_transfer->getRecipiant()) {
+          $this->addError($functionName, 'recipiant public keys don\t match');
+          return false;
+        }
+        return true;
+
     }
     
     public function save($transaction_id, $firstPublic, $received) {

@@ -144,7 +144,35 @@ class TransactionCreation extends TransactionBase {
 
     public function checkWithDb($dbTransaction)
     {
-      
+       $functionName = 'TransactionCreations::checkWithDb';
+       $transactionCreationsTable = $this->getTable('transactionCreations');
+       $transactionCreationQuery = $transactionCreationsTable->find('all')->where(['transaction_id' => $dbTransaction->id]);
+       if($transactionCreationQuery->count() == 0) {
+         $this->addError($functionName, 'cannot find transaction creation for transaction id: ' . $dbTransaction->id);
+         return false;
+       }
+       $transactionCreationDb = $transactionCreationQuery->first();
+       if($this->getTargetDate() != $transactionCreationDb->target_date) {
+         $this->addError($functionName, 'target dates don\'t match');
+         return false;
+       }
+       if($this->getAmount() != $transactionCreationDb->amount) {
+         $this->addError($functionName, 'amount don\'t match: ' . json_encode([
+           'stored' => $transactionCreationDb->amount,
+           'received' => $this->getAmount()
+         ]));
+         return false;
+       }
+       $recipientUser = $this->getReceiverUser();
+       if(!$recipientUser) {
+         $this->addError($functionName, 'recipient user not found with pubkey: ' . \Sodium\bin2hex(getReceiverPublic()));
+         return false;
+       }
+       if($recipientUser->id != $transactionCreationDb->state_user_id) {
+         $this->addError($functionName, 'recipient user don\' match');
+         return false;
+       }
+       return true;
     }
     
     public function save($transaction_id, $firstPublic, $received) 
