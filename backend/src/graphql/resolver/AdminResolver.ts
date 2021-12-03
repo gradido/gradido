@@ -180,7 +180,7 @@ export class AdminResolver {
     } else {
       newBalance = lastUserTransaction.balance
     }
-    newBalance += Number(parseInt(pendingCreation.amount.toString()) / 10000)
+    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()) / 10000)
 
     const newUserTransaction = new UserTransaction()
     newUserTransaction.userId = pendingCreation.userId
