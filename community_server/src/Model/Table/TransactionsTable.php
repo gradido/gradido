@@ -192,6 +192,7 @@ class TransactionsTable extends Table
             
             $final_transaction = [
                 'transaction_id' => $transaction->id,
+                'transaction_state_id' => $transaction->transaction_state_id,
                 'date' => $transaction->received,
                 'memo' => $transaction->memo
             ];
