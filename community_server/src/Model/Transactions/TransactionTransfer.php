@@ -270,7 +270,7 @@ class TransactionTransfer extends TransactionBase {
         $emailViewBuilder->setTemplate('notificationTransfer')
                          ->setVars(['receiverUser' => $recipiantUser,
                                     'senderUser' => $senderUser,
-                                    'senderPublicKey' => $sender->getPubkey(),
+                                    'senderPublicKey' => bin2hex($sender->getPubkey()),
                                     'gdd_cent' => $senderAmount, 
                                     'memo' => $memo]);
         $recipiantNames = $recipiantUser->getNames();
