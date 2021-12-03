@@ -4,6 +4,7 @@ namespace Model\Transactions;
 
 use Cake\ORM\TableRegistry;
 use Cake\I18n\FrozenDate;
+use Cake\I18n\FrozenTime;
 
 class TransactionBody extends TransactionBase {
   private $mProtoTransactionBody = null;
@@ -63,7 +64,10 @@ class TransactionBody extends TransactionBase {
      }
      $created = new FrozenTime($this->mProtoTransactionBody->getCreated()->getSeconds());
      if($created != $dbTransaction->created) {
-        $this->addError($functionName, 'created date don\'t match');
+        $this->addError($functionName, 'created date don\'t match' . json_encode([
+          'stored' => $dbTransaction->created->i18nFormat(),
+          'received' => $created->i18nFormat()
+        ]));
         return false;
      }
      if($this->getTransactionTypeName() != $dbTransaction->transaction_type->name) {

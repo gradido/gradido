@@ -142,18 +142,18 @@ class JsonRequestHandlerController extends AppController {
             }
             continue;
           } else if($gradidoBlock->hasErrors()){
-            $gradidoBlock->clearErrors();
             $this->log('error by comparing a non-existing transaction: '. json_encode($gradidoBlock->getErrors()), 'debug');
+            $gradidoBlock->clearErrors();
+
             // transaction with this nr found in db, but it is another transaction
             // so this transaction was added in between it is probably a cross group transaction
             // move it on step up 
-            $gradidoBlock->updateNr($i + 1);
+            $gradidoBlock->updateNr($gradidoBlock->getId() + 1);
           }
           
           if(!$gradidoBlock->validate()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'validate failed', 'details' =>  $gradidoBlock->getErrors()]);
           }
-          
           if(!$gradidoBlock->save()) {
             return $this->returnJson(['state' => 'error', 'msg' => 'save failed', 'details' =>  $gradidoBlock->getErrors()]);
           }

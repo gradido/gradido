@@ -100,8 +100,8 @@ class GradidoBlock extends TransactionBase {
         if(!$dbTransaction) {
             return false;
         }
-        $stored_txHash = stream_get_contents($dbTransaction->tx_hash);
-        if(stored_txHash == $this->mProtoGradidoBlock->getRunningHash()) {
+        $stored_txHash = substr(stream_get_contents($dbTransaction->tx_hash), 0, 32);
+        if($stored_txHash == $this->mProtoGradidoBlock->getRunningHash()) {
             return true;
         }
         $this->addError($functionName, 'error with  tx hash'. json_encode([
@@ -109,22 +109,37 @@ class GradidoBlock extends TransactionBase {
             'received' => \Sodium\bin2hex($this->mProtoGradidoBlock->getRunningHash())
         ]));
         // if tx hashes not the same maybe only the tx hash aren't the same, but the rest is correct
-        if($this->getReceived() != $dbTransaction->received) {
-            $this->addError($functionName, 'received are different' . json_encode([
+        // received cannot be the same, the stored received from db came from mysql, 
+        // the received from node server came from iota milestone
+        // that from iota should be younger
+        if($this->getReceived() < $dbTransaction->received) {
+            $this->addError($functionName, 'received date from iota is > as from db' . json_encode([
                 'stored' => $dbTransaction->received,
                 'received' => $this->getReceived()
             ]));
-            return false;
+            //return false;
         }
         $result = $this->mTransaction->checkWithDb($dbTransaction);
         $this->addErrors($this->mTransaction->getErrors());
         return $result;
     }
 
+    protected function getDbTransaction()
+    {
+        $transactionsTable = $this->getTable('transactions');
+        $transactionQuery = $transactionsTable->find('all', ['contain' => false])->where(['nr' => $this->getId()]);
+        if($transactionQuery->count() == 0) {
+            $this->addError('GradidoBlock::getDbTransaction', 'couldn\'t find transaction in db with nr: ' . $this->getId());
+            return NULL;
+        }
+        return $transactionQuery->first();
+    }
+
     public function updateState($transactionStateId)
     {
         $transactionsTable = $this->getTable('transactions');
-        $dbTransaction = $transactionsTable->getByNr($this->getId(), ['contain' => false]);
+        $dbTransaction = $this->getDbTransaction();
+        if(!$dbTransaction) return false;
         $dbTransaction->transaction_state_id = $transactionStateId;
         if(!$transactionsTable->save($dbTransaction)) {
             $errors = $dbTransaction->getErrors();
@@ -136,7 +151,8 @@ class GradidoBlock extends TransactionBase {
 
     public function updateNr($nr) {
         $transactionsTable = $this->getTable('transactions');
-        $dbTransaction = $transactionsTable->getByNr($this->getId(), ['contain' => false]);
+        $dbTransaction = $this->getDbTransaction();
+        if(!$dbTransaction) return false;
         $dbTransaction->nr = $nr;
         if(!$transactionsTable->save($dbTransaction)) {
             $errors = $dbTransaction->getErrors();
@@ -180,7 +196,16 @@ class GradidoBlock extends TransactionBase {
             //$this->addError("prev tx hash", \Sodium\bin2hex($previousTxHashCutted));
         }
         \Sodium\crypto_generichash_update($state, strval($transactionNr));        
-        \Sodium\crypto_generichash_update($state, $this->getReceived()->i18nFormat('yyyy-MM-dd HH:mm:ss'));
+        $receivedTime = $this->getReceived();
+        $receivedTimeString = '';
+        try {
+            $receivedTimeString = $receivedTime->i18nFormat('yyyy-MM-dd HH:mm:ss');
+        } catch (Exception $e) {
+            //echo 'Exception abgefangen: ',  $e->getMessage(), "\n";
+            $this->addError('GradidoBlock::calculateTxHash', 'exception on formatting received time: ' . $e->getMessage() );
+            return NULL;
+        }
+        \Sodium\crypto_generichash_update($state, $receivedTimeString);
         $sigMap = $this->mProtoGradidoBlock->getTransaction()->getSigMap();
         \Sodium\crypto_generichash_update($state, $sigMap->serializeToString());
 
@@ -205,12 +230,13 @@ class GradidoBlock extends TransactionBase {
         $connection->rollback();
         return false;
       }
+      
       $connection->commit();
       
       $specificTransaction = $transactionBody->getSpecificTransaction();
-      
       $specificTransaction->sendNotificationEmail($transactionBody->getMemo());
       $this->addWarnings($specificTransaction->getWarnings());
+      
       return true;
     }
 
@@ -290,10 +316,10 @@ class GradidoBlock extends TransactionBase {
           $this->addError('GradidoBlock::saveTransactionBody', 'txHash is false');
           return false;
       }
-
+      
       $transactionEntity->tx_hash = $txHash;
       $transactionEntity->memo = $transactionBody->getMemo();
-      $transactionEntity->received = $this->getReceived()->format("Y-m-d H:i:s");
+      $transactionEntity->received = $this->getReceived();//->i18nFormat('yyyy-MM-dd HH:mm:ss');
       $transactionEntity->blockchain_type_id = 3; // iota
       $transactionEntity->transaction_state_id = 3; // confirmed, because this function will be called through readNode
             
