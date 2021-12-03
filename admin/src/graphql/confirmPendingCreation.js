@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const confirmPendingCreation = gql`
-  mutation ($id: Int!) {
+  mutation ($id: Float!) {
     confirmPendingCreation(id: $id)
   }
 `

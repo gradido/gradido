@@ -141,7 +141,7 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-    const pendingCreation = await pendingCreationRepository.findOneOrFail({ id: id })
+    const pendingCreation = await pendingCreationRepository.findOneOrFail(id)
     console.log('pendingCreation', pendingCreation)
 
     const transactionRepository = getCustomRepository(TransactionRepository)
