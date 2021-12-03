@@ -114,6 +114,11 @@
   "message": "hello gradido !!",
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
+  "publisher": {
+    "infoNoRegister": "This is not necessary for registration!",
+    "infoText": "Enter the ID of the publisher here. If you do not have an ID, please leave it blank.",
+    "publisherId": "PublisherID"
+  },
   "send": "Send",
   "settings": {
     "coinanimation": {

@@ -60,8 +60,11 @@ describe('CreationConfirm', () => {
     })
 
     describe('store', () => {
-      it('commits openCreationsPlus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsPlus', 2)
+      it('commits resetOpenCreations to store', () => {
+        expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
+      })
+      it('commits setOpenCreations to store', () => {
+        expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
       })
     })
 
