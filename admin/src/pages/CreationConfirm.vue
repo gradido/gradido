@@ -64,15 +64,15 @@ export default {
         this.$store.commit('openCreationsMinus', 1)
       }
     },
-    async getPendingCreations() {
+    getPendingCreations() {
       this.$apollo
         .query({
           query: getPendingCreations,
         })
         .then((result) => {
-          this.confirmResult = result.data.getPendingCreations
           this.$store.commit('resetOpenCreations')
-          this.$store.commit('openCreationsPlus', result.data.getPendingCreations.length)
+          this.confirmResult = result.data.getPendingCreations.reverse()
+          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
           this.$toasted.error(error.message)

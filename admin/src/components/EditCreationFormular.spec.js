@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationFormular from './CreationFormular.vue'
+import EditCreationFormular from './EditCreationFormular.vue'
 
 const localVue = global.localVue
 
@@ -8,6 +8,16 @@ const apolloMock = jest.fn().mockResolvedValue({
     verifyLogin: {
       name: 'success',
       id: 0,
+    },
+  },
+})
+const apolloMutateMock = jest.fn().mockResolvedValue({
+  data: {
+    updatePendingCreation: {
+      creation: [0, 0, 0],
+      date: new Date(),
+      memo: 'qwertzuiopasdfghjkl',
+      moderator: 0,
     },
   },
 })
@@ -26,6 +36,7 @@ const mocks = {
   }),
   $apollo: {
     query: apolloMock,
+    mutate: apolloMutateMock,
   },
   $store: {
     commit: stateCommitMock,
@@ -35,15 +46,16 @@ const mocks = {
 const propsData = {
   type: '',
   item: {},
+  row: [],
   creation: [],
   itemsMassCreation: {},
 }
 
-describe('CreationFormular', () => {
+describe('EditCreationFormular', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(CreationFormular, { localVue, mocks, propsData })
+    return mount(EditCreationFormular, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
@@ -51,8 +63,8 @@ describe('CreationFormular', () => {
       wrapper = Wrapper()
     })
 
-    it('has a DIV element with the class.component-creation-formular', () => {
-      expect(wrapper.find('.component-creation-formular').exists()).toBeTruthy()
+    it('has a DIV element with the class.component-edit-creation-formular', () => {
+      expect(wrapper.find('.component-edit-creation-formular').exists()).toBeTruthy()
     })
 
     describe('server sends back moderator data', () => {
@@ -75,49 +87,6 @@ describe('CreationFormular', () => {
     describe('radio buttons to selcet month', () => {
       it('has three radio buttons', () => {
         expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
-      })
-
-      describe('with mass creation', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.setProps({ type: 'massCreation' })
-        })
-
-        describe('first radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-          })
-
-          it('emits update-radio-selected with index 0', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([0])],
-            ])
-          })
-        })
-
-        describe('second radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          })
-
-          it('emits update-radio-selected with index 1', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([1])],
-            ])
-          })
-        })
-
-        describe('third radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
-          })
-
-          it('emits update-radio-selected with index 2', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([2])],
-            ])
-          })
-        })
       })
 
       describe('with single creation', () => {

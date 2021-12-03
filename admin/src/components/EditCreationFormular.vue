@@ -120,8 +120,9 @@
 </template>
 <script>
 import { updatePendingCreation } from '../graphql/updatePendingCreation'
+import { verifyLogin } from '../graphql/verifyLogin'
 export default {
-  name: 'CreationFormular',
+  name: 'EditCreationFormular',
   props: {
     type: {
       type: String,
@@ -166,6 +167,7 @@ export default {
     },
   },
   created() {
+    this.searchModeratorData()
     if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
       switch (this.$moment(this.creationUserData.date).format('MMMM')) {
         case this.currentMonth.short:
@@ -237,53 +239,59 @@ export default {
       if (this.text.length < 10) {
         return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
-      if (this.type === 'singleCreation') {
-        this.submitObj = {
-          id: this.item.id,
-          email: this.item.email,
-          creationDate: this.radioSelected.long,
-          amount: Number(this.value),
-          memo: this.text,
-          moderator: Number(this.$store.state.moderator.id),
-        }
-
-        if (this.pagetype === 'PageCreationConfirm') {
-          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          this.$apollo
-            .mutate({
-              mutation: updatePendingCreation,
-              variables: this.submitObj,
-            })
-            .then((result) => {
-              this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
-              this.$emit('update-creation-data', {
-                amount: Number(result.data.updatePendingCreation.amount),
-                date: result.data.updatePendingCreation.date,
-                memo: result.data.updatePendingCreation.memo,
-                moderator: Number(result.data.updatePendingCreation.moderator),
-                row: this.row,
-              })
-              this.$toasted.success(
-                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,
-              )
-              this.submitObj = null
-              this.createdIndex = null
-              // das creation Formular reseten
-              this.$refs.updateCreationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-            .catch((error) => {
-              this.$toasted.error(error.message)
-              this.submitObj = null
-              // das creation Formular reseten
-              this.$refs.updateCreationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-        }
+      this.submitObj = {
+        id: this.item.id,
+        email: this.item.email,
+        creationDate: this.radioSelected.long,
+        amount: Number(this.value),
+        memo: this.text,
+        moderator: Number(this.$store.state.moderator.id),
       }
+
+      // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
+      this.$apollo
+        .mutate({
+          mutation: updatePendingCreation,
+          variables: this.submitObj,
+        })
+        .then((result) => {
+          this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
+          this.$emit('update-creation-data', {
+            amount: Number(result.data.updatePendingCreation.amount),
+            date: result.data.updatePendingCreation.date,
+            memo: result.data.updatePendingCreation.memo,
+            moderator: Number(result.data.updatePendingCreation.moderator),
+            row: this.row,
+          })
+          this.$toasted.success(
+            `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,
+          )
+          this.submitObj = null
+          this.createdIndex = null
+          // das creation Formular reseten
+          this.$refs.updateCreationForm.reset()
+          // Den geschöpften Wert auf o setzen
+          this.value = 0
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+          this.submitObj = null
+          // das creation Formular reseten
+          this.$refs.updateCreationForm.reset()
+          // Den geschöpften Wert auf o setzen
+          this.value = 0
+        })
     },
+  },
+  searchModeratorData() {
+    this.$apollo
+      .query({ query: verifyLogin })
+      .then((result) => {
+        this.$store.commit('moderator', result.data.verifyLogin)
+      })
+      .catch(() => {
+        this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
+      })
   },
 }
 </script>
