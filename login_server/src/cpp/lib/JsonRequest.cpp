@@ -122,8 +122,18 @@ JsonRequestReturn JsonRequest::request(const char* methodName)
 				auto field = fields[i];
 				std::string field_name = field + ": ";
 				std::string value;
+				Value::ConstMemberIterator itr = resultJson.FindMember(field.data());
+				if (itr != resultJson.MemberEnd()) {
+					if (itr->value.IsString()) {
+						value = itr->value.GetString();
+					}
+					else if (itr->value.IsInt()) {
+						value = std::to_string(itr->value.GetInt());
+					}
+					addError(new ParamError(functionName, field_name.data(), value));
+				}
 				JsonRequestHandler::getStringParameter(resultJson, field.data(), value);
-				addError(new ParamError(functionName, field_name.data(), value));
+				
 			}
 			sendErrorsAsEmail("", true);
 			return JSON_REQUEST_RETURN_ERROR;
