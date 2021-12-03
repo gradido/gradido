@@ -113,7 +113,7 @@ class TransactionBody extends TransactionBase {
                           ->limit(1)
                           ->epilog('FOR UPDATE') // lock indexes from updates in other sessions
                           ;
-      if($lastTransaction->count() == 1) {
+      if($lastTransaction->count() > 1) {
         $transactionEntity->nr = $lastTransaction->first()->nr + 1;
       } else {
         $transactionEntity->nr = 1;

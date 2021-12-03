@@ -295,6 +295,7 @@ class GradidoBlock extends TransactionBase {
       $transactionEntity->memo = $transactionBody->getMemo();
       $transactionEntity->received = $this->getReceived()->format("Y-m-d H:i:s");
       $transactionEntity->blockchain_type_id = 3; // iota
+      $transactionEntity->transaction_state_id = 3; // confirmed, because this function will be called through readNode
             
       if ($transactionsTable->save($transactionEntity)) {
         $firstPublic = $this->mTransaction->getFirstPublic();
