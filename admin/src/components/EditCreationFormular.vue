@@ -186,7 +186,7 @@ export default {
           throw new Error('Something went wrong')
       }
       this.selectedOpenCreationAmount[this.createdIndex] =
-        this.creation[this.createdIndex] + this.creationUserData.amount / 10000
+        this.creation[this.createdIndex] + this.creationUserData.amount
       this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
     }
   },
@@ -194,7 +194,7 @@ export default {
     return {
       radioSelected: '',
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
-      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount / 10000,
+      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
       currentMonth: {

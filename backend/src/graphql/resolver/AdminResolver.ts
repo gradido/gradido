@@ -1,5 +1,5 @@
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Int } from 'type-graphql'
-import { getCustomRepository, Raw } from 'typeorm'
+import { getCustomRepository, Raw, Timestamp } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
@@ -13,6 +13,8 @@ import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { TransactionCreation } from '@entity/TransactionCreation'
+import { UserTransaction } from '@entity/UserTransaction'
+import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 
 @Resolver()
 export class AdminResolver {
@@ -115,8 +117,11 @@ export class AdminResolver {
         const userRepository = getCustomRepository(UserRepository)
         const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
 
+        const parsedAmount = Number(parseInt(pendingCreation.amount.toString()) / 10000)
+        // pendingCreation.amount = parsedAmount
         const newPendingCreation = {
           ...pendingCreation,
+          amount: parsedAmount,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -159,10 +164,35 @@ export class AdminResolver {
     transactionCreation.transactionId = transaction.id
     transactionCreation.userId = pendingCreation.userId
     transactionCreation.amount = parseInt(pendingCreation.amount.toString())
-    // transactionCreation.targetDate = new Timestamp(pendingCreation.date.getTime())
+    transactionCreation.targetDate = pendingCreation.date
     transactionCreation = await transactionCreationRepository.save(transactionCreation)
     console.log('transactionCreation', transactionCreation)
     if (!transactionCreation) throw new Error('Could not create transactionCreation')
+
+    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+    const lastUserTransaction = await userTransactionRepository.findLastForUser(
+      pendingCreation.userId,
+    )
+    let newBalance = 0
+    if (!lastUserTransaction) {
+      newBalance = 0
+    } else {
+      newBalance = lastUserTransaction.balance
+    }
+    const newUserTransaction = new UserTransaction()
+    newUserTransaction.userId = pendingCreation.userId
+    newUserTransaction.transactionId = transaction.id
+    newUserTransaction.transactionTypeId = transaction.transactionTypeId
+    newUserTransaction.balance = Number(
+      newBalance + parseInt(pendingCreation.amount.toString()) / 10000,
+    )
+    newUserTransaction.balanceDate = transaction.received
+
+    console.log(newUserTransaction)
+
+    await userTransactionRepository.save(newUserTransaction).catch((error) => {
+      throw new Error('Error saving user transaction: ' + error)
+    })
 
     return true
   }

@@ -24,7 +24,7 @@ export class PendingCreation {
   memo: string
 
   @Field(() => Number)
-  amount: BigInt
+  amount: number
 
   @Field(() => Number)
   moderator: number

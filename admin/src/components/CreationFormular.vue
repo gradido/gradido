@@ -159,7 +159,7 @@ export default {
     return {
       radioSelected: '',
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
-      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount / 10000,
+      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
       currentMonth: {
