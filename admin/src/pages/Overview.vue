@@ -64,11 +64,7 @@ export default {
           query: getPendingCreations,
         })
         .then((result) => {
-          this.$store.commit('resetOpenCreations')
-          this.$store.commit('openCreationsPlus', result.data.getPendingCreations.length)
-        })
-        .catch((error) => {
-          this.$toasted.error(error.message)
+          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
     },
   },
