@@ -41,6 +41,7 @@ $this->assign('header', $header);
       $send = $transaction['type'] == 'send';
       $balance = $transaction['balance'];
       $memoShort = $transaction['memo'];
+      $transactionConfirmed = $transaction['transaction_state_id'] == 3;
       if(strlen($memoShort) > 30) {
         $memoShort = substr($memoShort, 0, 30) . '...';
       }
@@ -54,7 +55,7 @@ $this->assign('header', $header);
         $cellColorClass = 'red-color';
       }
     ?>
-      <div class="row">
+      <div class="row" <?= !$transactionConfirmed ? "style=\"color:grey\" title=\"Not yet confirmed\"" : ""?>>
         <div class="cell c4">
           <?= $this->Html->image('50x50.png', ['class' => 'profile-img', 'alt' => 'profile image']) ?>
           <div>
