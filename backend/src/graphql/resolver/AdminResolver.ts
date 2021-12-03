@@ -15,6 +15,7 @@ import { Transaction } from '@entity/Transaction'
 import { TransactionCreation } from '@entity/TransactionCreation'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
+import { BalanceRepository } from '../../typeorm/repository/Balance'
 
 @Resolver()
 export class AdminResolver {
@@ -179,13 +180,13 @@ export class AdminResolver {
     } else {
       newBalance = lastUserTransaction.balance
     }
+    newBalance += Number(parseInt(pendingCreation.amount.toString()) / 10000)
+
     const newUserTransaction = new UserTransaction()
     newUserTransaction.userId = pendingCreation.userId
     newUserTransaction.transactionId = transaction.id
     newUserTransaction.transactionTypeId = transaction.transactionTypeId
-    newUserTransaction.balance = Number(
-      newBalance + parseInt(pendingCreation.amount.toString()) / 10000,
-    )
+    newUserTransaction.balance = Number(newBalance)
     newUserTransaction.balanceDate = transaction.received
 
     console.log(newUserTransaction)
@@ -193,6 +194,18 @@ export class AdminResolver {
     await userTransactionRepository.save(newUserTransaction).catch((error) => {
       throw new Error('Error saving user transaction: ' + error)
     })
+
+    const balanceRepository = getCustomRepository(BalanceRepository)
+    let userBalance = await balanceRepository.findByUser(pendingCreation.userId)
+
+    if (!userBalance) userBalance = balanceRepository.create()
+    userBalance.userId = pendingCreation.userId
+    userBalance.amount = Number(newBalance * 10000)
+    userBalance.modified = new Date()
+    userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
+    await balanceRepository.save(userBalance)
+    console.log('userBalance', userBalance)
+    await pendingCreationRepository.delete(pendingCreation)
 
     return true
   }
