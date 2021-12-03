@@ -132,7 +132,18 @@ class GradidoBlock extends TransactionBase {
             return false;
         }
         return true;
+    }
 
+    public function updateNr($nr) {
+        $transactionsTable = $this->getTable('transactions');
+        $dbTransaction = $transactionsTable->getByNr($this->getId(), ['contain' => false]);
+        $dbTransaction->nr = $nr;
+        if(!$transactionsTable->save($dbTransaction)) {
+            $errors = $dbTransaction->getErrors();
+            $this->addError('GradidoBlock::updateNr', "error saving with: " . json_encode($errors));
+            return false;
+        }
+        return true;
     }
 
     public function calculateTxHash()
@@ -190,10 +201,55 @@ class GradidoBlock extends TransactionBase {
           return false;
       }
       
-      // save transaction signatures
+      if(!$this->saveSignatureTxHash()) {
+        $connection->rollback();
+        return false;
+      }
+      $connection->commit();
+      
+      $specificTransaction = $transactionBody->getSpecificTransaction();
+      
+      $specificTransaction->sendNotificationEmail($transactionBody->getMemo());
+      $this->addWarnings($specificTransaction->getWarnings());
+      return true;
+    }
+
+    public function saveSignatureTxHash($saveTxHash = false)
+    {
+        // save transaction signatures
       $transactionsSignaturesTable = $this->getTable('transaction_signatures');
+
       $transactionId = $this->mTransactionId;
-            
+
+      // if called directly from json request handler in case of transaction was received from node server and tx hash and/or signature(s) where missing
+      if(!$transactionId || $saveTxHash) {
+        $transactionsTable = $this->getTable('transactions');
+        $dbTransaction = $transactionsTable
+                            ->find('all', ['contain' => false])
+                            ->where(['nr' => $this->getId()])
+                            ->first()
+                            ;
+        if(!$dbTransaction) {
+            $this->addError('GradidoBlock::saveSignatureTxHash', 'cannot find transaction with nr: ' . $this->getId());
+            return false;
+        }
+        $transactionId = $dbTransaction->id;
+
+        if($saveTxHash) {
+            $txHash =  $this->calculateTxHash();
+            if(!$txHash) {
+                $this->addError('GradidoBlock::saveSignatureTxHash', 'txHash is false');
+                return false;
+            }
+            $dbTransaction->tx_hash = $txHash;
+            if (!$transactionsTable->save($dbTransaction)) {
+                $this->addError('GradidoBlock::saveSignatureTxHash', 'error saving updated transaction (tx hash) with: ' . json_encode($transactionEntity->getError()));
+                return false;
+              }
+          }    
+      }
+      // remove existing signatures for this transaction, maybe they are empty or invalid
+      $transactionsSignaturesTable->deleteAll(['transaction_id' => $transactionId]);
       $sigPairs = $this->mProtoGradidoBlock->getTransaction()->getSigMap()->getSigPair();
       
       $signatureEntitys = [];
@@ -210,21 +266,12 @@ class GradidoBlock extends TransactionBase {
           $errors = $entity->getErrors();
           if(!$errors && count($errors) > 0) {
             $pubkeyHex = bin2hex($entity->pubkey);
-            $this->addError('GradidoBlock::save', 'error saving signature for pubkey: ' . $pubkeyHex . ', with errors: ' . json_encode($errors) );
+            $this->addError('GradidoBlock::saveSignatureTxHash', 'error saving signature for pubkey: ' . $pubkeyHex . ', with errors: ' . json_encode($errors) );
           }
         }
-        $connection->rollback();
-        // correct auto-increment value to prevent gaps
-        $this->fixAutoIncrement();  
         return false;
-      }
-      
-      $connection->commit();
-      
-      $specificTransaction = $transactionBody->getSpecificTransaction();
-      
-      $specificTransaction->sendNotificationEmail($transactionBody->getMemo());
-      $this->addWarnings($specificTransaction->getWarnings());
+      }      
+
       return true;
     }
 

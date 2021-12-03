@@ -12,6 +12,9 @@ class TransactionBase {
     public function getErrors() {
         return $this->errors;
     }
+    public function clearErrors() {
+      $this->errors = [];
+    }
     
     public function getWarnings() {
         return $this->warnings;
