@@ -229,9 +229,6 @@ export default {
       }
     },
     bookmarkConfirm(item) {
-      console.log('die schöpfung bestätigen und abschließen')
-      console.log(JSON.stringify(item))
-      console.log(typeof item.id)
       this.$apollo
         .mutate({
           mutation: confirmPendingCreation,
@@ -239,8 +236,7 @@ export default {
             id: item.id,
           },
         })
-        .then((result) => {
-          console.log('result', result)
+        .then(() => {
           this.$emit('remove-confirm-result', item, 'remove')
         })
         .catch((error) => {
