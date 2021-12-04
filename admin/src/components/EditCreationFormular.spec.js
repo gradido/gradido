@@ -45,8 +45,6 @@ const mocks = {
 
 const propsData = {
   type: '',
-  item: {},
-  row: [],
   creation: [],
   itemsMassCreation: {},
 }

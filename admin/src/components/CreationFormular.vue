@@ -197,26 +197,26 @@ export default {
     submitCreation() {
       // Formular Prüfen ob ein Zeitraum ausgewählt wurde. Ansonsten abbrechen und Hinweis anzeigen
       if (this.radioSelected === '') {
-        return alert('Bitte wähle einen Zeitraum!')
+        return this.$toasted.error('Bitte wähle einen Zeitraum!')
       }
       // Formular Prüfen ob der GDD Betrag grösser 0 ist. Ansonsten abbrechen und Hinweis anzeigen
-      if (this.value === 0) {
-        return alert('Bitte gib einen GDD Betrag an!')
+      if (this.value <= 0) {
+        return this.$toasted.error('Bitte gib einen GDD Betrag an!')
       }
       // Formular Prüfen ob der Text vorhanden ist. Ansonsten abbrechen und Hinweis anzeigen
       if (this.text === '') {
-        return alert('Bitte gib einen Text ein!')
+        return this.$toasted.error('Bitte gib einen Text ein!')
       }
       // Formular Prüfen ob der Text länger als 10 Zeichen hat. Ansonsten abbrechen und Hinweis anzeigen
       if (this.text.length < 10) {
-        return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
+        return this.$toasted.error('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
       }
 
       if (this.type === 'massCreation') {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
         // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
+        console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
             item: this.itemsMassCreation,
@@ -227,7 +227,7 @@ export default {
             moderator: this.$store.state.moderator.id,
           },
         ]
-        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)
