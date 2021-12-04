@@ -39,6 +39,12 @@ const mocks = {
     mutate: apolloMutateMock,
   },
   $store: {
+    state: {
+      moderator: {
+        id: 0,
+        name: 'test moderator',
+      },
+    },
     commit: stateCommitMock,
   },
 }
@@ -92,6 +98,8 @@ describe('EditCreationFormular', () => {
           jest.clearAllMocks()
           await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
           await wrapper.setData({ rangeMin: 180 })
+          await wrapper.setData({ text: 'Test create coins' })
+          await wrapper.setData({ value: 90 })
         })
 
         describe('first radio button', () => {
@@ -105,6 +113,16 @@ describe('EditCreationFormular', () => {
 
           it('sets rangeMax to 200', () => {
             expect(wrapper.vm.rangeMax).toBe(200)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
           })
         })
 
@@ -120,6 +138,16 @@ describe('EditCreationFormular', () => {
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(400)
           })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
+          })
         })
 
         describe('third radio button', () => {
@@ -133,6 +161,16 @@ describe('EditCreationFormular', () => {
 
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(600)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
           })
         })
       })

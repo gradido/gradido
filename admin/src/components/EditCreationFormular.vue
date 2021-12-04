@@ -106,6 +106,7 @@
               <b-button
                 type="button"
                 variant="success"
+                class="test-submit"
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
