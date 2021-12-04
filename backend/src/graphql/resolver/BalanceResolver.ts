@@ -8,10 +8,11 @@ import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { calculateDecay } from '../../util/decay'
 import { roundFloorFrom4 } from '../../util/round'
+import { RIGHTS } from '../../auth/RIGHTS'
 
 @Resolver()
 export class BalanceResolver {
-  @Authorized()
+  @Authorized([RIGHTS.BALANCE])
   @Query(() => Balance)
   async balance(@Ctx() context: any): Promise<Balance> {
     // load user and balance

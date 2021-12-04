@@ -1,4 +1,5 @@
 {
+  "admin_area": "Adminbereich",
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -113,6 +114,11 @@
   "message": "hallo gradido !!",
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
+  "publisher": {
+    "infoNoRegister": "Dies ist für die Registrieung nicht nötig!",
+    "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte leer lassen.",
+    "publisherId": "PublisherID"
+  },
   "send": "Senden",
   "settings": {
     "coinanimation": {

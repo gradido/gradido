@@ -6,6 +6,7 @@ import 'module-alias/register'
 
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
+import bodyParser from 'body-parser'
 
 // database
 import connection from '../typeorm/connection'
@@ -22,10 +23,13 @@ import CONFIG from '../config'
 // graphql
 import schema from '../graphql/schema'
 
+// webhooks
+import { elopageWebhook } from '../webhook/elopage'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-const DB_VERSION = '0004-login_server_data'
+const DB_VERSION = '0005-admin_tables'
 
 const createServer = async (context: any = serverContext): Promise<any> => {
   // open mysql connection
@@ -49,6 +53,12 @@ const createServer = async (context: any = serverContext): Promise<any> => {
 
   // cors
   app.use(cors)
+
+  // bodyparser
+  app.use(bodyParser.json())
+
+  // Elopage Webhook
+  app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
   // Apollo Server
   const apollo = new ApolloServer({

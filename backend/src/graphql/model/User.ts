@@ -12,6 +12,7 @@ export class User {
   */
   constructor(json?: any) {
     if (json) {
+      this.id = json.id
       this.email = json.email
       this.firstName = json.first_name
       this.lastName = json.last_name
@@ -20,8 +21,12 @@ export class User {
       this.pubkey = json.public_hex
       this.language = json.language
       this.publisherId = json.publisher_id
+      this.isAdmin = json.isAdmin
     }
   }
+
+  @Field(() => Number)
+  id: number
 
   @Field(() => String)
   email: string
@@ -48,7 +53,7 @@ export class User {
   @Field(() => number)
   created: number
 
-  @Field(() => Boolean)
+  @Field(() =>>> Boolean)
   emailChecked: boolean
 
   @Field(() => Boolean)
@@ -70,6 +75,9 @@ export class User {
   // what is publisherId?
   @Field(() => Int, { nullable: true })
   publisherId?: number
+
+  @Field(() => Boolean)
+  isAdmin: boolean
 
   @Field(() => Boolean)
   coinanimation: boolean

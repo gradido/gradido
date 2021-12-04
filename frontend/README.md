@@ -386,3 +386,12 @@ GET https://staging.gradido.net/state-balances/ajaxGdtTransactions
 Liefert wenn alles in Ordnung ist:
  
 wenn nicht type 7 dann "amount" in euro ansonsten in GDT
+
+## Additional Software
+
+For `yarn locales` you will need `jq` to use it.
+You can install it (on arch) via
+
+```
+sudo pacman -S jq
+```

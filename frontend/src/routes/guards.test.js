@@ -30,7 +30,7 @@ describe('navigation guards', () => {
   })
 
   describe('authorization', () => {
-    const navGuard = router.beforeHooks[0]
+    const navGuard = router.beforeHooks[2]
     const next = jest.fn()
 
     it('redirects to login when not authorized', () => {
