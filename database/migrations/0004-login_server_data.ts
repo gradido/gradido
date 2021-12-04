@@ -62,16 +62,4 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   `)
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // write downgrade logic as parameter of queryFn
-  await queryFn(`DELETE FROM \`login_app_access_tokens\`;`)
-  await queryFn(`DELETE FROM \`login_elopage_buys\`;`)
-  await queryFn(`DELETE FROM \`login_email_opt_in_types\`;`)
-  await queryFn(`DELETE FROM \`login_email_opt_in\`;`)
-  await queryFn(`DELETE FROM \`login_groups\`;`)
-  await queryFn(`DELETE FROM \`login_pending_tasks\`;`)
-  await queryFn(`DELETE FROM \`login_roles\`;`)
-  await queryFn(`DELETE FROM \`login_user_backups\`;`)
-  await queryFn(`DELETE FROM \`login_user_roles\`;`)
-  await queryFn(`DELETE FROM \`login_users\`;`)
-}
+export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {}

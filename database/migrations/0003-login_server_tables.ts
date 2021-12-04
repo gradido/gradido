@@ -143,14 +143,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`login_app_access_tokens\`;`)
-  await queryFn(`DROP TABLE \`login_elopage_buys\`;`)
-  await queryFn(`DROP TABLE \`login_email_opt_in_types\`;`)
-  await queryFn(`DROP TABLE \`login_email_opt_in\`;`)
-  await queryFn(`DROP TABLE \`login_groups\`;`)
-  await queryFn(`DROP TABLE \`login_pending_tasks\`;`)
-  await queryFn(`DROP TABLE \`login_roles\`;`)
-  await queryFn(`DROP TABLE \`login_user_backups\`;`)
-  await queryFn(`DROP TABLE \`login_user_roles\`;`)
-  await queryFn(`DROP TABLE \`login_users\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_app_access_tokens\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_elopage_buys\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_email_opt_in_types\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_email_opt_in\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_groups\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_pending_tasks\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_roles\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_user_backups\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_user_roles\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_users\`;`)
 }

@@ -25,5 +25,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`user_setting\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`user_setting\`;`)
 }
