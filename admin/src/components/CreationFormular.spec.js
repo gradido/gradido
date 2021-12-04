@@ -81,9 +81,10 @@ describe('CreationFormular', () => {
     describe('server throws error for moderator data call', () => {
       beforeEach(() => {
         jest.clearAllMocks()
-        apolloMock.mockRejectedValue({ message: 'Ouch!' })
+        apolloMock.mockRejectedValueOnce({ message: 'Ouch!' })
         wrapper = Wrapper()
       })
+
       it('has called store commit with fake data', () => {
         expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
       })
