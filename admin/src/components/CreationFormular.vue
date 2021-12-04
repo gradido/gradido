@@ -6,6 +6,7 @@
           <label>Monat Auswählen</label>
           <b-col class="text-left">
             <b-form-radio
+              id="beforeLastMonth"
               v-model="radioSelected"
               :value="beforeLastMonth"
               :disabled="creation[0] === 0"
@@ -19,6 +20,7 @@
           </b-col>
           <b-col>
             <b-form-radio
+              id="lastMonth"
               v-model="radioSelected"
               :value="lastMonth"
               :disabled="creation[1] === 0"
@@ -32,6 +34,7 @@
           </b-col>
           <b-col class="text-right">
             <b-form-radio
+              id="currentMonth"
               v-model="radioSelected"
               :value="currentMonth"
               :disabled="creation[2] === 0"
@@ -45,7 +48,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex">
+        <b-row class="m-4" v-show="createdIndex != null">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -92,6 +95,7 @@
                 v-if="pagetype === 'PageCreationConfirm'"
                 type="button"
                 variant="success"
+                class="test-submit"
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
@@ -183,7 +187,9 @@ export default {
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
+      console.log('this.createdIndex befor', this.createdIndex)
       this.createdIndex = index
+       console.log('this.createdIndex last', this.createdIndex)
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
