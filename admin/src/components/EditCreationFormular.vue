@@ -166,30 +166,6 @@ export default {
       required: true,
     },
   },
-  created() {
-    this.searchModeratorData()
-    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
-      switch (this.$moment(this.creationUserData.date).format('MMMM')) {
-        case this.currentMonth.short:
-          this.createdIndex = 2
-          this.radioSelected = this.currentMonth
-          break
-        case this.lastMonth.short:
-          this.createdIndex = 1
-          this.radioSelected = this.lastMonth
-          break
-        case this.beforeLastMonth.short:
-          this.createdIndex = 0
-          this.radioSelected = this.beforeLastMonth
-          break
-        default:
-          throw new Error('Something went wrong')
-      }
-      this.selectedOpenCreationAmount[this.createdIndex] =
-        this.creation[this.createdIndex] + this.creationUserData.amount
-      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
-    }
-  },
   data() {
     return {
       radioSelected: '',
@@ -292,6 +268,30 @@ export default {
           this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
         })
     },
+  },
+  created() {
+    this.searchModeratorData()
+    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
+      switch (this.$moment(this.creationUserData.date).format('MMMM')) {
+        case this.currentMonth.short:
+          this.createdIndex = 2
+          this.radioSelected = this.currentMonth
+          break
+        case this.lastMonth.short:
+          this.createdIndex = 1
+          this.radioSelected = this.lastMonth
+          break
+        case this.beforeLastMonth.short:
+          this.createdIndex = 0
+          this.radioSelected = this.beforeLastMonth
+          break
+        default:
+          throw new Error('Something went wrong')
+      }
+      this.selectedOpenCreationAmount[this.createdIndex] =
+        this.creation[this.createdIndex] + this.creationUserData.amount
+      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
+    }
   },
 }
 </script>
