@@ -1,7 +1,7 @@
 import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { PendingCreation } from '../model/PendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
@@ -14,19 +14,19 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => [UserAdmin])
   async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUsers = await loginUserRepository.findBySearchCriteria(searchText)
-    const users = await Promise.all(
-      loginUsers.map(async (loginUser) => {
-        const user = new UserAdmin()
-        user.firstName = loginUser.firstName
-        user.lastName = loginUser.lastName
-        user.email = loginUser.email
-        user.creation = await getUserCreations(loginUser.id)
-        return user
+    const userRepository = getCustomRepository(UserRepository)
+    const users = await userRepository.findBySearchCriteria(searchText)
+    const adminUsers = await Promise.all(
+      users.map(async (user) => {
+        const adminUser = new UserAdmin()
+        adminUser.firstName = user.firstName
+        adminUser.lastName = user.lastName
+        adminUser.email = user.email
+        adminUser.creation = await getUserCreations(user.id)
+        return adminUser
       }),
     )
-    return users
+    return adminUsers
   }
 
   @Mutation(() => [Number])
@@ -51,6 +51,30 @@ export class AdminResolver {
       pendingCreationRepository.save(loginPendingTaskAdmin)
     }
     return await getUserCreations(user.id)
+  }
+
+  @Query(() => [PendingCreation])
+  async getPendingCreations(): Promise<PendingCreation[]> {
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const pendingCreations = await pendingCreationRepository.find()
+
+    const pendingCreationsPromise = await Promise.all(
+      pendingCreations.map(async (pendingCreation) => {
+        const userRepository = getCustomRepository(UserRepository)
+        const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
+
+        const newPendingCreation = {
+          ...pendingCreation,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          creation: await getUserCreations(user.id),
+        }
+
+        return newPendingCreation
+      }),
+    )
+    return pendingCreationsPromise
   }
 }
 
