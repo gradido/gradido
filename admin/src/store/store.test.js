@@ -3,8 +3,14 @@ import CONFIG from '../config'
 
 jest.mock('../config')
 
-const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations, setOpenCreations } =
-  mutations
+const {
+  token,
+  openCreationsPlus,
+  openCreationsMinus,
+  resetOpenCreations,
+  setOpenCreations,
+  moderator,
+} = mutations
 const { logout } = actions
 
 CONFIG.DEBUG_DISABLE_AUTH = true
@@ -43,6 +49,14 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('moderator', () => {
+      it('sets the moderator object in state', () => {
+        const state = { moderator: null }
+        moderator(state, { id: 1 })
+        expect(state.moderator).toEqual({ id: 1 })
+      })
+    })
+
     describe('setOpenCreations', () => {
       it('sets the open creations to given value', () => {
         const state = { openCreations: 24 }
@@ -65,6 +79,11 @@ describe('Vuex store', () => {
       it('deletes the token in store', () => {
         logout({ commit, state })
         expect(commit).toBeCalledWith('token', null)
+      })
+
+      it('deletes the moderator in store', () => {
+        logout({ commit, state })
+        expect(commit).toBeCalledWith('moderator', null)
       })
 
       it.skip('clears the window local storage', () => {
