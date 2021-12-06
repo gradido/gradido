@@ -3,8 +3,14 @@ import CONFIG from '../config'
 
 jest.mock('../config')
 
-const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations, setOpenCreations } =
-  mutations
+const {
+  token,
+  openCreationsPlus,
+  openCreationsMinus,
+  resetOpenCreations,
+  setOpenCreations,
+  moderator,
+} = mutations
 const { logout } = actions
 
 CONFIG.DEBUG_DISABLE_AUTH = true
