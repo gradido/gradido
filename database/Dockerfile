@@ -118,7 +118,7 @@ CMD /bin/sh -c "yarn run up"
 ##################################################################################
 # PRODUCTION RESET ###############################################################
 ##################################################################################
-FROM production as production_reset
+# FROM production as production_reset
 
 # Run command
 CMD /bin/sh -c "yarn run reset"

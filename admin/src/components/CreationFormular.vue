@@ -7,7 +7,6 @@
             ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
             : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
         }}
-        {{ item }}
       </h3>
       <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
         Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
@@ -24,6 +23,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="beforeLastMonth"
+              :disabled="creation[0] === 0"
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
@@ -34,6 +34,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="lastMonth"
+              :disabled="creation[1] === 0"
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
@@ -44,6 +45,7 @@
             <b-form-radio
               v-model="radioSelected"
               :value="currentMonth"
+              :disabled="creation[2] === 0"
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
@@ -52,30 +54,29 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4">
+        <b-row class="m-4" v-show="createdIndex">
           <label>Betrag Auswählen</label>
-          <b-input-group>
-            <template #append>
-              <b-input-group-text><strong class="text-danger">GDD</strong></b-input-group-text>
-            </template>
-            <b-form-input
-              type="number"
-              v-model="value"
-              :min="rangeMin"
-              :max="rangeMax"
-            ></b-form-input>
-          </b-input-group>
+          <div>
+            <b-input-group prepend="GDD" append=".00">
+              <b-form-input
+                type="number"
+                v-model="value"
+                :min="rangeMin"
+                :max="rangeMax"
+              ></b-form-input>
+            </b-input-group>
 
-          <b-input
-            id="range-2"
-            class="mt-2"
-            v-model="value"
-            type="range"
-            :min="rangeMin"
-            :max="rangeMax"
-            step="10"
-            @load="checkFormForUpdate('range')"
-          ></b-input>
+            <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
+              <b-form-input
+                type="range"
+                v-model="value"
+                :min="rangeMin"
+                :max="rangeMax"
+                step="10"
+                @load="checkFormForUpdate('range')"
+              ></b-form-input>
+            </b-input-group>
+          </div>
         </b-row>
         <b-row class="m-4">
           <label>Text eintragen</label>
@@ -125,6 +126,8 @@
   </div>
 </template>
 <script>
+import { verifyLogin } from '../graphql/verifyLogin'
+import { createPendingCreation } from '../graphql/createPendingCreation'
 export default {
   name: 'CreationFormular',
   props: {
@@ -163,23 +166,25 @@ export default {
       rangeMax: 1000,
       currentMonth: {
         short: this.$moment().format('MMMM'),
-        long: this.$moment().format('DD/MM/YYYY'),
+        long: this.$moment().format('YYYY-MM-DD'),
       },
       lastMonth: {
         short: this.$moment().subtract(1, 'month').format('MMMM'),
-        long: this.$moment().subtract(1, 'month').format('DD/MM/YYYY'),
+        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
       },
       beforeLastMonth: {
         short: this.$moment().subtract(2, 'month').format('MMMM'),
-        long: this.$moment().subtract(2, 'month').format('DD/MM/YYYY'),
+        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
       },
       submitObj: null,
       isdisabled: true,
+      createdIndex: null,
     }
   },
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
+      this.createdIndex = index
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
@@ -230,10 +235,11 @@ export default {
         this.submitObj = [
           {
             item: this.itemsMassCreation,
-            datum: this.radioSelected,
+            email: this.item.email,
+            creationDate: this.radioSelected.long,
             amount: this.value,
-            text: this.text,
-            moderator: this.$store.state.moderator,
+            memo: this.text,
+            moderator: this.$store.state.moderator.id,
           },
         ]
         alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
@@ -246,18 +252,13 @@ export default {
       }
 
       if (this.type === 'singleCreation') {
-        // hinweis das eine einzelne schöpfung ausgeführt wird an (Vorname)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für ' + this.item.firstName + '')
-        // erstellen eines Arrays (submitObj) mit allen Daten
-        this.submitObj = [
-          {
-            item: this.item,
-            datum: this.radioSelected.long,
-            amount: this.value,
-            text: this.text,
-            moderator: this.$store.state.moderator,
-          },
-        ]
+        this.submitObj = {
+          email: this.item.email,
+          creationDate: this.radioSelected.long,
+          amount: Number(this.value),
+          memo: this.text,
+          moderator: Number(this.$store.state.moderator.id),
+        }
 
         if (this.pagetype === 'PageCreationConfirm') {
           // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
@@ -269,22 +270,48 @@ export default {
             text: this.text,
           })
         } else {
-          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('EINZEL SCHÖPFUNG ABSENDEN FÜR >> ' + this.item.firstName + '')
-          // $store - offene Schöpfungen hochzählen
-          this.$store.commit('openCreationsPlus', 1)
+          this.$apollo
+            .mutate({
+              mutation: createPendingCreation,
+              variables: this.submitObj,
+            })
+            .then((result) => {
+              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+              this.$toasted.success(
+                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
+              )
+              this.$store.commit('openCreationsPlus', 1)
+              this.submitObj = null
+              this.createdIndex = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
+            })
+            .catch((error) => {
+              this.$toasted.error(error.message)
+              this.submitObj = null
+              // das creation Formular reseten
+              this.$refs.creationForm.reset()
+              // Den geschöpften Wert auf o setzen
+              this.value = 0
+            })
         }
       }
-
-      // das absendeergebniss im string ansehen
-      alert(JSON.stringify(this.submitObj))
-      // das submitObj zurücksetzen
-      this.submitObj = null
-      // das creation Formular reseten
-      this.$refs.creationForm.reset()
-      // Den geschöpften Wert auf o setzen
-      this.value = 0
     },
+    searchModeratorData() {
+      this.$apollo
+        .query({ query: verifyLogin })
+        .then((result) => {
+          this.$store.commit('moderator', result.data.verifyLogin)
+        })
+        .catch(() => {
+          this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
+        })
+    },
+  },
+  created() {
+    this.searchModeratorData()
   },
 }
 </script>

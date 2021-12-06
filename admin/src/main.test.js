@@ -3,12 +3,14 @@ import './main'
 import CONFIG from './config'
 
 import Vue from 'vue'
+import VueApollo from 'vue-apollo'
 import Vuex from 'vuex'
 import VueI18n from 'vue-i18n'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import moment from 'vue-moment'
 
 jest.mock('vue')
+jest.mock('vue-apollo')
 jest.mock('vuex')
 jest.mock('vue-i18n')
 jest.mock('vue-moment')
@@ -55,6 +57,10 @@ describe('main', () => {
     expect(InMemoryCache).toBeCalled()
   })
 
+  it('calls the VueApollo', () => {
+    expect(VueApollo).toBeCalled()
+  })
+
   it('calls Vue', () => {
     expect(Vue).toBeCalled()
   })
@@ -63,16 +69,16 @@ describe('main', () => {
     expect(VueI18n).toBeCalled()
   })
 
-  it.skip('calls BootstrapVue', () => {
-    expect(BootstrapVue).toBeCalled()
+  it('calls BootstrapVue', () => {
+    expect(Vue.use).toBeCalledWith(BootstrapVue)
   })
 
-  it.skip('calls IconsPlugin', () => {
-    expect(IconsPlugin).toBeCalled()
+  it('calls IconsPlugin', () => {
+    expect(Vue.use).toBeCalledWith(IconsPlugin)
   })
 
-  it.skip('calls Moment', () => {
-    expect(moment).toBeCalled()
+  it('calls Moment', () => {
+    expect(Vue.use).toBeCalledWith(moment)
   })
 
   it.skip('creates a store', () => {

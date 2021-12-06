@@ -21,6 +21,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import moment from 'vue-moment'
+import Toasted from 'vue-toasted'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
@@ -62,7 +63,19 @@ Vue.use(moment)
 
 Vue.use(VueApollo)
 
-addNavigationGuards(router, store)
+Vue.use(Toasted, {
+  position: 'top-center',
+  duration: 5000,
+  fullWidth: true,
+  action: {
+    text: 'x',
+    onClick: (e, toastObject) => {
+      toastObject.goAway(0)
+    },
+  },
+})
+
+addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 new Vue({
   moment,
