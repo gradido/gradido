@@ -12,6 +12,7 @@ export class User {
   */
   constructor(json?: any) {
     if (json) {
+      this.id = json.id
       this.email = json.email
       this.firstName = json.first_name
       this.lastName = json.last_name
@@ -23,6 +24,9 @@ export class User {
       this.isAdmin = json.isAdmin
     }
   }
+
+  @Field(() => Number)
+  id: number
 
   @Field(() => String)
   email: string

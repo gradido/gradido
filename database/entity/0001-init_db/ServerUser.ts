@@ -8,8 +8,8 @@ export class ServerUser extends BaseEntity {
   @Column({ length: 50 })
   username: string
 
-  @Column({ type: 'bigint', unsigned: true })
-  password: BigInt
+  @Column({ length: 255 })
+  password: string
 
   @Column({ length: 50, unique: true })
   email: string
@@ -23,9 +23,9 @@ export class ServerUser extends BaseEntity {
   @Column({ name: 'last_login', default: null, nullable: true })
   lastLogin: Date
 
-  @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   created: Date
 
-  @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   modified: Date
 }

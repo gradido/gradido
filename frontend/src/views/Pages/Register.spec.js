@@ -164,6 +164,11 @@ describe('Register', () => {
         expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
       })
 
+      it('has PublisherId input fields', () => {
+        wrapper.find('.publisherCollaps').trigger('click')
+        expect(wrapper.find('#publisherid').exists()).toBe(true)
+      })
+
       it('has disabled submit button when not completely filled', () => {
         expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
@@ -213,6 +218,11 @@ describe('Register', () => {
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#publisherid').setValue('12345')
+      })
+
+      it('commits publisherId to store', () => {
+        expect(mockStoreCommit).toBeCalledWith('publisherId', 12345)
       })
 
       it('has enabled submit button when completely filled', () => {

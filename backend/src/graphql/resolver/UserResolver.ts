@@ -161,6 +161,7 @@ export class UserResolver {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findByEmail(userEntity.email)
     const user = new User()
+    user.id = userEntity.id
     user.email = userEntity.email
     user.firstName = userEntity.firstName
     user.lastName = userEntity.lastName
@@ -239,6 +240,7 @@ export class UserResolver {
     }
 
     const user = new User()
+    user.id = userEntity.id
     user.email = email
     user.firstName = loginUser.firstName
     user.lastName = loginUser.lastName

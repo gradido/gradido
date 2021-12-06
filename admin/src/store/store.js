@@ -18,11 +18,18 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
   },
+  setOpenCreations: (state, openCreations) => {
+    state.openCreations = openCreations
+  },
+  moderator: (state, moderator) => {
+    state.moderator = moderator
+  },
 }
 
 export const actions = {
   logout: ({ commit, state }) => {
     commit('token', null)
+    commit('moderator', null)
     window.localStorage.clear()
   },
 }
@@ -35,7 +42,7 @@ const store = new Vuex.Store({
   ],
   state: {
     token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
-    moderator: 'Dertest Moderator',
+    moderator: null,
     openCreations: 0,
   },
   // Syncronous mutation of the state

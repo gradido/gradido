@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
+import { LoginUserBackup } from '../LoginUserBackup'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('login_users')
@@ -53,4 +54,7 @@ export class LoginUser extends BaseEntity {
 
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
+
+  @OneToOne(() => LoginUserBackup, (loginUserBackup) => loginUserBackup.loginUser)
+  loginUserBackup: LoginUserBackup
 }
