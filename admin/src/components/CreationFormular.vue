@@ -251,7 +251,7 @@ export default {
           .then((result) => {
             this.$emit('update-user-data', this.item, result.data.createPendingCreation)
             this.$toasted.success(
-              `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
+              `Offene Schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert und liegen zur Bestätigung bereit`,
             )
             this.$store.commit('openCreationsPlus', 1)
             this.submitObj = null
