@@ -120,7 +120,6 @@
 </template>
 <script>
 import { updatePendingCreation } from '../graphql/updatePendingCreation'
-import { verifyLogin } from '../graphql/verifyLogin'
 export default {
   name: 'EditCreationFormular',
   props: {
@@ -167,7 +166,6 @@ export default {
     },
   },
   created() {
-    this.searchModeratorData()
     if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
       switch (this.$moment(this.creationUserData.date).format('MMMM')) {
         case this.currentMonth.short:
@@ -282,16 +280,6 @@ export default {
           this.value = 0
         })
     },
-  },
-  searchModeratorData() {
-    this.$apollo
-      .query({ query: verifyLogin })
-      .then((result) => {
-        this.$store.commit('moderator', result.data.verifyLogin)
-      })
-      .catch(() => {
-        this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
-      })
   },
 }
 </script>
