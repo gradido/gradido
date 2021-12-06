@@ -3,14 +3,6 @@ import EditCreationFormular from './EditCreationFormular.vue'
 
 const localVue = global.localVue
 
-const apolloMock = jest.fn().mockResolvedValue({
-  data: {
-    verifyLogin: {
-      name: 'success',
-      id: 0,
-    },
-  },
-})
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
     updatePendingCreation: {
@@ -21,6 +13,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
     },
   },
 })
+
 const stateCommitMock = jest.fn()
 
 const mocks = {
@@ -35,7 +28,6 @@ const mocks = {
     }
   }),
   $apollo: {
-    query: apolloMock,
     mutate: apolloMutateMock,
   },
   $store: {
@@ -69,23 +61,6 @@ describe('EditCreationFormular', () => {
 
     it('has a DIV element with the class.component-edit-creation-formular', () => {
       expect(wrapper.find('.component-edit-creation-formular').exists()).toBeTruthy()
-    })
-
-    describe('server sends back moderator data', () => {
-      it('called store commit with mocked data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { name: 'success', id: 0 })
-      })
-    })
-
-    describe('server throws error for moderator data call', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        apolloMock.mockRejectedValue({ message: 'Ouch!' })
-        wrapper = Wrapper()
-      })
-      it('has called store commit with fake data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
-      })
     })
 
     describe('radio buttons to selcet month', () => {

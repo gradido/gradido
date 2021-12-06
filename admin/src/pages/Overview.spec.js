@@ -5,31 +5,31 @@ const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    searchUsers: [
+    getPendingCreations: [
       {
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        email: 'bibi@bloxberg.de',
-        creation: [200, 400, 600],
+        pending: true,
+      },
+      {
+        pending: true,
+      },
+      {
+        pending: true,
       },
     ],
   },
 })
 
-const toastErrorMock = jest.fn()
+const storeCommitMock = jest.fn()
 
 const mocks = {
-  $store: {
-    state: {
-      openCreations: 0,
-    },
-    commit: jest.fn(),
-  },
   $apollo: {
     query: apolloQueryMock,
   },
-  $toasted: {
-    error: toastErrorMock,
+  $store: {
+    commit: storeCommitMock,
+    state: {
+      openCreations: 2,
+    },
   },
 }
 
@@ -45,8 +45,30 @@ describe('Overview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a DIV element with the class.admin-overview', () => {
-      expect(wrapper.find('div.admin-overview').exists()).toBeTruthy()
+    it('calls getPendingCreations', () => {
+      expect(apolloQueryMock).toBeCalled()
+    })
+
+    it('commts three pending creations to store', () => {
+      expect(storeCommitMock).toBeCalledWith('setOpenCreations', 3)
+    })
+
+    describe('with open creations', () => {
+      it('renders a link to confirm creations', () => {
+        expect(wrapper.find('a[href="creation-confirm"]').text()).toContain('2')
+        expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
+      })
+    })
+
+    describe('without open creations', () => {
+      beforeEach(() => {
+        mocks.$store.state.openCreations = 0
+      })
+
+      it('renders a link to confirm creations', () => {
+        expect(wrapper.find('a[href="creation-confirm"]').text()).toContain('0')
+        expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
+      })
     })
   })
 })

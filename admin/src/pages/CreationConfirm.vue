@@ -12,6 +12,7 @@
 <script>
 import UserTable from '../components/UserTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
+import { deletePendingCreation } from '../graphql/deletePendingCreation'
 
 export default {
   name: 'CreationConfirm',
@@ -57,11 +58,23 @@ export default {
 
         findArr = this.confirmResult.find((arr) => arr.id === e.id)
 
-        index = this.confirmResult.indexOf(findArr)
-
-        this.confirmResult.splice(index, 1)
-
-        this.$store.commit('openCreationsMinus', 1)
+        // console.log('findArr', findArr)
+        this.$apollo
+          .mutate({
+            mutation: deletePendingCreation,
+            variables: {
+              id: findArr.id,
+            },
+          })
+          .then((result) => {
+            index = this.confirmResult.indexOf(findArr)
+            this.confirmResult.splice(index, 1)
+            this.$store.commit('openCreationsMinus', 1)
+            this.$toasted.success('Pending Creation has been deleted')
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
       }
     },
     getPendingCreations() {

@@ -138,9 +138,8 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-    const entity = await pendingCreationRepository.findOne(id)
-    if (!entity) throw new Error('Not pending creation with this id.')
-    const res = await pendingCreationRepository.manager.remove(entity)
+    const entity = await pendingCreationRepository.findOneOrFail(id)
+    const res = await pendingCreationRepository.delete(entity)
     return !!res
   }
 
