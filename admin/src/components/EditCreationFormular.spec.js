@@ -15,6 +15,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
 })
 
 const stateCommitMock = jest.fn()
+const toastedErrorMock = jest.fn()
 
 const mocks = {
   $moment: jest.fn(() => {
@@ -38,6 +39,9 @@ const mocks = {
       },
     },
     commit: stateCommitMock,
+  },
+  $toasted: {
+    error: toastedErrorMock,
   },
 }
 
