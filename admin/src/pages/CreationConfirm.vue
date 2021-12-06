@@ -49,16 +49,11 @@ export default {
       confirmResult: [],
     }
   },
-
   methods: {
     removeConfirmResult(e, event) {
       if (event === 'remove') {
         let index = 0
-        let findArr = {}
-
-        findArr = this.confirmResult.find((arr) => arr.id === e.id)
-
-        // console.log('findArr', findArr)
+        const findArr = this.confirmResult.find((arr) => arr.id === e.id)
         this.$apollo
           .mutate({
             mutation: deletePendingCreation,
