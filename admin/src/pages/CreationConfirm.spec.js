@@ -40,6 +40,11 @@ const mocks = {
   $toasted: {
     error: toastedErrorMock,
   },
+  $moment: jest.fn((value) => {
+    return {
+      format: jest.fn((format) => value),
+    }
+  }),
 }
 
 describe('CreationConfirm', () => {
