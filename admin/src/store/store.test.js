@@ -1,11 +1,13 @@
 import store, { mutations, actions } from './store'
+import CONFIG from '../config'
 
-const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations } = mutations
+jest.mock('../config')
+
+const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations, setOpenCreations } =
+  mutations
 const { logout } = actions
 
-const CONFIG = {
-  DEBUG_DISABLE_AUTH: true,
-}
+CONFIG.DEBUG_DISABLE_AUTH = true
 
 describe('Vuex store', () => {
   describe('mutations', () => {
@@ -38,6 +40,14 @@ describe('Vuex store', () => {
         const state = { openCreations: 24 }
         resetOpenCreations(state)
         expect(state.openCreations).toEqual(0)
+      })
+    })
+
+    describe('setOpenCreations', () => {
+      it('sets the open creations to given value', () => {
+        const state = { openCreations: 24 }
+        setOpenCreations(state, 12)
+        expect(state.openCreations).toEqual(12)
       })
     })
   })
