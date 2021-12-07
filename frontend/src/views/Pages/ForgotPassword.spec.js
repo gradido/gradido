@@ -8,17 +8,6 @@ const localVue = global.localVue
 
 const mockRouterPush = jest.fn()
 
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $router: {
-    push: mockRouterPush,
-  },
-  $apollo: {
-    query: mockAPIcall,
-  },
-}
-
 const stubs = {
   RouterLink: RouterLinkStub,
 }
@@ -63,7 +52,7 @@ describe('ForgotPassword', () => {
     it('has a title', () => {
       expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
     })
- 
+
     it('has a subtitle', () => {
       expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
     })
