@@ -60,13 +60,25 @@
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-
+          {{ type }}
           <creation-formular
+            v-if="type === 'PageUserSearch'"
             type="singleCreation"
             :pagetype="type"
             :creation="row.item.creation"
             :item="row.item"
-            :creationUserData="creationData"
+            :creationUserData="creationUserData"
+            @update-creation-data="updateCreationData"
+            @update-user-data="updateUserData"
+          />
+          <edit-creation-formular
+            v-else
+            type="singleCreation"
+            :pagetype="type"
+            :creation="row.item.creation"
+            :item="row.item"
+            :row="row"
+            :creationUserData="creationUserData"
             @update-creation-data="updateCreationData"
             @update-user-data="updateUserData"
           />
@@ -119,6 +131,7 @@
 
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
+import EditCreationFormular from '../components/EditCreationFormular.vue'
 
 export default {
   name: 'UserTable',
@@ -147,10 +160,11 @@ export default {
   },
   components: {
     CreationFormular,
+    EditCreationFormular,
   },
   data() {
     return {
-      creationData: {},
+      creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -219,19 +233,28 @@ export default {
       this.$emit('remove-confirm-result', item, 'remove')
     },
     editCreationUserTable(row, rowItem) {
-      alert('editCreationUserTable')
       if (!row.detailsShowing) {
-        alert('offen edit loslegen')
-        // this.item = rowItem
-        this.creationData = rowItem
-        // alert(this.creationData)
+        this.creationUserData = rowItem
+      } else {
+        this.creationUserData = {}
       }
       row.toggleDetails()
     },
     updateCreationData(data) {
-      this.creationData = {
-        ...data,
-      }
+      // console.log('updateCreationData this.creationUserData11=> ', this.creationUserData)
+      // console.log('updateCreationData data=> ', data)
+      // this.creationUserData = {
+      //   ...this.creationUserData,
+      //   ...data,
+      // }
+      // console.log('updateCreationData this.creationUserData22=> ', this.creationUserData)
+
+      this.creationUserData.amount = data.amount
+      this.creationUserData.date = data.date
+      this.creationUserData.memo = data.memo
+      this.creationUserData.moderator = data.moderator
+
+      data.row.toggleDetails()
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
