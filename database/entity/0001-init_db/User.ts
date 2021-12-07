@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
+import { Balance } from '../Balance'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('state_users')
@@ -29,4 +30,7 @@ export class User extends BaseEntity {
 
   @Column()
   disabled: boolean
+
+  @OneToOne(() => Balance, (balance) => balance.user)
+  balance: Balance
 }

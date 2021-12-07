@@ -27,4 +27,14 @@ export interface UserInterface {
   modified?: Date
   // flag for admin
   isAdmin?: boolean
+  // flag for balance (creation of 1000 GDD)
+  addBalance?: boolean
+  // balance
+  balanceModified?: Date
+  recordDate?: Date
+  targetDate?: Date
+  amount?: number
+  creationTxHash?: Buffer
+  signature?: Buffer
+  signaturePubkey?: Buffer
 }
