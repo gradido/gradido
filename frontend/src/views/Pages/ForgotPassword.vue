@@ -88,7 +88,6 @@ export default {
     },
   },
   created() {
-    console.log('comingFrom', this.$route.params.comingFrom)
     if (this.$route.params.comingFrom) {
       this.displaySetup = textFields[this.$route.params.comingFrom]
     } else {
