@@ -1,4 +1,4 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
+import { ApolloClient, ApolloLink, HttpLink } from 'apollo-boost'
 import './apolloProvider'
 import CONFIG from '../config'
 
@@ -44,10 +44,12 @@ describe('apolloProvider', () => {
   describe('ApolloLink', () => {
     // mock store
     const storeDispatchMock = jest.fn()
+    const storeCommitMock = jest.fn()
     store.state = {
       token: 'some-token',
     }
     store.dispatch = storeDispatchMock
+    store.commit = storeCommitMock
 
     // mock i18n.t
     i18n.t = jest.fn((t) => t)
@@ -70,7 +72,7 @@ describe('apolloProvider', () => {
       return {
         response: {
           headers: {
-            get: jest.fn(),
+            get: jest.fn(() => 'another-token'),
           },
         },
       }
@@ -89,27 +91,87 @@ describe('apolloProvider', () => {
     // get apollo link callback
     const middleware = ApolloLink.mock.calls[0][0]
 
-    beforeEach(() => {
-      jest.clearAllMocks()
-      // run the callback with mocked params
-      middleware(operationMock, forwardMock)
+    describe('with token in store', () => {
+      it('sets authorization header with token', () => {
+        // run the apollo link callback with mocked params
+        middleware(operationMock, forwardMock)
+        expect(setContextMock).toBeCalledWith({
+          headers: {
+            Authorization: 'Bearer some-token',
+          },
+        })
+      })
     })
 
-    it('sets authorization header', () => {
-      expect(setContextMock).toBeCalledWith({
-        headers: {
-          Authorization: 'Bearer some-token',
-        },
+    describe('without token in store', () => {
+      beforeEach(() => {
+        store.state.token = null
+      })
+
+      it('sets authorization header empty', () => {
+        middleware(operationMock, forwardMock)
+        expect(setContextMock).toBeCalledWith({
+          headers: {
+            Authorization: '',
+          },
+        })
       })
     })
 
     describe('apollo response is 403.13', () => {
-      it.skip('dispatches logout', () => {
+      beforeEach(() => {
+        // run the apollo link callback with mocked params
+        middleware(operationMock, forwardMock)
+      })
+
+      it('dispatches logout', () => {
         expect(storeDispatchMock).toBeCalledWith('logout', null)
       })
 
-      it.skip('redirects to logout', () => {
-        expect(routerPushMock).toBeCalledWith('/logout')
+      describe('current route is not login', () => {
+        it('redirects to logout', () => {
+          expect(routerPushMock).toBeCalledWith('/login')
+        })
+      })
+
+      describe('current route is login', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+          router.currentRoute.path = '/login'
+        })
+
+        it('does not redirect to login', () => {
+          expect(routerPushMock).not.toBeCalled()
+        })
+      })
+    })
+
+    describe('apollo response is with new token', () => {
+      beforeEach(() => {
+        delete responseMock.errors
+        middleware(operationMock, forwardMock)
+      })
+
+      it('commits new token to store', () => {
+        expect(storeCommitMock).toBeCalledWith('token', 'another-token')
+      })
+    })
+
+    describe('apollo response is without new token', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        getContextMock.mockReturnValue({
+          response: {
+            headers: {
+              get: jest.fn(() => null),
+            },
+          },
+        })
+        middleware(operationMock, forwardMock)
+      })
+
+      it('does not commit token to store', () => {
+        expect(storeCommitMock).not.toBeCalled()
       })
     })
   })
