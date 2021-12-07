@@ -5,16 +5,28 @@ import {
   ServerUserContext,
   LoginUserRolesContext,
 } from '../../interface/UserContext'
+import {
+  BalanceContext,
+  TransactionContext,
+  TransactionCreationContext,
+  UserTransactionContext,
+  TransactionSignatureContext,
+} from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
 import { User } from '../../../entity/User'
 import { LoginUser } from '../../../entity/LoginUser'
 import { LoginUserBackup } from '../../../entity/LoginUserBackup'
 import { ServerUser } from '../../../entity/ServerUser'
 import { LoginUserRoles } from '../../../entity/LoginUserRoles'
+import { Balance } from '../../../entity/Balance'
+import { Transaction } from '../../../entity/Transaction'
+import { TransactionSignature } from '../../../entity/TransactionSignature'
+import { UserTransaction } from '../../../entity/UserTransaction'
+import { TransactionCreation } from '../../../entity/TransactionCreation'
 import { Factory } from 'typeorm-seeding'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
-  await factory(User)(createUserContext(userData)).create()
+  const user = await factory(User)(createUserContext(userData)).create()
   const loginUser = await factory(LoginUser)(createLoginUserContext(userData)).create()
   await factory(LoginUserBackup)(createLoginUserBackupContext(userData, loginUser)).create()
 
@@ -25,9 +37,26 @@ export const userSeeder = async (factory: Factory, userData: UserInterface): Pro
     // It works with LoginRoles empty!!
     await factory(LoginUserRoles)(createLoginUserRolesContext(loginUser)).create()
   }
+
+  if (userData.addBalance) {
+    // create some GDD for the user
+    await factory(Balance)(createBalanceContext(userData, user)).create()
+    const transaction = await factory(Transaction)(
+      createTransactionContext(userData, 1, 'Herzlich Willkommen bei Gradido!'),
+    ).create()
+    await factory(TransactionCreation)(
+      createTransactionCreationContext(userData, user, transaction),
+    ).create()
+    await factory(UserTransaction)(
+      createUserTransactionContext(userData, user, transaction),
+    ).create()
+    await factory(TransactionSignature)(
+      createTransactionSignatureContext(userData, transaction),
+    ).create()
+  }
 }
 
-export const createUserContext = (context: UserInterface): UserContext => {
+const createUserContext = (context: UserInterface): UserContext => {
   return {
     pubkey: context.pubKey,
     email: context.email,
@@ -38,7 +67,7 @@ export const createUserContext = (context: UserInterface): UserContext => {
   }
 }
 
-export const createLoginUserContext = (context: UserInterface): LoginUserContext => {
+const createLoginUserContext = (context: UserInterface): LoginUserContext => {
   return {
     email: context.email,
     firstName: context.firstName,
@@ -59,7 +88,7 @@ export const createLoginUserContext = (context: UserInterface): LoginUserContext
   }
 }
 
-export const createLoginUserBackupContext = (
+const createLoginUserBackupContext = (
   context: UserInterface,
   loginUser: LoginUser,
 ): LoginUserBackupContext => {
@@ -70,7 +99,7 @@ export const createLoginUserBackupContext = (
   }
 }
 
-export const createServerUserContext = (context: UserInterface): ServerUserContext => {
+const createServerUserContext = (context: UserInterface): ServerUserContext => {
   return {
     role: context.role,
     username: context.username,
@@ -83,9 +112,69 @@ export const createServerUserContext = (context: UserInterface): ServerUserConte
   }
 }
 
-export const createLoginUserRolesContext = (loginUser: LoginUser): LoginUserRolesContext => {
+const createLoginUserRolesContext = (loginUser: LoginUser): LoginUserRolesContext => {
   return {
     userId: loginUser.id,
     roleId: 1,
+  }
+}
+
+const createBalanceContext = (context: UserInterface, user: User): BalanceContext => {
+  return {
+    modified: context.balanceModified,
+    recordDate: context.recordDate,
+    amount: context.amount,
+    user,
+  }
+}
+
+const createTransactionContext = (
+  context: UserInterface,
+  type: number,
+  memo: string,
+): TransactionContext => {
+  return {
+    transactionTypeId: type,
+    txHash: context.creationTxHash,
+    memo,
+    received: context.recordDate,
+  }
+}
+
+const createTransactionCreationContext = (
+  context: UserInterface,
+  user: User,
+  transaction: Transaction,
+): TransactionCreationContext => {
+  return {
+    userId: user.id,
+    amount: context.amount,
+    targetDate: context.targetDate,
+    transaction,
+  }
+}
+
+const createUserTransactionContext = (
+  context: UserInterface,
+  user: User,
+  transaction: Transaction,
+): UserTransactionContext => {
+  return {
+    userId: user.id,
+    transactionId: transaction.id,
+    transactionTypeId: transaction.transactionTypeId,
+    balance: context.amount,
+    balanceDate: context.recordDate,
+  }
+}
+
+const createTransactionSignatureContext = (
+  context: UserInterface,
+  transaction: Transaction,
+): TransactionSignatureContext => {
+  return {
+    signature: context.signature,
+    pubkey: context.signaturePubkey,
+    transaction,
   }
 }
