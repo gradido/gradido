@@ -32,55 +32,30 @@
           <b-nav-item-dropdown right>
             <!-- Using 'button-content' slot -->
             <template #button-content>
-              <em> {{ $store.state.email }} 
-             
-                  <span class="avatar">
-                    <vue-qrcode
-                      v-if="$store.state.email"
-                      :value="$store.state.email"
-                      type="image/png"
-                    ></vue-qrcode>
-                  </span>
-               
+              <em>
+                {{ $store.state.email }}
+
+                <span class="avatar">
+                  <vue-qrcode
+                    v-if="$store.state.email"
+                    :value="$store.state.email"
+                    type="image/png"
+                  ></vue-qrcode>
+                </span>
               </em>
             </template>
             <b-dropdown-item to="/profile">{{ $t('site.navbar.my-profil') }}</b-dropdown-item>
-            <b-dropdown-item  @click="getElopageLink" target="_blank">
+            <b-dropdown-item @click="getElopageLink" target="_blank">
               {{ $t('members_area') }}
             </b-dropdown-item>
-            <b-dropdown-item   target="_blank" @click="admin">{{ $t('admin_area') }}</b-dropdown-item>
+            <b-dropdown-item target="_blank" @click="admin">{{ $t('admin_area') }}</b-dropdown-item>
             <b-dropdown-item href="/#" @click="logout">{{ $t('logout') }}</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
 
-   
-
     <div class="main-content" style="max-width: 1000px">
-      <div class="d-none d-md-block">
-        <b-navbar>
-          <b-navbar-nav class="ml-auto">
-            <b-nav-item>
-              <b-media no-body class="align-items-center">
-                <span class="pb-2 text-lg font-weight-bold">
-                  {{ $store.state.email }}
-                </span>
-                <b-media-body class="ml-2">
-                  <span class="avatar">
-                    <vue-qrcode
-                      v-if="$store.state.email"
-                      :value="$store.state.email"
-                      type="image/png"
-                    ></vue-qrcode>
-                  </span>
-                </b-media-body>
-              </b-media>
-            </b-nav-item>
-          </b-navbar-nav>
-        </b-navbar>
-      </div>
-
       <div @click="$sidebar.displaySidebar(false)">
         <fade-transition :duration="200" origin="center top" mode="out-in">
           <router-view
