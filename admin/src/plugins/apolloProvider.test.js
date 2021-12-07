@@ -128,19 +128,19 @@ describe('apolloProvider', () => {
         expect(storeDispatchMock).toBeCalledWith('logout', null)
       })
 
-      describe('current route is not login', () => {
+      describe('current route is not logout', () => {
         it('redirects to logout', () => {
-          expect(routerPushMock).toBeCalledWith('/login')
+          expect(routerPushMock).toBeCalledWith('/logout')
         })
       })
 
-      describe('current route is login', () => {
+      describe('current route is logout', () => {
         beforeEach(() => {
           jest.clearAllMocks()
-          router.currentRoute.path = '/login'
+          router.currentRoute.path = '/logout'
         })
 
-        it('does not redirect to login', () => {
+        it('does not redirect to logout', () => {
           expect(routerPushMock).not.toBeCalled()
         })
       })
