@@ -238,7 +238,7 @@ describe('Login', () => {
         describe('login fails', () => {
           beforeEach(() => {
             apolloQueryMock.mockRejectedValue({
-              message: 'Ouch!',
+              message: '..No user with this credentials',
             })
           })
 

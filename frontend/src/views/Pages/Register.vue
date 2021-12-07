@@ -85,10 +85,6 @@
                   <input-email v-model="form.email"></input-email>
 
                   <hr />
-                  <input-password-confirmation
-                    v-model="form.password"
-                    :register="register"
-                  ></input-password-confirmation>
 
                   <b-row>
                     <b-col cols="12">
@@ -194,14 +190,13 @@
 </template>
 <script>
 import InputEmail from '../../components/Inputs/InputEmail.vue'
-import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
-import { registerUser } from '../../graphql/mutations'
+import { createUser } from '../../graphql/mutations'
 import { localeChanged } from 'vee-validate'
 import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
-  components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
+  components: { InputEmail, LanguageSwitchSelect },
   name: 'register',
   mixins: [getCommunityInfoMixin],
   data() {
@@ -211,10 +206,6 @@ export default {
         lastname: '',
         email: '',
         agree: false,
-        password: {
-          password: '',
-          passwordRepeat: '',
-        },
       },
       language: '',
       submitted: false,
@@ -240,12 +231,11 @@ export default {
     async onSubmit() {
       this.$apollo
         .mutate({
-          mutation: registerUser,
+          mutation: createUser,
           variables: {
             email: this.form.email,
             firstName: this.form.firstname,
             lastName: this.form.lastname,
-            password: this.form.password.password,
             language: this.language,
             publisherId: this.$store.state.publisherId,
           },
@@ -264,8 +254,6 @@ export default {
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
-      this.form.password.password = ''
-      this.form.password.passwordRepeat = ''
     },
   },
   computed: {
