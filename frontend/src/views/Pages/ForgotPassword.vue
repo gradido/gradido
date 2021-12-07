@@ -5,8 +5,8 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('settings.password.reset') }}</h1>
-              <p class="text-lead">{{ $t('settings.password.subtitle') }}</p>
+              <h1>{{ $t(displaySetup.headline) }}</h1>
+              <p class="text-lead">{{ $t(displaySetup.subtitle) }}</p>
             </b-col>
           </b-row>
         </div>
@@ -22,7 +22,7 @@
                   <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
-                      {{ $t('settings.password.send_now') }}
+                      {{ $t(displaySetup.button) }}
                     </b-button>
                   </div>
                 </b-form>
@@ -41,6 +41,21 @@
 import { sendResetPasswordEmail } from '../../graphql/queries'
 import InputEmail from '../../components/Inputs/InputEmail'
 
+const textFields = {
+  reset: {
+    headline: 'settings.password.reset',
+    subtitle: 'settings.password.resend_subtitle',
+    button: 'settings.password.send_now',
+    cancel: 'back',
+  },
+  login: {
+    headline: 'settings.password.reset',
+    subtitle: 'settings.password.subtitle',
+    button: 'settings.password.send_now',
+    cancel: 'back',
+  },
+}
+
 export default {
   name: 'password',
   components: {
@@ -52,6 +67,7 @@ export default {
       form: {
         email: '',
       },
+      displaySetup: {},
     }
   },
   methods: {
@@ -70,6 +86,14 @@ export default {
           this.$router.push('/thx/password')
         })
     },
+  },
+  created() {
+    console.log('comingFrom', this.$route.params.comingFrom)
+    if (this.$route.params.comingFrom) {
+      this.displaySetup = textFields[this.$route.params.comingFrom]
+    } else {
+      this.displaySetup = textFields.login
+    }
   },
 }
 </script>

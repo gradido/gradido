@@ -77,6 +77,7 @@ export default {
         password: '',
         passwordRepeat: '',
       },
+      displaySetup: {},
     }
   },
   methods: {
@@ -94,20 +95,29 @@ export default {
           this.$router.push('/thx/reset')
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          if (error.message.includes('Code is older than 10 minutes')) {
+            this.$toasted.error(error.message)
+            this.$router.push('/password/reset')
+          } else {
+            this.$toasted.error(error.message)
+          }
         })
     },
     async authenticate() {
       // TODO validate somehow if present and looks good?
       // const optin = this.$route.params.optin
     },
-    setDisplaySetup(from) {
-      this.displaySetup = textFields[this.$route.params.comingFrom]
+    setDisplaySetup() {
+      if (!this.$route.params.comingFrom) {
+        this.displaySetup = textFields.reset
+      } else {
+        this.displaySetup = textFields[this.$route.params.comingFrom]
+      }
     },
   },
-  async mounted() {
-    await this.authenticate()
+  created() {
     this.setDisplaySetup()
+    // await this.authenticate()
   },
 }
 </script>

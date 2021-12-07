@@ -63,6 +63,10 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
+    path: '/password/:comingFrom',
+    component: () => import('../views/Pages/ForgotPassword.vue'),
+  },
+  {
     path: '/register-community',
     component: () => import('../views/Pages/RegisterCommunity.vue'),
   },

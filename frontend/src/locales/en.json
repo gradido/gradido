@@ -146,6 +146,7 @@
       "change-password": "Change password",
       "forgot_pwd": "Forgot password?",
       "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
+      "resend_subtitle": "Your activation link is expired, here you can order a new one.",
       "reset": "Reset password",
       "reset-password": {
         "text": "Now you can save a new password to login to the Gradido-App in the future."
