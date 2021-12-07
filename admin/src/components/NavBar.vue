@@ -47,5 +47,6 @@ export default {
 <style>
 .navbar-brand-img {
   height: 2rem;
+  padding-left: 10px;
 }
 </style>

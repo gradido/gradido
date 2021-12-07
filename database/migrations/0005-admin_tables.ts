@@ -11,7 +11,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
-  CREATE TABLE \`login_pending_tasks_admin\` (
+  CREATE TABLE IF NOT EXISTS \`login_pending_tasks_admin\` (
     \`id\` int UNSIGNED NOT NULL AUTO_INCREMENT,
     \`userId\` int UNSIGNED DEFAULT 0,
     \`created\` datetime NOT NULL,
@@ -25,5 +25,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(`DROP TABLE \`login_pending_tasks_admin\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_pending_tasks_admin\`;`)
 }
