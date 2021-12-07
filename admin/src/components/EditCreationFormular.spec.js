@@ -100,7 +100,18 @@ describe('EditCreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-01',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
             })
           })
         })
@@ -124,7 +135,18 @@ describe('EditCreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-01',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
             })
           })
         })
@@ -148,7 +170,18 @@ describe('EditCreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-DD',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
             })
           })
         })
