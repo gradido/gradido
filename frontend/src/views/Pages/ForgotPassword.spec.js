@@ -8,30 +8,52 @@ const localVue = global.localVue
 
 const mockRouterPush = jest.fn()
 
+
+const mocks = {
+  $t: jest.fn((t) => t),
+  $router: {
+    push: mockRouterPush,
+  },
+  $apollo: {
+    query: mockAPIcall,
+  },
+}
+
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
+
+const createMockObject = (comingFrom) => {
+  return {
+    localVue,
+    mocks: {
+      $t: jest.fn((t) => t),
+      $router: {
+        push: mockRouterPush,
+      },
+      $apollo: {
+        query: mockAPIcall,
+      },
+      $route: {
+        params: {
+          comingFrom,
+        },
+      },
+    },
+    stubs,
+  }
+}
+
 describe('ForgotPassword', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $router: {
-      push: mockRouterPush,
-    },
-    $apollo: {
-      query: mockAPIcall,
-    },
-  }
-
-  const stubs = {
-    RouterLink: RouterLinkStub,
-  }
-
-  const Wrapper = () => {
-    return mount(ForgotPassword, { localVue, mocks, stubs })
+  const Wrapper = (functionN) => {
+    return mount(ForgotPassword, functionN)
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = Wrapper(createMockObject())
     })
 
     it('renders the component', () => {
@@ -41,7 +63,7 @@ describe('ForgotPassword', () => {
     it('has a title', () => {
       expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
     })
-
+ 
     it('has a subtitle', () => {
       expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
     })
@@ -142,6 +164,16 @@ describe('ForgotPassword', () => {
             })
           })
         })
+      })
+    })
+
+    describe('comingFrom login', () => {
+      beforeEach(() => {
+        wrapper = Wrapper(createMockObject('reset'))
+      })
+
+      it('has another subtitle', () => {
+        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
       })
     })
   })
