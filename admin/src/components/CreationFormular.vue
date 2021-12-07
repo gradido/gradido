@@ -1,60 +1,54 @@
 <template>
   <div class="component-creation-formular">
-    <div>
-      <h3>
-        {{
-          this.type === 'singleCreation'
-            ? 'Einzelschöpfung für ' + item.firstName + ' ' + item.lastName + ''
-            : 'Mehrfachschöpfung für ' + Object.keys(this.itemsMassCreation).length + ' Mitglieder'
-        }}
-      </h3>
-      <div v-show="this.type === 'massCreation' && Object.keys(this.itemsMassCreation).length <= 0">
-        Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
-      </div>
-    </div>
-    <div
-      v-show="this.type === 'singleCreation' || Object.keys(this.itemsMassCreation).length > 0"
-      class="shadow p-3 mb-5 bg-white rounded"
-    >
+    <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
         <b-row class="m-4">
           <label>Monat Auswählen</label>
           <b-col class="text-left">
             <b-form-radio
+              id="beforeLastMonth"
               v-model="radioSelected"
               :value="beforeLastMonth"
               :disabled="creation[0] === 0"
               size="lg"
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
-              {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              <label for="beforeLastMonth">
+                {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
           <b-col>
             <b-form-radio
+              id="lastMonth"
               v-model="radioSelected"
               :value="lastMonth"
               :disabled="creation[1] === 0"
               size="lg"
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
-              {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              <label for="lastMonth">
+                {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
           <b-col class="text-right">
             <b-form-radio
+              id="currentMonth"
               v-model="radioSelected"
               :value="currentMonth"
               :disabled="creation[2] === 0"
               size="lg"
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
-              {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              <label for="currentMonth">
+                {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+              </label>
             </b-form-radio>
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex">
+        <b-row class="m-4" v-show="createdIndex != null">
           <label>Betrag Auswählen</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -73,7 +67,6 @@
                 :min="rangeMin"
                 :max="rangeMax"
                 step="10"
-                @load="checkFormForUpdate('range')"
               ></b-form-input>
             </b-input-group>
           </div>
@@ -86,7 +79,6 @@
               v-model="text"
               :state="text.length >= 10"
               placeholder="Mindestens 10 Zeichen eingeben"
-              @load="checkFormForUpdate('text')"
               rows="3"
             ></b-form-textarea>
           </div>
@@ -103,6 +95,7 @@
                 v-if="pagetype === 'PageCreationConfirm'"
                 type="button"
                 variant="success"
+                class="test-submit"
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
@@ -113,6 +106,7 @@
                 v-else
                 type="button"
                 variant="success"
+                class="test-submit"
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
@@ -143,25 +137,34 @@ export default {
     item: {
       type: Object,
       required: false,
+      default() {
+        return {}
+      },
+    },
+    items: {
+      type: Array,
+      required: false,
+      default() {
+        return []
+      },
     },
     creationUserData: {
       type: Object,
       required: false,
+      default() {
+        return {}
+      },
     },
     creation: {
       type: Array,
       required: true,
     },
-    itemsMassCreation: {
-      type: Object,
-      required: false,
-    },
   },
   data() {
     return {
       radioSelected: '',
-      text: '',
-      value: 0,
+      text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
+      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
       currentMonth: {
@@ -181,6 +184,7 @@ export default {
       createdIndex: null,
     }
   },
+
   methods: {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
@@ -189,49 +193,19 @@ export default {
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
         this.$emit('update-radio-selected', [name, index])
-      }
-      // Wenn Einzelschöpfung
-      if (this.type === 'singleCreation') {
+      } else if (this.type === 'singleCreation') {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = openCreation
       }
     },
-    checkFormForUpdate(input) {
-      switch (input) {
-        case 'text':
-          this.text = this.creationUserData.text
-          break
-        case 'range':
-          this.value = this.creationUserData.creationGdd
-          break
-        default:
-          // TODO: Toast
-          alert("I don't know such values")
-      }
-    },
     submitCreation() {
-      // Formular Prüfen ob ein Zeitraum ausgewählt wurde. Ansonsten abbrechen und Hinweis anzeigen
-      if (this.radioSelected === '') {
-        return alert('Bitte wähle einen Zeitraum!')
-      }
-      // Formular Prüfen ob der GDD Betrag grösser 0 ist. Ansonsten abbrechen und Hinweis anzeigen
-      if (this.value === 0) {
-        return alert('Bitte gib einen GDD Betrag an!')
-      }
-      // Formular Prüfen ob der Text vorhanden ist. Ansonsten abbrechen und Hinweis anzeigen
-      if (this.text === '') {
-        return alert('Bitte gib einen Text ein!')
-      }
-      // Formular Prüfen ob der Text länger als 10 Zeichen hat. Ansonsten abbrechen und Hinweis anzeigen
-      if (this.text.length < 10) {
-        return alert('Bitte gib einen Text ein der länger als 10 Zeichen ist!')
-      }
       if (this.type === 'massCreation') {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
         // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        alert('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
+        // eslint-disable-next-line no-console
+        console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
             item: this.itemsMassCreation,
@@ -242,16 +216,15 @@ export default {
             moderator: this.$store.state.moderator.id,
           },
         ]
-        alert('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        // eslint-disable-next-line no-console
+        console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)
 
         // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
         this.$emit('remove-all-bookmark')
-      }
-
-      if (this.type === 'singleCreation') {
+      } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
           creationDate: this.radioSelected.long,
@@ -260,43 +233,32 @@ export default {
           moderator: Number(this.$store.state.moderator.id),
         }
 
-        if (this.pagetype === 'PageCreationConfirm') {
-          // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
-          alert('UPDATE EINZEL SCHÖPFUNG ABSENDEN FÜR >> ')
-          // umschreiben, update eine bestehende Schöpfung eine
-          this.$emit('update-creation-data', {
-            datum: this.radioSelected.long,
-            creationGdd: this.value,
-            text: this.text,
+        this.$apollo
+          .mutate({
+            mutation: createPendingCreation,
+            variables: this.submitObj,
           })
-        } else {
-          this.$apollo
-            .mutate({
-              mutation: createPendingCreation,
-              variables: this.submitObj,
-            })
-            .then((result) => {
-              this.$emit('update-user-data', this.item, result.data.createPendingCreation)
-              this.$toasted.success(
-                `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert, liegen zur bestätigung bereit`,
-              )
-              this.$store.commit('openCreationsPlus', 1)
-              this.submitObj = null
-              this.createdIndex = null
-              // das creation Formular reseten
-              this.$refs.creationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-            .catch((error) => {
-              this.$toasted.error(error.message)
-              this.submitObj = null
-              // das creation Formular reseten
-              this.$refs.creationForm.reset()
-              // Den geschöpften Wert auf o setzen
-              this.value = 0
-            })
-        }
+          .then((result) => {
+            this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+            this.$toasted.success(
+              `Offene Schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert und liegen zur Bestätigung bereit`,
+            )
+            this.$store.commit('openCreationsPlus', 1)
+            this.submitObj = null
+            this.createdIndex = null
+            // das creation Formular reseten
+            this.$refs.creationForm.reset()
+            // Den geschöpften Wert auf o setzen
+            this.value = 0
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+            this.submitObj = null
+            // das creation Formular reseten
+            this.$refs.creationForm.reset()
+            // Den geschöpften Wert auf o setzen
+            this.value = 0
+          })
       }
     },
     searchModeratorData() {
