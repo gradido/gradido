@@ -105,7 +105,7 @@ export default {
           loader.hide()
         })
         .catch((error) => {
-          if (!error.message.includes('User email not validated')) {
+          if (error.message.includes('No user with this credentials')) {
             this.$toasted.error(this.$t('error.no-account'))
           } else {
             // : this.$t('error.no-email-verify')

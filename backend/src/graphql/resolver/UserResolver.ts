@@ -199,7 +199,6 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     })
     if (!loginUser.emailChecked) {
-      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User email not validated')
     }
     if (loginUser.password === BigInt(0)) {
