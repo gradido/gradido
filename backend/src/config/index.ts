@@ -8,8 +8,6 @@ const server = {
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
-  LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://login-server:1201/',
-  COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://nginx/api/',
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
@@ -53,6 +51,7 @@ const email = {
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
+  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
 }
 
 const webhook = {
