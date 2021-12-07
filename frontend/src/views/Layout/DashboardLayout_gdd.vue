@@ -4,23 +4,22 @@
       <div class="navbar-brand">
         <img :src="logo" class="navbar-brand-img" alt="..." />
       </div>
-      <b-nav-text>{{ balance }} GDD</b-nav-text>
+      <b-nav-text center>{{ balance }} GDD</b-nav-text>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
-          <b-nav-item href="/overview">{{ $t('overview') }}</b-nav-item>
-          <b-nav-item href="/send">{{ $t('send') }}</b-nav-item>
-          <b-nav-item href="/transactions">{{ $t('transactions') }}</b-nav-item>
-          <b-nav-item href="/profile">{{ $t('site.navbar.my-profil') }}</b-nav-item>
+          <b-nav-item to="/overview">{{ $t('overview') }}</b-nav-item>
+          <b-nav-item to="/send">{{ $t('send') }}</b-nav-item>
+          <b-nav-item to="/transactions">{{ $t('transactions') }}</b-nav-item>
         </b-navbar-nav>
 
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto">
-          <b-nav-form>
+          <!--<b-nav-form>
             <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
             <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
-          </b-nav-form>
+          </b-nav-form> 
 
           <b-nav-item-dropdown text="Lang" right>
             <b-dropdown-item href="#">EN</b-dropdown-item>
@@ -28,47 +27,35 @@
             <b-dropdown-item href="#">RU</b-dropdown-item>
             <b-dropdown-item href="#">FA</b-dropdown-item>
           </b-nav-item-dropdown>
+          -->
 
           <b-nav-item-dropdown right>
             <!-- Using 'button-content' slot -->
             <template #button-content>
-              <em>User</em>
+              <em> {{ $store.state.email }} 
+             
+                  <span class="avatar">
+                    <vue-qrcode
+                      v-if="$store.state.email"
+                      :value="$store.state.email"
+                      type="image/png"
+                    ></vue-qrcode>
+                  </span>
+               
+              </em>
             </template>
-            <b-dropdown-item href="#">Profile</b-dropdown-item>
-            <b-dropdown-item href="#">Sign Out</b-dropdown-item>
+            <b-dropdown-item to="/profile">{{ $t('site.navbar.my-profil') }}</b-dropdown-item>
+            <b-dropdown-item  @click="getElopageLink" target="_blank">
+              {{ $t('members_area') }}
+            </b-dropdown-item>
+            <b-dropdown-item   target="_blank" @click="admin">{{ $t('admin_area') }}</b-dropdown-item>
+            <b-dropdown-item href="/#" @click="logout">{{ $t('logout') }}</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
 
-    <side-bar @logout="logout" :balance="balance" :pending="pending">
-      <template slot="links">
-        <sidebar-item
-          :link="{
-            name: $t('overview'),
-            path: '/overview',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('send'),
-            path: '/send',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('transactions'),
-            path: '/transactions',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('site.navbar.my-profil'),
-            path: '/profile',
-          }"
-        ></sidebar-item>
-      </template>
-    </side-bar>
+   
 
     <div class="main-content" style="max-width: 1000px">
       <div class="d-none d-md-block">
@@ -117,6 +104,7 @@ import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import VueQrcode from 'vue-qrcode'
+import CONFIG from '../../config'
 
 export default {
   components: {
@@ -182,6 +170,20 @@ export default {
     },
     updateBalance(ammount) {
       this.balance -= ammount
+    },
+    admin() {
+      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token))
+      this.$store.dispatch('logout') // logout without redirect
+    },
+    getElopageLink() {
+      const pId = this.$store.state.publisherId
+        ? this.$store.state.publisherId
+        : CONFIG.DEFAULT_PUBLISHER_ID
+      return encodeURI(
+        this.$store.state.hasElopage
+          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
+          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
+      )
     },
   },
 }
