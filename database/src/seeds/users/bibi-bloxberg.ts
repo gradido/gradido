@@ -22,4 +22,21 @@ export const bibiBloxberg = {
     'knife normal level all hurdle crucial color avoid warrior stadium road bachelor affair topple hawk pottery right afford immune two ceiling budget glance hour ',
   mnemonicType: 2,
   isAdmin: false,
+  addBalance: true,
+  balanceModified: new Date('2021-11-30T10:37:11'),
+  recordDate: new Date('2021-11-30T10:37:11'),
+  targetDate: new Date('2021-08-01 00:00:00'),
+  amount: 10000000,
+  creationTxHash: Buffer.from(
+    '51103dc0fc2ca5d5d75a9557a1e899304e5406cfdb1328d8df6414d527b0118100000000000000000000000000000000',
+    'hex',
+  ),
+  signature: Buffer.from(
+    '2a2c71f3e41adc060bbc3086577e2d57d24eeeb0a7727339c3f85aad813808f601d7e1df56a26e0929d2e67fc054fca429ccfa283ed2782185c7f009fe008f0c',
+    'hex',
+  ),
+  signaturePubkey: Buffer.from(
+    '7281e0ee3258b08801f3ec73e431b4519677f65c03b0382c63a913b5784ee770',
+    'hex',
+  ),
 }

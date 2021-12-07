@@ -1,14 +1,58 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
+import { deletePendingCreation } from '../graphql/deletePendingCreation'
 
 const localVue = global.localVue
 
 const storeCommitMock = jest.fn()
+const toastedErrorMock = jest.fn()
+const toastedSuccessMock = jest.fn()
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    getPendingCreations: [
+      {
+        id: 1,
+        firstName: 'Bibi',
+        lastName: 'Bloxberg',
+        email: 'bibi@bloxberg.de',
+        amount: 500,
+        memo: 'Danke für alles',
+        date: new Date(),
+        moderator: 0,
+      },
+      {
+        id: 2,
+        firstName: 'Räuber',
+        lastName: 'Hotzenplotz',
+        email: 'raeuber@hotzenplotz.de',
+        amount: 1000000,
+        memo: 'Gut Ergatert',
+        date: new Date(),
+        moderator: 0,
+      },
+    ],
+  },
+})
+
+const apolloMutateMock = jest.fn().mockResolvedValue({})
 
 const mocks = {
   $store: {
     commit: storeCommitMock,
   },
+  $apollo: {
+    query: apolloQueryMock,
+    mutate: apolloMutateMock,
+  },
+  $toasted: {
+    error: toastedErrorMock,
+    success: toastedSuccessMock,
+  },
+  $moment: jest.fn((value) => {
+    return {
+      format: jest.fn((format) => value),
+    }
+  }),
 }
 
 describe('CreationConfirm', () => {
@@ -32,21 +76,84 @@ describe('CreationConfirm', () => {
       it('commits resetOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
       })
-
-      it('commits openCreationsPlus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsPlus', 5)
+      it('commits setOpenCreations to store', () => {
+        expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
       })
     })
 
-    describe('confirm creation', () => {
+    describe('confirm creation delete with success', () => {
       beforeEach(async () => {
+        apolloQueryMock.mockResolvedValue({
+          data: {
+            getPendingCreations: [
+              {
+                id: 1,
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                email: 'bibi@bloxberg.de',
+                amount: 500,
+                memo: 'Danke für alles',
+                date: new Date(),
+                moderator: 0,
+              },
+              {
+                id: 2,
+                firstName: 'Räuber',
+                lastName: 'Hotzenplotz',
+                email: 'raeuber@hotzenplotz.de',
+                amount: 1000000,
+                memo: 'Gut Ergatert',
+                date: new Date(),
+                moderator: 0,
+              },
+            ],
+          },
+        })
         await wrapper
           .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', 1, 'remove')
+          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+      })
+
+      it('calls the deletePendingCreation mutation', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: deletePendingCreation,
+          variables: { id: 1 },
+        })
       })
 
       it('commits openCreationsMinus to store', () => {
         expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastedSuccessMock).toBeCalledWith('Pending Creation has been deleted')
+      })
+    })
+
+    describe('confirm creation delete with error', () => {
+      beforeEach(async () => {
+        apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+        await wrapper
+          .findComponent({ name: 'UserTable' })
+          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+      })
+
+      it('toasts an error message', () => {
+        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+      })
+    })
+
+    describe('server response is error', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        apolloQueryMock.mockRejectedValue({
+          message: 'Ouch!',
+        })
+        wrapper = Wrapper()
+      })
+
+      it('toast an error message', () => {
+        expect(toastedErrorMock).toBeCalledWith('Ouch!')
       })
     })
   })
