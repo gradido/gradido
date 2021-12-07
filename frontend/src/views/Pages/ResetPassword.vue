@@ -82,6 +82,7 @@ export default {
   },
   methods: {
     async onSubmit() {
+      console.log('OnSubmit', this.$route.params.optin, this.form.password)
       this.$apollo
         .mutate({
           mutation: setPassword,
@@ -91,10 +92,12 @@ export default {
           },
         })
         .then(() => {
+          console.log('then')
           this.form.password = ''
           this.$router.push('/thx/reset')
         })
         .catch((error) => {
+          console.log('catch', error.message)
           if (error.message.includes('Code is older than 10 minutes')) {
             this.$toasted.error(error.message)
             this.$router.push('/password/reset')
@@ -102,10 +105,6 @@ export default {
             this.$toasted.error(error.message)
           }
         })
-    },
-    async authenticate() {
-      // TODO validate somehow if present and looks good?
-      // const optin = this.$route.params.optin
     },
     setDisplaySetup() {
       if (!this.$route.params.comingFrom) {
@@ -117,7 +116,6 @@ export default {
   },
   created() {
     this.setDisplaySetup()
-    // await this.authenticate()
   },
 }
 </script>
