@@ -4,13 +4,18 @@ import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import moment from 'moment'
-import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
+import { Transaction } from '@entity/Transaction'
+import { TransactionCreation } from '@entity/TransactionCreation'
+import { UserTransaction } from '@entity/UserTransaction'
+import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
+import { BalanceRepository } from '../../typeorm/repository/Balance'
 
 @Resolver()
 export class AdminResolver {
@@ -113,8 +118,11 @@ export class AdminResolver {
         const userRepository = getCustomRepository(UserRepository)
         const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
 
+        const parsedAmount = Number(parseInt(pendingCreation.amount.toString()) / 10000)
+        // pendingCreation.amount = parsedAmount
         const newPendingCreation = {
           ...pendingCreation,
+          amount: parsedAmount,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -133,6 +141,66 @@ export class AdminResolver {
     const entity = await pendingCreationRepository.findOneOrFail(id)
     const res = await pendingCreationRepository.delete(entity)
     return !!res
+  }
+
+  @Mutation(() => Boolean)
+  async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
+    const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+    const pendingCreation = await pendingCreationRepository.findOneOrFail(id)
+
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    let transaction = new Transaction()
+    transaction.transactionTypeId = 1
+    transaction.memo = pendingCreation.memo
+    transaction.received = new Date()
+    transaction.blockchainTypeId = 1
+    transaction = await transactionRepository.save(transaction)
+    if (!transaction) throw new Error('Could not create transaction')
+
+    const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
+    let transactionCreation = new TransactionCreation()
+    transactionCreation.transactionId = transaction.id
+    transactionCreation.userId = pendingCreation.userId
+    transactionCreation.amount = parseInt(pendingCreation.amount.toString())
+    transactionCreation.targetDate = pendingCreation.date
+    transactionCreation = await transactionCreationRepository.save(transactionCreation)
+    if (!transactionCreation) throw new Error('Could not create transactionCreation')
+
+    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+    const lastUserTransaction = await userTransactionRepository.findLastForUser(
+      pendingCreation.userId,
+    )
+    let newBalance = 0
+    if (!lastUserTransaction) {
+      newBalance = 0
+    } else {
+      newBalance = lastUserTransaction.balance
+    }
+    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()) / 10000)
+
+    const newUserTransaction = new UserTransaction()
+    newUserTransaction.userId = pendingCreation.userId
+    newUserTransaction.transactionId = transaction.id
+    newUserTransaction.transactionTypeId = transaction.transactionTypeId
+    newUserTransaction.balance = Number(newBalance)
+    newUserTransaction.balanceDate = transaction.received
+
+    await userTransactionRepository.save(newUserTransaction).catch((error) => {
+      throw new Error('Error saving user transaction: ' + error)
+    })
+
+    const balanceRepository = getCustomRepository(BalanceRepository)
+    let userBalance = await balanceRepository.findByUser(pendingCreation.userId)
+
+    if (!userBalance) userBalance = balanceRepository.create()
+    userBalance.userId = pendingCreation.userId
+    userBalance.amount = Number(newBalance * 10000)
+    userBalance.modified = new Date()
+    userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
+    await balanceRepository.save(userBalance)
+    await pendingCreationRepository.delete(pendingCreation)
+
+    return true
   }
 }
 
