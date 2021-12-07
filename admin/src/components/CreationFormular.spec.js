@@ -11,7 +11,14 @@ const apolloMock = jest.fn().mockResolvedValue({
     },
   },
 })
+const apolloMutateMock = jest.fn().mockResolvedValue({
+  data: {
+    createPendingCreation: [0, 0, 0],
+  },
+})
 const stateCommitMock = jest.fn()
+const toastedErrorMock = jest.fn()
+const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $moment: jest.fn(() => {
@@ -26,15 +33,25 @@ const mocks = {
   }),
   $apollo: {
     query: apolloMock,
+    mutate: apolloMutateMock,
   },
   $store: {
     commit: stateCommitMock,
+    state: {
+      moderator: {
+        id: 0,
+        name: 'test moderator',
+      },
+    },
+  },
+  $toasted: {
+    error: toastedErrorMock,
+    success: toastedSuccessMock,
   },
 }
 
 const propsData = {
   type: '',
-  item: {},
   creation: [],
   itemsMassCreation: {},
 }
@@ -64,9 +81,10 @@ describe('CreationFormular', () => {
     describe('server throws error for moderator data call', () => {
       beforeEach(() => {
         jest.clearAllMocks()
-        apolloMock.mockRejectedValue({ message: 'Ouch!' })
+        apolloMock.mockRejectedValueOnce({ message: 'Ouch!' })
         wrapper = Wrapper()
       })
+
       it('has called store commit with fake data', () => {
         expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
       })
@@ -125,6 +143,8 @@ describe('CreationFormular', () => {
           jest.clearAllMocks()
           await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
           await wrapper.setData({ rangeMin: 180 })
+          await wrapper.setData({ text: 'Test create coins' })
+          await wrapper.setData({ value: 90 })
         })
 
         describe('first radio button', () => {
@@ -138,6 +158,66 @@ describe('CreationFormular', () => {
 
           it('sets rangeMax to 200', () => {
             expect(wrapper.vm.rangeMax).toBe(200)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              apolloMutateMock.mockRejectedValueOnce({ message: 'Ouch!' })
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(toastedErrorMock).toBeCalled()
+            })
+          })
+
+          describe('Negativ value', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ value: -20 })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Empty text', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: '' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Text length less than 10', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: 'Try this' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
           })
         })
 
@@ -153,6 +233,55 @@ describe('CreationFormular', () => {
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(400)
           })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
+          })
+
+          describe('Negativ value', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ value: -20 })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Empty text', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: '' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Text length less than 10', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: 'Try this' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
         })
 
         describe('third radio button', () => {
@@ -166,6 +295,63 @@ describe('CreationFormular', () => {
 
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(600)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends mutation to apollo', () => {
+              expect(apolloMutateMock).toBeCalled()
+            })
+
+            it('toast success message', () => {
+              expect(toastedSuccessMock).toBeCalled()
+            })
+
+            it('store commit openCreationPlus', () => {
+              expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 1)
+            })
+          })
+
+          describe('Negativ value', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ value: -20 })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Empty text', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: '' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
+          })
+
+          describe('Text length less than 10', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
+              await wrapper.setData({ rangeMin: 180 })
+              await wrapper.setData({ text: 'Try this' })
+            })
+
+            it('has no submit button', async () => {
+              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
+            })
           })
         })
       })
