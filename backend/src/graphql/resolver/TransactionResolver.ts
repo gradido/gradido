@@ -428,7 +428,7 @@ async function addUserTransaction(
   if (lastUserTransaction) {
     newBalance += Number(
       await calculateDecay(
-        Number(lastUserTransaction.balance),
+        Number(lastUserTransaction.balance * 10000),
         lastUserTransaction.balanceDate,
         transaction.received,
       ).catch(() => {
