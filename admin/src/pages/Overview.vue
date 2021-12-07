@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="admin-overview">
     <b-card
       v-show="$store.state.openCreations > 0"
       border-variant="primary"

@@ -15,6 +15,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
 })
 
 const stateCommitMock = jest.fn()
+const toastedErrorMock = jest.fn()
 
 const mocks = {
   $moment: jest.fn(() => {
@@ -31,14 +32,21 @@ const mocks = {
     mutate: apolloMutateMock,
   },
   $store: {
+    state: {
+      moderator: {
+        id: 0,
+        name: 'test moderator',
+      },
+    },
     commit: stateCommitMock,
+  },
+  $toasted: {
+    error: toastedErrorMock,
   },
 }
 
 const propsData = {
   type: '',
-  item: {},
-  row: [],
   creation: [],
   itemsMassCreation: {},
 }
@@ -69,6 +77,8 @@ describe('EditCreationFormular', () => {
           jest.clearAllMocks()
           await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
           await wrapper.setData({ rangeMin: 180 })
+          await wrapper.setData({ text: 'Test create coins' })
+          await wrapper.setData({ value: 90 })
         })
 
         describe('first radio button', () => {
@@ -82,6 +92,27 @@ describe('EditCreationFormular', () => {
 
           it('sets rangeMax to 200', () => {
             expect(wrapper.vm.rangeMax).toBe(200)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-01',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
+            })
           })
         })
 
@@ -97,6 +128,27 @@ describe('EditCreationFormular', () => {
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(400)
           })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-01',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
+            })
+          })
         })
 
         describe('third radio button', () => {
@@ -110,6 +162,27 @@ describe('EditCreationFormular', () => {
 
           it('sets rangeMax to 400', () => {
             expect(wrapper.vm.rangeMax).toBe(600)
+          })
+
+          describe('sendForm', () => {
+            beforeEach(async () => {
+              await wrapper.find('.test-submit').trigger('click')
+            })
+
+            it('sends ... to apollo', () => {
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    amount: 90,
+                    creationDate: 'YYYY-MM-DD',
+                    email: undefined,
+                    id: undefined,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
+            })
           })
         })
       })
