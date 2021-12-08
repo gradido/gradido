@@ -16,6 +16,16 @@ import { apolloProvider } from './plugins/apolloProvider'
 Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
 
+Vue.toasted.register(
+  'error',
+  (payload) => {
+    return payload.replace(/^GraphQL error: /, '')
+  },
+  {
+    type: 'error',
+  },
+)
+
 loadAllRules(i18n)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)

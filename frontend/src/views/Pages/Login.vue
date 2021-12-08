@@ -106,7 +106,7 @@ export default {
         })
         .catch((error) => {
           if (error.message.includes('No user with this credentials')) {
-            this.$toasted.error(this.$t('error.no-account'))
+            this.$toasted.global.error(this.$t('error.no-account'))
           } else {
             // : this.$t('error.no-email-verify')
             this.$router.push('/reset/login')

@@ -96,10 +96,10 @@ export default {
         })
         .catch((error) => {
           if (error.message.includes('Code is older than 10 minutes')) {
-            this.$toasted.error(error.message)
+            this.$toasted.global.error(error.message)
             this.$router.push('/password/reset')
           } else {
-            this.$toasted.error(error.message)
+            this.$toasted.global.error(error.message)
           }
         })
     },

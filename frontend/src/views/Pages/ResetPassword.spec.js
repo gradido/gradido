@@ -30,7 +30,9 @@ const createMockObject = (comingFrom) => {
         },
       },
       $toasted: {
-        error: toasterMock,
+        global: {
+          error: toasterMock,
+        },
       },
       $router: {
         push: routerPushMock,

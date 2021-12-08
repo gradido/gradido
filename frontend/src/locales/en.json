@@ -48,7 +48,7 @@
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
-    "session-expired": "The session expired"
+    "session-expired": "The session was closed for security reasons."
   },
   "form": {
     "amount": "Amount",

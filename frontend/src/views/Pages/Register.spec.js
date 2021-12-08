@@ -49,7 +49,9 @@ describe('Register', () => {
       },
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
   }
 
