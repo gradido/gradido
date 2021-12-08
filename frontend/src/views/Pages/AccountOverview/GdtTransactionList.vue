@@ -71,7 +71,7 @@ export default {
           window.scrollTo(0, 0)
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
     },
   },

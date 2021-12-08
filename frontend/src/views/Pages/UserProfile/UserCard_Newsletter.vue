@@ -56,7 +56,7 @@ export default {
         })
         .catch((error) => {
           this.newsletterState = this.$store.state.newsletterState
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
     },
   },
