@@ -1,86 +1,34 @@
 <template>
   <div>
-    <b-navbar toggleable="lg" type="dark" variant="info">
-      <div class="navbar-brand" >
-        <router-link to="/overview" >
-        <img :src="logo" class="navbar-brand-img" alt="..." />
-        </router-link>
+    <navbar @get-elopage-link="getElopageLink" @admin="admin" />
+    <div style="display: inline-flex">
+      <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
+        <sidebar @get-elopage-link="getElopageLink" @admin="admin" />
       </div>
-      <b-nav-text center>{{ balance }} GDD</b-nav-text>
-      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-      <b-collapse id="nav-collapse" is-nav>
-        <b-navbar-nav class="d-none d-md-flex d-sm-flex">
-          <b-nav-item to="/overview">{{ $t('overview') }}</b-nav-item>
-          <b-nav-item to="/send">{{ $t('send') }}</b-nav-item>
-          <b-nav-item to="/transactions">{{ $t('transactions') }}</b-nav-item>
-        </b-navbar-nav>
-
-        <!-- Right aligned nav items -->
-        <b-navbar-nav class="ml-auto">
-          <b-nav-item-dropdown right>
-            <!-- Using 'button-content' slot -->
-            <template #button-content>
-              <em>
-                {{ $store.state.email }}
-              </em>
-            </template>
-            <b-dropdown-item to="/profile">{{ $t('site.navbar.my-profil') }}</b-dropdown-item>
-            <b-dropdown-item @click="getElopageLink" target="_blank">
-              {{ $t('members_area') }}
-            </b-dropdown-item>
-            <b-dropdown-item target="_blank" @click="admin">{{ $t('admin_area') }}</b-dropdown-item>
-            <b-dropdown-item href="/#" @click="logout">{{ $t('logout') }}</b-dropdown-item>
-          </b-nav-item-dropdown>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
-  <div style="display: inline-flex">
-      <div class="d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
-        <b-sidebar id="sidebar-1" visible no-header-close bg-variant="false">
-          <div class="px-3 py-2">
-            <p></p>
-            <div class="mb-6">
-              <b-nav vertical class="w-200">
-                <b-nav-item to="/overview" class="mb-3" active>Overview</b-nav-item>
-                <b-nav-item to="/send" class="mb-3">Link</b-nav-item>
-                <b-nav-item to="/transactions" class="mb-3">Another Link</b-nav-item>
-                <b-nav-item to="/profile" class="mb-3" disabled>Disabled</b-nav-item>
-              </b-nav>
-              <hr />
-              <b-nav vertical class="w-100">
-                <b-nav-item class="mb-3" active>Active</b-nav-item>
-                <b-nav-item class="mb-3">Link</b-nav-item>
-                <b-nav-item class="mb-3">Another Link</b-nav-item>
-                <b-nav-item class="mb-3" disabled>Disabled</b-nav-item>
-              </b-nav>
-            </div>
-          </div>
-        </b-sidebar>
-      </div>
-     
+      <div>
         <div>
-          <div>
-            <fade-transition :duration="200" origin="center top" mode="out-in">
-              <router-view
-                ref="router-view"
-                :balance="balance"
-                :gdt-balance="GdtBalance"
-                :transactions="transactions"
-                :transactionCount="transactionCount"
-                :pending="pending"
-                @update-balance="updateBalance"
-                @update-transactions="updateTransactions"
-              ></router-view>
-            </fade-transition>
-          </div>
-          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+          <fade-transition :duration="200" origin="center top" mode="out-in">
+            <router-view
+              ref="router-view"
+              :balance="balance"
+              :gdt-balance="GdtBalance"
+              :transactions="transactions"
+              :transactionCount="transactionCount"
+              :pending="pending"
+              @update-balance="updateBalance"
+              @update-transactions="updateTransactions"
+            ></router-view>
+          </fade-transition>
         </div>
-  </div>
-    
+        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+      </div>
+    </div>
   </div>
 </template>
 <script>
+import Navbar from '../../components/Menu/Navbar.vue'
+import Sidebar from '../../components/Menu/Sidebar.vue'
 import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
@@ -88,6 +36,8 @@ import CONFIG from '../../config'
 
 export default {
   components: {
+    Navbar,
+    Sidebar,
     ContentFooter,
     FadeTransition,
   },
