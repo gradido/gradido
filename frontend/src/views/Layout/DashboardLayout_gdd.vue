@@ -8,7 +8,7 @@
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
-        <b-navbar-nav>
+        <b-navbar-nav class="d-none d-md-flex d-sm-flex">
           <b-nav-item to="/overview">{{ $t('overview') }}</b-nav-item>
           <b-nav-item to="/send">{{ $t('send') }}</b-nav-item>
           <b-nav-item to="/transactions">{{ $t('transactions') }}</b-nav-item>
@@ -21,14 +21,6 @@
             <template #button-content>
               <em>
                 {{ $store.state.email }}
-
-                <span class="avatar">
-                  <vue-qrcode
-                    v-if="$store.state.email"
-                    :value="$store.state.email"
-                    type="image/png"
-                  ></vue-qrcode>
-                </span>
               </em>
             </template>
             <b-dropdown-item to="/profile">{{ $t('site.navbar.my-profil') }}</b-dropdown-item>
@@ -41,37 +33,56 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
+<div >
+     <div   class="d-none d-lg-flex shadow-lg" style="width: 300px; float:left" >
+          <b-sidebar id="sidebar-1" visible no-header-close  bg-variant="white"  >
+            <div class="px-3 py-2">
+              <p>
+                Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac
+                facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac,
+                vestibulum at eros.
+              </p>
+              <b-img src="https://picsum.photos/500/500/?image=54" fluid thumbnail></b-img>
+            </div>
+           
+          </b-sidebar>
+        </div>
+        <div>
+          
+           <div>
+            <div @click="$sidebar.displaySidebar(false)">
+              <fade-transition :duration="200" origin="center top" mode="out-in">
+                <router-view
+                  ref="router-view"
+                  :balance="balance"
+                  :gdt-balance="GdtBalance"
+                  :transactions="transactions"
+                  :transactionCount="transactionCount"
+                  :pending="pending"
+                  @update-balance="updateBalance"
+                  @update-transactions="updateTransactions"
+                ></router-view>
+              </fade-transition>
+            </div>
+            <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+          </div>
 
-    <div class="container main-content" style="max-width: 1000px">
-      <div @click="$sidebar.displaySidebar(false)">
-        <fade-transition :duration="200" origin="center top" mode="out-in">
-          <router-view
-            ref="router-view"
-            :balance="balance"
-            :gdt-balance="GdtBalance"
-            :transactions="transactions"
-            :transactionCount="transactionCount"
-            :pending="pending"
-            @update-balance="updateBalance"
-            @update-transactions="updateTransactions"
-          ></router-view>
-        </fade-transition>
-      </div>
-      <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-    </div>
+
+        </div>
+</div>
+
+     
   </div>
 </template>
 <script>
 import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
-import VueQrcode from 'vue-qrcode'
 import CONFIG from '../../config'
 
 export default {
   components: {
     ContentFooter,
-    VueQrcode,
     FadeTransition,
   },
   data() {
