@@ -213,9 +213,8 @@ async function getUserCreations(id: number): Promise<number[]> {
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
-    .select('transaction_creations.target_date')
-    .addSelect('MONTH(transaction_creations.target_date)', 'target_month')
-    .addSelect('transaction_creations.amount')
+    .select('MONTH(transaction_creations.target_date)', 'target_month')
+    .addSelect('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
@@ -223,14 +222,17 @@ async function getUserCreations(id: number): Promise<number[]> {
         endDate: dateNextMonth,
       }),
     })
+    .groupBy('target_month')
     .orderBy('target_month', 'ASC')
     .getRawMany()
   console.log('createdAmountBeforeLastMonth', id, createdAmountBeforeLastMonth)
+  
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
   const pendingAmountBeforeLastMonth = await pendingCreationRepository
     .createQueryBuilder('login_pending_tasks_admin')
-    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
+    .select('MONTH(login_pending_tasks_admin.date)', 'target_month')
+    .addSelect('SUM(login_pending_tasks_admin.amount)', 'sum')
     .where('login_pending_tasks_admin.userId = :id', { id })
     .andWhere({
       date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
@@ -238,8 +240,13 @@ async function getUserCreations(id: number): Promise<number[]> {
         endDate: dateNextMonth,
       }),
     })
-    .orderBy('MONTH(login_pending_tasks_admin.date)', 'ASC')
-    .getRawOne()
+    .groupBy('target_month')
+    .orderBy('target_month', 'ASC')
+    .getRawMany()
+  pendingAmountBeforeLastMonth.reduce((total, pendingAmount) => {
+    total[pendingAmount.target_month] = pendingAmount
+    return total
+  })
   console.log('pendingAmountBeforeLastMonth', id, pendingAmountBeforeLastMonth)
   throw new Error('Not implemented yet')
   // return [
