@@ -221,9 +221,9 @@ async function getUserCreations(id: number): Promise<number[]> {
         endDate: dateNextMonth,
       }),
     })
-    .groupBy('EXTRACT(MONTH FROM transaction_creations.target_date)')
+    .orderBy('MONTH(transaction_creations.target_date)', 'ASC')
     .getRawOne()
-  console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
+  console.log('createdAmountBeforeLastMonth', id, createdAmountBeforeLastMonth)
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
   const pendingAmountBeforeLastMonth = await pendingCreationRepository
@@ -236,9 +236,15 @@ async function getUserCreations(id: number): Promise<number[]> {
         endDate: dateNextMonth,
       }),
     })
-    .orderBy('EXTRACT(MONTH FROM login_pending_tasks_admin.date)')
+    .orderBy('MONTH(login_pending_tasks_admin.date)', 'ASC')
     .getRawOne()
-  console.log(pendingAmountBeforeLastMonth)
+  console.log('pendingAmountBeforeLastMonth', id, pendingAmountBeforeLastMonth)
+  throw new Error('Not implemented yet')
+  // return [
+  //     1000 - usedCreationBeforeLastMonth,
+  //     1000 - usedCreationLastMonth,
+  //     1000 - usedCreationMonth,
+  //   ]
   // const createdAmountLastMonth = await transactionCreationRepository
   //   .createQueryBuilder('transaction_creations')
   //   .select('SUM(transaction_creations.amount)', 'sum')
@@ -312,7 +318,6 @@ async function getUserCreations(id: number): Promise<number[]> {
   //   1000 - usedCreationLastMonth,
   //   1000 - usedCreationMonth,
   // ]
-  throw new Error('Not implemented yet')
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
