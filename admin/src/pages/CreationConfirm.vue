@@ -76,6 +76,7 @@ export default {
       this.$apollo
         .query({
           query: getPendingCreations,
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
