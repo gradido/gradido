@@ -105,11 +105,11 @@ export default {
           loader.hide()
         })
         .catch((error) => {
-          if (!error.message.includes('user email not validated')) {
+          if (error.message.includes('No user with this credentials')) {
             this.$toasted.error(this.$t('error.no-account'))
           } else {
             // : this.$t('error.no-email-verify')
-            this.$router.push('/thx/login')
+            this.$router.push('/reset/login')
           }
           loader.hide()
         })

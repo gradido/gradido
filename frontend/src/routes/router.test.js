@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has fifteen routes defined', () => {
-        expect(routes).toHaveLength(15)
+      it('has sixteen routes defined', () => {
+        expect(routes).toHaveLength(16)
       })
 
       describe('overview', () => {
@@ -167,7 +167,7 @@ describe('router', () => {
       describe('checkEmail', () => {
         it('loads the "CheckEmail" component', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
-          expect(component.default.name).toBe('CheckEmail')
+          expect(component.default.name).toBe('ResetPassword')
         })
       })
 
