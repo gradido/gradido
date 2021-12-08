@@ -22,4 +22,5 @@ module.exports = {
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
+  testEnvironment: 'jest-environment-jsdom-sixteen',
 }
