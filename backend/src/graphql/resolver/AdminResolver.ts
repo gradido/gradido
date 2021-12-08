@@ -213,7 +213,9 @@ async function getUserCreations(id: number): Promise<number[]> {
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountBeforeLastMonth = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
-    .select('SUM(transaction_creations.amount)', 'sum')
+    .select('transaction_creations.target_date')
+    .addSelect('MONTH(transaction_creations.target_date)', 'target_month')
+    .addSelect('transaction_creations.amount')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
@@ -221,8 +223,8 @@ async function getUserCreations(id: number): Promise<number[]> {
         endDate: dateNextMonth,
       }),
     })
-    .orderBy('MONTH(transaction_creations.target_date)', 'ASC')
-    .getRawOne()
+    .orderBy('target_month', 'ASC')
+    .getRawMany()
   console.log('createdAmountBeforeLastMonth', id, createdAmountBeforeLastMonth)
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
