@@ -1,9 +1,9 @@
 <template>
   <div>
-    <navbar @get-elopage-link="getElopageLink" @admin="admin" />
+    <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout"/>
     <div style="display: inline-flex">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
-        <sidebar @get-elopage-link="getElopageLink" @admin="admin" />
+        <sidebar @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
       </div>
 
       <div>
