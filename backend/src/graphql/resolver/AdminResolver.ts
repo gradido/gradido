@@ -210,6 +210,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   const beforeLastMonthNumber = moment().subtract(2, 'month').format('M')
   const lastMonthNumber = moment().subtract(1, 'month').format('M')
   const currentMonthNumber = moment().format('M')
+
   const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
   const createdAmountsQuery = await transactionCreationRepository
     .createQueryBuilder('transaction_creations')
@@ -225,17 +226,6 @@ async function getUserCreations(id: number): Promise<number[]> {
     .groupBy('target_month')
     .orderBy('target_month', 'ASC')
     .getRawMany()
-  const map = new Map()
-  if (Array.isArray(createdAmountsQuery) && createdAmountsQuery.length > 0) {
-    createdAmountsQuery.forEach((createdAmount) => {
-      if (!map.has(createdAmount.target_month)) {
-        map.set(createdAmount.target_month, createdAmount.sum)
-      } else {
-        const store = map.get(createdAmount.target_month)
-        map.set(createdAmount.target_month, Number(store) + Number(createdAmount.sum))
-      }
-    })
-  }
 
   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
   const pendingAmountsQuery = await pendingCreationRepository
@@ -252,6 +242,19 @@ async function getUserCreations(id: number): Promise<number[]> {
     .groupBy('target_month')
     .orderBy('target_month', 'ASC')
     .getRawMany()
+
+  const map = new Map()
+  if (Array.isArray(createdAmountsQuery) && createdAmountsQuery.length > 0) {
+    createdAmountsQuery.forEach((createdAmount) => {
+      if (!map.has(createdAmount.target_month)) {
+        map.set(createdAmount.target_month, createdAmount.sum)
+      } else {
+        const store = map.get(createdAmount.target_month)
+        map.set(createdAmount.target_month, Number(store) + Number(createdAmount.sum))
+      }
+    })
+  }
+
   if (Array.isArray(pendingAmountsQuery) && pendingAmountsQuery.length > 0) {
     pendingAmountsQuery.forEach((pendingAmount) => {
       if (!map.has(pendingAmount.target_month)) {
@@ -272,7 +275,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   const usedCreationCurrentMonth = map.get(Number(currentMonthNumber))
     ? Number(map.get(Number(currentMonthNumber))) / 10000
     : 0
-  console.log(id, usedCreationBeforeLastMonth, usedCreationLastMonth, usedCreationCurrentMonth)
+
   return [
     1000 - usedCreationBeforeLastMonth,
     1000 - usedCreationLastMonth,
