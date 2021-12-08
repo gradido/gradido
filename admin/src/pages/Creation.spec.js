@@ -171,12 +171,17 @@ describe('Creation', () => {
 
       describe('error', () => {
         const consoleErrorMock = jest.fn()
+        const warnHandler = Vue.config.warnHandler
 
         beforeEach(() => {
           Vue.config.warnHandler = (w) => {}
           // eslint-disable-next-line no-console
           console.error = consoleErrorMock
           wrapper.findComponent({ name: 'UserTable' }).vm.$emit('update-item', {}, 'no-rule')
+        })
+
+        afterEach(() => {
+          Vue.config.warnHandler = warnHandler
         })
 
         it('throws an error', () => {
