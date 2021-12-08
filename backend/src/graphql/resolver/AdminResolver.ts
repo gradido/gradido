@@ -218,84 +218,87 @@ async function getUserCreations(id: number): Promise<number[]> {
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
         date: dateBeforeLastMonth,
-        enddate: dateLastMonth,
-      }),
-    })
-    .getRawOne()
-
-  const createdAmountLastMonth = await transactionCreationRepository
-    .createQueryBuilder('transaction_creations')
-    .select('SUM(transaction_creations.amount)', 'sum')
-    .where('transaction_creations.state_user_id = :id', { id })
-    .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateLastMonth,
-        enddate: dateMonth,
-      }),
-    })
-    .getRawOne()
-
-  const createdAmountMonth = await transactionCreationRepository
-    .createQueryBuilder('transaction_creations')
-    .select('SUM(transaction_creations.amount)', 'sum')
-    .where('transaction_creations.state_user_id = :id', { id })
-    .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateMonth,
         enddate: dateNextMonth,
       }),
     })
+    .groupBy('EXTRACT(MONTH FROM transaction_creations.target_date)')
     .getRawOne()
+  console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
 
-  const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-  const pendingAmountMounth = await pendingCreationRepository
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateMonth,
-        enddate: dateNextMonth,
-      }),
-    })
-    .getRawOne()
+  // const createdAmountLastMonth = await transactionCreationRepository
+  //   .createQueryBuilder('transaction_creations')
+  //   .select('SUM(transaction_creations.amount)', 'sum')
+  //   .where('transaction_creations.state_user_id = :id', { id })
+  //   .andWhere({
+  //     targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+  //       date: dateLastMonth,
+  //       enddate: dateMonth,
+  //     }),
+  //   })
+  //   .getRawOne()
 
-  const pendingAmountLastMounth = await pendingCreationRepository
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateLastMonth,
-        enddate: dateMonth,
-      }),
-    })
-    .getRawOne()
+  // const createdAmountMonth = await transactionCreationRepository
+  //   .createQueryBuilder('transaction_creations')
+  //   .select('SUM(transaction_creations.amount)', 'sum')
+  //   .where('transaction_creations.state_user_id = :id', { id })
+  //   .andWhere({
+  //     targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+  //       date: dateMonth,
+  //       enddate: dateNextMonth,
+  //     }),
+  //   })
+  //   .getRawOne()
 
-  const pendingAmountBeforeLastMounth = await pendingCreationRepository
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
-        date: dateBeforeLastMonth,
-        enddate: dateLastMonth,
-      }),
-    })
-    .getRawOne()
+  // const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+  // const pendingAmountMounth = await pendingCreationRepository
+  //   .createQueryBuilder('login_pending_tasks_admin')
+  //   .select('SUM(login_pending_tasks_admin.amount)', 'sum')
+  //   .where('login_pending_tasks_admin.userId = :id', { id })
+  //   .andWhere({
+  //     date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+  //       date: dateMonth,
+  //       enddate: dateNextMonth,
+  //     }),
+  //   })
+  //   .getRawOne()
 
-  // COUNT amount from 2 tables
-  const usedCreationBeforeLastMonth =
-    (Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)) / 10000
-  const usedCreationLastMonth =
-    (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
-  const usedCreationMonth =
-    (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
-  return [
-    1000 - usedCreationBeforeLastMonth,
-    1000 - usedCreationLastMonth,
-    1000 - usedCreationMonth,
-  ]
+  // const pendingAmountLastMounth = await pendingCreationRepository
+  //   .createQueryBuilder('login_pending_tasks_admin')
+  //   .select('SUM(login_pending_tasks_admin.amount)', 'sum')
+  //   .where('login_pending_tasks_admin.userId = :id', { id })
+  //   .andWhere({
+  //     date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+  //       date: dateLastMonth,
+  //       enddate: dateMonth,
+  //     }),
+  //   })
+  //   .getRawOne()
+
+  // const pendingAmountBeforeLastMounth = await pendingCreationRepository
+  //   .createQueryBuilder('login_pending_tasks_admin')
+  //   .select('SUM(login_pending_tasks_admin.amount)', 'sum')
+  //   .where('login_pending_tasks_admin.userId = :id', { id })
+  //   .andWhere({
+  //     date: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+  //       date: dateBeforeLastMonth,
+  //       enddate: dateLastMonth,
+  //     }),
+  //   })
+  //   .getRawOne()
+
+  // // COUNT amount from 2 tables
+  // const usedCreationBeforeLastMonth =
+  //   (Number(createdAmountBeforeLastMonth.sum) + Number(pendingAmountBeforeLastMounth.sum)) / 10000
+  // const usedCreationLastMonth =
+  //   (Number(createdAmountLastMonth.sum) + Number(pendingAmountLastMounth.sum)) / 10000
+  // const usedCreationMonth =
+  //   (Number(createdAmountMonth.sum) + Number(pendingAmountMounth.sum)) / 10000
+  // return [
+  //   1000 - usedCreationBeforeLastMonth,
+  //   1000 - usedCreationLastMonth,
+  //   1000 - usedCreationMonth,
+  // ]
+  throw new Error('Not implemented yet')
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
