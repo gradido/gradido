@@ -1,8 +1,10 @@
 <template>
   <div>
     <b-navbar toggleable="lg" type="dark" variant="info">
-      <div class="navbar-brand">
+      <div class="navbar-brand" >
+        <router-link to="/overview" >
         <img :src="logo" class="navbar-brand-img" alt="..." />
+        </router-link>
       </div>
       <b-nav-text center>{{ balance }} GDD</b-nav-text>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -33,45 +35,49 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-<div >
-     <div   class="d-none d-lg-flex shadow-lg" style="width: 300px; float:left" >
-          <b-sidebar id="sidebar-1" visible no-header-close  bg-variant="white"  >
-            <div class="px-3 py-2">
-              <p>
-                Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac
-                facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac,
-                vestibulum at eros.
-              </p>
-              <b-img src="https://picsum.photos/500/500/?image=54" fluid thumbnail></b-img>
+  <div style="display: inline-flex">
+      <div class="d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
+        <b-sidebar id="sidebar-1" visible no-header-close bg-variant="false">
+          <div class="px-3 py-2">
+            <p></p>
+            <div class="mb-6">
+              <b-nav vertical class="w-200">
+                <b-nav-item to="/overview" class="mb-3" active>Overview</b-nav-item>
+                <b-nav-item to="/send" class="mb-3">Link</b-nav-item>
+                <b-nav-item to="/transactions" class="mb-3">Another Link</b-nav-item>
+                <b-nav-item to="/profile" class="mb-3" disabled>Disabled</b-nav-item>
+              </b-nav>
+              <hr />
+              <b-nav vertical class="w-100">
+                <b-nav-item class="mb-3" active>Active</b-nav-item>
+                <b-nav-item class="mb-3">Link</b-nav-item>
+                <b-nav-item class="mb-3">Another Link</b-nav-item>
+                <b-nav-item class="mb-3" disabled>Disabled</b-nav-item>
+              </b-nav>
             </div>
-           
-          </b-sidebar>
-        </div>
-        <div>
-          
-           <div>
-            <div @click="$sidebar.displaySidebar(false)">
-              <fade-transition :duration="200" origin="center top" mode="out-in">
-                <router-view
-                  ref="router-view"
-                  :balance="balance"
-                  :gdt-balance="GdtBalance"
-                  :transactions="transactions"
-                  :transactionCount="transactionCount"
-                  :pending="pending"
-                  @update-balance="updateBalance"
-                  @update-transactions="updateTransactions"
-                ></router-view>
-              </fade-transition>
-            </div>
-            <content-footer v-if="!$route.meta.hideFooter"></content-footer>
           </div>
-
-
-        </div>
-</div>
-
+        </b-sidebar>
+      </div>
      
+        <div>
+          <div>
+            <fade-transition :duration="200" origin="center top" mode="out-in">
+              <router-view
+                ref="router-view"
+                :balance="balance"
+                :gdt-balance="GdtBalance"
+                :transactions="transactions"
+                :transactionCount="transactionCount"
+                :pending="pending"
+                @update-balance="updateBalance"
+                @update-transactions="updateTransactions"
+              ></router-view>
+            </fade-transition>
+          </div>
+          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        </div>
+  </div>
+    
   </div>
 </template>
 <script>
