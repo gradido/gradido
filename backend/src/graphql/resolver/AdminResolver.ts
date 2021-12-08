@@ -216,15 +216,29 @@ async function getUserCreations(id: number): Promise<number[]> {
     .select('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :enddate`, {
+      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
         date: dateBeforeLastMonth,
-        enddate: dateNextMonth,
+        endDate: dateNextMonth,
       }),
     })
     .groupBy('EXTRACT(MONTH FROM transaction_creations.target_date)')
     .getRawOne()
   console.log('createdAmountBeforeLastMonth', createdAmountBeforeLastMonth)
 
+  const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+  const pendingAmountBeforeLastMonth = await pendingCreationRepository
+    .createQueryBuilder('login_pending_tasks_admin')
+    .select('SUM(login_pending_tasks_admin.amount)', 'sum')
+    .where('login_pending_tasks_admin.userId = :id', { id })
+    .andWhere({
+      date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
+        date: dateBeforeLastMonth,
+        endDate: dateNextMonth,
+      }),
+    })
+    .orderBy('EXTRACT(MONTH FROM login_pending_tasks_admin.date)')
+    .getRawOne()
+  console.log(pendingAmountBeforeLastMonth)
   // const createdAmountLastMonth = await transactionCreationRepository
   //   .createQueryBuilder('transaction_creations')
   //   .select('SUM(transaction_creations.amount)', 'sum')
