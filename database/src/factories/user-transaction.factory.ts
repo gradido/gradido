@@ -12,7 +12,7 @@ define(UserTransaction, (faker: typeof Faker, context?: UserTransactionContext) 
   userTransaction.userId = context.userId
   userTransaction.transactionId = context.transactionId
   userTransaction.transactionTypeId = context.transactionTypeId ? context.transactionTypeId : 1
-  userTransaction.balance = context.balance ? context.balance : 100000
+  userTransaction.balance = context.balance ? context.balance / 10000 : 1000
   userTransaction.balanceDate = context.balanceDate ? context.balanceDate : new Date()
 
   return userTransaction
