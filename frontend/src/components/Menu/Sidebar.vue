@@ -16,7 +16,7 @@
             <b-nav-item class="mb-3" active>Active</b-nav-item>
             <b-nav-item class="mb-3">Link</b-nav-item>
             <b-nav-item class="mb-3">Another Link</b-nav-item>
-            <b-nav-item class="mb-3" disabled>Disabled</b-nav-item>
+            <b-nav-item class="mb-3" @click="$emit('logout')">{{ $t('logout') }}</b-nav-item>
           </b-nav>
         </div>
       </div>

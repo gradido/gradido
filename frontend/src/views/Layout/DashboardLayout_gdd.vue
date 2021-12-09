@@ -1,6 +1,6 @@
 <template>
   <div>
-    <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout"/>
+    <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
     <div style="display: inline-flex">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
         <sidebar @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
@@ -59,12 +59,10 @@ export default {
           query: logout,
         })
         .then(() => {
-          this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
           this.$router.push('/login')
         })
         .catch(() => {
-          this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
           if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')
         })
