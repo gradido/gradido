@@ -1,12 +1,12 @@
 <template>
   <div>
     <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
-    <div style="display: inline-flex">
+    <div style="display: inline-flex; width: 100%">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
         <sidebar @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
       </div>
 
-      <div>
+      <div class="ml-2 mr-2" style="width: 100%">
         <div>
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
