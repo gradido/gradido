@@ -69,8 +69,9 @@ export class AdminResolver {
     pendingCreations: CreatePendingCreationArgs[],
   ): Promise<boolean> {
     pendingCreations.forEach((pendingCreation) => {
-      console.log('pendingCreation', pendingCreation)
-      this.createPendingCreation(pendingCreation)
+      this.createPendingCreation(pendingCreation).catch((error) => {
+        console.log('pendingCreation ' + JSON.stringify(pendingCreation) + ' had an error ' + error)
+      })
     })
     return true
   }

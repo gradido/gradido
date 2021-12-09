@@ -122,6 +122,7 @@
 <script>
 import { verifyLogin } from '../graphql/verifyLogin'
 import { createPendingCreation } from '../graphql/createPendingCreation'
+import { createPendingCreations } from '../graphql/createPendingCreations'
 export default {
   name: 'CreationFormular',
   props: {
@@ -202,28 +203,52 @@ export default {
     submitCreation() {
       if (this.type === 'massCreation') {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
-        const i = Object.keys(this.itemsMassCreation).length
+        const i = Object.keys(this.items).length
         // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
         // eslint-disable-next-line no-console
         console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
-        this.submitObj = [
-          {
-            item: this.itemsMassCreation,
-            email: this.item.email,
+        this.submitObj = []
+        this.items.forEach((item) => {
+          this.submitObj.push({
+            email: item.email,
             creationDate: this.radioSelected.long,
-            amount: this.value,
+            amount: Number(this.value),
             memo: this.text,
-            moderator: this.$store.state.moderator.id,
-          },
-        ]
+            moderator: Number(this.$store.state.moderator.id),
+          })
+        })
+        console.log('submitObj', this.submitObj)
+        // this.submitObj = [
+        //   {
+        //     item: this.itemsMassCreation,
+        //     email: this.item.email,
+        //     creationDate: this.radioSelected.long,
+        //     amount: this.value,
+        //     memo: this.text,
+        //     moderator: this.$store.state.moderator.id,
+        //   },
+        // ]
         // eslint-disable-next-line no-console
         console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
-
+        this.$apollo
+          .mutate({
+            mutation: createPendingCreations,
+            variables: {
+              pendingCreations: this.submitObj,
+            },
+          })
+          .then(() => {
+            this.$store.commit('openCreationsPlus', this.submitObj.length)
+            this.$emit('remove-all-bookmark')
+          })
+          .catch(() => {
+            console.log('Fehler bei der mehrfach Schöpfung')
+          })
         // $store - offene Schöpfungen hochzählen
-        this.$store.commit('openCreationsPlus', i)
+        // this.$store.commit('openCreationsPlus', i)
 
         // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
-        this.$emit('remove-all-bookmark')
+        // this.$emit('remove-all-bookmark')
       } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
