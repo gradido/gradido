@@ -124,7 +124,7 @@ export default {
           this.$toasted.success(this.$t('settings.name.change-success'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
     },
   },

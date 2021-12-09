@@ -52,7 +52,9 @@ describe('Login', () => {
       push: mockRouterPush,
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       query: apolloQueryMock,

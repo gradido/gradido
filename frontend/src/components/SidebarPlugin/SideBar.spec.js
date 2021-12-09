@@ -167,7 +167,10 @@ describe('SideBar', () => {
           beforeEach(async () => {
             mocks.$store.state.isAdmin = true
             mocks.$store.state.token = 'valid-token'
-            window.location.assign = assignLocationSpy
+            delete window.location
+            window.location = {
+              assign: assignLocationSpy,
+            }
             wrapper = Wrapper()
           })
 
