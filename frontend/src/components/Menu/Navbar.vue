@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="component-navbar">
     <b-navbar toggleable="lg" type="light" variant="trans">
       <div class="navbar-brand">
         <b-navbar-nav>
@@ -13,7 +13,7 @@
       <div class="d-flex d-xl-none d-lg-none d-md-flex">
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
-            <b-nav-item to="/overview">{{ $t('overview') }}</b-nav-item>
+            <b-nav-item to="/overview" class="test-overview">{{ $t('overview') }}</b-nav-item>
             <b-nav-item to="/send">{{ $t('send') }}</b-nav-item>
             <b-nav-item to="/transactions">{{ $t('transactions') }}</b-nav-item>
             <b-nav-item to="/profile">{{ $t('site.navbar.my-profil') }}</b-nav-item>
@@ -22,7 +22,11 @@
               {{ $t('members_area') }}
               <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
             </b-nav-item>
-            <b-nav-item v-if="$store.state.isAdmin" class="mb-3" @click="$emit('admin')">
+            <b-nav-item
+              v-if="$store.state.isAdmin"
+              class="test-overview mb-3"
+              @click="$emit('admin')"
+            >
               {{ $t('admin_area') }}
             </b-nav-item>
             <b-nav-item class="mb-3" @click="$emit('logout')">

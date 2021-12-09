@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="component-sidebar">
     <div class="px-3 py-2">
       <p></p>
       <div class="mb-6">
