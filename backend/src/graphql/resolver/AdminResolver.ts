@@ -63,6 +63,19 @@ export class AdminResolver {
   }
 
   // @Authorized([RIGHTS.SEARCH_USERS])
+  @Mutation(() => Boolean)
+  async createPendingCreations(
+    @Arg('pendingCreations', () => [CreatePendingCreationArgs])
+    pendingCreations: CreatePendingCreationArgs[],
+  ): Promise<boolean> {
+    pendingCreations.forEach((pendingCreation) => {
+      console.log('pendingCreation', pendingCreation)
+      this.createPendingCreation(pendingCreation)
+    })
+    return true
+  }
+
+  // @Authorized([RIGHTS.SEARCH_USERS])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
@@ -90,22 +103,6 @@ export class AdminResolver {
     result.creation = await getUserCreations(user.id)
 
     return result
-
-    // const creations = await getUserCreations(user.id)
-    // const creationDateObj = new Date(creationDate)
-    // if (isCreationValid(creations, amount, creationDateObj)) {
-    //   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-    //   const loginPendingTaskAdmin = pendingCreationRepository.create()
-    //   loginPendingTaskAdmin.userId = user.id
-    //   loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-    //   loginPendingTaskAdmin.created = new Date()
-    //   loginPendingTaskAdmin.date = creationDateObj
-    //   loginPendingTaskAdmin.memo = memo
-    //   loginPendingTaskAdmin.moderator = moderator
-    //
-    //   pendingCreationRepository.save(loginPendingTaskAdmin)
-    // }
-    // return await getUserCreations(user.id)
   }
 
   @Query(() => [PendingCreation])
