@@ -236,13 +236,20 @@ export default {
             variables: {
               pendingCreations: this.submitObj,
             },
+            fetchPolicy: 'no-cache',
           })
-          .then(() => {
-            this.$store.commit('openCreationsPlus', this.submitObj.length)
+          .then((result) => {
+            console.log('result', result)
+            this.$store.commit(
+              'openCreationsPlus',
+              result.data.createPendingCreations.successfulCreation.length,
+            )
+            if (result.data.createPendingCreations.failedCreation.length > 0) {
+              result.data.createPendingCreations.failedCreation.forEach((failed) => {
+                this.$toasted.error('Could not created PendingCreation for ' + failed)
+              })
+            }
             this.$emit('remove-all-bookmark')
-          })
-          .catch(() => {
-            console.log('Fehler bei der mehrfach Schöpfung')
           })
         // $store - offene Schöpfungen hochzählen
         // this.$store.commit('openCreationsPlus', i)

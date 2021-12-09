@@ -2,6 +2,7 @@ import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
+import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
@@ -63,17 +64,62 @@ export class AdminResolver {
   }
 
   // @Authorized([RIGHTS.SEARCH_USERS])
-  @Mutation(() => Boolean)
+  @Mutation(() => CreatePendingCreations)
   async createPendingCreations(
     @Arg('pendingCreations', () => [CreatePendingCreationArgs])
     pendingCreations: CreatePendingCreationArgs[],
-  ): Promise<boolean> {
-    pendingCreations.forEach((pendingCreation) => {
-      this.createPendingCreation(pendingCreation).catch((error) => {
-        console.log('pendingCreation ' + JSON.stringify(pendingCreation) + ' had an error ' + error)
-      })
+  ): Promise<CreatePendingCreations> {
+    let success = false
+    const successfulCreation: string[] = []
+    const failedCreation: string[] = []
+    for (const pendingCreation of pendingCreations) {
+      await this.createPendingCreation(pendingCreation)
+        .then((result) => {
+          console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
+          successfulCreation.push(pendingCreation.email)
+          success = true
+        })
+        .catch(() => {
+          console.log('Failed to creat ' + JSON.stringify(pendingCreation))
+          failedCreation.push(pendingCreation.email)
+        })
+    }
+    // await Promise.all(
+    //   pendingCreations.map(async (pendingCreation) => {
+    //     await this.createPendingCreation(pendingCreation)
+    //       .then((result) => {
+    //         console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
+    //         successfulCreation.push(pendingCreation.email)
+    //         success = true
+    //       })
+    //       .catch(() => {
+    //         console.log('Failed to creat ' + JSON.stringify(pendingCreation))
+    //         failedCreation.push(pendingCreation.email)
+    //       })
+    //   }),
+    // )
+    // await pendingCreations.forEach(async (pendingCreation) => {
+    //   await this.createPendingCreation(pendingCreation)
+    //     .then((result) => {
+    //       console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
+    //       successfulCreation.push(pendingCreation.email)
+    //       success = true
+    //     })
+    //     .catch(() => {
+    //       console.log('Failed to creat ' + JSON.stringify(pendingCreation))
+    //       failedCreation.push(pendingCreation.email)
+    //     })
+    // })
+    console.log('createPendingCreations', {
+      success,
+      successfulCreation,
+      failedCreation,
     })
-    return true
+    return {
+      success,
+      successfulCreation,
+      failedCreation,
+    }
   }
 
   // @Authorized([RIGHTS.SEARCH_USERS])
