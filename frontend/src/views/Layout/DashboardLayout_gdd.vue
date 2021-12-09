@@ -1,7 +1,7 @@
 <template>
   <div>
     <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
-    <div style="display: inline-flex; width: 100%">
+    <div style="display: inline-flex; width: 100%; height: 91%; position: absolute">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
         <sidebar @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
       </div>
