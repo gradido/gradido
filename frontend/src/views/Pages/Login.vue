@@ -104,13 +104,8 @@ export default {
           this.$router.push('/overview')
           loader.hide()
         })
-        .catch((error) => {
-          if (error.message.includes('No user with this credentials')) {
-            this.$toasted.global.error(this.$t('error.no-account'))
-          } else {
-            // : this.$t('error.no-email-verify')
-            this.$router.push('/reset/login')
-          }
+        .catch(() => {
+          this.$toasted.global.error(this.$t('error.no-account'))
           loader.hide()
         })
     },
