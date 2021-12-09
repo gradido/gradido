@@ -15,7 +15,7 @@
           <b-nav vertical class="w-100">
             <b-nav-item class="mb-3" active>Active</b-nav-item>
             <b-nav-item class="mb-3">Link</b-nav-item>
-            <b-nav-item class="mb-3">Another Link</b-nav-item>
+            <b-nav-item class="mb-3" @click="$emit('admin')">{{ $t('admin_area') }}</b-nav-item>
             <b-nav-item class="mb-3" @click="$emit('logout')">{{ $t('logout') }}</b-nav-item>
           </b-nav>
         </div>
