@@ -37,18 +37,7 @@
       </div>
       <b-navbar-toggle @click="visible = !visible"></b-navbar-toggle>
     </b-navbar>
-    <b-collapse
-      id="collapse-4"
-      v-model="visible"
-      class="p-3"
-      style="
-        position: absolute;
-        z-index: 100000;
-        background-color: #dfe0e3f5;
-        width: 100%;
-        box-shadow: cadetblue 0px 13px 22px;
-      "
-    >
+    <b-collapse id="collapse-4" v-model="visible" class="p-3 b-collaps-gradido">
       <b-nav vertical @click="visible = false">
         <b-nav-item to="/overview" class="mb-3">
           {{ $t('overview') }}
@@ -90,3 +79,12 @@ export default {
   },
 }
 </script>
+<style>
+.b-collaps-gradido {
+  position: absolute;
+  z-index: 100000;
+  background-color: #dfe0e3f5;
+  width: 100%;
+  box-shadow: cadetblue 0px 13px 22px;
+}
+</style>
