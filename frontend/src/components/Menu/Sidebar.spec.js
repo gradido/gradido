@@ -33,7 +33,6 @@ describe('Sidebar', () => {
   })
 
   describe('navigation Navbar', () => {
-      
     it('has seven b-nav-item in the navbar', () => {
       expect(wrapper.findAll('.nav-item')).toHaveLength(7)
     })
@@ -61,7 +60,5 @@ describe('Sidebar', () => {
     it('has first nav-item "logout" in navbar', () => {
       expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('logout')
     })
-
-
   })
 })
