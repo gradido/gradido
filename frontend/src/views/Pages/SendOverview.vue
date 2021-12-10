@@ -1,20 +1,17 @@
 <template>
   <div>
     <b-container fluid>
-      <b-row>
-        <b-col class="bg-gray text-white text-center p-3">
-          <status
+      
+         <status
             class="gdd-status-gdd"
             v-if="showContext"
             :pending="pending"
             :balance="balance"
             status-text="GDD"
+            style="position: absolute; right: 28px;z-index: 1;"
           />
-        </b-col>
-      </b-row>
-
-      <br />
       <gdd-send :currentTransactionStep="currentTransactionStep">
+        
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
