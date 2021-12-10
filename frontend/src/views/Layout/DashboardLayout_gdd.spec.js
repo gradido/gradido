@@ -138,9 +138,7 @@ describe('DashboardLayoutGdd', () => {
         )
       })
 
-      it('has a logout button', () => {
-        expect(wrapper.findAll('ul').at(3).text()).toBe('logout')
-      })
+     
 
       describe('logout', () => {
         beforeEach(async () => {

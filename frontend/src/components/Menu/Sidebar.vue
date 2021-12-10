@@ -14,7 +14,7 @@
         </b-nav>
         <hr />
         <b-nav vertical class="w-100">
-          <b-nav-item class="mb-3" @click="$emit('get-elopage-link')">
+          <b-nav-item class="mb-3" :href="elopageUri" target="_blank">
             <b-icon icon="link45deg" aria-hidden="true"></b-icon>
             {{ $t('members_area') }}
             <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
@@ -35,5 +35,11 @@
 <script>
 export default {
   name: 'sidebar',
+  props: {
+    elopageUri: {
+      type: String,
+      required: false,
+    },
+  },
 }
 </script>

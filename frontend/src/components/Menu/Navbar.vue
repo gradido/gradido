@@ -49,7 +49,7 @@
           {{ $t('site.navbar.my-profil') }}
         </b-nav-item>
         <br />
-        <b-nav-item class="mb-3" @click="$emit('getElopageLink')">
+        <b-nav-item :href="elopageUri" class="mb-3" target="_blank">
           <b-icon icon="link45deg" aria-hidden="true"></b-icon>
           {{ $t('members_area') }}
           <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
@@ -77,6 +77,10 @@ export default {
     balance: {
       type: Number,
       required: true,
+    },
+    elopageUri: {
+      type: String,
+      required: false,
     },
   },
   data() {

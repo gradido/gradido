@@ -68,6 +68,15 @@ describe('Navbar', () => {
     it('has first nav-item "members_area" in navbar', () => {
       expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('members_area')
     })
+
+    it('has a link to the members area', () => {
+      expect(wrapper.findAll('.nav-item').at(7).text()).toContain('members_area')
+      expect(wrapper.findAll('.nav-item').at(7).find('a').attributes('href')).toBe(
+        'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=User&lastName=Example&email=user@example.org',
+      )
+    })
+
+
     it('has first nav-item "admin_area" in navbar', () => {
       expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('admin_area')
     })
