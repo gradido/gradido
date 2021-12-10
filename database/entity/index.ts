@@ -1,7 +1,7 @@
 import { Balance } from './Balance'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
-import { LoginPendingTasks } from './LoginPendingTasks'
+import { LoginPendingTask } from './LoginPendingTask'
 import { LoginPendingTasksAdmin } from './LoginPendingTasksAdmin'
 import { LoginUser } from './LoginUser'
 import { LoginUserRoles } from './LoginUserRoles'
@@ -20,7 +20,7 @@ export const entities = [
   Balance,
   LoginElopageBuys,
   LoginEmailOptIn,
-  LoginPendingTasks,
+  LoginPendingTask,
   LoginPendingTasksAdmin,
   LoginUser,
   LoginUserRoles,
