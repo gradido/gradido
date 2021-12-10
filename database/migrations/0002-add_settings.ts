@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* FIRST MIGRATION
  *
  * This migration is special since it takes into account that
@@ -11,7 +14,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
-      CREATE TABLE \`user_setting\` (
+      CREATE TABLE IF NOT EXISTS \`user_setting\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
         \`userId\` int(11) NOT NULL,
         \`key\` varchar(255) NOT NULL,
@@ -22,5 +25,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`user_setting\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`user_setting\`;`)
 }

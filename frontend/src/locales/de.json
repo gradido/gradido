@@ -48,7 +48,7 @@
     "error": "Fehler",
     "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
     "no-email-verify": "Die Email wurde noch nicht bestätigt, bitte überprüfe deine Emails und klicke auf den Aktivierungslink!",
-    "session-expired": "Sitzung abgelaufen!"
+    "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
   },
   "form": {
     "amount": "Betrag",
@@ -114,6 +114,11 @@
   "message": "hallo gradido !!",
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
+  "publisher": {
+    "infoNoRegister": "Dies ist für die Registrieung nicht nötig!",
+    "infoText": "Trage hier die ID des Herausgebers ein. Wenn du keine ID hast dann bitte leer lassen.",
+    "publisherId": "PublisherID"
+  },
   "send": "Senden",
   "settings": {
     "coinanimation": {
@@ -140,12 +145,17 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
+      "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen, Du kannst hier ein neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
-        "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
         "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
       },
       "send_now": "Jetzt senden",
+      "set": "Passwort festlegen",
+      "set-password": {
+        "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
+      },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     }
   },

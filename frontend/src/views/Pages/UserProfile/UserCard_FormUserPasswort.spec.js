@@ -17,7 +17,9 @@ describe('UserCard_FormUserPasswort', () => {
     $t: jest.fn((t) => t),
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       mutate: changePasswordProfileMock,

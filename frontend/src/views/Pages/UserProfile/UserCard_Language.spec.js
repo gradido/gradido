@@ -28,7 +28,9 @@ describe('UserCard_Language', () => {
     },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       mutate: mockAPIcall,

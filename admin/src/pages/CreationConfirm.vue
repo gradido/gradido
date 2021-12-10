@@ -1,9 +1,5 @@
 <template>
   <div class="creation-confirm">
-    <small class="bg-danger text-light p-1">
-      Die anzahl der offene Schöpfungen stimmen nicht! Diese wird bei absenden im $store
-      hochgezählt. Die Liste die hier angezeigt wird ist SIMULIERT!
-    </small>
     <user-table
       class="mt-4"
       type="PageCreationConfirm"
@@ -15,6 +11,8 @@
 </template>
 <script>
 import UserTable from '../components/UserTable.vue'
+import { getPendingCreations } from '../graphql/getPendingCreations'
+import { deletePendingCreation } from '../graphql/deletePendingCreation'
 
 export default {
   name: 'CreationConfirm',
@@ -30,120 +28,68 @@ export default {
         { key: 'firstName', label: 'Vorname' },
         { key: 'lastName', label: 'Nachname' },
         {
-          key: 'creation_gdd',
+          key: 'amount',
           label: 'Schöpfung',
           formatter: (value) => {
             return value + ' GDD'
           },
         },
-        { key: 'text', label: 'Text' },
+        { key: 'memo', label: 'Text' },
         {
-          key: 'creation_date',
+          key: 'date',
           label: 'Datum',
           formatter: (value) => {
-            return value.long
+            return this.$moment(value).format('ll')
           },
         },
-        { key: 'creation_moderator', label: 'Moderator' },
+        { key: 'moderator', label: 'Moderator' },
         { key: 'edit_creation', label: 'ändern' },
         { key: 'confirm', label: 'speichern' },
       ],
-      confirmResult: [
-        {
-          id: 1,
-          email: 'dickerson@web.de',
-          firstName: 'Dickerson',
-          lastName: 'Macdonald',
-          creation: '[450,200,700]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
-
-          creation_date: {
-            short: 'November',
-            long: '22/11/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 2,
-          email: 'larsen@woob.de',
-          firstName: 'Larsen',
-          lastName: 'Shaw',
-          creation: '[300,200,1000]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam ',
-
-          creation_date: {
-            short: 'November',
-            long: '03/11/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 3,
-          email: 'geneva@tete.de',
-          firstName: 'Geneva',
-          lastName: 'Wilson',
-          creation: '[350,200,900]',
-          creation_gdd: '1000',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam',
-          creation_date: {
-            short: 'September',
-            long: '27/09/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-        {
-          id: 4,
-          email: 'viewrter@asdfvb.com',
-          firstName: 'Soledare',
-          lastName: 'Takker',
-          creation: '[100,400,800]',
-          creation_gdd: '500',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo ',
-          creation_date: {
-            short: 'Oktober',
-            long: '12/10/2021',
-          },
-          creation_moderator: 'Evelyn Roller',
-        },
-        {
-          id: 5,
-          email: 'dickerson@web.de',
-          firstName: 'Dickerson',
-          lastName: 'Macdonald',
-          creation: '[100,400,800]',
-          creation_gdd: '200',
-          text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At',
-          creation_date: {
-            short: 'September',
-            long: '05/09/2021',
-          },
-          creation_moderator: 'Manuela Gast',
-        },
-      ],
+      confirmResult: [],
     }
   },
-
   methods: {
     removeConfirmResult(e, event) {
       if (event === 'remove') {
         let index = 0
-        let findArr = {}
-
-        findArr = this.confirmResult.find((arr) => arr.id === e.id)
-
-        index = this.confirmResult.indexOf(findArr)
-
-        this.confirmResult.splice(index, 1)
-
-        this.$store.commit('openCreationsMinus', 1)
+        const findArr = this.confirmResult.find((arr) => arr.id === e.id)
+        this.$apollo
+          .mutate({
+            mutation: deletePendingCreation,
+            variables: {
+              id: findArr.id,
+            },
+          })
+          .then((result) => {
+            index = this.confirmResult.indexOf(findArr)
+            this.confirmResult.splice(index, 1)
+            this.$store.commit('openCreationsMinus', 1)
+            this.$toasted.success('Pending Creation has been deleted')
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
       }
     },
+    getPendingCreations() {
+      this.$apollo
+        .query({
+          query: getPendingCreations,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.$store.commit('resetOpenCreations')
+          this.confirmResult = result.data.getPendingCreations.reverse()
+          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
   },
-  created() {
-    this.$store.commit('resetOpenCreations')
-    this.$store.commit('openCreationsPlus', Object.keys(this.confirmResult).length)
+  async created() {
+    await this.getPendingCreations()
   },
 }
 </script>
