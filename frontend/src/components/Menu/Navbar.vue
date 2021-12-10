@@ -21,12 +21,12 @@
       </b-navbar-nav>
 
       <b-navbar-toggle
-        target="nav-collapse"
+        target="collapse-nav"
         @click="$emit('set-visible', (visibleCollapse = !visible))"
       ></b-navbar-toggle>
     </b-navbar>
 
-    <b-collapse id="collapse-4" v-model="visibleCollapse" class="p-3 b-collaps-gradido">
+    <b-collapse id="collapse-nav" v-model="visibleCollapse" class="p-3 b-collaps-gradido">
       <b-nav vertical @click="$emit('set-visible', false)">
         <div class="text-right">
           <b-link to="/profile">

@@ -37,22 +37,42 @@ describe('Navbar', () => {
       expect(wrapper.find('div.component-navbar').exists()).toBeTruthy()
     })
   })
-  // describe('find link admin and evented click', () => {
-  //   beforeEach(async () => {
-  //     await wrapper.find('.test-admin').trigger('click')
-  //   })
 
-  //   it('find link admin and click', () => {
-  //     expect(wrapper.emitted('admin')).toBeTruthy()
-  //     expect(wrapper.emitted('admin')).toEqual([
-  //       [
-  //         {
-  //           email: 'someone@watches.tv',
-  //           amount: 87.23,
-  //           memo: 'Long enough',
-  //         },
-  //       ],
-  //     ])
-  //   })
-  // })
+  describe('navigation Navbar', () => {
+    it('has .navbar-brand in the navbar', () => {
+      expect(wrapper.find('.navbar-brand').exists()).toBeTruthy()
+    })
+    it('has b-navbar-toggle in the navbar', () => {
+      expect(wrapper.find('.navbar-toggler').exists()).toBeTruthy()
+    })
+    it('has ten b-nav-item in the navbar', () => {
+      expect(wrapper.findAll('.nav-item')).toHaveLength(10)
+    })
+
+    it('has first nav-item "amount GDD" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('1234 GDD')
+    })
+
+    it('has first nav-item "overview" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('overview')
+    })
+    it('has first nav-item "send" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('send')
+    })
+    it('has first nav-item "transactions" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('transactions')
+    })
+    it('has first nav-item "my-profil" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('site.navbar.my-profil')
+    })
+    it('has first nav-item "members_area" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('members_area')
+    })
+    it('has first nav-item "admin_area" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('admin_area')
+    })
+    it('has first nav-item "logout" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('logout')
+    })
+  })
 })
