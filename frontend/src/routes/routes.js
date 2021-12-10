@@ -50,7 +50,7 @@ const routes = [
     path: '/thx/:comingFrom',
     component: () => import('../views/Pages/thx.vue'),
     beforeEnter: (to, from, next) => {
-      const validFrom = ['password', 'reset', 'register', 'login']
+      const validFrom = ['password', 'reset', 'register', 'login', 'Login']
       if (!validFrom.includes(from.path.split('/')[1])) {
         next({ path: '/login' })
       } else {
@@ -60,6 +60,10 @@ const routes = [
   },
   {
     path: '/password',
+    component: () => import('../views/Pages/ForgotPassword.vue'),
+  },
+  {
+    path: '/password/:comingFrom',
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
@@ -76,7 +80,7 @@ const routes = [
   },
   {
     path: '/checkEmail/:optin',
-    component: () => import('../views/Pages/CheckEmail.vue'),
+    component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]

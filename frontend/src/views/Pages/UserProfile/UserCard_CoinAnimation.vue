@@ -58,7 +58,7 @@ export default {
         })
         .catch((error) => {
           this.CoinAnimationStatus = this.$store.state.coinanimation
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
     },
   },

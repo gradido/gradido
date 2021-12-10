@@ -39,7 +39,9 @@ describe('DashboardLayoutGdd', () => {
       },
     },
     $toasted: {
-      error: toasterMock,
+      global: {
+        error: toasterMock,
+      },
     },
     $apollo: {
       query: apolloMock,
@@ -216,7 +218,7 @@ describe('DashboardLayoutGdd', () => {
           expect(wrapper.vm.pending).toBeTruthy()
         })
 
-        it('calls $toasted.error method', () => {
+        it('calls $toasted.global.error method', () => {
           expect(toasterMock).toBeCalledWith('Ouch!')
         })
       })

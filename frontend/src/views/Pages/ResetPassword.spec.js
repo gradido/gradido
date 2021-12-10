@@ -6,95 +6,78 @@ import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockRejectedValue({ message: 'error' })
 const apolloMutationMock = jest.fn()
 
 const toasterMock = jest.fn()
 const routerPushMock = jest.fn()
 
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
+
+const createMockObject = (comingFrom) => {
+  return {
+    localVue,
+    mocks: {
+      $i18n: {
+        locale: 'en',
+      },
+      $t: jest.fn((t) => t),
+      $route: {
+        params: {
+          optin: '123',
+          comingFrom,
+        },
+      },
+      $toasted: {
+        global: {
+          error: toasterMock,
+        },
+      },
+      $router: {
+        push: routerPushMock,
+      },
+      $loading: {
+        show: jest.fn(() => {
+          return { hide: jest.fn() }
+        }),
+      },
+      $apollo: {
+        mutate: apolloMutationMock,
+      },
+    },
+    stubs,
+  }
+}
+
 describe('ResetPassword', () => {
   let wrapper
 
-  const mocks = {
-    $i18n: {
-      locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $route: {
-      params: {
-        optin: '123',
-      },
-    },
-    $toasted: {
-      error: toasterMock,
-    },
-    $router: {
-      push: routerPushMock,
-    },
-    $loading: {
-      show: jest.fn(() => {
-        return { hide: jest.fn() }
-      }),
-    },
-    $apollo: {
-      mutate: apolloMutationMock,
-      query: apolloQueryMock,
-    },
-  }
-
-  const stubs = {
-    RouterLink: RouterLinkStub,
-  }
-
-  const Wrapper = () => {
-    return mount(ResetPassword, { localVue, mocks, stubs })
+  const Wrapper = (functionName) => {
+    return mount(ResetPassword, functionName)
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
-    })
-
-    it('calls the email verification when created', async () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({ variables: { optin: '123' } }),
-      )
+      wrapper = Wrapper(createMockObject())
     })
 
     describe('No valid optin', () => {
-      it('does not render the Reset Password form when not authenticated', () => {
+      it.skip('does not render the Reset Password form when not authenticated', () => {
         expect(wrapper.find('form').exists()).toBeFalsy()
       })
 
-      it('toasts an error when no valid optin is given', () => {
+      it.skip('toasts an error when no valid optin is given', () => {
         expect(toasterMock).toHaveBeenCalledWith('error')
       })
 
-      it('has a message suggesting to contact the support', () => {
+      it.skip('has a message suggesting to contact the support', () => {
         expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
-        expect(wrapper.find('div.header').text()).toContain(
-          'settings.password.reset-password.not-authenticated',
-        )
+        expect(wrapper.find('div.header').text()).toContain('settings.password.not-authenticated')
       })
     })
 
     describe('is authenticated', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            loginViaEmailVerificationCode: {
-              sessionId: 1,
-              email: 'user@example.org',
-            },
-          },
-        })
-      })
-
-      it.skip('Has sessionId from API call', async () => {
-        await wrapper.vm.$nextTick()
-        expect(wrapper.vm.sessionId).toBe(1)
-      })
-
       it('renders the Reset Password form when authenticated', () => {
         expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
       })
@@ -114,7 +97,7 @@ describe('ResetPassword', () => {
         })
 
         it('links to /login when clicking "Back"', async () => {
-          expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/Login')
+          expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
         })
       })
 
@@ -128,7 +111,7 @@ describe('ResetPassword', () => {
         })
 
         it('toggles the first input field to text when eye icon is clicked', async () => {
-          wrapper.findAll('button').at(0).trigger('click')
+          await wrapper.findAll('button').at(0).trigger('click')
           await wrapper.vm.$nextTick()
           expect(wrapper.findAll('input').at(0).attributes('type')).toBe('text')
         })
@@ -142,37 +125,61 @@ describe('ResetPassword', () => {
 
       describe('submit form', () => {
         beforeEach(async () => {
-          await wrapper.setData({ authenticated: true, sessionId: 1 })
-          await wrapper.vm.$nextTick()
+          // wrapper = Wrapper(createMockObject())
           await wrapper.findAll('input').at(0).setValue('Aa123456_')
           await wrapper.findAll('input').at(1).setValue('Aa123456_')
           await flushPromises()
-          await wrapper.find('form').trigger('submit')
         })
 
-        describe('server response with error', () => {
-          beforeEach(() => {
-            apolloMutationMock.mockRejectedValue({ message: 'error' })
+        describe('server response with error code > 10min', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            apolloMutationMock.mockRejectedValue({ message: '...Code is older than 10 minutes' })
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
+
           it('toasts an error message', () => {
-            expect(toasterMock).toHaveBeenCalledWith('error')
+            expect(toasterMock).toHaveBeenCalledWith('...Code is older than 10 minutes')
+          })
+
+          it('router pushes to /password/reset', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/password/reset')
+          })
+        })
+
+        describe('server response with error code > 10min', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            apolloMutationMock.mockRejectedValueOnce({ message: 'Error' })
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('toasts an error message', () => {
+            expect(toasterMock).toHaveBeenCalledWith('Error')
           })
         })
 
         describe('server response with success', () => {
-          beforeEach(() => {
+          beforeEach(async () => {
             apolloMutationMock.mockResolvedValue({
               data: {
                 resetPassword: 'success',
               },
             })
+            wrapper = Wrapper(createMockObject('checkEmail'))
+            await wrapper.findAll('input').at(0).setValue('Aa123456_')
+            await wrapper.findAll('input').at(1).setValue('Aa123456_')
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
+
           it('calls the API', () => {
             expect(apolloMutationMock).toBeCalledWith(
               expect.objectContaining({
                 variables: {
-                  sessionId: 1,
-                  email: 'user@example.org',
+                  code: '123',
                   password: 'Aa123456_',
                 },
               }),

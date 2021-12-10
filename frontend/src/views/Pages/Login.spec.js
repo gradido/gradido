@@ -52,7 +52,9 @@ describe('Login', () => {
       push: mockRouterPush,
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       query: apolloQueryMock,
@@ -238,7 +240,7 @@ describe('Login', () => {
         describe('login fails', () => {
           beforeEach(() => {
             apolloQueryMock.mockRejectedValue({
-              message: 'Ouch!',
+              message: '..No user with this credentials',
             })
           })
 

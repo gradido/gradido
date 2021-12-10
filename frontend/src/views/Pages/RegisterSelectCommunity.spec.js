@@ -79,7 +79,9 @@ describe('RegisterSelectCommunity', () => {
       show: spinnerMock,
     },
     $toasted: {
-      error: toasterMock,
+      global: {
+        error: toasterMock,
+      },
     },
   }
 

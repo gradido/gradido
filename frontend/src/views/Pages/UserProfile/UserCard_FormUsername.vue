@@ -100,7 +100,7 @@ export default {
           this.$toasted.success(this.$t('settings.name.change-success'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
           this.showUsername = true
           this.username = this.$store.state.username
           this.form.username = this.$store.state.username

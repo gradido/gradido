@@ -46,15 +46,6 @@ export const logout = gql`
   }
 `
 
-export const loginViaEmailVerificationCode = gql`
-  query($optin: String!) {
-    loginViaEmailVerificationCode(optin: $optin) {
-      sessionId
-      email
-    }
-  }
-`
-
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
@@ -88,9 +79,7 @@ export const transactionsQuery = gql`
 
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
-    sendResetPasswordEmail(email: $email) {
-      state
-    }
+    sendResetPasswordEmail(email: $email)
   }
 `
 
@@ -114,15 +103,6 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
-    }
-  }
-`
-
-export const checkEmailQuery = gql`
-  query($optin: String!) {
-    checkEmail(optin: $optin) {
-      email
-      sessionId
     }
   }
 `
