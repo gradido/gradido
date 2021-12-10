@@ -29,13 +29,13 @@
     <b-collapse id="collapse-4" v-model="visibleCollapse" class="p-3 b-collaps-gradido">
       <b-nav vertical @click="$emit('set-visible', false)">
         <div class="text-right">
-          <router-link to="/profile">
+          <b-link to="/profile">
             <small>
               {{ $store.state.firstName }}
               {{ $store.state.lastName }},
               <b>{{ $store.state.email }}</b>
             </small>
-          </router-link>
+          </b-link>
         </div>
         <b-nav-item to="/overview" class="mb-3">
           {{ $t('overview') }}

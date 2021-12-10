@@ -5,6 +5,7 @@ const localVue = global.localVue
 
 const propsData = {
   balance: 1234,
+  visible: false,
 }
 
 const mocks = {

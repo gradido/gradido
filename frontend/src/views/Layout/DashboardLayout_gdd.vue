@@ -11,7 +11,12 @@
     />
     <div class="content-gradido">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
-        <sidebar class="main-sidebar" @getElopageLink="getElopageLink" @admin="admin" @logout="logout" />
+        <sidebar
+          class="main-sidebar"
+          @getElopageLink="getElopageLink"
+          @admin="admin"
+          @logout="logout"
+        />
       </div>
 
       <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">

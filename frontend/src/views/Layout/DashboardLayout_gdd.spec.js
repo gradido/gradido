@@ -1,5 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import flushPromises from 'flush-promises'
+// import flushPromises from 'flush-promises'
 import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
