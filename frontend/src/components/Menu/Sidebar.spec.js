@@ -51,8 +51,9 @@ describe('Sidebar', () => {
     it('has first nav-item "my-profil" in navbar', () => {
       expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('site.navbar.my-profil')
     })
-    it('has first nav-item "members_area" in navbar', () => {
-      expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('members_area')
+    it('has a link to the members area', () => {
+      expect(wrapper.findAll('.nav-item').at(4).text()).toContain('members_area')
+      expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe('#')
     })
     it('has first nav-item "admin_area" in navbar', () => {
       expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('admin_area')
