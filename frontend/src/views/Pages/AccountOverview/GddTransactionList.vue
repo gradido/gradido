@@ -16,11 +16,6 @@
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <div v-if="type === 'decay' && !decay" class="text-right">
-          <b-icon icon="exclamation-triangle" style="color: red"></b-icon>
-          <small>{{ $t('error.no-decay-transactionlist') }}</small>
-        </div>
-
         <div
           class="list-group-item gdd-transaction-list-item"
           v-b-toggle="'decay-' + transactionId"

@@ -48,7 +48,6 @@
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
-    "no-decay-transactionlist": "Error: No Decay available, please check the code!",
     "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
     "no-transactionlist": "Unfortunately, there was an error. No transactions are being sent from the server.",
     "session-expired": "The session was closed for security reasons."
