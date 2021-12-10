@@ -1,32 +1,29 @@
-import { Resolver, Query, Arg, Authorized, Ctx } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
-import { UserAdmin } from '../model/UserAdmin'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
+import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
+import { getCustomRepository, Raw } from 'typeorm'
+import moment from 'moment'
+
 import { RIGHTS } from '../../auth/RIGHTS'
 import { proto } from '../../proto/gradido.proto'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
+
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { TransactionSignature as DbTransactionSignature } from '@entity/TransactionSignature'
-import { UserRepository } from '../../typeorm/repository/User'
-import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
-import { getCustomRepository, Raw } from 'typeorm'
+import { TransactionCreation } from '@entity/TransactionCreation'
+import { UserTransaction } from '@entity/UserTransaction'
+
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
-import { RIGHTS } from '../../auth/RIGHTS'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { PendingCreationRepository } from '../../typeorm/repository/PendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
-import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
-import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
-import moment from 'moment'
-import { Transaction } from '@entity/Transaction'
-import { TransactionCreation } from '@entity/TransactionCreation'
-import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
+
+import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
+import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -343,7 +340,7 @@ export class AdminResolver {
     const pendingCreation = await pendingCreationRepository.findOneOrFail(id)
 
     const transactionRepository = getCustomRepository(TransactionRepository)
-    let transaction = new Transaction()
+    let transaction = new DbTransaction()
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
     transaction.received = new Date()
