@@ -104,8 +104,11 @@ export default {
           this.$router.push('/overview')
           loader.hide()
         })
-        .catch(() => {
+        .catch((error) => {
           this.$toasted.global.error(this.$t('error.no-account'))
+          if (error.message.uncludes('User email not validated')) {
+            this.$router.push('/reset/login')
+          }
           loader.hide()
         })
     },
