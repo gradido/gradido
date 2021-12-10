@@ -97,6 +97,6 @@ export default {
   z-index: 100000;
   background-color: #dfe0e3f5;
   width: 100%;
-  box-shadow: cadetblue 0px 13px 22px;
+  box-shadow: #b4b4b4 0px 13px 22px;
 }
 </style>
