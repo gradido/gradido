@@ -4,7 +4,7 @@
       <b-row>
         <b-col class="col-6">
           <b-row>
-            <b-col class="col-11 bg-gray text-white ml-2 p-3">
+            <b-col class="col-11 ml-2 p-3" style="background-color: #f0f0f0">
               <status
                 class="gdd-status-gdd"
                 :pending="pending"
@@ -16,7 +16,7 @@
         </b-col>
         <b-col class="col-6 text-right">
           <b-row>
-            <b-col class="bg-white text-gray p-3">
+            <b-col class="p-3" style="background-color: #f0f0f0">
               <status
                 class="gdd-status-gdt"
                 :pending="pending"
