@@ -45,13 +45,13 @@
   },
   "error": {
     "change-password": "Error while changing password",
+    "empty-transactionlist": "There are no transactions under your account yet.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
+    "no-decay-transactionlist": "Error: No Decay available, please check the code!",
     "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
-    "session-expired": "The session was closed for security reasons.",
-    "no-transactionlist":"Unfortunately, there was an error. No transactions are being sent from the server.",
-    "empty-transactionlist":"There are no transactions under your account yet.",
-    "no-decay-transactionlist":"Error: No Decay available, please check the code!"
+    "no-transactionlist": "Unfortunately, there was an error. No transactions are being sent from the server.",
+    "session-expired": "The session was closed for security reasons."
   },
   "form": {
     "amount": "Amount",
