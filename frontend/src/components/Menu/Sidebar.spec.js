@@ -30,7 +30,6 @@ describe('Sidebar', () => {
     it('renders the component', () => {
       expect(wrapper.find('div#component-sidebar').exists()).toBeTruthy()
     })
-  })
 
   describe('navigation Navbar', () => {
     it('has seven b-nav-item in the navbar', () => {
