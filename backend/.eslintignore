@@ -1,3 +1,5 @@
 node_modules
 **/*.min.js
 build
+src/proto/*.ts
+src/proto/*.js
