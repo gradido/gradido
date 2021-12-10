@@ -31,4 +31,37 @@ describe('Sidebar', () => {
       expect(wrapper.find('div#component-sidebar').exists()).toBeTruthy()
     })
   })
+
+  describe('navigation Navbar', () => {
+      
+    it('has seven b-nav-item in the navbar', () => {
+      expect(wrapper.findAll('.nav-item')).toHaveLength(7)
+    })
+
+    it('has first nav-item "overview" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(0).text()).toEqual('overview')
+    })
+
+    it('has first nav-item "send" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('send')
+    })
+
+    it('has first nav-item "transactions" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('transactions')
+    })
+    it('has first nav-item "my-profil" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('site.navbar.my-profil')
+    })
+    it('has first nav-item "members_area" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('members_area')
+    })
+    it('has first nav-item "admin_area" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('admin_area')
+    })
+    it('has first nav-item "logout" in navbar', () => {
+      expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('logout')
+    })
+
+
+  })
 })
