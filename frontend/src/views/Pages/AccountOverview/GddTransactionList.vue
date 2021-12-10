@@ -1,11 +1,27 @@
 <template>
   <div class="gdd-transaction-list">
     <div class="list-group">
+      <div v-if="!transactions" class="text-right">
+        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <small>
+          Es gab leider einen Fehler. Es werden keine Transaktionen vom Server übermittelt.
+        </small>
+      </div>
+      <div v-if="transactions.length === 0" class="text-right">
+        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <small>Es gibt noch keine Transaktionen unter deinem Account.</small>
+      </div>
       <div
         v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
+        <div v-if="type === 'decay' && !decay" class="text-right">
+          <b-icon icon="exclamation-triangle" style="color: red"></b-icon>
+          <small>
+            {{ !decay ? 'Fehler: Kein Decay vorhanden, bitte prüfe den Code!' : decay }}
+          </small>
+        </div>
         <div
           class="list-group-item gdd-transaction-list-item"
           v-b-toggle="'decay-' + transactionId"
