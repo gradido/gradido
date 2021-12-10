@@ -240,17 +240,6 @@ export class AdminResolver {
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
-      const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-      const loginPendingTaskAdmin = pendingCreationRepository.create()
-      loginPendingTaskAdmin.userId = user.id
-      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-      loginPendingTaskAdmin.created = new Date()
-      loginPendingTaskAdmin.date = creationDateObj
-      loginPendingTaskAdmin.memo = memo
-      loginPendingTaskAdmin.moderator = moderator
-
-      pendingCreationRepository.save(loginPendingTaskAdmin)
-
       // PROTO START
       const loginUserRepository = getCustomRepository(LoginUserRepository)
       const loginUser = await loginUserRepository.findOneOrFail({ email })
@@ -267,7 +256,21 @@ export class AdminResolver {
       loginPendingTask.resultJson = ''
       loginPendingTask.paramJson = '{"blockchain_type":1}'
       loginPendingTask.taskTypeId = 10
+
+      await loginPendingTaskRepository.save(loginPendingTask)
       // PROTO END
+
+      const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
+      const loginPendingTaskAdmin = pendingCreationRepository.create()
+      loginPendingTaskAdmin.userId = user.id
+      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
+      loginPendingTaskAdmin.created = new Date()
+      loginPendingTaskAdmin.date = creationDateObj
+      loginPendingTaskAdmin.memo = memo
+      loginPendingTaskAdmin.moderator = moderator
+      loginPendingTaskAdmin.loginPendingTask = loginPendingTask // TODO: remove
+
+      await pendingCreationRepository.save(loginPendingTaskAdmin)
     }
     return await getUserCreations(user.id)
   }
@@ -292,6 +295,24 @@ export class AdminResolver {
     updatedCreation.moderator = moderator
 
     await pendingCreationRepository.save(updatedCreation)
+
+    // PROTO START
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email })
+
+    const loginPendingTask = updatedCreation.loginPendingTask
+
+    loginPendingTask.request = pendingTasksRequestProto(
+      amount * 10000,
+      memo,
+      loginUser.pubKey,
+      updatedCreation.date,
+    )
+
+    const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
+    loginPendingTaskRepository.save(loginPendingTask)
+    // PROTO END
+
     const result = new UpdatePendingCreation()
     result.amount = parseInt(amount.toString())
     result.memo = updatedCreation.memo
@@ -349,6 +370,10 @@ export class AdminResolver {
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const entity = await pendingCreationRepository.findOneOrFail(id)
+    // PROTO START
+    const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
+    await loginPendingTaskRepository.delete(entity.loginPendingTask)
+    // PROTO END
     const res = await pendingCreationRepository.delete(entity)
     return !!res
   }
@@ -408,6 +433,12 @@ export class AdminResolver {
     userBalance.modified = new Date()
     userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
     await balanceRepository.save(userBalance)
+
+    // PROTO START
+    const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
+    await loginPendingTaskRepository.delete(pendingCreation.loginPendingTask)
+    // PROTO END
+
     await pendingCreationRepository.delete(pendingCreation)
 
     return true
