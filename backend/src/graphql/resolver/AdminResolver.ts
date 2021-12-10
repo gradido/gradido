@@ -196,7 +196,7 @@ export class AdminResolver {
     userBalance.userId = pendingCreation.userId
     userBalance.amount = Number(newBalance)
     userBalance.modified = new Date()
-    userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
+    userBalance.recordDate = new Date()
     await balanceRepository.save(userBalance)
     await pendingCreationRepository.delete(pendingCreation)
 
