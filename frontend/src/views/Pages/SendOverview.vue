@@ -1,17 +1,7 @@
 <template>
   <div>
-    <b-container fluid>
-      
-         <status
-            class="gdd-status-gdd"
-            v-if="showContext"
-            :pending="pending"
-            :balance="balance"
-            status-text="GDD"
-            style="position: absolute; right: 28px;z-index: 1;"
-          />
+    <b-container>
       <gdd-send :currentTransactionStep="currentTransactionStep">
-        
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
@@ -38,9 +28,7 @@
   </div>
 </template>
 <script>
-import Status from '../../components/Status.vue'
 import GddSend from './SendOverview/GddSend.vue'
-
 import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
@@ -55,7 +43,6 @@ const EMPTY_TRANSACTION_DATA = {
 export default {
   name: 'SendOverview',
   components: {
-    Status,
     GddSend,
 
     TransactionForm,
