@@ -2,7 +2,7 @@
   <div class="component-navbar" style="background-color: #fff">
     <b-navbar toggleable="lg" type="light" variant="faded">
       <div class="navbar-brand">
-        <b-navbar-nav>
+        <b-navbar-nav @click="$emit('set-visible', false)">
           <b-nav-item to="/overview">
             <img :src="logo" class="navbar-brand-img" alt="..." />
           </b-nav-item>
