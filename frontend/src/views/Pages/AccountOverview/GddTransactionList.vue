@@ -4,12 +4,12 @@
       <div v-if="!transactions" class="text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
         <small>
-          Es gab leider einen Fehler. Es werden keine Transaktionen vom Server übermittelt.
+          {{ $t('error.no-transactionlist')}}
         </small>
       </div>
       <div v-if="transactions.length === 0" class="text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
-        <small>Es gibt noch keine Transaktionen unter deinem Account.</small>
+        <small>{{ $t('error.empty-transactionlist')}}</small>
       </div>
       <div
         v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
@@ -18,10 +18,9 @@
       >
         <div v-if="type === 'decay' && !decay" class="text-right">
           <b-icon icon="exclamation-triangle" style="color: red"></b-icon>
-          <small>
-            {{ !decay ? 'Fehler: Kein Decay vorhanden, bitte prüfe den Code!' : decay }}
-          </small>
+          <small>{{ $t('error.no-decay-transactionlist')}}</small>
         </div>
+
         <div
           class="list-group-item gdd-transaction-list-item"
           v-b-toggle="'decay-' + transactionId"

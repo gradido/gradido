@@ -48,7 +48,10 @@
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
-    "session-expired": "The session was closed for security reasons."
+    "session-expired": "The session was closed for security reasons.",
+    "no-transactionlist":"Unfortunately, there was an error. No transactions are being sent from the server.",
+    "empty-transactionlist":"There are no transactions under your account yet.",
+    "no-decay-transactionlist":"Error: No Decay available, please check the code!"
   },
   "form": {
     "amount": "Amount",
