@@ -16,6 +16,7 @@ import { TransactionCreation } from '@entity/TransactionCreation'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
+import { calculateDecay } from '../../util/decay'
 
 @Resolver()
 export class AdminResolver {
@@ -174,7 +175,11 @@ export class AdminResolver {
     if (!lastUserTransaction) {
       newBalance = 0
     } else {
-      newBalance = lastUserTransaction.balance
+      newBalance = await calculateDecay(
+        lastUserTransaction.balance,
+        lastUserTransaction.balanceDate,
+        new Date(),
+      )
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
