@@ -83,7 +83,7 @@ export class AdminResolver {
 
     await pendingCreationRepository.save(updatedCreation)
     const result = new UpdatePendingCreation()
-    result.amount = parseInt(updatedCreation.amount.toString())
+    result.amount = parseInt(amount.toString())
     result.memo = updatedCreation.memo
     result.date = updatedCreation.date
     result.moderator = updatedCreation.moderator
