@@ -98,5 +98,12 @@ export default {
   background-color: #dfe0e3f5;
   width: 100%;
   box-shadow: #b4b4b4 0px 13px 22px;
+  font-size: large;
+}
+.b-collaps-gradido li :hover{
+   
+  background-color: #e9e7e7f5;
+  font-size: larger;
+
 }
 </style>
