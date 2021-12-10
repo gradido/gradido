@@ -1,10 +1,10 @@
 <template>
   <div>
-    <b-container fluid>
+    <div>
       <b-row>
         <b-col class="col-6">
           <b-row>
-            <b-col class="col-11 bg-gray text-white p-3">
+            <b-col class="col-11 bg-gray text-white ml-2 p-3">
               <status
                 class="gdd-status-gdd"
                 :pending="pending"
@@ -36,7 +36,7 @@
         @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
-    </b-container>
+    </div>
   </div>
 </template>
 <script>
