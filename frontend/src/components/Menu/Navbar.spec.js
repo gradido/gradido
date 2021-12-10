@@ -77,4 +77,5 @@ describe('Navbar', () => {
       expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('logout')
     })
   })
+  })
 })
