@@ -1,6 +1,7 @@
 <template>
   <div>
     <navbar
+      class="main-navbar"
       :balance="balance"
       :visible="visible"
       @set-visible="setVisible"
@@ -10,10 +11,10 @@
     />
     <div class="content-gradido">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
-        <sidebar @getElopageLink="getElopageLink" @admin="admin" @logout="logout" />
+        <sidebar class="main-sidebar" @getElopageLink="getElopageLink" @admin="admin" @logout="logout" />
       </div>
 
-      <div class="ml-2 mr-2" style="width: 100%" @click="visible = false">
+      <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">
         <div class="main-content">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view

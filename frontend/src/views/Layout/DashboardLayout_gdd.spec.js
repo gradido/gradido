@@ -70,8 +70,12 @@ describe('DashboardLayoutGdd', () => {
       wrapper = Wrapper()
     })
 
+    it('has a navbar', () => {
+      expect(wrapper.find('.main-navbar').exists()).toBeTruthy()
+    })
+
     it('has a sidebar', () => {
-      expect(wrapper.find('nav#sidenav-main').exists()).toBeTruthy()
+      expect(wrapper.find('.main-sidebar').exists()).toBeTruthy()
     })
 
     it('has a main content div', () => {
@@ -79,9 +83,10 @@ describe('DashboardLayoutGdd', () => {
     })
 
     it('has a footer inside the main content', () => {
-      expect(wrapper.find('div.main-content').find('footer.footer').exists()).toBeTruthy()
+      expect(wrapper.find('div.main-page').find('footer.footer').exists()).toBeTruthy()
     })
 
+    /*
     describe('navigation bar', () => {
       let navbar
 
@@ -271,5 +276,6 @@ describe('DashboardLayoutGdd', () => {
         })
       })
     })
+    */
   })
 })
