@@ -107,6 +107,5 @@ export default {
 }
 .b-collaps-gradido li :hover {
   background-color: #e9e7e7f5;
-  font-size: larger;
 }
 </style>

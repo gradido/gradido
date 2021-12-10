@@ -59,7 +59,6 @@ export default {
       transactionCount: 0,
       pending: true,
       visible: false,
-      elopageUri: this.getElopageLink(),
     }
   },
   methods: {
@@ -112,7 +111,12 @@ export default {
       window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
     },
-    getElopageLink() {
+    setVisible(bool) {
+      this.visible = bool
+    },
+  },
+  computed: {
+    elopageUri() {
       const pId = this.$store.state.publisherId
         ? this.$store.state.publisherId
         : CONFIG.DEFAULT_PUBLISHER_ID
@@ -121,9 +125,6 @@ export default {
           ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
           : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
       )
-    },
-    setVisible(bool) {
-      this.visible = bool
     },
   },
 }
