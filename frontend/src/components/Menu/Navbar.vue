@@ -21,7 +21,7 @@
       </b-navbar-nav>
 
       <b-navbar-toggle
-        target="collapse-nav"
+        target="false"
         @click="$emit('set-visible', (visibleCollapse = !visible))"
       ></b-navbar-toggle>
     </b-navbar>
