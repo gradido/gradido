@@ -14,13 +14,13 @@
         <hr />
         <b-nav vertical class="w-100">
           <b-nav-item class="mb-3" @click="$emit('get-elopage-link')">
-            {{ $t('members_area') }}
+            <b-icon icon="link45deg" aria-hidden="true"></b-icon>{{ $t('members_area') }}
             <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
           </b-nav-item>
           <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
-            {{ $t('admin_area') }}
+            <b-icon icon="link45deg" aria-hidden="true"></b-icon>{{ $t('admin_area') }}
           </b-nav-item>
-          <b-nav-item class="mb-3" @click="$emit('logout')">{{ $t('logout') }}</b-nav-item>
+          <b-nav-item class="mb-3" @click="$emit('logout')"><b-icon icon="power" aria-hidden="true"></b-icon> {{ $t('logout') }}</b-nav-item>
         </b-nav>
       </div>
     </div>
