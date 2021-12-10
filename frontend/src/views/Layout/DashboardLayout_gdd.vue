@@ -1,13 +1,20 @@
 <template>
   <div>
-    <navbar :balance="balance" @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
+    <navbar
+      :balance="balance"
+      :visible="visible"
+      @set-visible="setVisible"
+      @get-elopage-link="getElopageLink"
+      @admin="admin"
+      @logout="logout"
+    />
     <div class="content-gradido">
       <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
-        <sidebar @get-elopage-link="getElopageLink" @admin="admin" @logout="logout" />
+        <sidebar @getElopageLink="getElopageLink" @admin="admin" @logout="logout" />
       </div>
 
-      <div class="ml-2 mr-2" style="width: 100%">
-        <div>
+      <div class="ml-2 mr-2" style="width: 100%" @click="visible = false">
+        <div class="main-content">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
               ref="router-view"
@@ -50,6 +57,7 @@ export default {
       bookedBalance: 0,
       transactionCount: 0,
       pending: true,
+      visible: false,
     }
   },
   methods: {
@@ -111,6 +119,9 @@ export default {
           ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
           : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
       )
+    },
+    setVisible(bool) {
+      this.visible = bool
     },
   },
 }
