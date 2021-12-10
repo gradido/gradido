@@ -7,7 +7,7 @@
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
-      <div v-if="transactions.length === 0" class="text-right">
+      <div v-if="!transactionCount" class="text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>

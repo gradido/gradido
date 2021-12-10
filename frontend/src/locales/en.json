@@ -45,7 +45,7 @@
   },
   "error": {
     "change-password": "Error while changing password",
-    "empty-transactionlist": "There are no transactions under your account yet.",
+    "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "no-decay-transactionlist": "Error: No Decay available, please check the code!",
