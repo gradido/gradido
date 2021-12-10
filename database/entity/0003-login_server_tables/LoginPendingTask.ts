@@ -16,7 +16,7 @@ export class LoginPendingTask extends BaseEntity {
 
   @Column({ nullable: true, default: '2000-01-01 00:00:00' })
   finished: Date
- 
+
   @Column({ name: 'result_json', length: 65535, default: null, nullable: true })
   resultJson: string
 
@@ -25,10 +25,10 @@ export class LoginPendingTask extends BaseEntity {
 
   @Column({ name: 'task_type_id', unsigned: true, nullable: false })
   taskTypeId: number
- 
+
   @Column({ name: 'child_pending_task_id', unsigned: true, nullable: true, default: 0 })
   childPendingTaskId: number
- 
+
   @Column({ name: 'parent_pending_task_id', unsigned: true, nullable: true, default: 0 })
   parentPendingTaskId: number
 }
