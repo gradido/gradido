@@ -8,14 +8,32 @@
           </b-nav-item>
         </b-navbar-nav>
       </div>
-      <b-nav-text center>{{ balance }} GDD</b-nav-text>
+
+      <b-navbar-nav class="ml-auto" is-nav>
+        <b-nav-item to="/profile" right class="d-none d-sm-none d-md-none d-lg-flex shadow-lg">
+          <small>{{ $store.state.firstName }} {{ $store.state.lastName }}, <b>{{ $store.state.email }}</b>
+          <b-icon class="ml-3" icon="gear-fill" aria-hidden="true"></b-icon> </small>
+        </b-nav-item>
+      </b-navbar-nav>
+
       <b-navbar-toggle
-        target=""
+        target="nav-collapse"
         @click="$emit('set-visible', (visibleCollapse = !visible))"
       ></b-navbar-toggle>
     </b-navbar>
+
     <b-collapse id="collapse-4" v-model="visibleCollapse" class="p-3 b-collaps-gradido">
-      <b-nav vertical @click="$emit('setVisible', false)">
+    
+      <b-nav vertical @click="$emit('set-visible', false)">
+          <div class="text-right">
+       <router-link to="/profile">
+        <small>
+          {{ $store.state.firstName }}
+          {{ $store.state.lastName }},
+          <b>{{ $store.state.email }}</b>
+        </small>
+        </router-link>
+      </div>
         <b-nav-item to="/overview" class="mb-3">
           {{ $t('overview') }}
         </b-nav-item>
@@ -24,17 +42,21 @@
           {{ $t('transactions') }}
         </b-nav-item>
         <b-nav-item to="/profile" class="mb-3">
+         <b-icon icon="gear-fill" aria-hidden="true"></b-icon>
           {{ $t('site.navbar.my-profil') }}
+         
         </b-nav-item>
         <br />
         <b-nav-item class="mb-3" @click="$emit('getElopageLink')">
-          {{ $t('members_area') }}
+            <b-icon icon="link45deg" aria-hidden="true"></b-icon>
+            {{ $t('members_area') }}
           <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
         </b-nav-item>
         <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
-          {{ $t('admin_area') }}
+           <b-icon icon="link45deg" aria-hidden="true"></b-icon>
+           {{ $t('admin_area') }}
         </b-nav-item>
-        <b-nav-item class="mb-3" @click="$emit('logout')">{{ $t('logout') }}</b-nav-item>
+        <b-nav-item class="mb-3" @click="$emit('logout')"> <b-icon icon="power" aria-hidden="true"></b-icon>  {{ $t('logout') }}</b-nav-item>
       </b-nav>
     </b-collapse>
   </div>
