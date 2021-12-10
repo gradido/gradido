@@ -36,7 +36,6 @@ describe('Navbar', () => {
     it('renders the component', () => {
       expect(wrapper.find('div.component-navbar').exists()).toBeTruthy()
     })
-  })
 
   describe('navigation Navbar', () => {
     it('has .navbar-brand in the navbar', () => {
