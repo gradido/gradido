@@ -61,4 +61,5 @@ describe('Sidebar', () => {
       expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('logout')
     })
   })
+  })
 })
