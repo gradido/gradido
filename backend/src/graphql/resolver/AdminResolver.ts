@@ -21,6 +21,7 @@ import { PendingCreationRepository } from '../../typeorm/repository/PendingCreat
 import { UserRepository } from '../../typeorm/repository/User'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
+import { LoginPendingTaskRepository } from '../../typeorm/repository/LoginPendingTask'
 
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -33,7 +34,7 @@ const pendingTasksRequestProto = (
   memo: string,
   receiverPubKey: Buffer,
   date: Date,
-) => {
+): Buffer => {
   // TODO: signing user is not part of the transaction?
   const receiver = new proto.gradido.TransferAmount({
     amount,
@@ -57,7 +58,7 @@ const pendingTasksRequestProto = (
 
   const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
 
-  return bodyBytes // not sure this is the correct value yet
+  return Buffer.from(bodyBytes) // not sure this is the correct value yet
 
   /*
   // As fas as I understand it request contaisn just the transaction body
@@ -249,6 +250,24 @@ export class AdminResolver {
       loginPendingTaskAdmin.moderator = moderator
 
       pendingCreationRepository.save(loginPendingTaskAdmin)
+
+      // PROTO START
+      const loginUserRepository = getCustomRepository(LoginUserRepository)
+      const loginUser = await loginUserRepository.findOneOrFail({ email })
+      const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
+      const loginPendingTask = loginPendingTaskRepository.create()
+      loginPendingTask.userId = user.id
+      loginPendingTask.request = pendingTasksRequestProto(
+        amount * 10000,
+        memo,
+        loginUser.pubKey,
+        creationDateObj,
+      )
+      loginPendingTask.created = creationDateObj
+      loginPendingTask.resultJson = ''
+      loginPendingTask.paramJson = '{"blockchain_type":1}'
+      loginPendingTask.taskTypeId = 10
+      // PROTO END
     }
     return await getUserCreations(user.id)
   }
