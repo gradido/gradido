@@ -6,13 +6,11 @@
           <b-nav-item to="/overview">
             <img :src="logo" class="navbar-brand-img" alt="..." />
           </b-nav-item>
-        
         </b-navbar-nav>
-        
       </div>
 
       <b-navbar-nav class="ml-auto" is-nav>
-          <b-nav-item>  {{balance}} GDD</b-nav-item>
+        <b-nav-item>{{ balance }} GDD</b-nav-item>
         <b-nav-item to="/profile" right class="d-none d-sm-none d-md-none d-lg-flex shadow-lg">
           <small>
             {{ $store.state.firstName }} {{ $store.state.lastName }},
@@ -103,10 +101,8 @@ export default {
   box-shadow: #b4b4b4 0px 13px 22px;
   font-size: large;
 }
-.b-collaps-gradido li :hover{
-   
+.b-collaps-gradido li :hover {
   background-color: #e9e7e7f5;
   font-size: larger;
-
 }
 </style>
