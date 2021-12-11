@@ -141,6 +141,7 @@ services:
       - mariadb
     networks: 
       - internal-net
+      - external-net # this is not correct but for the time beeing its easier instead of finding the configuration where i can set the correct docker-internal address
     ports:
       - 1200:1200
       - 1201:1201
@@ -181,6 +182,7 @@ services:
       - mariadb
     networks: 
       - internal-net
+      - external-net # just to be sure
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
       

@@ -6,7 +6,7 @@ export class LoginPendingTask extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ unsigned: true, nullable: true, default: 0 })
+  @Column({ name: 'user_id', unsigned: true, nullable: true, default: 0 })
   userId: number
 
   @Column({ type: 'binary', length: 2048, nullable: false })

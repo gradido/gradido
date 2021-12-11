@@ -32,8 +32,10 @@ const sodium = require('sodium-native')
 const pendingTasksRequestProto = (
   amount: number,
   memo: string,
-  receiverPubKey: Buffer,
   date: Date,
+  receiverPubKey: Buffer,
+  senderPubKey: Buffer,
+  senderPrivKey: Buffer,
 ): Buffer => {
   // TODO: signing user is not part of the transaction?
   const receiver = new proto.gradido.TransferAmount({
@@ -58,34 +60,31 @@ const pendingTasksRequestProto = (
 
   const bodyBytes = proto.gradido.TransactionBody.encode(transactionBody).finish()
 
-  return Buffer.from(bodyBytes) // not sure this is the correct value yet
+  const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
+  sodium.crypto_sign_detached(
+    sign,
+    bodyBytes,
+    senderPrivKey.slice(0, sodium.crypto_sign_SECRETKEYBYTES),
+  )
 
-  /*
-  // As fas as I understand it request contaisn just the transaction body
-  $transaction = new \Proto\Gradido\GradidoTransaction();
-  $transaction->setBodyBytes($body_bytes);
+  if (!sign) {
+    throw new Error('error signing transaction')
+  }
 
-  $protoSigMap = new \Proto\Gradido\SignatureMap();
-  $sigPairs = $protoSigMap->getSigPair();
-  //echo "sigPairs: "; var_dump($sigPairs); echo "<br>";
-  //return null;
+  const sigPair = new proto.gradido.SignaturePair({
+    pubKey: senderPubKey,
+    ed25519: sign,
+  })
+  // TODO: Why an array of sigPair?
+  const sigMap = new proto.gradido.SignatureMap({ sigPair: [sigPair] })
 
-  // sign with keys
-  //foreach($keys as $key) {
-    $sigPair = new \Proto\Gradido\SignaturePair();  
-    $sigPair->setPubKey(hex2bin($data['signer_public_key']));
-    
-    $signature = sodium_crypto_sign_detached($body_bytes, hex2bin($data['signer_private_key']));
-    echo "signature: " . bin2hex($signature). "<br>";
-    $sigPair->setEd25519($signature);
+  const transaction = new proto.gradido.GradidoTransaction({
+    sigMap,
+    bodyBytes,
+  })
 
-    $sigPairs[] = $sigPair;
-    // SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING
-    // SODIUM_BASE64_VARIANT_ORIGINAL
-    $transaction->setSigMap($protoSigMap);
-    //var_dump($protoSigMap);
-    $transaction_bin = $transaction->serializeToString();
-  */
+  const result = proto.gradido.GradidoTransaction.encode(transaction).finish()
+  return Buffer.from(result)
 }
 
 const protoTransaction = (
@@ -233,6 +232,7 @@ export class AdminResolver {
   @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
+    @Ctx() context: any,
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
@@ -243,14 +243,19 @@ export class AdminResolver {
       // PROTO START
       const loginUserRepository = getCustomRepository(LoginUserRepository)
       const loginUser = await loginUserRepository.findOneOrFail({ email })
+      const userRepository = getCustomRepository(UserRepository)
+      const adminUser = await userRepository.findByPubkeyHex(context.pubKey)
+      const loginAdminUser = await loginUserRepository.findByEmail(adminUser.email)
       const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
       const loginPendingTask = loginPendingTaskRepository.create()
       loginPendingTask.userId = user.id
       loginPendingTask.request = pendingTasksRequestProto(
         amount * 10000,
         memo,
-        loginUser.pubKey,
         creationDateObj,
+        loginUser.pubKey,
+        loginAdminUser.pubKey,
+        loginAdminUser.privKey,
       )
       loginPendingTask.created = creationDateObj
       loginPendingTask.resultJson = ''
@@ -279,6 +284,7 @@ export class AdminResolver {
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
+    @Ctx() context: any,
   ): Promise<UpdatePendingCreation> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
@@ -299,14 +305,18 @@ export class AdminResolver {
     // PROTO START
     const loginUserRepository = getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findOneOrFail({ email })
+    const adminUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const loginAdminUser = await loginUserRepository.findByEmail(adminUser.email)
 
     const loginPendingTask = updatedCreation.loginPendingTask
 
     loginPendingTask.request = pendingTasksRequestProto(
       amount * 10000,
       memo,
-      loginUser.pubKey,
       updatedCreation.date,
+      loginUser.pubKey,
+      loginAdminUser.pubKey,
+      loginAdminUser.privKey,
     )
 
     const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
@@ -370,11 +380,12 @@ export class AdminResolver {
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const entity = await pendingCreationRepository.findOneOrFail(id)
+    const pendingTaskId = entity.loginPendingTasksAdminId
+    const res = await pendingCreationRepository.delete(entity)
     // PROTO START
     const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
-    await loginPendingTaskRepository.delete(entity.loginPendingTask)
+    await loginPendingTaskRepository.delete({ id: pendingTaskId })
     // PROTO END
-    const res = await pendingCreationRepository.delete(entity)
     return !!res
   }
 
@@ -434,12 +445,13 @@ export class AdminResolver {
     userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
     await balanceRepository.save(userBalance)
 
+    const pendingTaskId = pendingCreation.loginPendingTasksAdminId
+    await pendingCreationRepository.delete(pendingCreation)
+
     // PROTO START
     const loginPendingTaskRepository = getCustomRepository(LoginPendingTaskRepository)
-    await loginPendingTaskRepository.delete(pendingCreation.loginPendingTask)
+    await loginPendingTaskRepository.delete({ id: pendingTaskId })
     // PROTO END
-
-    await pendingCreationRepository.delete(pendingCreation)
 
     return true
   }
