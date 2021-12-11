@@ -13,7 +13,7 @@ or new transaction types added which need more than one signature
 After signing sendTransactionIota can be called for every transaction which consists of bodyBytes and a signature public key pair list
 and with the corresponding group alias
 
-For transactions which belong to two blockchains actually two transactions are generated and need to be signed
+For transactions which belong to two blockchains actually two transactions are generated and need to be signed and send
 
 ### Request
 `POST http://localhost/login_api/packTransaction`
@@ -96,7 +96,9 @@ Needed to be signed from the user to move
 - `amount`: amount of gradido as integer with 4 after comma
 - `senderGroupAlias`: only needed for cross group transactions, group alias from sender group
 - `recipientGroupAlias`: only needed for cross group transactions, group alias from recipient group
-- `currentGroupAlias`: only needed for moving user, group alias from user from where
+- `userRootPubkey`: root public key from user, all his other addresses are derived from this address https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki but with ed25519 keys
+- `currentGroupAlias`: only needed for moving user, group alias from where the user is from
+- `newGroupAlias`: only needed for moving user, group alias from the user where they are moving to
 
 ### Response
 For Local Transactions which happen only on this group
