@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { mount, shallowMount } from '@vue/test-utils'
 import Navbar from './Navbar'
 
 const localVue = global.localVue
@@ -79,6 +79,25 @@ describe('Navbar', () => {
       it('has first nav-item "logout" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('logout')
       })
+    })
+  })
+  describe('check watch visible true', () => {
+    beforeEach(async () => {
+      await wrapper.setProps({ visible: true })
+    })
+
+    it('has visibleCollapse == visible', async () => {
+      expect(wrapper.vm.visibleCollapse).toBe(true)
+    })
+  })
+
+  describe('check watch visible false', () => {
+    beforeEach(async () => {
+      await wrapper.setProps({ visible: false })
+    })
+
+    it('has visibleCollapse == visible', async () => {
+      expect(wrapper.vm.visibleCollapse).toBe(false)
     })
   })
 })
