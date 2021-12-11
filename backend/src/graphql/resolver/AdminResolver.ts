@@ -83,7 +83,7 @@ export class AdminResolver {
 
     await pendingCreationRepository.save(updatedCreation)
     const result = new UpdatePendingCreation()
-    result.amount = parseInt(updatedCreation.amount.toString())
+    result.amount = parseInt(amount.toString())
     result.memo = updatedCreation.memo
     result.date = updatedCreation.date
     result.moderator = updatedCreation.moderator
@@ -176,7 +176,7 @@ export class AdminResolver {
     } else {
       newBalance = lastUserTransaction.balance
     }
-    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()) / 10000)
+    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
     const newUserTransaction = new UserTransaction()
     newUserTransaction.userId = pendingCreation.userId
@@ -194,7 +194,7 @@ export class AdminResolver {
 
     if (!userBalance) userBalance = balanceRepository.create()
     userBalance.userId = pendingCreation.userId
-    userBalance.amount = Number(newBalance * 10000)
+    userBalance.amount = Number(newBalance)
     userBalance.modified = new Date()
     userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
     await balanceRepository.save(userBalance)
