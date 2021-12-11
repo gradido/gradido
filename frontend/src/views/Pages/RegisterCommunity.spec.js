@@ -37,7 +37,9 @@ describe('RegisterCommunity', () => {
       },
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
   }
 

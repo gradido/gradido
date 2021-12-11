@@ -85,10 +85,6 @@
                   <input-email v-model="form.email"></input-email>
 
                   <hr />
-                  <input-password-confirmation
-                    v-model="form.password"
-                    :register="register"
-                  ></input-password-confirmation>
 
                   <b-row>
                     <b-col cols="12">
@@ -121,8 +117,44 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
+                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
+                    <b-col>
+                      {{ $t('publisher.publisherId') }} : {{ $store.state.publisherId }}
+                    </b-col>
+                    <b-col class="text-right">
+                      <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col>
+                      <b-collapse id="my-collapse" class="">
+                        <b-input-group class="shadow-sm p-2 bg-white rounded">
+                          <b-input-group-prepend is-text>
+                            <b-icon icon="person-fill"></b-icon>
+                          </b-input-group-prepend>
+                          <b-form-input
+                            id="publisherid"
+                            type="text"
+                            placeholder="Publisher ID"
+                            v-model="publisherId"
+                            @input="commitStore(publisherId)"
+                          ></b-form-input>
+                        </b-input-group>
+                        <div
+                          v-b-toggle:my-collapse
+                          class="text-center mt-1 shadow-lg p-3 mb-5 rounded"
+                        >
+                          {{ $t('publisher.infoText') }}
+                          <span class="text-dark">{{ $t('publisher.infoNoRegister') }}</span>
+                          <div class="text-center">
+                            <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
+                          </div>
+                        </div>
+                      </b-collapse>
+                    </b-col>
+                  </b-row>
 
-                  <div class="text-center">
+                  <div class="text-center mt-5">
                     <div class="text-center">
                       <router-link class="test-button-back" to="/login">
                         <b-button variant="outline-secondary" class="mr-4">
@@ -158,14 +190,13 @@
 </template>
 <script>
 import InputEmail from '../../components/Inputs/InputEmail.vue'
-import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
-import { registerUser } from '../../graphql/mutations'
+import { createUser } from '../../graphql/mutations'
 import { localeChanged } from 'vee-validate'
 import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
-  components: { InputPasswordConfirmation, InputEmail, LanguageSwitchSelect },
+  components: { InputEmail, LanguageSwitchSelect },
   name: 'register',
   mixins: [getCommunityInfoMixin],
   data() {
@@ -175,16 +206,13 @@ export default {
         lastname: '',
         email: '',
         agree: false,
-        password: {
-          password: '',
-          passwordRepeat: '',
-        },
       },
       language: '',
       submitted: false,
       showError: false,
       messageError: '',
       register: true,
+      publisherId: this.$store.state.publisherId,
     }
   },
   methods: {
@@ -197,15 +225,17 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
+    commitStore(val) {
+      this.$store.commit('publisherId', val)
+    },
     async onSubmit() {
       this.$apollo
         .mutate({
-          mutation: registerUser,
+          mutation: createUser,
           variables: {
             email: this.form.email,
             firstName: this.form.firstname,
             lastName: this.form.lastname,
-            password: this.form.password.password,
             language: this.language,
             publisherId: this.$store.state.publisherId,
           },
@@ -224,8 +254,6 @@ export default {
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
-      this.form.password.password = ''
-      this.form.password.passwordRepeat = ''
     },
   },
   computed: {

@@ -76,7 +76,7 @@ export default {
           )
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
       loader.hide()
       this.pending = false

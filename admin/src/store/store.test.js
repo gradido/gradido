@@ -1,11 +1,19 @@
 import store, { mutations, actions } from './store'
+import CONFIG from '../config'
 
-const { token, openCreationsPlus, openCreationsMinus, resetOpenCreations } = mutations
+jest.mock('../config')
+
+const {
+  token,
+  openCreationsPlus,
+  openCreationsMinus,
+  resetOpenCreations,
+  setOpenCreations,
+  moderator,
+} = mutations
 const { logout } = actions
 
-const CONFIG = {
-  DEBUG_DISABLE_AUTH: true,
-}
+CONFIG.DEBUG_DISABLE_AUTH = true
 
 describe('Vuex store', () => {
   describe('mutations', () => {
@@ -40,6 +48,22 @@ describe('Vuex store', () => {
         expect(state.openCreations).toEqual(0)
       })
     })
+
+    describe('moderator', () => {
+      it('sets the moderator object in state', () => {
+        const state = { moderator: null }
+        moderator(state, { id: 1 })
+        expect(state.moderator).toEqual({ id: 1 })
+      })
+    })
+
+    describe('setOpenCreations', () => {
+      it('sets the open creations to given value', () => {
+        const state = { openCreations: 24 }
+        setOpenCreations(state, 12)
+        expect(state.openCreations).toEqual(12)
+      })
+    })
   })
 
   describe('actions', () => {
@@ -55,6 +79,11 @@ describe('Vuex store', () => {
       it('deletes the token in store', () => {
         logout({ commit, state })
         expect(commit).toBeCalledWith('token', null)
+      })
+
+      it('deletes the moderator in store', () => {
+        logout({ commit, state })
+        expect(commit).toBeCalledWith('moderator', null)
       })
 
       it.skip('clears the window local storage', () => {

@@ -14,11 +14,11 @@
           {{ overlayText.text2 }}
         </p>
 
-        <b-button size="lg" variant="danger" class="m-3" @click="overlayCancel">
+        <b-button size="md" variant="danger" class="m-3" @click="overlayCancel">
           {{ overlayText.button_cancel }}
         </b-button>
         <b-button
-          size="lg"
+          size="md"
           variant="success"
           class="m-3 text-right"
           @click="overlayOK(overlayBookmarkType, overlayItem)"
@@ -39,7 +39,7 @@
       <template #cell(edit_creation)="row">
         <b-button
           variant="info"
-          size="lg"
+          size="md"
           @click="editCreationUserTable(row, row.item)"
           class="mr-2"
         >
@@ -49,7 +49,7 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="lg" @click="row.toggleDetails" class="mr-2">
+        <b-button variant="info" size="md" @click="row.toggleDetails" class="mr-2">
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
           <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
@@ -60,14 +60,27 @@
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-
+          {{ type }}
           <creation-formular
+            v-if="type === 'PageUserSearch'"
             type="singleCreation"
             :pagetype="type"
             :creation="row.item.creation"
             :item="row.item"
-            :creationUserData="creationData"
+            :creationUserData="creationUserData"
             @update-creation-data="updateCreationData"
+            @update-user-data="updateUserData"
+          />
+          <edit-creation-formular
+            v-else
+            type="singleCreation"
+            :pagetype="type"
+            :creation="row.item.creation"
+            :item="row.item"
+            :row="row"
+            :creationUserData="creationUserData"
+            @update-creation-data="updateCreationData"
+            @update-user-data="updateUserData"
           />
 
           <b-button size="sm" @click="row.toggleDetails">
@@ -93,7 +106,7 @@
         <b-button
           variant="danger"
           v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
-          size="lg"
+          size="md"
           @click="overlayShow('remove', row.item)"
           class="mr-2"
         >
@@ -105,7 +118,7 @@
         <b-button
           variant="success"
           v-show="type === 'PageCreationConfirm'"
-          size="lg"
+          size="md"
           @click="overlayShow('confirm', row.item)"
           class="mr-2"
         >
@@ -118,6 +131,8 @@
 
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
+import EditCreationFormular from '../components/EditCreationFormular.vue'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
   name: 'UserTable',
@@ -146,10 +161,11 @@ export default {
   },
   components: {
     CreationFormular,
+    EditCreationFormular,
   },
   data() {
     return {
-      creationData: {},
+      creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
       overlayItem: [],
@@ -213,24 +229,38 @@ export default {
       }
     },
     bookmarkConfirm(item) {
-      alert('die schöpfung bestätigen und abschließen')
-      alert(JSON.stringify(item))
-      this.$emit('remove-confirm-result', item, 'remove')
+      this.$apollo
+        .mutate({
+          mutation: confirmPendingCreation,
+          variables: {
+            id: item.id,
+          },
+        })
+        .then(() => {
+          this.$emit('remove-confirm-result', item, 'remove')
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
     },
     editCreationUserTable(row, rowItem) {
-      alert('editCreationUserTable')
       if (!row.detailsShowing) {
-        alert('offen edit loslegen')
-        // this.item = rowItem
-        this.creationData = rowItem
-        // alert(this.creationData)
+        this.creationUserData = rowItem
+      } else {
+        this.creationUserData = {}
       }
       row.toggleDetails()
     },
     updateCreationData(data) {
-      this.creationData = {
-        ...data,
-      }
+      this.creationUserData.amount = data.amount
+      this.creationUserData.date = data.date
+      this.creationUserData.memo = data.memo
+      this.creationUserData.moderator = data.moderator
+
+      data.row.toggleDetails()
+    },
+    updateUserData(rowItem, newCreation) {
+      rowItem.creation = newCreation
     },
   },
 }
