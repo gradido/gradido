@@ -35,5 +35,17 @@ das der Schlüssel aus dem Arbeitsspeicher gelesen werden kann.
 Also das Gradidos einfach an eine E-Mail Addresse gesendet werden können.
 Der größte Teil der aktuellen Zielgruppe ist nicht besonders Computeraffin.
 
+### Ressourcenverbrauch
+Grundsätzlich ist ein geringer Ressourcenverbrauch von Vorteil.
+Bei der Softwareentwicklung gibt es einmal die Ressourcen Manpower die Stunden die ein Entwickler reinstecken muss
+und die Ressource Hardware wieviel CPU Leistung, Arbeitsspeicher usw. und damit auch Stromverbrauch von dem laufenden Programm benötigt wird.
+Wenn das Program nur von wenigen ab und zu mal genutzt wird, macht es nicht viel Sinn auf die Effizienz zu schauen und es reicht
+z.b. eine ressourcenhungrige Wordpress Webseite zu erstellen, da dies aufgrund der existierenden Werkzeuge und Artikel im Internet 
+recht schnell und einfach gehen kann. 
+Wenn man aber an einem Program arbeitet welches mal von allen Menschen verwendet werden soll, macht das schon viel mehr Sinn. 
+Aber ein für mich noch viel wichtiger Punkt an der Stelle wer hostet nachher eigentlich die Communities. 
+Sind es große Firmen die sich fette Server leisten können? Oder sind es kleine Vereine die um jeden Cent kämpfen?
+Sind es Einzelkämpfer die klein-computer wie Raspberry-PI betreiben? 
+
 
 
