@@ -1,6 +1,6 @@
 <template>
   <div id="component-sidebar">
-    <div class="px-3 py-2">
+    <div class="pl-3">
       <p></p>
       <div class="mb-6">
         <b-nav vertical class="w-200">
