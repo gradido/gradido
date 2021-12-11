@@ -140,4 +140,7 @@ export default {
   height: 2rem;
   padding-left: 10px;
 }
+.bg-lightgrey {
+  background-color: #f0f0f0;
+}
 </style>
