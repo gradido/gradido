@@ -193,7 +193,7 @@ class TransactionTransfer extends TransactionBase {
     
     public function save($transaction_id, $firstPublic, $received) {
       
-      static $functionName = 'TransactionCreation::save';
+      static $functionName = 'TransactionTransfer::save';
       $local_transfer = $this->getTransfer();
       
       $senderAmount = $local_transfer->getSender();
@@ -207,12 +207,16 @@ class TransactionTransfer extends TransactionBase {
       if($this->isBelongSenderToCommunity()) {
           $senderUserId = $this->getStateUserId($senderAmount->getPubkey());
           if(NULL === $senderUserId) {
+              $this->addError($functionName, 'sender user not found');
               return false;
           }
           if(!$this->updateStateBalance($senderUserId, -$senderAmount->getAmount(), $received)) {
+              $this->addError($functionName, 'update state balance');
+              $this->addError($functionName, 'amount: ' . $senderAmount->getAmount());
               return false;
           }
           if(!$this->addStateUserTransaction($senderUserId, $transaction_id, 2, -$senderAmount->getAmount(), $received)) {
+            $this->addError($functionName, 'add state user transaction');
             return false;
         }
       }
@@ -220,12 +224,15 @@ class TransactionTransfer extends TransactionBase {
       if($this->isBelongRecipiantToCommunity()) {
           $recipiantUserId = $this->getStateUserId($receiver);
           if(NULL === $recipiantUserId) {
+            $this->addError($functionName, 'recipiant user not found');
              return false;
           }
           if(!$this->updateStateBalance($recipiantUserId, $senderAmount->getAmount(), $received)) {
+            $this->addError($functionName, 'update state balance');
              return false;
           }
           if(!$this->addStateUserTransaction($recipiantUserId, $transaction_id, 2, $senderAmount->getAmount(), $received)) {
+            $this->addError($functionName, 'add state user transaction');
             return false;
           }
       }
