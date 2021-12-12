@@ -74,10 +74,11 @@ namespace model {
 			static const char function_name[] = "TransactionCreation::validate";
 			auto target_date = Poco::DateTime(DataTypeConverter::convertFromProtoTimestampSeconds(mProtoCreation.target_date()));
 			auto now = Poco::DateTime();
+			//  2021-09-01 02:00:00 | 2021-12-04 01:22:14
 			if (target_date.year() == now.year()) 
 			{
-				if (target_date.month() + 3 < now.month()) {
-					addError(new Error(function_name, "year is the same, target date month is more than 3 month in past"));
+				if (target_date.month() + 2 < now.month()) {
+					addError(new Error(function_name, "year is the same, target date month is more than 2 month in past"));
 					return TRANSACTION_VALID_INVALID_TARGET_DATE;
 				}
 				if (target_date.month() > now.month()) {
@@ -98,8 +99,8 @@ namespace model {
 			else 
 			{
 				// target_date.year +1 == now.year
-				if (target_date.month() + 3 < now.month() + 12) {
-					addError(new Error(function_name, "target date is more than 3 month in past"));
+				if (target_date.month() + 2 < now.month() + 12) {
+					addError(new Error(function_name, "target date is more than 2 month in past"));
 					return TRANSACTION_VALID_INVALID_TARGET_DATE;
 				}
 			}
