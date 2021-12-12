@@ -30,7 +30,8 @@ Node-Servers vergleicht.
 
 ### Wo werden nun die Daten genau gespeichert?
 Bei Bitcoin und Co. werden einfach alle Transaktionen bei allen Node Betreibern gespeichert. Das stößt aber schnell an physikalische Grenzen. 
-Daher werden die Daten bei Gradido in spearate Blockchains pro Community gespeichert. 
+Daher werden die Daten bei Gradido in spearate Blockchains pro Community gespeichert. Dabei ist der Node-Server so ausgelegt, das er beliebig viele
+Blockchains von Communities abspeichern kann. Das hängt letzendlich von der Leistung der Hardware ab auf der er läuft und wie groß und aktiv die jeweiligen Communities sind. 
 Damit das System also gut funktioniert braucht es viele Node-Server Betreiber und eventuell müssen wir noch extra Anreize schaffen 
 Gradido-Nodes zu betreiben. 
 Im Idealfall könnte also jeder Gradido Benutzer einen eigenen Node-Server auf seinem Heim-PC betreiben und kann dadurch immer prüfen das seine
@@ -48,6 +49,22 @@ Aber auch das hat sich als zu kompliziert für viele herausgestellt. Daher war d
 die Passphrase mit dem Admin-Public-Key verschlüsselt zu speichern so das nur der Admin mit seinem Private-Key sie entschlüsseln und damit freigeben kann, für ein Password Reset.
 Der Nachteil das dadurch nun wieder dem Admin vertraut werden muss. Oder man setzte dafür mehrere Vertrauenspersonen ein, welche bei angeforderten Passwort-Reset ihre Keys eingeben. Solange das Programm nicht modifiziert wird, können diese die Private Keys auch nicht missbrauchen. 
 Aktuell wird die Passphrase jedoch noch unverschlüsselt gespeichert. Das verschlüsselte Speichern der Passphrase setzt einige andere Änderungen voraus, und der Passwort-Reset Prozess muss überarbeitet werden. 
+
+### Ausblick
+Die Maximale Dezentralität könnten wir später erreichen, indem wir ganz auf einen (pro Community) zentralen Server verzichten
+und die gesamte Arbeit im Desktop-Client oder in der Handy App machen. 
+Diese benötigen dann einen Node-Server mit dem sie sich verbinden können um zu funktionieren. 
+Das Bitcoin-Qt Wallet funktioniert genauso. Es läuft einmal ein Bitcoin-Node und dann das QT-Wallet als Desktop App
+das mit dem Bitcoin-Node kommuniziert und darüber die Transaktionsdaten bezieht und Transaktionen versendet. 
+Man bräuchte dann nur noch einen minimalen Server für die Benutzer die keine Desktop-App wollen und es in der Web-App machen wollen. Denn dann müssten alle Daten die nicht in der Blockchain gespeichert werden irgendwohin. Der Community-Server würde dann nur diese Daten verwalten und an der Webapp zur Verfügung stellen, den Rest kann die Webapp auch selber machen. Sie kann den Private Key des Benutzer entschlüsseln, die Transaktionen anlegen und per Iota ins Netzwerk schicken und sich die Transaktionen des Benutzer von einem Node-Server besorgen. 
+In diesem Szenario würde eine Abschaltung des Community-Servers nur die Schöpfungen betreffen, die Benutzer könnten ihre Gradidos die sie besitzen 
+weiterhin ausgeben. Und es wäre relativ einfach einen neuen Community-Server aufzusetzen ohne das die bestehenden Konten verändert werden müssten. 
+
+Ich kann mir vorstellen das man selbst in diesem dezentralen Szenario dafür sorgen kann das die Keys der Benutzer zusätzlich gesichtert sind,
+für die Benutzer die nicht selbst für genügend Sicherheit sorgen können. 
+Dafür wählen sie einen oder mehrere andere Benutzer denen sie vertrauen, dann wird die Passphrase mit dem Public Keys dieser Benutzer verschlüsselt an diese Nutzer gesendet und wenn der Benutzer sein Passwort vergessen hat oder einen neuen PC/Handy hat löst ein Prozess aus bei die Vertrauensperson(en) ihr(e) passw(o|ö)rt(er) eintippen, die Passphrase entschlüsselt, mit einem temporären secret vom Benutzer neuverschlüsselt an den Benutzer sendet.
+Der bzw. dessen Desktop App kann aus der Passphrase die Keys wieder herstellen und mit dem neuen Passwort ein neuen Secret Key zum verschlüsseln generieren, das damit verschlüsseln und abspeichern. 
+
 
 
 
