@@ -68,9 +68,6 @@ services:
     image: gradido/database:test_up
     build:
       target: test_up
-    #networks:
-    #  - external-net
-    #  - internal-net
     environment:
       - NODE_ENV="development"
     volumes:
