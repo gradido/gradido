@@ -60,16 +60,19 @@ class TransactionBody extends TransactionBase {
      $functionName = 'TransactionBody::checkWithDb';
      if($this->getMemo() != $dbTransaction->memo) {
         $this->addError($functionName, 'memos don\'t match');
+        $this->addError($functionName, 'stored: ' . $dbTransaction->memo);
+        $this->addError($functionName, 'received: ' . $this->getMemo());
         return false;
      }
-     $created = new FrozenTime($this->mProtoTransactionBody->getCreated()->getSeconds());
+     // currently not stored in db
+     /*$created = new FrozenTime($this->mProtoTransactionBody->getCreated()->getSeconds());
      if($created != $dbTransaction->created) {
         $this->addError($functionName, 'created date don\'t match' . json_encode([
-          'stored' => $dbTransaction->created->i18nFormat(),
+          'stored' => $dbTransaction->created ? $dbTransaction->created->i18nFormat(): null,
           'received' => $created->i18nFormat()
         ]));
         return false;
-     }
+     }*/
      if($this->getTransactionTypeName() != $dbTransaction->transaction_type->name) {
        $this->addError($functionName, 'transaction types not the same: ' .  json_encode([
          'stored' => $dbTransaction->transaction_type->name,
@@ -117,7 +120,7 @@ class TransactionBody extends TransactionBase {
                           ->limit(1)
                           ->epilog('FOR UPDATE') // lock indexes from updates in other sessions
                           ;
-      if($lastTransaction->count() > 1) {
+      if($lastTransaction->count() >= 1) {
         $transactionEntity->nr = $lastTransaction->first()->nr + 1;
       } else {
         $transactionEntity->nr = 1;

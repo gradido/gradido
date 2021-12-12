@@ -111,11 +111,15 @@ class TransactionBase {
         }
         $stateBalanceEntry->record_date = $recordDate;
         $finalBalance = $stateBalanceEntry->amount;
-        //echo "\ntry to save: "; var_dump($stateBalanceEntry); echo "\n";
+        
         if(!$stateBalancesTable->save($stateBalanceEntry)) {
           $errors = $stateBalanceEntry->getErrors();
           $this->addError('TransactionBase::updateStateBalance', 'error saving state balance with: ' . json_encode($errors));
           return false;
+        }
+        if(!$finalBalance) {
+          return true;
+          //$this->addError('TransactionBase::updateStateBalance', 'final balance is zero')
         }
         return $finalBalance;
     }

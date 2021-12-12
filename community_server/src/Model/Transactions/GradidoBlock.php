@@ -222,12 +222,13 @@ class GradidoBlock extends TransactionBase {
           $connection->rollback();
           // correct auto-increment value to prevent gaps
           //$this->fixAutoIncrement();  
-          
+          $this->addError('GradidoBlock::save', 'error by calling saveTransactionBody');
           return false;
       }
       
       if(!$this->saveSignatureTxHash()) {
         $connection->rollback();
+        $this->addError('GradidoBlock::save', 'error by calling saveSignatureTxHash');
         return false;
       }
       
