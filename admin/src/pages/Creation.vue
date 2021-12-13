@@ -125,20 +125,9 @@ export default {
           throw new Error(event)
       }
     },
-
-    // updateRadioSelected(obj) {
-    //  this.radioSelectedMass = obj[0]
-    // },
-
     removeAllBookmark() {
-      alert('remove all bookmarks')
-      const index = 0
-      let i = 0
-
-      for (i; i < this.itemsMassCreation.length; i++) {
-        this.itemsList.push(this.itemsMassCreation[i])
-      }
-      this.itemsMassCreation.splice(index, this.itemsMassCreation.length)
+      this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
+      this.itemsMassCreation = []
     },
   },
 }

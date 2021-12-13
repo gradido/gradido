@@ -143,6 +143,13 @@ describe('router', () => {
         })
       })
 
+      describe('password with param comingFrom', () => {
+        it('loads the "Password" component', async () => {
+          const component = await routes.find((r) => r.path === '/password/:comingFrom').component()
+          expect(component.default.name).toBe('password')
+        })
+      })
+
       describe('register-community', () => {
         it('loads the "registerCommunity" component', async () => {
           const component = await routes.find((r) => r.path === '/register-community').component()

@@ -39,7 +39,9 @@ describe('DashboardLayoutGdd', () => {
       },
     },
     $toasted: {
-      error: toasterMock,
+      global: {
+        error: toasterMock,
+      },
     },
     $apollo: {
       query: apolloMock,
@@ -70,8 +72,12 @@ describe('DashboardLayoutGdd', () => {
       wrapper = Wrapper()
     })
 
+    it('has a navbar', () => {
+      expect(wrapper.find('.main-navbar').exists()).toBeTruthy()
+    })
+
     it('has a sidebar', () => {
-      expect(wrapper.find('nav#sidenav-main').exists()).toBeTruthy()
+      expect(wrapper.find('.main-sidebar').exists()).toBeTruthy()
     })
 
     it('has a main content div', () => {
@@ -79,64 +85,10 @@ describe('DashboardLayoutGdd', () => {
     })
 
     it('has a footer inside the main content', () => {
-      expect(wrapper.find('div.main-content').find('footer.footer').exists()).toBeTruthy()
+      expect(wrapper.find('div.main-page').find('footer.footer').exists()).toBeTruthy()
     })
 
     describe('navigation bar', () => {
-      let navbar
-
-      beforeEach(() => {
-        navbar = wrapper.findAll('ul.navbar-nav').at(0)
-      })
-
-      it('has four items in the navbar', () => {
-        expect(navbar.findAll('ul > a')).toHaveLength(4)
-      })
-
-      it('has first item "overview" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(0).text()).toEqual('overview')
-      })
-
-      it('has first item "overview" linked to overview in navbar', () => {
-        expect(navbar.findAll('ul > a > a').at(0).attributes('href')).toBe('/overview')
-      })
-
-      it('has second item "send" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(1).text()).toEqual('send')
-      })
-
-      it('has second item "send" linked to /send in navbar', () => {
-        expect(wrapper.findAll('ul > a > a').at(1).attributes('href')).toBe('/send')
-      })
-
-      it('has third item "transactions" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(2).text()).toEqual('transactions')
-      })
-
-      it('has third item "transactions" linked to transactions in navbar', async () => {
-        expect(wrapper.findAll('ul > a > a').at(2).attributes('href')).toBe('/transactions')
-      })
-
-      it('has fourth item "My profile" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(3).text()).toEqual('site.navbar.my-profil')
-      })
-
-      it('has fourth item "My profile" linked to profile in navbar', async () => {
-        expect(wrapper.findAll('ul > a > a').at(3).attributes('href')).toBe('/profile')
-      })
-
-      it('has a link to the members area', () => {
-        expect(wrapper.findAll('ul').at(2).text()).toContain('members_area')
-        expect(wrapper.findAll('ul').at(2).text()).toContain('!')
-        expect(wrapper.findAll('ul').at(2).find('a').attributes('href')).toBe(
-          'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=User&lastName=Example&email=user@example.org',
-        )
-      })
-
-      it('has a logout button', () => {
-        expect(wrapper.findAll('ul').at(3).text()).toBe('logout')
-      })
-
       describe('logout', () => {
         beforeEach(async () => {
           await apolloMock.mockResolvedValue({
@@ -266,7 +218,7 @@ describe('DashboardLayoutGdd', () => {
           expect(wrapper.vm.pending).toBeTruthy()
         })
 
-        it('calls $toasted.error method', () => {
+        it('calls $toasted.global.error method', () => {
           expect(toasterMock).toBeCalledWith('Ouch!')
         })
       })

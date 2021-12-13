@@ -380,7 +380,7 @@ jobs:
       ##########################################################################
       - name: frontend | Unit tests
         run: |
-          docker run -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
+          docker run --env NODE_ENV=test -v ~/coverage:/app/coverage --rm gradido/frontend:test yarn run test
           cp -r ~/coverage ./coverage
       ##########################################################################
       # COVERAGE REPORT FRONTEND ###############################################
@@ -399,7 +399,7 @@ jobs:
           report_name: Coverage Frontend
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 86
+          min_coverage: 90
           token: ${{ github.token }}
   
   ##############################################################################
@@ -441,7 +441,7 @@ jobs:
           report_name: Coverage Admin Interface
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 60
+          min_coverage: 76
           token: ${{ github.token }}
 
   ##############################################################################
