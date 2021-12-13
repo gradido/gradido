@@ -86,7 +86,7 @@ describe('Navbar', () => {
       await wrapper.setProps({ visible: true })
     })
 
-    it('has visibleCollapse == visible', async () => {
+    it('has visibleCollapse == visible', () => {
       expect(wrapper.vm.visibleCollapse).toBe(true)
     })
   })
@@ -96,7 +96,7 @@ describe('Navbar', () => {
       await wrapper.setProps({ visible: false })
     })
 
-    it('has visibleCollapse == visible', async () => {
+    it('has visibleCollapse == visible', () => {
       expect(wrapper.vm.visibleCollapse).toBe(false)
     })
   })
