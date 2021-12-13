@@ -116,12 +116,10 @@ services:
       - mariadb
     networks:
       - internal-net
-    #ports:
-    #  - 4000:4000
+      - external-net # this is required to fetch the packages
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
