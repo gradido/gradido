@@ -80,7 +80,7 @@ export default {
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations.reverse()
+          this.confirmResult = result.data.getPendingCreations
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
