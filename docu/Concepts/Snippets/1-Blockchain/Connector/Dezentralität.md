@@ -57,8 +57,7 @@ Diese benötigen dann einen Node-Server mit dem sie sich verbinden können um zu
 Das Bitcoin-Qt Wallet funktioniert genauso. Es läuft einmal ein Bitcoin-Node und dann das QT-Wallet als Desktop App
 das mit dem Bitcoin-Node kommuniziert und darüber die Transaktionsdaten bezieht und Transaktionen versendet. 
 Man bräuchte dann nur noch einen minimalen Server für die Benutzer die keine Desktop-App wollen und es in der Web-App machen wollen. Denn dann müssten alle Daten die nicht in der Blockchain gespeichert werden irgendwohin. Der Community-Server würde dann nur diese Daten verwalten und an der Webapp zur Verfügung stellen, den Rest kann die Webapp auch selber machen. Sie kann den Private Key des Benutzer entschlüsseln, die Transaktionen anlegen und per Iota ins Netzwerk schicken und sich die Transaktionen des Benutzer von einem Node-Server besorgen. 
-In diesem Szenario würde eine Abschaltung des Community-Servers nur die Schöpfungen betreffen, die Benutzer könnten ihre Gradidos die sie besitzen 
-weiterhin ausgeben. Und es wäre relativ einfach einen neuen Community-Server aufzusetzen ohne das die bestehenden Konten verändert werden müssten. 
+In diesem Szenario würde eine Abschaltung des Community-Servers nur die Schöpfungen betreffen, (und die Webclients) die Benutzer könnten ihre Gradidos die sie besitzen weiterhin ausgeben. Und es wäre relativ einfach einen neuen Community-Server aufzusetzen ohne das die bestehenden Konten verändert werden müssten. 
 
 Ich kann mir vorstellen das man selbst in diesem dezentralen Szenario dafür sorgen kann das die Keys der Benutzer zusätzlich gesichtert sind,
 für die Benutzer die nicht selbst für genügend Sicherheit sorgen können. 
