@@ -237,7 +237,7 @@ export default {
           },
         })
         .then(() => {
-          this.$emit('remove-confirm-result', item, 'remove')
+          this.$emit('remove-confirm-result', item, 'confirmed')
         })
         .catch((error) => {
           this.$toasted.error(error.message)

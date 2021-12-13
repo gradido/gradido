@@ -51,9 +51,9 @@ export default {
   },
   methods: {
     removeConfirmResult(e, event) {
+      let index = 0
+      const findArr = this.confirmResult.find((arr) => arr.id === e.id)
       if (event === 'remove') {
-        let index = 0
-        const findArr = this.confirmResult.find((arr) => arr.id === e.id)
         this.$apollo
           .mutate({
             mutation: deletePendingCreation,
@@ -70,6 +70,10 @@ export default {
           .catch((error) => {
             this.$toasted.error(error.message)
           })
+      } else {
+        this.confirmResult.splice(index, 1)
+        this.$store.commit('openCreationsMinus', 1)
+        this.$toasted.success('Pending Creation has been deleted')
       }
     },
     getPendingCreations() {
