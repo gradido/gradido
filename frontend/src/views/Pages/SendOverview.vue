@@ -70,11 +70,6 @@ export default {
       default: true,
     },
   },
-  computed: {
-    showContext() {
-      return this.currentTransactionStep === 0
-    },
-  },
   methods: {
     setTransaction(data) {
       this.transactionData = { ...data }
