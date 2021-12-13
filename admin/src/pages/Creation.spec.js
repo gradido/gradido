@@ -79,7 +79,7 @@ describe('Creation', () => {
       })
     })
 
-    describe('update iten', () => {
+    describe('update item', () => {
       beforeEach(() => {
         jest.clearAllMocks()
       })
