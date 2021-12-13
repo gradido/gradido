@@ -8,7 +8,6 @@ import * as rules from 'vee-validate/dist/rules'
 import { messages } from 'vee-validate/dist/locale/en.json'
 
 import RegeneratorRuntime from 'regenerator-runtime'
-import SideBar from '@/components/SidebarPlugin'
 import VueQrcode from 'vue-qrcode'
 
 import VueMoment from 'vue-moment'
@@ -41,7 +40,6 @@ global.localVue.use(BootstrapVue)
 global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
-global.localVue.use(SideBar)
 global.localVue.use(VueQrcode)
 global.localVue.use(VueMoment)
 global.localVue.component('validation-provider', ValidationProvider)
