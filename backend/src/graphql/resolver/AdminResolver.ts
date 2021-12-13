@@ -146,11 +146,11 @@ export class AdminResolver {
 
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
-    const receivedCallDate = new Date()
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const pendingCreation = await pendingCreationRepository.findOneOrFail(id)
 
     const transactionRepository = getCustomRepository(TransactionRepository)
+    const receivedCallDate = new Date()
     let transaction = new Transaction()
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
