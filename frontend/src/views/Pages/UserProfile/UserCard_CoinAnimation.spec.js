@@ -24,7 +24,9 @@ describe('UserCard_CoinAnimation', () => {
     },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       mutate: mockAPIcall,

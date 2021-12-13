@@ -37,7 +37,9 @@ describe('GdtTransactionList ', () => {
     $n: jest.fn((n) => n),
     $d: jest.fn((d) => d),
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       query: apolloMock,

@@ -133,7 +133,7 @@ export default {
         })
         .catch((error) => {
           this.pending = true
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
           // what to do when loading balance fails?
         })
     },

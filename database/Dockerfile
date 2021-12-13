@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:12.19.0-alpine3.10 as base
+FROM node:17-alpine as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -14,8 +14,6 @@ ENV BUILD_VERSION="0.0.0.0"
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
-## App relevant Envs
-#ENV PORT="4000"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -33,10 +31,6 @@ LABEL maintainer="support@gradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
-
-# Settings
-## Expose Container Port
-# EXPOSE ${PORT}
 
 ## Workdir
 RUN mkdir -p ${DOCKER_WORKDIR}
@@ -99,7 +93,7 @@ FROM base as production
 # Copy "binary"-files from build image
 COPY --from=build ${DOCKER_WORKDIR}/build ./build
 # We also copy the node_modules express and serve-static for the run script
- COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
