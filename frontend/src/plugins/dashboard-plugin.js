@@ -1,6 +1,5 @@
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
-import SideBar from '@/components/SidebarPlugin'
 
 import Toasted from 'vue-toasted'
 
@@ -28,7 +27,6 @@ export default {
   install(Vue) {
     Vue.use(GlobalComponents)
     Vue.use(GlobalDirectives)
-    Vue.use(SideBar)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)

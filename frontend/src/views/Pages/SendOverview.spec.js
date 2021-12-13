@@ -38,10 +38,6 @@ describe('SendOverview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a status GDD line gdd-status-gdd', () => {
-      expect(wrapper.find('div.gdd-status-gdd').exists()).toBeTruthy()
-    })
-
     it('has a send field', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
     })

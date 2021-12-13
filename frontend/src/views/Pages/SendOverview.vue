@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-container fluid>
+    <b-container>
       <b-row>
         <b-col class="bg-gray text-white text-center p-3">
           <status class="gdd-status-gdd" :pending="pending" :balance="balance" status-text="GDD" />
@@ -36,9 +36,7 @@
   </div>
 </template>
 <script>
-import Status from '../../components/Status.vue'
 import GddSend from './SendOverview/GddSend.vue'
-
 import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
@@ -53,7 +51,6 @@ const EMPTY_TRANSACTION_DATA = {
 export default {
   name: 'SendOverview',
   components: {
-    Status,
     GddSend,
 
     TransactionForm,
