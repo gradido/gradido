@@ -30,6 +30,11 @@ loadAllRules(i18n)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
+if (!store) {
+  // Please supply a support page
+  window.location.assign('https://gradido.net/')
+}
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
