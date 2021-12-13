@@ -146,6 +146,7 @@ export class AdminResolver {
 
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
+    const receivedCallDate = new Date()
     const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
     const pendingCreation = await pendingCreationRepository.findOneOrFail(id)
 
@@ -153,7 +154,7 @@ export class AdminResolver {
     let transaction = new Transaction()
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
-    transaction.received = new Date()
+    transaction.received = receivedCallDate
     transaction.blockchainTypeId = 1
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
@@ -178,7 +179,7 @@ export class AdminResolver {
       newBalance = await calculateDecay(
         lastUserTransaction.balance,
         lastUserTransaction.balanceDate,
-        new Date(),
+        receivedCallDate,
       )
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
@@ -200,8 +201,8 @@ export class AdminResolver {
     if (!userBalance) userBalance = balanceRepository.create()
     userBalance.userId = pendingCreation.userId
     userBalance.amount = Number(newBalance)
-    userBalance.modified = new Date()
-    userBalance.recordDate = new Date()
+    userBalance.modified = receivedCallDate
+    userBalance.recordDate = receivedCallDate
     await balanceRepository.save(userBalance)
     await pendingCreationRepository.delete(pendingCreation)
 
