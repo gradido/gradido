@@ -43,7 +43,9 @@ describe('GddTransactionList', () => {
         })
       })
       it('Transactions array is not there', () => {
-        expect(wrapper.find('div.test-no-transactionlist').text()).toContain('error.no-transactionlist')
+        expect(wrapper.find('div.test-no-transactionlist').text()).toContain(
+          'error.no-transactionlist',
+        )
       })
     })
     describe('Check if 0 transactions are coming from the server', () => {
@@ -54,7 +56,9 @@ describe('GddTransactionList', () => {
         })
       })
       it('Transactions Array is empty, 0 transactions', () => {
-        expect(wrapper.find('div.test-empty-transactionlist').text()).toContain('error.empty-transactionlist')
+        expect(wrapper.find('div.test-empty-transactionlist').text()).toContain(
+          'error.empty-transactionlist',
+        )
       })
     })
 
