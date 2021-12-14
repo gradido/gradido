@@ -13,7 +13,9 @@ describe('SendOverview', () => {
 
   const propsData = {
     balance: 123.45,
-    transactionCount: 1,
+    GdtBalance: 1234.56,
+    transactions: [],
+    pending: true,
   }
 
   const mocks = {
@@ -42,10 +44,6 @@ describe('SendOverview', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
     })
 
-    // it('has a transactions table', () => {
-    //  expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
-    // })
-
     describe('transaction form', () => {
       it('steps forward in the dialog', async () => {
         await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
@@ -53,7 +51,8 @@ describe('SendOverview', () => {
           amount: 23.45,
           memo: 'Make the best of it!',
         })
-        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBeTruthy()
+        await wrapper.vm.$nextTick()
+        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
       })
     })
 
