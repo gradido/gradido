@@ -54,7 +54,7 @@
     "amount": "Amount",
     "your_amount": "Your amount",
     "current_balance": "current balance",
-    "new_balance": "new balance",
+    "new_balance": "account balance after confirmation",
     "at": "at",
     "cancel": "Cancel",
     "close": "Close",
