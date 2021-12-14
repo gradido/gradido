@@ -31,7 +31,6 @@
 </template>
 <script>
 import GddSend from './SendOverview/GddSend.vue'
-import Status from '../../components/Status.vue'
 import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
@@ -47,7 +46,6 @@ export default {
   name: 'SendOverview',
   components: {
     GddSend,
-    Status,
     TransactionForm,
     TransactionConfirmation,
     TransactionResult,
