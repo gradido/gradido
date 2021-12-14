@@ -31,8 +31,7 @@ loadAllRules(i18n)
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 if (!store) {
-  // Please supply a support page
-  window.location.assign('https://gradido.net/')
+  setTimeout(window.location.assign('https://gradido.net/'), 5000)
 }
 
 /* eslint-disable no-new */
