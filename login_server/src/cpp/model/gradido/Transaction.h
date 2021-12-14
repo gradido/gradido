@@ -16,6 +16,8 @@
 
 #include "../../tasks/CPUTask.h"
 
+#include <array>
+
 namespace model {
 	namespace gradido {
 
@@ -31,6 +33,11 @@ namespace model {
 			// create group add member transaction
 			// groupMemberUpdate
 			static Poco::AutoPtr<Transaction> createGroupMemberUpdate(Poco::AutoPtr<controller::User> user, Poco::AutoPtr<controller::Group> group);
+			static Poco::AutoPtr<Transaction> createGroupMemberUpdateAdd(MemoryBin* userRootPublic);
+			static std::array<Poco::AutoPtr<Transaction>, 2> createGroupMemberUpdateMove(
+				MemoryBin* userRootPublic,
+				const std::string& currentGroupAlias,
+				const std::string& newGroupAlias);
 			//! \brief transfer
 			//! \return
 			static Poco::AutoPtr<Transaction> createTransfer(
@@ -50,6 +57,22 @@ namespace model {
 				const std::string& memo,
 				BlockchainType blockchainType);
 
+			static Poco::AutoPtr<Transaction> createTransferLocal(
+				const MemoryBin* senderPubkey,
+				const MemoryBin* recipiantPubkey,
+				Poco::Int64 amount,
+				const std::string& memo
+			);
+
+			static std::array<Poco::AutoPtr<Transaction>, 2> createTransferCrossGroup(
+				const MemoryBin* senderPubkey,
+				const MemoryBin* recipiantPubkey,
+				Poco::Int64 amount,
+				const std::string& memo,
+				const std::string& senderGroupAlias,
+				const std::string& recipiantGroupAlias
+			);
+
 			//! \brief creation transaction
 			static Poco::AutoPtr<Transaction> createCreation(
 				Poco::AutoPtr<controller::User> receiver,
@@ -57,6 +80,12 @@ namespace model {
 				Poco::DateTime targetDate,
 				const std::string& memo,
 				BlockchainType blockchainType);
+
+			static Poco::AutoPtr<Transaction> createCreation(
+				const MemoryBin* recipiantPubkey,
+				Poco::UInt32 amount,
+				Poco::DateTime targetDate,
+				const std::string& memo);
 
 			static Poco::AutoPtr<Transaction> load(model::table::PendingTask* dbModel);
 

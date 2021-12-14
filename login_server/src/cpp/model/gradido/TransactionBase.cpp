@@ -20,6 +20,7 @@ namespace model {
 			case TRANSACTION_VALID_INVALID_PUBKEY: return "invalid pubkey";
 			case TRANSACTION_VALID_INVALID_GROUP_ALIAS: return "invalid group alias";
 			case TRANSACTION_VALID_INVALID_SIGN: return "invalid sign";
+			case TRANSACTION_VALID_INVALID_MEMO: return "invalid memo";
 			}
 			return "<unknown>";
 		}

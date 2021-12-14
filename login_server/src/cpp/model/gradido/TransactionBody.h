@@ -38,6 +38,8 @@ namespace model {
 
 			//! \brief GroupMemberUpdate Transaction
 			static Poco::AutoPtr<TransactionBody> create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias);
+			static Poco::AutoPtr<TransactionBody> create(MemoryBin* userRootPublic);
+			static Poco::AutoPtr<TransactionBody> create(MemoryBin* userRootPublic, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias, Poco::Timestamp pairedTransactionId = Poco::Timestamp());
 			//! \brief GradidoTransfer Transaction
 			//! \param group if group.isNull() it is a local transfer, else cross group transfer,
 			//! \param group if group is same as sender group outbound, else inbound
@@ -61,6 +63,13 @@ namespace model {
 				BlockchainType blockchainType
 				);
 
+			static Poco::AutoPtr<TransactionBody> create(
+				const std::string& memo,
+				const MemoryBin* receiverPublicKey,
+				Poco::UInt32 amount,
+				Poco::DateTime targetDate
+			);
+
 
 			static Poco::AutoPtr<TransactionBody> load(const std::string& protoMessageBin);
 
@@ -83,6 +92,7 @@ namespace model {
 
 			static BlockchainType blockchainTypeFromString(const std::string& blockainTypeString);
 			inline void setBlockchainType(BlockchainType blockchainType) { mBlockchainType = blockchainType;}
+			void setCreated(Poco::DateTime created);
 			inline bool isHederaBlockchain() { return mBlockchainType == BLOCKCHAIN_HEDERA; }
 			inline bool isMysqlBlockchain() { return mBlockchainType == BLOCKCHAIN_MYSQL; }
 			const char* getBlockchainTypeString() const;

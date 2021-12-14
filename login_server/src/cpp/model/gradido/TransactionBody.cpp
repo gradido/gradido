@@ -21,6 +21,12 @@ namespace model {
 			unlock();
 		}
 
+		void TransactionBody::setCreated(Poco::DateTime created)
+		{
+			auto protoCreated = mTransactionBody.mutable_created();
+			DataTypeConverter::convertToProtoTimestampSeconds(created.timestamp(), protoCreated);
+		}
+
 		Poco::AutoPtr<TransactionBody> TransactionBody::create(const std::string& memo, Poco::AutoPtr<controller::User> user, proto::gradido::GroupMemberUpdate_MemberUpdateType type, const std::string& targetGroupAlias)
 		{
 			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
@@ -29,10 +35,49 @@ namespace model {
 
 			group_member_update->set_user_pubkey(user->getModel()->getPublicKey(), KeyPairEd25519::getPublicKeySize());
 			group_member_update->set_member_update_type(type);
-			group_member_update->set_target_group(targetGroupAlias);
+			if (targetGroupAlias.size()) {
+				group_member_update->set_target_group(targetGroupAlias);
+			}
 
 			obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
 			obj->mTransactionSpecific = new GroupMemberUpdate(memo, obj->mTransactionBody.group_member_update());
+			obj->mTransactionSpecific->prepare();
+
+			return obj;
+		}
+
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(MemoryBin* userRootPublic)
+		{
+			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
+			auto group_member_update = obj->mTransactionBody.mutable_group_member_update();
+
+			group_member_update->set_user_pubkey(userRootPublic->data(), userRootPublic->size());
+			group_member_update->set_member_update_type(proto::gradido::GroupMemberUpdate_MemberUpdateType_ADD_USER);
+			
+			obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
+			obj->mTransactionSpecific = new GroupMemberUpdate("", obj->mTransactionBody.group_member_update());
+			obj->mTransactionSpecific->prepare();
+
+			return obj;
+		}
+
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(
+			MemoryBin* userRootPublic, 
+			proto::gradido::GroupMemberUpdate_MemberUpdateType type, 
+			const std::string& targetGroupAlias,
+			Poco::Timestamp pairedTransactionId /*= Poco::Timestamp()*/
+		)
+		{
+			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
+			auto group_member_update = obj->mTransactionBody.mutable_group_member_update();
+
+			group_member_update->set_user_pubkey(userRootPublic->data(), userRootPublic->size());
+			group_member_update->set_member_update_type(type);
+			group_member_update->set_target_group(targetGroupAlias);
+			DataTypeConverter::convertToProtoTimestamp(pairedTransactionId, group_member_update->mutable_paired_transaction_id());
+
+			obj->mType = TRANSACTION_GROUP_MEMBER_UPDATE;
+			obj->mTransactionSpecific = new GroupMemberUpdate("", obj->mTransactionBody.group_member_update());
 			obj->mTransactionSpecific->prepare();
 
 			return obj;
@@ -215,6 +260,36 @@ namespace model {
 
 			return obj;
 			
+		}
+
+		Poco::AutoPtr<TransactionBody> TransactionBody::create(
+			const std::string& memo,
+			const MemoryBin* receiverPublicKey,
+			Poco::UInt32 amount,
+			Poco::DateTime targetDate
+		)
+		{
+			if (receiverPublicKey) {
+				return nullptr;
+			}
+			
+			Poco::AutoPtr<TransactionBody> obj = new TransactionBody;
+			obj->mTransactionBody.set_memo(memo);
+
+			auto creation = obj->mTransactionBody.mutable_creation();
+			auto target_date_timestamp_seconds = creation->mutable_target_date();
+			target_date_timestamp_seconds->set_seconds(targetDate.timestamp().epochTime());
+
+			auto transfer_amount = creation->mutable_receiver();
+			transfer_amount->set_amount(amount);
+			std::string* pubkey_str = transfer_amount->mutable_pubkey();
+			*pubkey_str = std::string((const char*)receiverPublicKey->data(), receiverPublicKey->size());
+
+			obj->mType = TRANSACTION_CREATION;
+			obj->mTransactionSpecific = new TransactionCreation(memo, obj->mTransactionBody.creation());
+			obj->mTransactionSpecific->prepare();
+
+			return obj;
 		}
 
 		Poco::AutoPtr<TransactionBody> TransactionBody::load(const std::string& protoMessageBin)

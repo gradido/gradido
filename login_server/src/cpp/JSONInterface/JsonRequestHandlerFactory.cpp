@@ -21,6 +21,7 @@
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
+#include "JsonPackTransaction.h"
 #include "JsonResetPassword.h"
 #include "JsonSendEmail.h"
 #include "JsonAdminEmailVerificationResend.h"
@@ -77,6 +78,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
+	}
+	else if (url_first_part == "/packTransaction") {
+		return new JsonPackTransaction;
 	}
 	else if (url_first_part == "/signTransaction") {
 		return new JsonSignTransaction;

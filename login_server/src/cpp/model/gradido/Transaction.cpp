@@ -67,6 +67,53 @@ namespace model {
 			return result;
 		}
 
+		Poco::AutoPtr<Transaction> Transaction::createGroupMemberUpdateAdd(MemoryBin* userRootPublic)
+		{
+			if (userRootPublic) {
+				return nullptr;
+			}
+
+			auto body = TransactionBody::create(userRootPublic);
+			Poco::AutoPtr<Transaction> result = new Transaction(body);
+			return result;
+		}
+
+		std::array<Poco::AutoPtr<Transaction>, 2> Transaction::createGroupMemberUpdateMove(
+			MemoryBin* userRootPublic,
+			const std::string& currentGroupAlias,
+			const std::string& newGroupAlias)
+		{
+			Poco::AutoPtr<Transaction> outboundTransaction;
+			Poco::AutoPtr<Transaction> inboundTransaction;
+
+
+			if (!userRootPublic || !currentGroupAlias.size() || !newGroupAlias.size()) {
+				return { outboundTransaction, inboundTransaction };
+			}
+
+			Poco::Timestamp now;
+
+			for (int i = 0; i < 2; i++) {
+				proto::gradido::GroupMemberUpdate_MemberUpdateType type = proto::gradido::GroupMemberUpdate_MemberUpdateType_MOVE_USER_INBOUND;
+				std::string groupAlias = currentGroupAlias;
+				if (1 == i) {
+					type = proto::gradido::GroupMemberUpdate_MemberUpdateType_MOVE_USER_OUTBOUND;
+					groupAlias = newGroupAlias;
+				}
+				Poco::AutoPtr<TransactionBody> body = TransactionBody::create(userRootPublic, type, groupAlias, now);
+				Poco::AutoPtr<Transaction> transaction(new Transaction(body));
+
+				if (0 == i) {
+					inboundTransaction = transaction;
+				}
+				else if (1 == i) {
+					outboundTransaction = transaction;
+				}
+			}
+
+			return { outboundTransaction, inboundTransaction };
+		}
+
 		Poco::AutoPtr<Transaction> Transaction::createCreation(
 			Poco::AutoPtr<controller::User> receiver,
 			Poco::UInt32 amount,
@@ -92,6 +139,22 @@ namespace model {
 
 			result->insertPendingTaskIntoDB(receiver, model::table::TASK_TYPE_CREATION);
 			PendingTasksManager::getInstance()->addTask(result);
+			return result;
+		}
+
+		Poco::AutoPtr<Transaction> Transaction::createCreation(
+			const MemoryBin* recipiantPubkey,
+			Poco::UInt32 amount,
+			Poco::DateTime targetDate,
+			const std::string& memo)
+		{
+			if (recipiantPubkey) {
+				return nullptr;
+			}
+		
+			auto body = TransactionBody::create(memo, recipiantPubkey, amount, targetDate);
+			Poco::AutoPtr<Transaction> result = new Transaction(body);
+
 			return result;
 		}
 
@@ -127,6 +190,68 @@ namespace model {
 			PendingTasksManager::getInstance()->addTask(transaction);
 
 			return transaction;
+		}
+
+		Poco::AutoPtr<Transaction> Transaction::createTransferLocal(
+			const MemoryBin* senderPubkey,
+			const MemoryBin* recipiantPubkey,
+			Poco::Int64 amount,
+			const std::string& memo
+		)
+		{
+			Poco::AutoPtr<Transaction> transaction;
+			Poco::AutoPtr<TransactionBody> transaction_body;
+			static const char* function_name = "Transaction::createTransferLocal";
+
+			if (!senderPubkey || !recipiantPubkey || !amount) {
+				return transaction;
+			}
+		
+			transaction_body = TransactionBody::create(memo, senderPubkey, recipiantPubkey, amount, "", TRANSFER_LOCAL);
+			transaction = new Transaction(transaction_body);
+
+			return transaction;
+		}
+
+		std::array<Poco::AutoPtr<Transaction>, 2> Transaction::createTransferCrossGroup(
+			const MemoryBin* senderPubkey,
+			const MemoryBin* recipiantPubkey,
+			Poco::Int64 amount,
+			const std::string& memo,
+			const std::string& senderGroupAlias,
+			const std::string& recipiantGroupAlias
+		)
+		{
+			Poco::AutoPtr<Transaction> outboundTransaction;
+			Poco::AutoPtr<Transaction> inboundTransaction;	
+
+			if (!senderPubkey || !recipiantPubkey || !amount || !senderGroupAlias.size() || !recipiantGroupAlias.size()) {
+				return { outboundTransaction, inboundTransaction };
+			}
+
+			Poco::Timestamp now;
+
+			for (int i = 0; i < 2; i++) {
+				TransactionTransferType type = TRANSFER_CROSS_GROUP_INBOUND;
+				std::string groupAlias = senderGroupAlias;
+				if (1 == i) {
+					type = TRANSFER_CROSS_GROUP_OUTBOUND;
+					groupAlias = recipiantGroupAlias;
+				}
+				Poco::AutoPtr<TransactionBody> body = TransactionBody::create(memo, senderPubkey, recipiantPubkey, amount, groupAlias, type, now);
+				Poco::AutoPtr<Transaction> transaction(new Transaction(body));
+				
+				if (0 == i) {
+					inboundTransaction = transaction;
+					inboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(recipiantGroupAlias);
+				}
+				else if (1 == i) {
+					outboundTransaction = transaction;
+					outboundTransaction->getTransactionBody()->getTransferTransaction()->setOwnGroupAlias(senderGroupAlias);
+				}
+			}
+
+			return { outboundTransaction, inboundTransaction };
 		}
 
 
