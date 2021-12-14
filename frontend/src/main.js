@@ -31,7 +31,10 @@ loadAllRules(i18n)
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 if (!store) {
-  setTimeout(window.location.assign('https://gradido.net/'), 5000)
+  setTimeout(
+    window.location.assign('https://github.com/gradido/gradido/tree/master/support#cookies'),
+    5000,
+  )
 }
 
 /* eslint-disable no-new */
