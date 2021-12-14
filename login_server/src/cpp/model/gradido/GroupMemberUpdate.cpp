@@ -71,22 +71,15 @@ namespace model {
 			}
 
 			if (mProtoMemberUpdate.member_update_type() != proto::gradido::GroupMemberUpdate::ADD_USER) {
-				addError(new Error(functionName, "user move not implemented yet!"));
-				return TRANSACTION_VALID_CODE_ERROR;
-			}
-			auto target_group = mProtoMemberUpdate.target_group();
-			auto sm = SessionManager::getInstance();
-			if (sm->isValid(target_group, VALIDATE_GROUP_ALIAS)) {
-				auto groups = controller::Group::load(mProtoMemberUpdate.target_group());
-				if (groups.size() != 1) {
-					addError(new ParamError(functionName, "target group not known or not unambiguous: ", target_group));
+				//addError(new Error(functionName, "user move not implemented yet!"));
+				//return TRANSACTION_VALID_CODE_ERROR;
+				auto target_group = mProtoMemberUpdate.target_group();
+				auto sm = SessionManager::getInstance();
+				if (!sm->isValid(target_group, VALIDATE_GROUP_ALIAS)) {
+					addError(new Error(functionName, "target group isn't valid group alias string "));
 					return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
 				}
-			}
-			else {
-				addError(new Error(functionName, "target group isn't valid group alias string "));
-				return TRANSACTION_VALID_INVALID_GROUP_ALIAS;
-			}
+			}			
 
 			return TRANSACTION_VALID_OK;
 		}

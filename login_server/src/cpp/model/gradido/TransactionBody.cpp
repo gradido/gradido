@@ -269,7 +269,7 @@ namespace model {
 			Poco::DateTime targetDate
 		)
 		{
-			if (receiverPublicKey) {
+			if (!receiverPublicKey) {
 				return nullptr;
 			}
 			

@@ -69,7 +69,7 @@ namespace model {
 
 		Poco::AutoPtr<Transaction> Transaction::createGroupMemberUpdateAdd(MemoryBin* userRootPublic)
 		{
-			if (userRootPublic) {
+			if (!userRootPublic) {
 				return nullptr;
 			}
 
@@ -148,7 +148,7 @@ namespace model {
 			Poco::DateTime targetDate,
 			const std::string& memo)
 		{
-			if (recipiantPubkey) {
+			if (!recipiantPubkey) {
 				return nullptr;
 			}
 		

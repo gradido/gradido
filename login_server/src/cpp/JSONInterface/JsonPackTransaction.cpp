@@ -19,8 +19,11 @@ Poco::JSON::Object* JsonPackTransaction::handle(Poco::Dynamic::Var params)
 		/// not available for the given type.
 		/// Throws InvalidAccessException if Var is empty.
 		try {
-			paramJsonObject->get("transaction_type").convert(transaction_type);
-			paramJsonObject->get("memo").convert(mMemo);
+			paramJsonObject->get("transactionType").convert(transaction_type);
+			auto memoObj = paramJsonObject->get("memo");
+			if (!memoObj.isEmpty()) {
+				memoObj.convert(mMemo);
+			}
 			paramJsonObject->get("created").convert(mCreated);
 		}
 		catch (Poco::Exception& ex) {
@@ -209,7 +212,7 @@ Poco::JSON::Object* JsonPackTransaction::resultBase64Transactions(std::vector<Tr
 		transactionBody->setCreated(mCreated);
 		auto result = transactionBody->getTransactionBase()->validate();
 		if (result != model::gradido::TRANSACTION_VALID_OK) {
-			return stateError("invalid transaction", model::gradido::TransactionValidationToString(result));
+			return stateError("invalid transaction", transactionBody->getTransactionBase());
 		}
 		Poco::JSON::Object entry;
 		if (it->second.size()) {
