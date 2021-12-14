@@ -16,6 +16,7 @@ import { TransactionCreation } from '@entity/TransactionCreation'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
+import { calculateDecay } from '../../util/decay'
 
 @Resolver()
 export class AdminResolver {
@@ -149,10 +150,11 @@ export class AdminResolver {
     const pendingCreation = await loginPendingTasksAdminRepository.findOneOrFail(id)
 
     const transactionRepository = getCustomRepository(TransactionRepository)
+    const receivedCallDate = new Date()
     let transaction = new Transaction()
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
-    transaction.received = new Date()
+    transaction.received = receivedCallDate
     transaction.blockchainTypeId = 1
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
@@ -174,7 +176,11 @@ export class AdminResolver {
     if (!lastUserTransaction) {
       newBalance = 0
     } else {
-      newBalance = lastUserTransaction.balance
+      newBalance = await calculateDecay(
+        lastUserTransaction.balance,
+        lastUserTransaction.balanceDate,
+        receivedCallDate,
+      )
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
@@ -195,8 +201,8 @@ export class AdminResolver {
     if (!userBalance) userBalance = balanceRepository.create()
     userBalance.userId = pendingCreation.userId
     userBalance.amount = Number(newBalance)
-    userBalance.modified = new Date()
-    userBalance.recordDate = userBalance.recordDate ? userBalance.recordDate : new Date()
+    userBalance.modified = receivedCallDate
+    userBalance.recordDate = receivedCallDate
     await balanceRepository.save(userBalance)
     await loginPendingTasksAdminRepository.delete(pendingCreation)
 

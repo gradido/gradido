@@ -52,6 +52,7 @@ describe('DashboardLayoutGdd', () => {
         publisherId: 123,
         firstName: 'User',
         lastName: 'Example',
+        token: 'valid-token',
       },
       dispatch: storeDispatchMock,
       commit: storeCommitMock,
@@ -220,6 +221,65 @@ describe('DashboardLayoutGdd', () => {
 
         it('calls $toasted.global.error method', () => {
           expect(toasterMock).toBeCalledWith('Ouch!')
+        })
+      })
+
+      describe('set visible method', () => {
+        beforeEach(() => {
+          wrapper.findComponent({ name: 'Navbar' }).vm.$emit('set-visible', true)
+        })
+
+        it('sets visible to true', () => {
+          expect(wrapper.vm.visible).toBe(true)
+        })
+      })
+
+      describe('elopage URI', () => {
+        describe('user has no publisher ID and no elopage', () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = null
+            mocks.$store.state.hasElopage = false
+            wrapper = Wrapper()
+          })
+
+          it('links to basic-de', () => {
+            expect(wrapper.vm.elopageUri).toBe(
+              'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=2896&firstName=User&lastName=Example&email=user@example.org',
+            )
+          })
+        })
+
+        describe('user has elopage', () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = '123'
+            mocks.$store.state.hasElopage = true
+            wrapper = Wrapper()
+          })
+
+          it('links to sign in for elopage', () => {
+            expect(wrapper.vm.elopageUri).toBe('https://elopage.com/s/gradido/sign_in?locale=en')
+          })
+        })
+      })
+
+      describe('admin method', () => {
+        const windowLocationMock = jest.fn()
+        beforeEach(() => {
+          delete window.location
+          window.location = {
+            assign: windowLocationMock,
+          }
+          wrapper.findComponent({ name: 'Navbar' }).vm.$emit('admin')
+        })
+
+        it('dispatches logout to store', () => {
+          expect(storeDispatchMock).toBeCalled()
+        })
+
+        it('changes window location to admin interface', () => {
+          expect(windowLocationMock).toBeCalledWith(
+            'http://localhost/admin/authenticate?token=valid-token',
+          )
         })
       })
     })
