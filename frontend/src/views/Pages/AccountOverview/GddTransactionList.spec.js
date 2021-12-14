@@ -36,25 +36,25 @@ describe('GddTransactionList', () => {
       expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
     })
 
-    describe('Prüfen wenn keine Transaktionen vom Server kommen', () => {
+    describe('Check if no array, transactions come from server', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: false,
         })
       })
-      it('transactions array ist nicht da', () => {
-        expect(wrapper.find('div.test-no-transactionlist').text()).toBe('error.no-transactionlist')
+      it('Transactions array is not there', () => {
+        expect(wrapper.find('div.test-no-transactionlist').text()).toContain('error.no-transactionlist')
       })
     })
-    describe('Prüfen wenn 0 Transaktionen vom Server kommen', () => {
+    describe('Check if 0 transactions are coming from the server', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
           transactionCount: 0,
         })
       })
-      it('transactions ist leer, 0 Transaktionen', () => {
-        expect(wrapper.find('div.test-empty-transactionlist').text()).toBe('error.empty-transactionlist')
+      it('Transactions Array is empty, 0 transactions', () => {
+        expect(wrapper.find('div.test-empty-transactionlist').text()).toContain('error.empty-transactionlist')
       })
     })
 
