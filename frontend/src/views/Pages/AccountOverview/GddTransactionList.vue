@@ -1,13 +1,13 @@
 <template>
   <div class="gdd-transaction-list">
     <div class="list-group">
-      <div v-if="!transactions" class="text-right">
+      <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
-      <div v-if="!transactionCount" class="text-right">
+      <div v-if="!transactionCount" class="test-empty-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
