@@ -36,7 +36,7 @@ describe('GddTransactionList', () => {
       expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
     })
 
-    describe('Check if no array, transactions come from server', () => {
+    describe('no transactions from server', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: false,
