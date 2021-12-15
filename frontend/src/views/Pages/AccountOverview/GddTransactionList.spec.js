@@ -48,7 +48,7 @@ describe('GddTransactionList', () => {
         )
       })
     })
-    describe('Check if 0 transactions are coming from the server', () => {
+    describe('0 transactions from server', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
