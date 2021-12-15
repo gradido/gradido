@@ -42,7 +42,7 @@ describe('GddTransactionList', () => {
           transactions: false,
         })
       })
-      it('Transactions array is not there', () => {
+      it('shows error no transaction list', () => {
         expect(wrapper.find('div.test-no-transactionlist').text()).toContain(
           'error.no-transactionlist',
         )
