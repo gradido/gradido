@@ -7,14 +7,14 @@
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-      <b-collapse id="nav-collapse" class="h4" is-nav>
+      <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
           <b-nav-item to="/">Übersicht</b-nav-item>
           <b-nav-item to="/user">Usersuche</b-nav-item>
           <b-nav-item to="/creation">Mehrfachschöpfung</b-nav-item>
           <b-nav-item
             v-show="$store.state.openCreations > 0"
-            class="bg-danger p-2"
+            class="bg-color-creation p-1"
             to="/creation-confirm"
           >
             {{ $store.state.openCreations }} offene Schöpfungen
@@ -47,5 +47,8 @@ export default {
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
+}
+.bg-color-creation {
+  background-color: #cf1010dc;
 }
 </style>
