@@ -63,9 +63,14 @@ describe('GddTransactionList', () => {
     })
 
     describe('without any properties', () => {
-      it('renders text saying that there are no transactions', () => {
+      it('renders text saying that there are error.empty-transactionlist ', () => {
         expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
-          'error.empty-transactionlist   transaction.nullTransactions',
+          'error.empty-transactionlist',
+        )
+      })
+      it('renders text saying that there are no transaction.nullTransactions', () => {
+        expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
+          'transaction.nullTransactions',
         )
       })
     })
