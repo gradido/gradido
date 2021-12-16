@@ -10,7 +10,7 @@ export class DecayStartBlockSeed implements Seeder {
         'hex',
       ),
       memo: '',
-      received: new Date('2021-11-30T09:13:26'),
+      received: new Date('2021-12-01T09:13:26'),
       blockchainTypeId: 1,
     }).create()
   }
