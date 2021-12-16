@@ -19,16 +19,11 @@
           >
             {{ $store.state.openCreations }} offene Schöpfungen
           </b-nav-item>
-            <b-nav-item @click="wallet" >Wallet</b-nav-item>
-          <b-nav-item @click="logout" >Logout</b-nav-item>
+          <b-nav-item @click="wallet">Wallet</b-nav-item>
+          <b-nav-item @click="logout">Logout</b-nav-item>
         </b-navbar-nav>
-       
-    
       </b-collapse>
-      
-       
     </b-navbar>
-   
   </div>
 </template>
 <script>
