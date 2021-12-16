@@ -14,7 +14,7 @@ describe('SendOverview', () => {
   const propsData = {
     balance: 123.45,
     GdtBalance: 1234.56,
-    transactions: [],
+    transactions: [{ balance: 0.1 }],
     pending: true,
   }
 
@@ -45,13 +45,14 @@ describe('SendOverview', () => {
     })
 
     describe('transaction form', () => {
-      it('steps forward in the dialog', async () => {
-        await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
+      beforeEach(async () => {
+        wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
         })
-        await wrapper.vm.$nextTick()
+      })
+      it('steps forward in the dialog', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
       })
     })

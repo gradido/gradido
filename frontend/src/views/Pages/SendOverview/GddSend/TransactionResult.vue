@@ -23,10 +23,7 @@
           <div class="test-send_transaction_error">{{ $t('form.send_transaction_error') }}</div>
 
           <hr />
-          <div
-            class="test-test-receiver-not-found"
-            v-if="errorResult === 'GraphQL error: recipiant not known'"
-          >
+          <div class="test-receiver-not-found" v-if="errorResult === 'recipiant not known'">
             {{ $t('transaction.receiverNotFound') }}
           </div>
           <div v-else>({{ errorResult }})</div>
