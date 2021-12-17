@@ -506,42 +506,48 @@ export class UserResolver {
     return emailOptIn
   }
 
-  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
-  @Query(() => Boolean)
-  async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
-    // TODO: this has duplicate code with createUser
-    // TODO: Moriz: I think we do not need this variable.
-    let emailAlreadySend = false
-
-    const loginUserRepository = await getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findOneOrFail({ email })
-
+  private async getOptInCode(loginUser: LoginUser) {
     const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
     let optInCode = await loginEmailOptInRepository.findOne({
       userId: loginUser.id,
       emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
     })
     if (optInCode) {
-      emailAlreadySend = true
+      const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+      if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+        throw new Error(
+          'email already sent less than ' +
+            parseInt(CONFIG.RESEND_TIME.toString()) +
+            ' minutes ago',
+        )
+      } else {
+        optInCode.updatedAt = new Date()
+        optInCode.resendCount++
+      }
     } else {
       optInCode = new LoginEmailOptIn()
       optInCode.verificationCode = random(64)
       optInCode.userId = loginUser.id
       optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
-      await loginEmailOptInRepository.save(optInCode)
     }
+    await loginEmailOptInRepository.save(optInCode)
+    return optInCode
+  }
+
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
+  @Query(() => Boolean)
+  async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
+    // TODO: this has duplicate code with createUser
+
+    const loginUserRepository = await getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email })
+
+    const optInCode = await this.getOptInCode(loginUser)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /\$1/g,
       optInCode.verificationCode.toString(),
     )
-
-    if (emailAlreadySend) {
-      const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-      if (timeElapsed <= 10 * 60 * 1000) {
-        throw new Error('email already sent less than 10 minutes before')
-      }
-    }
 
     const emailSent = await sendEMail({
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
