@@ -451,6 +451,7 @@ export class UserResolver {
         /\$1/g,
         emailOptIn.verificationCode.toString(),
       )
+
       const emailSent = await this.sendAccountActivationEmail(
         activationLink,
         loginUser.firstName,
@@ -474,11 +475,29 @@ export class UserResolver {
   }
 
   private async createEmailOptIn(loginUserId: number, queryRunner: QueryRunner) {
-    const emailOptIn = new LoginEmailOptIn()
-    emailOptIn.userId = loginUserId
-    emailOptIn.verificationCode = random(64)
-    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
-
+    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+    let emailOptIn = await loginEmailOptInRepository.findOne({
+      userId: loginUserId,
+      emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+    })
+    if (emailOptIn) {
+      const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
+      if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+        throw new Error(
+          'email already sent less than ' +
+            parseInt(CONFIG.RESEND_TIME.toString()) +
+            ' minutes ago',
+        )
+      } else {
+        emailOptIn.updatedAt = new Date()
+        emailOptIn.resendCount++
+      }
+    } else {
+      emailOptIn = new LoginEmailOptIn()
+      emailOptIn.verificationCode = random(64)
+      emailOptIn.userId = loginUserId
+      emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+    }
     await queryRunner.manager.save(emailOptIn).catch((error) => {
       // eslint-disable-next-line no-console
       console.log('Error while saving emailOptIn', error)
