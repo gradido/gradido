@@ -52,6 +52,7 @@ const email = {
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
   EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
+  RESEND_TIME: process.env.RESEND_TIME || 10,
 }
 
 const webhook = {
