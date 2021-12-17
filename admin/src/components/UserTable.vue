@@ -244,6 +244,10 @@ export default {
         })
     },
     editCreationUserTable(row, rowItem) {
+      this.currentItems.forEach(item => {
+            this.$set(item, '_showDetails', false)
+          })
+          
       if (!row.detailsShowing) {
         this.creationUserData = rowItem
       } else {
