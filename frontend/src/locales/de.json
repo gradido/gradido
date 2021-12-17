@@ -57,6 +57,7 @@
     "at": "am",
     "cancel": "Abbrechen",
     "close": "schließen",
+    "current_balance": "aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
     "edit": "bearbeiten",
@@ -66,6 +67,7 @@
     "lastname": "Nachname",
     "memo": "Nachricht",
     "message": "Nachricht",
+    "new_balance": "neuer Kontostand nach Bestätigung",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "neues Passwort",
@@ -90,7 +92,8 @@
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
       "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen auf den mindestens zwei alfanumerische Zeichen folgen müssen.",
       "usernmae-unique": "Der Username ist bereits vergeben."
-    }
+    },
+    "your_amount": "Dein Betrag"
   },
   "gdt": {
     "action": "Aktion",
