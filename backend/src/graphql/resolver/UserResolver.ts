@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, getRepository } from 'typeorm'
+import { getConnection, getCustomRepository, getRepository, QueryRunner } from 'typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
@@ -383,37 +383,18 @@ export class UserResolver {
 
       // Store EmailOptIn in DB
       // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = new LoginEmailOptIn()
-      emailOptIn.userId = loginUserId
-      emailOptIn.verificationCode = random(64)
-      emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+      const emailOptIn = await this.createEmailOptIn(loginUserId, queryRunner)
 
-      await queryRunner.manager.save(emailOptIn).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('Error while saving emailOptIn', error)
-        throw new Error('error saving email opt in')
-      })
-
-      // Send EMail to user
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /\$1/g,
         emailOptIn.verificationCode.toString(),
       )
-      const emailSent = await sendEMail({
-        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-        to: `${firstName} ${lastName} <${email}>`,
-        subject: 'Gradido: E-Mail Überprüfung',
-        text: `Hallo ${firstName} ${lastName},
-        
-        Deine EMail wurde soeben bei Gradido registriert.
-        
-        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
-        ${activationLink}
-        oder kopiere den obigen Link in dein Browserfenster.
-        
-        Mit freundlichen Grüßen,
-        dein Gradido-Team`,
-      })
+      const emailSent = await this.sendAccountActivationEmail(
+        activationLink,
+        firstName,
+        lastName,
+        email,
+      )
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -428,6 +409,82 @@ export class UserResolver {
       await queryRunner.release()
     }
     return 'success'
+  }
+
+  private async sendAccountActivationEmail(
+    activationLink: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+  ) {
+    const emailSent = await sendEMail({
+      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      to: `${firstName} ${lastName} <${email}>`,
+      subject: 'Gradido: E-Mail Überprüfung',
+      text: `Hallo ${firstName} ${lastName},
+        
+        Deine EMail wurde soeben bei Gradido registriert.
+        
+        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
+        ${activationLink}
+        oder kopiere den obigen Link in dein Browserfenster.
+        
+        Mit freundlichen Grüßen,
+        dein Gradido-Team`,
+    })
+    return emailSent
+  }
+
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email: email })
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      const emailOptIn = await this.createEmailOptIn(loginUser.id, queryRunner)
+
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /\$1/g,
+        emailOptIn.verificationCode.toString(),
+      )
+      const emailSent = await this.sendAccountActivationEmail(
+        activationLink,
+        loginUser.firstName,
+        loginUser.lastName,
+        email,
+      )
+
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+    return true
+  }
+
+  private async createEmailOptIn(loginUserId: number, queryRunner: QueryRunner) {
+    const emailOptIn = new LoginEmailOptIn()
+    emailOptIn.userId = loginUserId
+    emailOptIn.verificationCode = random(64)
+    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+
+    await queryRunner.manager.save(emailOptIn).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.log('Error while saving emailOptIn', error)
+      throw new Error('error saving email opt in')
+    })
+    return emailOptIn
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
