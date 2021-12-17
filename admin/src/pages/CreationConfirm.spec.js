@@ -194,14 +194,13 @@ describe('CreationConfirm', () => {
 
     describe('delete creation delete with error', () => {
       beforeEach(async () => {
-        apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
         await wrapper
           .findComponent({ name: 'UserTable' })
           .vm.$emit('remove-confirm-result', { id: 1 }, 'confirm')
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).not.toBeCalledWith('Ouchhh!')
+        expect(toastedErrorMock).toBeCalledWith('Case confirm is not supported')
       })
     })
 

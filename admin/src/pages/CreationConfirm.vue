@@ -53,27 +53,32 @@ export default {
     removeConfirmResult(e, event) {
       let index = 0
       const findArr = this.confirmResult.find((arr) => arr.id === e.id)
-      if (event === 'remove') {
-        this.$apollo
-          .mutate({
-            mutation: deletePendingCreation,
-            variables: {
-              id: findArr.id,
-            },
-          })
-          .then((result) => {
-            index = this.confirmResult.indexOf(findArr)
-            this.confirmResult.splice(index, 1)
-            this.$store.commit('openCreationsMinus', 1)
-            this.$toasted.success('Pending Creation has been deleted')
-          })
-          .catch((error) => {
-            this.$toasted.error(error.message)
-          })
-      } else {
-        this.confirmResult.splice(index, 1)
-        this.$store.commit('openCreationsMinus', 1)
-        this.$toasted.success('Pending Creation has been deleted')
+      switch (event) {
+        case 'remove':
+          this.$apollo
+            .mutate({
+              mutation: deletePendingCreation,
+              variables: {
+                id: findArr.id,
+              },
+            })
+            .then((result) => {
+              index = this.confirmResult.indexOf(findArr)
+              this.confirmResult.splice(index, 1)
+              this.$store.commit('openCreationsMinus', 1)
+              this.$toasted.success('Pending Creation has been deleted')
+            })
+            .catch((error) => {
+              this.$toasted.error(error.message)
+            })
+          break
+        case 'confirmed':
+          this.confirmResult.splice(index, 1)
+          this.$store.commit('openCreationsMinus', 1)
+          this.$toasted.success('Pending Creation has been deleted')
+          break
+        default:
+          this.$toasted.error('Case ' + event + ' is not supported')
       }
     },
     getPendingCreations() {
