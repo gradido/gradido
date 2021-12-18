@@ -189,10 +189,12 @@ export default {
   },
   methods: {
     rowDetailsToogle(row) {
+      if (this.$refs.showing_detals_false) {
+        row.toggleDetails()
+      }
       if (this.$refs.showing_detals_true) {
         this.$refs.showing_detals_true.click()
       }
-      row.toggleDetails()
     },
     overlayShow(bookmarkType, item) {
       this.overlay = true
