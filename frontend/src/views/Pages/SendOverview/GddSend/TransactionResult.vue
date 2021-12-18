@@ -20,10 +20,10 @@
           <div>{{ $t('form.sorry') }}</div>
           <hr />
 
-          <div>{{ $t('form.send_transaction_error') }}</div>
+          <div class="test-send_transaction_error">{{ $t('form.send_transaction_error') }}</div>
 
           <hr />
-          <div v-if="errorResult === 'receiver not found'">
+          <div class="test-receiver-not-found" v-if="errorResult === 'recipiant not known'">
             {{ $t('transaction.receiverNotFound') }}
           </div>
           <div v-else>({{ errorResult }})</div>
