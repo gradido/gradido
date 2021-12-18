@@ -40,7 +40,8 @@
         <b-button
           variant="info"
           size="md"
-          @click="editCreationUserTable(row, row.item)"
+          :class="'details_' + row.detailsShowing"
+          @click="editCreationUserTable(row)"
           class="mr-2"
         >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
@@ -49,7 +50,13 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="md" @click="row.toggleDetails" class="mr-2">
+        <b-button
+          variant="info"
+          size="md"
+          :ref="'showing_detals_' + row.detailsShowing"
+          @click="rowDetailsToogle(row, row.item)"
+          class="mr-2"
+        >
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
           <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
@@ -181,6 +188,12 @@ export default {
     }
   },
   methods: {
+    rowDetailsToogle(row) {
+      if (this.$refs.showing_detals_true) {
+        this.$refs.showing_detals_true.click()
+      }
+      row.toggleDetails()
+    },
     overlayShow(bookmarkType, item) {
       this.overlay = true
       this.overlayBookmarkType = bookmarkType
@@ -244,10 +257,6 @@ export default {
         })
     },
     editCreationUserTable(row, rowItem) {
-      this.currentItems.forEach(item => {
-            this.$set(item, '_showDetails', false)
-          })
-          
       if (!row.detailsShowing) {
         this.creationUserData = rowItem
       } else {
