@@ -54,7 +54,7 @@
           variant="info"
           size="md"
           :ref="'showing_detals_' + row.detailsShowing"
-          @click="rowDetailsToogle(row, row.item)"
+          @click="rowDetailsToogle(row, row.detailsShowing)"
           class="mr-2"
         >
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
@@ -188,13 +188,25 @@ export default {
     }
   },
   methods: {
-    rowDetailsToogle(row) {
-      if (this.$refs.showing_detals_false) {
+    rowDetailsToogle(row, details) {
+      console.log('row', row)
+      console.log('details', details)
+    
+      if (details) {
         row.toggleDetails()
       }
-      if (this.$refs.showing_detals_true) {
-        this.$refs.showing_detals_true.click()
-      }
+       if (!details) {
+        row.toggleDetails()
+        if ( this.$refs.showing_detals_true !== undefined) {
+         this.$refs.showing_detals_true.click()
+        }
+      } 
+      //else {
+      //  if (this.$refs.showing_detals_true) {
+      //    this.$refs.showing_detals_true.click()
+      //  }
+      //  row.toggleDetails()
+      //}
     },
     overlayShow(bookmarkType, item) {
       this.overlay = true
