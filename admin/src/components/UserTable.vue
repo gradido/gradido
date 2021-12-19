@@ -82,11 +82,10 @@
       </template>
 
       <template #row-details="row">
-        <b-card class="shadow-lg p-3 mb-5 bg-white rounded">
+        <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-          {{ type }}
           <div v-if="showCreationFormular">
             <creation-formular
               v-if="type === 'PageUserSearch'"
@@ -110,7 +109,10 @@
               @update-user-data="updateUserData"
             />
           </div>
-          <confirm-register-mail-formular />
+          <confirm-register-mail-formular
+            :email="row.item.email"
+            :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
+          />
 
           <b-button size="sm" @click="row.toggleDetails">
             <b-icon

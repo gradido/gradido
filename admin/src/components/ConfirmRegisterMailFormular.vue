@@ -1,7 +1,18 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      admin/src/components/ConfirmRegisterMailFormular.vue
+      
+      <div class="h5">Die letzte E-Mail wurde am
+      <b>{{ dateLastSend }} Uhr</b>
+      an das Mitglied gesendet.</div>
+
+      <!-- Using components -->
+      <b-input-group prepend="Mail bestätigen, wiederholt senden an:" class="mt-3">
+        <b-form-input readonly :value="email"></b-form-input>
+        <b-input-group-append>
+          <b-button variant="outline-success" @click="sendRegisterMail">jetzt senden</b-button>
+        </b-input-group-append>
+      </b-input-group>
     </div>
   </div>
 </template>
@@ -10,12 +21,29 @@
 // import { createPendingCreation } from '../graphql/createPendingCreation'
 export default {
   name: 'ConfirmRegisterMail',
-  props: {},
+  props: {
+    email: {
+      type: String,
+    },
+    dateLastSend: {
+      type: String,
+    },
+  },
   data() {
     return {}
   },
 
-  methods: {},
-  created() {},
+  methods: {
+    sendRegisterMail() {
+      alert(
+        'sende wiederholt den ConfirmText an die register E-Mail (' + this.email + ') des User!',
+      )
+    },
+  },
 }
 </script>
+<style>
+.input-group-text {
+  background-color: rgb(255, 252, 205);
+}
+</style>
