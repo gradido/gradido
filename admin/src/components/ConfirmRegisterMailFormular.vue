@@ -1,10 +1,11 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      
-      <div class="h5">Die letzte E-Mail wurde am
-      <b>{{ dateLastSend }} Uhr</b>
-      an das Mitglied gesendet.</div>
+      <div class="h5">
+        Die letzte E-Mail wurde am
+        <b>{{ dateLastSend }} Uhr</b>
+        an das Mitglied gesendet.
+      </div>
 
       <!-- Using components -->
       <b-input-group prepend="Mail bestätigen, wiederholt senden an:" class="mt-3">
