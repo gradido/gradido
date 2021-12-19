@@ -189,24 +189,15 @@ export default {
   },
   methods: {
     rowDetailsToogle(row, details) {
-      console.log('row', row)
-      console.log('details', details)
-    
       if (details) {
         row.toggleDetails()
       }
-       if (!details) {
+      if (!details) {
         row.toggleDetails()
-        if ( this.$refs.showing_detals_true !== undefined) {
-         this.$refs.showing_detals_true.click()
+        if (this.$refs.showing_detals_true !== undefined) {
+          this.$refs.showing_detals_true.click()
         }
-      } 
-      //else {
-      //  if (this.$refs.showing_detals_true) {
-      //    this.$refs.showing_detals_true.click()
-      //  }
-      //  row.toggleDetails()
-      //}
+      }
     },
     overlayShow(bookmarkType, item) {
       this.overlay = true
