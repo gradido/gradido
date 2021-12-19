@@ -40,7 +40,8 @@
         <b-button
           variant="info"
           size="md"
-          @click="editCreationUserTable(row, row.item)"
+          :class="'details_' + row.detailsShowing"
+          @click="editCreationUserTable(row)"
           class="mr-2"
         >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
