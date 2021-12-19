@@ -40,6 +40,7 @@ export default {
           },
         },
         { key: 'show_details', label: 'Details' },
+        { key: 'confirm_mail', label: 'Mail' },
       ],
       searchResult: [],
       massCreation: [],

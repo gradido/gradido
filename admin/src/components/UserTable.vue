@@ -55,6 +55,12 @@
         </b-button>
       </template>
 
+      <template #cell(confirm_mail)="row">
+        <b-button :variant="row.item.firstName === 'Peter' ? 'success' : 'danger' " size="md" @click="row.toggleDetails" class="mr-2">
+          <b-icon  :icon="row.item.firstName === 'Peter' ? 'envelope-open' : 'envelope' " aria-label="Help"></b-icon>
+        </b-button>
+      </template>
+
       <template #row-details="row">
         <b-card class="shadow-lg p-3 mb-5 bg-white rounded">
           <b-row class="mb-2">
