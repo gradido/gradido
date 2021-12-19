@@ -213,6 +213,10 @@ export default {
   },
   methods: {
     rowDetailsToogle(row, details) {
+      if (this.showCreationFormular === false) {
+        this.showCreationFormular = true
+        return
+      }
       if (details) {
         row.toggleDetails()
         this.showCreationFormular = null
@@ -233,11 +237,10 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        this.showCreationFormular === null
+        this.showCreationFormular = null
       }
       if (!details) {
         row.toggleDetails()
-        this.showCreationFormular === false
         if (this.$refs.showing_registermail_detals_true !== undefined) {
           this.$refs.showing_registermail_detals_true.click()
         }
