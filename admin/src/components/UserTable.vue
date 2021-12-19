@@ -213,41 +213,24 @@ export default {
   },
   methods: {
     rowDetailsToogle(row, details) {
-      console.log('rowDetailsToogle row', row)
-      console.log('rowDetailsToogle details', details)
-      console.log('this.showCreationFormular', this.showCreationFormular)
-      
-
-     //  if ( this.showCreationFormular === false) {
-     //    this.showCreationFormular = true
-     //    return
-     //  }else {
-
       if (details) {
         row.toggleDetails()
         this.showCreationFormular = null
-        
       }
       if (!details) {
         row.toggleDetails()
         this.showCreationFormular = true
         if (this.$refs.showing_detals_true !== undefined) {
           this.$refs.showing_detals_true.click()
-         
         }
       }
-      // }
     },
 
     rowDetailsToogleRegisterMail(row, details) {
-      console.log('rowDetailsToogleRegisterMail row', row)
-      console.log('rowDetailsToogleRegisterMail details', details)
-      console.log('this.showCreationFormular', this.showCreationFormular)
-
-       if ( this.showCreationFormular === true) {
-         this.showCreationFormular = false
-         return
-       }
+      if (this.showCreationFormular === true) {
+        this.showCreationFormular = false
+        return
+      }
       if (details) {
         row.toggleDetails()
         this.showCreationFormular === null
