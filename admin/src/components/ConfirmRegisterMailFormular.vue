@@ -4,14 +4,16 @@
       <div class="h5">
         Die letzte Email wurde am
         <b>{{ dateLastSend }} Uhr</b>
-        an das Mitglied ({{email}}) gesendet.
+        an das Mitglied ({{ email }}) gesendet.
       </div>
 
       <!-- Using components -->
       <b-input-group prepend="Email bestätigen, wiederholt senden an:" class="mt-3">
         <b-form-input readonly :value="email"></b-form-input>
         <b-input-group-append>
-          <b-button variant="outline-success" @click="sendRegisterMail">Registrierungs-Email bestätigen, jetzt senden</b-button>
+          <b-button variant="outline-success" @click="sendRegisterMail">
+            Registrierungs-Email bestätigen, jetzt senden
+          </b-button>
         </b-input-group-append>
       </b-input-group>
     </div>
