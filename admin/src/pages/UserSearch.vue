@@ -48,6 +48,7 @@ export default {
         },
         { key: 'show_details', label: 'Details' },
         { key: 'confirm_mail', label: 'Mail' },
+        { key: 'transactions_list', label: 'Transaction' },
       ],
       searchResult: [],
       massCreation: [],

@@ -81,6 +81,18 @@
         </b-button>
       </template>
 
+      <template #cell(transactions_list)="row">
+        <b-button
+          variant="warning"
+          size="md"
+          :ref="'showing_transactions_list_' + row.detailsShowing"
+          @click="rowDetailsToogleTransactionsList(row, row.detailsShowing)"
+          class="mr-2"
+        >
+          <b-icon icon="list"></b-icon>
+        </b-button>
+      </template>
+
       <template #row-details="row">
         <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
           <b-row class="mb-2">
@@ -110,9 +122,12 @@
             />
           </div>
           <confirm-register-mail-formular
+            v-if="showConfirmRegisterMailFormular"
             :email="row.item.email"
             :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
           />
+
+          <creation-transaction-list-formular v-if="showCreationTransactionListFormular" />
 
           <b-button size="sm" @click="row.toggleDetails">
             <b-icon
@@ -164,6 +179,8 @@
 import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
 import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormular.vue'
+import CreationTransactionListFormular from '../components/CreationTransactionListFormular.vue'
+
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
@@ -195,10 +212,13 @@ export default {
     CreationFormular,
     EditCreationFormular,
     ConfirmRegisterMailFormular,
+    CreationTransactionListFormular,
   },
   data() {
     return {
       showCreationFormular: null,
+      showConfirmRegisterMailFormular: null,
+      showCreationTransactionListFormular: null,
       creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
@@ -216,13 +236,20 @@ export default {
   },
   methods: {
     rowDetailsToogle(row, details) {
-      if (this.showCreationFormular === false) {
+      if (
+        this.showConfirmRegisterMailFormular === true ||
+        this.showCreationTransactionListFormular === true
+      ) {
         this.showCreationFormular = true
+        this.showConfirmRegisterMailFormular = false
+        this.showCreationTransactionListFormular = false
         return
       }
       if (details) {
         row.toggleDetails()
         this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -234,18 +261,44 @@ export default {
     },
 
     rowDetailsToogleRegisterMail(row, details) {
-      if (this.showCreationFormular === true) {
+      if (this.showCreationFormular === true || this.showCreationTransactionListFormular === true) {
         this.showCreationFormular = false
+        this.showConfirmRegisterMailFormular = true
+        this.showCreationTransactionListFormular = false
         return
       }
       if (details) {
         row.toggleDetails()
         this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
+        this.showConfirmRegisterMailFormular = true
         if (this.$refs.showing_registermail_detals_true !== undefined) {
           this.$refs.showing_registermail_detals_true.click()
+        }
+      }
+    },
+    rowDetailsToogleTransactionsList(row, details) {
+      if (this.showCreationFormular === true || this.showConfirmRegisterMailFormular === true) {
+        this.showCreationFormular = false
+        this.showConfirmRegisterMailFormular = false
+        this.showCreationTransactionListFormular = true
+        return
+      }
+      if (details) {
+        row.toggleDetails()
+        this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
+      }
+      if (!details) {
+        row.toggleDetails()
+        this.showCreationTransactionListFormular = true
+        if (this.$refs.showing_transactions_list_true !== undefined) {
+          this.$refs.showing_transactions_list_true.click()
         }
       }
     },
