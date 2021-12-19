@@ -11,7 +11,7 @@
       <b-input-group prepend="Email bestätigen, wiederholt senden an:" class="mt-3">
         <b-form-input readonly :value="email"></b-form-input>
         <b-input-group-append>
-          <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
+          <b-button variant="outline-success" class="test-button">
             Registrierungs-Email bestätigen, jetzt senden
           </b-button>
         </b-input-group-append>
@@ -30,12 +30,6 @@ export default {
     },
     dateLastSend: {
       type: String,
-    },
-  },
-  methods: {
-    sendRegisterMail() {
-      // eslint-disable-next-line no-console
-      console.log('sende wiederholt den ConfirmText an die register E-Mail des User!')
     },
   },
 }
