@@ -4,16 +4,23 @@
     <b-input
       type="text"
       v-model="criteria"
-      class="shadow p-3 mb-5 bg-white rounded"
+      class="shadow p-3 mb-3 bg-white rounded"
       placeholder="User suche"
       @input="getUsers"
     ></b-input>
+
     <user-table
       type="PageUserSearch"
       :itemsUser="searchResult"
       :fieldsTable="fields"
       :criteria="criteria"
     />
+    <div>
+      <b-button block variant="danger" @click="unconfirmedRegisterMails">
+        <b-icon icon="envelope" variant="light"></b-icon>
+        Anzeigen aller nicht registrierten E-Mails.
+      </b-button>
+    </div>
   </div>
 </template>
 <script>
@@ -49,6 +56,9 @@ export default {
   },
 
   methods: {
+    unconfirmedRegisterMails() {
+      alert('Apollo anfrage, alle Mitglieder, die nicht ihre Register E-Mail bestätigt haben.')
+    },
     getUsers() {
       this.$apollo
         .query({
