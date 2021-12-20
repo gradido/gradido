@@ -45,9 +45,11 @@
   },
   "error": {
     "change-password": "Error while changing password",
+    "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
+    "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "session-expired": "The session was closed for security reasons."
   },
   "form": {
@@ -55,6 +57,7 @@
     "at": "at",
     "cancel": "Cancel",
     "close": "Close",
+    "current_balance": "current balance",
     "date": "Date",
     "description": "Description",
     "edit": "Edit",
@@ -64,6 +67,7 @@
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
+    "new_balance": "account balance after confirmation",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -88,7 +92,8 @@
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
       "usernmae-unique": "The username is already taken."
-    }
+    },
+    "your_amount": "Your amount"
   },
   "gdt": {
     "action": "Action",
