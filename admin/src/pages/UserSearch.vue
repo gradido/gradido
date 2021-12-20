@@ -26,6 +26,7 @@
 <script>
 import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { searchNotActivatedUsers } from '../graphql/searchNotActivatedUsers'
 
 export default {
   name: 'UserSearch',
@@ -58,7 +59,9 @@ export default {
 
   methods: {
     unconfirmedRegisterMails() {
-      alert('Apollo anfrage, alle Mitglieder, die nicht ihre Register E-Mail bestätigt haben.')
+      this.searchResult = this.searchResult.filter((result) => {
+        return !result.emailChecked
+      })
     },
     getUsers() {
       this.$apollo
