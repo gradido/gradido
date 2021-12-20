@@ -40,8 +40,8 @@
         <b-button
           variant="info"
           size="md"
-          :class="'details_' + row.detailsShowing"
-          @click="editCreationUserTable(row)"
+          :ref="'details_edit_' + row.detailsShowing"
+          @click="editCreationUserTable(row, row.detailsShowing)"
           class="mr-2"
         >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
@@ -247,9 +247,9 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        this.showCreationFormular = null
-        this.showConfirmRegisterMailFormular = null
-        this.showCreationTransactionListFormular = null
+        // this.showCreationFormular = null
+        // this.showConfirmRegisterMailFormular = null
+        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -269,9 +269,9 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        this.showCreationFormular = null
-        this.showConfirmRegisterMailFormular = null
-        this.showCreationTransactionListFormular = null
+        // this.showCreationFormular = null
+        // this.showConfirmRegisterMailFormular = null
+        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -290,9 +290,9 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        this.showCreationFormular = null
-        this.showConfirmRegisterMailFormular = null
-        this.showCreationTransactionListFormular = null
+        // this.showCreationFormular = null
+        // this.showConfirmRegisterMailFormular = null
+        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -364,13 +364,30 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-    editCreationUserTable(row, rowItem) {
-      if (!row.detailsShowing) {
-        this.creationUserData = rowItem
-      } else {
-        this.creationUserData = {}
+    editCreationUserTable(row, details) {
+      if (
+        this.showConfirmRegisterMailFormular === true ||
+        this.showCreationTransactionListFormular === true
+      ) {
+        this.showCreationFormular = true
+        this.showConfirmRegisterMailFormular = false
+        this.showCreationTransactionListFormular = false
+        return
       }
-      row.toggleDetails()
+      if (details) {
+        row.toggleDetails()
+        // this.showCreationFormular = null
+        // this.showConfirmRegisterMailFormular = null
+        // this.showCreationTransactionListFormular = null
+      }
+      if (!details) {
+        row.toggleDetails()
+        this.showCreationFormular = true
+        this.creationUserData = row.item
+        if (this.$refs.details_edit_true !== undefined) {
+          this.$refs.details_edit_true.click()
+        }
+      }
     },
     updateCreationData(data) {
       this.creationUserData.amount = data.amount
