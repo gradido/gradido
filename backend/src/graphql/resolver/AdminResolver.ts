@@ -17,6 +17,7 @@ import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 
 @Resolver()
 export class AdminResolver {
@@ -32,6 +33,7 @@ export class AdminResolver {
         adminUser.lastName = user.lastName
         adminUser.email = user.email
         adminUser.creation = await getUserCreations(user.id)
+        adminUser.emailChecked = await hasActivatedEmail(user.email)
         return adminUser
       }),
     )
@@ -314,4 +316,11 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
     throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
   }
   return true
+}
+async function hasActivatedEmail(email: string): Promise<boolean> {
+  const repository = getCustomRepository(LoginUserRepository)
+  const user = await repository.findByEmail(email)
+  let emailActivate = false
+  if (user) emailActivate = user.emailChecked
+  return emailActivate
 }

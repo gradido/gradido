@@ -7,6 +7,7 @@ export const searchUsers = gql`
       lastName
       email
       creation
+      emailChecked
     }
   }
 `

@@ -13,4 +13,7 @@ export class UserAdmin {
 
   @Field(() => [Number])
   creation: number[]
+
+  @Field(() => Boolean)
+  emailChecked: boolean
 }

@@ -64,18 +64,14 @@
 
       <template #cell(confirm_mail)="row">
         <b-button
-          :variant="row.item.firstName === 'Peter' ? 'success' : 'danger'"
+          :variant="row.item.emailChecked ? 'success' : 'danger'"
           size="md"
           :ref="'showing_registermail_detals_' + row.detailsShowing"
-          @click="
-            row.item.firstName !== 'Peter'
-              ? rowDetailsToogleRegisterMail(row, row.detailsShowing)
-              : ''
-          "
+          @click="!row.item.emailChecked ? rowDetailsToogleRegisterMail(row, row.detailsShowing) : ''"
           class="mr-2"
         >
           <b-icon
-            :icon="row.item.firstName === 'Peter' ? 'envelope-open' : 'envelope'"
+            :icon="row.item.emailChecked ? 'envelope-open' : 'envelope'"
             aria-label="Help"
           ></b-icon>
         </b-button>
