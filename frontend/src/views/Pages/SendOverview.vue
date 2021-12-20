@@ -1,12 +1,14 @@
 <template>
   <div>
     <b-container>
-      <gdd-send :currentTransactionStep="currentTransactionStep">
+      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
         <template #transaction-confirmation>
           <transaction-confirmation
+            :balance="balance"
+            :transactions="transactions"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
@@ -44,7 +46,6 @@ export default {
   name: 'SendOverview',
   components: {
     GddSend,
-
     TransactionForm,
     TransactionConfirmation,
     TransactionResult,
