@@ -247,9 +247,6 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        // this.showCreationFormular = null
-        // this.showConfirmRegisterMailFormular = null
-        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -269,9 +266,6 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        // this.showCreationFormular = null
-        // this.showConfirmRegisterMailFormular = null
-        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -290,9 +284,6 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        // this.showCreationFormular = null
-        // this.showConfirmRegisterMailFormular = null
-        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
@@ -376,9 +367,6 @@ export default {
       }
       if (details) {
         row.toggleDetails()
-        // this.showCreationFormular = null
-        // this.showConfirmRegisterMailFormular = null
-        // this.showCreationTransactionListFormular = null
       }
       if (!details) {
         row.toggleDetails()
