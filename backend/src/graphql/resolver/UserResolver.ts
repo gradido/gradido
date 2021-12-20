@@ -434,9 +434,6 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
-    // TODO: Moriz: I think we do not need this variable.
-    let emailAlreadySend = false
-
     const loginUserRepository = await getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findOneOrFail({ email })
 
@@ -445,27 +442,26 @@ export class UserResolver {
       userId: loginUser.id,
       emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
     })
+
+    // Check for 10 minute delay
     if (optInCode) {
-      emailAlreadySend = true
-    } else {
-      optInCode = new LoginEmailOptIn()
-      optInCode.verificationCode = random(64)
-      optInCode.userId = loginUser.id
-      optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
-      await loginEmailOptInRepository.save(optInCode)
-    }
-
-    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /\$1/g,
-      optInCode.verificationCode.toString(),
-    )
-
-    if (emailAlreadySend) {
       const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
       if (timeElapsed <= 10 * 60 * 1000) {
         throw new Error('email already sent less than 10 minutes before')
       }
     }
+
+    // Generate new OptIn Code
+    optInCode = new LoginEmailOptIn()
+    optInCode.verificationCode = random(64)
+    optInCode.userId = loginUser.id
+    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+    await loginEmailOptInRepository.save(optInCode)
+
+    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
+      /\$1/g,
+      optInCode.verificationCode.toString(),
+    )
 
     const emailSent = await sendEMail({
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
