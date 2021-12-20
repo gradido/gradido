@@ -40,7 +40,8 @@
         <b-button
           variant="info"
           size="md"
-          @click="editCreationUserTable(row, row.item)"
+          :class="'details_' + row.detailsShowing"
+          @click="editCreationUserTable(row)"
           class="mr-2"
         >
           <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
@@ -49,39 +50,84 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="md" @click="row.toggleDetails" class="mr-2">
+        <b-button
+          variant="info"
+          size="md"
+          :ref="'showing_detals_' + row.detailsShowing"
+          @click="rowDetailsToogle(row, row.detailsShowing)"
+          class="mr-2"
+        >
           <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
           <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
         </b-button>
       </template>
 
+      <template #cell(confirm_mail)="row">
+        <b-button
+          :variant="row.item.firstName === 'Peter' ? 'success' : 'danger'"
+          size="md"
+          :ref="'showing_registermail_detals_' + row.detailsShowing"
+          @click="
+            row.item.firstName !== 'Peter'
+              ? rowDetailsToogleRegisterMail(row, row.detailsShowing)
+              : ''
+          "
+          class="mr-2"
+        >
+          <b-icon
+            :icon="row.item.firstName === 'Peter' ? 'envelope-open' : 'envelope'"
+            aria-label="Help"
+          ></b-icon>
+        </b-button>
+      </template>
+
+      <template #cell(transactions_list)="row">
+        <b-button
+          variant="warning"
+          size="md"
+          :ref="'showing_transactions_list_' + row.detailsShowing"
+          @click="rowDetailsToogleTransactionsList(row, row.detailsShowing)"
+          class="mr-2"
+        >
+          <b-icon icon="list"></b-icon>
+        </b-button>
+      </template>
+
       <template #row-details="row">
-        <b-card class="shadow-lg p-3 mb-5 bg-white rounded">
+        <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
           <b-row class="mb-2">
             <b-col></b-col>
           </b-row>
-          {{ type }}
-          <creation-formular
-            v-if="type === 'PageUserSearch'"
-            type="singleCreation"
-            :pagetype="type"
-            :creation="row.item.creation"
-            :item="row.item"
-            :creationUserData="creationUserData"
-            @update-creation-data="updateCreationData"
-            @update-user-data="updateUserData"
+          <div v-if="showCreationFormular">
+            <creation-formular
+              v-if="type === 'PageUserSearch'"
+              type="singleCreation"
+              :pagetype="type"
+              :creation="row.item.creation"
+              :item="row.item"
+              :creationUserData="creationUserData"
+              @update-creation-data="updateCreationData"
+              @update-user-data="updateUserData"
+            />
+            <edit-creation-formular
+              v-else
+              type="singleCreation"
+              :pagetype="type"
+              :creation="row.item.creation"
+              :item="row.item"
+              :row="row"
+              :creationUserData="creationUserData"
+              @update-creation-data="updateCreationData"
+              @update-user-data="updateUserData"
+            />
+          </div>
+          <confirm-register-mail-formular
+            v-if="showConfirmRegisterMailFormular"
+            :email="row.item.email"
+            :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
           />
-          <edit-creation-formular
-            v-else
-            type="singleCreation"
-            :pagetype="type"
-            :creation="row.item.creation"
-            :item="row.item"
-            :row="row"
-            :creationUserData="creationUserData"
-            @update-creation-data="updateCreationData"
-            @update-user-data="updateUserData"
-          />
+
+          <creation-transaction-list-formular v-if="showCreationTransactionListFormular" />
 
           <b-button size="sm" @click="row.toggleDetails">
             <b-icon
@@ -132,6 +178,9 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
+import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormular.vue'
+import CreationTransactionListFormular from '../components/CreationTransactionListFormular.vue'
+
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
@@ -162,9 +211,14 @@ export default {
   components: {
     CreationFormular,
     EditCreationFormular,
+    ConfirmRegisterMailFormular,
+    CreationTransactionListFormular,
   },
   data() {
     return {
+      showCreationFormular: null,
+      showConfirmRegisterMailFormular: null,
+      showCreationTransactionListFormular: null,
       creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
@@ -181,6 +235,73 @@ export default {
     }
   },
   methods: {
+    rowDetailsToogle(row, details) {
+      if (
+        this.showConfirmRegisterMailFormular === true ||
+        this.showCreationTransactionListFormular === true
+      ) {
+        this.showCreationFormular = true
+        this.showConfirmRegisterMailFormular = false
+        this.showCreationTransactionListFormular = false
+        return
+      }
+      if (details) {
+        row.toggleDetails()
+        this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
+      }
+      if (!details) {
+        row.toggleDetails()
+        this.showCreationFormular = true
+        if (this.$refs.showing_detals_true !== undefined) {
+          this.$refs.showing_detals_true.click()
+        }
+      }
+    },
+
+    rowDetailsToogleRegisterMail(row, details) {
+      if (this.showCreationFormular === true || this.showCreationTransactionListFormular === true) {
+        this.showCreationFormular = false
+        this.showConfirmRegisterMailFormular = true
+        this.showCreationTransactionListFormular = false
+        return
+      }
+      if (details) {
+        row.toggleDetails()
+        this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
+      }
+      if (!details) {
+        row.toggleDetails()
+        this.showConfirmRegisterMailFormular = true
+        if (this.$refs.showing_registermail_detals_true !== undefined) {
+          this.$refs.showing_registermail_detals_true.click()
+        }
+      }
+    },
+    rowDetailsToogleTransactionsList(row, details) {
+      if (this.showCreationFormular === true || this.showConfirmRegisterMailFormular === true) {
+        this.showCreationFormular = false
+        this.showConfirmRegisterMailFormular = false
+        this.showCreationTransactionListFormular = true
+        return
+      }
+      if (details) {
+        row.toggleDetails()
+        this.showCreationFormular = null
+        this.showConfirmRegisterMailFormular = null
+        this.showCreationTransactionListFormular = null
+      }
+      if (!details) {
+        row.toggleDetails()
+        this.showCreationTransactionListFormular = true
+        if (this.$refs.showing_transactions_list_true !== undefined) {
+          this.$refs.showing_transactions_list_true.click()
+        }
+      }
+    },
     overlayShow(bookmarkType, item) {
       this.overlay = true
       this.overlayBookmarkType = bookmarkType

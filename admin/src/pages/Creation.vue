@@ -40,7 +40,6 @@
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
-        {{ itemsMassCreation }}
       </b-col>
     </b-row>
   </div>
