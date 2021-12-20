@@ -1,25 +1,14 @@
 <template>
   <div>
-    <b-container fluid>
-      <b-row>
-        <b-col class="bg-gray text-white text-center p-3">
-          <status
-            class="gdd-status-gdd"
-            v-if="showContext"
-            :pending="pending"
-            :balance="balance"
-            status-text="GDD"
-          />
-        </b-col>
-      </b-row>
-
-      <br />
-      <gdd-send :currentTransactionStep="currentTransactionStep">
+    <b-container>
+      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
         <template #transaction-confirmation>
           <transaction-confirmation
+            :balance="balance"
+            :transactions="transactions"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
@@ -41,9 +30,7 @@
   </div>
 </template>
 <script>
-import Status from '../../components/Status.vue'
 import GddSend from './SendOverview/GddSend.vue'
-
 import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
 import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
 import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
@@ -58,9 +45,7 @@ const EMPTY_TRANSACTION_DATA = {
 export default {
   name: 'SendOverview',
   components: {
-    Status,
     GddSend,
-
     TransactionForm,
     TransactionConfirmation,
     TransactionResult,
@@ -84,11 +69,6 @@ export default {
     pending: {
       type: Boolean,
       default: true,
-    },
-  },
-  computed: {
-    showContext() {
-      return this.currentTransactionStep === 0
     },
   },
   methods: {
