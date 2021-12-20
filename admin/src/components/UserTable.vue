@@ -67,7 +67,9 @@
           :variant="row.item.emailChecked ? 'success' : 'danger'"
           size="md"
           :ref="'showing_registermail_detals_' + row.detailsShowing"
-          @click="!row.item.emailChecked ? rowDetailsToogleRegisterMail(row, row.detailsShowing) : ''"
+          @click="
+            !row.item.emailChecked ? rowDetailsToogleRegisterMail(row, row.detailsShowing) : ''
+          "
           class="mr-2"
         >
           <b-icon
