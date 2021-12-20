@@ -5,8 +5,6 @@
   </div>
 </template>
 <script>
-// import { verifyLogin } from '../graphql/verifyLogin'
-// import { createPendingCreation } from '../graphql/createPendingCreation'
 export default {
   name: 'CreationTransactionList',
   data() {
