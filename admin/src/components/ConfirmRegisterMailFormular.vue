@@ -20,8 +20,8 @@
   </div>
 </template>
 <script>
-// import { verifyLogin } from '../graphql/verifyLogin'
-// import { createPendingCreation } from '../graphql/createPendingCreation'
+import { sendActivationEmail } from '../graphql/sendActivationEmail'
+
 export default {
   name: 'ConfirmRegisterMail',
   props: {
@@ -34,8 +34,24 @@ export default {
   },
   methods: {
     sendRegisterMail() {
-      // eslint-disable-next-line no-console
-      console.log('sende wiederholt den ConfirmText an die register E-Mail des User!')
+      this.$apollo
+        .mutate({
+          mutation: sendActivationEmail,
+          variables: {
+            email: this.email,
+          },
+        })
+        .then(() => {
+          // eslint-disable-next-line no-console
+          console.log(
+            'Erfolgreich senden der Confirmation Link an die E-Mail des Users!',
+            this.email,
+          )
+        })
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.log('Fehler beim senden des confirmation link an den Benutzer', error)
+        })
     },
   },
 }
