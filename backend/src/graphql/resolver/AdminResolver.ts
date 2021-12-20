@@ -29,6 +29,7 @@ export class AdminResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
+        adminUser.userId = user.id
         adminUser.firstName = user.firstName
         adminUser.lastName = user.lastName
         adminUser.email = user.email

@@ -125,7 +125,10 @@
             :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
           />
 
-          <creation-transaction-list-formular v-if="showCreationTransactionListFormular" />
+          <creation-transaction-list-formular
+            v-if="showCreationTransactionListFormular"
+            :userId="row.item.userId"
+          />
 
           <b-button size="sm" @click="row.toggleDetails">
             <b-icon
