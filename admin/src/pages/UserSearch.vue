@@ -26,7 +26,6 @@
 <script>
 import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
-import { searchNotActivatedUsers } from '../graphql/searchNotActivatedUsers'
 
 export default {
   name: 'UserSearch',
