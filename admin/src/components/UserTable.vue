@@ -103,16 +103,12 @@
           </template>
           <template #show-register-mail>
             <confirm-register-mail-formular
-              v-if="showConfirmRegisterMailFormular"
               :email="row.item.email"
               :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
             />
           </template>
           <template #show-transaction-list>
-            <creation-transaction-list-formular
-              v-if="showCreationTransactionListFormular"
-              :userId="row.item.userId"
-            />
+            <creation-transaction-list-formular :userId="row.item.userId" />
           </template>
         </row-details>
       </template>
