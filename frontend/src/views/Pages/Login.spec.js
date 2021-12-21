@@ -266,6 +266,25 @@ describe('Login', () => {
               await flushPromises()
             })
 
+            it('redirects to /thx/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/thx/login')
+            })
+          })
+
+          describe('login fails with "User has no password set yet"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User has no password set yet',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
             it('redirects to /reset/login', () => {
               expect(mockRouterPush).toBeCalledWith('/reset/login')
             })
