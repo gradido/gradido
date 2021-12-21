@@ -75,13 +75,11 @@ export class AdminResolver {
     const failedCreation: string[] = []
     for (const pendingCreation of pendingCreations) {
       await this.createPendingCreation(pendingCreation)
-        .then((result) => {
-          console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
+        .then(() => {
           successfulCreation.push(pendingCreation.email)
           success = true
         })
         .catch(() => {
-          console.log('Failed to creat ' + JSON.stringify(pendingCreation))
           failedCreation.push(pendingCreation.email)
         })
     }
