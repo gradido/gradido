@@ -51,25 +51,34 @@ export default {
   },
   methods: {
     removeConfirmResult(e, event) {
-      if (event === 'remove') {
-        let index = 0
-        const findArr = this.confirmResult.find((arr) => arr.id === e.id)
-        this.$apollo
-          .mutate({
-            mutation: deletePendingCreation,
-            variables: {
-              id: findArr.id,
-            },
-          })
-          .then((result) => {
-            index = this.confirmResult.indexOf(findArr)
-            this.confirmResult.splice(index, 1)
-            this.$store.commit('openCreationsMinus', 1)
-            this.$toasted.success('Pending Creation has been deleted')
-          })
-          .catch((error) => {
-            this.$toasted.error(error.message)
-          })
+      let index = 0
+      const findArr = this.confirmResult.find((arr) => arr.id === e.id)
+      switch (event) {
+        case 'remove':
+          this.$apollo
+            .mutate({
+              mutation: deletePendingCreation,
+              variables: {
+                id: findArr.id,
+              },
+            })
+            .then((result) => {
+              index = this.confirmResult.indexOf(findArr)
+              this.confirmResult.splice(index, 1)
+              this.$store.commit('openCreationsMinus', 1)
+              this.$toasted.success('Pending Creation has been deleted')
+            })
+            .catch((error) => {
+              this.$toasted.error(error.message)
+            })
+          break
+        case 'confirmed':
+          this.confirmResult.splice(index, 1)
+          this.$store.commit('openCreationsMinus', 1)
+          this.$toasted.success('Pending Creation has been deleted')
+          break
+        default:
+          this.$toasted.error('Case ' + event + ' is not supported')
       }
     },
     getPendingCreations() {
@@ -80,7 +89,7 @@ export default {
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations.reverse()
+          this.confirmResult = result.data.getPendingCreations
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
