@@ -217,17 +217,6 @@ export default {
             moderator: Number(this.$store.state.moderator.id),
           })
         })
-        console.log('submitObj', this.submitObj)
-        // this.submitObj = [
-        //   {
-        //     item: this.itemsMassCreation,
-        //     email: this.item.email,
-        //     creationDate: this.radioSelected.long,
-        //     amount: this.value,
-        //     memo: this.text,
-        //     moderator: this.$store.state.moderator.id,
-        //   },
-        // ]
         // eslint-disable-next-line no-console
         console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
         this.$apollo
@@ -239,7 +228,6 @@ export default {
             fetchPolicy: 'no-cache',
           })
           .then((result) => {
-            console.log('result', result)
             this.$store.commit(
               'openCreationsPlus',
               result.data.createPendingCreations.successfulCreation.length,

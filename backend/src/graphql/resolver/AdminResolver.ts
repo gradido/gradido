@@ -85,37 +85,6 @@ export class AdminResolver {
           failedCreation.push(pendingCreation.email)
         })
     }
-    // await Promise.all(
-    //   pendingCreations.map(async (pendingCreation) => {
-    //     await this.createPendingCreation(pendingCreation)
-    //       .then((result) => {
-    //         console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
-    //         successfulCreation.push(pendingCreation.email)
-    //         success = true
-    //       })
-    //       .catch(() => {
-    //         console.log('Failed to creat ' + JSON.stringify(pendingCreation))
-    //         failedCreation.push(pendingCreation.email)
-    //       })
-    //   }),
-    // )
-    // await pendingCreations.forEach(async (pendingCreation) => {
-    //   await this.createPendingCreation(pendingCreation)
-    //     .then((result) => {
-    //       console.log('Successfuly created ' + JSON.stringify(pendingCreation) + ' ' + result)
-    //       successfulCreation.push(pendingCreation.email)
-    //       success = true
-    //     })
-    //     .catch(() => {
-    //       console.log('Failed to creat ' + JSON.stringify(pendingCreation))
-    //       failedCreation.push(pendingCreation.email)
-    //     })
-    // })
-    console.log('createPendingCreations', {
-      success,
-      successfulCreation,
-      failedCreation,
-    })
     return {
       success,
       successfulCreation,
