@@ -176,8 +176,8 @@ describe('CreationFormular', () => {
               await wrapper.find('.test-submit').trigger('click')
             })
 
-            it('sends ... to apollo', () => {
-              expect(toastedErrorMock).toBeCalled()
+            it('toasts an error message', () => {
+              expect(toastedErrorMock).toBeCalledWith('Ouch!')
             })
           })
 
