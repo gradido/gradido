@@ -115,19 +115,19 @@ Gradido Login-Server\n\
 " };
 
 	Email::Email(AutoPtr<controller::EmailVerificationCode> emailVerification, AutoPtr<controller::User> user, EmailType type)
-		: mEmailVerificationCode(emailVerification), mUser(user),  mType(type)
+		: mEmailVerificationCode(emailVerification), mUser(user),  mType(type), mResendCounter(0)
 	{
 
 	}
 
 
 	Email::Email(const std::string& errorHtml, EmailType type)
-		: mErrorHtml(errorHtml), mType(type)
+		: mErrorHtml(errorHtml), mType(type), mResendCounter(0)
 	{
 	}
 
 	Email::Email(AutoPtr<controller::User> user, EmailType type)
-		: mUser(user), mType(type)
+		: mUser(user), mType(type), mResendCounter(0)
 	{
 
 	}
@@ -137,7 +137,7 @@ Gradido Login-Server\n\
 		const std::string& emailCustomText,
 		const std::string& customSubject
 	)
-		: mEmailVerificationCode(emailVerification), mUser(user), mType(EMAIL_CUSTOM_TEXT), mCustomText(emailCustomText), mCustomSubject(customSubject)
+		: mEmailVerificationCode(emailVerification), mUser(user), mType(EMAIL_CUSTOM_TEXT), mCustomText(emailCustomText), mCustomSubject(customSubject), mResendCounter(0)
 	{
 
 	}
@@ -156,6 +156,7 @@ Gradido Login-Server\n\
 		auto em = EmailManager::getInstance();
 		auto adminRecipient = Net::MailRecipient(Net::MailRecipient::PRIMARY_RECIPIENT, em->getAdminReceiver());
 		Poco::AutoPtr<model::table::User> userTableModel;
+		mResendCounter++;
 		if (!mUser.isNull()) {
 			userTableModel = mUser->getModel();
 		}

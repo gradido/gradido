@@ -58,7 +58,7 @@ bool EmailManager::init(const Poco::Util::LayeredConfiguration& cfg)
 void EmailManager::addEmail(model::Email* email) {
 	if (mDisableEmail) { 
 		std::string dateTimeString = Poco::DateTimeFormatter::format(Poco::DateTime(), "%d.%m.%y %H:%M:%S");
-		std::string log_message = dateTimeString + " Email should be sended to: ";
+		std::string log_message = dateTimeString + " Email should have been sent to: ";
 		auto email_user = email->getUser();
 		Poco::AutoPtr<model::table::User> email_model;
 		if (email_user) {
@@ -141,6 +141,33 @@ int EmailManager::ThreadFunction()
 				mailClientSession.sendMessage(mailMessage);
 					email_sended = true;
 				}
+				catch (Poco::Net::SSLConnectionUnexpectedlyClosedException& ex) {
+					// it is a mad idea to send an email if the email sending failed
+					// errors.sendErrorsAsEmail();
+					// better wait instead and try again, it seems that the strato mail server sometimes discard or connection
+					// MAGIC NUMBER: sleep time if email sending failed (ssl connection was discarded from mailserver)
+					// wait 5 minute for the next try
+					Poco::Thread::sleep(5 * 60 * 1000);
+					// reconnect to mailserver
+					mailClientSession.login();
+					try {
+						mailClientSession.startTLS(ServerConfig::g_SSL_CLient_Context);
+						mailClientSession.login(Poco::Net::SMTPClientSession::AUTH_LOGIN, mEmailAccount.username, mEmailAccount.password);
+					}
+					catch (Poco::Net::SSLException& ex) {
+						errors.addError(new ParamError(function_name, "ssl certificate error", ex.displayText()));
+						printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
+						return -1;
+					}
+					// retry only if not to many retries are already tried
+					// MAGIC NUMBER: Retry count if email sending failed
+					if (email->checkResendCounter() < 4) {
+						mPendingEmails.push(email);
+						email = nullptr;
+						// jump back to while loop start
+						continue;
+					}					
+				}
 				catch (Poco::Exception& ex) {
 					email_sended = false;
 					errors.addError(new ParamError(function_name, "poco exception sending email", ex.displayText()));
@@ -149,8 +176,8 @@ int EmailManager::ThreadFunction()
 						errors.addError(new ParamError(function_name, "email", user->getModel()->getEmail()));
 					}
 
-					errors.sendErrorsAsEmail();
-
+					// it is a mad idea to send an email if the email sending failed
+					// errors.sendErrorsAsEmail();
 				}
 				// add for debugging
 				if (email_user) {
@@ -185,12 +212,6 @@ int EmailManager::ThreadFunction()
 			timeoutWaits--;
 		}
 	}
-
-	
-
-	
-
-
 	mailClientSession.close();
 
 	return 0;

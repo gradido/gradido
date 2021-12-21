@@ -57,6 +57,7 @@ namespace model {
 		virtual bool draft(Net::MailMessage* mailMessage, LanguageCatalog* langCatalog);
 		inline void addContent(Poco::Net::StringPartSource* str_content) { mAdditionalStringPartSrcs.push(str_content); }
 
+		inline int checkResendCounter() { return mResendCounter; }
 
 	protected:
 		std::string replaceUserNamesAndLink(const char* src, const std::string& first_name, const std::string& last_name, const std::string& link, Poco::UInt64 code);
@@ -72,6 +73,7 @@ namespace model {
 		std::queue<Poco::Net::StringPartSource*> mAdditionalStringPartSrcs;
 		std::string     mCustomText;
 		std::string     mCustomSubject;
+		Poco::AtomicCounter	mResendCounter;
 	};
 }
 
