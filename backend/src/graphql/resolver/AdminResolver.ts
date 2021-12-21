@@ -177,7 +177,7 @@ export class AdminResolver {
         return newPendingCreation
       }),
     )
-    return pendingCreationsPromise
+    return pendingCreationsPromise.reverse()
   }
 
   @Mutation(() => Boolean)
