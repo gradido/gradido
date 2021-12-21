@@ -58,8 +58,8 @@ export default {
 
   methods: {
     unconfirmedRegisterMails() {
-      this.searchResult = this.searchResult.filter((result) => {
-        return !result.emailChecked
+      this.searchResult = this.searchResult.filter((user) => {
+        return user.emailChecked
       })
     },
     getUsers() {
