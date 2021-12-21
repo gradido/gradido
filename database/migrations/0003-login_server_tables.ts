@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* FIRST MIGRATION
+/* MIGRATION TO CREATE THE LOGIN_SERVER TABLES
  *
- * This migration is special since it takes into account that
- * the database can be setup already but also may not be.
- * Therefore you will find all `CREATE TABLE` statements with
- * a `IF NOT EXISTS`, all `INSERT` with an `IGNORE` and in the
- * downgrade function all `DROP TABLE` with a `IF EXISTS`.
- * This ensures compatibility for existing or non-existing
- * databases.
+ * This migration creates the `login_server` tables in the `community_server` database (`gradido_community`).
+ * This is done to keep all data in the same place and is to be understood in conjunction with the next migration
+ * `0004-login_server_data` which will fill the tables with the existing data
  */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
