@@ -148,6 +148,66 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
   return message
 }
+const createEmailOptIn = async (
+  loginUserId: number,
+  queryRunner: QueryRunner,
+): Promise<LoginEmailOptIn> => {
+  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+  let emailOptIn = await loginEmailOptInRepository.findOne({
+    userId: loginUserId,
+    emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+  })
+  if (emailOptIn) {
+    const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      emailOptIn.updatedAt = new Date()
+      emailOptIn.resendCount++
+    }
+  } else {
+    emailOptIn = new LoginEmailOptIn()
+    emailOptIn.verificationCode = random(64)
+    emailOptIn.userId = loginUserId
+    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+  }
+  await queryRunner.manager.save(emailOptIn).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log('Error while saving emailOptIn', error)
+    throw new Error('error saving email opt in')
+  })
+  return emailOptIn
+}
+
+const getOptInCode = async (loginUser: LoginUser): Promise<LoginEmailOptIn> => {
+  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+  let optInCode = await loginEmailOptInRepository.findOne({
+    userId: loginUser.id,
+    emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
+  })
+
+  // Check for 10 minute delay
+  if (optInCode) {
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      optInCode.updatedAt = new Date()
+      optInCode.resendCount++
+    }
+  } else {
+    optInCode = new LoginEmailOptIn()
+    optInCode.verificationCode = random(64)
+    optInCode.userId = loginUser.id
+    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+  }
+  await loginEmailOptInRepository.save(optInCode)
+  return optInCode
+}
 
 @Resolver()
 export class UserResolver {
@@ -383,7 +443,7 @@ export class UserResolver {
 
       // Store EmailOptIn in DB
       // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = await this.createEmailOptIn(loginUserId, queryRunner)
+      const emailOptIn = await createEmailOptIn(loginUserId, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /\$1/g,
@@ -445,7 +505,7 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      const emailOptIn = await this.createEmailOptIn(loginUser.id, queryRunner)
+      const emailOptIn = await createEmailOptIn(loginUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /\$1/g,
@@ -474,66 +534,6 @@ export class UserResolver {
     return true
   }
 
-  private async createEmailOptIn(loginUserId: number, queryRunner: QueryRunner) {
-    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-    let emailOptIn = await loginEmailOptInRepository.findOne({
-      userId: loginUserId,
-      emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
-    })
-    if (emailOptIn) {
-      const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
-      if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-        throw new Error(
-          'email already sent less than ' +
-            parseInt(CONFIG.RESEND_TIME.toString()) +
-            ' minutes ago',
-        )
-      } else {
-        emailOptIn.updatedAt = new Date()
-        emailOptIn.resendCount++
-      }
-    } else {
-      emailOptIn = new LoginEmailOptIn()
-      emailOptIn.verificationCode = random(64)
-      emailOptIn.userId = loginUserId
-      emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
-    }
-    await queryRunner.manager.save(emailOptIn).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log('Error while saving emailOptIn', error)
-      throw new Error('error saving email opt in')
-    })
-    return emailOptIn
-  }
-
-  private async getOptInCode(loginUser: LoginUser) {
-    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-    let optInCode = await loginEmailOptInRepository.findOne({
-      userId: loginUser.id,
-      emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
-    })
-    if (optInCode) {
-      const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-      if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-        throw new Error(
-          'email already sent less than ' +
-            parseInt(CONFIG.RESEND_TIME.toString()) +
-            ' minutes ago',
-        )
-      } else {
-        optInCode.updatedAt = new Date()
-        optInCode.resendCount++
-      }
-    } else {
-      optInCode = new LoginEmailOptIn()
-      optInCode.verificationCode = random(64)
-      optInCode.userId = loginUser.id
-      optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
-    }
-    await loginEmailOptInRepository.save(optInCode)
-    return optInCode
-  }
-
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
@@ -542,7 +542,7 @@ export class UserResolver {
     const loginUserRepository = await getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findOneOrFail({ email })
 
-    const optInCode = await this.getOptInCode(loginUser)
+    const optInCode = await getOptInCode(loginUser)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /\$1/g,

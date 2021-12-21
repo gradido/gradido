@@ -146,7 +146,6 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         firstName,
         lastName,
         publisherId: loginElopgaeBuy.publisherId,
-        password: '123', // TODO remove
       })
     } catch (error) {
       // eslint-disable-next-line no-console
