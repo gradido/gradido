@@ -381,12 +381,9 @@ async function listTransactions(
   const transactionList = new TransactionList()
   transactionList.count = userTransactionsCount
   if (onlyCreations) {
-    console.log('before filtering', transactions)
     transactions = transactions.filter((transaction) => {
-      console.log('In filter', transaction)
       return transaction.type === 'creation'
     })
-    console.log('after filtering', transactions)
   }
   transactionList.transactions = transactions
   return transactionList
@@ -492,7 +489,6 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: dbUser | undefined
     if (userId) {
-      console.log('Find by id, ', userId)
       userEntity = await userRepository.findOneOrFail({ id: userId })
     } else {
       userEntity = await userRepository.findByPubkeyHex(context.pubKey)
