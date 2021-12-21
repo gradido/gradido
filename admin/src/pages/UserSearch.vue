@@ -71,12 +71,7 @@ export default {
           },
         })
         .then((result) => {
-          this.searchResult = result.data.searchUsers.map((user) => {
-            return {
-              ...user,
-              // showDetails: true,
-            }
-          })
+          this.searchResult = result.data.searchUsers
         })
         .catch((error) => {
           this.$toasted.error(error.message)

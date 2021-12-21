@@ -37,28 +37,14 @@
       stacked="md"
     >
       <template #cell(edit_creation)="row">
-        <b-button
-          variant="info"
-          size="md"
-          :ref="'details_edit_' + row.detailsShowing"
-          @click="editCreationUserTable(row, row.detailsShowing)"
-          class="mr-2"
-        >
-          <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
-          <b-icon v-else icon="pencil-square" aria-label="Help"></b-icon>
+        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+          <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
       </template>
 
       <template #cell(show_details)="row">
-        <b-button
-          variant="info"
-          size="md"
-          :ref="'showing_detals_' + row.detailsShowing"
-          @click="rowDetailsToogle(row, row.detailsShowing)"
-          class="mr-2"
-        >
-          <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
-          <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
+        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+          <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
         </b-button>
       </template>
 
@@ -66,10 +52,7 @@
         <b-button
           :variant="row.item.emailChecked ? 'success' : 'danger'"
           size="md"
-          :ref="'showing_registermail_detals_' + row.detailsShowing"
-          @click="
-            !row.item.emailChecked ? rowDetailsToogleRegisterMail(row, row.detailsShowing) : ''
-          "
+          @click="rowToogleDetails(row, 1)"
           class="mr-2"
         >
           <b-icon
@@ -80,66 +63,59 @@
       </template>
 
       <template #cell(transactions_list)="row">
-        <b-button
-          variant="warning"
-          size="md"
-          :ref="'showing_transactions_list_' + row.detailsShowing"
-          @click="rowDetailsToogleTransactionsList(row, row.detailsShowing)"
-          class="mr-2"
-        >
+        <b-button variant="warning" size="md" @click="rowToogleDetails(row, 2)" class="mr-2">
           <b-icon icon="list"></b-icon>
         </b-button>
       </template>
 
       <template #row-details="row">
-        <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-          <b-row class="mb-2">
-            <b-col></b-col>
-          </b-row>
-          <div v-if="showCreationFormular">
-            <creation-formular
-              v-if="type === 'PageUserSearch'"
-              type="singleCreation"
-              :pagetype="type"
-              :creation="row.item.creation"
-              :item="row.item"
-              :creationUserData="creationUserData"
-              @update-creation-data="updateCreationData"
-              @update-user-data="updateUserData"
+        <row-details
+          :row="row"
+          :type="type"
+          :slotName="slotName"
+          :index="slotIndex"
+          @row-toogle-details="rowToogleDetails"
+        >
+          <template #show-creation>
+            <div>
+              <creation-formular
+                v-if="type === 'PageUserSearch'"
+                type="singleCreation"
+                :pagetype="type"
+                :creation="row.item.creation"
+                :item="row.item"
+                :creationUserData="creationUserData"
+                @update-creation-data="updateCreationData"
+                @update-user-data="updateUserData"
+              />
+              <edit-creation-formular
+                v-else
+                type="singleCreation"
+                :pagetype="type"
+                :creation="row.item.creation"
+                :item="row.item"
+                :row="row"
+                :creationUserData="creationUserData"
+                @update-creation-data="updateCreationData"
+                @update-user-data="updateUserData"
+              />
+            </div>
+          </template>
+          <template #show-register-mail>
+            <confirm-register-mail-formular
+              v-if="showConfirmRegisterMailFormular"
+              :email="row.item.email"
+              :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
             />
-            <edit-creation-formular
-              v-else
-              type="singleCreation"
-              :pagetype="type"
-              :creation="row.item.creation"
-              :item="row.item"
-              :row="row"
-              :creationUserData="creationUserData"
-              @update-creation-data="updateCreationData"
-              @update-user-data="updateUserData"
+          </template>
+          <template #show-transaction-list>
+            <creation-transaction-list-formular
+              v-if="showCreationTransactionListFormular"
+              :userId="row.item.userId"
             />
-          </div>
-          <confirm-register-mail-formular
-            v-if="showConfirmRegisterMailFormular"
-            :email="row.item.email"
-            :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
-          />
-
-          <creation-transaction-list-formular
-            v-if="showCreationTransactionListFormular"
-            :userId="row.item.userId"
-          />
-
-          <b-button size="sm" @click="row.toggleDetails">
-            <b-icon
-              :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
-              aria-label="Help"
-            ></b-icon>
-            Details verbergen von {{ row.item.firstName }} {{ row.item.lastName }}
-          </b-button>
-        </b-card>
+          </template>
+        </row-details>
       </template>
-
       <template #cell(bookmark)="row">
         <b-button
           variant="warning"
@@ -181,8 +157,11 @@ import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
 import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormular.vue'
 import CreationTransactionListFormular from '../components/CreationTransactionListFormular.vue'
+import RowDetails from '../components/RowDetails.vue'
 
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+
+const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
 
 export default {
   name: 'UserTable',
@@ -214,6 +193,7 @@ export default {
     EditCreationFormular,
     ConfirmRegisterMailFormular,
     CreationTransactionListFormular,
+    RowDetails,
   },
   data() {
     return {
@@ -233,65 +213,30 @@ export default {
           button_cancel: 'Cancel',
         },
       ],
+      slotIndex: 0,
+      openRow: null,
     }
   },
   methods: {
-    rowDetailsToogle(row, details) {
-      if (
-        this.showConfirmRegisterMailFormular === true ||
-        this.showCreationTransactionListFormular === true
-      ) {
-        this.showCreationFormular = true
-        this.showConfirmRegisterMailFormular = false
-        this.showCreationTransactionListFormular = false
-        return
-      }
-      if (details) {
-        row.toggleDetails()
-      }
-      if (!details) {
-        row.toggleDetails()
-        this.showCreationFormular = true
-        if (this.$refs.showing_detals_true !== undefined) {
-          this.$refs.showing_detals_true.click()
+    async rowToogleDetails(row, index) {
+      if (this.openRow) {
+        if (this.openRow.index === row.index) {
+          if (index === this.slotIndex) {
+            row.toggleDetails()
+            this.openRow = null
+          } else {
+            this.slotIndex = index
+          }
+        } else {
+          this.openRow.toggleDetails()
+          row.toggleDetails()
+          this.slotIndex = index
+          this.openRow = row
         }
-      }
-    },
-
-    rowDetailsToogleRegisterMail(row, details) {
-      if (this.showCreationFormular === true || this.showCreationTransactionListFormular === true) {
-        this.showCreationFormular = false
-        this.showConfirmRegisterMailFormular = true
-        this.showCreationTransactionListFormular = false
-        return
-      }
-      if (details) {
+      } else {
         row.toggleDetails()
-      }
-      if (!details) {
-        row.toggleDetails()
-        this.showConfirmRegisterMailFormular = true
-        if (this.$refs.showing_registermail_detals_true !== undefined) {
-          this.$refs.showing_registermail_detals_true.click()
-        }
-      }
-    },
-    rowDetailsToogleTransactionsList(row, details) {
-      if (this.showCreationFormular === true || this.showConfirmRegisterMailFormular === true) {
-        this.showCreationFormular = false
-        this.showConfirmRegisterMailFormular = false
-        this.showCreationTransactionListFormular = true
-        return
-      }
-      if (details) {
-        row.toggleDetails()
-      }
-      if (!details) {
-        row.toggleDetails()
-        this.showCreationTransactionListFormular = true
-        if (this.$refs.showing_transactions_list_true !== undefined) {
-          this.$refs.showing_transactions_list_true.click()
-        }
+        this.slotIndex = index
+        this.openRow = row
       }
     },
     overlayShow(bookmarkType, item) {
@@ -356,28 +301,6 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-    editCreationUserTable(row, details) {
-      if (
-        this.showConfirmRegisterMailFormular === true ||
-        this.showCreationTransactionListFormular === true
-      ) {
-        this.showCreationFormular = true
-        this.showConfirmRegisterMailFormular = false
-        this.showCreationTransactionListFormular = false
-        return
-      }
-      if (details) {
-        row.toggleDetails()
-      }
-      if (!details) {
-        row.toggleDetails()
-        this.showCreationFormular = true
-        this.creationUserData = row.item
-        if (this.$refs.details_edit_true !== undefined) {
-          this.$refs.details_edit_true.click()
-        }
-      }
-    },
     updateCreationData(data) {
       this.creationUserData.amount = data.amount
       this.creationUserData.date = data.date
@@ -388,6 +311,11 @@ export default {
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+  },
+  computed: {
+    slotName() {
+      return slotNames[this.slotIndex]
     },
   },
 }

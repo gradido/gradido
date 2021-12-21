@@ -1,5 +1,6 @@
 <template>
   <div class="component-creation-formular">
+    CREATION FORMULAR
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
         <b-row class="m-4">

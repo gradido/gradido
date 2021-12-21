@@ -33,6 +33,7 @@ export default {
           this.items = result.data.transactionList.transactions
         })
         .catch((error) => {
+          // eslint-disable-next-line no-console
           console.log('Something went wrong', error)
         })
     },
