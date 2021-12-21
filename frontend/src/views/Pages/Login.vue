@@ -105,10 +105,10 @@ export default {
           loader.hide()
         })
         .catch((error) => {
-          if (error.message.includes('No user with this credentials')) {
-            this.$toasted.global.error(this.$t('error.no-account'))
-          } else {
-            // : this.$t('error.no-email-verify')
+          this.$toasted.global.error(this.$t('error.no-account'))
+          if (error.message.includes('User email not validated')) {
+            this.$router.push('/thx/login')
+          } else if (error.message.includes('User has no password set yet')) {
             this.$router.push('/reset/login')
           }
           loader.hide()
