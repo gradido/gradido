@@ -1,0 +1,46 @@
+<mxfile host="65bd71144e">
+    <diagram id="5Rbgv0eSL3tDJ_YiGKbA" name="Page-1">
+        <mxGraphModel dx="1023" dy="545" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Release 1.6.X" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="560" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Development&lt;br style=&quot;font-size: 12px;&quot;&gt;15.10.2021 -&lt;br style=&quot;font-size: 12px;&quot;&gt;30.12.2022&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="120" width="400" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Testing&lt;br style=&quot;font-size: 7px;&quot;&gt;31.12.2021 -&lt;br style=&quot;font-size: 7px;&quot;&gt;07.01.2022&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=7;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="120" width="40" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Release Window&lt;br style=&quot;font-size: 7px;&quot;&gt;08.01.2022 -&lt;br style=&quot;font-size: 7px;&quot;&gt;15.01.2022&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=7;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="120" width="40" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="Deadline&lt;br style=&quot;font-size: 12px;&quot;&gt;31.01.2022&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="120" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="Release 1.7.X" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="40" width="560" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="Admin Interface" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="200" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Replace Login Server" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="240" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Replace Community Server" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="280" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Refine/Partially redesign Register Process" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="320" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="PublisherID Field on Register" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="360" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="PublisherID Field on Register" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="400" width="400" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
