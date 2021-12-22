@@ -42,15 +42,14 @@ export default {
           },
         })
         .then(() => {
-          // eslint-disable-next-line no-console
-          console.log(
-            'Erfolgreich senden der Confirmation Link an die E-Mail des Users!',
-            this.email,
+          this.$toasted.global.success(
+            'Erfolgreich senden der Confirmation Link an die E-Mail des Users!' + this.email,
           )
         })
         .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log('Fehler beim senden des confirmation link an den Benutzer', error)
+          this.$toasted.global.error(
+            'Fehler beim senden des confirmation link an den Benutzer' + error,
+          )
         })
     },
   },
