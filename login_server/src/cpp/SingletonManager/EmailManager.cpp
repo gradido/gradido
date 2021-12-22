@@ -165,14 +165,14 @@ int EmailManager::ThreadFunction()
 					// better wait instead and try again, it seems that the strato mail server sometimes discard or connection
 					// MAGIC NUMBER: sleep time if email sending failed (ssl connection was discarded from mailserver)
 					// wait 5 minute for the next try
-					Poco::Thread::sleep(5 * 60 * 1000);
+					Poco::Thread::sleep(MAGIC_NUMBER_EMAIL_SEND_RETRY_TIME_MINUTES * 60 * 1000);
 					// reconnect to mailserver
 					if (!connectToEmailServer(mailClientSession, errors)) {
 						return -1;
 					}
 					// retry only if not to many retries are already tried
 					// MAGIC NUMBER: Retry count if email sending failed
-					if (email->checkResendCounter() < 4) {
+					if (email->checkResendCounter() < MAGIC_NUMBER_MAX_EMAIL_RESEND_COUNT) {
 						mPendingEmails.push(email);
 						email = nullptr;
 						// jump back to while loop start
