@@ -88,6 +88,21 @@ void EmailManager::exit()
 	mInitalized = false;
 }
 
+bool EmailManager::connectToEmailServer(Poco::Net::SecureSMTPClientSession& mailClientSession, NotificationList& errorList)
+{
+	mailClientSession.login();
+	try {
+		mailClientSession.startTLS(ServerConfig::g_SSL_CLient_Context);
+		mailClientSession.login(Poco::Net::SMTPClientSession::AUTH_LOGIN, mEmailAccount.username, mEmailAccount.password);
+	}
+	catch (Poco::Net::SSLException& ex) {
+		errorList.addError(new ParamError("EmailManager::connectToEmailServer", "ssl certificate error", ex.displayText()));
+		printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
+		return false;
+	}
+	return true;
+}
+
 int EmailManager::ThreadFunction()
 {
 	// prepare connection to email server
@@ -100,6 +115,9 @@ int EmailManager::ThreadFunction()
 	static const char* function_name = "PrepareEmailTask";
 
 	Poco::Net::SecureSMTPClientSession mailClientSession(mEmailAccount.url, mEmailAccount.port);
+	if (!connectToEmailServer(mailClientSession, errors)) {
+		return -1;
+	}
 	mailClientSession.login();
 	try {
 		mailClientSession.startTLS(ServerConfig::g_SSL_CLient_Context);
@@ -149,14 +167,7 @@ int EmailManager::ThreadFunction()
 					// wait 5 minute for the next try
 					Poco::Thread::sleep(5 * 60 * 1000);
 					// reconnect to mailserver
-					mailClientSession.login();
-					try {
-						mailClientSession.startTLS(ServerConfig::g_SSL_CLient_Context);
-						mailClientSession.login(Poco::Net::SMTPClientSession::AUTH_LOGIN, mEmailAccount.username, mEmailAccount.password);
-					}
-					catch (Poco::Net::SSLException& ex) {
-						errors.addError(new ParamError(function_name, "ssl certificate error", ex.displayText()));
-						printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
+					if (!connectToEmailServer(mailClientSession, errors)) {
 						return -1;
 					}
 					// retry only if not to many retries are already tried

@@ -38,6 +38,8 @@ protected:
 
 	int ThreadFunction();
 
+	bool connectToEmailServer(Poco::Net::SecureSMTPClientSession& mailClientSession, NotificationList& errorList);
+
 	struct EmailAccount {
 		std::string sender;
 		std::string admin_receiver;
