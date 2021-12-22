@@ -8,16 +8,6 @@ const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
 
 const mocks = {
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
-  }),
   $apollo: {
     mutate: apolloMutateMock,
   },
