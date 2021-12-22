@@ -214,7 +214,7 @@ export default {
     }
   },
   methods: {
-    async rowToogleDetails(row, index) {
+    rowToogleDetails(row, index) {
       if (this.openRow) {
         if (this.openRow.index === row.index) {
           if (index === this.slotIndex) {
