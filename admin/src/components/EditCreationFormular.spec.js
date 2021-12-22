@@ -46,7 +46,7 @@ const mocks = {
 }
 
 const propsData = {
-  creation: [],
+  creation: [200, 400, 600],
   creationUserData: {
     memo: 'Test schöpfung 1',
     amount: 100,
@@ -196,16 +196,16 @@ describe('EditCreationFormular', () => {
 
         describe('third radio button', () => {
           beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
             await wrapper.setData({ rangeMin: 180 })
+            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
           })
 
           it('sets rangeMin to 180', () => {
             expect(wrapper.vm.rangeMin).toBe(180)
           })
 
-          it.skip('sets rangeMax to 600', () => {
-            expect(wrapper.vm.rangeMax).toBe(600)
+          it('sets rangeMax to 700', () => {
+            expect(wrapper.vm.rangeMax).toBe(700)
           })
 
           describe('sendForm with success', () => {

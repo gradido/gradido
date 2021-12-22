@@ -183,7 +183,6 @@ export default {
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
       this.rangeMin = 0
-      console.log('this.creation, index', this.creation, index)
       this.rangeMax = this.creation[index]
     },
     submitCreation() {
