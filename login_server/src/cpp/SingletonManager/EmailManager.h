@@ -17,6 +17,12 @@
 #include "../tasks/Thread.h"
 #include "../model/email/Email.h"
 
+// MAGIC NUMBER: sleep time if email sending failed (ssl connection was discarded from mailserver)
+// wait 5 minute for the next try
+#define MAGIC_NUMBER_EMAIL_SEND_RETRY_TIME_MINUTES 5
+// MAGIC NUMBER: Retry count if email sending failed
+#define MAGIC_NUMBER_MAX_EMAIL_RESEND_COUNT 3
+
 class EmailManager : public UniLib::lib::Thread
 {
 	
@@ -37,6 +43,8 @@ protected:
 	void exit();
 
 	int ThreadFunction();
+
+	bool connectToEmailServer(Poco::Net::SecureSMTPClientSession& mailClientSession, NotificationList& errorList);
 
 	struct EmailAccount {
 		std::string sender;
