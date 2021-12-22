@@ -359,6 +359,7 @@ async function listTransactions(
     limit,
     offset,
     order,
+    onlyCreations,
   )
   skipFirstTransaction = userTransactionsCount > offset + limit
   const decay = !(currentPage > 1)
@@ -380,11 +381,6 @@ async function listTransactions(
 
   const transactionList = new TransactionList()
   transactionList.count = userTransactionsCount
-  if (onlyCreations) {
-    transactions = transactions.filter((transaction) => {
-      return transaction.type === 'creation'
-    })
-  }
   transactionList.transactions = transactions
   return transactionList
 }
