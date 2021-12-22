@@ -323,5 +323,5 @@ async function hasActivatedEmail(email: string): Promise<boolean> {
   const user = await repository.findByEmail(email)
   let emailActivate = false
   if (user) emailActivate = user.emailChecked
-  return emailActivate
+  return user ? user.emailChecked : false
 }
