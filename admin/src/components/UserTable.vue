@@ -233,6 +233,9 @@ export default {
         row.toggleDetails()
         this.slotIndex = index
         this.openRow = row
+        if (this.type === 'PageCreationConfirm') {
+          this.creationUserData = row.item
+        }
       }
     },
     overlayShow(bookmarkType, item) {
