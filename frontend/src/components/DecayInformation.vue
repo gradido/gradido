@@ -1,12 +1,7 @@
 <template>
   <div class="decayinformation">
     <span v-if="decaytyp === 'short'">
-      <span v-if="decay.balance > 0">
-        {{ decay ? ' -' + $n(decay.balance, 'decimal') + ' ' + decayStartBlockTextShort : '' }}
-      </span>
-      <span v-else>
-        {{ $t('decay.noDecay') }}
-      </span>
+      {{ decay ? ' - ' + $n(decay.balance, 'decimal') + ' ' + decayStartBlockTextShort : '' }}
     </span>
 
     <div v-if="decaytyp === 'new'">
@@ -58,60 +53,58 @@
         </b-col>
       </b-row>
 
-      <div v-if="decay.balance > 0">
-        <!-- Decay-->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            <div>{{ $t('decay.decay') }}</div>
-          </b-col>
-          <b-col cols="6">
-            <div>- {{ $n(decay.balance, 'decimal') }}</div>
-          </b-col>
-        </b-row>
-        <hr class="mt-2 mb-2" />
-        <b-row>
-          <b-col class="text-center pt-3 pb-2">
-            <b>{{ $t('decay.calculation_total') }}</b>
-          </b-col>
-        </b-row>
-        <!-- Type-->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
-            <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
-          </b-col>
-          <b-col cols="6">
-            <div v-if="type === 'send'">- {{ $n(balance, 'decimal') }}</div>
-            <div v-if="type === 'receive'">+ {{ $n(balance, 'decimal') }}</div>
-          </b-col>
-        </b-row>
-        <!-- Decay-->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            <div>{{ $t('decay.decay') }}</div>
-          </b-col>
-          <b-col cols="6">
-            <div>- {{ $n(decay.balance, 'decimal') }}</div>
-          </b-col>
-        </b-row>
-        <!-- Total-->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            <div>{{ $t('decay.total') }}</div>
-          </b-col>
-          <b-col cols="6">
-            <div v-if="type === 'send'">
-              <b>- {{ $n(balance + decay.balance, 'decimal') }}</b>
-            </div>
-            <div v-if="type === 'receive'">
-              <b>{{ $n(balance - decay.balance, 'decimal') }}</b>
-            </div>
-            <div v-if="type === 'creation'">
-              <b>- {{ $n(balance - decay.balance, 'decimal') }}</b>
-            </div>
-          </b-col>
-        </b-row>
-      </div>
+      <!-- Decay-->
+      <b-row>
+        <b-col cols="6" class="text-right">
+          <div>{{ $t('decay.decay') }}</div>
+        </b-col>
+        <b-col cols="6">
+          <div>- {{ $n(decay.balance, 'decimal') }}</div>
+        </b-col>
+      </b-row>
+      <hr class="mt-2 mb-2" />
+      <b-row>
+        <b-col class="text-center pt-3 pb-2">
+          <b>{{ $t('decay.calculation_total') }}</b>
+        </b-col>
+      </b-row>
+      <!-- Type-->
+      <b-row>
+        <b-col cols="6" class="text-right">
+          <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
+          <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
+        </b-col>
+        <b-col cols="6">
+          <div v-if="type === 'send'">- {{ $n(balance, 'decimal') }}</div>
+          <div v-if="type === 'receive'">+ {{ $n(balance, 'decimal') }}</div>
+        </b-col>
+      </b-row>
+      <!-- Decay-->
+      <b-row>
+        <b-col cols="6" class="text-right">
+          <div>{{ $t('decay.decay') }}</div>
+        </b-col>
+        <b-col cols="6">
+          <div>- {{ $n(decay.balance, 'decimal') }}</div>
+        </b-col>
+      </b-row>
+      <!-- Total-->
+      <b-row>
+        <b-col cols="6" class="text-right">
+          <div>{{ $t('decay.total') }}</div>
+        </b-col>
+        <b-col cols="6">
+          <div v-if="type === 'send'">
+            <b>- {{ $n(balance + decay.balance, 'decimal') }}</b>
+          </div>
+          <div v-if="type === 'receive'">
+            <b>{{ $n(balance - decay.balance, 'decimal') }}</b>
+          </div>
+          <div v-if="type === 'creation'">
+            <b>- {{ $n(balance - decay.balance, 'decimal') }}</b>
+          </div>
+        </b-col>
+      </b-row>
     </div>
   </div>
 </template>

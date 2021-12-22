@@ -2,15 +2,28 @@ import addNavigationGuards from './guards'
 import router from './router'
 
 const storeCommitMock = jest.fn()
+const storeDispatchMock = jest.fn()
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    verifyLogin: {
+      firstName: 'Peter',
+    },
+  },
+})
 
 const store = {
   commit: storeCommitMock,
   state: {
     token: null,
   },
+  dispatch: storeDispatchMock,
 }
 
-addNavigationGuards(router, store)
+const apollo = {
+  query: apolloQueryMock,
+}
+
+addNavigationGuards(router, store, apollo)
 
 describe('navigation guards', () => {
   beforeEach(() => {
@@ -29,8 +42,48 @@ describe('navigation guards', () => {
     })
   })
 
+  describe('authenticate', () => {
+    const navGuard = router.beforeHooks[1]
+    const next = jest.fn()
+
+    describe('with valid token', () => {
+      beforeEach(() => {
+        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      })
+
+      it('commts the token to the store', () => {
+        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
+      })
+
+      it('calls verifyLogin', () => {
+        expect(apolloQueryMock).toBeCalled()
+      })
+
+      it('commits login to the store', () => {
+        expect(storeDispatchMock).toBeCalledWith('login', { firstName: 'Peter' })
+      })
+    })
+
+    describe('with valid token and server error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Ouch!',
+        })
+        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      })
+
+      it('dispatches logout to store', () => {
+        expect(storeDispatchMock).toBeCalledWith('logout')
+      })
+
+      it('calls next', () => {
+        expect(next).toBeCalledWith()
+      })
+    })
+  })
+
   describe('authorization', () => {
-    const navGuard = router.beforeHooks[0]
+    const navGuard = router.beforeHooks[2]
     const next = jest.fn()
 
     it('redirects to login when not authorized', () => {

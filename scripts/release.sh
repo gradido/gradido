@@ -5,6 +5,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_DIR="${SCRIPT_DIR}/../"
 FRONTEND_DIR="${PROJECT_DIR}/frontend/"
 BACKEND_DIR="${PROJECT_DIR}/backend/"
+DATABASE_DIR="${PROJECT_DIR}/database/"
+ADMIN_DIR="${PROJECT_DIR}/admin/"
 
 # navigate to project directory
 cd ${PROJECT_DIR}
@@ -20,6 +22,11 @@ cd ${FRONTEND_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 cd ${BACKEND_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${DATABASE_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${ADMIN_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 
 # generate changelog
+cd ${PROJECT_DIR}
 auto-changelog --latest-version ${VERSION}

@@ -3,29 +3,7 @@
 #########################################################################################################
 FROM mariadb/server:10.5 as mariadb_server
 
-ENV DOCKER_WORKDIR="/docker-entrypoint-initdb.d"
+# ENV DOCKER_WORKDIR="/docker-entrypoint-initdb.d"
 	
-RUN mkdir -p ${DOCKER_WORKDIR}
-WORKDIR ${DOCKER_WORKDIR}
-
-# create databases
-COPY ./mariadb/setup_dbs.sql a1_setup_dbs.sql 
-# login server db
-COPY ./login_server/skeema/ .
-RUN cd ./gradido_login/ && for f in *.sql; do cp -- "$f" "../b1_$f"; sed  -i '1i use gradido_login;' "../b1_$f"; done
-COPY ./configs/login_server/setup_db_tables ./gradido_login/insert
-RUN cd ./gradido_login/insert && for f in *.sql; do cp -- "$f" "../../c1_$f";  sed  -i '1i use gradido_login;' "../../c1_$f"; done
-
-#########################################################################################################
-# mariadb server with test dbs
-#########################################################################################################
-FROM mariadb_server as mariadb_server_test
-
-# create test databases
-COPY ./mariadb/setup_test_dbs.sql a2_setup_dbs.sql 
-
-# login server test db
-COPY ./login_server/skeema/ .
-RUN cd ./gradido_login/ && for f in *.sql; do cp -- "$f" "../b2_$f"; sed  -i '1i use gradido_login_test;' "../b2_$f"; done
-COPY ./configs/login_server/setup_db_tables ./gradido_login/insert
-RUN cd ./gradido_login/insert && for f in *.sql; do cp -- "$f" "../../c2_$f";  sed  -i '1i use gradido_login_test;' "../../c2_$f"; done
+# RUN mkdir -p ${DOCKER_WORKDIR}
+# WORKDIR ${DOCKER_WORKDIR}

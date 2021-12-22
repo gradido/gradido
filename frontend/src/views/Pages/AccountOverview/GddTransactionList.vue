@@ -1,6 +1,16 @@
 <template>
   <div class="gdd-transaction-list">
     <div class="list-group">
+      <div v-if="!transactions" class="test-no-transactionlist text-right">
+        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <small>
+          {{ $t('error.no-transactionlist') }}
+        </small>
+      </div>
+      <div v-if="!transactionCount" class="test-empty-transactionlist text-right">
+        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <small>{{ $t('error.empty-transactionlist') }}</small>
+      </div>
       <div
         v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
         :key="transactionId"
@@ -124,7 +134,7 @@
         :per-page="pageSize"
         :total-rows="transactionCount"
       ></pagination-buttons>
-      <div v-if="transactions.length === 0" class="mt-4 text-center">
+      <div v-if="transactionCount === 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </div>
@@ -197,5 +207,9 @@ export default {
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
+}
+
+.gdd-transaction-list-item {
+  outline: none !important;
 }
 </style>

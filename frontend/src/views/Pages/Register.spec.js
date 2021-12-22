@@ -5,6 +5,19 @@ import Register from './Register'
 
 const localVue = global.localVue
 
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    getCommunityInfo: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
+    },
+  },
+})
+
+const toastErrorMock = jest.fn()
+const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
 
@@ -21,18 +34,23 @@ describe('Register', () => {
     },
     $apollo: {
       mutate: registerUserMutationMock,
+      query: apolloQueryMock,
     },
     $store: {
+      commit: mockStoreCommit,
       state: {
         email: 'peter@lustig.de',
         language: 'en',
         community: {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+          name: '',
+          description: '',
         },
         publisherId: 12345,
+      },
+    },
+    $toasted: {
+      global: {
+        error: toastErrorMock,
       },
     },
   }
@@ -50,6 +68,15 @@ describe('Register', () => {
       wrapper = Wrapper()
     })
 
+    it('commits the community info to the store', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        name: 'test12',
+        description: 'test community 12',
+        url: 'http://test12.test12/',
+        registerUrl: 'http://test12.test12/vue/register',
+      })
+    })
+
     it('renders the Register form', () => {
       expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
@@ -60,15 +87,43 @@ describe('Register', () => {
       })
     })
 
-    describe('Community Data', () => {
-      it('has a Community name?', () => {
+    describe('communities gives back error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Failed to get communities',
+        })
+        wrapper = Wrapper()
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+      })
+    })
+
+    describe('Community data already loaded', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+        wrapper = Wrapper()
+      })
+
+      it('has a Community name', () => {
         expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
       })
 
-      it('has a Community description?', () => {
+      it('has a Community description', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
+      })
+
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 
@@ -98,16 +153,10 @@ describe('Register', () => {
         expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
       })
 
-      it('has password input fields', () => {
-        expect(wrapper.find('input[name="form.password"]').exists()).toBeTruthy()
-      })
-
-      it('has password repeat input fields', () => {
-        expect(wrapper.find('input[name="form.passwordRepeat"]').exists()).toBeTruthy()
-      })
       it('has Language selected field', () => {
         expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
       })
+
       it('selects Language value en', async () => {
         wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
         expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
@@ -115,6 +164,11 @@ describe('Register', () => {
 
       it('has 1 checkbox input fields', () => {
         expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
+      })
+
+      it('has PublisherId input fields', () => {
+        wrapper.find('.publisherCollaps').trigger('click')
+        expect(wrapper.find('#publisherid').exists()).toBe(true)
       })
 
       it('has disabled submit button when not completely filled', () => {
@@ -165,9 +219,12 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('input[name="form.password"]').setValue('Aa123456_')
-        wrapper.find('input[name="form.passwordRepeat"]').setValue('Aa123456_')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#publisherid').setValue('12345')
+      })
+
+      it('commits publisherId to store', () => {
+        expect(mockStoreCommit).toBeCalledWith('publisherId', 12345)
       })
 
       it('has enabled submit button when completely filled', () => {
@@ -217,7 +274,6 @@ describe('Register', () => {
                 email: 'max.mustermann@gradido.net',
                 firstName: 'Max',
                 lastName: 'Mustermann',
-                password: 'Aa123456_',
                 language: 'en',
                 publisherId: 12345,
               },

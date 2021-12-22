@@ -72,7 +72,7 @@ jobs:
       ##########################################################################
       - name: Backend | Build `production` image
         run: |
-          docker build --target production -t "gradido/backend:latest" -t "gradido/backend:production" -t "gradido/backend:${VERSION}" -t "gradido/backend:${BUILD_VERSION}" backend/
+          docker build -f ./backend/Dockerfile --target production -t "gradido/backend:latest" -t "gradido/backend:production" -t "gradido/backend:${VERSION}" -t "gradido/backend:${BUILD_VERSION}" .
           docker save "gradido/backend" > /tmp/backend.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

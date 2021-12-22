@@ -23,6 +23,7 @@
             variant="outline-light"
             @click="toggleShowPassword"
             class="border-left-0 rounded-right"
+            tabindex="-1"
           >
             <b-icon :icon="showPassword ? 'eye' : 'eye-slash'" />
           </b-button>

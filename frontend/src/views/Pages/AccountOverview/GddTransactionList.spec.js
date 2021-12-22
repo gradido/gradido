@@ -36,9 +36,42 @@ describe('GddTransactionList', () => {
       expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
     })
 
+    describe('no transactions from server', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: false,
+        })
+      })
+      it('shows error no transaction list', () => {
+        expect(wrapper.find('div.test-no-transactionlist').text()).toContain(
+          'error.no-transactionlist',
+        )
+      })
+    })
+    describe('0 transactions from server', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: [],
+          transactionCount: 0,
+        })
+      })
+      it('Transactions Array is empty, 0 transactions', () => {
+        expect(wrapper.find('div.test-empty-transactionlist').text()).toContain(
+          'error.empty-transactionlist',
+        )
+      })
+    })
+
     describe('without any properties', () => {
-      it('renders text saying that there are no transactions', () => {
-        expect(wrapper.find('div.gdd-transaction-list').text()).toBe('transaction.nullTransactions')
+      it('renders text saying that there are error.empty-transactionlist ', () => {
+        expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
+          'error.empty-transactionlist',
+        )
+      })
+      it('renders text saying that there are no transaction.nullTransactions', () => {
+        expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
+          'transaction.nullTransactions',
+        )
       })
     })
 
@@ -138,7 +171,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '-0.5',
+            '- 0.5',
           )
         })
       })
@@ -228,7 +261,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '-1.5',
+            '- 1.5',
           )
         })
       })

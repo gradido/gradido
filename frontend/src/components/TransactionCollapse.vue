@@ -4,19 +4,19 @@
     style="border: 0px; background-color: #f1f1f1"
   >
     <b-row class="gdt-list-collapse-header-text text-center pb-3">
-      <b-col id="collapse-headline">
-        <b>{{ getLinesByType(gdtEntryType).headline }}</b>
+      <b-col class="collapse-headline">
+        <b>{{ getLinesByType.headline }}</b>
       </b-col>
     </b-row>
     <b-row class="gdt-list-collapse-box--all">
       <b-col cols="6" class="text-right collapse-col-left">
-        <div id="collapse-first">{{ getLinesByType(gdtEntryType).first }}</div>
-        <div id="collapse-second">{{ getLinesByType(gdtEntryType).second }}</div>
+        <div class="collapse-first">{{ getLinesByType.first }}</div>
+        <div class="collapse-second">{{ getLinesByType.second }}</div>
       </b-col>
       <b-col cols="6" class="collapse-col-right">
-        <div id="collapse-firstMath">{{ getLinesByType(gdtEntryType).firstMath }}</div>
-        <div id="collapse-secondMath">
-          {{ getLinesByType(gdtEntryType).secondMath }}
+        <div class="collapse-firstMath">{{ getLinesByType.firstMath }}</div>
+        <div class="collapse-secondMath">
+          {{ getLinesByType.secondMath }}
         </div>
       </b-col>
     </b-row>
@@ -33,9 +33,9 @@ export default {
     factor: { type: Number },
     gdt: { type: Number },
   },
-  methods: {
-    getLinesByType(givenType) {
-      switch (givenType) {
+  computed: {
+    getLinesByType() {
+      switch (this.gdtEntryType) {
         case GdtEntryType.FORM:
         case GdtEntryType.CVS:
         case GdtEntryType.ELOPAGE:
@@ -80,7 +80,7 @@ export default {
           }
         }
         default:
-          throw new Error('no additional transaction info for this type: ' + givenType)
+          throw new Error('no additional transaction info for this type: ' + this.gdtEntryType)
       }
     },
   },

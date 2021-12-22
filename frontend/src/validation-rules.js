@@ -59,7 +59,7 @@ export const loadAllRules = (i18nCallback) => {
           },
         })
         .then((result) => {
-          return result.data.checkUsername.state === 'success'
+          return result.data.checkUsername
         })
         .catch(() => {
           return false

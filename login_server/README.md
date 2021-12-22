@@ -56,8 +56,7 @@ To update messages.pot run
 This will be also called by ./scripts/build_debug.sh
 
 ## database
-Login-Server needs a db to run, it is tested with mariadb
-table definitions are found in folder ./skeema/gradido_login
+Login-Server needs a db to run, it is tested with mariadb.
 Currently at least one group must be present in table groups.
 For example:
 ```sql

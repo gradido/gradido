@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Query } from 'type-graphql'
+import { Resolver, Query, Authorized } from 'type-graphql'
+import { RIGHTS } from '../../auth/RIGHTS'
 import CONFIG from '../../config'
 import { Community } from '../model/Community'
 
 @Resolver()
 export class CommunityResolver {
+  @Authorized([RIGHTS.GET_COMMUNITY_INFO])
   @Query(() => Community)
   async getCommunityInfo(): Promise<Community> {
     return new Community({
@@ -17,6 +19,7 @@ export class CommunityResolver {
     })
   }
 
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
     if (CONFIG.PRODUCTION)

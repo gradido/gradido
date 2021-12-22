@@ -54,7 +54,7 @@ namespace model {
 			
 
 			// generic db operations
-			const char* getTableName() const { return "users"; }
+			const char* getTableName() const { return "login_users"; }
 			std::string toString();
 			std::string toHTMLString();
 

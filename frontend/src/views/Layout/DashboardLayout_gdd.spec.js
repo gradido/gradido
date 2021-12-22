@@ -4,6 +4,8 @@ import DashboardLayoutGdd from './DashboardLayout_gdd'
 
 jest.useFakeTimers()
 
+jest.setTimeout(30000)
+
 const localVue = global.localVue
 
 const storeDispatchMock = jest.fn()
@@ -37,7 +39,9 @@ describe('DashboardLayoutGdd', () => {
       },
     },
     $toasted: {
-      error: toasterMock,
+      global: {
+        error: toasterMock,
+      },
     },
     $apollo: {
       query: apolloMock,
@@ -48,6 +52,7 @@ describe('DashboardLayoutGdd', () => {
         publisherId: 123,
         firstName: 'User',
         lastName: 'Example',
+        token: 'valid-token',
       },
       dispatch: storeDispatchMock,
       commit: storeCommitMock,
@@ -68,8 +73,12 @@ describe('DashboardLayoutGdd', () => {
       wrapper = Wrapper()
     })
 
+    it('has a navbar', () => {
+      expect(wrapper.find('.main-navbar').exists()).toBeTruthy()
+    })
+
     it('has a sidebar', () => {
-      expect(wrapper.find('nav#sidenav-main').exists()).toBeTruthy()
+      expect(wrapper.find('.main-sidebar').exists()).toBeTruthy()
     })
 
     it('has a main content div', () => {
@@ -77,57 +86,10 @@ describe('DashboardLayoutGdd', () => {
     })
 
     it('has a footer inside the main content', () => {
-      expect(wrapper.find('div.main-content').find('footer.footer').exists()).toBeTruthy()
+      expect(wrapper.find('div.main-page').find('footer.footer').exists()).toBeTruthy()
     })
 
     describe('navigation bar', () => {
-      let navbar
-
-      beforeEach(() => {
-        navbar = wrapper.findAll('ul.navbar-nav').at(0)
-      })
-
-      it('has three items in the navbar', () => {
-        expect(navbar.findAll('ul > a')).toHaveLength(3)
-      })
-
-      it('has first item "send" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(0).text()).toEqual('send')
-      })
-
-      it('has first item "send" linked to overview in navbar', () => {
-        navbar.findAll('ul > a').at(0).trigger('click')
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toBe('/overview')
-      })
-
-      it('has second item "transactions" in navbar', () => {
-        expect(navbar.findAll('ul > a').at(1).text()).toEqual('transactions')
-      })
-
-      it('has second item "transactions" linked to transactions in navbar', async () => {
-        expect(wrapper.findAll('a').at(3).attributes('href')).toBe('/transactions')
-      })
-
-      it('has three items in the navbar', () => {
-        expect(navbar.findAll('ul > a')).toHaveLength(3)
-      })
-
-      it('has third item "My profile" linked to profile in navbar', async () => {
-        expect(wrapper.findAll('a').at(5).attributes('href')).toBe('/profile')
-      })
-
-      it('has a link to the members area', () => {
-        expect(wrapper.findAll('ul').at(2).text()).toContain('members_area')
-        expect(wrapper.findAll('ul').at(2).text()).toContain('!')
-        expect(wrapper.findAll('ul').at(2).find('a').attributes('href')).toBe(
-          'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=123&firstName=User&lastName=Example&email=user@example.org',
-        )
-      })
-
-      it('has a logout button', () => {
-        expect(wrapper.findAll('ul').at(3).text()).toBe('logout')
-      })
-
       describe('logout', () => {
         beforeEach(async () => {
           await apolloMock.mockResolvedValue({
@@ -137,6 +99,7 @@ describe('DashboardLayoutGdd', () => {
           })
           await wrapper.findComponent({ name: 'sidebar' }).vm.$emit('logout')
           await flushPromises()
+          await wrapper.vm.$nextTick()
         })
 
         it('calls the API', async () => {
@@ -167,6 +130,17 @@ describe('DashboardLayoutGdd', () => {
 
         it('redirects to login page', () => {
           expect(routerPushMock).toBeCalledWith('/login')
+        })
+
+        describe('redirect to login already done', () => {
+          beforeEach(() => {
+            mocks.$router.currentRoute.path = '/login'
+            jest.resetAllMocks()
+          })
+
+          it('does not call the redirect to login', () => {
+            expect(routerPushMock).not.toBeCalled()
+          })
         })
       })
 
@@ -245,8 +219,67 @@ describe('DashboardLayoutGdd', () => {
           expect(wrapper.vm.pending).toBeTruthy()
         })
 
-        it('calls $toasted.error method', () => {
+        it('calls $toasted.global.error method', () => {
           expect(toasterMock).toBeCalledWith('Ouch!')
+        })
+      })
+
+      describe('set visible method', () => {
+        beforeEach(() => {
+          wrapper.findComponent({ name: 'Navbar' }).vm.$emit('set-visible', true)
+        })
+
+        it('sets visible to true', () => {
+          expect(wrapper.vm.visible).toBe(true)
+        })
+      })
+
+      describe('elopage URI', () => {
+        describe('user has no publisher ID and no elopage', () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = null
+            mocks.$store.state.hasElopage = false
+            wrapper = Wrapper()
+          })
+
+          it('links to basic-de', () => {
+            expect(wrapper.vm.elopageUri).toBe(
+              'https://elopage.com/s/gradido/basic-de/payment?locale=en&prid=111&pid=2896&firstName=User&lastName=Example&email=user@example.org',
+            )
+          })
+        })
+
+        describe('user has elopage', () => {
+          beforeEach(() => {
+            mocks.$store.state.publisherId = '123'
+            mocks.$store.state.hasElopage = true
+            wrapper = Wrapper()
+          })
+
+          it('links to sign in for elopage', () => {
+            expect(wrapper.vm.elopageUri).toBe('https://elopage.com/s/gradido/sign_in?locale=en')
+          })
+        })
+      })
+
+      describe('admin method', () => {
+        const windowLocationMock = jest.fn()
+        beforeEach(() => {
+          delete window.location
+          window.location = {
+            assign: windowLocationMock,
+          }
+          wrapper.findComponent({ name: 'Navbar' }).vm.$emit('admin')
+        })
+
+        it('dispatches logout to store', () => {
+          expect(storeDispatchMock).toBeCalled()
+        })
+
+        it('changes window location to admin interface', () => {
+          expect(windowLocationMock).toBeCalledWith(
+            'http://localhost/admin/authenticate?token=valid-token',
+          )
         })
       })
     })

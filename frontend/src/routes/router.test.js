@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has twelve routes defined', () => {
-        expect(routes).toHaveLength(13)
+      it('has sixteen routes defined', () => {
+        expect(routes).toHaveLength(16)
       })
 
       describe('overview', () => {
@@ -61,6 +61,17 @@ describe('router', () => {
         it('loads the "Overview" component', async () => {
           const component = await routes.find((r) => r.path === '/overview').component()
           expect(component.default.name).toBe('Overview')
+        })
+      })
+
+      describe('send', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/send').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Send" component', async () => {
+          const component = await routes.find((r) => r.path === '/send').component()
+          expect(component.default.name).toBe('SendOverview')
         })
       })
 
@@ -132,6 +143,13 @@ describe('router', () => {
         })
       })
 
+      describe('password with param comingFrom', () => {
+        it('loads the "Password" component', async () => {
+          const component = await routes.find((r) => r.path === '/password/:comingFrom').component()
+          expect(component.default.name).toBe('password')
+        })
+      })
+
       describe('register-community', () => {
         it('loads the "registerCommunity" component', async () => {
           const component = await routes.find((r) => r.path === '/register-community').component()
@@ -156,7 +174,7 @@ describe('router', () => {
       describe('checkEmail', () => {
         it('loads the "CheckEmail" component', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
-          expect(component.default.name).toBe('CheckEmail')
+          expect(component.default.name).toBe('ResetPassword')
         })
       })
 

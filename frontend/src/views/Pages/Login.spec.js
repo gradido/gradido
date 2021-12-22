@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
 
@@ -39,10 +39,8 @@ describe('Login', () => {
       commit: mockStoreCommit,
       state: {
         community: {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+          name: '',
+          description: '',
         },
         publisherId: 12345,
       },
@@ -54,7 +52,9 @@ describe('Login', () => {
       push: mockRouterPush,
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       query: apolloQueryMock,
@@ -74,10 +74,6 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Login form', () => {
-      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
-    })
-
     it('commits the community info to the store', () => {
       expect(mockStoreCommit).toBeCalledWith('community', {
         name: 'test12',
@@ -85,6 +81,10 @@ describe('Login', () => {
         url: 'http://test12.test12/',
         registerUrl: 'http://test12.test12/vue/register',
       })
+    })
+
+    it('renders the Login form', () => {
+      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
     describe('communities gives back error', () => {
@@ -106,7 +106,18 @@ describe('Login', () => {
       })
     })
 
-    describe('Community Data', () => {
+    describe('Community data already loaded', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+        wrapper = Wrapper()
+      })
+
       it('has a Community name', () => {
         expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
       })
@@ -115,6 +126,10 @@ describe('Login', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
+      })
+
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 
@@ -225,7 +240,7 @@ describe('Login', () => {
         describe('login fails', () => {
           beforeEach(() => {
             apolloQueryMock.mockRejectedValue({
-              message: 'Ouch!',
+              message: '..No user with this credentials',
             })
           })
 
@@ -235,6 +250,44 @@ describe('Login', () => {
 
           it('toasts an error message', () => {
             expect(toastErrorMock).toBeCalledWith('error.no-account')
+          })
+
+          describe('login fails with "User email not validated"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User email not validated',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /thx/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/thx/login')
+            })
+          })
+
+          describe('login fails with "User has no password set yet"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User has no password set yet',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /reset/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/reset/login')
+            })
           })
         })
       })

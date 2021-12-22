@@ -148,7 +148,7 @@ Session* SessionManager::getNewSession(int* handle)
 		mWorkingMutex.tryLock(500);
 	}
 	catch (Poco::TimeoutException &ex) {
-		printf("[%s] exception timout mutex: %s\n", functionName, ex.displayText().data());
+		printf("[%s] exception timeout mutex: %s\n", functionName, ex.displayText().data());
 		return nullptr;
 	}
 	//mWorkingMutex.lock();

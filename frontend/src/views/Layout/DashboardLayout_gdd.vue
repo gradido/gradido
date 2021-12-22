@@ -1,90 +1,64 @@
 <template>
   <div>
-    <side-bar @logout="logout" :balance="balance" :pending="pending">
-      <template slot="links">
-        <p></p>
-        <sidebar-item
-          :link="{
-            name: $t('send'),
-            path: '/overview',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('transactions'),
-            path: '/transactions',
-          }"
-        ></sidebar-item>
-        <sidebar-item
-          :link="{
-            name: $t('site.navbar.my-profil'),
-            path: '/profile',
-          }"
-        ></sidebar-item>
-      </template>
-    </side-bar>
-    <div class="main-content" style="max-width: 1000px">
-      <div class="d-none d-md-block">
-        <b-navbar>
-          <b-navbar-nav class="ml-auto">
-            <b-nav-item>
-              <b-media no-body class="align-items-center">
-                <span class="pb-2 text-lg font-weight-bold">
-                  {{ $store.state.email }}
-                </span>
-                <b-media-body class="ml-2">
-                  <span class="avatar">
-                    <vue-qrcode
-                      v-if="$store.state.email"
-                      :value="$store.state.email"
-                      type="image/png"
-                    ></vue-qrcode>
-                  </span>
-                </b-media-body>
-              </b-media>
-            </b-nav-item>
-          </b-navbar-nav>
-        </b-navbar>
+    <navbar
+      class="main-navbar"
+      :balance="balance"
+      :visible="visible"
+      :elopageUri="elopageUri"
+      @set-visible="setVisible"
+      @admin="admin"
+      @logout="logout"
+    />
+    <div class="content-gradido">
+      <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
+        <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
       </div>
 
-      <div @click="$sidebar.displaySidebar(false)">
-        <fade-transition :duration="200" origin="center top" mode="out-in">
-          <router-view
-            ref="router-view"
-            :balance="balance"
-            :gdt-balance="GdtBalance"
-            :transactions="transactions"
-            :transactionCount="transactionCount"
-            :pending="pending"
-            @update-balance="updateBalance"
-            @update-transactions="updateTransactions"
-          ></router-view>
-        </fade-transition>
+      <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">
+        <div class="main-content">
+          <fade-transition :duration="200" origin="center top" mode="out-in">
+            <router-view
+              ref="router-view"
+              :balance="balance"
+              :gdt-balance="GdtBalance"
+              :transactions="transactions"
+              :transactionCount="transactionCount"
+              :pending="pending"
+              @update-balance="updateBalance"
+              @update-transactions="updateTransactions"
+            ></router-view>
+          </fade-transition>
+        </div>
+        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
       </div>
-      <content-footer v-if="!$route.meta.hideFooter"></content-footer>
     </div>
   </div>
 </template>
 <script>
+import Navbar from '../../components/Menu/Navbar.vue'
+import Sidebar from '../../components/Menu/Sidebar.vue'
 import { logout, transactionsQuery } from '../../graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
-import VueQrcode from 'vue-qrcode'
+import CONFIG from '../../config'
 
 export default {
   components: {
+    Navbar,
+    Sidebar,
     ContentFooter,
-    VueQrcode,
     FadeTransition,
   },
   data() {
     return {
+      logo: 'img/brand/green.png',
       balance: 0,
       GdtBalance: 0,
       transactions: [],
       bookedBalance: 0,
       transactionCount: 0,
       pending: true,
+      visible: false,
     }
   },
   methods: {
@@ -94,12 +68,10 @@ export default {
           query: logout,
         })
         .then(() => {
-          this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
           this.$router.push('/login')
         })
         .catch(() => {
-          this.$sidebar.displaySidebar(false)
           this.$store.dispatch('logout')
           if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')
         })
@@ -128,13 +100,47 @@ export default {
         })
         .catch((error) => {
           this.pending = true
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
           // what to do when loading balance fails?
         })
     },
     updateBalance(ammount) {
       this.balance -= ammount
     },
+    admin() {
+      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token))
+      this.$store.dispatch('logout') // logout without redirect
+    },
+    setVisible(bool) {
+      this.visible = bool
+    },
+  },
+  computed: {
+    elopageUri() {
+      const pId = this.$store.state.publisherId
+        ? this.$store.state.publisherId
+        : CONFIG.DEFAULT_PUBLISHER_ID
+      return encodeURI(
+        this.$store.state.hasElopage
+          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
+          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
+      )
+    },
   },
 }
 </script>
+<style>
+.content-gradido {
+  display: inline-flex;
+  width: 100%;
+  height: 91%;
+  position: absolute;
+}
+.navbar-brand-img {
+  height: 2rem;
+  padding-left: 10px;
+}
+.bg-lightgrey {
+  background-color: #f0f0f0;
+}
+</style>

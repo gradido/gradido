@@ -15,7 +15,8 @@ class ServerUsersController extends AppController
     public function initialize()
     {
         parent::initialize();
-        $this->Auth->allow(['add', 'edit']);
+        // uncomment in devmode to add new community server admin user, but don't!!! commit it
+        // $this->Auth->allow(['add', 'edit']);
         $this->Auth->deny('index');
     }
 

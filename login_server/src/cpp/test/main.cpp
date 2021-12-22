@@ -176,9 +176,9 @@ int load(int argc, char* argv[]) {
 
 	// clean up and fill db
 	std::string tables[] = { 
-		"groups",
-		"users",
-		"user_roles"
+		"login_groups",
+		"login_users",
+		"login_user_roles"
 	};
 	for (int i = 0; i < 3; i++) {
 		if (runMysql("TRUNCATE " + tables[i])) {
@@ -191,7 +191,7 @@ int load(int argc, char* argv[]) {
 
 	std::stringstream ss;
 	// password = TestP4ssword&H
-	ss << "INSERT INTO `users` (`id`, `email`, `first_name`, `last_name`, `username`, `password`, `pubkey`, `privkey`, `created`, `email_checked`, `passphrase_shown`, `language`, `disabled`, `group_id`) VALUES "
+	ss << "INSERT INTO `login_users` (`id`, `email`, `first_name`, `last_name`, `username`, `password`, `pubkey`, `privkey`, `created`, `email_checked`, `passphrase_shown`, `language`, `disabled`, `group_id`) VALUES "
 		<< "(1, 'd_schultz32@gmx.de', 'DDD', 'Schultz', 'Diddel', 18242007140018938940, 0x69f2fefd6fa6947a370b9f8d3147f6617cf67416517ce25cb2d63901c666933c, 0x567f3e623a1899d1f8d69190c5799433c134ce0137c0c38cc0347874586d6234a19f2a0b484e6cc1863502e580ae6c17db1131f29a35eba45a46be29c7ee592940a3bd3ad519075fdeed6e368f0eb818, '2020-02-20 16:05:44', 1, 0, 'de', 0, 1), ";
 
 	// if this isn't the same, some tests will fail, so we update the test data here.
@@ -211,7 +211,7 @@ int load(int argc, char* argv[]) {
 	}
 	ss.str(std::string());
 
-	ss << "INSERT INTO `user_roles` (`id`, `user_id`, `role_id`) VALUES"
+	ss << "INSERT INTO `login_user_roles` (`id`, `user_id`, `role_id`) VALUES"
 		<< "(1, 3, 1);";
 
 	if (runMysql(ss.str())) {
@@ -219,7 +219,7 @@ int load(int argc, char* argv[]) {
 	}
 	ss.str(std::string());
 
-	ss << "INSERT INTO `groups` (`id`, `alias`, `name`, `url`, `description`) VALUES"
+	ss << "INSERT INTO `login_groups` (`id`, `alias`, `name`, `url`, `description`) VALUES"
 		<< "(1, 'gdd1', 'Gradido1', 'gdd1.gradido.com', 'Der erste offizielle Gradido Server (zum Testen)'), "
 	    << "(2, 'gdd_test', 'Gradido Test', 'gdd1.gradido.com', 'Testgroup (zum Testen)'); ";
 	if (runMysql(ss.str())) {

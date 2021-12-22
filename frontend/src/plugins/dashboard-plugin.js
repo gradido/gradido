@@ -1,9 +1,5 @@
-import '@/polyfills'
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
-import SideBar from '@/components/SidebarPlugin'
-
-import PortalVue from 'portal-vue'
 
 import Toasted from 'vue-toasted'
 
@@ -31,8 +27,6 @@ export default {
   install(Vue) {
     Vue.use(GlobalComponents)
     Vue.use(GlobalDirectives)
-    Vue.use(SideBar)
-    Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)

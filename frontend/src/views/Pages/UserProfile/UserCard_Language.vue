@@ -101,7 +101,7 @@ export default {
         })
         .catch((error) => {
           this.language = this.$store.state.language
-          this.$toasted.error(error.message)
+          this.$toasted.global.error(error.message)
         })
     },
     buildTagFromLanguageString() {

@@ -19,7 +19,7 @@ namespace model {
 			
 
 			// generic db operations
-			const char* getTableName() const { return "app_access_tokens"; }
+			const char* getTableName() const { return "login_app_access_tokens"; }
 			std::string toString();
 
 			inline Poco::UInt64 getCode() const { return mAccessCode; }

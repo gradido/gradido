@@ -36,8 +36,6 @@ cd $PROJECT_PATH
 # git checkout -f master
 git pull
 cd deployment/bare_metal
-echo 'update schemas' >> $UPDATE_HTML
-./update_db_schemas.sh
 echo 'starting with rebuilding login-server<br>' >> $UPDATE_HTML
 ./build_and_start_login_server.sh
 echo 'starting with rebuilding frontend<br>' >> $UPDATE_HTML

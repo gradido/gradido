@@ -439,6 +439,7 @@ namespace controller {
 		return 0;
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
+		auto db = new model::table::User();
 		static const char* function_name = "User::checkIfVerificationEmailsShouldBeResend";
 
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
@@ -446,8 +447,9 @@ namespace controller {
 		std::vector<Poco::Tuple<int,Poco::DateTime>> results;
 		int email_checked = 0;
 		int resend_count = 1;
-		select << "select u.id, v.created from users as u "
-			<< "LEFT JOIN email_opt_in as v ON(u.id = v.user_id) "
+		std::string table_name_email_opt_in = "login_email_opt_in";
+		select << "select u.id, v.created from " << db->getTableName() << " as u "
+			<< "LEFT JOIN " << table_name_email_opt_in << " as v ON(u.id = v.user_id) "
 			<< "where u.email_checked = ? "
 			<< "AND v.resend_count <= ? "
 			<< "ORDER BY u.id, v.created " ,
@@ -519,14 +521,15 @@ namespace controller {
 	{
 		auto cm = ConnectionManager::getInstance();
 		auto em = ErrorManager::getInstance();
+		auto db = new model::table::User();
 		static const char* function_name = "User::addMissingEmailHashes";
 
 		auto session = cm->getConnection(CONNECTION_MYSQL_LOGIN_SERVER);
 		Poco::Data::Statement select(session);
 		std::vector<Poco::Tuple<int, std::string>> results;
 
-		select << "select id, email from users "
-			<< "where email_hash IS NULL "
+		select << "select id, email from " << db->getTableName()
+			<< " where email_hash IS NULL "
 			, Poco::Data::Keywords::into(results)
 			;
 		int result_count = 0;
@@ -556,7 +559,7 @@ namespace controller {
 		// update db
 		// reuse connection, I hope it's working
 		Poco::Data::Statement update(session);
-		update << "UPDATE users set email_hash = ? where id = ?"
+		update << "UPDATE " << db->getTableName() << " set email_hash = ? where id = ?"
 			   , Poco::Data::Keywords::use(updates);
 		int updated_count = 0;
 		try {

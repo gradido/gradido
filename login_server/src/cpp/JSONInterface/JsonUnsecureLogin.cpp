@@ -147,7 +147,6 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		infos.add("set user.group_id to default group_id = 1");
 	case USER_NO_PRIVATE_KEY:
 	case USER_COMPLETE:
-	case USER_EMAIL_NOT_ACTIVATED:
 		result->set("state", "success");
 		result->set("user", session->getNewUser()->getJson());
 		result->set("session_id", session->getHandle());
@@ -158,6 +157,10 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		AWAIT(hasElopageTask)
 		result->set("hasElopage", hasElopageTask->hasElopage());
 		return result;
+	case USER_EMAIL_NOT_ACTIVATED:
+		result->set("state", "processing");
+		result->set("msg", "user email not validated");
+		break;
 	default: 
 		result->set("state", "error");
 		result->set("msg", "unknown user state");
