@@ -33,7 +33,7 @@ export default {
           this.items = result.data.transactionList.transactions
         })
         .catch((error) => {
-          this.$toasted.global.error('Error while searching the creations', error)
+          this.$toasted.global.error(error.message)
         })
     },
   },
