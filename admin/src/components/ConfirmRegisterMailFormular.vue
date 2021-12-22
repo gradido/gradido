@@ -42,13 +42,13 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.global.success(
-            'Erfolgreich senden der Confirmation Link an die E-Mail des Users!' + this.email,
+          this.$toasted.success(
+            'Erfolgreich senden der Confirmation Link an die E-Mail des Users! ' + this.email,
           )
         })
         .catch((error) => {
-          this.$toasted.global.error(
-            'Fehler beim senden des confirmation link an den Benutzer' + error,
+          this.$toasted.error(
+            'Fehler beim senden des confirmation link an den Benutzer: ' + error.message,
           )
         })
     },

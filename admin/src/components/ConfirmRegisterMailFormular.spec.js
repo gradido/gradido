@@ -4,20 +4,16 @@ import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue()
+const toastSuccessMock = jest.fn()
+const toastErrorMock = jest.fn()
 
 const mocks = {
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
-  }),
   $apollo: {
     mutate: apolloMutateMock,
+  },
+  $toasted: {
+    success: toastSuccessMock,
+    error: toastErrorMock,
   },
 }
 
@@ -47,8 +43,18 @@ describe('ConfirmRegisterMailFormular', () => {
         wrapper.find('button.test-button').trigger('click')
       })
 
-      it('calls the API', () => {
-        expect(apolloMutateMock).toBeCalled()
+      it('calls the API with email', () => {
+        expect(apolloMutateMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: { email: 'bob@baumeister.de' },
+          }),
+        )
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessMock).toBeCalledWith(
+          'Erfolgreich senden der Confirmation Link an die E-Mail des Users! bob@baumeister.de',
+        )
       })
     })
 
@@ -59,8 +65,10 @@ describe('ConfirmRegisterMailFormular', () => {
         wrapper.find('button.test-button').trigger('click')
       })
 
-      it('calls the API', () => {
-        expect(apolloMutateMock).toBeCalled()
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith(
+          'Fehler beim senden des confirmation link an den Benutzer: OUCH!',
+        )
       })
     })
   })
