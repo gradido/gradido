@@ -42,6 +42,7 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
+const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -52,7 +53,7 @@ const email = {
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
   EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
-  RESEND_TIME: isNaN(parseInt(process.env.RESEND_TIME)) ? 10 : parseInt(process.env.RESEND_TIME),
+  RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 
 const webhook = {
