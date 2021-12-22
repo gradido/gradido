@@ -25,7 +25,9 @@ describe('UserCard_Newsletter', () => {
     },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       mutate: mockAPIcall,

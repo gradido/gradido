@@ -31,7 +31,9 @@ describe('UserCard_FormUsername', () => {
     },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       mutate: mockAPIcall,

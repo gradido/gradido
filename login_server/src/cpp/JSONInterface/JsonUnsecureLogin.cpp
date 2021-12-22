@@ -112,7 +112,6 @@ Document JsonUnsecureLogin::handle(const Document& params)
 		infos.PushBack("set user.group_id to default group_id = 1", alloc);
 	case USER_NO_PRIVATE_KEY:
 	case USER_COMPLETE:
-	case USER_EMAIL_NOT_ACTIVATED:
 		result.AddMember("state", "success", alloc);
 		result.AddMember("user", mSession->getNewUser()->getJson(alloc), alloc);
 		result.AddMember("session_id", mSession->getHandle(), alloc);
@@ -123,10 +122,14 @@ Document JsonUnsecureLogin::handle(const Document& params)
 		AWAIT(hasElopageTask)
 		result.AddMember("hasElopage", hasElopageTask->hasElopage(), alloc);
 		return result;
+  case USER_EMAIL_NOT_ACTIVATED:
+		result.AddMember("state", "processing", alloc);
+		result.AddMember("msg", "user email not validated", alloc);
+		break;
 	default:
 		result.AddMember("state", "error", alloc);
 		result.AddMember("msg", "unknown user state", alloc);
-		result.AddMember("details", user_state, alloc);
+		result.AddMember("details", user_state, alloc);	
 	}
 
 	sm->releaseSession(mSession);
