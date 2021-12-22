@@ -4,16 +4,23 @@
     <b-input
       type="text"
       v-model="criteria"
-      class="shadow p-3 mb-5 bg-white rounded"
+      class="shadow p-3 mb-3 bg-white rounded"
       placeholder="User suche"
       @input="getUsers"
     ></b-input>
+
     <user-table
       type="PageUserSearch"
       :itemsUser="searchResult"
       :fieldsTable="fields"
       :criteria="criteria"
     />
+    <div>
+      <b-button block variant="danger" @click="unconfirmedRegisterMails">
+        <b-icon icon="envelope" variant="light"></b-icon>
+        Anzeigen aller nicht registrierten E-Mails.
+      </b-button>
+    </div>
   </div>
 </template>
 <script>
@@ -40,6 +47,8 @@ export default {
           },
         },
         { key: 'show_details', label: 'Details' },
+        { key: 'confirm_mail', label: 'Mail' },
+        { key: 'transactions_list', label: 'Transaction' },
       ],
       searchResult: [],
       massCreation: [],
@@ -48,6 +57,11 @@ export default {
   },
 
   methods: {
+    unconfirmedRegisterMails() {
+      this.searchResult = this.searchResult.filter((user) => {
+        return user.emailChecked
+      })
+    },
     getUsers() {
       this.$apollo
         .query({
@@ -57,12 +71,7 @@ export default {
           },
         })
         .then((result) => {
-          this.searchResult = result.data.searchUsers.map((user) => {
-            return {
-              ...user,
-              // showDetails: true,
-            }
-          })
+          this.searchResult = result.data.searchUsers
         })
         .catch((error) => {
           this.$toasted.error(error.message)

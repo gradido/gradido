@@ -1,5 +1,6 @@
 <template>
   <div class="component-creation-formular">
+    CREATION FORMULAR
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
         <b-row class="m-4">
@@ -204,8 +205,6 @@ export default {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
         const i = Object.keys(this.itemsMassCreation).length
         // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        // eslint-disable-next-line no-console
-        console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = [
           {
             item: this.itemsMassCreation,
@@ -216,8 +215,6 @@ export default {
             moderator: this.$store.state.moderator.id,
           },
         ]
-        // eslint-disable-next-line no-console
-        console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
 
         // $store - offene Schöpfungen hochzählen
         this.$store.commit('openCreationsPlus', i)

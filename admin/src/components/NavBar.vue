@@ -1,6 +1,6 @@
 <template>
   <div class="component-nabvar">
-    <b-navbar toggleable="sm" type="dark" variant="success">
+    <b-navbar toggleable="md" type="dark" variant="success" class="p-3">
       <b-navbar-brand to="/">
         <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
       </b-navbar-brand>
@@ -9,19 +9,18 @@
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
-          <b-nav-item to="/">Übersicht |</b-nav-item>
-          <b-nav-item to="/user">Usersuche |</b-nav-item>
+          <b-nav-item to="/">Übersicht</b-nav-item>
+          <b-nav-item to="/user">Usersuche</b-nav-item>
           <b-nav-item to="/creation">Mehrfachschöpfung</b-nav-item>
           <b-nav-item
             v-show="$store.state.openCreations > 0"
-            class="h5 bg-danger"
+            class="bg-color-creation p-1"
             to="/creation-confirm"
           >
-            | {{ $store.state.openCreations }} offene Schöpfungen
+            {{ $store.state.openCreations }} offene Schöpfungen
           </b-nav-item>
           <b-nav-item @click="wallet">Wallet</b-nav-item>
           <b-nav-item @click="logout">Logout</b-nav-item>
-          <!-- <b-nav-item v-show="open < 1" to="/creation-confirm">| keine offene Schöpfungen</b-nav-item> -->
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -48,5 +47,8 @@ export default {
 .navbar-brand-img {
   height: 2rem;
   padding-left: 10px;
+}
+.bg-color-creation {
+  background-color: #cf1010dc;
 }
 </style>
