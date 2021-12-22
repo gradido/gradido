@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, getRepository } from 'typeorm'
+import { getConnection, getCustomRepository, getRepository, QueryRunner } from 'typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
@@ -147,6 +147,66 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
   sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
 
   return message
+}
+const createEmailOptIn = async (
+  loginUserId: number,
+  queryRunner: QueryRunner,
+): Promise<LoginEmailOptIn> => {
+  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+  let emailOptIn = await loginEmailOptInRepository.findOne({
+    userId: loginUserId,
+    emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+  })
+  if (emailOptIn) {
+    const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      emailOptIn.updatedAt = new Date()
+      emailOptIn.resendCount++
+    }
+  } else {
+    emailOptIn = new LoginEmailOptIn()
+    emailOptIn.verificationCode = random(64)
+    emailOptIn.userId = loginUserId
+    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+  }
+  await queryRunner.manager.save(emailOptIn).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log('Error while saving emailOptIn', error)
+    throw new Error('error saving email opt in')
+  })
+  return emailOptIn
+}
+
+const getOptInCode = async (loginUser: LoginUser): Promise<LoginEmailOptIn> => {
+  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
+  let optInCode = await loginEmailOptInRepository.findOne({
+    userId: loginUser.id,
+    emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
+  })
+
+  // Check for 10 minute delay
+  if (optInCode) {
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      optInCode.updatedAt = new Date()
+      optInCode.resendCount++
+    }
+  } else {
+    optInCode = new LoginEmailOptIn()
+    optInCode.verificationCode = random(64)
+    optInCode.userId = loginUser.id
+    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+  }
+  await loginEmailOptInRepository.save(optInCode)
+  return optInCode
 }
 
 @Resolver()
@@ -383,37 +443,18 @@ export class UserResolver {
 
       // Store EmailOptIn in DB
       // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = new LoginEmailOptIn()
-      emailOptIn.userId = loginUserId
-      emailOptIn.verificationCode = random(64)
-      emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+      const emailOptIn = await createEmailOptIn(loginUserId, queryRunner)
 
-      await queryRunner.manager.save(emailOptIn).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('Error while saving emailOptIn', error)
-        throw new Error('error saving email opt in')
-      })
-
-      // Send EMail to user
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /\$1/g,
         emailOptIn.verificationCode.toString(),
       )
-      const emailSent = await sendEMail({
-        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-        to: `${firstName} ${lastName} <${email}>`,
-        subject: 'Gradido: E-Mail Überprüfung',
-        text: `Hallo ${firstName} ${lastName},
-        
-        Deine EMail wurde soeben bei Gradido registriert.
-        
-        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
-        ${activationLink}
-        oder kopiere den obigen Link in dein Browserfenster.
-        
-        Mit freundlichen Grüßen,
-        dein Gradido-Team`,
-      })
+      const emailSent = await this.sendAccountActivationEmail(
+        activationLink,
+        firstName,
+        lastName,
+        email,
+      )
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -430,33 +471,78 @@ export class UserResolver {
     return 'success'
   }
 
+  private async sendAccountActivationEmail(
+    activationLink: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+  ) {
+    const emailSent = await sendEMail({
+      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      to: `${firstName} ${lastName} <${email}>`,
+      subject: 'Gradido: E-Mail Überprüfung',
+      text: `Hallo ${firstName} ${lastName},
+        
+        Deine EMail wurde soeben bei Gradido registriert.
+        
+        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
+        ${activationLink}
+        oder kopiere den obigen Link in dein Browserfenster.
+        
+        Mit freundlichen Grüßen,
+        dein Gradido-Team`,
+    })
+    return emailSent
+  }
+
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    const loginUserRepository = getCustomRepository(LoginUserRepository)
+    const loginUser = await loginUserRepository.findOneOrFail({ email: email })
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      const emailOptIn = await createEmailOptIn(loginUser.id, queryRunner)
+
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /\$1/g,
+        emailOptIn.verificationCode.toString(),
+      )
+
+      const emailSent = await this.sendAccountActivationEmail(
+        activationLink,
+        loginUser.firstName,
+        loginUser.lastName,
+        email,
+      )
+
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+    return true
+  }
+
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
+
     const loginUserRepository = await getCustomRepository(LoginUserRepository)
     const loginUser = await loginUserRepository.findOneOrFail({ email })
 
-    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-    let optInCode = await loginEmailOptInRepository.findOne({
-      userId: loginUser.id,
-      emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
-    })
-
-    // Check for 10 minute delay
-    if (optInCode) {
-      const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-      if (timeElapsed <= 10 * 60 * 1000) {
-        throw new Error('email already sent less than 10 minutes before')
-      }
-    }
-
-    // Generate new OptIn Code
-    optInCode = new LoginEmailOptIn()
-    optInCode.verificationCode = random(64)
-    optInCode.userId = loginUser.id
-    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
-    await loginEmailOptInRepository.save(optInCode)
+    const optInCode = await getOptInCode(loginUser)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /\$1/g,

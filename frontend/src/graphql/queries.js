@@ -47,8 +47,18 @@ export const logout = gql`
 `
 
 export const transactionsQuery = gql`
-  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  query(
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $onlyCreations: Boolean = false
+  ) {
+    transactionList(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      onlyCreations: $onlyCreations
+    ) {
       gdtSum
       count
       balance

@@ -113,7 +113,7 @@
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
-                Update Schöpfung ({{ type }},{{ pagetype }})
+                Update Schöpfung
               </b-button>
             </div>
           </b-col>
@@ -127,27 +127,11 @@ import { updatePendingCreation } from '../graphql/updatePendingCreation'
 export default {
   name: 'EditCreationFormular',
   props: {
-    type: {
-      type: String,
-      required: false,
-    },
-    pagetype: {
-      type: String,
-      required: false,
-      default: '',
-    },
     item: {
       type: Object,
       required: false,
       default() {
         return {}
-      },
-    },
-    items: {
-      type: Array,
-      required: false,
-      default() {
-        return []
       },
     },
     row: {
@@ -247,7 +231,7 @@ export default {
     },
   },
   created() {
-    if (this.pagetype === 'PageCreationConfirm' && this.creationUserData.date) {
+    if (this.creationUserData.date) {
       switch (this.$moment(this.creationUserData.date).format('MMMM')) {
         case this.currentMonth.short:
           this.createdIndex = 2
