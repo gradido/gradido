@@ -33,6 +33,7 @@ export default {
           this.items = result.data.transactionList.transactions
         })
         .catch((error) => {
+          this.$toasted.global.error('Error while searching the creations', error)
           // eslint-disable-next-line no-console
           console.log('Something went wrong', error)
         })
