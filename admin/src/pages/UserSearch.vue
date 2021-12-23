@@ -1,5 +1,11 @@
 <template>
   <div class="user-search">
+    <div style="text-align: right">
+     <b-button block variant="danger" @click="unconfirmedRegisterMails">
+        <b-icon icon="envelope" variant="light"></b-icon>
+        Anzeigen aller nicht registrierten E-Mails.
+      </b-button>
+    </div>
     <label>Usersuche</label>
     <b-input
       type="text"
@@ -16,10 +22,6 @@
       :criteria="criteria"
     />
     <div>
-      <b-button block variant="danger" @click="unconfirmedRegisterMails">
-        <b-icon icon="envelope" variant="light"></b-icon>
-        Anzeigen aller nicht registrierten E-Mails.
-      </b-button>
     </div>
   </div>
 </template>
