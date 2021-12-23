@@ -3,7 +3,7 @@
     <b-card
       v-show="$store.state.openCreations > 0"
       border-variant="primary"
-      header="offene Schöpfungen"
+      :header="$t('open_creations')"
       header-bg-variant="danger"
       header-text-variant="white"
       align="center"
@@ -17,7 +17,7 @@
     <b-card
       v-show="$store.state.openCreations < 1"
       border-variant="success"
-      header="keine offene Schöpfungen"
+      :header="$t('not_open_creations')"
       header-bg-variant="success"
       header-text-variant="white"
       align="center"
