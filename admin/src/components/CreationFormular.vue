@@ -190,6 +190,7 @@ export default {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
+      this.text = 'Schöpfung für ' + name.short + ' ' + this.$moment().format('YYYY')
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
