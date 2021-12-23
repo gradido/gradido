@@ -1,7 +1,7 @@
 <template>
   <div class="user-search">
     <div style="text-align: right">
-     <b-button block variant="danger" @click="unconfirmedRegisterMails">
+      <b-button block variant="danger" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="light"></b-icon>
         Anzeigen aller nicht registrierten E-Mails.
       </b-button>
@@ -21,8 +21,7 @@
       :fieldsTable="fields"
       :criteria="criteria"
     />
-    <div>
-    </div>
+    <div></div>
   </div>
 </template>
 <script>
@@ -43,9 +42,27 @@ export default {
         { key: 'lastName', label: 'Lastname' },
         {
           key: 'creation',
-          label: 'Creation',
+          label: 'open Creation',
           formatter: (value, key, item) => {
-            return String(value)
+            return (
+              `
+            <div>` +
+              this.$moment().subtract(2, 'month').format('MMMM') +
+              ` - ` +
+              String(value[0]) +
+              ` GDD</div>
+            <div>` +
+              this.$moment().subtract(1, 'month').format('MMMM') +
+              ` - ` +
+              String(value[1]) +
+              ` GDD</div>
+            <div>` +
+              this.$moment().format('MMMM') +
+              ` - ` +
+              String(value[2]) +
+              ` GDD</div>
+            `
+            )
           },
         },
         { key: 'show_details', label: 'Details' },
@@ -55,6 +72,15 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
+      currentMonth: {
+        short: this.$moment().format('MMMM'),
+      },
+      lastMonth: {
+        short: this.$moment().subtract(1, 'month').format('MMMM'),
+      },
+      beforeLastMonth: {
+        short: this.$moment().subtract(2, 'month').format('MMMM'),
+      },
     }
   },
 
