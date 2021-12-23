@@ -47,7 +47,7 @@ jobs:
       ##########################################################################
       - name: Admin | Build `test` image
         run: |
-          docker build --target test -t "gradido/admin:test" admin/
+          docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
           docker save "gradido/admin:test" > /tmp/admin.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
