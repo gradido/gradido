@@ -118,16 +118,6 @@ int EmailManager::ThreadFunction()
 	if (!connectToEmailServer(mailClientSession, errors)) {
 		return -1;
 	}
-	mailClientSession.login();
-	try {
-		mailClientSession.startTLS(ServerConfig::g_SSL_CLient_Context);
-		mailClientSession.login(Poco::Net::SMTPClientSession::AUTH_LOGIN, mEmailAccount.username, mEmailAccount.password);
-	}
-	catch (Poco::Net::SSLException& ex) {
-		errors.addError(new ParamError(function_name, "ssl certificate error", ex.displayText()));
-		printf("[PrepareEmailTask] ssl certificate error: %s\nPlease make sure you have cacert.pem (CA/root certificates) next to binary from https://curl.haxx.se/docs/caextract.html\n", ex.displayText().data());
-		return -1;
-	}
 
 	model::Email* email = nullptr;
 	Poco::AutoPtr<LanguageCatalog> catalogs[2];
