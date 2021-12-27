@@ -42,7 +42,7 @@ export default {
         { key: 'lastName', label: 'Lastname' },
         {
           key: 'creation',
-          label: 'open Creation',
+          label: 'Open creations',
           formatter: (value, key, item) => {
             return (
               `
