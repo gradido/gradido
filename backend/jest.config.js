@@ -6,5 +6,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
   moduleNameMapper: {
     '@entity/(.*)': '<rootDir>/../database/entity/$1',
+    '@dbTools/(.*)': '<rootDir>/../database/src/$1',
+    '@migrations/(.*)': '<rootDir>/../database/migrations/$1',
   },
 }

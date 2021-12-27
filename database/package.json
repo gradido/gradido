@@ -45,5 +45,8 @@
     "ts-mysql-migrate": "^1.0.2",
     "typeorm": "^0.2.38",
     "typeorm-seeding": "^1.6.1"
+  },
+  "_moduleAliases": {
+    "@migrations": "./migrations"
   }
 }

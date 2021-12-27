@@ -59,6 +59,8 @@
     "typescript": "^4.3.4"
   },
   "_moduleAliases": {
-    "@entity": "../database/build/entity"
+    "@entity": "../database/build/entity",
+    "@migrations": "../database/migrations",
+    "@dbTools": "../database/src"
   }
 }
