@@ -21,7 +21,7 @@ const migration = new Migration({
   dir: '../database/migrations/', // CONFIG.MIGRATIONS_DIRECTORY,
 })
 
-const initialize = async () => {
+const initialize = async (): Promise<void> => {
   await migration.initialize()
 }
 

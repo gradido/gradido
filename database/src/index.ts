@@ -19,7 +19,6 @@ const run = async (command: string) => {
     throw new Error(`Couldn't open connection to database`)
   }
 
-  // Database connection for Migrations
   await migration.initialize()
 
   // Execute command
@@ -32,7 +31,7 @@ const run = async (command: string) => {
       break
     case 'reset':
       // TODO protect from production
-      await resetDB(false) // use for resetting database
+      await resetDB() // use for resetting database
       break
     case 'seed':
       // TODO protect from production
