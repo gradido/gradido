@@ -12,7 +12,8 @@
     "dev": "yarn run serve",
     "build": "vue-cli-service build",
     "lint": "eslint --ext .js,.vue .",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "locales": "scripts/missing-keys.sh && scripts/sort.sh"
   },
   "dependencies": {
     "@babel/core": "^7.15.8",

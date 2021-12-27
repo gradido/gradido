@@ -171,14 +171,17 @@ export default {
       currentMonth: {
         short: this.$moment().format('MMMM'),
         long: this.$moment().format('YYYY-MM-DD'),
+        year: this.$moment().format('YYYY'),
       },
       lastMonth: {
         short: this.$moment().subtract(1, 'month').format('MMMM'),
         long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
+        year: this.$moment().subtract(1, 'month').format('YYYY'),
       },
       beforeLastMonth: {
         short: this.$moment().subtract(2, 'month').format('MMMM'),
         long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
+        year: this.$moment().subtract(2, 'month').format('YYYY'),
       },
       submitObj: null,
       isdisabled: true,
@@ -190,6 +193,7 @@ export default {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
+      this.text = 'Schöpfung für ' + name.short + ' ' + name.year
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren

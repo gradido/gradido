@@ -13,7 +13,7 @@ ENV BUILD_VERSION="0.0.0.0"
 ## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
-ENV NODE_ENV="production"
+ARG NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="8080"
 
