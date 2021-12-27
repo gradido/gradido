@@ -321,7 +321,5 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
 async function hasActivatedEmail(email: string): Promise<boolean> {
   const repository = getCustomRepository(LoginUserRepository)
   const user = await repository.findByEmail(email)
-  let emailActivate = false
-  if (user) emailActivate = user.emailChecked
   return user ? user.emailChecked : false
 }

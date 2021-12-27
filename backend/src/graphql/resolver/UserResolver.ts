@@ -471,13 +471,13 @@ export class UserResolver {
     return 'success'
   }
 
-  private async sendAccountActivationEmail(
+  private sendAccountActivationEmail(
     activationLink: string,
     firstName: string,
     lastName: string,
     email: string,
-  ) {
-    const emailSent = await sendEMail({
+  ): Promise<any> {
+    return sendEMail({
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
       to: `${firstName} ${lastName} <${email}>`,
       subject: 'Gradido: E-Mail Überprüfung',
@@ -492,7 +492,6 @@ export class UserResolver {
         Mit freundlichen Grüßen,
         dein Gradido-Team`,
     })
-    return emailSent
   }
 
   @Mutation(() => Boolean)
