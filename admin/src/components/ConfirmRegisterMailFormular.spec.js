@@ -53,9 +53,7 @@ describe('ConfirmRegisterMailFormular', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith(
-          'unregister_mail.success',
-        )
+        expect(toastSuccessMock).toBeCalledWith('unregister_mail.success')
       })
     })
 
@@ -67,9 +65,7 @@ describe('ConfirmRegisterMailFormular', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith(
-          'unregister_mail.error',
-        )
+        expect(toastErrorMock).toBeCalledWith('unregister_mail.error')
       })
     })
   })

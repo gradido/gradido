@@ -32,7 +32,6 @@ const mocks = {
       openCreations: 2,
     },
   },
-  $t: jest.fn((t) => t),
 }
 
 describe('Overview', () => {
