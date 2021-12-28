@@ -1,4 +1,13 @@
 {
   "not_open_creations": "keine offene Schöpfungen",
-  "open_creations": "offene Schöpfungen"
+  "open_creations": "offene Schöpfungen",
+  "unregistered_emails":"Unregistrierte E-Mails",
+  "user_search":"User suche",
+  "e_mail":"E-Mail",
+  "firstname":"Vorname",
+  "lastname":"Nachname",
+  "open_creation":"offene Schöpfungen",
+  "details":"Details",
+  "mail":"Mail",
+  "transaction":"Transaktion"
 }

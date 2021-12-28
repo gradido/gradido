@@ -1,4 +1,13 @@
 {
   "not_open_creations": "No open creations",
-  "open_creations": "Open creations"
+  "open_creations": "Open creations",
+  "unregistered_emails":"Unregistered e-mails",
+  "user_search":"User search",
+  "e_mail":"E-Mail",
+  "firstname":"Firstname",
+  "lastname":"Lastname",
+  "open_creation":"Open creations",
+  "details":"Details",
+  "mail":"Mail",
+  "transaction":"Transaction"
 }
