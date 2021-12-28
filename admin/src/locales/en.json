@@ -16,7 +16,16 @@
   "e_mail": "E-Mail",
   "firstname": "Firstname",
   "lastname": "Lastname",
+  "multiple_creation_text":"Please select one or more members you would like to scoop for",
   "mail": "Mail",
+  "navbar": {
+    "logout": "Logout",
+    "multi_creation": "Multiple creation",
+    "open_creation": "open creations",
+    "overview": "Overview",
+    "user_search": "User search",
+    "wallet": "Wallet"
+  },
   "not_open_creations": "No open creations",
   "open_creation": "Open creations",
   "open_creations": "Open creations",

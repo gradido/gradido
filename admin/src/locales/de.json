@@ -16,7 +16,16 @@
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "lastname": "Nachname",
+  "multiple_creation_text":"Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest",
   "mail": "Mail",
+  "navbar": {
+    "logout": "Logout",
+    "multi_creation": "Mehrfachschöpfung",
+    "open_creation": "offene Schöpfungen",
+    "overview": "Übersicht",
+    "user_search": "Usersuche",
+    "wallet": "Wallet"
+  },
   "not_open_creations": "keine offene Schöpfungen",
   "open_creation": "offene Schöpfungen",
   "open_creations": "offene Schöpfungen",
