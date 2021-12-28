@@ -1,13 +1,29 @@
 {
+  "details": "Details",
+  "e_mail": "E-Mail",
+  "firstname": "Vorname",
+  "lastname": "Nachname",
+  "mail": "Mail",
   "not_open_creations": "keine offene Schöpfungen",
+  "open_creation": "offene Schöpfungen",
   "open_creations": "offene Schöpfungen",
-  "unregistered_emails":"Unregistrierte E-Mails",
-  "user_search":"User suche",
-  "e_mail":"E-Mail",
-  "firstname":"Vorname",
-  "lastname":"Nachname",
-  "open_creation":"offene Schöpfungen",
-  "details":"Details",
-  "mail":"Mail",
-  "transaction":"Transaktion"
+  "transaction": "Transaktion",
+  "unregistered_emails": "Unregistrierte E-Mails",
+  "user_search": "User suche",
+  "overlay" : {
+    "remove": {
+      "title":"Achtung! Schöpfung löschen!",
+      "text":"Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.",
+      "question":"Willst du die vorgespeicherte Schöpfung wirklich löschen?",
+      "yes":"Ja, Schöpfung löschen!",
+      "no":"Nein, nicht löschen."
+    },
+    "confirm": {
+      "title":"Schöpfung bestätigen!",
+      "text":"Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
+      "question":"Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
+      "yes":"Ja, Schöpfung speichern und bestätigen!",
+      "no":"Nein, nicht speichern."
+    }
+  }
 }
