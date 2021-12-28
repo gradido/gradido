@@ -13,7 +13,9 @@ describe('SendOverview', () => {
 
   const propsData = {
     balance: 123.45,
-    transactionCount: 1,
+    GdtBalance: 1234.56,
+    transactions: [{ balance: 0.1 }],
+    pending: true,
   }
 
   const mocks = {
@@ -38,26 +40,20 @@ describe('SendOverview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a status GDD line gdd-status-gdd', () => {
-      expect(wrapper.find('div.gdd-status-gdd').exists()).toBeTruthy()
-    })
-
     it('has a send field', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
     })
 
-    // it('has a transactions table', () => {
-    //  expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
-    // })
-
     describe('transaction form', () => {
-      it('steps forward in the dialog', async () => {
-        await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
+      beforeEach(async () => {
+        wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
         })
-        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBeTruthy()
+      })
+      it('steps forward in the dialog', () => {
+        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
       })
     })
 
@@ -116,18 +112,22 @@ describe('SendOverview', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockRejectedValue({ message: 'receiver not found' })
+          sendMock.mockRejectedValue({ message: 'recipiant not known' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmation' })
             .vm.$emit('send-transaction')
         })
 
         it('shows the error page', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_error')
+          expect(wrapper.find('.test-send_transaction_error').text()).toContain(
+            'form.send_transaction_error',
+          )
         })
 
         it('shows recipient not found', () => {
-          expect(wrapper.text()).toContain('transaction.receiverNotFound')
+          expect(wrapper.find('.test-receiver-not-found').text()).toContain(
+            'transaction.receiverNotFound',
+          )
         })
       })
     })

@@ -8,8 +8,6 @@ const server = {
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
-  LOGIN_API_URL: process.env.LOGIN_API_URL || 'http://login-server:1201/',
-  COMMUNITY_API_URL: process.env.COMMUNITY_API_URL || 'http://nginx/api/',
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
@@ -44,6 +42,7 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
+const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -51,14 +50,27 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
+  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
+  RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
+}
+
+const webhook = {
+  WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
-const CONFIG = { ...server, ...database, ...klicktipp, ...community, ...email, ...loginServer }
+const CONFIG = {
+  ...server,
+  ...database,
+  ...klicktipp,
+  ...community,
+  ...email,
+  ...loginServer,
+  ...webhook,
+}
 
 export default CONFIG

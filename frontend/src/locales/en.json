@@ -1,4 +1,5 @@
 {
+  "admin_area": "Admin's area",
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -44,15 +45,19 @@
   },
   "error": {
     "change-password": "Error while changing password",
+    "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
-    "session-expired": "The session expired"
+    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
+    "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
+    "session-expired": "The session was closed for security reasons."
   },
   "form": {
     "amount": "Amount",
     "at": "at",
     "cancel": "Cancel",
     "close": "Close",
+    "current_balance": "current balance",
     "date": "Date",
     "description": "Description",
     "edit": "Edit",
@@ -62,6 +67,7 @@
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
+    "new_balance": "account balance after confirmation",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -86,7 +92,8 @@
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
       "usernmae-unique": "The username is already taken."
-    }
+    },
+    "your_amount": "Your amount"
   },
   "gdt": {
     "action": "Action",
@@ -112,6 +119,11 @@
   "message": "hello gradido !!",
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
+  "publisher": {
+    "infoNoRegister": "This is not necessary for registration!",
+    "infoText": "Enter the ID of the publisher here. If you do not have an ID, please leave it blank.",
+    "publisherId": "PublisherID"
+  },
   "send": "Send",
   "settings": {
     "coinanimation": {
@@ -138,12 +150,17 @@
     "password": {
       "change-password": "Change password",
       "forgot_pwd": "Forgot password?",
+      "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
+      "resend_subtitle": "Your activation link is expired, here you can order a new one.",
       "reset": "Reset password",
       "reset-password": {
-        "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
         "text": "Now you can save a new password to login to the Gradido-App in the future."
       },
       "send_now": "Send now",
+      "set": "Set password",
+      "set-password": {
+        "text": "Now you can save a new password to login to the Gradido-App in the future."
+      },
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
@@ -180,9 +197,12 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
+      "activateEmail": "Your email has not been activated yet, please check your emails and click the activation link!",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
-      "register": "You are registred now.",
+      "emailActivated": "Thank you your email has been activated.",
+      "errorTitle": "Attention!",
+      "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "title": "Thank you!"
     }

@@ -52,7 +52,9 @@ describe('Login', () => {
       push: mockRouterPush,
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
     },
     $apollo: {
       query: apolloQueryMock,
@@ -238,7 +240,7 @@ describe('Login', () => {
         describe('login fails', () => {
           beforeEach(() => {
             apolloQueryMock.mockRejectedValue({
-              message: 'Ouch!',
+              message: '..No user with this credentials',
             })
           })
 
@@ -248,6 +250,44 @@ describe('Login', () => {
 
           it('toasts an error message', () => {
             expect(toastErrorMock).toBeCalledWith('error.no-account')
+          })
+
+          describe('login fails with "User email not validated"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User email not validated',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /thx/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/thx/login')
+            })
+          })
+
+          describe('login fails with "User has no password set yet"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User has no password set yet',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /reset/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/reset/login')
+            })
           })
         })
       })

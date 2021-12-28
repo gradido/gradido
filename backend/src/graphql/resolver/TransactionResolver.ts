@@ -33,6 +33,8 @@ import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
+import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { RIGHTS } from '../../auth/RIGHTS'
 
 /*
 # Test
@@ -338,6 +340,7 @@ async function listTransactions(
   pageSize: number,
   order: Order,
   user: dbUser,
+  onlyCreations: boolean,
 ): Promise<TransactionList> {
   let limit = pageSize
   let offset = 0
@@ -356,6 +359,7 @@ async function listTransactions(
     limit,
     offset,
     order,
+    onlyCreations,
   )
   skipFirstTransaction = userTransactionsCount > offset + limit
   const decay = !(currentPage > 1)
@@ -451,30 +455,48 @@ async function addUserTransaction(
   })
 }
 
-async function getPublicKey(email: string, sessionId: number): Promise<string | undefined> {
-  const result = await apiPost(CONFIG.LOGIN_API_URL + 'getUserInfos', {
-    session_id: sessionId,
-    email,
-    ask: ['user.pubkeyhex'],
-  })
-  if (result.success) {
-    return result.data.userData.pubkeyhex
+async function getPublicKey(email: string): Promise<string | null> {
+  const loginUserRepository = getCustomRepository(LoginUserRepository)
+  const loginUser = await loginUserRepository.findOne({ email: email })
+  // User not found
+  if (!loginUser) {
+    return null
   }
+
+  return loginUser.pubKey.toString('hex')
 }
 
 @Resolver()
 export class TransactionResolver {
-  @Authorized()
+  @Authorized([RIGHTS.TRANSACTION_LIST])
   @Query(() => TransactionList)
   async transactionList(
-    @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    @Args()
+    {
+      currentPage = 1,
+      pageSize = 25,
+      order = Order.DESC,
+      onlyCreations = false,
+      userId,
+    }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    let userEntity: dbUser | undefined
+    if (userId) {
+      userEntity = await userRepository.findOneOrFail({ id: userId })
+    } else {
+      userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    }
 
-    const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
+    const transactions = await listTransactions(
+      currentPage,
+      pageSize,
+      order,
+      userEntity,
+      onlyCreations,
+    )
 
     // get gdt sum
     const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
@@ -498,7 +520,7 @@ export class TransactionResolver {
     return transactions
   }
 
-  @Authorized()
+  @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => String)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
@@ -517,7 +539,7 @@ export class TransactionResolver {
 
     // validate recipient user
     // TODO: the detour over the public key is unnecessary
-    const recipiantPublicKey = await getPublicKey(email, context.sessionId)
+    const recipiantPublicKey = await getPublicKey(email)
     if (!recipiantPublicKey) {
       throw new Error('recipiant not known')
     }
@@ -612,9 +634,6 @@ export class TransactionResolver {
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      throw e
-    } finally {
-      await queryRunner.release()
       // TODO: This is broken code - we should never correct an autoincrement index in production
       // according to dario it is required tho to properly work. The index of the table is used as
       // index for the transaction which requires a chain without gaps
@@ -626,6 +645,9 @@ export class TransactionResolver {
           // eslint-disable-next-line no-console
           console.log('problems with reset auto increment: %o', error)
         })
+      throw e
+    } finally {
+      await queryRunner.release()
     }
     // send notification email
     // TODO: translate

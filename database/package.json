@@ -13,12 +13,15 @@
     "up": "cd build && node src/index.js up",
     "down": "cd build && node src/index.js down",
     "reset": "cd build && node src/index.js reset",
-    "dev_up": "nodemon -w ./ --ext ts --exec ts-node src/index.ts up",
-    "dev_down": "nodemon -w ./ --ext ts --exec ts-node src/index.ts down",
-    "dev_reset": "nodemon -w ./ --ext ts --exec ts-node src/index.ts reset",
-    "lint": "eslint . --ext .js,.ts"
+    "dev_up": "ts-node src/index.ts up",
+    "dev_down": "ts-node src/index.ts down",
+    "dev_reset": "ts-node src/index.ts reset",
+    "lint": "eslint . --ext .js,.ts",
+    "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
+    "seed": "ts-node src/index.ts seed"
   },
   "devDependencies": {
+    "@types/faker": "^5.5.9",
     "@types/node": "^16.10.3",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
@@ -29,16 +32,18 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-promise": "^5.1.0",
-    "nodemon": "^2.0.12",
     "prettier": "^2.3.2",
     "ts-node": "^10.2.1",
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
+    "faker": "^5.5.3",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
-    "typeorm": "^0.2.38"
+    "typeorm": "^0.2.38",
+    "typeorm-seeding": "^1.6.1"
   }
 }

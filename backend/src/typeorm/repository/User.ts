@@ -9,6 +9,15 @@ export class UserRepository extends Repository<User> {
       .getOneOrFail()
   }
 
+  async findByPubkeyHexBuffer(pubkeyHexBuffer: Buffer): Promise<User> {
+    const pubKeyString = pubkeyHexBuffer.toString('hex')
+    return await this.findByPubkeyHex(pubKeyString)
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return this.createQueryBuilder('user').where('user.email = :email', { email }).getOneOrFail()
+  }
+
   async getUsersIndiced(userIds: number[]): Promise<User[]> {
     if (!userIds.length) return []
     const users = await this.createQueryBuilder('user')
@@ -20,5 +29,18 @@ export class UserRepository extends Repository<User> {
       usersIndiced[value.id] = value
     })
     return usersIndiced
+  }
+
+  async findBySearchCriteria(searchCriteria: string): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .where(
+        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+        {
+          name: `%${searchCriteria}%`,
+          lastName: `%${searchCriteria}%`,
+          email: `%${searchCriteria}%`,
+        },
+      )
+      .getMany()
   }
 }

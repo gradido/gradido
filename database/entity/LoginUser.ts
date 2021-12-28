@@ -1,1 +1,1 @@
-export { LoginUser } from './0003-login_server_tables/LoginUser'
+export { LoginUser } from './0006-login_users_collation/LoginUser'

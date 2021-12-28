@@ -15,6 +15,27 @@ export const login = gql`
       }
       hasElopage
       publisherId
+      isAdmin
+    }
+  }
+`
+
+export const verifyLogin = gql`
+  query {
+    verifyLogin {
+      email
+      username
+      firstName
+      lastName
+      language
+      description
+      coinanimation
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
     }
   }
 `
@@ -25,18 +46,19 @@ export const logout = gql`
   }
 `
 
-export const loginViaEmailVerificationCode = gql`
-  query($optin: String!) {
-    loginViaEmailVerificationCode(optin: $optin) {
-      sessionId
-      email
-    }
-  }
-`
-
 export const transactionsQuery = gql`
-  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  query(
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $onlyCreations: Boolean = false
+  ) {
+    transactionList(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      onlyCreations: $onlyCreations
+    ) {
       gdtSum
       count
       balance
@@ -67,9 +89,7 @@ export const transactionsQuery = gql`
 
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
-    sendResetPasswordEmail(email: $email) {
-      state
-    }
+    sendResetPasswordEmail(email: $email)
   }
 `
 
@@ -93,15 +113,6 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
-    }
-  }
-`
-
-export const checkEmailQuery = gql`
-  query($optin: String!) {
-    checkEmail(optin: $optin) {
-      email
-      sessionId
     }
   }
 `

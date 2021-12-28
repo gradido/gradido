@@ -2,7 +2,12 @@ import { createTransport } from 'nodemailer'
 
 import CONFIG from '../config'
 
-export const sendEMail = async (emailDef: any): Promise<boolean> => {
+export const sendEMail = async (emailDef: {
+  from: string
+  to: string
+  subject: string
+  text: string
+}): Promise<boolean> => {
   if (!CONFIG.EMAIL) {
     // eslint-disable-next-line no-console
     console.log('Emails are disabled via config')

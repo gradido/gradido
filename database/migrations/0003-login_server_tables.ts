@@ -1,17 +1,16 @@
-/* FIRST MIGRATION
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* MIGRATION TO CREATE THE LOGIN_SERVER TABLES
  *
- * This migration is special since it takes into account that
- * the database can be setup already but also may not be.
- * Therefore you will find all `CREATE TABLE` statements with
- * a `IF NOT EXISTS`, all `INSERT` with an `IGNORE` and in the
- * downgrade function all `DROP TABLE` with a `IF EXISTS`.
- * This ensures compatibility for existing or non-existing
- * databases.
+ * This migration creates the `login_server` tables in the `community_server` database (`gradido_community`).
+ * This is done to keep all data in the same place and is to be understood in conjunction with the next migration
+ * `0004-login_server_data` which will fill the tables with the existing data
  */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
-    CREATE TABLE \`login_app_access_tokens\` (
+    CREATE TABLE IF NOT EXISTS \`login_app_access_tokens\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`user_id\` int NOT NULL,
       \`access_code\` bigint unsigned NOT NULL,
@@ -22,7 +21,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_elopage_buys\` (
+    CREATE TABLE IF NOT EXISTS \`login_elopage_buys\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`elopage_user_id\` int DEFAULT NULL,
       \`affiliate_program_id\` int NOT NULL,
@@ -39,7 +38,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_email_opt_in_types\` (
+    CREATE TABLE IF NOT EXISTS \`login_email_opt_in_types\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`name\` varchar(255) NOT NULL,
       \`description\` varchar(255) NOT NULL,
@@ -47,7 +46,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_email_opt_in\` (
+    CREATE TABLE IF NOT EXISTS \`login_email_opt_in\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`user_id\` int NOT NULL,
       \`verification_code\` bigint unsigned NOT NULL,
@@ -60,7 +59,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_groups\` (
+    CREATE TABLE IF NOT EXISTS \`login_groups\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`alias\` varchar(190) NOT NULL,
       \`name\` varchar(255) NOT NULL,
@@ -73,7 +72,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
   `)
   await queryFn(`
-    CREATE TABLE \`login_pending_tasks\` (
+    CREATE TABLE IF NOT EXISTS \`login_pending_tasks\` (
       \`id\` int UNSIGNED NOT NULL AUTO_INCREMENT,
       \`user_id\` int UNSIGNED DEFAULT 0,
       \`request\` varbinary(2048) NOT NULL,
@@ -88,7 +87,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_roles\` (
+    CREATE TABLE IF NOT EXISTS \`login_roles\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`name\` varchar(255) NOT NULL,
       \`description\` varchar(255) NOT NULL,
@@ -97,7 +96,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_user_backups\` (
+    CREATE TABLE IF NOT EXISTS \`login_user_backups\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`user_id\` int NOT NULL,
       \`passphrase\` text NOT NULL,
@@ -106,7 +105,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_user_roles\` (
+    CREATE TABLE IF NOT EXISTS \`login_user_roles\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`user_id\` int NOT NULL,
       \`role_id\` int NOT NULL,
@@ -114,7 +113,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
-    CREATE TABLE \`login_users\` (
+    CREATE TABLE IF NOT EXISTS \`login_users\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`email\` varchar(191) NOT NULL,
       \`first_name\` varchar(150) NOT NULL,
@@ -140,14 +139,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`login_app_access_tokens\`;`)
-  await queryFn(`DROP TABLE \`login_elopage_buys\`;`)
-  await queryFn(`DROP TABLE \`login_email_opt_in_types\`;`)
-  await queryFn(`DROP TABLE \`login_email_opt_in\`;`)
-  await queryFn(`DROP TABLE \`login_groups\`;`)
-  await queryFn(`DROP TABLE \`login_pending_tasks\`;`)
-  await queryFn(`DROP TABLE \`login_roles\`;`)
-  await queryFn(`DROP TABLE \`login_user_backups\`;`)
-  await queryFn(`DROP TABLE \`login_user_roles\`;`)
-  await queryFn(`DROP TABLE \`login_users\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_app_access_tokens\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_elopage_buys\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_email_opt_in_types\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_email_opt_in\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_groups\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_pending_tasks\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_roles\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_user_backups\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_user_roles\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`login_users\`;`)
 }

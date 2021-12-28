@@ -48,7 +48,7 @@ describe('CommunityResolver', () => {
 
   describe('getCommunityInfo', () => {
     it('returns the default values', async () => {
-      expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
+      await expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
         data: {
           getCommunityInfo: {
             name: 'Gradido Entwicklung',
@@ -68,7 +68,7 @@ describe('CommunityResolver', () => {
       })
 
       it('returns three communities', async () => {
-        expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
             communities: [
               {
@@ -104,7 +104,7 @@ describe('CommunityResolver', () => {
       })
 
       it('returns one community', async () => {
-        expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
             communities: [
               {
