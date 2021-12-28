@@ -48,7 +48,7 @@
       "yes": "Yes, delete creation!"
     }
   },
-  "remove": "entfernen",
+  "remove": "Remove",
   "transaction": "Transaction",
   "transactionlist": {
     "title": "Alle Geschöpften Transaktionen für den User"
