@@ -51,7 +51,7 @@
   "remove": "Remove",
   "transaction": "Transaction",
   "transactionlist": {
-    "title": "Alle Geschöpften Transaktionen für den User"
+    "title": "All creation-transactions for the user"
   },
   "unregistered_emails": "Unregistered e-mails",
   "unregister_mail": {
