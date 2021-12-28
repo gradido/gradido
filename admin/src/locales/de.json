@@ -10,6 +10,18 @@
   "transaction": "Transaktion",
   "unregistered_emails": "Unregistrierte E-Mails",
   "user_search": "User suche",
+  "creation_form": {
+    "form":"Creation form",
+    "select_month":"Monat Auswählen",
+    "select_value":"Betrag Auswählen",
+    "enter_text":"Text eintragen",
+    "min_characters":"Mindestens 10 Zeichen eingeben",
+    "creation_for":"Schöpfung für ",
+    "reset":"zurücksetzen",
+    "submit_creation":"Schöpfung einreichen",
+    "update_creation":"Update Schöpfung",
+    "toasted":"Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit"
+  },
   "overlay" : {
     "remove": {
       "title":"Achtung! Schöpfung löschen!",
@@ -22,7 +34,7 @@
       "title":"Schöpfung bestätigen!",
       "text":"Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "question":"Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
-      "yes":"Ja, Schöpfung speichern und bestätigen!",
+      "yes":"Ja, Schöpfung bestätigen und speichern!",
       "no":"Nein, nicht speichern."
     }
   }

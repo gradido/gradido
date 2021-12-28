@@ -7,23 +7,35 @@
   "not_open_creations": "No open creations",
   "open_creation": "Open creations",
   "open_creations": "Open creations",
+  "creation_form": {
+    "form":"Creation form",
+    "select_month":"Monat Auswählen",
+    "select_value":"Betrag Auswählen",
+    "enter_text":"Text eintragen",
+    "min_characters":"Mindestens 10 Zeichen eingeben",
+    "creation_for":"Schöpfung für ",
+    "reset":"zurücksetzen",
+    "submit_creation":"Schöpfung einreichen",
+    "update_creation":"Update Schöpfung",
+    "toasted":"Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit"
+  },
+  "overlay": {
+    "confirm": {
+      "no": "No, do not save.",
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Confirm creation!",
+      "yes": "Yes, confirm and save creation!"
+    },
+    "remove": {
+      "no": "No, do not delete.",
+      "question": "Do you really want to delete the pre-stored creation?",
+      "text": "After deletion, there is no possibility to restore this data record. However, the entire process is saved in the log file as an overview.",
+      "title": "Attention! Delete creation!",
+      "yes": "Yes, delete creation!"
+    }
+  },
   "transaction": "Transaction",
   "unregistered_emails": "Unregistered e-mails",
-  "user_search": "User search",
-  "overlay" : {
-    "remove": {
-      "title":"Attention! Delete creation!",
-      "text":"After deletion, there is no possibility to restore this data record. However, the entire process is saved in the log file as an overview.",
-      "question":"Do you really want to delete the pre-stored creation?",
-      "yes":"Yes, delete creation!",
-      "no":"No, do not delete."
-    },
-    "confirm": {
-      "title":"Confirm creation!",
-      "text":"After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
-      "question":"Do you really want to carry out and finally save this pre-stored creation?",
-      "yes":"Yes, confirm and save creation!",
-      "no":"No, do not save."
-    }
-  }
+  "user_search": "User search"
 }
