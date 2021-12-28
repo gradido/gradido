@@ -22,7 +22,7 @@
   "mail": "Mail",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "navbar": {
-    "logout": "Logout",
+    "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
