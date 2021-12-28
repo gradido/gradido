@@ -1,4 +1,17 @@
 {
+  "creation_form": {
+    "creation_for": "Schöpfung für ",
+    "enter_text": "Text eintragen",
+    "form": "Creation form",
+    "min_characters": "Mindestens 10 Zeichen eingeben",
+    "reset": "zurücksetzen",
+    "select_month": "Monat Auswählen",
+    "select_value": "Betrag Auswählen",
+    "submit_creation": "Schöpfung einreichen",
+    "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit",
+    "toasted_update":"`Offene schöpfung {value} GDD) für {email} wurde geändert, liegt zur Bestätigung bereit",
+    "update_creation": "Update Schöpfung"
+  },
   "details": "Details",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
@@ -7,35 +20,23 @@
   "not_open_creations": "keine offene Schöpfungen",
   "open_creation": "offene Schöpfungen",
   "open_creations": "offene Schöpfungen",
+  "overlay": {
+    "confirm": {
+      "no": "Nein, nicht speichern.",
+      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
+      "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
+      "title": "Schöpfung bestätigen!",
+      "yes": "Ja, Schöpfung bestätigen und speichern!"
+    },
+    "remove": {
+      "no": "Nein, nicht löschen.",
+      "question": "Willst du die vorgespeicherte Schöpfung wirklich löschen?",
+      "text": "Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.",
+      "title": "Achtung! Schöpfung löschen!",
+      "yes": "Ja, Schöpfung löschen!"
+    }
+  },
   "transaction": "Transaktion",
   "unregistered_emails": "Unregistrierte E-Mails",
-  "user_search": "User suche",
-  "creation_form": {
-    "form":"Creation form",
-    "select_month":"Monat Auswählen",
-    "select_value":"Betrag Auswählen",
-    "enter_text":"Text eintragen",
-    "min_characters":"Mindestens 10 Zeichen eingeben",
-    "creation_for":"Schöpfung für ",
-    "reset":"zurücksetzen",
-    "submit_creation":"Schöpfung einreichen",
-    "update_creation":"Update Schöpfung",
-    "toasted":"Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit"
-  },
-  "overlay" : {
-    "remove": {
-      "title":"Achtung! Schöpfung löschen!",
-      "text":"Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.",
-      "question":"Willst du die vorgespeicherte Schöpfung wirklich löschen?",
-      "yes":"Ja, Schöpfung löschen!",
-      "no":"Nein, nicht löschen."
-    },
-    "confirm": {
-      "title":"Schöpfung bestätigen!",
-      "text":"Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
-      "question":"Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
-      "yes":"Ja, Schöpfung bestätigen und speichern!",
-      "no":"Nein, nicht speichern."
-    }
-  }
+  "user_search": "User suche"
 }
