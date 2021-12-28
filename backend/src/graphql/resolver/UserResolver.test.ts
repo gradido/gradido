@@ -185,6 +185,25 @@ describe('UserResolver', () => {
         )
       })
     })
+
+    describe('unknown language', () => {
+      it('sets "de" as default language', async () => {
+        await mutate({
+          mutation,
+          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
+        })
+        await expect(
+          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
+        ).resolves.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              email: 'bibi@bloxberg.de',
+              language: 'de',
+            }),
+          ]),
+        )
+      })
+    })
   })
 })
 

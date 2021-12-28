@@ -18,7 +18,7 @@ const migration = new Migration({
   conn: pool,
   tableName: CONFIG.MIGRATIONS_TABLE,
   silent: true,
-  dir: '../database/migrations/', // CONFIG.MIGRATIONS_DIRECTORY,
+  dir: CONFIG.MIGRATIONS_DIRECTORY,
 })
 
 const initialize = async (): Promise<void> => {
