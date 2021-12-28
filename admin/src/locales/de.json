@@ -6,7 +6,7 @@
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
     "reset": "Zurücksetzen",
-    "select_month": "Monat Auswählen",
+    "select_month": "Monat auswählen",
     "select_value": "Betrag auswählen",
     "submit_creation": "Schöpfung einreichen",
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
