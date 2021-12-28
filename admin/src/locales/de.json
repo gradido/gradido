@@ -17,7 +17,7 @@
   "firstname": "Vorname",
   "lastname": "Nachname",
   "mail": "Mail",
-  "multiple_creation_text": "Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest",
+  "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Mehrfachschöpfung",
@@ -27,7 +27,7 @@
     "wallet": "Wallet"
   },
   "not_open_creations": "keine offene Schöpfungen",
-  "open_creation": "offene Schöpfungen",
+  "open_creation": "offene Schöpfung",
   "open_creations": "offene Schöpfungen",
   "overlay": {
     "confirm": {
@@ -45,7 +45,16 @@
       "yes": "Ja, Schöpfung löschen!"
     }
   },
+  "unregister_mail" : {
+    "text":" Die letzte Email wurde am <b>{date} Uhr</b> an das Mitglied ({mail}) gesendet.",
+    "button":"Registrierungs-Email bestätigen, jetzt senden",
+    "info":"Email bestätigen, wiederholt senden an:",
+    "success":"Erfolgreich senden der Confirmation Link an die E-Mail des Users! ({email})",
+    "error":"Fehler beim senden des confirmation link an den Benutzer: {message}"
+  },
   "transaction": "Transaktion",
   "unregistered_emails": "Unregistrierte E-Mails",
-  "user_search": "User suche"
+  "user_search": "User suche",
+  "bookmark":"bookmark",
+  "remove":"remove"
 }
