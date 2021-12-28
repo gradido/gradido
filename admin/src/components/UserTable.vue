@@ -36,6 +36,10 @@
       hover
       stacked="md"
     >
+      <template #cell(creation)="data">
+        <div v-html="data.value"></div>
+      </template>
+
       <template #cell(edit_creation)="row">
         <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
