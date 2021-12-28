@@ -1,4 +1,5 @@
 {
+  "bookmark": "merken",
   "creation_form": {
     "creation_for": "Creation for ",
     "enter_text": "Enter text",
@@ -45,16 +46,15 @@
       "yes": "Yes, delete creation!"
     }
   },
-  "unregister_mail" : {
-    "text":" The last email was sent to the member ({mail}) on <b>{date} clock</b>.",
-    "button":"Confirm registration email, send now",
-    "info":"Confirm email, send repeatedly to:",
-    "success":"Successfully send the confirmation link to the user's email! ({email})",
-    "error":"Error sending the confirmation link to the user: {message}"
-  },
+  "remove": "entfernen",
   "transaction": "Transaction",
   "unregistered_emails": "Unregistered e-mails",
-  "user_search": "User search",
-  "bookmark":"merken",
-  "remove":"entfernen"
+  "unregister_mail": {
+    "button": "Confirm registration email, send now",
+    "error": "Error sending the confirmation link to the user: {message}",
+    "info": "Confirm email, send repeatedly to:",
+    "success": "Successfully send the confirmation link to the user's email! ({email})",
+    "text": " The last email was sent to the member ({mail}) on <b>{date} clock</b>."
+  },
+  "user_search": "User search"
 }
