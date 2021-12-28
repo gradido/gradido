@@ -8,6 +8,7 @@ const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
   },
@@ -53,7 +54,7 @@ describe('ConfirmRegisterMailFormular', () => {
 
       it('toasts a success message', () => {
         expect(toastSuccessMock).toBeCalledWith(
-          'Erfolgreich senden der Confirmation Link an die E-Mail des Users! bob@baumeister.de',
+          'unregister_mail.success',
         )
       })
     })
@@ -67,7 +68,7 @@ describe('ConfirmRegisterMailFormular', () => {
 
       it('toasts an error message', () => {
         expect(toastErrorMock).toBeCalledWith(
-          'Fehler beim senden des confirmation link an den Benutzer: OUCH!',
+          'unregister_mail.error',
         )
       })
     })

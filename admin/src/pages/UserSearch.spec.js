@@ -20,6 +20,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 const toastErrorMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
   },
