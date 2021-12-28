@@ -16,8 +16,8 @@
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "lastname": "Nachname",
-  "multiple_creation_text":"Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest",
   "mail": "Mail",
+  "multiple_creation_text": "Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Mehrfachschöpfung",

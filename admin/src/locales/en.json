@@ -16,8 +16,8 @@
   "e_mail": "E-Mail",
   "firstname": "Firstname",
   "lastname": "Lastname",
-  "multiple_creation_text":"Please select one or more members you would like to scoop for",
   "mail": "Mail",
+  "multiple_creation_text": "Please select one or more members you would like to scoop for",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
