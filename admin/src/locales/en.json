@@ -9,15 +9,15 @@
   "open_creations": "Open creations",
   "creation_form": {
     "form":"Creation form",
-    "select_month":"Monat Auswählen",
-    "select_value":"Betrag Auswählen",
-    "enter_text":"Text eintragen",
-    "min_characters":"Mindestens 10 Zeichen eingeben",
-    "creation_for":"Schöpfung für ",
-    "reset":"zurücksetzen",
-    "submit_creation":"Schöpfung einreichen",
-    "update_creation":"Update Schöpfung",
-    "toasted":"Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit"
+    "select_month":"Select month",
+    "select_value":"Select amount",
+    "enter_text":"Enter text",
+    "min_characters":"Enter at least 10 characters",
+    "creation_for":"Creation for ",
+    "reset":"reset",
+    "submit_creation":"Submit creation",
+    "update_creation":"Creation update",
+    "toasted":"Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit."
   },
   "overlay": {
     "confirm": {
