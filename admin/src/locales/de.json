@@ -16,6 +16,8 @@
   "details": "Details",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
+  "gradido_admin_footer":"Gradido Akademie Adminkonsole",
+  "hide_details":"Details verbergen von ",
   "lastname": "Nachname",
   "mail": "Mail",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
@@ -48,6 +50,9 @@
   },
   "remove": "remove",
   "transaction": "Transaktion",
+  "transactionlist": {
+    "title":"Alle Geschöpften Transaktionen für den User"
+  },
   "unregistered_emails": "Unregistrierte E-Mails",
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
