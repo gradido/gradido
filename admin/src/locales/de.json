@@ -9,7 +9,7 @@
     "select_value": "Betrag Auswählen",
     "submit_creation": "Schöpfung einreichen",
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegen zur Bestätigung bereit",
-    "toasted_update":"`Offene schöpfung {value} GDD) für {email} wurde geändert, liegt zur Bestätigung bereit",
+    "toasted_update": "`Offene schöpfung {value} GDD) für {email} wurde geändert, liegt zur Bestätigung bereit",
     "update_creation": "Update Schöpfung"
   },
   "details": "Details",
