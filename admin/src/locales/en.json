@@ -16,9 +16,9 @@
   "details": "Details",
   "e_mail": "E-Mail",
   "firstname": "Firstname",
+  "gradido_admin_footer": "Gradido Academy Admin Console",
+  "hide_details": "Hide details from ",
   "lastname": "Lastname",
-  "hide_details":"Hide details from ",
-  "gradido_admin_footer":"Gradido Academy Admin Console",
   "mail": "Mail",
   "multiple_creation_text": "Please select one or more members you would like to scoop for.",
   "navbar": {
@@ -51,7 +51,7 @@
   "remove": "entfernen",
   "transaction": "Transaction",
   "transactionlist": {
-    "title":"Alle Geschöpften Transaktionen für den User"
+    "title": "Alle Geschöpften Transaktionen für den User"
   },
   "unregistered_emails": "Unregistered e-mails",
   "unregister_mail": {
