@@ -477,7 +477,7 @@ export class UserResolver {
     firstName: string,
     lastName: string,
     email: string,
-  ): Promise<any> {
+  ): Promise<boolean> {
     return sendEMail({
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
       to: `${firstName} ${lastName} <${email}>`,
