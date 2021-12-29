@@ -5,7 +5,7 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
   moduleNameMapper: {
-    '@entity/(.*)': '<rootDir>/../database/entity/$1',
-    '@dbTools/(.*)': '<rootDir>/../database/src/$1',
+    '@entity/(.*)': '<rootDir>/../database/build/entity/$1',
+    '@dbTools/(.*)': '<rootDir>/../database/build/src/$1',
   },
 }
