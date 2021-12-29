@@ -19,7 +19,7 @@ const migration = new Migration({
   conn: pool,
   tableName: CONFIG.MIGRATIONS_TABLE,
   silent: true,
-  dir: path.join(__dirname, '..', CONFIG.MIGRATIONS_DIRECTORY),
+  dir: path.join(__dirname, '..', 'migrations'),
 })
 
 const initialize = async (): Promise<void> => {

@@ -7,6 +7,5 @@ module.exports = {
   moduleNameMapper: {
     '@entity/(.*)': '<rootDir>/../database/entity/$1',
     '@dbTools/(.*)': '<rootDir>/../database/src/$1',
-    '@migrations/(.*)': '<rootDir>/../database/migrations/$1',
   },
 }
