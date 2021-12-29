@@ -2,17 +2,15 @@
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
       <div class="h5">
-        Die letzte Email wurde am
-        <b>{{ dateLastSend }} Uhr</b>
-        an das Mitglied ({{ email }}) gesendet.
+        {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
       </div>
 
       <!-- Using components -->
-      <b-input-group prepend="Email bestätigen, wiederholt senden an:" class="mt-3">
+      <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
         <b-form-input readonly :value="email"></b-form-input>
         <b-input-group-append>
           <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
-            Registrierungs-Email bestätigen, jetzt senden
+            {{ $t('unregister_mail.button') }}
           </b-button>
         </b-input-group-append>
       </b-input-group>
@@ -42,14 +40,10 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.success(
-            'Erfolgreich senden der Confirmation Link an die E-Mail des Users! ' + this.email,
-          )
+          this.$toasted.success(this.$t('unregister_mail.success', { email: this.email }))
         })
         .catch((error) => {
-          this.$toasted.error(
-            'Fehler beim senden des confirmation link an den Benutzer: ' + error.message,
-          )
+          this.$toasted.error(this.$t('unregister_mail.error', { message: error.message }))
         })
     },
   },

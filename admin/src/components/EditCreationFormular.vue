@@ -3,7 +3,7 @@
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="updateCreationForm">
         <b-row class="m-4">
-          <label>Monat Auswählen</label>
+          <label>{{ $t('creation_form.select_month') }}</label>
           <b-col class="text-left">
             <b-form-radio
               id="beforeLastMonth"
@@ -64,7 +64,7 @@
         </b-row>
 
         <b-row class="m-4">
-          <label>Betrag Auswählen</label>
+          <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
               <b-form-input
@@ -87,7 +87,7 @@
           </div>
         </b-row>
         <b-row class="m-4">
-          <label>Text eintragen</label>
+          <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
             <b-form-textarea
               id="textarea-state"
@@ -101,7 +101,7 @@
         <b-row class="m-4">
           <b-col class="text-center">
             <b-button type="reset" variant="danger" @click="$refs.updateCreationForm.reset()">
-              zurücksetzen
+              {{ $t('creation_form.reset') }}
             </b-button>
           </b-col>
           <b-col class="text-center">
@@ -113,7 +113,7 @@
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
-                Update Schöpfung
+                {{ $t('creation_form.update_creation') }}
               </b-button>
             </div>
           </b-col>
@@ -211,7 +211,10 @@ export default {
             row: this.row,
           })
           this.$toasted.success(
-            `Offene schöpfung (${this.value} GDD) für ${this.item.email} wurde geändert, liegt zur Bestätigung bereit`,
+            this.$t('creation_form.toasted_update', {
+              value: this.value,
+              email: this.item.email,
+            }),
           )
           this.submitObj = null
           this.createdIndex = null
