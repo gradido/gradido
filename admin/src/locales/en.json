@@ -20,7 +20,7 @@
   "gradido_admin_footer": "Gradido Academy Admin Console",
   "hide_details": "Hide details from",
   "lastname": "Lastname",
-  "multiple_creation_text": "Please select one or more members you would like to scoop for.",
+  "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
