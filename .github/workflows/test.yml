@@ -480,7 +480,7 @@ jobs:
       - name: backend | docker-compose
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database
       - name: backend Unit tests | test
-        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test  
+        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn CI_worklfow_test
         # run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
