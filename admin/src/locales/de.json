@@ -48,7 +48,7 @@
       "yes": "Ja, Schöpfung löschen!"
     }
   },
-  "remove": "remove",
+  "remove": "Entfernen",
   "transaction": "Transaktion",
   "transactionlist": {
     "title": "Alle Geschöpften Transaktionen für den User"
