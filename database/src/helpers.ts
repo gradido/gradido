@@ -2,8 +2,6 @@ import CONFIG from './config'
 import { createPool, PoolConfig } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 
-console.log(__dirname)
-
 const poolConfig: PoolConfig = {
   host: CONFIG.DB_HOST,
   port: CONFIG.DB_PORT,
