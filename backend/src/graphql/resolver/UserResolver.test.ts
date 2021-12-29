@@ -204,6 +204,25 @@ describe('UserResolver', () => {
         )
       })
     })
+
+    describe('no publisher id', () => {
+      it('sets publisher id to null', async () => {
+        await mutate({
+          mutation,
+          variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
+        })
+        await expect(
+          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
+        ).resolves.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              email: 'raeuber@hotzenplotz.de',
+              publisherId: null,
+            }),
+          ]),
+        )
+      })
+    })
   })
 })
 
