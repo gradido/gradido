@@ -1,4 +1,3 @@
-import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
 /**
@@ -7,7 +6,6 @@ import { focus } from 'vue-focus'
 
 const GlobalDirectives = {
   install(Vue) {
-    Vue.directive('click-outside', clickOutside)
     Vue.directive('focus', focus)
   },
 }

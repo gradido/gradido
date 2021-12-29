@@ -67,11 +67,13 @@ namespace ServerConfig {
 	extern std::string g_php_serverPath;
 	extern std::string g_php_serverHost;
 	extern std::string g_frontend_checkEmailPath;
+	extern std::string g_frontend_resetPasswordPath;
 	extern int         g_phpServerPort;
 	extern Poco::Mutex g_TimeMutex;
 	extern int         g_FakeLoginSleepTime;
 	extern std::string g_versionString;
 	extern bool		   g_disableEmail;
+	extern bool		   g_resendUnfinishedTransactionOnStart;
 	extern ServerSetupType g_ServerSetupType;
 	extern std::string g_devDefaultGroup;
 	extern std::string g_gRPCRelayServerFullURL;

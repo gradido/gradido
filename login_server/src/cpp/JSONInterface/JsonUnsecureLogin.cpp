@@ -8,6 +8,8 @@
 
 #include "../lib/DataTypeConverter.h"
 
+#include "../model/table/ElopageBuy.h"
+
 Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 {
 
@@ -105,9 +107,21 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		USER_COMPLETE,
 		USER_DISABLED
 	*/
+	// run query for checking if user has already an account async
+	Poco::AutoPtr<model::table::UserHasElopageTask> hasElopageTask = new model::table::UserHasElopageTask(email);
+	hasElopageTask->scheduleTask(hasElopageTask);
+
 	auto user_state = session->loadUser(email, password);
 	auto user_model = session->getNewUser()->getModel();
 	Poco::JSON::Array infos;
+
+	// AUTOMATIC ERROR CORRECTION
+	// if something went wrong by initial key generation for user, generate keys again
+	if (user_state >= USER_LOADED_FROM_DB && !user_model->getPublicKey()) {
+		if (session->generateKeys(true, true)) {
+			user_state = session->getNewUser()->getUserState();
+		}
+	}
 	
 	switch (user_state) {
 	case USER_EMPTY:
@@ -133,15 +147,20 @@ Poco::JSON::Object* JsonUnsecureLogin::handle(Poco::Dynamic::Var params)
 		infos.add("set user.group_id to default group_id = 1");
 	case USER_NO_PRIVATE_KEY:
 	case USER_COMPLETE:
-	case USER_EMAIL_NOT_ACTIVATED:
 		result->set("state", "success");
 		result->set("user", session->getNewUser()->getJson());
 		result->set("session_id", session->getHandle());
 		session->setClientIp(mClientIP);
 		if(infos.size() > 0) {
 			result->set("info", infos);
-		}
+		}		
+		AWAIT(hasElopageTask)
+		result->set("hasElopage", hasElopageTask->hasElopage());
 		return result;
+	case USER_EMAIL_NOT_ACTIVATED:
+		result->set("state", "processing");
+		result->set("msg", "user email not validated");
+		break;
 	default: 
 		result->set("state", "error");
 		result->set("msg", "unknown user state");

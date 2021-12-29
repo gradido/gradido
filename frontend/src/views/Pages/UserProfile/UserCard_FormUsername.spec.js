@@ -1,16 +1,11 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormUsername from './UserCard_FormUsername'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
 import { extend } from 'vee-validate'
 
-jest.mock('../../../apis/loginAPI')
-
 const localVue = global.localVue
 
-const mockAPIcall = jest.fn((args) => {
-  return { success: true }
-})
+const mockAPIcall = jest.fn()
 
 // override this rule to avoid API call
 extend('gddUsernameUnique', {
@@ -23,8 +18,6 @@ const toastErrorMock = jest.fn()
 const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
 
-loginAPI.changeUsernameProfile = mockAPIcall
-
 describe('UserCard_FormUsername', () => {
   let wrapper
 
@@ -32,15 +25,18 @@ describe('UserCard_FormUsername', () => {
     $t: jest.fn((t) => t),
     $store: {
       state: {
-        sessionId: 1,
-        email: 'user@example.org',
         username: '',
       },
       commit: storeCommitMock,
     },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
+    },
+    $apollo: {
+      mutate: mockAPIcall,
     },
   }
 
@@ -98,13 +94,26 @@ describe('UserCard_FormUsername', () => {
 
         describe('successfull submit', () => {
           beforeEach(async () => {
+            mockAPIcall.mockResolvedValue({
+              data: {
+                updateUserInfos: {
+                  validValues: 1,
+                },
+              },
+            })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
-          it('calls the loginAPI', () => {
-            expect(mockAPIcall).toHaveBeenCalledWith(1, 'user@example.org', 'username')
+          it('calls the API', () => {
+            expect(mockAPIcall).toHaveBeenCalledWith(
+              expect.objectContaining({
+                variables: {
+                  username: 'username',
+                },
+              }),
+            )
           })
 
           it('displays the new username', () => {
@@ -116,7 +125,7 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('toasts an success message', () => {
-            expect(toastSuccessMock).toBeCalledWith('site.profil.user-data.change-success')
+            expect(toastSuccessMock).toBeCalledWith('settings.name.change-success')
           })
 
           it('has no edit button anymore', () => {
@@ -127,21 +136,26 @@ describe('UserCard_FormUsername', () => {
         describe('submit retruns error', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            mockAPIcall.mockReturnValue({
-              success: false,
-              result: { message: 'Error' },
+            mockAPIcall.mockRejectedValue({
+              message: 'Ouch!',
             })
             await wrapper.find('input[placeholder="Username"]').setValue('username')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
-          it('calls the loginAPI', () => {
-            expect(mockAPIcall).toHaveBeenCalledWith(1, 'user@example.org', 'username')
+          it('calls the API', () => {
+            expect(mockAPIcall).toHaveBeenCalledWith(
+              expect.objectContaining({
+                variables: {
+                  username: 'username',
+                },
+              }),
+            )
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorMock).toBeCalledWith('Error')
+            expect(toastErrorMock).toBeCalledWith('Ouch!')
           })
 
           it('renders an empty username', () => {

@@ -81,22 +81,30 @@ void JsonRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& request, Po
 	}
 
 	if (json_result) {
+		NotificationList errors;
 		if (!json_result->isNull("session_id")) {
 			int session_id = 0;
 			try {
 				json_result->get("session_id").convert(session_id);
 			}
 			catch (Poco::Exception& e) {
-				NotificationList erros;
-				erros.addError(new Error("json request", "invalid session_id"));
-				erros.sendErrorsAsEmail();
+				errors.addError(new Error("json request", "invalid session_id"));
 			}
 			if (session_id) {
 				auto session = SessionManager::getInstance()->getSession(session_id);
 				response.addCookie(session->getLoginCookie());
 			}
 		}
-		json_result->stringify(responseStream);
+		try {
+			json_result->stringify(responseStream);
+		}
+		catch (Poco::Exception& e) {
+			errors.addError(new ParamError("json request", "error on stringify from json result:", e.message()));
+			errors.addError(new ParamError("json request", "caller url", request.getURI()));
+		}
+		if (errors.errorCount()) {
+			errors.sendErrorsAsEmail();
+		}
 		delete json_result;
 	}
 

@@ -13,9 +13,11 @@
 #include "JsonCreateTransaction.h"
 #include "JsonCreateUser.h"
 #include "JsonGetLogin.h"
+#include "JsonSignTransaction.h"
 #include "JsonUnknown.h"
 #include "JsonGetRunningUserTasks.h"
 #include "JsonGetUsers.h"
+#include "JsonHasElopage.h"
 #include "JsonLoginViaEmailVerificationCode.h"
 #include "JsonLogout.h"
 #include "JsonNetworkInfos.h"
@@ -75,6 +77,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/checkSessionState") {
 		return new JsonCheckSessionState;
+	}
+	else if (url_first_part == "/signTransaction") {
+		return new JsonSignTransaction;
 	}
 	else if (url_first_part == "/checkUsername") {
 		return new JsonCheckUsername;
@@ -139,6 +144,9 @@ Poco::Net::HTTPRequestHandler* JsonRequestHandlerFactory::createRequestHandler(c
 	}
 	else if (url_first_part == "/logout") {
 		return new JsonLogout(client_host);
+	}
+	else if (url_first_part == "/hasElopage") {
+		return new JsonHasElopage;
 	}
 
 	return new JsonUnknown;

@@ -17,7 +17,7 @@ namespace model {
 			Group(GroupTuple userTuple);
 			
 			// generic db operations
-			const char* getTableName() const { return "groups"; }
+			const char* getTableName() const { return "login_groups"; }
 			std::string toString();
 
 			inline const std::string& getAlias() const { return mAlias; }

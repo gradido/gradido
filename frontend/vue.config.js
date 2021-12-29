@@ -1,5 +1,7 @@
 const path = require('path')
-const dotenv = require('dotenv-webpack')
+const webpack = require('webpack')
+const Dotenv = require('dotenv-webpack')
+const StatsPlugin = require('stats-webpack-plugin')
 
 // vue.config.js
 module.exports = {
@@ -23,8 +25,23 @@ module.exports = {
         assets: path.join(__dirname, 'src/assets'),
       },
     },
-    // eslint-disable-next-line new-cap
-    plugins: [new dotenv()],
+    plugins: [
+      // .env and Environment Variables
+      new Dotenv(),
+      new webpack.DefinePlugin({
+        // Those are Environment Variables transmitted via Docker and are only available when defined here aswell
+        // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
+        // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
+        // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
+        'process.env.BUILD_COMMIT': JSON.stringify(process.env.BUILD_COMMIT),
+        // 'process.env.PORT': JSON.stringify(process.env.PORT),
+      }),
+      // generate webpack stats to allow analysis of the bundlesize
+      new StatsPlugin('webpack.stats.json'),
+    ],
+    infrastructureLogging: {
+      level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
+    },
   },
   css: {
     // Enable CSS source maps.

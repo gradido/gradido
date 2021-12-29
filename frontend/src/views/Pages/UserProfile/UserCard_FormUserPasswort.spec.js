@@ -1,34 +1,28 @@
 import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
-import loginAPI from '../../../apis/loginAPI'
 import flushPromises from 'flush-promises'
-
-jest.mock('../../../apis/loginAPI')
 
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
 changePasswordProfileMock.mockReturnValue({ success: true })
 
-loginAPI.changePasswordProfile = changePasswordProfileMock
-
 const toastSuccessMock = jest.fn()
 const toastErrorMock = jest.fn()
 
-describe('UserCardFormUserPasswort', () => {
+describe('UserCard_FormUserPasswort', () => {
   let wrapper
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        sessionId: 1,
-        email: 'user@example.org',
-      },
-    },
     $toasted: {
       success: toastSuccessMock,
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
+    },
+    $apollo: {
+      mutate: changePasswordProfileMock,
     },
   }
 
@@ -50,7 +44,7 @@ describe('UserCardFormUserPasswort', () => {
     })
 
     it('has a change password button with text "form.change-password"', () => {
-      expect(wrapper.find('a').text()).toEqual('form.change-password')
+      expect(wrapper.find('a').text()).toEqual('settings.password.change-password')
     })
 
     it('has a change password button with a pencil icon', () => {
@@ -108,12 +102,21 @@ describe('UserCardFormUserPasswort', () => {
       describe('validation', () => {
         it('displays all password requirements', () => {
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(5)
+          expect(feedbackArray).toHaveLength(6)
           expect(feedbackArray.at(0).text()).toBe('validations.messages.required')
           expect(feedbackArray.at(1).text()).toBe('site.signup.lowercase')
           expect(feedbackArray.at(2).text()).toBe('site.signup.uppercase')
           expect(feedbackArray.at(3).text()).toBe('site.signup.one_number')
           expect(feedbackArray.at(4).text()).toBe('site.signup.minimum')
+          expect(feedbackArray.at(5).text()).toBe('site.signup.special-char')
+        })
+
+        it('displays no whitespace error when a space character is entered', async () => {
+          await wrapper.findAll('input').at(1).setValue(' ')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(7)
+          expect(feedbackArray.at(6).text()).toBe('site.signup.no-whitespace')
         })
 
         it('removes first message when a character is given', async () => {
@@ -128,7 +131,7 @@ describe('UserCardFormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('a')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(3)
+          expect(feedbackArray).toHaveLength(4)
           expect(feedbackArray.at(0).text()).toBe('site.signup.uppercase')
         })
 
@@ -136,7 +139,7 @@ describe('UserCardFormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('Aa')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(2)
+          expect(feedbackArray).toHaveLength(3)
           expect(feedbackArray.at(0).text()).toBe('site.signup.one_number')
         })
 
@@ -144,12 +147,20 @@ describe('UserCardFormUserPasswort', () => {
           await wrapper.findAll('input').at(1).setValue('Aa1')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
-          expect(feedbackArray).toHaveLength(1)
+          expect(feedbackArray).toHaveLength(2)
           expect(feedbackArray.at(0).text()).toBe('site.signup.minimum')
         })
 
-        it('removes all messages when all rules are fulfilled', async () => {
+        it('removes the first five messages when a eight lowercase, uppercase and numeric characters are given', async () => {
           await wrapper.findAll('input').at(1).setValue('Aa123456')
+          await flushPromises()
+          const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
+          expect(feedbackArray).toHaveLength(1)
+          expect(feedbackArray.at(0).text()).toBe('site.signup.special-char')
+        })
+
+        it('removes all messages when a eight lowercase, uppercase and numeric characters are given', async () => {
+          await wrapper.findAll('input').at(1).setValue('Aa123456_')
           await flushPromises()
           const feedbackArray = wrapper.findAll('div.invalid-feedback').at(1).findAll('span')
           expect(feedbackArray).toHaveLength(0)
@@ -159,19 +170,28 @@ describe('UserCardFormUserPasswort', () => {
       describe('submit', () => {
         describe('valid data', () => {
           beforeEach(async () => {
+            changePasswordProfileMock.mockResolvedValue({
+              data: {
+                updateUserData: {
+                  validValues: 1,
+                },
+              },
+            })
             await form.findAll('input').at(0).setValue('1234')
-            await form.findAll('input').at(1).setValue('Aa123456')
-            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.findAll('input').at(1).setValue('Aa123456_')
+            await form.findAll('input').at(2).setValue('Aa123456_')
             await form.trigger('submit')
             await flushPromises()
           })
 
           it('calls the API', () => {
             expect(changePasswordProfileMock).toHaveBeenCalledWith(
-              1,
-              'user@example.org',
-              '1234',
-              'Aa123456',
+              expect.objectContaining({
+                variables: {
+                  password: '1234',
+                  passwordNew: 'Aa123456_',
+                },
+              }),
             )
           })
 
@@ -186,13 +206,12 @@ describe('UserCardFormUserPasswort', () => {
 
         describe('server response is error', () => {
           beforeEach(async () => {
-            changePasswordProfileMock.mockReturnValue({
-              success: false,
-              result: { message: 'error' },
+            changePasswordProfileMock.mockRejectedValue({
+              message: 'error',
             })
             await form.findAll('input').at(0).setValue('1234')
-            await form.findAll('input').at(1).setValue('Aa123456')
-            await form.findAll('input').at(2).setValue('Aa123456')
+            await form.findAll('input').at(1).setValue('Aa123456_')
+            await form.findAll('input').at(2).setValue('Aa123456_')
             await form.trigger('submit')
             await flushPromises()
           })

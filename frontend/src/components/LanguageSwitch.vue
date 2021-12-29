@@ -14,7 +14,7 @@
 <script>
 import { localeChanged } from 'vee-validate'
 import locales from '../locales/'
-import loginAPI from '../apis/loginAPI'
+import { updateUserInfos } from '../graphql/mutations'
 
 export default {
   name: 'LanguageSwitch',
@@ -32,18 +32,22 @@ export default {
       localeChanged(locale)
     },
     async saveLocale(locale) {
+      // if (this.$i18n.locale === locale) return
       this.setLocale(locale)
-      if (this.$store.state.sessionId && this.$store.state.email) {
-        const result = await loginAPI.updateLanguage(
-          this.$store.state.sessionId,
-          this.$store.state.email,
-          locale,
-        )
-        if (result.success) {
-          // toast success message
-        } else {
-          // toast error message
-        }
+      if (this.$store.state.email) {
+        this.$apollo
+          .mutate({
+            mutation: updateUserInfos,
+            variables: {
+              locale: locale,
+            },
+          })
+          .then(() => {
+            // toast success message
+          })
+          .catch(() => {
+            // toast error message
+          })
       }
     },
     getLocaleObject(code) {

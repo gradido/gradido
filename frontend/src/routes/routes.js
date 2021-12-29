@@ -2,6 +2,9 @@ import NotFound from '@/views/NotFoundPage.vue'
 
 const routes = [
   {
+    path: '/authenticate',
+  },
+  {
     path: '/',
     redirect: (to) => {
       return { path: '/login' }
@@ -10,6 +13,13 @@ const routes = [
   {
     path: '/overview',
     component: () => import('../views/Pages/AccountOverview.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/send',
+    component: () => import('../views/Pages/SendOverview.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -33,10 +43,14 @@ const routes = [
     component: () => import('../views/Pages/Login.vue'),
   },
   {
+    path: '/register',
+    component: () => import('../views/Pages/Register.vue'),
+  },
+  {
     path: '/thx/:comingFrom',
     component: () => import('../views/Pages/thx.vue'),
     beforeEnter: (to, from, next) => {
-      const validFrom = ['password', 'reset', 'register']
+      const validFrom = ['password', 'reset', 'register', 'login', 'Login']
       if (!validFrom.includes(from.path.split('/')[1])) {
         next({ path: '/login' })
       } else {
@@ -49,7 +63,23 @@ const routes = [
     component: () => import('../views/Pages/ForgotPassword.vue'),
   },
   {
+    path: '/password/:comingFrom',
+    component: () => import('../views/Pages/ForgotPassword.vue'),
+  },
+  {
+    path: '/register-community',
+    component: () => import('../views/Pages/RegisterCommunity.vue'),
+  },
+  {
+    path: '/select-community',
+    component: () => import('../views/Pages/RegisterSelectCommunity.vue'),
+  },
+  {
     path: '/reset/:optin',
+    component: () => import('../views/Pages/ResetPassword.vue'),
+  },
+  {
+    path: '/checkEmail/:optin',
     component: () => import('../views/Pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },

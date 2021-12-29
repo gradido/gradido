@@ -299,7 +299,7 @@
 		  </a>
 	    </div>
 		<div class="reset-pwd-link">
-			<a href="<%= getBaseUrl() %>/resetPassword"><%= langCatalog->gettext("Passwort vergessen") %></a>
+			<a href="<%= getHost() %>/vue/password"><%= langCatalog->gettext("Passwort vergessen") %></a>
 		</div>
 	</div>
 </div>

@@ -1,169 +1,220 @@
 {
-  "message": "hello gradido !!",
-  "welcome":"Welcome!",
-  "community": "Community",
-  "logout":"Logout",
-  "login":"Login",
-  "signup": "Sign up",
-  "reset": "Reset password",
-  "imprint":"Legal notice",
-  "privacy_policy":"Privacy policy",
-  "members_area": "Member's area",
-  "whitepaper": "Whitepaper",
-  "back":"Back",
-  "send":"Send",
-  "transactions":"Transactions",
-  "language":"Language",
-  "languages":{
-    "de": "Deutsch",
-    "en": "English"
+  "admin_area": "Admin's area",
+  "back": "Back",
+  "community": {
+    "choose-another-community": "Choose another community",
+    "communities": {
+      "form": {
+        "date_period": "Date / Period",
+        "hours": "hours",
+        "hours_report": "Hourly report",
+        "more_hours": "more hours",
+        "submit": "submit"
+      }
+    },
+    "community": "Community",
+    "continue-to-registration": "Continue to registration",
+    "current-community": "Current community",
+    "location": "Location:",
+    "other-communities": "Other communities",
+    "switch-to-this-community": "switch to this community"
   },
   "decay": {
-    "decay": "Decay",
-    "decay_since_last_transaction":"Decay since the last transaction",
     "calculation_decay": "Calculation of Decay",
-    "Starting_block_decay": "Starting Block Decay",
-    "decay_introduced": "Decay was Introduced on",
-    "last_transaction": "Last transaction:",
-    "past_time": "Past time",
-    "since_introduction": "Since the introduction of Decay",
-    "year": "Years",
-    "months": "Months",
+    "calculation_total": "Calculation of the grand total",
+    "created": "Created",
     "days": "Days",
+    "decay": "Decay",
+    "decayStart": " - Starting block for decay at: ",
+    "decay_introduced": "Decay was Introduced on",
+    "decay_since_last_transaction": "Decay since the last transaction",
     "hours": "Hours",
+    "last_transaction": "Last transaction:",
     "minutes": "Minutes",
+    "months": "Months",
+    "noDecay": "No Decay",
+    "past_time": "Past time",
+    "received": "Received",
     "seconds": "Seconds",
-    "received":"received",
-    "sent":"sent",
-    "created":"reated",
-    "fromCommunity":"From the community"
+    "sent": "Sent",
+    "since_introduction": "Since the introduction of Decay",
+    "Starting_block_decay": "Starting Block Decay",
+    "toCommunity": "To the community",
+    "total": "Total",
+    "year": "Years"
+  },
+  "error": {
+    "change-password": "Error while changing password",
+    "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
+    "error": "Error",
+    "no-account": "Unfortunately we could not find an account to the given data!",
+    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
+    "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
+    "session-expired": "The session was closed for security reasons."
   },
   "form": {
-    "cancel":"Cancel",
-    "reset": "Reset",
-    "close":"Close",
-    "edit": "Edit",
-    "save": "save",
-    "recipient":"Recipient",
-    "sender":"Sender",
-    "username":"Username",
-    "firstname":"Firstname",
-    "lastname":"Lastname",
+    "amount": "Amount",
+    "at": "at",
+    "cancel": "Cancel",
+    "close": "Close",
+    "current_balance": "current balance",
+    "date": "Date",
     "description": "Description",
-    "email":"Email",
-    "email_repeat":"Repeat Email",
-    "password":"Password",
-    "passwordRepeat":"Repeat password",
-    "password_old":"Old password",
-    "password_new":"New password",
-    "password_new_repeat":"Repeat new password",
-    "change": "change",
-    "change-password": "Change password",
-    "amount":"Amount",
-    "memo":"Message",
-    "message":"Message",
-    "date":"Date",
-    "from":"from",
-    "to":"to",
-    "to1":"to",
-    "at":"at",
-    "time":"Time",
-    "send_now":"Send now",
-    "scann_code":"<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
-    "max_gdd_info":"Maximum number of GDDs to be sent has been reached!",
-    "send_check":"Confirm your payment. Please check all data again!",
-    "thx":"Thank you",
-    "sorry":"Sorry",
-    "send_transaction_success":"Your transaction was successfully completed",
-    "send_transaction_error":"Unfortunately, the transaction could not be executed!",
+    "edit": "Edit",
+    "email": "Email",
+    "firstname": "Firstname",
+    "from": "from",
+    "lastname": "Lastname",
+    "memo": "Message",
+    "message": "Message",
+    "new_balance": "account balance after confirmation",
+    "password": "Password",
+    "passwordRepeat": "Repeat password",
+    "password_new": "New password",
+    "password_new_repeat": "Repeat new password",
+    "password_old": "Old password",
+    "recipient": "Recipient",
+    "reset": "Reset",
+    "save": "save",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
+    "sender": "Sender",
+    "send_check": "Confirm your payment. Please check all data again!",
+    "send_now": "Send now",
+    "send_transaction_error": "Unfortunately, the transaction could not be executed!",
+    "send_transaction_success": "Your transaction was successfully completed",
+    "sorry": "Sorry",
+    "thx": "Thank you",
+    "time": "Time",
+    "to": "to",
+    "to1": "to",
     "validation": {
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits",
       "is-not": "You cannot send Gradidos to yourself",
-      "usernmae-unique": "The username is already taken.",
-      "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters."
+      "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
+      "usernmae-unique": "The username is already taken."
     },
-    "change_username_info": "Once saved, the username cannot be changed again!"
+    "your_amount": "Your amount"
   },
-  "error": {
-    "error":"Error",
-    "no-account": "Unfortunately we could not find an account to the given data!",
-    "change-password": "Error while changing password"
+  "gdt": {
+    "action": "Action",
+    "calculation": "Calculation of Gradido Transform",
+    "contribution": "Contribution",
+    "conversion": "Conversion",
+    "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
+    "credit": "Credit",
+    "factor": "Factor",
+    "formula": "Calculation formula",
+    "funding": "Regarding the funding contributions",
+    "gdt-received": "Gradido Transform (GDT) received",
+    "no-transactions": "You do not have Gradido Transform (GDT) yet.",
+    "publisher": "A member you referred has paid a contribution",
+    "raise": "Increase",
+    "recruited-member": "Recruited Member"
   },
-  "transaction":{
-    "show_all":"View all <strong>{count}</strong> transactions.",
-    "nullTransactions":"You don't have any transactions on your account yet.",
-    "more": "more",
-    "receiverNotFound":"Recipient not found"
+  "imprint": "Legal notice",
+  "language": "Language",
+  "login": "Login",
+  "logout": "Logout",
+  "members_area": "Member's area",
+  "message": "hello gradido !!",
+  "overview": "Overview",
+  "privacy_policy": "Privacy policy",
+  "publisher": {
+    "infoNoRegister": "This is not necessary for registration!",
+    "infoText": "Enter the ID of the publisher here. If you do not have an ID, please leave it blank.",
+    "publisherId": "PublisherID"
   },
-  "site": {
-    "login": {
-      "community":"A thousand thanks for being with us!",
-      "remember":"Remember password",
-      "signin":"Sign in",
-      "forgot_pwd":"Forgot password?",
-      "new_wallet":"Create new account"
+  "send": "Send",
+  "settings": {
+    "coinanimation": {
+      "coinanimation": "Coin animation",
+      "False": "Coin animation disabled",
+      "True": "Coin animation enabled"
     },
-    "signup": {
-      "title": "Create your Gradido account",
-      "subtitle": "Become a part of the community!",
-      "agree":"I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
-      "lowercase":"One lowercase letter required.",
-      "uppercase":"One uppercase letter required.",
-      "minimum":"8 characters minimum.",
-      "one_number":"One number required.",
-      "dont_match":"Passwords don't match."
+    "language": {
+      "changeLanguage": "Change language",
+      "de": "Deutsch",
+      "en": "English",
+      "select_language": "Please choose a language.",
+      "success": "Your language has been successfully updated."
+    },
+    "name": {
+      "change-name": "Change name",
+      "change-success": "Your name has been successfully changed."
+    },
+    "newsletter": {
+      "newsletter": "Newsletter",
+      "newsletterFalse": "You will not receive any information by e-mail.",
+      "newsletterTrue": "You will receive information by e-mail."
     },
     "password": {
-      "title": "Reset password",
-      "subtitle": "If you have forgotten your password, you can reset it here.",
-      "send_now": "Send now"
-    },
-    "thx": {
-      "title": "Thank you!",
-      "email": "We have sent you an email.",
-      "reset": "Your password has been changed.",
-      "register": "You are registred now."      
-    },
-    "overview":{
-      "account_overview":"Account overview",
-      "since_last_month": "since last month",
-      "send_gradido":"Send Gradido",
-      "add_work":"New Community Contribution"
-    },
-    "profil": {
-      "transactions":"transactions",
-      "activity": {
-        "new":"Register new community hours",
-        "list":"My Community Hours List"
+      "change-password": "Change password",
+      "forgot_pwd": "Forgot password?",
+      "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
+      "resend_subtitle": "Your activation link is expired, here you can order a new one.",
+      "reset": "Reset password",
+      "reset-password": {
+        "text": "Now you can save a new password to login to the Gradido-App in the future."
       },
-      "user-data": {
-        "change-success": "Your data has been saved."
-      }
-    },
-    "navbar" : {
-      "my-profil":"My profile",
-      "settings":"Settings",
-      "activity":"Activity",
-      "support":"Support"
-    },
-    "404" : {
-      "ooops" : "Ooops!",
-      "text" : "Page not found. Do not worry though, we have plenty of other pages to explore",
-      "back" : "Back to dashboard!"
-    }    
-  },
-  "communitys":{
-    "form":{
-      "hours":"hours",
-      "date_period":"Date / Period",
-      "more_hours":"more hours",
-      "submit":"submit",
-      "hours_report":"Hourly report"
+      "send_now": "Send now",
+      "set": "Set password",
+      "set-password": {
+        "text": "Now you can save a new password to login to the Gradido-App in the future."
+      },
+      "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
-  "reset-password": {
-    "title": "Reset Password",
-    "text": "Now you can save a new password to login to the Gradido-App in the future.",
-    "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support."
-  }
+  "signup": "Sign up",
+  "site": {
+    "404": {
+      "back": "Back to dashboard!",
+      "ooops": "Ooops!",
+      "text": "Page not found. Do not worry though, we have plenty of other pages to explore"
+    },
+    "checkEmail": {
+      "errorText": "Could not verify the email.",
+      "title": "Verifing email"
+    },
+    "login": {
+      "community": "A thousand thanks for being with us!",
+      "new_wallet": "Create new account",
+      "signin": "Sign in"
+    },
+    "navbar": {
+      "my-profil": "My profile",
+      "support": "Support"
+    },
+    "signup": {
+      "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
+      "dont_match": "Passwords don't match.",
+      "lowercase": "One lowercase letter required.",
+      "minimum": "8 characters minimum.",
+      "no-whitespace": "No white spaces and tabs",
+      "one_number": "One number required.",
+      "special-char": "One special character required (e.g. _ or ä)",
+      "subtitle": "Become a part of the community!",
+      "title": "Create your Gradido account",
+      "uppercase": "One uppercase letter required."
+    },
+    "thx": {
+      "activateEmail": "Your email has not been activated yet, please check your emails and click the activation link!",
+      "checkEmail": "Your email has been successfully verified.",
+      "email": "We have sent you an email.",
+      "emailActivated": "Thank you your email has been activated.",
+      "errorTitle": "Attention!",
+      "register": "You are registered now, please check your emails and click the activation link.",
+      "reset": "Your password has been changed.",
+      "title": "Thank you!"
+    }
+  },
+  "transaction": {
+    "gdd-text": "Gradido Transactions",
+    "gdt-text": "Gradido Transform Transactions",
+    "more": "more",
+    "nullTransactions": "You don't have any transactions on your account yet.",
+    "receiverNotFound": "Recipient not found",
+    "show_all": "View all <strong>{count}</strong> transactions."
+  },
+  "transactions": "Transactions",
+  "whitepaper": "Whitepaper"
 }

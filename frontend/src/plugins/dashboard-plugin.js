@@ -1,9 +1,5 @@
-import '@/polyfills'
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
-import SideBar from '@/components/SidebarPlugin'
-
-import PortalVue from 'portal-vue'
 
 import Toasted from 'vue-toasted'
 
@@ -25,12 +21,12 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
+import VueApollo from 'vue-apollo'
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
     Vue.use(GlobalDirectives)
-    Vue.use(SideBar)
-    Vue.use(PortalVue)
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)
@@ -38,6 +34,7 @@ export default {
     Vue.use(VueQrcode)
     Vue.use(FlatPickr)
     Vue.use(Loading)
+    Vue.use(VueApollo)
     Vue.use(Toasted, {
       position: 'top-center',
       duration: 5000,

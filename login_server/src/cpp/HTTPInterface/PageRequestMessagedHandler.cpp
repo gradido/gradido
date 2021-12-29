@@ -84,3 +84,11 @@ std::string PageRequestMessagedHandler::getBaseUrl()
 	}
 	return "https://" + mHost + mLoginServerPath; 
 }
+
+std::string PageRequestMessagedHandler::getHost()
+{
+	if (ServerConfig::g_ServerSetupType == ServerConfig::SERVER_TYPE_TEST) {
+		return "http://" + mHost;
+	}
+	return "https://" + mHost;
+}

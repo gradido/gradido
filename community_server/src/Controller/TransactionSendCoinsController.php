@@ -170,13 +170,13 @@ class TransactionSendCoinsController extends AppController
             $amountCent = $this->GradidoNumber->parseInputNumberToCentNumber($requestData['amount']);
 
             if(!isset($user['balance']) || $amountCent > $user['balance']) {
-              $this->Flash->error(__('Du hast nicht genug Geld!'));
+              $this->Flash->error(__('Du hast nicht genug Gradidos!'));
               return;
             }
             
             $receiverEmail = $requestData['email'];
             if($receiverEmail === $user['email']) {
-              $this->Flash->error(__('Du kannst dir leider nicht selbst Geld schicken!'));
+              $this->Flash->error(__('Du kannst dir selbst keine Gradidos senden!'));
               return;
             }
             $requestAnswear = $this->JsonRequestClient->sendRequest(json_encode([

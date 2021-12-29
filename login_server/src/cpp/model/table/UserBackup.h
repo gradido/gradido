@@ -17,7 +17,7 @@ namespace model {
 			UserBackup();
 			
 			// generic db operations
-			const char* getTableName() const { return "user_backups"; }
+			const char* getTableName() const { return "login_user_backups"; }
 			std::string toString();
 
 			inline int getUserId() const { return mUserId; }

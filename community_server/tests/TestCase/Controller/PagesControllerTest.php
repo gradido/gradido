@@ -28,9 +28,7 @@ use Cake\View\Exception\MissingTemplateException;
 class PagesControllerTest extends IntegrationTestCase
 {
     
-     public $fixtures = [
-        'app.Migrations2'
-    ];
+     public $fixtures = [];
     /**
      * testMultipleGet method
      *
