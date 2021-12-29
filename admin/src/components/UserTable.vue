@@ -36,6 +36,10 @@
       hover
       stacked="md"
     >
+      <template #cell(creation)="data">
+        <div v-html="data.value"></div>
+      </template>
+
       <template #cell(edit_creation)="row">
         <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
@@ -244,21 +248,18 @@ export default {
       this.overlayItem = item
 
       if (bookmarkType === 'remove') {
-        this.overlayText.header = 'Achtung! Schöpfung löschen!'
-        this.overlayText.text1 =
-          'Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.'
-        this.overlayText.text2 = 'Willst du die vorgespeicherte Schöpfung wirklich löschen? '
-        this.overlayText.button_ok = 'Ja, Schöpfung löschen!'
-        this.overlayText.button_cancel = 'Nein, nicht löschen.'
+        this.overlayText.header = this.$t('overlay.remove.title')
+        this.overlayText.text1 = this.$t('overlay.remove.text')
+        this.overlayText.text2 = this.$t('overlay.remove.question')
+        this.overlayText.button_ok = this.$t('overlay.remove.yes')
+        this.overlayText.button_cancel = this.$t('overlay.remove.no')
       }
       if (bookmarkType === 'confirm') {
-        this.overlayText.header = 'Schöpfung bestätigen!'
-        this.overlayText.text1 =
-          'Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.'
-        this.overlayText.text2 =
-          'Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?'
-        this.overlayText.button_ok = 'Ja, Schöpfung speichern und bestätigen!'
-        this.overlayText.button_cancel = 'Nein, nicht speichern.'
+        this.overlayText.header = this.$t('overlay.confirm.title')
+        this.overlayText.text1 = this.$t('overlay.confirm.text')
+        this.overlayText.text2 = this.$t('overlay.confirm.question')
+        this.overlayText.button_ok = this.$t('overlay.confirm.yes')
+        this.overlayText.button_cancel = this.$t('overlay.confirm.no')
       }
     },
     overlayOK(bookmarkType, item) {

@@ -31,7 +31,7 @@
           @update-item="updateItem"
         />
         <div v-if="itemsMassCreation.length === 0">
-          Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
+          {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
           v-else
@@ -59,18 +59,18 @@ export default {
     return {
       showArrays: false,
       Searchfields: [
-        { key: 'bookmark', label: 'merken' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'email', label: 'Email' },
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        { key: 'creation', label: this.$t('open_creations') },
+        { key: 'email', label: this.$t('e_mail') },
       ],
       fields: [
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'bookmark', label: 'löschen' },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        { key: 'creation', label: this.$t('open_creations') },
+        { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
       itemsMassCreation: [],

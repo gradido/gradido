@@ -22,6 +22,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 const storeCommitMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
   },

@@ -1,10 +1,10 @@
 <template>
   <div class="component-creation-formular">
-    CREATION FORMULAR
+    {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
         <b-row class="m-4">
-          <label>Monat Auswählen</label>
+          <label>{{ $t('creation_form.select_month') }}</label>
           <b-col class="text-left">
             <b-form-radio
               id="beforeLastMonth"
@@ -50,7 +50,7 @@
         </b-row>
 
         <b-row class="m-4" v-show="createdIndex != null">
-          <label>Betrag Auswählen</label>
+          <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
               <b-form-input
@@ -73,13 +73,13 @@
           </div>
         </b-row>
         <b-row class="m-4">
-          <label>Text eintragen</label>
+          <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
             <b-form-textarea
               id="textarea-state"
               v-model="text"
               :state="text.length >= 10"
-              placeholder="Mindestens 10 Zeichen eingeben"
+              :placeholder="$t('creation_form.min_characters')"
               rows="3"
             ></b-form-textarea>
           </div>
@@ -87,7 +87,7 @@
         <b-row class="m-4">
           <b-col class="text-center">
             <b-button type="reset" variant="danger" @click="$refs.creationForm.reset()">
-              zurücksetzen
+              {{ $t('creation_form.reset') }}
             </b-button>
           </b-col>
           <b-col class="text-center">
@@ -100,7 +100,7 @@
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
-                Update Schöpfung ({{ type }},{{ pagetype }})
+                {{ $t('creation_form.update_creation') }}
               </b-button>
 
               <b-button
@@ -111,7 +111,7 @@
                 @click="submitCreation"
                 :disabled="radioSelected === '' || value <= 0 || text.length < 10"
               >
-                Schöpfung einreichen ({{ type }})
+                {{ $t('creation_form.submit_creation') }}
               </b-button>
             </div>
           </b-col>
@@ -171,14 +171,17 @@ export default {
       currentMonth: {
         short: this.$moment().format('MMMM'),
         long: this.$moment().format('YYYY-MM-DD'),
+        year: this.$moment().format('YYYY'),
       },
       lastMonth: {
         short: this.$moment().subtract(1, 'month').format('MMMM'),
         long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
+        year: this.$moment().subtract(1, 'month').format('YYYY'),
       },
       beforeLastMonth: {
         short: this.$moment().subtract(2, 'month').format('MMMM'),
         long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
+        year: this.$moment().subtract(2, 'month').format('YYYY'),
       },
       submitObj: null,
       isdisabled: true,
@@ -190,6 +193,7 @@ export default {
     // Auswählen eines Zeitraumes
     updateRadioSelected(name, index, openCreation) {
       this.createdIndex = index
+      this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
@@ -238,7 +242,10 @@ export default {
           .then((result) => {
             this.$emit('update-user-data', this.item, result.data.createPendingCreation)
             this.$toasted.success(
-              `Offene Schöpfung (${this.value} GDD) für ${this.item.email} wurde gespeichert und liegen zur Bestätigung bereit`,
+              this.$t('creation_form.toasted', {
+                value: this.value,
+                email: this.item.email,
+              }),
             )
             this.$store.commit('openCreationsPlus', 1)
             this.submitObj = null
