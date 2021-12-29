@@ -1,5 +1,6 @@
 {
   "bookmark": "bookmark",
+  "confirmed": "bestätigt",
   "creation_form": {
     "creation_for": "Schöpfung für ",
     "enter_text": "Text eintragen",
@@ -19,7 +20,6 @@
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
   "hide_details": "Details verbergen von",
   "lastname": "Nachname",
-  "confirmed": "bestätigt",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "navbar": {
     "logout": "Abmelden",
