@@ -1,6 +1,7 @@
 import CONFIG from './config'
 import { createPool, PoolConfig } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
+import path from 'path'
 
 const poolConfig: PoolConfig = {
   host: CONFIG.DB_HOST,
@@ -18,7 +19,7 @@ const migration = new Migration({
   conn: pool,
   tableName: CONFIG.MIGRATIONS_TABLE,
   silent: true,
-  dir: CONFIG.MIGRATIONS_DIRECTORY,
+  dir: path.join(__dirname, '..', CONFIG.MIGRATIONS_DIRECTORY),
 })
 
 const initialize = async (): Promise<void> => {
