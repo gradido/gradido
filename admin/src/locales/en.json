@@ -17,9 +17,9 @@
   "e_mail": "E-Mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
-  "hide_details": "Hide details from ",
+  "hide_details": "Hide details from",
   "lastname": "Lastname",
-  "mail": "Mail",
+  "confirmed": "confirmed",
   "multiple_creation_text": "Please select one or more members you would like to scoop for.",
   "navbar": {
     "logout": "Logout",

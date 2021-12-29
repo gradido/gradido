@@ -66,7 +66,7 @@ export default {
           },
         },
         { key: 'show_details', label: this.$t('details') },
-        { key: 'confirm_mail', label: this.$t('mail') },
+        { key: 'confirm_mail', label: this.$t('confirmed') },
         { key: 'transactions_list', label: this.$t('transaction') },
       ],
       searchResult: [],
