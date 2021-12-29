@@ -58,7 +58,7 @@
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
     "info": "Email bestätigen, wiederholt senden an:",
-    "success": "Erfolgreich senden der Confirmation Link an die E-Mail des Users! ({email})",
+    "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text": " Die letzte Email wurde am <b>{date} Uhr</b> an das Mitglied ({mail}) gesendet."
   },
   "user_search": "User suche"
