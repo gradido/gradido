@@ -9,7 +9,7 @@
         :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
         aria-label="Help"
       ></b-icon>
-      Details verbergen von {{ row.item.firstName }} {{ row.item.lastName }}
+      {{ $t('hide_details') }} {{ row.item.firstName }} {{ row.item.lastName }}
     </b-button>
   </b-card>
 </template>

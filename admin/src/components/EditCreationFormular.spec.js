@@ -18,6 +18,7 @@ const stateCommitMock = jest.fn()
 const toastedErrorMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $moment: jest.fn(() => {
     return {
       format: jest.fn((m) => m),
