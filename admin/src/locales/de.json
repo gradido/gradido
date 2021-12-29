@@ -56,7 +56,7 @@
   "unregistered_emails": "Unregistrierte E-Mails",
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
-    "error": "Fehler beim senden des confirmation link an den Benutzer: {message}",
+    "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
     "info": "Email bestätigen, wiederholt senden an:",
     "success": "Erfolgreich senden der Confirmation Link an die E-Mail des Users! ({email})",
     "text": " Die letzte Email wurde am <b>{date} Uhr</b> an das Mitglied ({mail}) gesendet."
