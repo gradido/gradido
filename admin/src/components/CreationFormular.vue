@@ -244,11 +244,9 @@ export default {
             }
             this.$emit('remove-all-bookmark')
           })
-        // $store - offene Schöpfungen hochzählen
-        // this.$store.commit('openCreationsPlus', i)
-
-        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
-        // this.$emit('remove-all-bookmark')
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
       } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
