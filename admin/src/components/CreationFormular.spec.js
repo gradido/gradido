@@ -21,6 +21,7 @@ const toastedErrorMock = jest.fn()
 const toastedSuccessMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $moment: jest.fn(() => {
     return {
       format: jest.fn((m) => m),

@@ -26,6 +26,7 @@ import { signIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
+import { randomBytes } from 'crypto'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -432,7 +433,7 @@ export class UserResolver {
       dbUser.lastName = lastName
       dbUser.username = username
       // TODO this field has no null allowed unlike the loginServer table
-      dbUser.pubkey = Buffer.alloc(32, 0) // default to 0000...
+      dbUser.pubkey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
       // dbUser.pubkey = keyPair[0]
 
       await queryRunner.manager.save(dbUser).catch((er) => {
@@ -471,13 +472,13 @@ export class UserResolver {
     return 'success'
   }
 
-  private async sendAccountActivationEmail(
+  private sendAccountActivationEmail(
     activationLink: string,
     firstName: string,
     lastName: string,
     email: string,
-  ) {
-    const emailSent = await sendEMail({
+  ): Promise<boolean> {
+    return sendEMail({
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
       to: `${firstName} ${lastName} <${email}>`,
       subject: 'Gradido: E-Mail Überprüfung',
@@ -492,7 +493,6 @@ export class UserResolver {
         Mit freundlichen Grüßen,
         dein Gradido-Team`,
     })
-    return emailSent
   }
 
   @Mutation(() => Boolean)

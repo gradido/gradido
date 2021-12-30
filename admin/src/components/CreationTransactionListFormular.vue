@@ -1,6 +1,6 @@
 <template>
   <div class="component-creation-transaction-list">
-    Alle Geschöpften Transaktionen für den User
+    {{ $t('transactionlist.title') }}
     <b-table striped hover :items="items"></b-table>
   </div>
 </template>
