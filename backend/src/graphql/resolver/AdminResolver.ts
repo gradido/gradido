@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
+import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
@@ -160,11 +160,17 @@ export class AdminResolver {
     return !!res
   }
 
+
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
-  async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
+  async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
     const pendingCreation = await loginPendingTasksAdminRepository.findOneOrFail(id)
+
+    const userRepository = getCustomRepository(UserRepository)
+    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    if (moderatorUser.id === pendingCreation.userId)
+      throw new Error('Moderator can not confirm own pending creation')
 
     const transactionRepository = getCustomRepository(TransactionRepository)
     const receivedCallDate = new Date()
