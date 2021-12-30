@@ -123,6 +123,7 @@ export class AdminResolver {
     return result
   }
 
+  @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
