@@ -3,15 +3,15 @@
     <div style="text-align: right">
       <b-button block variant="danger" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="light"></b-icon>
-        Anzeigen aller nicht registrierten E-Mails.
+        {{ $t('unregistered_emails') }}
       </b-button>
     </div>
-    <label>Usersuche</label>
+    <label>{{ $t('user_search') }}</label>
     <b-input
       type="text"
       v-model="criteria"
       class="shadow p-3 mb-3 bg-white rounded"
-      placeholder="User suche"
+      :placeholder="$t('user_search')"
       @input="getUsers"
     ></b-input>
 
@@ -37,12 +37,12 @@ export default {
     return {
       showArrays: false,
       fields: [
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: 'Open creations',
+          label: this.$t('open_creation'),
           formatter: (value, key, item) => {
             return (
               `
@@ -65,9 +65,9 @@ export default {
             )
           },
         },
-        { key: 'show_details', label: 'Details' },
-        { key: 'confirm_mail', label: 'Mail' },
-        { key: 'transactions_list', label: 'Transaction' },
+        { key: 'show_details', label: this.$t('details') },
+        { key: 'confirm_mail', label: this.$t('confirmed') },
+        { key: 'transactions_list', label: this.$t('transaction') },
       ],
       searchResult: [],
       massCreation: [],
