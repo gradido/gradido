@@ -11,4 +11,10 @@ export default class Paginated {
 
   @Field(() => Order, { nullable: true })
   order?: Order
+
+  @Field(() => Boolean, { nullable: true })
+  onlyCreations?: boolean
+
+  @Field(() => Int, { nullable: true })
+  userId?: number
 }

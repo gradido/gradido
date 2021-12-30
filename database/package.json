@@ -10,9 +10,9 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "up": "cd build && node src/index.js up",
-    "down": "cd build && node src/index.js down",
-    "reset": "cd build && node src/index.js reset",
+    "up": "node build/src/index.js up",
+    "down": "node build/src/index.js down",
+    "reset": "node build/src/index.js reset",
     "dev_up": "ts-node src/index.ts up",
     "dev_down": "ts-node src/index.ts down",
     "dev_reset": "ts-node src/index.ts reset",

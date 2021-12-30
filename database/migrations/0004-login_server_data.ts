@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* FIRST MIGRATION
+/* MIGRATION TO COPY LOGIN_SERVER DATA
  *
- * This migration is special since it takes into account that
- * the database can be setup already but also may not be.
- * Therefore you will find all `CREATE TABLE` statements with
- * a `IF NOT EXISTS`, all `INSERT` with an `IGNORE` and in the
- * downgrade function all `DROP TABLE` with a `IF EXISTS`.
- * This ensures compatibility for existing or non-existing
- * databases.
+ * This migration copies all existing data from the `login_server` database (`gradido_login`)
+ * to the `community_server` database (`gradido_community`) in case the login_server database
+ * is present.
+ *
+ * NOTE: This will fail if the two databases are located on different servers.
+ *       Manual export and import of the database will be required then.
+ * NOTE: This migration does not delete the data when downgrading!
  */
 
 const LOGIN_SERVER_DB = 'gradido_login'

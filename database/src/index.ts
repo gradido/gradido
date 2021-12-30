@@ -1,7 +1,4 @@
 import 'reflect-metadata'
-import { createPool, PoolConfig } from 'mysql'
-import { Migration } from 'ts-mysql-migrate'
-import CONFIG from './config'
 import prepare from './prepare'
 import connection from './typeorm/connection'
 import { useSeeding, runSeeder } from 'typeorm-seeding'
@@ -10,29 +7,11 @@ import { CreateBibiBloxbergSeed } from './seeds/users/bibi-bloxberg.seed'
 import { CreateRaeuberHotzenplotzSeed } from './seeds/users/raeuber-hotzenplotz.seed'
 import { CreateBobBaumeisterSeed } from './seeds/users/bob-baumeister.seed'
 import { DecayStartBlockSeed } from './seeds/decay-start-block.seed'
+import { resetDB, pool, migration } from './helpers'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
   await prepare()
-
-  // Database connection for Migrations
-  const poolConfig: PoolConfig = {
-    host: CONFIG.DB_HOST,
-    port: CONFIG.DB_PORT,
-    user: CONFIG.DB_USER,
-    password: CONFIG.DB_PASSWORD,
-    database: CONFIG.DB_DATABASE,
-  }
-
-  // Pool?
-  const pool = createPool(poolConfig)
-
-  // Create & Initialize Migrations
-  const migration = new Migration({
-    conn: pool,
-    tableName: CONFIG.MIGRATIONS_TABLE,
-    dir: CONFIG.MIGRATIONS_DIRECTORY,
-  })
 
   // Database connection for TypeORM
   const con = await connection()
@@ -52,7 +31,7 @@ const run = async (command: string) => {
       break
     case 'reset':
       // TODO protect from production
-      await migration.reset() // use for resetting database
+      await resetDB() // use for resetting database
       break
     case 'seed':
       // TODO protect from production

@@ -340,6 +340,7 @@ async function listTransactions(
   pageSize: number,
   order: Order,
   user: dbUser,
+  onlyCreations: boolean,
 ): Promise<TransactionList> {
   let limit = pageSize
   let offset = 0
@@ -358,6 +359,7 @@ async function listTransactions(
     limit,
     offset,
     order,
+    onlyCreations,
   )
   skipFirstTransaction = userTransactionsCount > offset + limit
   const decay = !(currentPage > 1)
@@ -469,14 +471,32 @@ export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
   @Query(() => TransactionList)
   async transactionList(
-    @Args() { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    @Args()
+    {
+      currentPage = 1,
+      pageSize = 25,
+      order = Order.DESC,
+      onlyCreations = false,
+      userId,
+    }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    let userEntity: dbUser | undefined
+    if (userId) {
+      userEntity = await userRepository.findOneOrFail({ id: userId })
+    } else {
+      userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    }
 
-    const transactions = await listTransactions(currentPage, pageSize, order, userEntity)
+    const transactions = await listTransactions(
+      currentPage,
+      pageSize,
+      order,
+      userEntity,
+      onlyCreations,
+    )
 
     // get gdt sum
     const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
