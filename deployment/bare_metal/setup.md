@@ -9,7 +9,11 @@
 > passwd gradido
 >> enter new
 
-# Gives the user priviledges - this might be omitted in order to harden security 
+# Gives the user priviledges - this might be omitted in order to harden security
+# Care: This will require another administering user if you don't want root access.
+#       Since this setup expects the user running the software be the same as the administering user,
+#       you have to adjust the instructions according to that scenario.
+#       You might lock yourself out, if done wrong.
 > usermod -a -G sudo gradido
 
 # switch to the new user
