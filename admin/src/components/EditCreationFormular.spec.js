@@ -16,6 +16,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
 
 const stateCommitMock = jest.fn()
 const toastedErrorMock = jest.fn()
+const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $moment: jest.fn(() => {
@@ -42,6 +43,7 @@ const mocks = {
   },
   $toasted: {
     error: toastedErrorMock,
+    success: toastedSuccessMock,
   },
 }
 
@@ -51,6 +53,10 @@ const propsData = {
     memo: 'Test schöpfung 1',
     amount: 100,
     date: '2021-12-01',
+  },
+  item: {
+    id: 0,
+    email: 'bob@baumeister.de',
   },
 }
 
@@ -108,12 +114,31 @@ describe('EditCreationFormular', () => {
                   variables: {
                     amount: 90,
                     creationDate: 'YYYY-MM-01',
-                    email: undefined,
-                    id: undefined,
+                    email: 'bob@baumeister.de',
+                    id: 0,
                     memo: 'Test create coins',
                     moderator: 0,
                   },
                 }),
+              )
+            })
+
+            it('emits update-user-data', () => {
+              expect(wrapper.emitted('update-user-data')).toBeTruthy()
+              expect(wrapper.emitted('update-user-data')).toEqual([
+                [
+                  {
+                    id: 0,
+                    email: 'bob@baumeister.de',
+                  },
+                  [0, 0, 0],
+                ],
+              ])
+            })
+
+            it('toast success message', () => {
+              expect(toastedSuccessMock).toBeCalledWith(
+                'Offene schöpfung (90 GDD) für bob@baumeister.de wurde geändert, liegt zur Bestätigung bereit',
               )
             })
 
@@ -163,8 +188,8 @@ describe('EditCreationFormular', () => {
                   variables: {
                     amount: 90,
                     creationDate: 'YYYY-MM-01',
-                    email: undefined,
-                    id: undefined,
+                    email: 'bob@baumeister.de',
+                    id: 0,
                     memo: 'Test create coins',
                     moderator: 0,
                   },
@@ -219,8 +244,8 @@ describe('EditCreationFormular', () => {
                   variables: {
                     amount: 90,
                     creationDate: 'YYYY-MM-DD',
-                    email: undefined,
-                    id: undefined,
+                    email: 'bob@baumeister.de',
+                    id: 0,
                     memo: 'Test create coins',
                     moderator: 0,
                   },
