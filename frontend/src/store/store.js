@@ -78,32 +78,41 @@ export const actions = {
   },
 }
 
-export const store = new Vuex.Store({
-  plugins: [
-    createPersistedState({
-      storage: window.localStorage,
-    }),
-  ],
-  state: {
-    email: '',
-    language: null,
-    firstName: '',
-    lastName: '',
-    username: '',
-    description: '',
-    token: null,
-    isAdmin: false,
-    coinanimation: true,
-    newsletterState: null,
-    community: {
-      name: '',
+let store
+
+try {
+  store = new Vuex.Store({
+    plugins: [
+      createPersistedState({
+        storage: window.localStorage,
+      }),
+    ],
+    state: {
+      email: '',
+      language: null,
+      firstName: '',
+      lastName: '',
+      username: '',
       description: '',
+      token: null,
+      isAdmin: false,
+      coinanimation: true,
+      newsletterState: null,
+      community: {
+        name: '',
+        description: '',
+      },
+      hasElopage: false,
+      publisherId: null,
     },
-    hasElopage: false,
-    publisherId: null,
-  },
-  getters: {},
-  // Syncronous mutation of the state
-  mutations,
-  actions,
-})
+    getters: {},
+    // Syncronous mutation of the state
+    mutations,
+    actions,
+  })
+} catch (error) {
+  // eslint-disable-next-line no-console
+  console.log(error)
+}
+
+export { store }

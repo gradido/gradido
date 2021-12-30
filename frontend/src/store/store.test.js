@@ -1,4 +1,8 @@
 import { mutations, actions } from './store'
+import Vuex from 'vuex'
+import Vue from 'vue'
+
+jest.mock('vuex')
 
 const {
   language,
@@ -296,6 +300,27 @@ describe('Vuex store', () => {
         logout({ commit, state })
         expect(clearStorageMock).toBeCalled()
       })
+    })
+  })
+
+  describe('creation of store fails', () => {
+    const consoleErrorMock = jest.fn()
+    const warnHandler = Vue.config.warnHandler
+    beforeEach(() => {
+      Vue.config.warnHandler = (w) => {}
+      // eslint-disable-next-line no-console
+      console.error = consoleErrorMock
+      Vuex.Store = () => {
+        throw new Error('no-cookies-allowed')
+      }
+    })
+
+    afterEach(() => {
+      Vue.config.warnHandler = warnHandler
+    })
+
+    it.skip('logs an error message', () => {
+      expect(consoleErrorMock).toBeCalledWith('no-cookies-allowed')
     })
   })
 })
