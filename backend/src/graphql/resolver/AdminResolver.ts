@@ -151,6 +151,7 @@ export class AdminResolver {
     return pendingCreationsPromise.reverse()
   }
 
+  @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
