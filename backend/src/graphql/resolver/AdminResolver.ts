@@ -93,7 +93,7 @@ export class AdminResolver {
     }
   }
 
-  // @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
