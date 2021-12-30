@@ -13,8 +13,12 @@ describe('UserTable', () => {
     creation: [],
   }
 
+  const mocks = {
+    $t: jest.fn((t) => t),
+  }
+
   const Wrapper = () => {
-    return mount(UserTable, { localVue, propsData })
+    return mount(UserTable, { localVue, propsData, mocks })
   }
 
   describe('mount', () => {

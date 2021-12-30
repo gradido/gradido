@@ -9,18 +9,18 @@
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
-          <b-nav-item to="/">Übersicht</b-nav-item>
-          <b-nav-item to="/user">Usersuche</b-nav-item>
-          <b-nav-item to="/creation">Mehrfachschöpfung</b-nav-item>
+          <b-nav-item to="/">{{ $t('navbar.overview') }}</b-nav-item>
+          <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
+          <b-nav-item to="/creation">{{ $t('navbar.multi_creation') }}</b-nav-item>
           <b-nav-item
             v-show="$store.state.openCreations > 0"
             class="bg-color-creation p-1"
             to="/creation-confirm"
           >
-            {{ $store.state.openCreations }} offene Schöpfungen
+            {{ $store.state.openCreations }} {{ $t('navbar.open_creation') }}
           </b-nav-item>
-          <b-nav-item @click="wallet">Wallet</b-nav-item>
-          <b-nav-item @click="logout">Logout</b-nav-item>
+          <b-nav-item @click="wallet">{{ $t('navbar.wallet') }}</b-nav-item>
+          <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
