@@ -2,6 +2,9 @@ import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
 export class UserAdmin {
+  @Field(() => Number)
+  userId: number
+
   @Field(() => String)
   email: string
 
@@ -13,4 +16,7 @@ export class UserAdmin {
 
   @Field(() => [Number])
   creation: number[]
+
+  @Field(() => Boolean)
+  emailChecked: boolean
 }

@@ -1,1 +1,65 @@
-{}
+{
+  "bookmark": "bookmark",
+  "confirmed": "bestätigt",
+  "creation_form": {
+    "creation_for": "Schöpfung für ",
+    "enter_text": "Text eintragen",
+    "form": "Schöpfungsformular",
+    "min_characters": "Mindestens 10 Zeichen eingeben",
+    "reset": "Zurücksetzen",
+    "select_month": "Monat auswählen",
+    "select_value": "Betrag auswählen",
+    "submit_creation": "Schöpfung einreichen",
+    "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
+    "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
+    "update_creation": "Schöpfung aktualisieren"
+  },
+  "details": "Details",
+  "e_mail": "E-Mail",
+  "firstname": "Vorname",
+  "gradido_admin_footer": "Gradido Akademie Adminkonsole",
+  "hide_details": "Details verbergen von",
+  "lastname": "Nachname",
+  "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
+  "navbar": {
+    "logout": "Abmelden",
+    "multi_creation": "Mehrfachschöpfung",
+    "open_creation": "Offene Schöpfungen",
+    "overview": "Übersicht",
+    "user_search": "Nutzersuche",
+    "wallet": "Wallet"
+  },
+  "not_open_creations": "Keine offenen Schöpfungen",
+  "open_creation": "Offene Schöpfung",
+  "open_creations": "Offene Schöpfungen",
+  "overlay": {
+    "confirm": {
+      "no": "Nein, nicht speichern.",
+      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
+      "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
+      "title": "Schöpfung bestätigen!",
+      "yes": "Ja, Schöpfung bestätigen und speichern!"
+    },
+    "remove": {
+      "no": "Nein, nicht löschen.",
+      "question": "Willst du die vorgespeicherte Schöpfung wirklich löschen?",
+      "text": "Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.",
+      "title": "Achtung! Schöpfung löschen!",
+      "yes": "Ja, Schöpfung löschen!"
+    }
+  },
+  "remove": "Entfernen",
+  "transaction": "Transaktion",
+  "transactionlist": {
+    "title": "Alle geschöpften Transaktionen für den Nutzer"
+  },
+  "unregistered_emails": "Unregistrierte E-Mails",
+  "unregister_mail": {
+    "button": "Registrierungs-Email bestätigen, jetzt senden",
+    "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
+    "info": "Email bestätigen, wiederholt senden an:",
+    "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
+    "text": " Die letzte Email wurde am <b>{date} Uhr</b> an das Mitglied ({mail}) gesendet."
+  },
+  "user_search": "Nutzer-Suche"
+}

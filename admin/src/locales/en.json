@@ -1,1 +1,65 @@
-{}
+{
+  "bookmark": "Remember",
+  "confirmed": "confirmed",
+  "creation_form": {
+    "creation_for": "Creation for ",
+    "enter_text": "Enter text",
+    "form": "Creation form",
+    "min_characters": "Enter at least 10 characters",
+    "reset": "Reset",
+    "select_month": "Select month",
+    "select_value": "Select amount",
+    "submit_creation": "Submit creation",
+    "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
+    "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
+    "update_creation": "Creation update"
+  },
+  "details": "Details",
+  "e_mail": "E-Mail",
+  "firstname": "Firstname",
+  "gradido_admin_footer": "Gradido Academy Admin Console",
+  "hide_details": "Hide details from",
+  "lastname": "Lastname",
+  "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
+  "navbar": {
+    "logout": "Logout",
+    "multi_creation": "Multiple creation",
+    "open_creation": "Open creations",
+    "overview": "Overview",
+    "user_search": "User search",
+    "wallet": "Wallet"
+  },
+  "not_open_creations": "No open creations",
+  "open_creation": "Open creation",
+  "open_creations": "Open creations",
+  "overlay": {
+    "confirm": {
+      "no": "No, do not save.",
+      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "title": "Confirm creation!",
+      "yes": "Yes, confirm and save creation!"
+    },
+    "remove": {
+      "no": "No, do not delete.",
+      "question": "Do you really want to delete the pre-stored creation?",
+      "text": "After deletion, there is no possibility to restore this data record. However, the entire process is saved in the log file as an overview.",
+      "title": "Attention! Delete creation!",
+      "yes": "Yes, delete creation!"
+    }
+  },
+  "remove": "Remove",
+  "transaction": "Transaction",
+  "transactionlist": {
+    "title": "All creation-transactions for the user"
+  },
+  "unregistered_emails": "Unregistered e-mails",
+  "unregister_mail": {
+    "button": "Confirm registration email, send now",
+    "error": "Error sending the confirmation link to the user: {message}",
+    "info": "Confirm email, send repeatedly to:",
+    "success": "Successfully send the confirmation link to the user's email! ({email})",
+    "text": " The last email was sent to the member ({mail}) on <b>{date} clock</b>."
+  },
+  "user_search": "User search"
+}
