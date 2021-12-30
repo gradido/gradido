@@ -42,7 +42,7 @@ export class AdminResolver {
     return adminUsers
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
@@ -67,7 +67,7 @@ export class AdminResolver {
     return await getUserCreations(user.id)
   }
 
-  // @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => CreatePendingCreations)
   async createPendingCreations(
     @Arg('pendingCreations', () => [CreatePendingCreationArgs])
