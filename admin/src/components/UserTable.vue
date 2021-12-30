@@ -36,63 +36,86 @@
       hover
       stacked="md"
     >
+      <template #cell(creation)="data">
+        <div v-html="data.value"></div>
+      </template>
+
       <template #cell(edit_creation)="row">
-        <b-button
-          variant="info"
-          size="md"
-          @click="editCreationUserTable(row, row.item)"
-          class="mr-2"
-        >
-          <b-icon v-if="row.detailsShowing" icon="x" aria-label="Help"></b-icon>
-          <b-icon v-else icon="pencil-square" aria-label="Help"></b-icon>
+        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+          <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="md" @click="row.toggleDetails" class="mr-2">
-          <b-icon v-if="row.detailsShowing" icon="eye-slash-fill" aria-label="Help"></b-icon>
-          <b-icon v-else icon="eye-fill" aria-label="Help"></b-icon>
+        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+          <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
+        </b-button>
+      </template>
+
+      <template #cell(confirm_mail)="row">
+        <b-button
+          :variant="row.item.emailChecked ? 'success' : 'danger'"
+          size="md"
+          @click="rowToogleDetails(row, 1)"
+          class="mr-2"
+        >
+          <b-icon
+            :icon="row.item.emailChecked ? 'envelope-open' : 'envelope'"
+            aria-label="Help"
+          ></b-icon>
+        </b-button>
+      </template>
+
+      <template #cell(transactions_list)="row">
+        <b-button variant="warning" size="md" @click="rowToogleDetails(row, 2)" class="mr-2">
+          <b-icon icon="list"></b-icon>
         </b-button>
       </template>
 
       <template #row-details="row">
-        <b-card class="shadow-lg p-3 mb-5 bg-white rounded">
-          <b-row class="mb-2">
-            <b-col></b-col>
-          </b-row>
-          {{ type }}
-          <creation-formular
-            v-if="type === 'PageUserSearch'"
-            type="singleCreation"
-            :pagetype="type"
-            :creation="row.item.creation"
-            :item="row.item"
-            :creationUserData="creationUserData"
-            @update-creation-data="updateCreationData"
-            @update-user-data="updateUserData"
-          />
-          <edit-creation-formular
-            v-else
-            type="singleCreation"
-            :pagetype="type"
-            :creation="row.item.creation"
-            :item="row.item"
-            :row="row"
-            :creationUserData="creationUserData"
-            @update-creation-data="updateCreationData"
-            @update-user-data="updateUserData"
-          />
-
-          <b-button size="sm" @click="row.toggleDetails">
-            <b-icon
-              :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
-              aria-label="Help"
-            ></b-icon>
-            Details verbergen von {{ row.item.firstName }} {{ row.item.lastName }}
-          </b-button>
-        </b-card>
+        <row-details
+          :row="row"
+          :type="type"
+          :slotName="slotName"
+          :index="slotIndex"
+          @row-toogle-details="rowToogleDetails"
+        >
+          <template #show-creation>
+            <div>
+              <creation-formular
+                v-if="type === 'PageUserSearch'"
+                type="singleCreation"
+                :pagetype="type"
+                :creation="row.item.creation"
+                :item="row.item"
+                :creationUserData="creationUserData"
+                @update-creation-data="updateCreationData"
+                @update-user-data="updateUserData"
+              />
+              <edit-creation-formular
+                v-else
+                type="singleCreation"
+                :pagetype="type"
+                :creation="row.item.creation"
+                :item="row.item"
+                :row="row"
+                :creationUserData="creationUserData"
+                @update-creation-data="updateCreationData"
+                @update-user-data="updateUserData"
+              />
+            </div>
+          </template>
+          <template #show-register-mail>
+            <confirm-register-mail-formular
+              :email="row.item.email"
+              :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
+            />
+          </template>
+          <template #show-transaction-list>
+            <creation-transaction-list-formular :userId="row.item.userId" />
+          </template>
+        </row-details>
       </template>
-
       <template #cell(bookmark)="row">
         <b-button
           variant="warning"
@@ -132,7 +155,13 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
+import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormular.vue'
+import CreationTransactionListFormular from '../components/CreationTransactionListFormular.vue'
+import RowDetails from '../components/RowDetails.vue'
+
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+
+const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
 
 export default {
   name: 'UserTable',
@@ -162,9 +191,15 @@ export default {
   components: {
     CreationFormular,
     EditCreationFormular,
+    ConfirmRegisterMailFormular,
+    CreationTransactionListFormular,
+    RowDetails,
   },
   data() {
     return {
+      showCreationFormular: null,
+      showConfirmRegisterMailFormular: null,
+      showCreationTransactionListFormular: null,
       creationUserData: {},
       overlay: false,
       overlayBookmarkType: '',
@@ -178,30 +213,53 @@ export default {
           button_cancel: 'Cancel',
         },
       ],
+      slotIndex: 0,
+      openRow: null,
     }
   },
   methods: {
+    rowToogleDetails(row, index) {
+      if (this.openRow) {
+        if (this.openRow.index === row.index) {
+          if (index === this.slotIndex) {
+            row.toggleDetails()
+            this.openRow = null
+          } else {
+            this.slotIndex = index
+          }
+        } else {
+          this.openRow.toggleDetails()
+          row.toggleDetails()
+          this.slotIndex = index
+          this.openRow = row
+        }
+      } else {
+        row.toggleDetails()
+        this.slotIndex = index
+        this.openRow = row
+        if (this.type === 'PageCreationConfirm') {
+          this.creationUserData = row.item
+        }
+      }
+    },
     overlayShow(bookmarkType, item) {
       this.overlay = true
       this.overlayBookmarkType = bookmarkType
       this.overlayItem = item
 
       if (bookmarkType === 'remove') {
-        this.overlayText.header = 'Achtung! Schöpfung löschen!'
-        this.overlayText.text1 =
-          'Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.'
-        this.overlayText.text2 = 'Willst du die vorgespeicherte Schöpfung wirklich löschen? '
-        this.overlayText.button_ok = 'Ja, Schöpfung löschen!'
-        this.overlayText.button_cancel = 'Nein, nicht löschen.'
+        this.overlayText.header = this.$t('overlay.remove.title')
+        this.overlayText.text1 = this.$t('overlay.remove.text')
+        this.overlayText.text2 = this.$t('overlay.remove.question')
+        this.overlayText.button_ok = this.$t('overlay.remove.yes')
+        this.overlayText.button_cancel = this.$t('overlay.remove.no')
       }
       if (bookmarkType === 'confirm') {
-        this.overlayText.header = 'Schöpfung bestätigen!'
-        this.overlayText.text1 =
-          'Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.'
-        this.overlayText.text2 =
-          'Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?'
-        this.overlayText.button_ok = 'Ja, Schöpfung speichern und bestätigen!'
-        this.overlayText.button_cancel = 'Nein, nicht speichern.'
+        this.overlayText.header = this.$t('overlay.confirm.title')
+        this.overlayText.text1 = this.$t('overlay.confirm.text')
+        this.overlayText.text2 = this.$t('overlay.confirm.question')
+        this.overlayText.button_ok = this.$t('overlay.confirm.yes')
+        this.overlayText.button_cancel = this.$t('overlay.confirm.no')
       }
     },
     overlayOK(bookmarkType, item) {
@@ -237,19 +295,11 @@ export default {
           },
         })
         .then(() => {
-          this.$emit('remove-confirm-result', item, 'remove')
+          this.$emit('remove-confirm-result', item, 'confirmed')
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
-    },
-    editCreationUserTable(row, rowItem) {
-      if (!row.detailsShowing) {
-        this.creationUserData = rowItem
-      } else {
-        this.creationUserData = {}
-      }
-      row.toggleDetails()
     },
     updateCreationData(data) {
       this.creationUserData.amount = data.amount
@@ -261,6 +311,11 @@ export default {
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+  },
+  computed: {
+    slotName() {
+      return slotNames[this.slotIndex]
     },
   },
 }

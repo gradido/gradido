@@ -47,7 +47,7 @@ jobs:
       ##########################################################################
       - name: Admin | Build `test` image
         run: |
-          docker build --target test -t "gradido/admin:test" admin/
+          docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
           docker save "gradido/admin:test" > /tmp/admin.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -295,6 +295,35 @@ jobs:
         run: docker run --rm gradido/admin:test yarn run lint
 
   ##############################################################################
+  # JOB: LOCALES ADMIN ######################################################
+  ##############################################################################
+  locales_admin:
+    name: Locales - Admin
+    runs-on: ubuntu-latest
+    needs: [build_test_admin]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v2
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGE ##################################################
+      ##########################################################################
+      - name: Download Docker Image (Admin Interface)
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-admin-test
+          path: /tmp
+      - name: Load Docker Image
+        run: docker load < /tmp/admin.tar
+      ##########################################################################
+      # LOCALES FRONTEND #######################################################
+      ##########################################################################
+      - name: admin | Locales
+        run: docker run --rm gradido/admin:test yarn run locales
+
+  ##############################################################################
   # JOB: LINT BACKEND ##########################################################
   ##############################################################################
   lint_backend:
@@ -480,7 +509,7 @@ jobs:
       - name: backend | docker-compose
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb database
       - name: backend Unit tests | test
-        run: cd database && yarn && cd ../backend && yarn && yarn test  
+        run: cd database && yarn && yarn build && cd ../backend && yarn && yarn CI_worklfow_test
         # run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
       ##########################################################################
       # COVERAGE CHECK BACKEND #################################################
@@ -491,7 +520,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 37
+          min_coverage: 40
           token: ${{ github.token }}
 
   ##############################################################################

@@ -1,4 +1,4 @@
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, Float, Int } from 'type-graphql'
 
 @ArgsType()
 export default class CreatePendingCreationArgs {
@@ -8,7 +8,7 @@ export default class CreatePendingCreationArgs {
   @Field(() => String)
   email: string
 
-  @Field(() => Int)
+  @Field(() => Float)
   amount: number
 
   @Field(() => String)

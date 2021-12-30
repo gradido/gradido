@@ -7,6 +7,7 @@ const storeDispatchMock = jest.fn()
 const routerPushMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $store: {
     state: {
       openCreations: 1,

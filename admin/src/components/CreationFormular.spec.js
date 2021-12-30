@@ -21,6 +21,7 @@ const toastedErrorMock = jest.fn()
 const toastedSuccessMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $moment: jest.fn(() => {
     return {
       format: jest.fn((m) => m),
@@ -176,8 +177,8 @@ describe('CreationFormular', () => {
               await wrapper.find('.test-submit').trigger('click')
             })
 
-            it('sends ... to apollo', () => {
-              expect(toastedErrorMock).toBeCalled()
+            it('toasts an error message', () => {
+              expect(toastedErrorMock).toBeCalledWith('Ouch!')
             })
           })
 
