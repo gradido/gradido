@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Args, Authorized, Mutation } from 'type-graphql'
+import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
@@ -66,7 +66,7 @@ export class AdminResolver {
     return await getUserCreations(user.id)
   }
 
-  // @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
@@ -94,24 +94,9 @@ export class AdminResolver {
     result.creation = await getUserCreations(user.id)
 
     return result
-
-    // const creations = await getUserCreations(user.id)
-    // const creationDateObj = new Date(creationDate)
-    // if (isCreationValid(creations, amount, creationDateObj)) {
-    //   const pendingCreationRepository = getCustomRepository(PendingCreationRepository)
-    //   const loginPendingTaskAdmin = pendingCreationRepository.create()
-    //   loginPendingTaskAdmin.userId = user.id
-    //   loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-    //   loginPendingTaskAdmin.created = new Date()
-    //   loginPendingTaskAdmin.date = creationDateObj
-    //   loginPendingTaskAdmin.memo = memo
-    //   loginPendingTaskAdmin.moderator = moderator
-    //
-    //   pendingCreationRepository.save(loginPendingTaskAdmin)
-    // }
-    // return await getUserCreations(user.id)
   }
 
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
@@ -139,6 +124,7 @@ export class AdminResolver {
     return pendingCreationsPromise.reverse()
   }
 
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
@@ -147,10 +133,16 @@ export class AdminResolver {
     return !!res
   }
 
+  @Authorized([RIGHTS.SEARCH_USERS])
   @Mutation(() => Boolean)
-  async confirmPendingCreation(@Arg('id') id: number): Promise<boolean> {
+  async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
     const pendingCreation = await loginPendingTasksAdminRepository.findOneOrFail(id)
+
+    const userRepository = getCustomRepository(UserRepository)
+    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    if (moderatorUser.id === pendingCreation.userId)
+      throw new Error('Moderator can not confirm own pending creation')
 
     const transactionRepository = getCustomRepository(TransactionRepository)
     const receivedCallDate = new Date()
@@ -321,7 +313,5 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
 async function hasActivatedEmail(email: string): Promise<boolean> {
   const repository = getCustomRepository(LoginUserRepository)
   const user = await repository.findByEmail(email)
-  let emailActivate = false
-  if (user) emailActivate = user.emailChecked
   return user ? user.emailChecked : false
 }
