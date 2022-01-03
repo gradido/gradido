@@ -138,9 +138,7 @@ describe('EditCreationFormular', () => {
             })
 
             it('toast success message', () => {
-              expect(toastedSuccessMock).toBeCalledWith(
-                'Offene schöpfung (90 GDD) für bob@baumeister.de wurde geändert, liegt zur Bestätigung bereit',
-              )
+              expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_update')
             })
 
             describe('sendForm with error', () => {
