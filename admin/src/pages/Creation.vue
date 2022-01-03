@@ -93,7 +93,31 @@ export default {
         { key: 'email', label: this.$t('e_mail') },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
-        { key: 'creation', label: this.$t('open_creations') },
+         {
+          key: 'creation',
+          label: this.$t('open_creation'),
+          formatter: (value, key, item) => {
+            return (
+              `
+            <div>` +
+              this.$moment().subtract(2, 'month').format('MMMM') +
+              ` - ` +
+              String(value[0]) +
+              ` GDD</div>
+            <div>` +
+              this.$moment().subtract(1, 'month').format('MMMM') +
+              ` - ` +
+              String(value[1]) +
+              ` GDD</div>
+            <div>` +
+              this.$moment().format('MMMM') +
+              ` - ` +
+              String(value[2]) +
+              ` GDD</div>
+            `
+            )
+          },
+        },
         { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
