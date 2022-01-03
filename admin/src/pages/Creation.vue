@@ -62,7 +62,7 @@ export default {
         { key: 'bookmark', label: 'bookmark' },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
-         {
+        {
           key: 'creation',
           label: this.$t('open_creation'),
           formatter: (value, key, item) => {
@@ -93,7 +93,7 @@ export default {
         { key: 'email', label: this.$t('e_mail') },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
-         {
+        {
           key: 'creation',
           label: this.$t('open_creation'),
           formatter: (value, key, item) => {
