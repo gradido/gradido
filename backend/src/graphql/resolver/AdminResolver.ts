@@ -160,7 +160,6 @@ export class AdminResolver {
     return !!res
   }
 
-
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
@@ -338,6 +337,7 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
   }
   return true
 }
+
 async function hasActivatedEmail(email: string): Promise<boolean> {
   const repository = getCustomRepository(LoginUserRepository)
   const user = await repository.findByEmail(email)
