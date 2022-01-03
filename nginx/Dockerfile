@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM nginx:1.21.0
 
 WORKDIR /var/www/cakephp
 

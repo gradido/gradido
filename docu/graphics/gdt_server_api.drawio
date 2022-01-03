@@ -1,0 +1,208 @@
+<mxfile host="65bd71144e">
+    <diagram id="1NBLOcaJ18vLSwe3OBlU" name="Page-1">
+        <mxGraphModel dx="1337" dy="381" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#F1FAEE" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="78" value="External Service" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="1400" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="Community Gradido Akademie" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="279" y="840" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="Community B" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="840" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Community Gradido Akademie" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="40" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Current Process" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=21;fontStyle=1;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry y="10" width="180" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="EMail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="6" target="7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="80" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="GDT-Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="240" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Community B" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="40" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=none;startFill=0;endArrow=none;endFill=0;strokeWidth=3;labelBackgroundColor=#F1FAEE;strokeColor=#B20000;fontColor=#1D3557;fillColor=#e51400;" parent="1" source="12" target="7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="80" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="endArrow=none;html=1;strokeWidth=3;labelBackgroundColor=#F1FAEE;strokeColor=#B20000;fontColor=#1D3557;fillColor=#e51400;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="550" y="199" as="sourcePoint"/>
+                        <mxPoint x="570" y="184" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="" style="endArrow=none;html=1;strokeWidth=3;labelBackgroundColor=#F1FAEE;strokeColor=#B20000;fontColor=#1D3557;fillColor=#e51400;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="550" y="209.5" as="sourcePoint"/>
+                        <mxPoint x="570" y="194.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="The GDT-Server is only reachable internally.&lt;br&gt;&lt;br&gt;Another community cannot query it and therefore can not determin the GDT-Balance or the GDT-Transactions of a user. Since this data is queried via EMail identificator it is not possible to expose the GDT-Server to 3rd party communties for obvious privacy reasons.&lt;br&gt;&lt;br&gt;We need another process to expose the GDT data in a private manner, so the user data is protected and the GDT-Server can be exposed." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="180" width="260" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Community Gradido Akademie" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="440" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="Suggested Process" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=21;fontStyle=1;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry y="410" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="IdentifierHash" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="27" target="28" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="480" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="GDT-Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="640" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Community B" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="440" width="240" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="IdentifierHash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;endArrow=classic;endFill=1;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="31" target="28" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="480" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="We expose the GDT-Server to the public, but allow the query of the GDT data by an anonymous identifier hash only.&lt;br&gt;This way the data can not be linked with a user and crawling of known EMail adresses is no longer possible.&lt;br&gt;&lt;br&gt;This requires us to provide an user a way to get his identifier hash and our Gradido Akademie Community to automatically obtain it.&lt;br&gt;&lt;br&gt;The following shall describe thoses processes." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="580" width="260" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="endArrow=none;html=1;fontSize=21;strokeWidth=3;fillColor=none;labelBackgroundColor=#F1FAEE;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint y="400" as="sourcePoint"/>
+                        <mxPoint x="1090" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="38" value="" style="endArrow=none;html=1;fontSize=21;strokeWidth=3;fillColor=none;labelBackgroundColor=#F1FAEE;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint y="800" as="sourcePoint"/>
+                        <mxPoint x="1090" y="800" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="39" value="User requests his identifier hash" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=21;fontStyle=1;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry y="810" width="330" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="&lt;font style=&quot;font-size: 12px ; line-height: 120%&quot;&gt;Requests identifier hash &lt;br&gt;in his community's frontend&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;strokeWidth=3;jumpSize=6;startSize=6;spacing=2;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="52" target="58" edge="1">
+                    <mxGeometry x="0.0041" y="-29" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="52" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="1049" y="889" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Forward&lt;br&gt;with EMail&lt;br&gt;from user&lt;br&gt;&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="58" target="61" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="879" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="&lt;font style=&quot;font-size: 12px&quot;&gt;GDT-Server sends EMail with identifier hash&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0.5;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="61" target="63" edge="1">
+                    <mxGeometry x="-0.0051" y="-11" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="61" value="GDT-Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1040" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="1049" y="1070" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="The user can request an identifier hash via his community's frontend.&lt;br&gt;This will task the community's backend to send a request to the Gradido Akademie's GDT-Server with the EMail of the user.&lt;br&gt;The GDT-Server in turn will send the user his identifier hash via EMail.&lt;br&gt;The user can input this identifier hash into his community's frontend and therefore allows the foreign community to be able to query the GDT data.&lt;br&gt;&lt;br&gt;Attributes of the identifier hash:&lt;br&gt;1. Not guessable: long, random, not just a hash of the EMail&lt;br&gt;2. Unique: Each user can have only one globally unique identifier&lt;br&gt;3. Persistent: The user might want to use the identifier hash on more then one service&lt;br&gt;4. Regeneratable: The user might want to request to replace his existing hash with a new one in case the old got compromised" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="840" width="260" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="endArrow=none;html=1;fontSize=21;strokeWidth=3;fillColor=none;labelBackgroundColor=#F1FAEE;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint y="1200" as="sourcePoint"/>
+                        <mxPoint x="1090" y="1200" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="Special case: Gradido Akademie Community" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=21;fontStyle=1;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry y="1210" width="450" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="Community Gradido Akademie" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="1240" width="240" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1280" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="76" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Write identifier hash&lt;br&gt;directly into Database&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#B09500;fontColor=#1D3557;fillColor=#e3c800;" parent="1" source="74" target="73" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="74" value="GDT-Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1440" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="Since the Gradido Akademie has access to all data it is not required to pester the user with an EMail confirmation process.&lt;br&gt;&lt;br&gt;Therefore we can define two processes to keep all data up to date:&lt;br&gt;&lt;br&gt;1. A donatation or other change to the GDT account of an EMail happens.&lt;br&gt;2. Continously write all existing data&lt;br&gt;&lt;br&gt;Process 1 is dynamic and esures that once a user donates his identifier hash is directly written into the database as soon as this information reaches us.&lt;br&gt;&lt;br&gt;Process 2 is in case a user registers with our service who already has donated in the past (legacy). This process is not syncronous, meaning it might take a moment till the newly registred user gets access to his old donation data. Furthermore we can use this to syncronize our data between the two services initially and periodically to prevent out-of-sync-data." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="1240" width="260" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="80" value="&lt;font style=&quot;font-size: 12px&quot;&gt;User donates&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="77" target="79" edge="1">
+                    <mxGeometry x="0.0323" y="-20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="77" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="1048" y="1450" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="&lt;font style=&quot;font-size: 12px&quot;&gt;webhook&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;entryX=1;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="79" target="74" edge="1">
+                    <mxGeometry y="-20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="79" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Donation Service&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=21;strokeWidth=1;align=center;verticalAlign=middle;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="1440" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Hook&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="83" target="74" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Cron&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=21;strokeWidth=1;align=center;verticalAlign=middle;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1600" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="&lt;span style=&quot;font-size: 12px&quot;&gt;Request GDT-Data&lt;/span&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="85" target="6" edge="1">
+                    <mxGeometry x="0.0189" y="20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="85" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="90" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="89" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;Request GDT-Data&lt;/span&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="88" target="27" edge="1">
+                    <mxGeometry x="0.0189" y="20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="88" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="490" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="&lt;font style=&quot;font-size: 12px&quot;&gt;Request GDT-Data&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="90" target="12" edge="1">
+                    <mxGeometry x="0.0189" y="-20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="90" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="1050" y="90" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" value="&lt;span style=&quot;font-size: 12px&quot;&gt;Request GDT-Data&lt;/span&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=21;startArrow=none;startFill=0;endArrow=classic;endFill=1;startSize=6;strokeWidth=3;labelBackgroundColor=none;strokeColor=#2D7600;fontColor=#1D3557;fillColor=#60a917;" parent="1" source="92" target="31" edge="1">
+                    <mxGeometry x="0.0189" y="-20" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="92" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=21;strokeWidth=2;fillColor=#A8DADC;strokeColor=#457B9D;fontColor=#1D3557;" parent="1" vertex="1">
+                    <mxGeometry x="1050" y="490" width="30" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

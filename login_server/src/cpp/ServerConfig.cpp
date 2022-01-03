@@ -51,11 +51,13 @@ namespace ServerConfig {
 	std::string g_php_serverPath;
 	std::string g_php_serverHost;
 	std::string g_frontend_checkEmailPath;
+	std::string g_frontend_resetPasswordPath;
 	int        g_phpServerPort;
 	Poco::Mutex g_TimeMutex;
 	int         g_FakeLoginSleepTime = 820;
 	std::string g_versionString = "";
 	bool		g_disableEmail = false;
+	bool	    g_resendUnfinishedTransactionOnStart = false;
 	ServerSetupType g_ServerSetupType = SERVER_TYPE_PRODUCTION;
 	std::string g_devDefaultGroup = "";
 	std::string g_gRPCRelayServerFullURL;
@@ -238,8 +240,9 @@ namespace ServerConfig {
 		if ("" != app_secret_string) {
 			g_CryptoAppSecret = DataTypeConverter::hexToBin(app_secret_string);
 		}
-		std::string defaultCheckEmailPath = g_serverPath + "/checkEmail";
+		std::string defaultCheckEmailPath = "/account/checkEmail";
 		g_frontend_checkEmailPath = cfg.getString("frontend.checkEmailPath", defaultCheckEmailPath);
+		g_frontend_resetPasswordPath = cfg.getString("frontend.resetPasswordPath", defaultCheckEmailPath);
 		//g_CryptoAppSecret
 
 		// unsecure flags
@@ -257,23 +260,7 @@ namespace ServerConfig {
 			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
 		}
 
-
-		g_gRPCRelayServerFullURL = cfg.getString("grpc.server", "");
-
-		// unsecure flags
-		//g_AllowUnsecureFlags
-		if (cfg.getInt("unsecure.allow_passwort_via_json_request", 0) == 1) {
-			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_PASSWORD_REQUESTS);
-		}
-		if (cfg.getInt("unsecure.allow_auto_sign_transactions", 0) == 1) {
-			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_AUTO_SIGN_TRANSACTIONS);
-		}
-		if (cfg.getInt("unsecure.allow_cors_all", 0) == 1) {
-			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_CORS_ALL);
-		}
-		if (cfg.getInt("unsecure.allow_all_passwords", 0) == 1) {
-			g_AllowUnsecureFlags = (AllowUnsecure)(g_AllowUnsecureFlags | UNSECURE_ALLOW_ALL_PASSWORDS);
-		}
+		g_resendUnfinishedTransactionOnStart = cfg.getBool("dev.resend_unfinished_transactions_on_start", false);
 
 		return true;
 	}

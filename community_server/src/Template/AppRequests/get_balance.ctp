@@ -6,6 +6,10 @@
  * and open the template in the editor.
  */
 
-$body['balance'] = $this->element('centToFloat', ['cent' => $body['balance'], 'precision' => 4]);
-$body['decay'] = $this->element('centToFloat', ['cent' => $body['decay'], 'precision' => 4]);
+if(isset($body['balance'])) {
+    $body['balance'] = $this->element('centToFloat', ['cent' => $body['balance'], 'precision' => 4]);
+}
+if(isset($body['decay'])) {
+    $body['decay'] = $this->element('centToFloat', ['cent' => $body['decay'], 'precision' => 4]);
+}
 ?><?= json_encode($body) ?>

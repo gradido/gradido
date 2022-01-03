@@ -105,12 +105,13 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 		return stateSuccess();
 	}
 	auto receiver_user_id = receiver_user->getModel()->getID();
-	std::string checkEmailUrl = receiver_user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath;
+	std::string linkInEmail = "";
 	if (emailVerificationCodeType == model::table::EMAIL_OPT_IN_RESET_PASSWORD) 
 	{
+		linkInEmail = receiver_user->getGroupBaseUrl() + ServerConfig::g_frontend_resetPasswordPath;
 		session = sm->getNewSession();
 		if (emailType == model::EMAIL_USER_RESET_PASSWORD) {
-			auto r = session->sendResetPasswordEmail(receiver_user, true, checkEmailUrl);
+			auto r = session->sendResetPasswordEmail(receiver_user, true, linkInEmail);
 			if (1 == r) {
 				return stateWarning("email already sended");
 			}
@@ -120,7 +121,7 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 		}
 		else if (emailType == model::EMAIL_CUSTOM_TEXT) {
 			auto email_verification_code_object = controller::EmailVerificationCode::loadOrCreate(receiver_user_id, model::table::EMAIL_OPT_IN_RESET_PASSWORD);
-			email_verification_code_object->setBaseUrl(checkEmailUrl);
+			email_verification_code_object->setBaseUrl(linkInEmail);
 			auto email = new model::Email(email_verification_code_object, receiver_user, emailCustomText, emailCustomSubject);
 			em->addEmail(email);
 		}
@@ -131,12 +132,13 @@ Poco::JSON::Object* JsonSendEmail::handle(Poco::Dynamic::Var params)
 	} 
 	else 
 	{
+		linkInEmail = receiver_user->getGroupBaseUrl() + ServerConfig::g_frontend_checkEmailPath;
 		if (session->getNewUser()->getModel()->getRole() != model::table::ROLE_ADMIN) {
 			return stateError("admin needed");
 		}
 		
 		auto email_verification_code_object = controller::EmailVerificationCode::loadOrCreate(receiver_user_id, emailVerificationCodeType);
-		email_verification_code_object->setBaseUrl(checkEmailUrl);
+		email_verification_code_object->setBaseUrl(linkInEmail);
 		model::Email* email = nullptr;
 		if (emailType == model::EMAIL_CUSTOM_TEXT) {
 			email = new model::Email(email_verification_code_object, receiver_user, emailCustomText, emailCustomSubject);

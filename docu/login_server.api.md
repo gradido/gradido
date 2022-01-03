@@ -67,6 +67,7 @@ In case of success returns:
 		"username": ""
 	},
 	"session_id": -127182,
+	"hasElopage": true,
 	"clientIP":"123.123.123.123"
 }
 ```
@@ -86,6 +87,7 @@ In case of success returns:
   - `role`: role of user currently only "none" or "admin"
   - `username`: not used yet
 - `clientIP`: should be the same as where the js-client is running, else maybe a man-in-the-middle attacks is happening or 
+- `hasElopage`: only present if hasElopage was set to true in request, true if user has an elopage account
 nginx was wrong configured.
 - `session_id`: can be also negative
 
@@ -151,7 +153,7 @@ with:
 {
 	"email":"max.musterman@gmail.de",
 	"first_name":"Max",
-	"last_name":"Musterman",
+	"last_name":"Musterman" ,
 	"username": "Maxilein",
 	"description": "Tischler",
     "emailType": 2,
@@ -222,7 +224,6 @@ with:
 ```json 
 {
 	"session_id": -127182,
-	"email": "max.musterman@gmail.de",
 	"update": {
 		"User.first_name": "Max",
 		"User.last_name" : "Musterman",
@@ -231,7 +232,8 @@ with:
 		"User.disabled": 0,
 		"User.language": "de",
 		"User.password": "1234",
-		"User.password_old": "4321"
+		"User.password_old": "4321",
+		"User.publisher_id": "1"
   	}
 }
 ```
@@ -304,7 +306,8 @@ with:
 		"user.description",
 		"user.disabled",
 		"user.email_checked",
-		"user.language"
+		"user.language",
+		"user.publisher_id"
   	]
 }
 ```
@@ -342,6 +345,7 @@ Return only the fields which are defined in request
 is in db only saved in state_users so if we delete this entry, validating all transactions is no longer possible. Disabled User cannot login and cannot receive transactions. 
 - `email_checked`: If user has clicked on link in verification email (register), can only transfer gradidos if email_checked is 1
 - `language`: Language Key for User, currently 'de' or 'en'
+- `publisher_id`: elopage publisher ip
 - `errors`: array of strings if error occure 
 
 ## Login by Email Verification Code
@@ -591,3 +595,29 @@ or:
 	"msg": "session not found"
 }
 ```
+
+## Check if User has an Elopage Account
+Check if logged in user has already an elopage account
+
+### Request
+`GET http://localhost/login_api/hasElopage?session_id=-127182`
+
+### Response
+In case of success returns:
+
+```json
+{
+	"state":"success",
+	"hasElopage": true
+}
+```
+
+or:
+
+```json
+{
+	"state":"not found",
+	"msg": "session not found"
+}
+```
+

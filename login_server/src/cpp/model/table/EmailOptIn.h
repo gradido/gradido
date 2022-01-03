@@ -29,7 +29,7 @@ namespace model {
 			
 
 			// generic db operations
-			const char* getTableName() const { return "email_opt_in"; }
+			const char* getTableName() const { return "login_email_opt_in"; }
 			std::string toString();
 			
 			inline Poco::UInt64 getCode() const { return mEmailVerificationCode; }

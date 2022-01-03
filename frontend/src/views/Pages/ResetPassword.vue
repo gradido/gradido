@@ -5,13 +5,10 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('reset-password.title') }}</h1>
-              <div class="pb-4" v-if="!pending">
-                <span v-if="authenticated">
-                  {{ $t('reset-password.text') }}
-                </span>
-                <span v-else>
-                  {{ $t('reset-password.not-authenticated') }}
+              <h1>{{ $t('settings.password.reset') }}</h1>
+              <div class="pb-4">
+                <span>
+                  {{ $t('settings.password.reset-password.text') }}
                 </span>
               </div>
             </b-col>
@@ -20,7 +17,7 @@
       </div>
     </b-container>
     <b-container class="mt--8 p-1">
-      <b-row class="justify-content-center" v-if="authenticated">
+      <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
@@ -29,7 +26,7 @@
                   <input-password-confirmation v-model="form" />
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
-                      {{ $t('reset') }}
+                      {{ $t(displaySetup.button) }}
                     </b-button>
                   </div>
                 </b-form>
@@ -38,17 +35,36 @@
           </b-card>
         </b-col>
       </b-row>
-      <b-row>
+      <b-row v-if="displaySetup.linkTo">
         <b-col class="text-center py-lg-4">
-          <router-link to="/Login" class="mt-3">{{ $t('back') }}</router-link>
+          <router-link :to="displaySetup.linkTo" class="mt-3">{{ $t('back') }}</router-link>
         </b-col>
       </b-row>
     </b-container>
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
 import InputPasswordConfirmation from '../../components/Inputs/InputPasswordConfirmation'
+import { setPassword } from '../../graphql/mutations'
+
+const textFields = {
+  reset: {
+    authenticated: 'settings.password.reset-password.text',
+    notAuthenticated: 'settings.password.not-authenticated',
+    button: 'settings.password.reset',
+    linkTo: '/login',
+  },
+  checkEmail: {
+    authenticated: 'settings.password.set-password.text',
+    notAuthenticated: 'settings.password.not-authenticated',
+    button: 'settings.password.set',
+    linkTo: '/login',
+  },
+  login: {
+    headline: 'site.thx.errorTitle',
+    subtitle: 'site.thx.activateEmail',
+  },
+}
 
 export default {
   name: 'ResetPassword',
@@ -61,47 +77,42 @@ export default {
         password: '',
         passwordRepeat: '',
       },
-      authenticated: false,
-      sessionId: null,
-      email: null,
-      pending: true,
+      displaySetup: {},
     }
   },
   methods: {
     async onSubmit() {
-      const result = await loginAPI.changePassword(this.sessionId, this.email, this.form.password)
-      if (result.success) {
-        this.form.password = ''
-        /*
-            this.$store.dispatch('login', {
-            sessionId: result.result.data.session_id,
-            email: result.result.data.user.email,
-            })
-          */
-        this.$router.push('/thx/reset')
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .mutate({
+          mutation: setPassword,
+          variables: {
+            code: this.$route.params.optin,
+            password: this.form.password,
+          },
+        })
+        .then(() => {
+          this.form.password = ''
+          this.$router.push('/thx/reset')
+        })
+        .catch((error) => {
+          if (error.message.includes('Code is older than 10 minutes')) {
+            this.$toasted.global.error(error.message)
+            this.$router.push('/password/reset')
+          } else {
+            this.$toasted.global.error(error.message)
+          }
+        })
     },
-    async authenticate() {
-      const loader = this.$loading.show({
-        container: this.$refs.header,
-      })
-      const optin = this.$route.params.optin
-      const result = await loginAPI.loginViaEmailVerificationCode(optin)
-      if (result.success) {
-        this.authenticated = true
-        this.sessionId = result.result.data.session_id
-        this.email = result.result.data.user.email
+    setDisplaySetup() {
+      if (!this.$route.params.comingFrom) {
+        this.displaySetup = textFields.reset
       } else {
-        this.$toasted.error(result.result.message)
+        this.displaySetup = textFields[this.$route.params.comingFrom]
       }
-      loader.hide()
-      this.pending = false
     },
   },
-  mounted() {
-    this.authenticate()
+  created() {
+    this.setDisplaySetup()
   },
 }
 </script>

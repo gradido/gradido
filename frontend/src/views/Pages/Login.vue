@@ -18,9 +18,14 @@
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0" style="background-color: #ebebeba3 !important">
             <b-card-body class="p-4">
-              <div class="text-center text-muted mb-4">
-                <small>{{ $t('login') }}</small>
+              <div class="text-center text-muted mb-4 test-communitydata">
+                <b>{{ $store.state.community.name }}</b>
+                <p class="text-lead">
+                  {{ $store.state.community.description }}
+                </p>
+                {{ $t('login') }}
               </div>
+
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
                   <input-email v-model="form.email"></input-email>
@@ -38,13 +43,13 @@
             </b-card-body>
           </b-card>
           <b-row class="mt-3">
-            <b-col cols="6">
-              <router-link to="/password">
-                {{ $t('site.login.forgot_pwd') }}
+            <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
+              <router-link to="/password" class="mt-3">
+                {{ $t('settings.password.forgot_pwd') }}
               </router-link>
             </b-col>
-            <b-col cols="6" class="text-right" v-show="allowRegister">
-              <router-link to="/register">
+            <b-col cols="6" class="text-center text-sm-right col-12 col-sm-6">
+              <router-link to="/register" class="mt-3">
                 {{ $t('site.login.new_wallet') }}
               </router-link>
             </b-col>
@@ -55,10 +60,10 @@
   </div>
 </template>
 <script>
-import loginAPI from '../../apis/loginAPI'
-import CONFIG from '../../config'
 import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
+import { login } from '../../graphql/queries'
+import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
   name: 'login',
@@ -66,13 +71,13 @@ export default {
     InputPassword,
     InputEmail,
   },
+  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
         email: '',
         password: '',
       },
-      allowRegister: CONFIG.ALLOW_REGISTER,
       passwordVisible: false,
     }
   },
@@ -81,18 +86,33 @@ export default {
       const loader = this.$loading.show({
         container: this.$refs.submitButton,
       })
-      const result = await loginAPI.login(this.form.email, this.form.password)
-      if (result.success) {
-        this.$store.dispatch('login', {
-          sessionId: result.result.data.session_id,
-          user: result.result.data.user,
+      this.$apollo
+        .query({
+          query: login,
+          variables: {
+            email: this.form.email,
+            password: this.form.password,
+            publisherId: this.$store.state.publisherId,
+          },
+          fetchPolicy: 'network-only',
         })
-        this.$router.push('/overview')
-        loader.hide()
-      } else {
-        loader.hide()
-        this.$toasted.error(this.$t('error.no-account'))
-      }
+        .then((result) => {
+          const {
+            data: { login },
+          } = result
+          this.$store.dispatch('login', login)
+          this.$router.push('/overview')
+          loader.hide()
+        })
+        .catch((error) => {
+          this.$toasted.global.error(this.$t('error.no-account'))
+          if (error.message.includes('User email not validated')) {
+            this.$router.push('/thx/login')
+          } else if (error.message.includes('User has no password set yet')) {
+            this.$router.push('/reset/login')
+          }
+          loader.hide()
+        })
     },
   },
 }

@@ -59,6 +59,21 @@ describe('ContentFooter', () => {
           'https://github.com/gradido/gradido/releases/latest',
         )
       })
+
+      it('has last commit hash', async () => {
+        wrapper.setData({ shortHash: 'ACCEDED' })
+        wrapper.setData({ hash: 'ACCEDEDC001D00DC001D00DC001D00DC001CAFA' })
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('div.copyright').findAll('a').at(2).text()).toEqual('(ACCEDED)')
+      })
+
+      it('links to last release commit', async () => {
+        wrapper.setData({ hash: 'ACCEDEDC001D00DC001D00DC001D00DC001CAFA' })
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('div.copyright').findAll('a').at(2).attributes('href')).toEqual(
+          'https://github.com/gradido/gradido/commit/ACCEDEDC001D00DC001D00DC001D00DC001CAFA',
+        )
+      })
     })
 
     describe('links to gradido.net', () => {

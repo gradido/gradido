@@ -15,6 +15,7 @@ services:
       context: ./frontend
       target: production
     networks:
+      - external-net
       - internal-net
     ports:
       - 3000:3000
@@ -22,23 +23,46 @@ services:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
       # - PORT=3000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
       - NODE_ENV="production"
-      # Application only envs
-      #- HOST=0.0.0.0 # This is nuxt specific, alternative value is HOST=webapp
-    #env_file:
-    #  - ./frontend/.env
+    # env_file:
+      # - ./.env
+      # - ./frontend/.env
+
+  ########################################################
+  # ADMIN INTERFACE ######################################
+  ########################################################
+  admin:
+    image: gradido/admin:latest
+    build:
+      context: ./admin
+      target: production
+    networks:
+      - external-net
+      - internal-net
+    ports:
+      - 8080:8080
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=8090
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
+      - NODE_ENV="production"
+    # env_file:
+      # - ./.env
+      # - ./admin/.env
 
   #########################################################
   ## MARIADB ##############################################
   #########################################################
   mariadb:
     build:
-      context: .
-      dockerfile: ./mariadb/Dockerfile
-      target: mariadb_server_test
+      context: ./mariadb
+      target: mariadb_server
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
@@ -47,7 +71,63 @@ services:
     ports: 
       - 3306:3306
     volumes: 
-      - db_vol:/var/lib/mysql     
+      - db_vol:/var/lib/mysql
+      
+  ########################################################
+  # BACKEND ##############################################
+  ########################################################
+  backend:
+    image: gradido/backend:latest
+    build:
+      # since we have to include the entities from ./database we cannot define the context as ./backend
+      # this might blow build image size to the moon ?!
+      context: ./
+      dockerfile: ./backend/Dockerfile
+      target: production
+    networks:
+      - internal-net
+    ports:
+      - 4000:4000
+    depends_on:
+      - mariadb
+    restart: always
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      - DB_HOST=mariadb
+      # Application only envs
+    #env_file:
+    #  - ./frontend/.env
+
+  ########################################################
+  # DATABASE #############################################
+  ########################################################
+  database:
+    image: gradido/database:production_up
+    build:
+      context: ./database
+      target: production_up
+    depends_on:
+      - mariadb
+    networks:
+      - internal-net
+      - external-net # this is required to fetch the packages
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="production"
+      - DB_HOST=mariadb
+      # Application only envs
+    #env_file:
+    #  - ./frontend/.env
     
   #########################################################
   ## LOGIN SERVER #########################################
@@ -101,28 +181,6 @@ services:
       - internal-net
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-
-  #########################################################  
-  ## GRADIDO NODE v1 ######################################
-  #########################################################
- # gradido-node:
- #   build:
- #     context: .
- #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
- #   volumes:
- #     - ${GN_INSTANCE_FOLDER}:/opt/instance
- #   container_name: ${GN_CONTAINER_NAME}
-
-  #########################################################  
-  ## GRADIDO NODE test ###################################
-  #########################################################
- # gradido-node-test:
- #   build:
- #     context: .
- #     dockerfile: ./gn/docker/deprecated-hedera-node/Dockerfile
- #   container_name: gn-test
- #   working_dir: /opt/gn/build
- #   command: ["./unit_tests"]
       
 networks:
   external-net:

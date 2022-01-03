@@ -1,0 +1,18 @@
+Feature: {title}
+  As an {role}
+  I want to {do}
+  In order to {reason}
+
+  Background:
+    Given the following "{entities}" are in the database:
+      | id | title                       | pinned | createdAt  |
+      | p1 | Some other post             |        | 2020-01-21 |
+      | p2 | Houston we have a problem   | x      | 2020-01-20 |
+      | p3 | Yet another post            |        | 2020-01-19 |
+    And I am {here/there}
+
+  Scenario: {title}
+    When I do {this}
+    And I do {that}
+    Then I should {have/see/be}
+    And I should {have/see/be}

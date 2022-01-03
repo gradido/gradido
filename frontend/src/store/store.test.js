@@ -1,6 +1,24 @@
 import { mutations, actions } from './store'
+import Vuex from 'vuex'
+import Vue from 'vue'
 
-const { language, email, sessionId, username, firstName, lastName, description } = mutations
+jest.mock('vuex')
+
+const {
+  language,
+  email,
+  token,
+  username,
+  firstName,
+  lastName,
+  description,
+  coinanimation,
+  newsletterState,
+  publisherId,
+  isAdmin,
+  community,
+  hasElopage,
+} = mutations
 const { login, logout } = actions
 
 describe('Vuex store', () => {
@@ -21,11 +39,11 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('sessionId', () => {
-      it('sets the state of sessionId', () => {
-        const state = { sessionId: null }
-        sessionId(state, '1234')
-        expect(state.sessionId).toEqual('1234')
+    describe('token', () => {
+      it('sets the state of token', () => {
+        const state = { token: null }
+        token(state, '1234')
+        expect(state.token).toEqual('1234')
       })
     })
 
@@ -60,6 +78,70 @@ describe('Vuex store', () => {
         expect(state.description).toEqual('Nickelbrille')
       })
     })
+
+    describe('coinanimation', () => {
+      it('sets the state of coinanimation', () => {
+        const state = { coinanimation: true }
+        coinanimation(state, false)
+        expect(state.coinanimation).toEqual(false)
+      })
+    })
+
+    describe('newsletterState', () => {
+      it('sets the state of newsletterState', () => {
+        const state = { newsletterState: null }
+        newsletterState(state, true)
+        expect(state.newsletterState).toEqual(true)
+      })
+    })
+
+    describe('publisherId', () => {
+      it('sets the state of publisherId', () => {
+        const state = {}
+        publisherId(state, 42)
+        expect(state.publisherId).toEqual(42)
+      })
+
+      it('sets publisherId to null with NaN', () => {
+        const state = {}
+        publisherId(state, 'abc')
+        expect(state.publisherId).toEqual(null)
+      })
+    })
+
+    describe('isAdmin', () => {
+      it('sets the state of isAdmin', () => {
+        const state = { isAdmin: null }
+        isAdmin(state, true)
+        expect(state.isAdmin).toEqual(true)
+      })
+    })
+
+    describe('community', () => {
+      it('sets the state of community', () => {
+        const state = {}
+        community(state, {
+          name: 'test12',
+          description: 'test community 12',
+          url: 'http://test12.test12/',
+          registerUrl: 'http://test12.test12/vue/register',
+        })
+        expect(state.community).toEqual({
+          name: 'test12',
+          description: 'test community 12',
+          url: 'http://test12.test12/',
+          registerUrl: 'http://test12.test12/vue/register',
+        })
+      })
+    })
+
+    describe('hasElopage', () => {
+      it('sets the state of hasElopage', () => {
+        const state = { hasElopage: false }
+        hasElopage(state, true)
+        expect(state.hasElopage).toBeTruthy()
+      })
+    })
   })
 
   describe('actions', () => {
@@ -67,55 +149,79 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
       const commitedData = {
-        sessionId: 1234,
-        user: {
-          email: 'someone@there.is',
-          language: 'en',
-          username: 'user',
-          first_name: 'Peter',
-          last_name: 'Lustig',
-          description: 'Nickelbrille',
+        email: 'user@example.org',
+        language: 'de',
+        username: 'peter',
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        description: 'Nickelbrille',
+        coinanimation: false,
+        klickTipp: {
+          newsletterState: true,
         },
+        hasElopage: false,
+        publisherId: 1234,
+        isAdmin: true,
       }
 
-      it('calls seven commits', () => {
+      it('calls eleven commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(7)
-      })
-
-      it('commits sessionId', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', 1234)
+        expect(commit).toHaveBeenCalledTimes(11)
       })
 
       it('commits email', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(2, 'email', 'someone@there.is')
+        expect(commit).toHaveBeenNthCalledWith(1, 'email', 'user@example.org')
       })
 
       it('commits language', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(3, 'language', 'en')
+        expect(commit).toHaveBeenNthCalledWith(2, 'language', 'de')
       })
 
       it('commits username', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(4, 'username', 'user')
+        expect(commit).toHaveBeenNthCalledWith(3, 'username', 'peter')
       })
 
       it('commits firstName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'firstName', 'Peter')
+        expect(commit).toHaveBeenNthCalledWith(4, 'firstName', 'Peter')
       })
 
       it('commits lastName', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'lastName', 'Lustig')
+        expect(commit).toHaveBeenNthCalledWith(5, 'lastName', 'Lustig')
       })
 
       it('commits description', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'description', 'Nickelbrille')
+        expect(commit).toHaveBeenNthCalledWith(6, 'description', 'Nickelbrille')
+      })
+
+      it('commits coinanimation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', false)
+      })
+
+      it('commits newsletterState', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', true)
+      })
+
+      it('commits hasElopage', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
+
+      it('commits publisherId', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', 1234)
+      })
+
+      it('commits isAdmin', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(11, 'isAdmin', true)
       })
     })
 
@@ -123,14 +229,14 @@ describe('Vuex store', () => {
       const commit = jest.fn()
       const state = {}
 
-      it('calls six commits', () => {
+      it('calls eleven commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(6)
+        expect(commit).toHaveBeenCalledTimes(11)
       })
 
-      it('commits sessionId', () => {
+      it('commits token', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(1, 'sessionId', null)
+        expect(commit).toHaveBeenNthCalledWith(1, 'token', null)
       })
 
       it('commits email', () => {
@@ -158,8 +264,33 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(6, 'description', '')
       })
 
+      it('commits coinanimation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(7, 'coinanimation', true)
+      })
+
+      it('commits newsletterState', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(8, 'newsletterState', null)
+      })
+
+      it('commits hasElopage', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'hasElopage', false)
+      })
+
+      it('commits publisherId', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(10, 'publisherId', null)
+      })
+
+      it('commits isAdmin', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(11, 'isAdmin', false)
+      })
+
       // how to get this working?
-      it.skip('calls sessionStorage.clear()', () => {
+      it.skip('calls localStorage.clear()', () => {
         const clearStorageMock = jest.fn()
         global.sessionStorage = jest.fn(() => {
           return {
@@ -169,6 +300,27 @@ describe('Vuex store', () => {
         logout({ commit, state })
         expect(clearStorageMock).toBeCalled()
       })
+    })
+  })
+
+  describe('creation of store fails', () => {
+    const consoleErrorMock = jest.fn()
+    const warnHandler = Vue.config.warnHandler
+    beforeEach(() => {
+      Vue.config.warnHandler = (w) => {}
+      // eslint-disable-next-line no-console
+      console.error = consoleErrorMock
+      Vuex.Store = () => {
+        throw new Error('no-cookies-allowed')
+      }
+    })
+
+    afterEach(() => {
+      Vue.config.warnHandler = warnHandler
+    })
+
+    it.skip('logs an error message', () => {
+      expect(consoleErrorMock).toBeCalledWith('no-cookies-allowed')
     })
   })
 })

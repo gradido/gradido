@@ -1,98 +1,84 @@
 <template>
-  <div class="userdata_form">
-    <b-card
-      id="userdata_form"
-      class="bg-transparent"
-      style="background-color: #ebebeba3 !important"
-    >
-      <b-container>
-        <b-row class="text-right">
-          <b-col class="mb-3">
-            <b-icon
-              v-if="showUserData"
-              @click="showUserData = !showUserData"
-              class="pointer"
-              icon="pencil"
-            >
-              {{ $t('form.change') }}
-            </b-icon>
+  <b-card id="userdata_form" class="card-border-radius card-background-gray">
+    <div>
+      <b-row class="mb-4 text-right">
+        <b-col class="text-right">
+          <a @click="showUserData ? (showUserData = !showUserData) : cancelEdit()">
+            <span class="pointer mr-3">{{ $t('settings.name.change-name') }}</span>
+            <b-icon v-if="showUserData" class="pointer ml-3" icon="pencil"></b-icon>
+            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
+          </a>
+        </b-col>
+      </b-row>
+    </div>
 
-            <b-icon
-              v-else
-              @click="cancelEdit"
-              class="pointer"
-              icon="x-circle"
-              variant="danger"
-            ></b-icon>
+    <div>
+      <b-form @keyup.prevent="loadSubmitButton">
+        <b-row class="mb-3">
+          <b-col class="col-12">
+            <small>
+              <b>{{ $t('form.firstname') }}</b>
+            </small>
+          </b-col>
+          <b-col v-if="showUserData" class="col-12">
+            {{ form.firstName }}
+          </b-col>
+          <b-col v-else class="col-12">
+            <b-input type="text" v-model="form.firstName"></b-input>
           </b-col>
         </b-row>
-      </b-container>
+        <b-row class="mb-3">
+          <b-col class="col-12">
+            <small>
+              <b>{{ $t('form.lastname') }}</b>
+            </small>
+          </b-col>
+          <b-col v-if="showUserData" class="col-12">
+            {{ form.lastName }}
+          </b-col>
+          <b-col v-else class="col-12">
+            <b-input type="text" v-model="form.lastName"></b-input>
+          </b-col>
+        </b-row>
+        <b-row class="mb-3" v-show="false">
+          <b-col class="col-12">
+            <small>{{ $t('form.description') }}</small>
+          </b-col>
+          <b-col v-if="showUserData" class="col-12">
+            {{ form.description }}
+          </b-col>
+          <b-col v-else class="col-12">
+            <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
+          </b-col>
+        </b-row>
 
-      <b-container>
-        <b-form @keyup.prevent="loadSubmitButton">
-          <b-row class="mb-3">
-            <b-col class="col-12 col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
-              <small>{{ $t('form.firstname') }}</small>
-            </b-col>
-            <b-col v-if="showUserData" class="col-sm-10 col-md-9">
-              {{ form.firstName }}
-            </b-col>
-            <b-col v-else class="col-md-9 col-sm-10">
-              <b-input type="text" v-model="form.firstName"></b-input>
-            </b-col>
-          </b-row>
-          <b-row class="mb-3">
-            <b-col class="col-12 col-lg-3 col-md-12 col-sm-12 text-md-left text-lg-right">
-              <small>{{ $t('form.lastname') }}</small>
-            </b-col>
-            <b-col v-if="showUserData" class="col-sm-10 col-md-9">
-              {{ form.lastName }}
-            </b-col>
-            <b-col v-else class="col-md-9 col-sm-10">
-              <b-input type="text" v-model="form.lastName"></b-input>
-            </b-col>
-          </b-row>
-          <b-row class="mb-3" v-show="false">
-            <b-col class="col-12 col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-              <small>{{ $t('form.description') }}</small>
-            </b-col>
-            <b-col v-if="showUserData" class="col-sm-10 col-md-9">
-              {{ form.description }}
-            </b-col>
-            <b-col v-else class="col-sm-10 col-md-9">
-              <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
-            </b-col>
-          </b-row>
-
-          <b-row class="text-right" v-if="!showUserData">
-            <b-col>
-              <div class="text-right" ref="submitButton">
-                <b-button
-                  :variant="loading ? 'default' : 'success'"
-                  @click="onSubmit"
-                  type="submit"
-                  class="mt-4"
-                  :disabled="loading"
-                >
-                  {{ $t('form.save') }}
-                </b-button>
-              </div>
-            </b-col>
-          </b-row>
-        </b-form>
-      </b-container>
-    </b-card>
-  </div>
+        <b-row class="text-right" v-if="!showUserData">
+          <b-col>
+            <div class="text-right" ref="submitButton">
+              <b-button
+                :variant="loading ? 'default' : 'success'"
+                @click="onSubmit"
+                type="submit"
+                class="mt-4"
+                :disabled="loading"
+              >
+                {{ $t('form.save') }}
+              </b-button>
+            </div>
+          </b-col>
+        </b-row>
+      </b-form>
+    </div>
+  </b-card>
 </template>
 <script>
-import loginAPI from '../../../apis/loginAPI'
+import { updateUserInfos } from '../../../graphql/mutations'
 
 export default {
   name: 'FormUserData',
   data() {
     return {
       showUserData: true,
-      sessionId: this.$store.state.sessionId,
       form: {
         firstName: this.$store.state.firstName,
         lastName: this.$store.state.lastName,
@@ -121,24 +107,25 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault()
-      const result = await loginAPI.updateUserInfos(
-        this.$store.state.sessionId,
-        this.$store.state.email,
-        {
-          firstName: this.form.firstName,
-          lastName: this.form.lastName,
-          description: this.form.description,
-        },
-      )
-      if (result.success) {
-        this.$store.commit('firstName', this.form.firstName)
-        this.$store.commit('lastName', this.form.lastName)
-        this.$store.commit('description', this.form.description)
-        this.showUserData = true
-        this.$toasted.success(this.$t('site.profil.user-data.change-success'))
-      } else {
-        this.$toasted.error(result.result.message)
-      }
+      this.$apollo
+        .mutate({
+          mutation: updateUserInfos,
+          variables: {
+            firstName: this.form.firstName,
+            lastName: this.form.lastName,
+            description: this.form.description,
+          },
+        })
+        .then(() => {
+          this.$store.commit('firstName', this.form.firstName)
+          this.$store.commit('lastName', this.form.lastName)
+          this.$store.commit('description', this.form.description)
+          this.showUserData = true
+          this.$toasted.success(this.$t('settings.name.change-success'))
+        })
+        .catch((error) => {
+          this.$toasted.global.error(error.message)
+        })
     },
   },
 }

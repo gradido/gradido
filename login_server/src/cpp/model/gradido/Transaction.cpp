@@ -204,7 +204,7 @@ namespace model {
 				}
 			}
 			// try not finished but signed transactions again
-			if (!finished) {
+			if (!finished && ServerConfig::g_resendUnfinishedTransactionOnStart) {
 				transaction->ifEnoughSignsProceed(nullptr);
 			}
 
@@ -491,7 +491,7 @@ namespace model {
 						break;
 					case TRANSACTION_VALID_INVALID_TARGET_DATE:
 						error_name = t->gettext_str("Creation Error");
-						error_description = t->gettext_str("Invalid target date! No future and only 3 month in the past.");
+						error_description = t->gettext_str("Invalid target date! No future and only 2 month in the past.");
 						break;
 					case TRANSACTION_VALID_CREATION_OUT_OF_BORDER:
 						error_name = t->gettext_str("Creation Error");

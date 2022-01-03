@@ -1,38 +1,48 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import loginAPI from '../../apis/loginAPI.js'
 import ForgotPassword from './ForgotPassword'
 
-jest.mock('../../apis/loginAPI.js')
-
 const mockAPIcall = jest.fn()
-loginAPI.sendEmail = mockAPIcall
 
 const localVue = global.localVue
 
 const mockRouterPush = jest.fn()
 
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
+
+const createMockObject = (comingFrom) => {
+  return {
+    localVue,
+    mocks: {
+      $t: jest.fn((t) => t),
+      $router: {
+        push: mockRouterPush,
+      },
+      $apollo: {
+        query: mockAPIcall,
+      },
+      $route: {
+        params: {
+          comingFrom,
+        },
+      },
+    },
+    stubs,
+  }
+}
+
 describe('ForgotPassword', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $router: {
-      push: mockRouterPush,
-    },
-  }
-
-  const stubs = {
-    RouterLink: RouterLinkStub,
-  }
-
-  const Wrapper = () => {
-    return mount(ForgotPassword, { localVue, mocks, stubs })
+  const Wrapper = (functionN) => {
+    return mount(ForgotPassword, functionN)
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = Wrapper(createMockObject())
     })
 
     it('renders the component', () => {
@@ -40,11 +50,11 @@ describe('ForgotPassword', () => {
     })
 
     it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('site.password.title')
+      expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
     })
 
     it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('site.password.subtitle')
+      expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
     })
 
     describe('back button', () => {
@@ -92,19 +102,67 @@ describe('ForgotPassword', () => {
       })
 
       describe('valid Email', () => {
-        beforeEach(async () => {
-          await form.find('input').setValue('user@example.org')
-          await form.trigger('submit')
-          await flushPromises()
+        beforeEach(() => {
+          form.find('input').setValue('user@example.org')
         })
 
-        it('calls the API', () => {
-          expect(mockAPIcall).toHaveBeenCalledWith('user@example.org')
-        })
+        describe('calls the API', () => {
+          describe('sends back error', () => {
+            beforeEach(async () => {
+              mockAPIcall.mockRejectedValue({
+                message: 'error',
+              })
+              await form.trigger('submit')
+              await flushPromises()
+            })
 
-        it('pushes "/thx/password" to the route', () => {
-          expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            it('pushes to "/thx/password"', () => {
+              expect(mockAPIcall).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    email: 'user@example.org',
+                  },
+                }),
+              )
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            })
+          })
+
+          describe('success', () => {
+            beforeEach(async () => {
+              mockAPIcall.mockResolvedValue({
+                data: {
+                  sendResetPasswordEmail: {
+                    state: 'success',
+                  },
+                },
+              })
+              await form.trigger('submit')
+              await flushPromises()
+            })
+
+            it('pushes to "/thx/password"', () => {
+              expect(mockAPIcall).toBeCalledWith(
+                expect.objectContaining({
+                  variables: {
+                    email: 'user@example.org',
+                  },
+                }),
+              )
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+            })
+          })
         })
+      })
+    })
+
+    describe('comingFrom login', () => {
+      beforeEach(() => {
+        wrapper = Wrapper(createMockObject('reset'))
+      })
+
+      it('has another subtitle', () => {
+        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
       })
     })
   })

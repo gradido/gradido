@@ -19,13 +19,9 @@ function publisherLink($publisher, $the) {
 
 $this->assign('title', __('GDT Kontoübersicht'));
 $header = '<h3>' . __('Zur Verfügung: ') . '</h3>';
-$gdtSumFromEmails = 0;
-foreach($gdtSumPerEmail as $email => $gdt) {
-  $gdtSumFromEmails += $gdt;
-}
 
 if($gdtSum > 0){
-  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSumFromEmails]).'</h2>';
+  $header .= '<h2>'.$this->element('printGDT', ['number' => $gdtSum*100.0]).'</h2>';
 }
 if($moreEntrysAsShown) {
   $header .= '<span>'. __('Nur die letzten 100 Einträge werden angezeigt!') . '</span>';
@@ -51,8 +47,12 @@ $this->assign('header', $header);
       <div class="cell c3"><?= new FrozenTime($entry['date']) ?></div>
       <div class="cell c0"><?= h($entry['comment']) ?></div>
       <div class="cell c3">
-        <?= $this->element('printEuro', ['number' => $entry['amount']]); ?>
-        <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']]) ?>
+          <?php if(intval($entry['gdt_entry_type_id']) == 7) : ?>
+            <?= $this->element('printGDT', ['number' => $entry['amount']*100.0]); ?>
+          <?php else : ?>
+            <?= $this->element('printEuro', ['number' => $entry['amount']*100.0]); ?>
+            <?php if($entry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $entry['amount2']*100.0]) ?>
+          <?php endif; ?>
       </div>
       <div class="cell c2">
       <?= $this->Number->format($entry['factor']) ?>
@@ -60,7 +60,7 @@ $this->assign('header', $header);
         <?= $this->Number->format($entry['factor2']) ?>
       <?php endif; ?>
       </div>
-      <div class="cell c3"><?= $this->element('printGDT', ['number' => $entry['gdt']]) ?></div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $entry['gdt']*100.0]) ?></div>
     </div>
     <?php endforeach; ?>
   </div>
@@ -93,8 +93,12 @@ $this->assign('header', $header);
       <!--<div class="cell c0"><?= h($elopageTransaction['email']) ?></div>-->
       <div class="cell c3"><?= new FrozenTime($gdtEntry['date']) ?></div>
       <div class="cell c3">
-          <?= $this->element('printEuro', ['number' => $gdtEntry['amount']]) ?>
-          <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']]) ?>
+          <?php if(intval($gdtEntry['gdt_entry_type_id']) == 7) : ?>
+            <?= $this->element('printGDT', ['number' => $gdtEntry['amount']*100.0]); ?>
+          <?php else : ?>
+            <?= $this->element('printEuro', ['number' => $gdtEntry['amount']*100.0]); ?>
+            <?php if($gdtEntry['amount2']) echo ' + ' . $this->element('printEuro', ['number' => $gdtEntry['amount2']*100.0]) ?>
+          <?php endif; ?>
       </div>
       <div class="cell c2">
         <?= $this->Number->format($gdtEntry['factor']) ?>
@@ -102,7 +106,7 @@ $this->assign('header', $header);
           <?= $this->Number->format($gdtEntry['factor2']) ?>
         <?php endif; ?>
       </div>
-      <div class="cell c3"><?= $this->element('printGDT', ['number' => $gdtEntry['gdt']]) ?></div>
+      <div class="cell c3"><?= $this->element('printGDT', ['number' => $gdtEntry['gdt'] * 100.0]) ?></div>
     </div>
     <?php endforeach; ?>
   </div>

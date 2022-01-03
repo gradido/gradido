@@ -746,7 +746,7 @@ void Session::detectSessionState()
 		bool cryptedPassphrase = userBackups.size() > 0;
 		for (auto it = userBackups.begin(); it != userBackups.end(); it++) {
 			auto passphrase = (*it)->getModel()->getPassphrase();
-			Mnemonic* wordSource = nullptr;
+			const Mnemonic* wordSource = Passphrase::detectMnemonic(passphrase);
 			auto passphrase_obj = Passphrase::create(passphrase, wordSource);
 			if (!passphrase_obj.isNull() && passphrase_obj->checkIfValid()) {
 				auto key_pair = KeyPairEd25519::create(passphrase_obj);

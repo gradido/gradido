@@ -15,7 +15,7 @@ This document describes the technical overview for the Gradido infrastructur. Be
 
 ![CommunityServerAPI](../image/CommunityServerAPI.png)
 
-### Database Skeema
+### Database Skeema (outdated)
 
 ![CommunityDBSkeema](../image/CommunityDBSkeema.png)
 

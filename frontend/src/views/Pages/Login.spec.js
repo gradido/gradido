@@ -1,29 +1,23 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import loginAPI from '../../apis/loginAPI'
 import Login from './Login'
-
-jest.mock('../../apis/loginAPI')
 
 const localVue = global.localVue
 
-const mockLoginCall = jest.fn()
-mockLoginCall.mockReturnValue({
-  success: true,
-  result: {
-    data: {
-      session_id: 1,
-      user: {
-        name: 'Peter Lustig',
-      },
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    getCommunityInfo: {
+      name: 'test12',
+      description: 'test community 12',
+      url: 'http://test12.test12/',
+      registerUrl: 'http://test12.test12/vue/register',
     },
   },
 })
 
-loginAPI.login = mockLoginCall
-
 const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
+const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
 const spinnerHideMock = jest.fn()
 const spinnerMock = jest.fn(() => {
@@ -42,6 +36,14 @@ describe('Login', () => {
     $t: jest.fn((t) => t),
     $store: {
       dispatch: mockStoreDispach,
+      commit: mockStoreCommit,
+      state: {
+        community: {
+          name: '',
+          description: '',
+        },
+        publisherId: 12345,
+      },
     },
     $loading: {
       show: spinnerMock,
@@ -50,7 +52,12 @@ describe('Login', () => {
       push: mockRouterPush,
     },
     $toasted: {
-      error: toastErrorMock,
+      global: {
+        error: toastErrorMock,
+      },
+    },
+    $apollo: {
+      query: apolloQueryMock,
     },
   }
 
@@ -67,8 +74,30 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
+    it('commits the community info to the store', () => {
+      expect(mockStoreCommit).toBeCalledWith('community', {
+        name: 'test12',
+        description: 'test community 12',
+        url: 'http://test12.test12/',
+        registerUrl: 'http://test12.test12/vue/register',
+      })
+    })
+
     it('renders the Login form', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
+    })
+
+    describe('communities gives back error', () => {
+      beforeEach(() => {
+        apolloQueryMock.mockRejectedValue({
+          message: 'Failed to get communities',
+        })
+        wrapper = Wrapper()
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+      })
     })
 
     describe('Login header', () => {
@@ -77,14 +106,41 @@ describe('Login', () => {
       })
     })
 
-    describe('links', () => {
-      it('has a link "Forgot Password?"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
-          'site.login.forgot_pwd',
+    describe('Community data already loaded', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        mocks.$store.state.community = {
+          name: 'Gradido Entwicklung',
+          url: 'http://localhost/vue/',
+          registerUrl: 'http://localhost/vue/register',
+          description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        }
+        wrapper = Wrapper()
+      })
+
+      it('has a Community name', () => {
+        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+      })
+
+      it('has a Community description', () => {
+        expect(wrapper.find('.test-communitydata p').text()).toBe(
+          'Die lokale Entwicklungsumgebung von Gradido.',
         )
       })
 
-      it('links to /password when clicking "Forgot Password?"', () => {
+      it('does not call community data update', () => {
+        expect(apolloQueryMock).not.toBeCalled()
+      })
+    })
+
+    describe('links', () => {
+      it('has a link "Forgot Password"', () => {
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
+          'settings.password.forgot_pwd',
+        )
+      })
+
+      it('links to /password when clicking "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/password')
       })
 
@@ -144,10 +200,23 @@ describe('Login', () => {
           await flushPromises()
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+          apolloQueryMock.mockResolvedValue({
+            data: {
+              login: 'token',
+            },
+          })
         })
 
         it('calls the API with the given data', () => {
-          expect(mockLoginCall).toBeCalledWith('user@example.org', '1234')
+          expect(apolloQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                email: 'user@example.org',
+                password: '1234',
+                publisherId: 12345,
+              },
+            }),
+          )
         })
 
         it('creates a spinner', () => {
@@ -156,10 +225,7 @@ describe('Login', () => {
 
         describe('login success', () => {
           it('dispatches server response to store', () => {
-            expect(mockStoreDispach).toBeCalledWith('login', {
-              sessionId: 1,
-              user: { name: 'Peter Lustig' },
-            })
+            expect(mockStoreDispach).toBeCalledWith('login', 'token')
           })
 
           it('redirects to overview page', () => {
@@ -173,7 +239,9 @@ describe('Login', () => {
 
         describe('login fails', () => {
           beforeEach(() => {
-            mockLoginCall.mockReturnValue({ success: false })
+            apolloQueryMock.mockRejectedValue({
+              message: '..No user with this credentials',
+            })
           })
 
           it('hides the spinner', () => {
@@ -182,6 +250,44 @@ describe('Login', () => {
 
           it('toasts an error message', () => {
             expect(toastErrorMock).toBeCalledWith('error.no-account')
+          })
+
+          describe('login fails with "User email not validated"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User email not validated',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /thx/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/thx/login')
+            })
+          })
+
+          describe('login fails with "User has no password set yet"', () => {
+            beforeEach(async () => {
+              apolloQueryMock.mockRejectedValue({
+                message: 'User has no password set yet',
+              })
+              wrapper = Wrapper()
+              jest.clearAllMocks()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to /reset/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/reset/login')
+            })
           })
         })
       })

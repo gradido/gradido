@@ -15,7 +15,6 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 {
 	/*
 	'session_id' => $session_id,
-	'email' => $email,
 	'update' => ['User.first_name' => 'first_name', 'User.last_name' => 'last_name', 'User.disabled' => 0|1, 'User.language' => 'de']
 	*/
 	// incoming
@@ -34,8 +33,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 		/// not available for the given type.
 		/// Throws InvalidAccessException if Var is empty.
 		try {
-			paramJsonObject->get("email").convert(email);
-
+			
 			auto session_id_obj = paramJsonObject->get("session_id");
 			if (!session_id_obj.isEmpty()) {
 				session_id_obj.convert(session_id);
@@ -66,10 +64,7 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 	}
 	auto user = mSession->getNewUser();
 	auto user_model = user->getModel();
-	if (user_model->getEmail() != email) {
-		return customStateError("not same", "email don't belong to logged in user");
-	}
-	
+		
 	Poco::JSON::Object* result = new Poco::JSON::Object;
 	result->set("state", "success");
 	Poco::JSON::Array  jsonErrorsArray;
@@ -170,10 +165,22 @@ Poco::JSON::Object* JsonUpdateUserInfos::handle(Poco::Dynamic::Var params)
 				}
 
 			}
+			else if ("User.publisher_id" == name) {
+				if (value.isInteger()) {
+					int publisher_id = 0;
+					value.convert(publisher_id);
+					if(user_model->getPublisherId() != publisher_id) {
+						user_model->setPublisherId(publisher_id);
+						extractet_values++;
+					}
+				}
+				else {
+					jsonErrorsArray.add("User.publisher_id isn't a valid integer");
+				}
+			}
 			else if ("User.password" == name && (ServerConfig::g_AllowUnsecureFlags & ServerConfig::UNSECURE_PASSWORD_REQUESTS) == ServerConfig::UNSECURE_PASSWORD_REQUESTS) 
 			{
 				std::string str_val = validateString(value, "User.password", jsonErrorsArray);
-
 				if (str_val.size() > 0) 
 				{
 					if (!user->hasPassword()) {

@@ -30,7 +30,7 @@ namespace model {
 
 
 			// generic db operations
-			const char* getTableName() const { return "pending_tasks"; }
+			const char* getTableName() const { return "login_pending_tasks"; }
 			std::string toString();
 
 			//! \brief update table row with current request

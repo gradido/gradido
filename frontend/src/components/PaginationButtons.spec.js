@@ -3,11 +3,17 @@ import PaginationButtons from './PaginationButtons'
 
 const localVue = global.localVue
 
+const propsData = {
+  totalRows: 42,
+  perPage: 12,
+  value: 1,
+}
+
 describe('PaginationButtons', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(PaginationButtons, { localVue })
+    return mount(PaginationButtons, { localVue, propsData })
   }
 
   describe('mount', () => {
@@ -19,34 +25,20 @@ describe('PaginationButtons', () => {
       expect(wrapper.find('div.pagination-buttons').exists()).toBeTruthy()
     })
 
-    it('has previous page button disabled by default', () => {
-      expect(wrapper.find('button.previous-page').attributes('disabled')).toBe('disabled')
-    })
-
-    it('has bext page button disabled by default', () => {
-      expect(wrapper.find('button.next-page').attributes('disabled')).toBe('disabled')
-    })
-
-    it('shows the text "1 / 1" by default"', () => {
-      expect(wrapper.find('p.text-center').text()).toBe('1 / 1')
-    })
-
     describe('with active buttons', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          hasNext: true,
-          hasPrevious: true,
-        })
-      })
-
-      it('emits show-previous when previous page button is clicked', () => {
-        wrapper.find('button.previous-page').trigger('click')
-        expect(wrapper.emitted('show-previous')).toBeTruthy()
-      })
-
-      it('emits show-next when next page button is clicked', () => {
+      it('emits input next page button is clicked', async () => {
         wrapper.find('button.next-page').trigger('click')
-        expect(wrapper.emitted('show-next')).toBeTruthy()
+        await wrapper.vm.$nextTick()
+        expect(wrapper.emitted().input[0]).toEqual([2])
+      })
+
+      it('emits input when previous page button is clicked', async () => {
+        wrapper.setProps({ value: 2 })
+        wrapper.setData({ currentValue: 2 })
+        await wrapper.vm.$nextTick()
+        wrapper.find('button.previous-page').trigger('click')
+        await wrapper.vm.$nextTick()
+        expect(wrapper.emitted().input[0]).toEqual([1])
       })
     })
   })
