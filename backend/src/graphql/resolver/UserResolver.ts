@@ -20,7 +20,7 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendEMail } from '../../util/sendEMail'
+import { sendAccountActivationEmail, sendEMail } from '../../util/sendEMail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { signIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
@@ -450,12 +450,7 @@ export class UserResolver {
         /\$1/g,
         emailOptIn.verificationCode.toString(),
       )
-      const emailSent = await this.sendAccountActivationEmail(
-        activationLink,
-        firstName,
-        lastName,
-        email,
-      )
+      const emailSent = await sendAccountActivationEmail(activationLink, firstName, lastName, email)
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -470,29 +465,6 @@ export class UserResolver {
       await queryRunner.release()
     }
     return 'success'
-  }
-
-  private sendAccountActivationEmail(
-    activationLink: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-  ): Promise<boolean> {
-    return sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-      to: `${firstName} ${lastName} <${email}>`,
-      subject: 'Gradido: E-Mail Überprüfung',
-      text: `Hallo ${firstName} ${lastName},
-        
-        Deine EMail wurde soeben bei Gradido registriert.
-        
-        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
-        ${activationLink}
-        oder kopiere den obigen Link in dein Browserfenster.
-        
-        Mit freundlichen Grüßen,
-        dein Gradido-Team`,
-    })
   }
 
   @Mutation(() => Boolean)
@@ -512,7 +484,7 @@ export class UserResolver {
         emailOptIn.verificationCode.toString(),
       )
 
-      const emailSent = await this.sendAccountActivationEmail(
+      const emailSent = await sendAccountActivationEmail(
         activationLink,
         loginUser.firstName,
         loginUser.lastName,

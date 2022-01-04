@@ -2,7 +2,7 @@ import { createTransport } from 'nodemailer'
 
 import CONFIG from '../config'
 
-export const sendEMail = async (emailDef: {
+const sendEMail = async (emailDef: {
   from: string
   to: string
   subject: string
@@ -29,3 +29,28 @@ export const sendEMail = async (emailDef: {
   }
   return true
 }
+
+const sendAccountActivationEmail = (
+  activationLink: string,
+  firstName: string,
+  lastName: string,
+  email: string,
+): Promise<boolean> => {
+  return sendEMail({
+    from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+    to: `${firstName} ${lastName} <${email}>`,
+    subject: 'Gradido: E-Mail Überprüfung',
+    text: `Hallo ${firstName} ${lastName},
+        
+        Deine EMail wurde soeben bei Gradido registriert.
+        
+        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
+        ${activationLink}
+        oder kopiere den obigen Link in dein Browserfenster.
+        
+        Mit freundlichen Grüßen,
+        dein Gradido-Team`,
+  })
+}
+
+export { sendAccountActivationEmail, sendEMail }
