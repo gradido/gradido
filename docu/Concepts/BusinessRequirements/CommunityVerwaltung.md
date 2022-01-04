@@ -290,6 +290,7 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
      * Der Messagetyp *replyNewCommunity*-Message wird von allen schon existierenden Communities als Antwort auf die zuvor gesendete *newCommunity*-Message erwartet. Dabei muss jede empfangene *replyNewCommunity*-Message verarbeitet werden und darf nicht verloren gehen, falls beispielsweise der Federation-Prozess zwischenzeitlich einmal nicht aktiv wäre. Die erhaltenen Daten - Community-Key und URL - einer antwortenden Community per *replyNewCommunity*-Message werden in der internen Liste für "*bekannte Communities*" gespeichert. Jeder neu gespeicherte Community-Eintrag dieser Liste startet entweder sofort oder zeitversetzt den letzten Schritt der Federation als Direkt-Verbindung zum weiteren Community-Daten-Handshake.
      * Der Messagetyp *newCommunity*-Message  wird von allen neu erstellten Communities im Rahmen derer Federation in den Public-Channel gesendet und muss zeitnah von der eigenen Community beantwortet werden. Dazu werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt und direkt in den Public-Channel zurückgesendet. Danach wird wieder weiter an dem Public-Channel nach weiteren eingehende Messages gelauscht.
 3. und die *"Community-Communication"* , die die direkte Kommunikation zwischen zwei Communities aufbaut, um die Details der neuen Community mit den sich zurückgemeldeten Communities auszutauschen.
+4.
 
 #### Ende Status
 
