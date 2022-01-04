@@ -1,5 +1,6 @@
-import { ArgsType, Field, Float, Int } from 'type-graphql'
+import { ArgsType, Field, Float, InputType, Int } from 'type-graphql'
 
+@InputType()
 @ArgsType()
 export default class CreatePendingCreationArgs {
   @Field(() => String)
