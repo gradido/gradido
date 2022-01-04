@@ -31,6 +31,37 @@ Andererseits soll aber, wenn eine Community sich bei der Geldschöpfung nicht an
 
 Aber grundsätzlich bleibt bei allen *Community-Gradido*-Währungen die Vergänglichkeit als Sicherungsmechanismus des Geldvolumens und der 1:1 Umtausch zwischen verschiedenen *Community-Gradidos* bestehen.
 
+#### Community-Gradido
+
+Um das Thema *Community-Gradido* näher zu beleuchten, wird im Folgenden eine etwas technischer Beschreibung gewählt. Der eingangs verwendete Begriff von *Colored-Gradido* wird hiermit abgelöst durch *Community-Gradido*. Dies soll analog der verschiedenen Währungen wie Euro, US-Dollar, Yen, etc. abgebildet werden. Das heißt die Gradido-Anwendung wird intern einen Datentyp "Money" haben, der neben dem Betrag auch die Währung trägt. Somit kann immer für einen Geld-Betrag X aus dem Datentyp *Money* alle Information herausgelesen bzw. übertragen werden. Gleichzeitig wird der Datentyp alle notwendigen Hilfsmethoden unterstützen, die für eine korrekte Anzeige, Berechnungen wie Vergänglichkeit oder sonstige Additionen und Subtraktionen notwendig sind.
+
+Die Information über die Währung wird intern über einen eindeutigen Community-Schlüssel getragen, wodurch für jeden Betrag die Aussage möglich ist in welcher Community dieser Betrag einmal geschöpft wurde. Der Community-Schlüssel wird schon bei der Inbetriebnahme einer Community erstellt und dient in verschiedenen anderen fachlichen Prozessen - Stichwort Inter-Community-Communication - als eindeutiger Identifikator einer Community. Die weiteren Auswirkungen auf die Kontoführung und deren Berechnungen und Verwaltung von Transaktionen wird dementsprechend berücksichtigt und detailliert in der [Kontenverwaltung](./Kontenverwaltung.md) beschrieben werden.
+
+##### Datentyp "Money"
+
+Type Money {
+
+* Attribute
+  * Integer	Betrag;	// in Gradido-Cent und damit ohne Nachkommastellen
+  * String CommunityKey; // eindeutiger CommunityKey z.B. eine UUID
+* Methoden
+  * zurAnzeige(); // liefert den Betrag als String mit 2 Nachkommastellen und dem Gradido-Währungssymbol
+  * plus(Money m) // prüft, ob der CommunityKey von m gleich dem internen CommunityKey ist und falls ja wird der Betrag von m zu dem internen Betrag aufaddiert, sonst wird eine Exception geworfen
+  * minus(Money m) // prüft, ob der CommunityKey von m gleich dem internen CommunityKey ist und falls ja wird der Betrag von m von dem internen Betrag subtrahiert, sonst wird eine Exception geworfen
+  * isSameCommunity(Money m) // liefert TRUE wenn der CommunityKey von m gleich dem internen CommunityKey ist, sonst FALSE
+  * decay(Long sec) // berechnet die Vergänglichkeit des internen Betrages mit der übergebenen Dauer sec nach der Formel:  Betrag - (Betrag x  0.99999997802044727 ^ sec)
+
+}
+
+Damit erfüllt der Datentyp *Money* zum einen die interne Unterscheidung von Gradidos aus unterschiedlichen Communities und unterliegt andererseits den sonst aufgestellten Anforderungen der Gradido-Anwendung:
+
+* alle Gradidos unterliegen der Vergänglichkeit, egal aus welcher Community diese geschöpft wurden
+* es gibt keinen Unterschied in der Wertigkeit von Gradidos, egal aus welcher Community diese stammen
+
+Ob ein Benutzer aus Community A mit einem anderen Benutzer aus Community B handeln möchte, sprich per Transaktion Gradidos austauschen möchte, unterliegt allein dem Benutzer selbst und wird von der Anwendung nicht unterbunden. Es sind zukünftig Ideen geplant ( siehe Abschnitt "Schutz vor Falschgeld"), dass die Anwendung den Benutzer hierbei unterstützt - Stichwort: Blacklisting, Bereinigung, etc. - aber dies bleibt dennoch völlig unter der Abwägung, Kontrolle und des Risikos alleine beim Benutzer selbst.
+
+Alle weiteren Auswirkungen im Zusammenspiel mit dem Datentyp Money auf die sonstigen Kontobewegungen und den möglichen unterschiedlichen CommunityKeys, wird, wie schon erwähnt, in der [Kontenverwaltung](./Kontenverwaltung.md) detailliert beschrieben.
+
 #### Schutz vor Falschgeld
 
 - Blacklisting
@@ -43,12 +74,10 @@ Aber grundsätzlich bleibt bei allen *Community-Gradido*-Währungen die Vergäng
 * Vergänglichkeitsbereinigung
   * 1. GDD anderer Communities nach Menge von wenig nach viel
 
-
 | PR-Kommentare          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ulf 07.11.2021         | Wenn die geblacklisteten Coins prioritisiert vergehen kann der findige Angreifer den Verfall umgehen, indem er sich ungültige/blacklistete Coins erschafft, die dann genau seinem Verfall entsprechen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Claus-Peter 25.11.2021 | Das Kapitel "Schutz vor Falschgeld" ist wohl eher noch im Status "Brainstorming" zu verstehen. Hier wurden mögliche Regeln notiert, die noch nicht in ihrer Gänze durchdacht und konzipiert sind.<br />Der Punkt Vergänglichkeitsbereinigung sagt folgendes aus:<br />Kontostand am 01.01.2021:<br />- 100 GDD aus der eigenen Community<br />- 100 GDD aus Community A<br />- 100 GDD aus Community B<br />- gesamt 300 GDD<br /><br />Nach einem Jahr ohne irgendwelche weiteren Transaktionen ergibt sich folgendes am 31.12.2021:<br />- Vergänglichkeit mit 365 Tagen bei 300 GDD = 150 GDD (nicht gerechnet, sondern 50%)<br />- die 150 GDD Vergänglichkeit als Tx-Buchung führt zu folgendem Kontostand:<br />  * 100 GDD aus der eigenen Community<br />  * 50 GDD aus der Community A<br />  * 0 GDD aus der Community B<br />  * gesamt 150 GDD<br /><br />Soweit der Gedankengang zur Bereinigung des Kontos mit GDD aus anderen Communities. Das hat keine Auswirkung auf die Wertigkeit, sondern soll sich allein auf die Reduktion der Viefältigkeit an Community-Währungen im eigenen Konto führen. |
-
 
 * Bezahl-Vorbereitung
   * Austausch von Blacklist zw. Teilnehmer
@@ -59,20 +88,19 @@ Aber grundsätzlich bleibt bei allen *Community-Gradido*-Währungen die Vergäng
 | Ulf 07.11.2021         | Ich denke die vervielfachung von Coins und damit eine Ab/Auf-Wertung der jeweiligen Währen einer Community ist entgegen dem Konzept von Gradido. Gradido schafft eine stabile Zeit-Tausch-Einheit. Diese sollte Weltweit den gleichen Wert haben - warum sollte der Peruaner für seine Zeit weniger Gradido bekommen als ein Europäer? Das zementiert einfach weiterhin die bestehende Ordnung auf dem Planeten. Wollen wir das?<br />Daher mein Credo: Niemals einen Faktor zwischen Communities einführen. |
 | Claus-Peter 25.11.2021 | Den Kommentar verstehe ich nicht in Bezug auf die zitierten Dokument-Zeilen.<br />Wo finden sich Hinweise auf eine Ab/Auf-Wertung der Währung?<br />Das Blacklisting ist mit Sicherheit ein sehr sensibler Punkt und muss genauestens und tiefer durchdacht und konzipiert werden.<br />Ansonsten stimme ich dem Inhalt und deinem Credo voll zu.                                                                                                                                                               |
 
-
 ### Anzeige und -Darstellung
 
 Da es also mehrere Communities geben wird, benötigt jede Community ihren eigenen Namen und gar ein Symbol oder Bild, um eine optische Unterscheidung oder gar eigenes Branding bei der Anzeige in den Systemen sicherzustellen. Für eine Aussendarstellung wäre eine Beschreibung der Community und ihre eigene Philosopie, was die Community auszeichnet hilfreich. Diese Werte müssen vom Community-Administrator gepflegt werden können.
 
 ### Mitgliederverwaltung
 
-Für die Verwaltung von Community-Mitgliedern werden entsprechende Verwaltungsprozesse wie Registrierung, Login mit Autentifizierung, eine Benutzerverwaltung für neue, bestehende und ausscheidende Mitgleider benötigt. Die Benutzerverwaltung stellt zusätzlich die Anforderung, dass ein Community-Mitglied eindeutig identifizierbar ist und das Community übergreifend. Das bedeutet es kann eine Person immer nur einmal existieren und darf auch niemals in mehreren Communities gleichzeitig Mitglied sein. Denn es muss sichergestellt werden, dass eine Person sich keine unerlaubte Vorteile durch zum Beispiel mehrfache Geldschöpfung in mehreren Communities verschafft. 
+Für die Verwaltung von Community-Mitgliedern werden entsprechende Verwaltungsprozesse wie Registrierung, Login mit Autentifizierung, eine Benutzerverwaltung für neue, bestehende und ausscheidende Mitgleider benötigt. Die Benutzerverwaltung stellt zusätzlich die Anforderung, dass ein Community-Mitglied eindeutig identifizierbar ist und das Community übergreifend. Das bedeutet es kann eine Person immer nur einmal existieren und darf auch niemals in mehreren Communities gleichzeitig Mitglied sein. Denn es muss sichergestellt werden, dass eine Person sich keine unerlaubte Vorteile durch zum Beispiel mehrfache Geldschöpfung in mehreren Communities verschafft.
 
 Die Details der Mitgliederverwaltung werden beschrieben im Dokument [BenutzerVerwaltung](.\BenutzerVerwaltung.md).
 
 ### Community-Netzwerk
 
-Ein grundlegender Ansatz des Gradido-Systems beinhaltet die Einstufung aller beteiligten Gradido-Communities als gleichberechtigte Einheiten. Diese bilden unterneinander ein Kommunikations-Netzwerk zum Austausch an Informationen, aber auch zum Aufbau eines gemeinsamen Verbundes weiterer Aktivitäten.
+Ein grundlegender Ansatz des Gradido-Systems beinhaltet die Einstufung aller beteiligten Gradido-Communities als gleichberechtigte Einheiten. Diese bilden untereinander ein Kommunikations-Netzwerk zum Austausch an Informationen, aber auch zum Aufbau eines gemeinsamen Verbundes weiterer Aktivitäten.
 
 #### Vernetzung
 
@@ -101,7 +129,6 @@ Durch das Community-Netzwerk erfolgt  auch der sehr wichtige Prozess der Sichers
 | Ulf 07.11.2021         | Diese Anforderung ist technisch nicht zu erfüllen.<br />1. Eine Identifikation einer Person erfolgt immer mithilfe eines technischem Identifiers wie z.B. der Personalausweisnummer, EMail, Telefonnummer oder anderes. Schon durch diese Abstraktion kann ein Nutzer mehr als eine Identität aufbauen (2 Telefonnummer z.B.)<br />2. Die Prüfung auf Eindeutigkeit in einem dezentralen Netzwerk kann nicht sichergestellt werden, da Teile des Netzwerks zum Zeitpunkt der Prüfung nicht erreichbar oder gar unbekannt sein können.<br />3. Bedarf es den Austausch der Personen-Identifikation zwischen dem Communties: "kennst du email@domain.com?". Diese Daten können verschlüsselt werden z.B mit `hash(salt,email)` welche dann an jede Community geschickt werden: kennst du `hash(salt,email), salt`? Was dazu führt, dass jede Community den hash aller seiner EMails errechen muss - die Skalierung ist entsprechend schlecht.<br /><br />Alternativ kann hier eine Blockchain eingesetzt werden, welche `hash(salt,email), salt` speichert und als dezentrales Nachschlagewerk für alle zugänglich ist. Hier erwarte ich ein Konzept, bevor wir das umsetzen können. Die Sicherheit der Nutzerdaten ist ebenfalls genau zu untersuchen, wenn wir das ganze ins Internet blasen. |
 | Claus-Peter 25.11.2021 | Ja da gebe ich dir nach heutigem Stand vollkommen Recht, dass es dafür derzeit keine 100% technische Lösung gibt.<br />Trotzdem ist das Thema fachlich gewünscht und wir müssen uns Gedanken machen, wie wir dafür eine technische Lösung finden können, die nahezu an die Anforderungen heranreicht. Genau deshalb endet dieser Absatz mit dem Hinweis auf die technsiche Konzeption.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
-
 ### Hirarchische Community
 
 Um die Vision Gradido als Währung nicht nur in Communities als gemeinsame Interessensgemeinschaften zu etablieren, sondern auch für ganze Communen, Bundesländer, Nationen oder gar weltweit, bedarf es einer Strukturierung von Communities. Dazu dient das Konzept der *hierarchischen Community*, seinen Ursprung in der Abbildung des Föderalismus von Deutschland findet. Das bedeutet, dass eine baumartige Struktur von Communities aufgebaut werden kann, wie nachfolgendes Bild schemenhaft zeigt:
@@ -110,7 +137,6 @@ Um die Vision Gradido als Währung nicht nur in Communities als gemeinsame Inter
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ulf 25.11.2021         | Ich denke Förderalismus wie in der Bundesrepublik ist mit Gradido nicht möglich. Es ergibt sich durch das Schwundgeld einfach keine Vorteile eines Förderalismus.<br />Szenario Straßenbau zwischen zwei Communties:<br />- Warum sollte Geld von beiden Communities auf ein drittes Konto fließen, wenn es dort doch nur vergeht?<br />- Ist es nicht realistischer, dass beide Communties sich auf den Straßenbau einigen und das Geld direkt an den Auftragnehmer überweisen, um dem Schwund so weit es geht zu entgehen.<br /><br />Warum sollte sich eine Community einer anderen unterordnen? Was sind die Vorteile?<br />*Nur ein Gedanke* |
 | Claus-Peter 25.11.2021 | Ich kann deinen Gedanken und Bedenken folgen, doch andererseits kann ich auch dem Föderalismus etwas abgewinnen.<br />Klar würde sich eine Community schwer tun, sich einer anderen Community unterzuordnen. Doch genau da beginnt die Überlegung, wie man ein Community-übergreifendes Projekt organisieren könnte? Da gibt es schon Vorteile, die natürlich noch feiner konzipiert und ausformuliert werden müssen. Daher sollten wir die Hierarchie von Communities nicht im Vorhinein ausschließen.                                                                                                                                            |
-
 
 ![hierarchisches Community-Modell](./image/HierarchischesCommunityModell.png)
 
@@ -168,7 +194,6 @@ Hier handelt es sich um eine Verwaltung von Tätigkeitsbeschreibungen, die von d
 | Ulf 07.11.2021         | Was ist wenn Tätigkeit A in Community X vergütet wird und Tätigkeit B in Community Y:<br />- Ich übe Tätigkeiten A & B aus<br />- Muss ich mich entscheiden, welche Tätigkeit ich vergütet wissen will? (Stichwort eindeutige Registrierung im gesammten Netzwerk)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Claus-Peter 25.11.2021 | Gute Frage!<br />Ich denke wir sollten im 1. Schritt damit beginnen, dass jede Community ihre eigene Aktivitätenliste pflegt. Es werden dann wohl gleiche Aktivitäten in mehreren Listen der verschiedenen Communities auftauchen.<br /><br />Ich kann aber als Mitglied der Community A eine Tätigkeit A.X von einem Mitglied aus Community B bestätigt bekommen und natürlich auch von Mitgliedern aus meine Community A.<br /><br />Dazu müssen dann natürlich die notwendigen Informationen zw. den Communities für eine Cross-Community-Bestätigung ausgetauscht werden. Das führt dann genau zu dem gewünschten Effekt, dass zw. zwei Communities ein Informationsaustausch stattfindet, der dann eine Aussage über den Cross-Handel und das Vertrauen ermöglicht. |
 
-
 Zu der Liste der Tätigkeiten gibt es einen weiteren Prozess, der in dem Dokument [RegelnDerGeldschoepfung](./RegelnDerGeldschoepfung.md) näher beschrieben ist. Hier kann soviel erst einmal gesagt werden, dass die Tätigkeitenliste als Grundlage dient, damit ein Mitglied für seine erbrachten Leistungen für das Allgemeinwohl dann sein monatliches *Aktives Grundeinkommen* gutgeschrieben bekommt. Dieses Gutschreiben des AGEs unterliegt noch einer vorherigen Bestätigung von anderen Community- oder auch Community übergreifenden Mitgliedern. Somit erfolgt dadurch eine implizite Vernetzung der Mitglieder durch dieses aktive Bestätigen anderer Leistungen, was gleichzeitig wieder Vorraussetzung ist, um sein eigenes AGE zu erhalten.
 
 ### Berechtigungsverwaltung
@@ -183,6 +208,14 @@ Mit der Vernetzung der Communities und dem gemeinsamen Handel zwischen Community
 
 In diesem Kapitel werden die Attribute beschrieben, die in einer Community zu speichern sind.
 
+#### Key
+
+Der *Community-Key* dient zur technisch eindeutigen Identifizierung einer Gradido-Community in dem Multi-Community-Kommunikations Verbund. Der *Key* wird direkt bei der Inbetriebnahme einer neuen Community initialisiert zum Beispiel als UUID und während der Federation mit den schon existierenden Communities ausgetauscht. Falls dabei auffällt, dass schon exakt der gleiche Key für eine andere Community exisitieren sollte, dann wird dieser mit einem  neuen Wert initialisiert bis eine Eindeutigkeit hergestellt ist. Der genaue Vorgang dieser *Key*-Initialisierung wird weiter unten im Kapitel "Neue Community erstellen" bzw. im technischen Konzept der Federation beschrieben.
+
+Die Verwendung des *Community-Key* wird auch zur Identifikation eines in der Community geschöpften Betrages - genannt *Currency-Key* - verwendet, so dass mit jedem Betrag gleichzeitig auch die Zuordnung zur Schöpfungs-Community hergestellt werden kann. Details hierzu siehe Kapitel "Community-Gradido" weiter oben.
+
+Das Attribut *Key* wird einmalig definiert und kann nicht mehr verändert werden. Es gibt keine Schreibrechte für nachträgliches Ändern, auch nicht von einem Administrator.
+
 #### Name
 
 Das Attribut *Name* dient zur möglichst eindeutigen Benennung der Community. Er wird als Menschen lesbare Anzeige und als Unterscheidungskriterium bei mehreren Communities eingesetzt. Nur der Community Administrator kann diesen setzen und verändern.
@@ -195,9 +228,9 @@ Das Attribut *Bild* wird für die Anzeige einer Community verwendet und kann nur
 
 Das Attribut *Beschreibung* ist ein Text, der die Philosophie der Community ausdrücken soll. Hier können sich die Community-Mitglieder eine gemeinsame Formulierung ausdenken, die nach ihrer Vorstellung den Kern und die Grundregeln ihrer Gemeinschaft am besten ausdrücken. Dies könnte wie eine Art Aussendarstellung für neue Mitglieder dienen. Aber nur der Community-Administrator hat die Schreib-Rechte für dieses Attribut.
 
-#### Serverzuordnung
+#### URL
 
-Das Attribut *Serverzuordnung* ist technisch motiviert und dient zusammen mit dem Attribut Name der eindeutigen Identifikation einer Community. Bei der Gründung einer neuen Community muss festgelegt werden auf welchem Server diese Community gehostet wird - auf einem schon vorhandenen Server oder ein extra für diese Community neu aufgesetzter Server. Das Attribut Serverzuordnung muss aber für eine Virtualisierung und technische Skalierung auf mehrere Server-Instanzen vorbereitet sein, sodass keine direkte physische Hardware-Serverzuordnung hierdurch fixiert ist. Aber auch ein eventueller Umzug der Community von einem Server auf einen anderen Server muss möglich sein. Der Community-Administrator hat alleiniges Zugriffsrecht auf dieses Attribut.
+Das Attribut *URL*  ist eher technisch motiviert und dient zur weltweit eindeutigen Adressierung einer Community. Bei der Gründung einer neuen Community muss festgelegt werden über welche URL diese Community addressiert werden kann. Das Routing wo exakt die Community gehostet wird - auf einem schon vorhandenen Server oder ein extra für diese Community neu aufgesetztem Server - muss von der URL unabhängig in der Community-Konfiguration vom Administrator definiert werden. Das Attribut URL muss aber für eine Virtualisierung und technische Skalierung auf mehrere Server-Instanzen vorbereitet sein, sodass keine direkte physische Hardware-Serverzuordnung hierdurch fixiert ist. Aber auch ein eventueller Umzug der Community von einem Server auf einen anderen Server muss möglich sein. Der Community-Administrator hat alleiniges Zugriffsrecht auf dieses Attribut.
 
 #### Liste von Benutzer
 
@@ -237,13 +270,26 @@ Der Prozess *Neue Community erstellen* kann in zwei grundlegende Schritte unterg
 
 Um eine neue Community zu erstellen wird eine dafür speziell konzepierte Infrastruktur benötigt. Die technischen Details dieser Infrastruktur werden in der *technischen Infrastruktur Beschreibung* als eigenständiges Dokument dem Administrator der neuen Community zur Verfügung gestellt. Diese ist neben den Installationsskripten und Anwendungsdateien Teil des Auslieferungspaketes der Gradido-Anwendung.
 
-Sobald der Administrator die geforderte Infrastruktur in Betrieb genommen und darauf die entsprechenden Installationsskripte ausgeführt hat erfolgt die eigentliche Erstellung und Registrierung der neue Community. Das heißt beim erstmaligen Start der Gradido-Anwendung wird automatisch der Prozess *Neue Community erstellen* gestartet.
+Sobald der Administrator die geforderte Infrastruktur in Betrieb genommen und darauf die entsprechenden Installationsskripte ausgeführt hat, erfolgt die eigentliche Erstellung und Registrierung der neue Community. Das heißt beim erstmaligen Start der Gradido-Anwendung wird automatisch der Prozess *Neue Community erstellen* gestartet.
 
 #### Ablauf
 
 Der Prozess *Neue Community erstellen* wird entweder automatisiert beim erstmaligen Start der Gradido-Anwendung auf einer neuen Infrastruktur gestartet oder manuell, wenn eine neue Community auf einer schon bestehenden Infrastruktur zusätzlich eingerichtet werden soll. Die nachfolgende Ablaufgrafik zeigt die logischen Schritte, die in dem Prozess durchlaufen werden:
 
 ![Ablauf Neue Community erstellen](./image/Ablauf_Neue_Community_erstellen.png)
+
+##### Einzelschritte
+
+Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
+
+1. den eigentlichen Community-Prozess "*neue Community erstellen*", in dem die Community spezifischen Attribute erfasst, geladen und/oder angelegt werden. Dazu gehören neben dem Erfassen der Community eigenen Attributen, das Laden von vordefinierten Standard-Daten wie die Tätigkeitsliste, Berechtigungen, etc. und optional als eigenständiger Prozess die Erfassung bzw das Anlegen von neuen Community-Mitgliedern.
+2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Dabei wird
+   * als erstes geprüft, ob in der eigenen Community die notwendigen Attribute wie Community-Key, URL und ggf. weitere korrekt initialisiert sind. Falls nicht wird der Hintergrundprozess mit einem Fehler abgebrochen
+   * dann werden die Attribute Community-Key und URL in eine *newCommunity*-Message gepackt und asynchron an den Public-Channel der Community-Federation des Gradido-Community-Verbundes gesendet
+   * Im Anschluss lauscht der Federation-Prozess auf eingehende Messages vom Typ *replyNewCommunity*-Message und *newCommunity*-Message.
+     * Der Messagetyp *replyNewCommunity*-Message wird von allen schon existierenden Communities als Antwort auf die zuvor gesendete *newCommunity*-Message erwartet. Dabei muss jede empfangene *replyNewCommunity*-Message verarbeitet werden und darf nicht verloren gehen, falls beispielsweise der Federation-Prozess zwischenzeitlich einmal nicht aktiv wäre. Die erhaltenen Daten - Community-Key und URL - einer antwortenden Community per *replyNewCommunity*-Message werden in der internen Liste für "*bekannte Communities*" gespeichert. Jeder neu gespeicherte Community-Eintrag dieser Liste startet entweder sofort oder zeitversetzt den letzten Schritt der Federation als Direkt-Verbindung zum weiteren Community-Daten-Handshake.
+     * Der Messagetyp *newCommunity*-Message  wird von allen neu erstellten Communities im Rahmen derer Federation in den Public-Channel gesendet und muss zeitnah von der eigenen Community beantwortet werden. Dazu werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt und direkt in den Public-Channel zurückgesendet. Danach wird wieder weiter an dem Public-Channel nach weiteren eingehende Messages gelauscht.
+3. und die *"Community-Communication"* , die die direkte Kommunikation zwischen zwei Communities aufbaut, um die Details der neuen Community mit den sich zurückgemeldeten Communities auszutauschen.
 
 #### Ende Status
 
@@ -395,7 +441,6 @@ Bei Krankheit o.ä. muss es aber möglich sein, dass dennoch Geld auf das AGE-Ko
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ulf 07.11.2021         | Definition? Ist Faulheit eine Krankheit?                                                                                                                                                                                                                                                                                                                                    |
 | Claus-Peter 25.11.2021 | :-) Das kommt auf die solidarische Einstellung der Community an ;-)<br /><br />da drängt sich mir die Gegenfrage auf: Bis zu welchem Alter bekommt ein Kind sein AGE-Geld geschöpft nur durch seine blos Existenz? Oder andersherum, ab und bis zu welchem Alter muss eine Gegenleistung erbracht werden, Stichworte: unbeschwerte Kindheit und wohlverdiente Altersruhe? |
-
 
 Kontaktförderung durch gewichtete Tätigkeitsbestätigung ( bei mind. 2 Bestätigungen pro Tätigkeit muss mind. ein neues Mitglied dabei sein)
 
