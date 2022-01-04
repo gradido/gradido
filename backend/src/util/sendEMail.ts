@@ -2,7 +2,7 @@ import { createTransport } from 'nodemailer'
 
 import CONFIG from '../config'
 
-const sendEMail = async (emailDef: {
+export const sendEMail = async (emailDef: {
   from: string
   to: string
   subject: string
@@ -30,7 +30,7 @@ const sendEMail = async (emailDef: {
   return true
 }
 
-const sendAccountActivationEmail = (
+export const sendAccountActivationEmail = (
   activationLink: string,
   firstName: string,
   lastName: string,
@@ -53,4 +53,4 @@ const sendAccountActivationEmail = (
   })
 }
 
-export { sendAccountActivationEmail, sendEMail }
+export default { sendAccountActivationEmail, sendEMail }
