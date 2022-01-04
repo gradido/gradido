@@ -129,10 +129,7 @@ export default {
   props: {
     item: {
       type: Object,
-      required: false,
-      default() {
-        return {}
-      },
+      required: true,
     },
     row: {
       type: Object,
@@ -143,10 +140,7 @@ export default {
     },
     creationUserData: {
       type: Object,
-      required: false,
-      default() {
-        return {}
-      },
+      required: true,
     },
     creation: {
       type: Array,
