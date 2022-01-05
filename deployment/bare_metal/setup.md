@@ -1,6 +1,6 @@
 # Setup script to setup the server be ready to run gradido
 # This assums you have root access via ssh to your cleanly setup server
-# Furthermore this assums you have debian (11 64bit) running
+# Furthermore this assumes you have debian (11 64bit) running
 
 > ssh root@gddhost.tld
 
@@ -57,7 +57,7 @@
 > sudo apt-get upgrade
 
 # Install security tools
-## UFW
+## ufw
 > sudo apt-get install ufw
 > sudo ufw allow http
 > sudo ufw allow https
