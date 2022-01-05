@@ -1,6 +1,6 @@
 # Setup script to setup the server be ready to run gradido
 # This assums you have root access via ssh to your cleanly setup server
-# Furthermore this assums you have debian (10 64bit) running
+# Furthermore this assums you have debian (11 64bit) running
 
 > ssh root@gddhost.tld
 
@@ -16,18 +16,18 @@
 #       You might lock yourself out, if done wrong.
 > usermod -a -G sudo gradido
 
+# Install sudo
+> apt-get install sudo
 # switch to the new user
 > su gradido
 
 # Register first ssh key for user `gradido`
 > mkdir ~/.ssh
 > chmod 700 ~/.ssh
-> vim ~/.ssh/authorized_keys
->> press i
+> nano ~/.ssh/authorized_keys
 >> insert public key
->> press esc
->> write :wq
->> press enter
+>> ctrl + x
+>> save
 
 # Test authentication via SSH
 > ssh -i /path/to/privKey gradido@gddhost.tld
@@ -36,14 +36,12 @@
 # Disable password authentication & root login
 > cd /etc/ssh
 > sudo cp sshd_config sshd_config.org
-> sudo vim sshd_config
->> press i
+> sudo nano sshd_config
 >> change `PermitRootLogin yes` to `PermitRootLogin no`
 >> change `#PasswordAuthentication yes` to `PasswordAuthentication no`
 >> change `UsePAM yes` to `UsePAM no`
->> press esc
->> write :wq
->> press enter
+>> ctrl + x
+>> save
 > sudo /etc/init.d/ssh restart
 
 # Test SSH Access only, no root ssh access
