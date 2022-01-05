@@ -210,7 +210,7 @@ In diesem Kapitel werden die Attribute beschrieben, die in einer Community zu sp
 
 #### Key
 
-Der *Community-Key* dient zur technisch eindeutigen Identifizierung einer Gradido-Community in dem Multi-Community-Kommunikations Verbund. Der *Key* wird direkt bei der Inbetriebnahme einer neuen Community initialisiert - zum Beispiel als UUID oder eine andere aplhanummerische Kennung - und während der Federation mit den schon existierenden Communities ausgetauscht. Falls dabei auffällt, dass schon exakt der gleiche Key für eine andere Community exisitieren sollte, dann wird dieser mit einem  neuen Wert initialisiert bis eine Eindeutigkeit im gesamten Community-Verbund hergestellt ist.
+Der *Community-Key* dient zur technisch eindeutigen Identifizierung einer Gradido-Community in dem Multi-Community-Kommunikations Verbund. Der *Key* wird direkt bei der Inbetriebnahme einer neuen Community initialisiert - zum Beispiel als einfache UUID oder eine andere alphanummerische Sequenz - und während der Federation mit den schon existierenden Communities ausgetauscht. Falls dabei auffällt, dass irgendwelche Konflikte, wie ein exakt gleicher Key einer anderen Community oder gleiche URL bei unterschiedlichen Keys, etc. , exisitieren, dann wird der Key mit einem neuen Wert initialisiert bis alle Konflikte für eine Eindeutigkeit der Community im gesamten Community-Verbund beseitigt sind.
 
 Die Motivation dieses technischen Schlüssels liegt in der einmaligen Initialisierung bei der Community-Erstellung und in der Unveränderlichkeit danach. Alle anderen möglichen Attribute, die ebenfalls als Schlüssel für eine Community nutzbar wären, wie die URL oder evtl. der Name, können im Laufe der Existenz einer Community verändert werden.
 

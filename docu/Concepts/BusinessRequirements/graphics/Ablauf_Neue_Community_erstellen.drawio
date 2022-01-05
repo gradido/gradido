@@ -247,10 +247,13 @@
                 <mxCell id="98" value="Hintergrund-Prozess: &lt;b&gt;Community-Communication&lt;/b&gt;" style="html=1;align=left;verticalAlign=top;absoluteArcSize=1;arcSize=18;dashed=0;spacingTop=10;spacingRight=30;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;gradientColor=#7ea6e0;fontColor=#000000;rounded=1;" parent="1" vertex="1">
                     <mxGeometry x="610" y="920" width="640" height="185.5" as="geometry"/>
                 </mxCell>
-                <mxCell id="106" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=14;fontColor=#000000;strokeColor=#1A1A1A;fillColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="99" target="105" edge="1">
+                <mxCell id="106" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=14;fontColor=#000000;strokeColor=#1A1A1A;fillColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="137" target="105" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="99" value="stelle Direkt-Verbindung zu &lt;br&gt;neuer Community über URL her&lt;br&gt;und tausche detaillierte Daten aus" style="html=1;align=center;verticalAlign=top;absoluteArcSize=1;arcSize=10;dashed=0;fillColor=#b0e3e6;strokeColor=#0e8088;fontColor=#000000;rounded=1;" parent="1" vertex="1">
+                <mxCell id="139" value="" style="edgeStyle=none;html=1;fontSize=10;" edge="1" parent="1" source="99" target="137">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" value="authentifiziere und autorisiere&lt;br&gt;Direkt-Verbindung per&amp;nbsp;&lt;br&gt;OpenID Connect" style="html=1;align=center;verticalAlign=top;absoluteArcSize=1;arcSize=10;dashed=0;fillColor=#b0e3e6;strokeColor=#0e8088;fontColor=#000000;rounded=1;" parent="1" vertex="1">
                     <mxGeometry x="975" y="957.25" width="205.01" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="101" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14;fontColor=#000000;strokeColor=#1A1A1A;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="131" target="134" edge="1">
@@ -268,7 +271,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="104" value="neue Community" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontSize=14;fontColor=#000000;fillColor=#B0E3E6;align=center;gradientColor=#97D077;" parent="1" vertex="1">
-                    <mxGeometry x="1356.3" y="907.25" width="240.01" height="160" as="geometry"/>
+                    <mxGeometry x="1356.3" y="907.25" width="240.01" height="212.75" as="geometry"/>
                 </mxCell>
                 <mxCell id="136" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" edge="1" parent="1" source="105" target="43">
                     <mxGeometry relative="1" as="geometry">
@@ -374,6 +377,15 @@
                 </mxCell>
                 <mxCell id="134" value="lese eigene Daten aus Datenbank&lt;br&gt;und bereite diese für den&amp;nbsp;&lt;br&gt;Community-Handshake auf" style="html=1;align=center;verticalAlign=top;absoluteArcSize=1;arcSize=10;dashed=0;fillColor=#b0e3e6;strokeColor=#0e8088;fontColor=#000000;rounded=1;" vertex="1" parent="1">
                     <mxGeometry x="724" y="959.5" width="186" height="55.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="137" value="tausche detaillierte Daten&lt;br&gt;über public API-Calls aus" style="html=1;align=center;verticalAlign=top;absoluteArcSize=1;arcSize=10;dashed=0;fillColor=#b0e3e6;strokeColor=#0e8088;fontColor=#000000;rounded=1;" vertex="1" parent="1">
+                    <mxGeometry x="975" y="1037" width="205.01" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="140" value="" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;fontSize=14;fontColor=#000000;strokeColor=#1A1A1A;fillColor=#ffffff;" edge="1" parent="1">
+                    <mxGeometry width="100" height="100" relative="1" as="geometry">
+                        <mxPoint x="1194.9900000000002" y="1066.5" as="sourcePoint"/>
+                        <mxPoint x="1344.9900000000002" y="1066.5" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>
