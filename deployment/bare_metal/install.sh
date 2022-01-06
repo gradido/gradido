@@ -41,7 +41,7 @@ cp .env.dist .env
 #TODOchange jwt secret
 cp .env.dist .env
 
-#TODO go to backend
+#TODO go to frontend
 #TODO generate this
 #TODO backend url
 #TODO admin url
