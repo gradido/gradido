@@ -4,9 +4,6 @@
 
 # TODO update git branch
 
-# Node build process can be memory hungry - make sure you have either enoght memory or swap space
-#export NODE_OPTIONS="--max-old-space-size=6000"
-
 # Install & build database
 # TODO change directory correcty
 yarn install
