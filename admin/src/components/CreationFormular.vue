@@ -123,6 +123,7 @@
 <script>
 import { verifyLogin } from '../graphql/verifyLogin'
 import { createPendingCreation } from '../graphql/createPendingCreation'
+import { createPendingCreations } from '../graphql/createPendingCreations'
 export default {
   name: 'CreationFormular',
   props: {
@@ -207,24 +208,45 @@ export default {
     submitCreation() {
       if (this.type === 'massCreation') {
         // Die anzahl der Mitglieder aus der Mehrfachschöpfung
-        const i = Object.keys(this.itemsMassCreation).length
+        const i = Object.keys(this.items).length
         // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        this.submitObj = [
-          {
-            item: this.itemsMassCreation,
-            email: this.item.email,
+        // eslint-disable-next-line no-console
+        console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
+        this.submitObj = []
+        this.items.forEach((item) => {
+          this.submitObj.push({
+            email: item.email,
             creationDate: this.radioSelected.long,
-            amount: this.value,
+            amount: Number(this.value),
             memo: this.text,
-            moderator: this.$store.state.moderator.id,
-          },
-        ]
-
-        // $store - offene Schöpfungen hochzählen
-        this.$store.commit('openCreationsPlus', i)
-
-        // lösche alle Mitglieder aus der MehrfachSchöpfungsListe nach dem alle Mehrfachschpfungen zum bestätigen gesendet wurden.
-        this.$emit('remove-all-bookmark')
+            moderator: Number(this.$store.state.moderator.id),
+          })
+        })
+        // eslint-disable-next-line no-console
+        console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
+        this.$apollo
+          .mutate({
+            mutation: createPendingCreations,
+            variables: {
+              pendingCreations: this.submitObj,
+            },
+            fetchPolicy: 'no-cache',
+          })
+          .then((result) => {
+            this.$store.commit(
+              'openCreationsPlus',
+              result.data.createPendingCreations.successfulCreation.length,
+            )
+            if (result.data.createPendingCreations.failedCreation.length > 0) {
+              result.data.createPendingCreations.failedCreation.forEach((failed) => {
+                this.$toasted.error('Could not created PendingCreation for ' + failed)
+              })
+            }
+            this.$emit('remove-all-bookmark')
+          })
+          .catch((error) => {
+            this.$toasted.error(error.message)
+          })
       } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
