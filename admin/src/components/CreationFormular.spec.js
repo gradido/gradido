@@ -21,6 +21,7 @@ const toastedErrorMock = jest.fn()
 const toastedSuccessMock = jest.fn()
 
 const mocks = {
+  $t: jest.fn((t) => t),
   $moment: jest.fn(() => {
     return {
       format: jest.fn((m) => m),
@@ -98,7 +99,10 @@ describe('CreationFormular', () => {
       describe('with mass creation', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.setProps({ type: 'massCreation' })
+          await wrapper.setProps({ type: 'massCreation', creation: [200, 400, 600] })
+          await wrapper.setData({ rangeMin: 180 })
+          await wrapper.setData({ text: 'Test create coins' })
+          await wrapper.setData({ value: 90 })
         })
 
         describe('first radio button', () => {
@@ -176,8 +180,8 @@ describe('CreationFormular', () => {
               await wrapper.find('.test-submit').trigger('click')
             })
 
-            it('sends ... to apollo', () => {
-              expect(toastedErrorMock).toBeCalled()
+            it('toasts an error message', () => {
+              expect(toastedErrorMock).toBeCalledWith('Ouch!')
             })
           })
 

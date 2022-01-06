@@ -31,7 +31,7 @@
           @update-item="updateItem"
         />
         <div v-if="itemsMassCreation.length === 0">
-          Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
+          {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
           v-else
@@ -40,7 +40,6 @@
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
-        {{ itemsMassCreation }}
       </b-col>
     </b-row>
   </div>
@@ -60,18 +59,18 @@ export default {
     return {
       showArrays: false,
       Searchfields: [
-        { key: 'bookmark', label: 'merken' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'email', label: 'Email' },
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        { key: 'creation', label: this.$t('open_creations') },
+        { key: 'email', label: this.$t('e_mail') },
       ],
       fields: [
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'bookmark', label: 'löschen' },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        { key: 'creation', label: this.$t('open_creations') },
+        { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
       itemsMassCreation: [],
@@ -125,20 +124,9 @@ export default {
           throw new Error(event)
       }
     },
-
-    // updateRadioSelected(obj) {
-    //  this.radioSelectedMass = obj[0]
-    // },
-
     removeAllBookmark() {
-      alert('remove all bookmarks')
-      const index = 0
-      let i = 0
-
-      for (i; i < this.itemsMassCreation.length; i++) {
-        this.itemsList.push(this.itemsMassCreation[i])
-      }
-      this.itemsMassCreation.splice(index, this.itemsMassCreation.length)
+      this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
+      this.itemsMassCreation = []
     },
   },
 }

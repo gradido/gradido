@@ -3,8 +3,8 @@
     <hr />
     <br />
     <div class="text-center">
-      Gradido Akademie Adminkonsole
-      <div><small>Version: 0.0.1</small></div>
+      {{ $t('gradido_admin_footer') }}
+      <div><small>Version: 1.0.0</small></div>
     </div>
   </div>
 </template>

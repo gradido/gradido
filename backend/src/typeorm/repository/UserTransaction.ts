@@ -9,7 +9,17 @@ export class UserTransactionRepository extends Repository<UserTransaction> {
     limit: number,
     offset: number,
     order: Order,
+    onlyCreation?: boolean,
   ): Promise<[UserTransaction[], number]> {
+    if (onlyCreation) {
+      return this.createQueryBuilder('userTransaction')
+        .where('userTransaction.userId = :userId', { userId })
+        .andWhere('userTransaction.type = "creation"')
+        .orderBy('userTransaction.balanceDate', order)
+        .limit(limit)
+        .offset(offset)
+        .getManyAndCount()
+    }
     return this.createQueryBuilder('userTransaction')
       .where('userTransaction.userId = :userId', { userId })
       .orderBy('userTransaction.balanceDate', order)
