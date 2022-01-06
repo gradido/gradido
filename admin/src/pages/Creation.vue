@@ -1,7 +1,7 @@
 <template>
   <div class="creation">
     <b-row>
-      <b-col cols="12" lg="5">
+      <b-col cols="12" lg="6">
         <label>Usersuche</label>
         <b-input
           type="text"
@@ -19,7 +19,7 @@
           @update-item="updateItem"
         />
       </b-col>
-      <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
+      <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
           v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
@@ -64,27 +64,15 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: this.$t('open_creation'),
+          // label: this.$t('open_creation') + 'Jan | Feb | März',
+          label:
+            this.$moment().subtract(2, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().subtract(1, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().format('MMM'),
           formatter: (value, key, item) => {
-            return (
-              `
-            <div>` +
-              this.$moment().subtract(2, 'month').format('MMMM') +
-              ` - ` +
-              String(value[0]) +
-              ` GDD</div>
-            <div>` +
-              this.$moment().subtract(1, 'month').format('MMMM') +
-              ` - ` +
-              String(value[1]) +
-              ` GDD</div>
-            <div>` +
-              this.$moment().format('MMMM') +
-              ` - ` +
-              String(value[2]) +
-              ` GDD</div>
-            `
-            )
+            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
           },
         },
         { key: 'email', label: this.$t('e_mail') },
