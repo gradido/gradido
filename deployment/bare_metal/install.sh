@@ -5,12 +5,63 @@
 
 # Install mariadb
 sudo apt-get install -y mariadb-server
-#TODO sudo mysql_secure_installation
+sudo mysql_secure_installation
+# Enter current password for root (enter for none): enter
+# Switch to unix_socket authentication [Y/n] Y
+# Change the root password? [Y/n] n
+# Remove anonymous users? [Y/n] Y
+# Disallow root login remotely? [Y/n] Y
+# Remove test database and access to it? [Y/n] Y
+# Reload privilege tables now? [Y/n] Y
+
+# create db user
+DB_USER=gradido 
+DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+# create table 
+#create database gradido_community 
+#    DEFAULT CHARACTER SET utf8mb4
+#    DEFAULT COLLATE utf8mb4_unicode_ci;
+# GRANT ALL PRIVILEGES ON gradido_community.* TO '$DB_USER'@'localhost';
+sudo mysql <<EOFMYSQL
+    CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWD';
+    GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
+    FLUSH PRIVILEGES;
+EOFMYSQL
+# TODO generate .env
+echo $DB_PASSWORD
+
+#TODO go to database
+#TODO generate this
+#TODO database setup
+cp .env.dist .env
+
+#TODO go to backend
+#TODO generate this
+#TODO database setup
+#TODOchange jwt secret
+cp .env.dist .env
+
+#TODO go to backend
+#TODO generate this
+#TODO backend url
+#TODO admin url
+cp .env.dist .env
+
+#TODO go to admin
+#TODO generate this
+#TODO change graphqlurl
+#TODO change wallet url
+
+cp .env.dist .env
+
+#TODO import old database
 
 # Install nginx
 sudo apt-get install -y nginx
 cd /etc/nginx/sites-enabled # TODO change directory again
 sudo rm default
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
+cd /etc/nginx/sites-available
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
 
 # Install yarn
@@ -28,3 +79,12 @@ sudo apt-get install -y build-essential
 
 # Install pm2
 sudo yarn global add pm2
+
+# Install certbot
+sudo apt-get install -y certbot
+sudo apt-get install -y python3-certbot-nginx
+sudo certbot
+> Enter email address (used for urgent renewal and security notices) > support@gradido.net
+> Please read the Terms of Service at > Y
+> Would you be willing, once your first certificate is successfully issued, to > N
+> No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
