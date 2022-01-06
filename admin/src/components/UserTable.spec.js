@@ -6,114 +6,80 @@ const localVue = global.localVue
 describe('UserTable', () => {
   let wrapper
 
+  const defaultItemsUser = [
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      creation: [1000, 1000, 1000],
+    },
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      creation: [1000, 1000, 1000],
+    },
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      creation: [1000, 1000, 1000],
+    },
+  ]
+
+  const confirmationItemsUser = [
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      amount: 10,
+      memo: 'Test 1',
+      date: '11-09-2001',
+      moderator: 1,
+    },
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      amount: 10,
+      memo: 'Test 2',
+      date: '21-09-2001',
+      moderator: 1,
+    },
+    {
+      email: 'bibi@bloxberg.de',
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      amount: 10,
+      memo: 'Test 3',
+      date: '30-09-2001',
+      moderator: 1,
+    },
+  ]
+
   const propsDataPageUserSearch = {
     type: 'PageUserSearch',
-    itemsUser: [
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-    ],
+    itemsUser: defaultItemsUser,
     fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
   }
 
   const propsDataUserListSearch = {
     type: 'UserListSearch',
-    itemsUser: [
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-    ],
+    itemsUser: defaultItemsUser,
     fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
     creation: [1000, 1000, 1000],
   }
 
   const propsDataUserListMassCreation = {
     type: 'UserListMassCreation',
-    itemsUser: [
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        creation: [1000, 1000, 1000],
-      },
-    ],
+    itemsUser: defaultItemsUser,
     fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
     creation: [1000, 1000, 1000],
   }
 
   const propsDataPageCreationConfirm = {
     type: 'PageCreationConfirm',
-    itemsUser: [
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        amount: 10,
-        memo: 'Test 1',
-        date: '11-09-2001',
-        moderator: 1,
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        amount: 10,
-        memo: 'Test 2',
-        date: '21-09-2001',
-        moderator: 1,
-      },
-      {
-        email: 'bibi@bloxberg.de',
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        amount: 10,
-        memo: 'Test 3',
-        date: '30-09-2001',
-        moderator: 1,
-      },
-    ],
+    itemsUser: confirmationItemsUser,
     fieldsTable: ['email', 'firstName', 'lastName', 'amount', 'memo', 'date', 'moderator'],
   }
 
