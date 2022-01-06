@@ -2,6 +2,7 @@ import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-grap
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
+import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
@@ -41,7 +42,7 @@ export class AdminResolver {
     return adminUsers
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
@@ -66,7 +67,33 @@ export class AdminResolver {
     return await getUserCreations(user.id)
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
+  @Mutation(() => CreatePendingCreations)
+  async createPendingCreations(
+    @Arg('pendingCreations', () => [CreatePendingCreationArgs])
+    pendingCreations: CreatePendingCreationArgs[],
+  ): Promise<CreatePendingCreations> {
+    let success = false
+    const successfulCreation: string[] = []
+    const failedCreation: string[] = []
+    for (const pendingCreation of pendingCreations) {
+      await this.createPendingCreation(pendingCreation)
+        .then(() => {
+          successfulCreation.push(pendingCreation.email)
+          success = true
+        })
+        .catch(() => {
+          failedCreation.push(pendingCreation.email)
+        })
+    }
+    return {
+      success,
+      successfulCreation,
+      failedCreation,
+    }
+  }
+
+  @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
@@ -96,7 +123,7 @@ export class AdminResolver {
     return result
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
@@ -124,7 +151,7 @@ export class AdminResolver {
     return pendingCreationsPromise.reverse()
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
@@ -133,7 +160,7 @@ export class AdminResolver {
     return !!res
   }
 
-  @Authorized([RIGHTS.SEARCH_USERS])
+  @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
@@ -310,6 +337,7 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
   }
   return true
 }
+
 async function hasActivatedEmail(email: string): Promise<boolean> {
   const repository = getCustomRepository(LoginUserRepository)
   const user = await repository.findByEmail(email)
