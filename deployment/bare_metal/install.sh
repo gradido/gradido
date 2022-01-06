@@ -63,6 +63,8 @@ sudo rm default
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
 cd /etc/nginx/sites-available
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
+cd /etc/nginx
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/common common
 
 # Install yarn
 sudo apt-get install -y curl
