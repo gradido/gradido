@@ -1,9 +1,9 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div v-if="checked">Die E-Mail wurde am {{ dateLastSend }} bestätigt.</div>
+      <div v-if="checked">{{ $t('unregister_mail.text_true', { date: dateLastSend }) }}</div>
       <div v-else>
-        {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
+        {{ $t('unregister_mail.text_false', { date: dateLastSend, mail: email }) }}
 
         <!-- Using components -->
         <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
