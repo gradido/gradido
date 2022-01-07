@@ -107,6 +107,7 @@
           </template>
           <template #show-register-mail>
             <confirm-register-mail-formular
+              :checked="row.item.emailChecked"
               :email="row.item.email"
               :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
             />
@@ -232,6 +233,9 @@ export default {
           row.toggleDetails()
           this.slotIndex = index
           this.openRow = row
+          if (this.type === 'PageCreationConfirm') {
+            this.creationUserData = row.item
+          }
         }
       } else {
         row.toggleDetails()
