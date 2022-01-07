@@ -74,6 +74,7 @@
 
       <template #row-details="row">
         <row-details
+          v-if="type !== 'UserListSearch' && type !== 'UserListMassCreation'"
           :row="row"
           :type="type"
           :slotName="slotName"
