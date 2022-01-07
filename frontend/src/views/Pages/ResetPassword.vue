@@ -5,10 +5,10 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('settings.password.reset') }}</h1>
+              <h1>{{ $t(displaySetup.authenticated) }}</h1>
               <div class="pb-4">
                 <span>
-                  {{ $t('settings.password.reset-password.text') }}
+                  {{ $t(displaySetup.notAuthenticated) }}
                 </span>
               </div>
             </b-col>
@@ -49,14 +49,14 @@ import { setPassword } from '../../graphql/mutations'
 
 const textFields = {
   reset: {
-    authenticated: 'settings.password.reset-password.text',
-    notAuthenticated: 'settings.password.not-authenticated',
-    button: 'settings.password.reset',
+    authenticated: 'settings.password.change-password',
+    notAuthenticated: 'settings.password.reset-password.text',
+    button: 'settings.password.change-password',
     linkTo: '/login',
   },
   checkEmail: {
-    authenticated: 'settings.password.set-password.text',
-    notAuthenticated: 'settings.password.not-authenticated',
+    authenticated: 'settings.password.set',
+    notAuthenticated: 'settings.password.set-password.text',
     button: 'settings.password.set',
     linkTo: '/login',
   },
@@ -103,11 +103,16 @@ export default {
           }
         })
     },
-    setDisplaySetup() {
-      if (!this.$route.params.comingFrom) {
+    setDisplaySetup(from) {
+      console.log('this.$route > ', this.$route.path)
+
+      if (this.$route.path.includes('checkEmail')) {
+        this.displaySetup = textFields.checkEmail
+         console.log('this.displaySetup checkmail> ', this.displaySetup)
+      }
+      if (this.$route.path.includes('reset')) {
         this.displaySetup = textFields.reset
-      } else {
-        this.displaySetup = textFields[this.$route.params.comingFrom]
+        console.log('this.displaySetup reset> ', this.displaySetup)
       }
     },
   },
