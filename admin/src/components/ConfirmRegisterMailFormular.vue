@@ -1,19 +1,20 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div class="h5">
-        {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
-      </div>
+      <div v-if="checked">{{ $t('unregister_mail.text_true', { date: dateLastSend }) }}</div>
+      <div v-else>
+        {{ $t('unregister_mail.text_false', { date: dateLastSend, mail: email }) }}
 
-      <!-- Using components -->
-      <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
-        <b-form-input readonly :value="email"></b-form-input>
-        <b-input-group-append>
-          <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
-            {{ $t('unregister_mail.button') }}
-          </b-button>
-        </b-input-group-append>
-      </b-input-group>
+        <!-- Using components -->
+        <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
+          <b-form-input readonly :value="email"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
+              {{ $t('unregister_mail.button') }}
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
+      </div>
     </div>
   </div>
 </template>
@@ -23,6 +24,9 @@ import { sendActivationEmail } from '../graphql/sendActivationEmail'
 export default {
   name: 'ConfirmRegisterMail',
   props: {
+    checked: {
+      type: Boolean,
+    },
     email: {
       type: String,
     },
