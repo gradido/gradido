@@ -104,15 +104,11 @@ export default {
         })
     },
     setDisplaySetup(from) {
-      console.log('this.$route > ', this.$route.path)
-
       if (this.$route.path.includes('checkEmail')) {
         this.displaySetup = textFields.checkEmail
-        console.log('this.displaySetup checkmail> ', this.displaySetup)
       }
       if (this.$route.path.includes('reset')) {
         this.displaySetup = textFields.reset
-        console.log('this.displaySetup reset> ', this.displaySetup)
       }
     },
   },
