@@ -108,7 +108,7 @@ export default {
 
       if (this.$route.path.includes('checkEmail')) {
         this.displaySetup = textFields.checkEmail
-         console.log('this.displaySetup checkmail> ', this.displaySetup)
+        console.log('this.displaySetup checkmail> ', this.displaySetup)
       }
       if (this.$route.path.includes('reset')) {
         this.displaySetup = textFields.reset
