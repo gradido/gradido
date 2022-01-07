@@ -1,23 +1,20 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-     
-      <div v-if="checked">
-        Die E-Mail wurde am  {{ dateLastSend  }} bestätigt.
-      </div>
-       <div v-else  >
+      <div v-if="checked">Die E-Mail wurde am {{ dateLastSend }} bestätigt.</div>
+      <div v-else>
         {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
-     
-      <!-- Using components -->
-      <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
-        <b-form-input readonly :value="email"></b-form-input>
-        <b-input-group-append>
-          <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
-            {{ $t('unregister_mail.button') }}
-          </b-button>
-        </b-input-group-append>
-      </b-input-group>
-       </div>
+
+        <!-- Using components -->
+        <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
+          <b-form-input readonly :value="email"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
+              {{ $t('unregister_mail.button') }}
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
+      </div>
     </div>
   </div>
 </template>
