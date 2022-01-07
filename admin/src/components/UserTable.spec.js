@@ -60,31 +60,60 @@ describe('UserTable', () => {
   const propsDataPageUserSearch = {
     type: 'PageUserSearch',
     itemsUser: defaultItemsUser,
-    fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
+    fieldsTable: [
+      'email',
+      'firstName',
+      'lastName',
+      'creation',
+      'show_details',
+      'confirm_mail',
+      'transactions_list',
+    ],
   }
 
   const propsDataUserListSearch = {
     type: 'UserListSearch',
     itemsUser: defaultItemsUser,
-    fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
+    fieldsTable: ['bookmark', 'email', 'firstName', 'lastName', 'creation'],
     creation: [1000, 1000, 1000],
   }
 
   const propsDataUserListMassCreation = {
     type: 'UserListMassCreation',
     itemsUser: defaultItemsUser,
-    fieldsTable: ['email', 'firstName', 'lastName', 'creation'],
+    fieldsTable: ['email', 'firstName', 'lastName', 'creation', 'bookmark'],
     creation: [1000, 1000, 1000],
   }
 
   const propsDataPageCreationConfirm = {
     type: 'PageCreationConfirm',
     itemsUser: confirmationItemsUser,
-    fieldsTable: ['email', 'firstName', 'lastName', 'amount', 'memo', 'date', 'moderator'],
+    fieldsTable: [
+      'bookmark',
+      'email',
+      'firstName',
+      'lastName',
+      'amount',
+      'memo',
+      'date',
+      'moderator',
+      'edit_creation',
+      'confirm',
+    ],
   }
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $moment: jest.fn(() => {
+      return {
+        format: jest.fn((m) => m),
+        subtract: jest.fn(() => {
+          return {
+            format: jest.fn((m) => m),
+          }
+        }),
+      }
+    }),
   }
 
   const Wrapper = (propsData) => {
@@ -101,10 +130,69 @@ describe('UserTable', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
 
-      it('expect(wrapper.html()).', () => {
-        // eslint-disable-next-line no-console
-        console.log(wrapper.html())
+      it('has a DIV element with the id overlay that is not displayed', () => {
+        expect(wrapper.find('#overlay').exists()).toBeTruthy()
+        expect(wrapper.find('#overlay').attributes('style')).toBe('display: none;')
       })
+
+      describe('table', () => {
+        it('has a table', () => {
+          expect(wrapper.find('table').exists()).toBeTruthy()
+        })
+
+        describe('header definition', () => {
+          it('has 4 column', () => {
+            expect(wrapper.findAll('th').length).toBe(7)
+          })
+
+          it('has Email as first column', () => {
+            expect(wrapper.find('th[aria-colindex="1"] div').text()).toBe('Email')
+          })
+
+          it('has First Name as second column', () => {
+            expect(wrapper.find('th[aria-colindex="2"] div').text()).toBe('First Name')
+          })
+
+          it('has Last Name as third column', () => {
+            expect(wrapper.find('th[aria-colindex="3"] div').text()).toBe('Last Name')
+          })
+
+          it('has Creation as fourth column', () => {
+            expect(wrapper.find('th[aria-colindex="4"] div').text()).toBe('Creation')
+          })
+
+          it('has Creation as fifth column', () => {
+            expect(wrapper.find('th[aria-colindex="5"] div').text()).toBe('Show Details')
+          })
+
+          it('has Creation as sixth column', () => {
+            expect(wrapper.find('th[aria-colindex="6"] div').text()).toBe('Confirm Mail')
+          })
+
+          it('has Creation as seventh column', () => {
+            expect(wrapper.find('th[aria-colindex="7"] div').text()).toBe('Transactions List')
+          })
+        })
+
+        describe('content', () => {
+          it('has 3 rows', () => {
+            expect(wrapper.findAll('tbody tr').length).toBe(3)
+          })
+
+          it('has 7 columns', () => {
+            expect(wrapper.findAll('tr:nth-child(1) > td').length).toBe(7)
+          })
+
+          it('click button on fifth column', () => {
+            wrapper.find('tbody tr td[aria-colindex="5"] button').trigger('click')
+          })
+        })
+      })
+
+      // it('expect(wrapper.html()).', () => {
+      //   // eslint-disable-next-line no-console
+      //   console.log(wrapper.html())
+      // })
     })
 
     describe('type UserListSearch', () => {
@@ -116,10 +204,10 @@ describe('UserTable', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
 
-      it('expect(wrapper.html()).', () => {
-        // eslint-disable-next-line no-console
-        console.log(wrapper.html())
-      })
+      // it('expect(wrapper.html()).', () => {
+      //   // eslint-disable-next-line no-console
+      //   console.log(wrapper.html())
+      // })
     })
 
     describe('type UserListMassCreation', () => {
@@ -131,10 +219,10 @@ describe('UserTable', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
 
-      it('expect(wrapper.html()).', () => {
-        // eslint-disable-next-line no-console
-        console.log(wrapper.html())
-      })
+      // it('expect(wrapper.html()).', () => {
+      //   // eslint-disable-next-line no-console
+      //   console.log(wrapper.html())
+      // })
     })
 
     describe('type PageCreationConfirm', () => {
@@ -146,10 +234,10 @@ describe('UserTable', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
 
-      it('expect(wrapper.html()).', () => {
-        // eslint-disable-next-line no-console
-        console.log(wrapper.html())
-      })
+      // it('expect(wrapper.html()).', () => {
+      //   // eslint-disable-next-line no-console
+      //   console.log(wrapper.html())
+      // })
     })
     /** 
     <user-table
