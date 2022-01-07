@@ -1,10 +1,13 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div class="h5">
-        {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
+     
+      <div v-if="checked">
+        Die E-Mail wurde am  {{ dateLastSend  }} bestätigt.
       </div>
-
+       <div v-else  >
+        {{ $t('unregister_mail.text', { date: dateLastSend, mail: email }) }}
+     
       <!-- Using components -->
       <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
         <b-form-input readonly :value="email"></b-form-input>
@@ -14,6 +17,7 @@
           </b-button>
         </b-input-group-append>
       </b-input-group>
+       </div>
     </div>
   </div>
 </template>
@@ -23,6 +27,9 @@ import { sendActivationEmail } from '../graphql/sendActivationEmail'
 export default {
   name: 'ConfirmRegisterMail',
   props: {
+    checked: {
+      type: String,
+    },
     email: {
       type: String,
     },
