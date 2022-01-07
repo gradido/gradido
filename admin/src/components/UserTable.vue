@@ -108,6 +108,7 @@
           </template>
           <template #show-register-mail>
             <confirm-register-mail-formular
+              :checked="row.item.emailChecked"
               :email="row.item.email"
               :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
             />
