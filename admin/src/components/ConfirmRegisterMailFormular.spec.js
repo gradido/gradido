@@ -19,6 +19,7 @@ const mocks = {
 }
 
 const propsData = {
+  checked: false,
   email: 'bob@baumeister.de',
   dateLastSend: '',
 }

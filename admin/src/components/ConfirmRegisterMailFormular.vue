@@ -25,7 +25,7 @@ export default {
   name: 'ConfirmRegisterMail',
   props: {
     checked: {
-      type: String,
+      type: Boolean,
     },
     email: {
       type: String,
