@@ -51,7 +51,7 @@ server {
     }
 
     # Legacy URLS
-    set REWRITE_LEGACY_URLS "$NGINX_REWRITE_LEGACY_URLS";
+    set $REWRITE_LEGACY_URLS "$NGINX_REWRITE_LEGACY_URLS";
     if( $REWRITE_LEGACY_URLS = 'true' ){
         rewrite ^/vue$1 /$1 permanent;
     }
