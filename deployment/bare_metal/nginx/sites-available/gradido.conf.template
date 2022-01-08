@@ -1,5 +1,5 @@
-if ($NGINX_SSL = 'true')
-    server {
+server {
+    if ($NGINX_SSL = 'true') {
         if ($host = $NGINX_SERVER_NAME) {
             return 301 https://$host$request_uri;
         }
