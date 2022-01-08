@@ -30,7 +30,7 @@ server {
     if ($REWRITE_LEGACY_URLS = 'true') {
         rewrite ^/vue$ / permanent;
         rewrite ^/vue/$ / permanent;
-        rewrite ^/vue/(.+)/?$ /$1 permanent;
+        rewrite ^/vue/(.+)/?$ $1 permanent;
     }
 
     # Frontend (default)
