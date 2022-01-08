@@ -1,20 +1,21 @@
 server {
-    if ($NGINX_SSL = 'true') {
-        if ($host = $NGINX_SERVER_NAME) {
-            return 301 https://$host$request_uri;
-        }
-
-        server_name $NGINX_SERVER_NAME;
-        listen 80;
-        listen [::]:80;
-        return 404;
+    if ($host = $NGINX_SERVER_NAME) {
+        return 301 https://$host$request_uri;
     }
+
+    server_name $NGINX_SERVER_NAME;
+    listen 80;
+    listen [::]:80;
+    return 404;
 }
 
 server {
     server_name $NGINX_SERVER_NAME;
 
-    if ($NGINX_SSL = 'true') {
+    # Set variables to allow if checks
+    set $SSL "$NGINX_SSL";
+
+    if ($SSL = 'true') {
         listen [::]:443 ssl ipv6only=on;
         listen 443 ssl;
         ssl_certificate $NGINX_SSL_CERTIFICATE;
@@ -25,7 +26,7 @@ server {
         }
     }
 
-    if ($NGINX_SSL != 'true'){
+    if ($SSL != 'true'){
         listen 80;
         listen [::]:80;
     }
