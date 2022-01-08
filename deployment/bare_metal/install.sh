@@ -102,4 +102,8 @@ sudo certbot --certonly
 
 # Generate gradido.conf from template
 # TODO order - first certbot, then nginx setup
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < gradido.conf.template > gradido.conf
+case "$NGINX_SSL" in
+ true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
+    *) TEMPLATE_FILE="gradido.conf.template" ;;
+esac
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > gradido.conf
