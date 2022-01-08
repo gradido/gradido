@@ -67,7 +67,7 @@ const createServer = async (context: any = serverContext): Promise<any> => {
     context,
     plugins,
   })
-  apollo.applyMiddleware({ app })
+  apollo.applyMiddleware({ app, path: '/' })
   return { apollo, app, con }
 }
 
