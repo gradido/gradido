@@ -3,6 +3,15 @@
 # This install script requires the minimum requirements already installed.
 # How to do this is described in detail in [setup.md](./setup.md)
 
+# Load .env or .env.dist if not present
+set -o allexport
+if [ -f ".env"]; then
+    source .env
+else
+    source .env.dist
+fi
+set +o allexport
+
 # Install mariadb
 sudo apt-get install -y mariadb-server
 sudo mysql_secure_installation
@@ -85,8 +94,12 @@ sudo yarn global add pm2
 # Install certbot
 sudo apt-get install -y certbot
 sudo apt-get install -y python3-certbot-nginx
-sudo certbot
+sudo certbot --certonly
 > Enter email address (used for urgent renewal and security notices) > support@gradido.net
 > Please read the Terms of Service at > Y
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
+
+# Generate gradido.conf from template
+# TODO order - first certbot, then nginx setup
+envsubst < gradido.conf.template > gradido.conf

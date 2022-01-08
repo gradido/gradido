@@ -1,28 +1,34 @@
-# HTTP server
-#TODO
-server {
-    if ($host = stage1.gradido.net) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
+if ($NGINX_SSL = 'true')
+    server {
+        if ($host = $NGINX_SERVER_NAME) {
+            return 301 https://$host$request_uri;
+        }
 
-    server_name stage1.gradido.net;
-    listen 80;
-    listen [::]:80;
-    return 404; # managed by Certbot
+        server_name $NGINX_SERVER_NAME;
+        listen 80;
+        listen [::]:80;
+        return 404;
+    }
 }
 
-# HTTPS Server
 server {
-    # TODO correct server name stage1.gradido.net
-    server_name stage1.gradido.net;
+    server_name $NGINX_SERVER_NAME;
 
-    # TODO
-    listen [::]:443 ssl ipv6only=on; # managed by Certbot
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/stage1.gradido.net/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stage1.gradido.net/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    if ($NGINX_SSL = 'true') {
+        listen [::]:443 ssl ipv6only=on;
+        listen 443 ssl;
+        ssl_certificate $NGINX_SSL_CERTIFICATE;
+        ssl_certificate_key $NGINX_SSL_CERTIFICATE_KEY;
+        ssl_dhparam $NGINX_SSL_DHPARAM;
+        if ($NGINX_SSL_INCLUDE != '') {
+            include $NGINX_SSL_INCLUDE;
+        }
+    }
+
+    if ($NGINX_SSL != 'true'){
+        listen 80;
+        listen [::]:80;
+    }
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;

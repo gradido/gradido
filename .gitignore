@@ -5,3 +5,4 @@ nbproject
 .metadata
 /.env
 package-lock.json
+/deployment/bare_metal/.env
