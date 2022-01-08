@@ -151,15 +151,14 @@ services:
   ## nginx, connect login-server and community-server together (and php-fpm to community-server)
   nginx:
     build: 
-      context: .
-      dockerfile: ./nginx/Dockerfile
+      context: ./nginx/
     networks:
       - external-net
       - internal-net
     depends_on:
-      - community-server
-      - login-server
-      - frontend 
+      - frontend
+      - backend
+      - admin 
     ports:
       - 80:80
   
