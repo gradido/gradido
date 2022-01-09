@@ -48,6 +48,7 @@ cp .env.dist .env
 #TODO generate this
 #TODO database setup
 #TODOchange jwt secret
+#TODO change email releated stuff
 cp .env.dist .env
 
 #TODO go to frontend
