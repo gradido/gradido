@@ -121,7 +121,7 @@
   "privacy_policy": "Privacy policy",
   "publisher": {
     "infoNoRegister": "This is not necessary for registration.",
-    "infoText": "Enter the publisher ID of your referrer here. If you don't know it, please leave it blank.",
+    "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID"
   },
   "send": "Send",
