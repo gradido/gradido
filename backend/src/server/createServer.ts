@@ -55,6 +55,8 @@ const createServer = async (context: any = serverContext): Promise<any> => {
 
   // bodyparser json
   app.use(express.json())
+  // bodyparser text for elopage
+  app.use(express.text())
 
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)

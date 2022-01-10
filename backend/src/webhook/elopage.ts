@@ -29,18 +29,21 @@
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { LoginUser } from '@entity/LoginUser'
+import { getCustomRepository } from 'typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
+import { LoginElopageBuysRepository } from '../typeorm/repository/LoginElopageBuys'
+import { LoginUserRepository } from '../typeorm/repository/LoginUser'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   res.status(200).end() // Responding is important
-
+  const loginElopgaeBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
   const loginElopgaeBuy = new LoginElopageBuys()
   let firstName = ''
   let lastName = ''
   const entries = req.body.split('&')
-  entries.foreach((entry: string) => {
+  entries.forEach((entry: string) => {
     const keyVal = entry.split('=')
-    if (keyVal.length !== 2) {
+    if (keyVal.length > 2) {
       throw new Error(`Error parsing entry '${entry}'`)
     }
     const key = keyVal[0]
@@ -88,8 +91,10 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         lastName = val
         break
       default:
+        // this is too spammy
         // eslint-disable-next-line no-console
-        console.log(`Unknown Elopage Value '${entry}'`)
+        // console.log(`Unknown Elopage Value '${entry}'`)
+        break
     }
   })
 
@@ -101,7 +106,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   }
 
   // Save the hook data
-  await loginElopgaeBuy.save()
+  await loginElopgaeBuyRepository.save(loginElopgaeBuy)
 
   // create user for certain products
   /*
@@ -133,7 +138,8 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     }
 
     // Do we already have such a user?
-    if ((await LoginUser.count({ email })) !== 0) {
+    const loginUserRepository = await getCustomRepository(LoginUserRepository)
+    if ((await loginUserRepository.count({ email })) !== 0) {
       // eslint-disable-next-line no-console
       console.log(`Did not create User - already exists with email: ${email}`)
       return
