@@ -95,15 +95,12 @@ export default {
           this.$router.push('/thx/reset')
         })
         .catch((error) => {
-          if (error.message.includes('Code is older than 10 minutes')) {
-            this.$toasted.global.error(error.message)
+          this.$toasted.global.error(error.message)
+          if (error.message.includes('Code is older than 10 minutes'))
             this.$router.push('/password/reset')
-          } else {
-            this.$toasted.global.error(error.message)
-          }
         })
     },
-    setDisplaySetup(from) {
+    setDisplaySetup() {
       if (this.$route.path.includes('checkEmail')) {
         this.displaySetup = textFields.checkEmail
       }
