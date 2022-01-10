@@ -71,6 +71,7 @@ sudo apt-get install -y nginx
 sudo rm /etc/nginx/sites-enabled/default
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf /etc/nginx/sites-available
 sudo ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/update-page.conf /etc/nginx/sites-available
 cd /etc/nginx
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/common common
 
@@ -108,4 +109,8 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > gradido.conf
 
 # Generate update-page.conf from template
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < update-page.conf.template > update-page.conf
+case "$NGINX_SSL" in
+ true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
+    *) TEMPLATE_FILE="update-page.conf.template" ;;
+esac
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > update-page.conf
