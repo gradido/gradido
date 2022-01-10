@@ -58,9 +58,7 @@ const mocks = {
     query: apolloQueryMock,
   },
   $toasted: {
-    global: {
-      error: toastedErrorMock,
-    },
+    error: toastedErrorMock,
   },
 }
 
