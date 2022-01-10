@@ -4,6 +4,8 @@
 
 > ssh root@gddhost.tld
 
+# change default shell
+chsh
 # Create user `gradido`
 > useradd -d /home/gradido -m gradido
 > passwd gradido
