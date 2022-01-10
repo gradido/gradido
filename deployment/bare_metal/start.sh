@@ -4,12 +4,13 @@
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 LOCK_FILE=$SCRIPT_PATH/update.lock
-UPDATE_HTML=$SCRIPT_PATH/update-page/updating.html
+UPDATE_HTML=$SCRIPT_DIR/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../../
 
 # Load .env or .env.dist if not present
 set -o allexport
-if [ -f "$SCRIPT_DIR/.env"]; then
+#TODO
+if [ -f "$SCRIPT_DIR/.env" ]; then
     source $SCRIPT_DIR/.env
 else
     source $SCRIPT_DIR/.env.dist
@@ -26,12 +27,12 @@ touch $LOCK_FILE
 UPDATE_SITE_CONFIG=stage1_updating
 
 # Create a new updating.html from the template
-\cp $SCRIPT_PATH/update-page/updating.html.template $UPDATE_HTML
+\cp $SCRIPT_DIR/update-page/updating.html.template $UPDATE_HTML
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
-rm /etc/nginx/sites-enabled/gradido.conf
-ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/gradido.conf
+sudo ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 
 
@@ -43,7 +44,7 @@ pm2 stop all
 BRANCH=${1:-master}
 echo "Starting with git pull - branch:$BRANCH<br>" >> $UPDATE_HTML
 cd $PROJECT_ROOT
-git fetch origin/$BRANCH $BRANCH
+git fetch origin $BRANCH
 git checkout $BRANCH
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
@@ -52,7 +53,8 @@ echo 'Updating database<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
-yarn up
+# TODO only in staging!
+yarn dev_up
 # TODO only in staging!
 yarn dev_reset
 yarn seed 
