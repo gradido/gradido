@@ -9,10 +9,10 @@ PROJECT_ROOT=$SCRIPT_DIR/../../
 
 # Load .env or .env.dist if not present
 set -o allexport
-if [ -f "$SCRIPT_DIR.env"]; then
-    source $SCRIPT_DIR.env
+if [ -f "$SCRIPT_DIR/.env"]; then
+    source $SCRIPT_DIR/.env
 else
-    source $SCRIPT_DIR.env.dist
+    source $SCRIPT_DIR/.env.dist
 fi
 set +o allexport
 
