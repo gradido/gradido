@@ -65,9 +65,9 @@ export class AdminResolver {
       loginPendingTaskAdmin.memo = memo
       loginPendingTaskAdmin.moderator = moderator
 
-      loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
     }
-    return await getUserCreations(user.id)
+    return getUserCreations(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
