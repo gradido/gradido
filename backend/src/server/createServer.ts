@@ -6,7 +6,6 @@ import 'module-alias/register'
 
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
-import bodyParser from 'body-parser'
 
 // database
 import connection from '../typeorm/connection'
@@ -54,8 +53,8 @@ const createServer = async (context: any = serverContext): Promise<any> => {
   // cors
   app.use(cors)
 
-  // bodyparser
-  app.use(bodyParser.json())
+  // bodyparser json
+  app.use(express.json())
 
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
