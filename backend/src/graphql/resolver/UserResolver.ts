@@ -738,7 +738,7 @@ export class UserResolver {
     if (password && passwordNew) {
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
       const oldPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, password)
-      if (loginUser.password !== oldPasswordHash[0].readBigUInt64LE()) {
+      if (BigInt(loginUser.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
         throw new Error(`Old password is invalid`)
       }
 
@@ -748,7 +748,7 @@ export class UserResolver {
       const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
 
       // Save new password hash and newly encrypted private key
-      loginUser.password = newPasswordHash[0].readBigInt64LE()
+      loginUser.password = newPasswordHash[0].readBigUInt64LE()
       loginUser.privKey = encryptedPrivkey
     }
 
