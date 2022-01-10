@@ -5,7 +5,7 @@ import routes from './routes'
 Vue.use(VueRouter)
 
 const router = new VueRouter({
-  base: '/',
+  base: '/admin',
   routes,
   linkActiveClass: 'active',
   mode: 'history',
