@@ -57,6 +57,19 @@ server {
         proxy_redirect     off;
     }
 
+    # Backend webhooks
+    location /hook {
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection 'upgrade';
+        proxy_set_header   X-Forwarded-For $remote_addr;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   Host $host;
+        
+        proxy_pass         http://backend:4000;
+        proxy_redirect     off;
+    }
+
     # Admin Frontend
     location /admin {
         proxy_http_version 1.1;
