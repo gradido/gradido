@@ -3,8 +3,8 @@
 # Find current directory & configure paths
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-LOCK_FILE=$SCRIPT_PATH/update.lock
-UPDATE_HTML=$SCRIPT_DIR/update-page/updating.html
+LOCK_FILE=$SCRIPT_DIR/update.lock
+UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../../
 
 # Load .env or .env.dist if not present
@@ -27,7 +27,7 @@ touch $LOCK_FILE
 UPDATE_SITE_CONFIG=stage1_updating
 
 # Create a new updating.html from the template
-\cp $SCRIPT_DIR/update-page/updating.html.template $UPDATE_HTML
+\cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
@@ -88,8 +88,8 @@ pm2 save
 
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again<br>' >> $UPDATE_HTML
-ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
-rm /etc/nginx/sites-enabled/update-page.conf
+sudo ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
 
 #release lock
