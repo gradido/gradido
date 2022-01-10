@@ -287,7 +287,7 @@ Der Prozess *Neue Community erstellen* wird entweder automatisiert beim erstmali
 Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
 
 1. den eigentlichen Community-Prozess "*neue Community erstellen*" (links in grün gehalten), in dem die Community spezifischen Attribute erfasst, geladen und/oder angelegt werden. Dazu gehören neben dem Erfassen der Community eigenen Attributen, das Laden von vordefinierten Standard-Daten wie die Tätigkeitsliste, Berechtigungen, etc. und optional als eigenständiger Prozess die Erfassung bzw das Anlegen von neuen Community-Mitgliedern.
-2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Dabei wird
+2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Dietechnischen Details der *Federation* werden im Dokument [Federation](../TechnicalRequirements/Federation.md " ") beschrieben. Dabei wird
    * als erstes geprüft, ob in der eigenen Community die notwendigen Attribute wie Community-Key, URL und ggf. weitere korrekt initialisiert und gespeichert sind. Falls nicht wird der Hintergrundprozess mit einem Fehler abgebrochen
    * dann werden die Attribute Community-Key und URL in eine *newCommunity*-Message gepackt und asynchron an den Public-Channel der Community-Federation des Gradido-Community-Verbundes gesendet
    * Im Anschluss geht der Federation-Prozess in den "Lausch-Modus" auf eingehende Messages am *Public-Channel*. Die Verarbeitung von eingehenden Messages muss so sichergestellt werden, dass einerseits keine Message verloren geht auch bei DownTimes und andererseits, dass eine Message erst aus dem Public-Channel gelöscht wird, sobald diese vollständig abgearbeitet ist. Der Federation-Prozess lauscht auf Messages vom Typ *replyNewCommunity* und *newCommunity*, die bei Empfang entsprechend verarbeitet werden:
@@ -298,7 +298,6 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
        * Sollte es einen solchen Eintrag geben, dann wird eine *replyNewCommunity*-Message erzeugt mit *MessageState = requestNewKey* und ohne weitere Daten in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
        * Sollte es keine solche Einträge geben, dann werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt, der *MessageState = OK* gesetzt und direkt in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
 3. und die *"Community-Communication"* als Hintergrundprozess. Dieser liest zuerst die eigenen Community-Daten und geht dann per Direkt-Verbindung über die URL mit der neuen Community in Dialog, um die Community spezifischen Daten untereinander auszutauschen. Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md).
-
 
 #### Ende Status
 
