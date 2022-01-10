@@ -42,27 +42,15 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: this.$t('open_creation'),
+          // label: this.$t('open_creation') + 'Jan | Feb | März',
+          label:
+            this.$moment().subtract(2, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().subtract(1, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().format('MMM'),
           formatter: (value, key, item) => {
-            return (
-              `
-            <div>` +
-              this.$moment().subtract(2, 'month').format('MMMM') +
-              ` - ` +
-              String(value[0]) +
-              ` GDD</div>
-            <div>` +
-              this.$moment().subtract(1, 'month').format('MMMM') +
-              ` - ` +
-              String(value[1]) +
-              ` GDD</div>
-            <div>` +
-              this.$moment().format('MMMM') +
-              ` - ` +
-              String(value[2]) +
-              ` GDD</div>
-            `
-            )
+            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
           },
         },
         { key: 'show_details', label: this.$t('details') },
@@ -87,7 +75,7 @@ export default {
   methods: {
     unconfirmedRegisterMails() {
       this.searchResult = this.searchResult.filter((user) => {
-        return user.emailChecked
+        return !user.emailChecked
       })
     },
     getUsers() {
