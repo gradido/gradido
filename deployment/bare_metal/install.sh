@@ -114,3 +114,5 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > update-page.conf
+
+git config pull.ff only
