@@ -68,11 +68,9 @@ cp .env.dist .env
 
 # Install nginx
 sudo apt-get install -y nginx
-cd /etc/nginx/sites-enabled # TODO change directory again
-sudo rm default
-sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
-cd /etc/nginx/sites-available
-sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf gradido.conf
+sudo rm /etc/nginx/sites-enabled/default
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf /etc/nginx/sites-available
+sudo ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled
 cd /etc/nginx
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/common common
 
