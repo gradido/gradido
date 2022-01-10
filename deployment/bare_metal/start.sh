@@ -46,6 +46,7 @@ echo "Starting with git pull - branch:$BRANCH<br>" >> $UPDATE_HTML
 cd $PROJECT_ROOT
 git fetch origin $BRANCH
 git checkout $BRANCH
+git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Install & build database
