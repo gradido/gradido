@@ -106,3 +106,6 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > gradido.conf
+
+# Generate update-page.conf from template
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < update-page.conf.template > update-page.conf
