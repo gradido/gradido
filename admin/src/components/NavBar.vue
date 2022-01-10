@@ -33,7 +33,8 @@ export default {
   name: 'navbar',
   methods: {
     logout() {
-      window.location = CONFIG.WALLET_URL
+      window.location.assign(CONFIG.WALLET_URL)
+      // window.location = CONFIG.WALLET_URL
       this.$store.dispatch('logout')
     },
     wallet() {
