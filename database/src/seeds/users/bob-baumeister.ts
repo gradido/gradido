@@ -17,7 +17,6 @@ export const bobBaumeister = {
   language: 'de',
   disabled: false,
   groupId: 1,
-  publisherId: null,
   passphrase:
     'detail master source effort unable waste tilt flush domain orchard art truck hint barrel response gate impose peanut secret merry three uncle wink resource ',
   mnemonicType: 2,

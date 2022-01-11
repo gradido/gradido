@@ -42,15 +42,13 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
+          label: [
+            this.$moment().subtract(2, 'month').format('MMM'),
+            this.$moment().subtract(1, 'month').format('MMM'),
             this.$moment().format('MMM'),
+          ].join(' | '),
           formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
+            return value.join(' | ')
           },
         },
         { key: 'show_details', label: this.$t('details') },
