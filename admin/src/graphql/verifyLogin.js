@@ -7,6 +7,7 @@ export const verifyLogin = gql`
       lastName
       isAdmin
       id
+      language
     }
   }
 `

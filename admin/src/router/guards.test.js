@@ -6,9 +6,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     verifyLogin: {
       isAdmin: true,
+      language: 'de',
     },
   },
 })
+const i18nLocaleMock = jest.fn()
 
 const store = {
   commit: storeCommitMock,
@@ -21,7 +23,11 @@ const apollo = {
   query: apolloQueryMock,
 }
 
-addNavigationGuards(router, store, apollo)
+const i18n = {
+  locale: i18nLocaleMock,
+}
+
+addNavigationGuards(router, store, apollo, i18n)
 
 describe('navigation guards', () => {
   beforeEach(() => {
@@ -33,19 +39,23 @@ describe('navigation guards', () => {
     const next = jest.fn()
 
     describe('with valid token and as admin', () => {
-      beforeEach(() => {
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      beforeEach(async () => {
+        await navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
       })
 
-      it('commits the token to the store', async () => {
+      it('commits the token to the store', () => {
         expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
       })
 
-      it('commits the moderator to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('moderator', { isAdmin: true })
+      it.skip('sets the locale', () => {
+        expect(i18nLocaleMock).toBeCalledWith('de')
       })
 
-      it('redirects to /', async () => {
+      it('commits the moderator to the store', () => {
+        expect(storeCommitMock).toBeCalledWith('moderator', { isAdmin: true, language: 'de' })
+      })
+
+      it('redirects to /', () => {
         expect(next).toBeCalledWith({ path: '/' })
       })
     })
