@@ -30,7 +30,7 @@ export default {
           },
         })
         .then((result) => {
-          this.items = result.data.transactionList.transactions
+          this.items = result.data.transactionList.transactions.filter((t) => t.type === 'creation')
         })
         .catch((error) => {
           this.$toasted.error(error.message)
