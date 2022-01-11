@@ -6,8 +6,8 @@ export interface UserInterface {
   username?: string
   description?: string
   password?: BigInt
-  pubKey?: Buffer
-  privKey?: Buffer
+  pubKey?: Buffer | null
+  privKey?: Buffer | null
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
