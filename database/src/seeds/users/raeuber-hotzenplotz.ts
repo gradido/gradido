@@ -17,7 +17,6 @@ export const raeuberHotzenplotz = {
   language: 'de',
   disabled: false,
   groupId: 1,
-  publisherId: null,
   passphrase:
     'gospel trip tenant mouse spider skill auto curious man video chief response same little over expire drum display fancy clinic keen throw urge basket ',
   mnemonicType: 2,

@@ -1,7 +1,7 @@
 import { verifyLogin } from '../graphql/verifyLogin'
 import CONFIG from '../config'
 
-const addNavigationGuards = (router, store, apollo) => {
+const addNavigationGuards = (router, store, apollo, i18n) => {
   // store token on `authenticate`
   router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query && to.query.token) {
@@ -14,6 +14,7 @@ const addNavigationGuards = (router, store, apollo) => {
         .then((result) => {
           const moderator = result.data.verifyLogin
           if (moderator.isAdmin) {
+            i18n.locale = moderator.language
             store.commit('moderator', moderator)
             next({ path: '/' })
           } else {
