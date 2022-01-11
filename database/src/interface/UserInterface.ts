@@ -6,8 +6,8 @@ export interface UserInterface {
   username?: string
   description?: string
   password?: BigInt
-  pubKey?: Buffer | null
-  privKey?: Buffer | null
+  pubKey?: Buffer
+  privKey?: Buffer
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
@@ -15,7 +15,7 @@ export interface UserInterface {
   language?: string
   disabled?: boolean
   groupId?: number
-  publisherId?: number | null
+  publisherId?: number
   // from login user backup
   passphrase?: string
   mnemonicType?: number

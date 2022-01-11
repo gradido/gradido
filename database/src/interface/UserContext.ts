@@ -1,5 +1,5 @@
 export interface UserContext {
-  pubkey?: Buffer | null
+  pubkey?: Buffer
   email?: string
   firstName?: string
   lastName?: string
@@ -14,8 +14,8 @@ export interface LoginUserContext {
   username?: string
   description?: string
   password?: BigInt
-  pubKey?: Buffer | null
-  privKey?: Buffer | null
+  pubKey?: Buffer
+  privKey?: Buffer
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
@@ -23,7 +23,7 @@ export interface LoginUserContext {
   language?: string
   disabled?: boolean
   groupId?: number
-  publisherId?: number | null
+  publisherId?: number
 }
 
 export interface LoginUserBackupContext {
