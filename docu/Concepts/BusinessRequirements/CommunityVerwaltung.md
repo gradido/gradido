@@ -305,9 +305,9 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
 2. neue Community ist erzeugt und Daten in der Community-DB gespeichert
 3. der Hintergrundprozess "Community-Vernetzung" ist am Laufen
    * die initiale "newCommunity-Msg" mit den eigenen Community-Daten ist in den Public-Channel versendet
-   * ein Listener lauscht am Public-Channel auf Antworten (replyNewCommunityMsg) der schon existenten Communities
-   * ein Listener lauscht am Public-CHannel auf initiale "newCommunity-Msg" anderer neuer Communities
-4. mit dem ersten Empfangen einer Reply-Msg einer anderen Community, wird der Community-Connection Prozess gestartet, der mit jedem Empfang von neuen Community-Daten eine P2P-Verbindung zu dieser Community aufbaut, um direkt detaillierte Daten auszutauschen
+   * ein Listener lauscht am Public-Channel auf Antworten (*replyNewCommunity*-Msg) der schon existenten Communities
+   * ein Listener lauscht am Public-Channel auf initiale "*newCommunity*-Msg" anderer neuer Communities
+4. mit dem ersten Empfangen einer *replyNewCommunity*-Msg einer anderen Community, wird der *Community-Communication* Prozess gestartet, der mit jedem Empfang von neuen Community-Daten eine P2P-Verbindung zu dieser Community aufbaut, um direkt detaillierte Daten auszutauschen
 5. die vordefinierte Tätigkeitsliste ist geladen
 6. die vordefinierten Berechtigungen sind aktiv
 7. optional sind schon Mitglieder erfasst und in der Datenbank gespeichert
