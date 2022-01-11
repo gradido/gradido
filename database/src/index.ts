@@ -6,6 +6,7 @@ import { CreatePeterLustigSeed } from './seeds/users/peter-lustig.admin.seed'
 import { CreateBibiBloxbergSeed } from './seeds/users/bibi-bloxberg.seed'
 import { CreateRaeuberHotzenplotzSeed } from './seeds/users/raeuber-hotzenplotz.seed'
 import { CreateBobBaumeisterSeed } from './seeds/users/bob-baumeister.seed'
+import { CreateGarrickOllivanderSeed } from './seeds/users/garrick-ollivander.seed'
 import { DecayStartBlockSeed } from './seeds/decay-start-block.seed'
 import { resetDB, pool, migration } from './helpers'
 
@@ -44,6 +45,7 @@ const run = async (command: string) => {
       await runSeeder(CreateBibiBloxbergSeed)
       await runSeeder(CreateRaeuberHotzenplotzSeed)
       await runSeeder(CreateBobBaumeisterSeed)
+      await runSeeder(CreateGarrickOllivanderSeed)
       break
     default:
       throw new Error(`Unsupported command ${command}`)
