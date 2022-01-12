@@ -59,7 +59,7 @@ const webhook = {
   // Elopage
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
   // Github
-  WEBHOOK_GITHUB: process.env.WEBHOOK_GITHUB || false,
+  WEBHOOK_GITHUB: process.env.WEBHOOK_GITHUB === 'true' || false,
   WEBHOOK_GITHUB_SECRET: process.env.WEBHOOK_GITHUB_SECRET || '',
   WEBHOOK_GITHUB_PAYLOAD_LIMIT: process.env.WEBHOOK_GITHUB_PAYLOAD_LIMIT || '1mb',
   WEBHOOK_GITHUB_BRANCH: process.env.WEBHOOK_GITHUB_BRANCH || 'master',

@@ -65,6 +65,13 @@ const createServer = async (context: any = serverContext): Promise<any> => {
   // bodyparser text for elopage
   app.use(express.text())
 
+  // Log every request
+  app.use((req, res, next) => {
+    // eslint-disable-next-line no-console
+    console.log(req)
+    next()
+  })
+
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
   // Github Webhook
