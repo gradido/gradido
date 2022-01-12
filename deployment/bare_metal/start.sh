@@ -74,16 +74,25 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE
 
 # Install & build database
 echo 'Updating database<br>' >> $UPDATE_HTML
-#cd $PROJECT_ROOT/database
-#yarn install
-#yarn build
-#if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-#  yarn dev_up
-#  yarn dev_reset
-#  yarn seed 
-#else
-#  yarn up
-#fi
+update_database(){
+  cd $PROJECT_ROOT/database && \
+  yarn install && \
+  yarn build && \
+  yarn up
+}
+update_database_seed(){
+  cd $PROJECT_ROOT/database && \
+  yarn install && \
+  yarn build && \
+  yarn dev_up && \
+  yarn dev_reset && \
+  yarn seed
+}
+if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+  update_database
+else
+  update_database_seed
+fi
 
 # Install & build backend
 echo 'Updating backend<br>' >> $UPDATE_HTML
