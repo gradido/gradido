@@ -24,6 +24,13 @@ import schema from '../graphql/schema'
 
 // webhooks
 import { elopageWebhook } from '../webhook/elopage'
+import { githubWebhook } from '../webhook/github'
+
+// github middleware
+// This library has no types available
+// TODO: fork it an make it typescript
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const githubMiddleware = require('github-webhook-middleware')
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -60,6 +67,17 @@ const createServer = async (context: any = serverContext): Promise<any> => {
 
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
+  // Github Webhook
+  if (CONFIG.WEBHOOK_GITHUB) {
+    app.post(
+      '/hook/github/',
+      githubMiddleware({
+        secret: CONFIG.WEBHOOK_GITHUB_SECRET,
+        limit: CONFIG.WEBHOOK_GITHUB_PAYLOAD_LIMIT,
+      }),
+      githubWebhook,
+    )
+  }
 
   // Apollo Server
   const apollo = new ApolloServer({
