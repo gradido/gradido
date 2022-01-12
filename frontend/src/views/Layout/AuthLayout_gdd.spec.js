@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import AuthLayoutGdd from './AuthLayout_gdd'
-import LanguageSwitch from '../../components/LanguageSwitch'
 
 const localVue = global.localVue
 
@@ -51,7 +50,7 @@ describe('AuthLayoutGdd', () => {
     })
 
     it('has LanguageSwitch', () => {
-      expect(wrapper.findComponent(LanguageSwitch).exists()).toBeTruthy()
+      expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
     })
 
     describe('check LanguageSwitch on register page', () => {
@@ -61,7 +60,7 @@ describe('AuthLayoutGdd', () => {
       })
 
       it('has not LanguageSwitch', () => {
-        expect(wrapper.findComponent(LanguageSwitch).exists()).toBeFalsy()
+        expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeFalsy()
       })
     })
   })
