@@ -106,3 +106,42 @@ git config pull.ff only
 sudo nano /etc/sudoers.d/gradido
 > gradido ALL=(ALL) NOPASSWD: /etc/init.d/nginx start,/etc/init.d/nginx stop,/etc/init.d/nginx restart
 sudo chmod a+rw /etc/nginx/sites-enabled
+
+# Webhooks (optional)
+sudo apt install webhook
+nano ~/hooks.json
+```
+[
+  {
+    "id": "gradido",
+    "execute-command": "/home/gradido/gradido/deployment/bare_metal/start.sh",
+    "command-working-directory": "/home/gradido/gradido/deployment/bare_metal",
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hash-sha1",
+            "secret": "secret",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "refs/heads/new_deployment",
+            "parameter": {
+              "source": "payload",
+              "name": "ref"
+            }
+          }
+        }
+      ]
+    }
+  }
+]
+```
+
+webhook -hooks ~/hooks.json &
