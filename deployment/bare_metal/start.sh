@@ -50,10 +50,10 @@ pm2 stop gradido-admin
 # git
 BRANCH=${1:-master}
 echo "Starting with git pull - branch:$BRANCH<br>" >> $UPDATE_HTML
-cd $PROJECT_ROOT && \
-git fetch origin $BRANCH && \
-git checkout $BRANCH && \
-git pull && \
+cd $PROJECT_ROOT
+git fetch origin $BRANCH
+git checkout $BRANCH
+git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
@@ -74,51 +74,42 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE
 
 # Install & build database
 echo 'Updating database<br>' >> $UPDATE_HTML
-update_database(){
-  cd $PROJECT_ROOT/database && \
-  yarn install && \
-  yarn build && \
-  yarn up
-}
-update_database_seed(){
-  cd $PROJECT_ROOT/database && \
-  yarn install && \
-  yarn build && \
-  yarn dev_up && \
-  yarn dev_reset && \
-  yarn seed
-}
+cd $PROJECT_ROOT/database
+yarn install
+yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  update_database
+  yarn dev_up
+  yarn dev_reset
+  yarn seed 
 else
-  update_database_seed
+  yarn up
 fi
 
 # Install & build backend
 echo 'Updating backend<br>' >> $UPDATE_HTML
-cd $PROJECT_ROOT/backend && \
-yarn install && \
-yarn build && \
-pm2 delete gradido-backend && \
-pm2 start --name gradido-backend "yarn start" --no-treekill && \
+cd $PROJECT_ROOT/backend
+yarn install
+yarn build
+pm2 delete gradido-backend
+pm2 start --name gradido-backend "yarn start" --no-treekill
 pm2 save
 
 # Install & build frontend
 echo 'Updating frontend<br>' >> $UPDATE_HTML
-cd $PROJECT_ROOT/frontend && \
-yarn install && \
-yarn build && \
-pm2 delete gradido-frontend && \
-pm2 start --name gradido-frontend "yarn start" && \
+cd $PROJECT_ROOT/frontend
+yarn install
+yarn build
+pm2 delete gradido-frontend
+pm2 start --name gradido-frontend "yarn start"
 pm2 save
 
 # Install & build admin
 echo 'Updating admin<br>' >> $UPDATE_HTML
-cd $PROJECT_ROOT/admin && \
-yarn install && \
-yarn build && \
-pm2 delete gradido-admin && \
-pm2 start --name gradido-admin "yarn start" && \
+cd $PROJECT_ROOT/admin
+yarn install
+yarn build
+pm2 delete gradido-admin
+pm2 start --name gradido-admin "yarn start"
 pm2 save
 
 # let nginx showing gradido
