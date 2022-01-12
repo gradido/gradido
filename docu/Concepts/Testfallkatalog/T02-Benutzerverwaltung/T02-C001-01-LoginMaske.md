@@ -29,7 +29,7 @@ Es wird die Anzeige der Login-Maske geprüft auf:
 Es wird die URL
 
 * Testumgebung: https://stage1.gradido.net/login
-* Produktionsumgebung: https://gradido.net/login
+* Produktionsumgebung: https://gdd1.gradido.net/login
 
 aufgerufen und die Login-Maske wird angezeigt.
 
