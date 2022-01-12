@@ -10,7 +10,12 @@ jest.mock('./sendEMail', () => {
 
 describe('sendResetPasswordEmail', () => {
   beforeEach(async () => {
-    await sendResetPasswordEmail('resetLink', 'Peter', 'Lustig', 'peter@lustig.de')
+    await sendResetPasswordEmail({
+      link: 'resetLink',
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+    })
   })
 
   it('calls sendEMail', () => {

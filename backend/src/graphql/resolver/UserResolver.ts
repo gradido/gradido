@@ -522,12 +522,12 @@ export class UserResolver {
       optInCode.verificationCode.toString(),
     )
 
-    const emailSent = await sendResetPasswordEmail(
+    const emailSent = await sendResetPasswordEmail({
       link,
-      loginUser.firstName,
-      loginUser.lastName,
+      firstName: loginUser.firstName,
+      lastName: loginUser.lastName,
       email,
-    )
+    })
 
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
