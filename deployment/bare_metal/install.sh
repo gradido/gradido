@@ -5,7 +5,7 @@
 
 # Load .env or .env.dist if not present
 set -o allexport
-if [ -f ".env"]; then
+if [ -f ".env" ]; then
     source .env
 else
     source .env.dist
