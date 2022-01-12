@@ -27,7 +27,7 @@ describe('sendTransactionReceivedEmail', () => {
       subject: 'Gradido Überweisung',
       text:
         expect.stringContaining('Hallo Peter Lustig') &&
-        expect.stringContaining('42,00') &&
+        expect.stringContaining('42,00 GDD') &&
         expect.stringContaining('Bibi Bloxberg') &&
         expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!'),
     })
