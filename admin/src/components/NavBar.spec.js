@@ -53,13 +53,17 @@ describe('NavBar', () => {
   })
 
   describe('logout', () => {
-    // const assignLocationSpy = jest.fn()
+    const windowLocationMock = jest.fn()
     beforeEach(async () => {
+      delete window.location
+      window.location = {
+        assign: windowLocationMock,
+      }
       await wrapper.findAll('a').at(6).trigger('click')
     })
 
     it('redirects to /logout', () => {
-      expect(routerPushMock).toBeCalledWith('/logout')
+      expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
     })
 
     it('dispatches logout to store', () => {
