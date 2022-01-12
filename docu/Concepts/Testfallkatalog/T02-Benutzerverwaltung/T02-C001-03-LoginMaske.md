@@ -22,7 +22,7 @@ Es wird in der Login-Maske die Funktion des Links "Passwort vergessen?"geprüft:
 Es wird die URL
 
 * Testumgebung: https://stage1.gradido.net/login
-* Produktionsumgebung: https://gradido.net/login
+* Produktionsumgebung: https://gdd1.gradido.net/login
 
 aufgerufen und die Login-Maske wird angezeigt.
 
@@ -70,8 +70,8 @@ aufgerufen und die Login-Maske wird angezeigt.
       3. Wiederholung von Schritt 2.4.1 und 2.4.2 bis alle verfügbaren Sprachen geprüft sind
    5. Link "Zurück" ist aktiv und landet auf URL
 
-      1. Testumgebung: https://stage1.gradido.net/Login
-      2. Produktionsumgebung: https://gradido.net/Login
+      1. Testumgebung: https://stage1.gradido.net/login
+      2. Produktionsumgebung: https://gdd1.gradido.net/login
    6. Footer-Links:
 
       1. "Gradido-Akademie" reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://gradido.net/de"
@@ -92,7 +92,7 @@ aufgerufen und die Login-Maske wird angezeigt.
 
 5. **In dem angegebenen Email-Postfach wird eine Email empfangen, die ein Zurücksetzen-Link enthält:**
    1. Testumgebung: https://stage1.gradido.net/reset/'erzeugter rest-code'
-   2. Produktionsumgebung: https://gradido.net/reset/'erzeugter reset-code'
+   2. Produktionsumgebung: https://ggd1.gradido.net/reset/'erzeugter reset-code'
 6. **Mit Betätigen des Reset-Links bzw. Aufruf des Rest-Links im Browser wird folgende Maske angezeigt:**
 
 ![2te Passwort zurücksetzen Maske](../image/T02-C001-03-LoginMaske3.png)
