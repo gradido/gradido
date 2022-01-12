@@ -21,7 +21,7 @@ describe('sendResetPasswordEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Peter Lustig <peter@lustig.de>`,
-      subject: 'Gradido: Reset Password',
+      subject: 'Gradido: Passwort zurücksetzen',
       text: expect.stringContaining('Hallo Peter Lustig') && expect.stringContaining('resetLink'),
     })
   })

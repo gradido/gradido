@@ -1,4 +1,5 @@
 import { sendEMail } from './sendEMail'
+import { transactionReceived } from './text/transactionReceived'
 
 export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string
@@ -11,19 +12,7 @@ export const sendTransactionReceivedEmail = (data: {
 }): Promise<boolean> => {
   return sendEMail({
     to: `${data.recipientFirstName} ${data.recipientLastName} <${data.email}>`,
-    subject: 'Gradido Überweisung',
-    text: `Hallo ${data.recipientFirstName} ${data.recipientLastName}
-
-Du hast soeben ${data.amount.toFixed(2).replace('.', ',')} GDD von ${data.senderFirstName} ${
-      data.senderLastName
-    } erhalten.
-${data.senderFirstName} ${data.senderLastName} schreibt:
-
-${data.memo}
-
-Bitte antworte nicht auf diese E-Mail!
-
-Mit freundlichen Grüßen,
-dein Gradido-Team`,
+    subject: transactionReceived.de.subject,
+    text: transactionReceived.de.text(data),
   })
 }

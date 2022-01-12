@@ -1,4 +1,5 @@
 import { sendEMail } from './sendEMail'
+import { resetPassword } from './text/resetPassword'
 
 export const sendResetPasswordEmail = (data: {
   link: string
@@ -8,14 +9,7 @@ export const sendResetPasswordEmail = (data: {
 }): Promise<boolean> => {
   return sendEMail({
     to: `${data.firstName} ${data.lastName} <${data.email}>`,
-    subject: 'Gradido: Reset Password',
-    text: `Hallo ${data.firstName} ${data.lastName},
-
-Du oder jemand anderes hat für dieses Konto ein Zurücksetzen des Passworts angefordert.
-Wenn du es warst, klicke bitte auf den Link: ${data.link}
-oder kopiere den obigen Link in Dein Browserfenster.
-
-Mit freundlichen Grüßen,
-dein Gradido-Team`,
+    subject: resetPassword.de.subject,
+    text: resetPassword.de.text(data),
   })
 }
