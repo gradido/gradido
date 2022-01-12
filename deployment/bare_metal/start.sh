@@ -26,8 +26,7 @@ set +o allexport
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
-  retVal="Already building!"
-  return "${retVal}" 2>/dev/null || exit "${retVal}"
+  return "Already building!" 2>/dev/null || exit 1
 fi
 touch $LOCK_FILE
 
