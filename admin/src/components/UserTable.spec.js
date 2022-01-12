@@ -3,6 +3,9 @@ import UserTable from './UserTable.vue'
 
 const localVue = global.localVue
 
+const apolloQueryMock = jest.fn()
+apolloQueryMock.mockResolvedValue()
+
 describe('UserTable', () => {
   let wrapper
 
@@ -114,6 +117,12 @@ describe('UserTable', () => {
         }),
       }
     }),
+    $apollo: {
+      query: apolloQueryMock,
+    },
+    $store: {
+      commit: jest.fn(),
+    },
   }
 
   const Wrapper = (propsData) => {
