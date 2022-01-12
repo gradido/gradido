@@ -26,7 +26,6 @@ export const githubWebhook = async (req: any, res: any): Promise<void> => {
         },
       )
       child.unref()
-      process.exit()
     }
   }
 }
