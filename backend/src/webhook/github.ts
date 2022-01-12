@@ -18,6 +18,7 @@ export const githubWebhook = async (req: any, res: any): Promise<void> => {
     console.log(payload)
 
     if (payload.ref === `refs/heads/${CONFIG.WEBHOOK_GITHUB_BRANCH}`) {
+      // spawn shell and detach process to allow killing of parent process in the update script
       const child = spawn(
         path.join(__dirname, '../../../deployment/bare_metal/start.sh'),
         [CONFIG.WEBHOOK_GITHUB_BRANCH],
@@ -26,7 +27,6 @@ export const githubWebhook = async (req: any, res: any): Promise<void> => {
           stdio: ['ignore', 'ignore', 'ignore'],
         },
       )
-      // detach process to allow killing of parent process in the update script
       child.unref()
     }
   }
