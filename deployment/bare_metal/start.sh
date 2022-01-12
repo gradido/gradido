@@ -91,7 +91,7 @@ cd $PROJECT_ROOT/backend
 yarn install
 yarn build
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" # --no-treekill
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" --no-treekill
 pm2 save
 
 # Install & build frontend
