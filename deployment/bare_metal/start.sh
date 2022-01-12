@@ -9,7 +9,7 @@ SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 LOCK_FILE=$SCRIPT_DIR/update.lock
 UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
-PROJECT_ROOT=$SCRIPT_DIR/../../
+PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 
 # Load .env or .env.dist if not present
@@ -89,7 +89,7 @@ cd $PROJECT_ROOT/backend
 yarn install
 yarn build
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" --no-treekill
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" # --no-treekill
 pm2 save
 
 # Install & build frontend
