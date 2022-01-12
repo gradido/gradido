@@ -451,7 +451,12 @@ export class UserResolver {
         /\$1/g,
         emailOptIn.verificationCode.toString(),
       )
-      const emailSent = await sendAccountActivationEmail(activationLink, firstName, lastName, email)
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName,
+        lastName,
+        email,
+      })
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -485,12 +490,12 @@ export class UserResolver {
         emailOptIn.verificationCode.toString(),
       )
 
-      const emailSent = await sendAccountActivationEmail(
-        activationLink,
-        loginUser.firstName,
-        loginUser.lastName,
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName: loginUser.firstName,
+        lastName: loginUser.lastName,
         email,
-      )
+      })
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {

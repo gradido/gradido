@@ -1,20 +1,20 @@
 import { sendEMail } from './sendEMail'
 
-export const sendAccountActivationEmail = (
-  activationLink: string,
-  firstName: string,
-  lastName: string,
-  email: string,
-): Promise<boolean> => {
+export const sendAccountActivationEmail = (data: {
+  link: string
+  firstName: string
+  lastName: string
+  email: string
+}): Promise<boolean> => {
   return sendEMail({
-    to: `${firstName} ${lastName} <${email}>`,
+    to: `${data.firstName} ${data.lastName} <${data.email}>`,
     subject: 'Gradido: E-Mail Überprüfung',
-    text: `Hallo ${firstName} ${lastName},
+    text: `Hallo ${data.firstName} ${data.lastName},
 
 Deine EMail wurde soeben bei Gradido registriert.
 
 Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
-${activationLink}
+${data.link}
 oder kopiere den obigen Link in dein Browserfenster.
 
 Mit freundlichen Grüßen,

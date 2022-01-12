@@ -10,7 +10,12 @@ jest.mock('./sendEMail', () => {
 
 describe('sendAccountActivationEmail', () => {
   beforeEach(async () => {
-    await sendAccountActivationEmail('activationLink', 'Peter', 'Lustig', 'peter@lustig.de')
+    await sendAccountActivationEmail({
+      link: 'activationLink',
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+    })
   })
 
   it('calls sendEMail', () => {
