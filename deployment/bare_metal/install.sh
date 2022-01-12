@@ -145,3 +145,5 @@ nano ~/hooks.json
 ```
 
 webhook -hooks ~/hooks.json &
+# or for debugging
+webhook -hooks ~/hooks.json -verbose
