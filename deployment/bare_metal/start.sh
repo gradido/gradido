@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # wait for node to properly unref the process(?)
+# Wait 60 seconds to evaluate ps -x --forest
 sleep 60
 
 # Find current directory & configure paths
