@@ -1,4 +1,4 @@
-import sendEmail from './sendEMail'
+import { sendEMail } from './sendEMail'
 import { createTransport } from 'nodemailer'
 import CONFIG from '../config'
 
@@ -32,8 +32,7 @@ describe('sendEMail', () => {
     // eslint-disable-next-line no-console
     console.log = consoleLogMock
     beforeEach(async () => {
-      result = await sendEmail.sendEMail({
-        from: 'sender@mail.org',
+      result = await sendEMail({
         to: 'receiver@mail.org',
         subject: 'Subject',
         text: 'Text text text',
@@ -57,8 +56,7 @@ describe('sendEMail', () => {
   describe('config email is true', () => {
     beforeEach(async () => {
       CONFIG.EMAIL = true
-      result = await sendEmail.sendEMail({
-        from: 'sender@mail.org',
+      result = await sendEMail({
         to: 'receiver@mail.org',
         subject: 'Subject',
         text: 'Text text text',
@@ -81,31 +79,5 @@ describe('sendEMail', () => {
     it('returns true', () => {
       expect(result).toBeTruthy()
     })
-  })
-})
-
-describe('sendAccountActivationEmail', () => {
-  const spy = jest.spyOn(sendEmail, 'sendEMail')
-  beforeEach(async () => {
-    jest.clearAllMocks()
-    await sendEmail.sendAccountActivationEmail(
-      'activationLink',
-      'Petet',
-      'Lustig',
-      'peter@lustig.de',
-    )
-  })
-
-  it.skip('calls sendEMail', () => {
-    expect(spy).toBeCalledWith(
-      expect.objectContaining({
-        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-        to: `Peter Lustig <peter@lustig.de'>`,
-        subject: 'Gradido: E-Mail Überprüfung',
-        text:
-          expect.stringContaining('Hallo Peter Lustig') &&
-          expect.stringContaining('activationLink'),
-      }),
-    )
   })
 })

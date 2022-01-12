@@ -12,9 +12,9 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
-import { sendAccountActivationEmail } from '../../util/sendEMail'
+import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
 
-jest.mock('../../util/sendEMail', () => {
+jest.mock('../../mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),

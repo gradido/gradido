@@ -20,7 +20,8 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendAccountActivationEmail, sendEMail } from '../../mailer/sendEMail'
+import { sendEMail } from '../../mailer/sendEMail'
+import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { signIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
@@ -522,7 +523,6 @@ export class UserResolver {
     )
 
     const emailSent = await sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
       to: `${loginUser.firstName} ${loginUser.lastName} <${email}>`,
       subject: 'Gradido: Reset Password',
       text: `Hallo ${loginUser.firstName} ${loginUser.lastName},

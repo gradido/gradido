@@ -652,7 +652,6 @@ export class TransactionResolver {
     // send notification email
     // TODO: translate
     await sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
       to: `${recipiantUser.firstName} ${recipiantUser.lastName} <${recipiantUser.email}>`,
       subject: 'Gradido Überweisung',
       text: `Hallo ${recipiantUser.firstName} ${recipiantUser.lastName}
