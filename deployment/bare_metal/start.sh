@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# wait for node to properly unref the process 15sec is too less, 60 is enough
-# Wait 60 seconds to evaluate ps -x --forest
-sleep 25
-
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
