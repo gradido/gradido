@@ -6,7 +6,7 @@ import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, QueryRunner } from 'typeorm'
 
 import CONFIG from '../../config'
-import { sendEMail } from '../../util/sendEMail'
+import { sendEMail } from '../../mailer/sendEMail'
 
 import { Transaction } from '../model/Transaction'
 import { TransactionList } from '../model/TransactionList'
