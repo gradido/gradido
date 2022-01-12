@@ -29,9 +29,6 @@ touch $LOCK_FILE
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
-echo "SCRIPT_DIR ${SCRIPT_DIR}<br>" >> $UPDATE_HTML
-echo "PROJECT_ROOT ${PROJECT_ROOT}<br>" >> $UPDATE_HTML
-
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
 rm /etc/nginx/sites-enabled/gradido.conf
