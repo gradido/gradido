@@ -61,7 +61,7 @@ describe('UserSearch', () => {
       })
 
       it('filters the users by unconfirmed emails', () => {
-        expect(wrapper.vm.searchResult).toHaveLength(0)
+        expect(wrapper.vm.searchResult).toHaveLength(1)
       })
     })
 
