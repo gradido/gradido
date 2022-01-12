@@ -2,7 +2,7 @@
 
 # wait for node to properly unref the process(?)
 # Wait 60 seconds to evaluate ps -x --forest
-sleep 60
+sleep 30
 
 # Find current directory & configure paths
 SCRIPT_PATH=$(realpath $0)
@@ -33,6 +33,9 @@ UPDATE_SITE_CONFIG=stage1_updating
 
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
+
+echo "SCRIPT_DIR ${SCRIPT_DIR}<br>" >> $UPDATE_HTML
+echo "PROJECT_DIR ${PROJECT_DIR}<br>" >> $UPDATE_HTML
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
