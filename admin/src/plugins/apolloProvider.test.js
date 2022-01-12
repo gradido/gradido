@@ -66,6 +66,11 @@ describe('apolloProvider', () => {
       path: '/overview',
     }
 
+    const windowLocationMock = jest.fn()
+    delete window.location
+    window.location = {
+      assign: windowLocationMock,
+    }
     // mock context
     const setContextMock = jest.fn()
     const getContextMock = jest.fn(() => {
@@ -130,18 +135,13 @@ describe('apolloProvider', () => {
 
       describe('current route is not logout', () => {
         it('redirects to logout', () => {
-          expect(routerPushMock).toBeCalledWith('/logout')
+          expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
         })
       })
 
       describe('current route is logout', () => {
-        beforeEach(() => {
-          jest.clearAllMocks()
-          router.currentRoute.path = '/logout'
-        })
-
         it('does not redirect to logout', () => {
-          expect(routerPushMock).not.toBeCalled()
+          expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
         })
       })
     })
