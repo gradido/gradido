@@ -1,5 +1,5 @@
 // eslint-disable-next-line camelcase
-import child_process from 'child_process'
+import { spawn } from 'child_process'
 import path from 'path'
 import CONFIG from '../config'
 
@@ -18,9 +18,10 @@ export const githubWebhook = async (req: any, res: any): Promise<void> => {
     console.log(payload)
 
     if (payload.ref === `refs/heads/${CONFIG.WEBHOOK_GITHUB_BRANCH}`) {
-      child_process.execFile(path.join(__dirname, '../../../deployment/bare_metal/start.sh'), [
+      const child = spawn(path.join(__dirname, '../../../deployment/bare_metal/start.sh'), [
         CONFIG.WEBHOOK_GITHUB_BRANCH,
       ])
+      child.unref()
     }
   }
 }
