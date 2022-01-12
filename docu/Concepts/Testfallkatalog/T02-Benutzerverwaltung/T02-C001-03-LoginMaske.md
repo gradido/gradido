@@ -34,7 +34,7 @@ aufgerufen und die Login-Maske wird angezeigt.
 * keine sonstigen Eingaben bzw. Vorraussetzungen notwendig
 * Mit Betätigen des Links "Passwort vergessen?" wird der Passwort-Zurücksetzen-Prozess gestartet und unter
   * der Testumgebung: https://stage1.gradido.net/password
-  * der Produktionsumgebung: https://gradido.net/password
+  * der Produktionsumgebung: https://gdd1.gradido.net/password
 * folgende Maske angezeigt:
 
 ![1te Passwort zurücksetzen Maske](../image/T02-C001-03-LoginMaske1.png)
