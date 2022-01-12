@@ -23,7 +23,7 @@ export interface LoginUserContext {
   language?: string
   disabled?: boolean
   groupId?: number
-  publisherId?: number | null
+  publisherId?: number
 }
 
 export interface LoginUserBackupContext {
