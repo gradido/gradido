@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div class="main-content mt-4">
       <router-view></router-view>
-      <language-switch class="text-center mb-5 mt-5" />
+      <language-switch v-if="$route.path !== '/register'" class="text-center mb-5 mt-5" />
       <content-footer v-if="!$route.meta.hideFooter"></content-footer>
     </div>
   </div>
