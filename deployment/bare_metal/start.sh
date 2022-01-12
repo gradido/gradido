@@ -89,7 +89,7 @@ cd $PROJECT_ROOT/backend
 yarn install
 yarn build
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "cd $PROJECT_ROOT/backend && yarn start" --no-treekill
+cd $PROJECT_ROOT/backend && pm2 start --name gradido-backend "yarn start" --no-treekill
 pm2 save
 
 # Install & build frontend
@@ -98,7 +98,7 @@ cd $PROJECT_ROOT/frontend
 yarn install
 yarn build
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend "cd $PROJECT_ROOT/frontend && yarn start"
+cd $PROJECT_ROOT/frontend && pm2 start --name gradido-frontend "yarn start"
 pm2 save
 
 # Install & build admin
@@ -107,7 +107,7 @@ cd $PROJECT_ROOT/admin
 yarn install
 yarn build
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "cd $PROJECT_ROOT/admin && yarn start"
+cd $PROJECT_ROOT/admin && pm2 start --name gradido-admin "yarn start"
 pm2 save
 
 # let nginx showing gradido
