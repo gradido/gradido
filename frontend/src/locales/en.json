@@ -1,5 +1,5 @@
 {
-  "admin_area": "Admin's area",
+  "admin_area": "Admin Area",
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -9,7 +9,7 @@
         "hours": "hours",
         "hours_report": "Hourly report",
         "more_hours": "more hours",
-        "submit": "submit"
+        "submit": "Submit"
       }
     },
     "community": "Community",
@@ -17,23 +17,23 @@
     "current-community": "Current community",
     "location": "Location:",
     "other-communities": "Other communities",
-    "switch-to-this-community": "switch to this community"
+    "switch-to-this-community": "Switch to this community"
   },
   "decay": {
     "calculation_decay": "Calculation of Decay",
-    "calculation_total": "Calculation of the grand total",
+    "calculation_total": "Calculation of the total Amount",
     "created": "Created",
     "days": "Days",
     "decay": "Decay",
     "decayStart": " - Starting block for decay at: ",
-    "decay_introduced": "Decay was Introduced on",
+    "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
     "months": "Months",
     "noDecay": "No Decay",
-    "past_time": "Past time",
+    "past_time": "Time passed",
     "received": "Received",
     "seconds": "Seconds",
     "sent": "Sent",
@@ -48,7 +48,7 @@
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error",
     "no-account": "Unfortunately we could not find an account to the given data!",
-    "no-email-verify": "Your email is not activated yet, please check your emails and click the activation link!",
+    "no-email-verify": "Your account has not been confirmed yet. Please check your emails and click on the activation link!",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "session-expired": "The session was closed for security reasons."
   },
@@ -57,7 +57,7 @@
     "at": "at",
     "cancel": "Cancel",
     "close": "Close",
-    "current_balance": "current balance",
+    "current_balance": "Current Balance",
     "date": "Date",
     "description": "Description",
     "edit": "Edit",
@@ -67,7 +67,7 @@
     "lastname": "Lastname",
     "memo": "Message",
     "message": "Message",
-    "new_balance": "account balance after confirmation",
+    "new_balance": "Account balance after confirmation",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -75,10 +75,10 @@
     "password_old": "Old password",
     "recipient": "Recipient",
     "reset": "Reset",
-    "save": "save",
+    "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
     "sender": "Sender",
-    "send_check": "Confirm your payment. Please check all data again!",
+    "send_check": "Confirm your transaction. Please check all data again!",
     "send_now": "Send now",
     "send_transaction_error": "Unfortunately, the transaction could not be executed!",
     "send_transaction_success": "Your transaction was successfully completed",
@@ -88,40 +88,40 @@
     "to": "to",
     "to1": "to",
     "validation": {
-      "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits",
+      "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
       "usernmae-regex": "The username must start with a letter, followed by at least two alphanumeric characters.",
-      "usernmae-unique": "The username is already taken."
+      "usernmae-unique": "This username is already taken."
     },
     "your_amount": "Your amount"
   },
   "gdt": {
     "action": "Action",
-    "calculation": "Calculation of Gradido Transform",
+    "calculation": "Calculation of GradidoTransform",
     "contribution": "Contribution",
     "conversion": "Conversion",
-    "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
+    "conversion-gdt-euro": "Conversion Euro / GradidoTransform (GDT)",
     "credit": "Credit",
     "factor": "Factor",
     "formula": "Calculation formula",
-    "funding": "Regarding the funding contributions",
-    "gdt-received": "Gradido Transform (GDT) received",
-    "no-transactions": "You do not have Gradido Transform (GDT) yet.",
+    "funding": "To the funding contributions",
+    "gdt-received": "GradidoTransform (GDT) received",
+    "no-transactions": "You do not have GradidoTransform (GDT) yet.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
-    "recruited-member": "Recruited Member"
+    "recruited-member": "Invited member"
   },
   "imprint": "Legal notice",
   "language": "Language",
   "login": "Login",
   "logout": "Logout",
-  "members_area": "Member's area",
+  "members_area": "Members area",
   "message": "hello gradido !!",
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
   "publisher": {
-    "infoNoRegister": "This is not necessary for registration!",
-    "infoText": "Enter the ID of the publisher here. If you do not have an ID, please leave it blank.",
+    "infoNoRegister": "This is not necessary for registration.",
+    "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID"
   },
   "send": "Send",
@@ -135,7 +135,7 @@
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
-      "select_language": "Please choose a language.",
+      "select_language": "Please choose your language.",
       "success": "Your language has been successfully updated."
     },
     "name": {
@@ -143,23 +143,23 @@
       "change-success": "Your name has been successfully changed."
     },
     "newsletter": {
-      "newsletter": "Newsletter",
-      "newsletterFalse": "You will not receive any information by e-mail.",
-      "newsletterTrue": "You will receive information by e-mail."
+      "newsletter": "Information by email",
+      "newsletterFalse": "You will not receive any information by email.",
+      "newsletterTrue": "You will receive information by email."
     },
     "password": {
       "change-password": "Change password",
       "forgot_pwd": "Forgot password?",
       "not-authenticated": "Unfortunately we could not authenticate you. Please contact the support.",
-      "resend_subtitle": "Your activation link is expired, here you can order a new one.",
+      "resend_subtitle": "Your activation link has expired, here you can order a new one.",
       "reset": "Reset password",
       "reset-password": {
-        "text": "Now you can save a new password to login to the Gradido-App in the future."
+        "text": "Enter a new password that you will use to log in to your Gradido account in the future.."
       },
       "send_now": "Send now",
       "set": "Set password",
       "set-password": {
-        "text": "Now you can save a new password to login to the Gradido-App in the future."
+        "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
@@ -167,9 +167,9 @@
   "signup": "Sign up",
   "site": {
     "404": {
-      "back": "Back to dashboard!",
+      "back": "Back to the overview",
       "ooops": "Ooops!",
-      "text": "Page not found. Do not worry though, we have plenty of other pages to explore"
+      "text": "Page not found. But don't worry, we have many other sites to explore."
     },
     "checkEmail": {
       "errorText": "Could not verify the email.",
@@ -197,7 +197,7 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
-      "activateEmail": "Your email has not been activated yet, please check your emails and click the activation link!",
+      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
@@ -209,7 +209,7 @@
   },
   "transaction": {
     "gdd-text": "Gradido Transactions",
-    "gdt-text": "Gradido Transform Transactions",
+    "gdt-text": "GradidoTransform Transactions",
     "more": "more",
     "nullTransactions": "You don't have any transactions on your account yet.",
     "receiverNotFound": "Recipient not found",
