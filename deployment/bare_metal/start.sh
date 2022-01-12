@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# wait for node to properly unref the process(?)
+sleep 15
+
 # Find current directory & configure paths
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
