@@ -112,5 +112,5 @@ ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
 
-#release lock
+# release lock
 rm $LOCK_FILE
