@@ -98,7 +98,7 @@ cd $PROJECT_ROOT/frontend
 yarn install
 yarn build
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend cd $PROJECT_ROOT/frontend && yarn start"
+pm2 start --name gradido-frontend "cd $PROJECT_ROOT/frontend && yarn start"
 pm2 save
 
 # Install & build admin
