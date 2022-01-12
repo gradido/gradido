@@ -114,7 +114,7 @@ nano ~/hooks.json
 [
   {
     "id": "github",
-    "execute-command": "/home/gradido/gradido/deployment/bare_metal/start.sh",
+    "execute-command": "/home/gradido/gradido/deployment/bare_metal/start.sh new_deployment",
     "command-working-directory": "/home/gradido/gradido/deployment/bare_metal",
     "trigger-rule": {
       "and": [
