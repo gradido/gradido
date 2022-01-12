@@ -138,7 +138,7 @@ aufgerufen und die Login-Maske wird angezeigt.
 12. Link "Zurück" ist aktiv und landet auf URL
 
     1. Testumgebung: https://stage1.gradido.net/Login
-    2. Produktionsumgebung: https://gradido.net/Login
+    2. Produktionsumgebung: https://gdd1.gradido.net/Login
 13. Footer-Links:
 
     1. "Gradido-Akademie" reagiert und landet je nach aktuell eingestellter Sprache auf URL "https://gradido.net/de"
