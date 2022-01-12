@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import AuthLayoutGdd from './AuthLayout_gdd'
+import LanguageSwitch from '../../components/LanguageSwitch'
 
 const localVue = global.localVue
 
@@ -15,6 +16,7 @@ describe('AuthLayoutGdd', () => {
       meta: {
         hideFooter: false,
       },
+      path: '/',
     },
     $store: {
       state: {},
@@ -46,6 +48,21 @@ describe('AuthLayoutGdd', () => {
 
     it('has a footer inside the main content', () => {
       expect(wrapper.find('div.main-content').find('footer.footer').exists()).toBeTruthy()
+    })
+
+    it('has LanguageSwitch', () => {
+      expect(wrapper.findComponent(LanguageSwitch).exists()).toBeTruthy()
+    })
+
+    describe('check LanguageSwitch on register page', () => {
+      beforeEach(() => {
+        mocks.$route.path = '/register'
+        wrapper = Wrapper()
+      })
+
+      it('has not LanguageSwitch', () => {
+        expect(wrapper.findComponent(LanguageSwitch).exists()).toBeFalsy()
+      })
     })
   })
 })
