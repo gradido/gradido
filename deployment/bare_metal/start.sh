@@ -29,8 +29,6 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
-UPDATE_SITE_CONFIG=stage1_updating
-
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
