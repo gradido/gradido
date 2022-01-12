@@ -39,10 +39,11 @@ rm /etc/nginx/sites-enabled/gradido.conf
 ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 
-
 # stop all services
 echo 'Stopping all Gradido services<br>' >> $UPDATE_HTML
-pm2 stop all --no-treekill
+pm2 stop gradido-backend --no-treekill
+pm2 stop gradido-frontend
+pm2 stop gradido-admin
 
 # git
 BRANCH=${1:-master}
@@ -88,7 +89,7 @@ cd $PROJECT_ROOT/backend
 yarn install
 yarn build
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn start"
+pm2 start --name gradido-backend "yarn start" --no-treekill
 pm2 save
 
 # Install & build frontend
