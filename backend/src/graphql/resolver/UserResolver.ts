@@ -20,7 +20,7 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendEMail } from '../../mailer/sendEMail'
+import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { signIn } from '../../apis/KlicktippController'
@@ -522,18 +522,12 @@ export class UserResolver {
       optInCode.verificationCode.toString(),
     )
 
-    const emailSent = await sendEMail({
-      to: `${loginUser.firstName} ${loginUser.lastName} <${email}>`,
-      subject: 'Gradido: Reset Password',
-      text: `Hallo ${loginUser.firstName} ${loginUser.lastName},
-      
-      Du oder jemand anderes hat für dieses Konto ein Zurücksetzen des Passworts angefordert.
-      Wenn du es warst, klicke bitte auf den Link: ${link}
-      oder kopiere den obigen Link in Dein Browserfenster.
-      
-      Mit freundlichen Grüßen,
-      dein Gradido-Team`,
-    })
+    const emailSent = await sendResetPasswordEmail(
+      link,
+      loginUser.firstName,
+      loginUser.lastName,
+      email,
+    )
 
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
