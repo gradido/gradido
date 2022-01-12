@@ -28,13 +28,14 @@
 */
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { LoginUser } from '@entity/LoginUser'
 import { getCustomRepository } from 'typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
 import { LoginElopageBuysRepository } from '../typeorm/repository/LoginElopageBuys'
 import { LoginUserRepository } from '../typeorm/repository/LoginUser'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
+  // eslint-disable-next-line no-console
+  console.log('Elopage Hook received')
   res.status(200).end() // Responding is important
   const loginElopgaeBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
   const loginElopgaeBuy = new LoginElopageBuys()

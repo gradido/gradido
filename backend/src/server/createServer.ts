@@ -73,7 +73,7 @@ const createServer = async (context: any = serverContext): Promise<any> => {
   })
 
   // Elopage Webhook
-  app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET + '/', elopageWebhook)
+  app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
   // Github Webhook
   if (CONFIG.WEBHOOK_GITHUB) {
     app.post(
