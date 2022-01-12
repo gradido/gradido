@@ -43,9 +43,7 @@ sudo /etc/init.d/nginx restart
 
 # stop all services
 echo 'Stopping all Gradido services<br>' >> $UPDATE_HTML
-pm2 stop gradido-backend --no-treekill
-pm2 stop gradido-frontend
-pm2 stop gradido-admin
+pm2 stop all
 
 # git
 BRANCH=${1:-master}
