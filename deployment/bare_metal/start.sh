@@ -5,12 +5,14 @@
 sleep 30
 
 # Find current directory & configure paths
+set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 LOCK_FILE=$SCRIPT_DIR/update.lock
 UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
+set +o allexport
 
 # Load .env or .env.dist if not present
 set -o allexport
