@@ -9,8 +9,6 @@ export const githubWebhook = async (req: any, res: any): Promise<void> => {
   // Handle push events
   if (req.headers['x-github-event'] === 'push') {
     const payload = req.body
-    // eslint-disable-next-line no-console
-    // console.log(payload)
 
     if (payload.ref === `refs/heads/${CONFIG.WEBHOOK_GITHUB_BRANCH}`) {
       // spawn shell and detach process to allow killing of parent process in the update script
