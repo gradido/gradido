@@ -51,6 +51,7 @@ git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
+echo 'Generate new gradido nginx config<br>' >> $UPDATE_HTML
 case "$NGINX_SSL" in
  true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
     *) TEMPLATE_FILE="gradido.conf.template" ;;
@@ -58,6 +59,7 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf
 
 # Generate update-page.conf from template
+echo 'Generate new update-page nginx config<br>' >> $UPDATE_HTML
 case "$NGINX_SSL" in
  true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
     *) TEMPLATE_FILE="update-page.conf.template" ;;
