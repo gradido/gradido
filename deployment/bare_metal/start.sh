@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# wait for node to properly unref the process(?)
+# wait for node to properly unref the process 15sec is too less, 60 is enough
 # Wait 60 seconds to evaluate ps -x --forest
 sleep 30
 
