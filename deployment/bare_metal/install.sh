@@ -100,19 +100,9 @@ sudo certbot --certonly
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
 
-# Generate gradido.conf from template
-# TODO order - first certbot, then nginx setup
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="gradido.conf.template" ;;
-esac
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > gradido.conf
-
-# Generate update-page.conf from template
-case "$NGINX_SSL" in
- true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
-    *) TEMPLATE_FILE="update-page.conf.template" ;;
-esac
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $TEMPLATE_FILE > update-page.conf
-
 git config pull.ff only
+
+# Allow nginx configuration and restart for gradido
+sudo nano /etc/sudoers.d/gradido
+> gradido ALL=(ALL) NOPASSWD: /etc/init.d/nginx start,/etc/init.d/nginx stop,/etc/init.d/nginx restart
+sudo chmod a+rw /etc/nginx/sites-enabled
