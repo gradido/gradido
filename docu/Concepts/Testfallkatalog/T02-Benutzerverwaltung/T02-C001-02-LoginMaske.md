@@ -32,7 +32,7 @@ Prüfung auf korrekten Funktionsweise des Buttons "Anmeldung":
    1. *Gibt es noch weitere Prüfschritte (LOG-Ausgaben auf Login-, Community-Server o.ä.) die hier überprüft werden sollten?*
 3. Bei erfolgreichem Login wird die URL angezeigt
    * Testumgebung: "https://stage1.gradido.net/overview"
-   * Produktionsumgebung: "https://gradido.net/overview"
+   * Produktionsumgebung: "https://gdd1.gradido.net/overview"
 4. Bei fehlerhaftem Login wird eine entsprechend aussagekräftige Fehlermeldung angezeigt und die Anzeige verbleibt auf der Login-Maske.
 
 ## Ende-Bedingungen:
