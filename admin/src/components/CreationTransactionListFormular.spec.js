@@ -8,7 +8,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
     transactionList: {
       transactions: [
         {
-          type: 'created',
+          type: 'creation',
           balance: 100,
           decayStart: 0,
           decayEnd: 0,
@@ -27,7 +27,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           },
         },
         {
-          type: 'created',
+          type: 'creation',
           balance: 200,
           decayStart: 0,
           decayEnd: 0,
@@ -58,9 +58,7 @@ const mocks = {
     query: apolloQueryMock,
   },
   $toasted: {
-    global: {
-      error: toastedErrorMock,
-    },
+    error: toastedErrorMock,
   },
 }
 

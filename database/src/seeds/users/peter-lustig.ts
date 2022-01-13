@@ -17,7 +17,6 @@ export const peterLustig = {
   language: 'de',
   disabled: false,
   groupId: 1,
-  publisherId: null,
   passphrase:
     'okay property choice naive calm present weird increase stuff royal vibrant frame attend wood one else tribe pull hedgehog woman kitchen hawk snack smart ',
   mnemonicType: 2,
