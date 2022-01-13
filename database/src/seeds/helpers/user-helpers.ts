@@ -27,6 +27,7 @@ import { Factory } from 'typeorm-seeding'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
   const user = await factory(User)(createUserContext(userData)).create()
+  if (!userData.email) userData.email = user.email
   const loginUser = await factory(LoginUser)(createLoginUserContext(userData)).create()
   await factory(LoginUserBackup)(createLoginUserBackupContext(userData, loginUser)).create()
 
