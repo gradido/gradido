@@ -8,14 +8,14 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     searchUsers: [
       {
-        id: 1,
+        userId: 1,
         firstName: 'Bibi',
         lastName: 'Bloxberg',
         email: 'bibi@bloxberg.de',
         creation: [200, 400, 600],
       },
       {
-        id: 2,
+        userId: 2,
         firstName: 'Benjamin',
         lastName: 'Blümchen',
         email: 'benjamin@bluemchen.de',
@@ -71,7 +71,7 @@ describe('Creation', () => {
       it('sets the data of itemsList', () => {
         expect(wrapper.vm.itemsList).toEqual([
           {
-            id: 1,
+            userId: 1,
             firstName: 'Bibi',
             lastName: 'Bloxberg',
             email: 'bibi@bloxberg.de',
@@ -79,7 +79,7 @@ describe('Creation', () => {
             showDetails: false,
           },
           {
-            id: 2,
+            userId: 2,
             firstName: 'Benjamin',
             lastName: 'Blümchen',
             email: 'benjamin@bluemchen.de',
@@ -100,7 +100,7 @@ describe('Creation', () => {
           wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
             'update-item',
             {
-              id: 2,
+              userId: 2,
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               email: 'benjamin@bluemchen.de',
@@ -114,7 +114,7 @@ describe('Creation', () => {
         it('removes the pushed item from itemsList', () => {
           expect(wrapper.vm.itemsList).toEqual([
             {
-              id: 1,
+              userId: 1,
               firstName: 'Bibi',
               lastName: 'Bloxberg',
               email: 'bibi@bloxberg.de',
@@ -127,7 +127,7 @@ describe('Creation', () => {
         it('adds the pushed item to itemsMassCreation', () => {
           expect(wrapper.vm.itemsMassCreation).toEqual([
             {
-              id: 2,
+              userId: 2,
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               email: 'benjamin@bluemchen.de',
@@ -142,7 +142,7 @@ describe('Creation', () => {
             wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
               'update-item',
               {
-                id: 2,
+                userId: 2,
                 firstName: 'Benjamin',
                 lastName: 'Blümchen',
                 email: 'benjamin@bluemchen.de',
@@ -160,7 +160,7 @@ describe('Creation', () => {
           it('adds the item to itemsList', () => {
             expect(wrapper.vm.itemsList).toEqual([
               {
-                id: 1,
+                userId: 1,
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
                 email: 'bibi@bloxberg.de',
@@ -168,7 +168,7 @@ describe('Creation', () => {
                 showDetails: false,
               },
               {
-                id: 2,
+                userId: 2,
                 firstName: 'Benjamin',
                 lastName: 'Blümchen',
                 email: 'benjamin@bluemchen.de',
@@ -206,7 +206,7 @@ describe('Creation', () => {
         await wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
           'update-item',
           {
-            id: 2,
+            userId: 2,
             firstName: 'Benjamin',
             lastName: 'Blümchen',
             email: 'benjamin@bluemchen.de',
