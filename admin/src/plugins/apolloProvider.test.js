@@ -4,12 +4,10 @@ import CONFIG from '../config'
 
 import VueApollo from 'vue-apollo'
 import store from '../store/store'
-import router from '../router/router'
 import i18n from '../i18n'
 
 jest.mock('vue-apollo')
 jest.mock('../store/store')
-jest.mock('../router/router')
 jest.mock('../i18n')
 
 jest.mock('apollo-boost', () => {
@@ -57,13 +55,6 @@ describe('apolloProvider', () => {
     // mock apllo response
     const responseMock = {
       errors: [{ message: '403.13 - Client certificate revoked' }],
-    }
-
-    // mock router
-    const routerPushMock = jest.fn()
-    router.push = routerPushMock
-    router.currentRoute = {
-      path: '/overview',
     }
 
     const windowLocationMock = jest.fn()
@@ -133,16 +124,8 @@ describe('apolloProvider', () => {
         expect(storeDispatchMock).toBeCalledWith('logout', null)
       })
 
-      describe('current route is not logout', () => {
-        it('redirects to logout', () => {
-          expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
-        })
-      })
-
-      describe('current route is logout', () => {
-        it('does not redirect to logout', () => {
-          expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
-        })
+      it('redirects to logout', () => {
+        expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
       })
     })
 
