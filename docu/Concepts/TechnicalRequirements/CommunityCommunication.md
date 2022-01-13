@@ -4,11 +4,56 @@ This document contains the detailed descriptions of the public API of a communit
 
 ## Authentication and Autorization
 
-Each public API of a community has to be authenticated and autorized before. This has to be done by following the *OpenID Connect* protocoll. To fullfil these security requirements a separate security service has to be part of the Gradido-application.
+Each public API of a community has to be authenticated and autorized before. 
+
+### Variant A:
+
+This could be done by following the *OpenID Connect* protocoll. To fullfil these security requirements a separate security service has to be part of the Gradido-application.
 
 Following the link [OpenID Connect](https://www.npmjs.com/package/openid-client) there can be found a server-side OpenID relying party implementation for node.js runtime.
 
 The authentication of communities base on the community-attributes *key* and *URL*, which where exchanged during the *federation process* before. In concequence a community that hasn't execute his federation well will be unknown for other communities and can't be authenticated and autorized for further API calls.
+
+### Variant B:
+
+A similar solution of authentication to variant A but without autorization can be done by using private and public key encryption. The *community creation* process will create a private and public key and store them internally. As the third step of the federation the *community communication* background process of the new community will be startet and a sequence of service invocations will exchange the necessary security data:
+
+1. the service *authenticateCommunity* sends the own community key as input data, which will be checked against the internally stored list of communities and their keys.
+2. If the given key is found a one-time code is passed back to a predefined Redirect URI of the invoker community.
+3. The next invocation of the new community sends the one-time code, the encrypted community-key of the receiver community, the own public key to
+
+The first invocation of a cross community communication must be the service "Authenticate Community". This service will exchange the necesarry data to ensure a sufficient security level for the community communication.
+
+### Variant C:
+
+like Variant B but without one-time code and direct response of public key of community B
+
+
+
+## Service: "Authenticate Community"
+
+This service must be invoked at first before further cross community communication can be done. 
+
+The third step of the *federation process* starts the background process for community communication. As result of the previous federation steps the new community has received from at least one existing community the URL and the community key.
+
+To prepare the input-data for the invocation the own community key and the community key of the 
+
+### Route:
+
+### Input-Data:
+
+```
+{
+	"public-key" : "the public key of the new community (community-B)"
+	"src-community-key" : "the community-key of the new community encrypted by the own private key"
+	"dst-community-key" : "the community-key of the existing community, which replied during the federation encrypted by the own provate key"
+}
+```
+
+### Output-Data:
+
+### Exceptions:
+
 
 ## Service: "Familiarize communities"
 
@@ -24,7 +69,7 @@ POST https://<New_Community_URL>/familiarizeCommunity/`<security-accesstoken>`
 
 ### Input-Data:
 
-The existing community will collect it own data an transferre it as
+The *existing community* will collect its own data and transferre it as
 
 ```
 {
@@ -43,7 +88,7 @@ The existing community will collect it own data an transferre it as
 
 ### Output-Data:
 
-The new community will save the received data and returns its own collected data as
+The *new community* will save the received data and returns its own collected data as
 
 ```
 {
@@ -68,9 +113,89 @@ In case the transferred community-key from the service-consumer will not match t
 
 In case the transferred data can't be stored on service-provider the exception *WriteAccessException* will be thrown.
 
+
+## Service: "request TradingLevel"
+
+With this service a community can ask for a trading level with another community. The *community-A* invokes this service at *community-B* to offer the own  vision of trading with *community-B* by sending a TradingLevelTO with all the initialized Flags for future data exchanges. *Community-B* will store these data in the entry of *community-A* of its internal community list and mark it as an *open admin request* for trading level.  Such an *open admin request* will inform the administrator of *community-B*, because administrative interactions and decisions are necessary. 
+
+After the administrator of *community-B* has cleared all community internal aspects for the requested trading level with *community-A,* he will update the stored trading level flags for *community-A* and send this data by calling the service "confirm trading Level" of *community-A*.
+
+### Route:
+
+POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
+
+### Input-Data:
+
+```
+{
+	TradingLevelTO
+	{
+		"sendMemberDetails" : "Flag if community-A will send member details to the community-B"
+		"receiveMemberDetails" : "Flag if community-A will receive member details from the community-B"
+		"sendCoins" : "Flag if members of community-A are allowed to send coins to members of the community-B"
+		"receiveCoins" : "Flag if members of community-A are allowed to receive coins from members of the community-B"
+		"sendActivities" : "Flag if community-A will send open activities for confirmation to the community-B"
+		"receiveActivities" : "Flag if community-A will receive open activities for confirmation from the community-B"
+		"sendBackup" : "Flag if community-A will send own data to community-B as backup provider"
+		"receiveBackup" : "Flag if community-A will receive data from community-B as backup provider"
+	}
+}
+```
+
+### Output-Data:
+
+```
+{
+	"result" : "Message if the trading level request is accepted and stored or reasons, why the request is rejected"
+}
+```
+
+### Exceptions:
+
+
+
+## Service: "confirm TradingLevel"
+
+With this service a community sends his trading level confirmation to a previous *requestTradingLevel* invocation of another community. The *community-B* invokes this service at *community-A* to confirm the previous received and optionally updated vision of trading level data with *community-A*. This service sends the TradingLevelTO with the confirmed flags for future data exchanges between *community-A* and *community-B*. *Community-A* will store this data in the entry of *community-B* of its internal community list and mark it as a *confirmed admin request* for trading level.  The update of a *admin request* to state *confirmed* will inform the administrator of *community-A* to trigger administrative interactions and decisions.
+
+If the confirmated trading level from *community-B* will not acceptable for *community-A* an additional roundtrip to deal a new tradinglevel between both communities must be started.
+
+### Route:
+
+POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
+
+### Input-Data:
+
+```
+{
+	TradingLevelTO
+	{
+		"sendMemberDetails" : "Flag if community-A will send member details to the community-B"
+		"receiveMemberDetails" : "Flag if community-A will receive member details from the community-B"
+		"sendCoins" : "Flag if members of community-A are allowed to send coins to members of the community-B"
+		"receiveCoins" : "Flag if members of community-A are allowed to receive coins from members of the community-B"
+		"sendActivities" : "Flag if community-A will send open activities for confirmation to the community-B"
+		"receiveActivities" : "Flag if community-A will receive open activities for confirmation from the community-B"
+		"sendBackup" : "Flag if community-A will send own data to community-B as backup provider"
+		"receiveBackup" : "Flag if community-A will receive data from community-B as backup provider"
+	}
+}
+```
+
+### Output-Data:
+
+```
+{
+	"result" : "Message if the trading level request is accepted and stored or reasons, why the request is rejected"
+}
+```
+
+### Exceptions:
+
+
 ## Service: "Member of Community"
 
-Before user A can start any cross-community interactions with user B, this service api can be used to check if user B is a valid member of the other community. 
+Before user A can start any cross-community interactions with user B, this service api can be used to check if user B is a valid member of the other community.
 
 ### Route:
 
@@ -108,10 +233,9 @@ the other community will search in its member list for the given userid. If the 
 
 A *SecurityException* will be thrown, if the security-accesstoken is not valid or the if internal autorization rules like black-listings will not allow access.
 
-
 ## Service: "Receive Coins"
 
-With this service a cross community transaction can be done. In detail if *user-A* member of *community-sender* wants to send *user-B* member of *community-receiver* an amount of GDDs, the gradido server of *community-sender* invokes this service at the server of *community-receiver*. 
+With this service a cross community transaction can be done. In detail if *user-A* member of *community-sender* wants to send *user-B* member of *community-receiver* an amount of GDDs, the gradido server of *community-sender* invokes this service at the server of *community-receiver*.
 
 The service will use a datatype Money as attribute in the input-data with the following attributes and methods:
 
@@ -129,7 +253,6 @@ Money
 	- decay(Long sec) : "calculates the decay of the internal amount with the given duration in sec by:  amount - (amount x  0.99999997802044727 ^ sec)
 }
 ```
-
 
 ### Route:
 
@@ -159,7 +282,6 @@ GET https://<receiver_community_URL>/receiveCoins/`<security-accesstoken>`
 }
 ```
 
-
 ### Exceptions:
 
 *WrongCommunityException* in case the receiver community didn't know the sender community.
@@ -173,7 +295,6 @@ GET https://<receiver_community_URL>/receiveCoins/`<security-accesstoken>`
 *InvalidTxTimeException* in case the timestamp of transfer is in the past.
 
 *DenyTxException* in case the receiver community or user will not interact with the sender community or user.
-
 
 ## Service: "get Activity List"
 
@@ -201,8 +322,6 @@ GET https://<Other_Community_URL>/getActivityList/`<security-accesstoken>`
 
 ### Exceptions:
 
-
-
 ## Service: "get Clearing Activities"
 
 This service can be used to read open activities of other community members, which are open to be cleared by other users. This base on the concept to clear at least two or more activities of other users before the amount of gradidos of the own activity can be credit on the own AGE account.
@@ -216,7 +335,6 @@ GET https://<Other_Community_URL>/getClearingActivities/`<security-accesstoken>`
 ### Output-Data:
 
 ### Exceptions:
-
 
 ## Service: "Clear Activity"
 
