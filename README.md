@@ -67,7 +67,7 @@ We are currently restructuring the service to reduce dependencies and unify busi
 
 ### Open the wallet
 
-Once you have `docker-compose` up and running, you can open [http://localhost/vue](http://localhost/vue) and create yourself a new wallet account.
+Once you have `docker-compose` up and running, you can open [http://localhost/](http://localhost/) and create yourself a new wallet account.
 
 ## How to release
 
@@ -90,7 +90,7 @@ Note: The Changelog will be regenerated with all tags on release on the external
 | Problem | Issue | Solution | Description |
 | ------- | ----- | -------- | ----------- |
 | docker-compose raises database connection errors | [#1062](https://github.com/gradido/gradido/issues/1062) | End `ctrl+c` and restart the `docker-compose up` after a successful build | Several Database connection related errors occur in the docker-compose log. |
-| Wallet page is empty | [#1063](https://github.com/gradido/gradido/issues/1063) | Accept Cookies and Local Storage in your Browser | The page stays empty when navigating to [http://localhost/vue](http://localhost/vue) |
+| Wallet page is empty | [#1063](https://github.com/gradido/gradido/issues/1063) | Accept Cookies and Local Storage in your Browser | The page stays empty when navigating to [http://localhost/](http://localhost/) |
 
 ## Useful Links
 
