@@ -12,7 +12,6 @@ set +o allexport
 
 # Load .env or .env.dist if not present
 set -o allexport
-#TODO
 if [ -f "$SCRIPT_DIR/.env" ]; then
     source $SCRIPT_DIR/.env
 else
