@@ -13,11 +13,19 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '../../apis/KlicktippController'
 
 jest.mock('../../mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('../../apis/KlicktippController', () => {
+  return {
+    __esModule: true,
+    klicktippSignIn: jest.fn(),
   }
 })
 
@@ -217,6 +225,101 @@ describe('UserResolver', () => {
             }),
           ]),
         )
+      })
+    })
+  })
+
+  describe('setPassword', () => {
+    const createUserMutation = gql`
+      mutation (
+        $email: String!
+        $firstName: String!
+        $lastName: String!
+        $language: String!
+        $publisherId: Int
+      ) {
+        createUser(
+          email: $email
+          firstName: $firstName
+          lastName: $lastName
+          language: $language
+          publisherId: $publisherId
+        )
+      }
+    `
+
+    const createUserVariables = {
+      email: 'peter@lustig.de',
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      language: 'de',
+      publisherId: 1234,
+    }
+
+    const setPasswordMutation = gql`
+      mutation ($code: String!, $password: String!) {
+        setPassword(code: $code, password: $password)
+      }
+    `
+
+    describe('valid optin code and valid password', () => {
+      let emailOptIn: string
+      let result: any
+      let loginUser: any
+      let newLoginUser: any
+      let newUser: any
+
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
+          .createQueryBuilder('login_email_optin')
+          .getMany()
+        loginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: emailOptIn, password: 'Aa12345_' },
+        })
+        newLoginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
+        newUser = await getRepository(User).createQueryBuilder('state_user').getMany()
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('updates the password', () => {
+        expect(newLoginUser[0].password).toEqual('3917921995996627700')
+      })
+
+      it('updates the public Key on both user tables', () => {
+        expect(newLoginUser[0].pubKey).toEqual(expect.any(Buffer))
+        expect(newLoginUser[0].pubKey).not.toEqual(loginUser[0].pubKey)
+        expect(newLoginUser[0].pubKey).toEqual(newUser[0].pubkey)
+      })
+
+      it('updates the private Key', () => {
+        expect(newLoginUser[0].privKey).toEqual(expect.any(Buffer))
+        expect(newLoginUser[0].privKey).not.toEqual(loginUser[0].privKey)
+      })
+
+      it('removes the optin', async () => {
+        await expect(
+          getRepository(LoginEmailOptIn).createQueryBuilder('login_email_optin').getMany(),
+        ).resolves.toHaveLength(0)
+      })
+
+      it('calls the klicktipp API', () => {
+        expect(klicktippSignIn).toBeCalledWith(
+          loginUser[0].email,
+          loginUser[0].language,
+          loginUser[0].firstName,
+          loginUser[0].lastName,
+        )
+      })
+
+      it('returns true', () => {
+        expect(result).toBeTruthy()
       })
     })
   })
