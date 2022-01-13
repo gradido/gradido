@@ -36,9 +36,9 @@ sudo mysql_secure_installation
 # Install nginx
 sudo apt-get install -y nginx
 sudo rm /etc/nginx/sites-enabled/default
-# sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf /etc/nginx/sites-available
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gradido.conf /etc/nginx/sites-available
 # sudo ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled
-# sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/update-page.conf /etc/nginx/sites-available
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/update-page.conf /etc/nginx/sites-available
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/common /etc/nginx/
 
 # Allow nginx configuration and restart for gradido
@@ -64,14 +64,13 @@ sudo apt-get install -y yarn
 sudo yarn global add pm2
 
 # Install certbot
-sudo /etc/init.d/nginx stop
 sudo apt-get install -y certbot
-sudo certbot certonly
+sudo apt-get install -y python3-certbot-nginx
+sudo certbot
 > Enter email address (used for urgent renewal and security notices) > support@gradido.net
 > Please read the Terms of Service at > Y
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
-sudo /etc/init.d/nginx start
 
 # Webhooks (optional) (for development)
 sudo apt install webhook
@@ -122,8 +121,8 @@ webhook -hooks ~/hooks.json &
 webhook -hooks ~/hooks.json -verbose
 
 # create db user
-DB_USER=gradido 
-DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+export DB_USER=gradido
+export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
 # create table 
 #create database gradido_community 
 #    DEFAULT CHARACTER SET utf8mb4
@@ -139,7 +138,7 @@ EOFMYSQL
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend
-JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 
 # Configure frontend
@@ -149,3 +148,7 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 #TODO import old database
+
+# Start gradido
+# Note: on first startup some errors will occur - nothing serious
+./start.sh

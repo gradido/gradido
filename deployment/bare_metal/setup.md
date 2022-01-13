@@ -78,6 +78,7 @@
 > cd gradido/deployment/bare_metal
 
 # Adjust .env
+# NOTE ';' can not be part of any value
 > cd gradido/deployment/bare_metal
 > cp .env.dist .env
 > nano .env
