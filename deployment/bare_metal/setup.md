@@ -4,12 +4,12 @@
 
 > ssh root@gddhost.tld
 
-# change default shell
-chsh
+# change root default shell
+> chsh -s /bin/bash
 # Create user `gradido`
 > useradd -d /home/gradido -m gradido
 > passwd gradido
->> enter new
+>> enter new password twice
 
 # Gives the user priviledges - this might be omitted in order to harden security
 # Care: This will require another administering user if you don't want root access.
@@ -18,6 +18,8 @@ chsh
 #       You might lock yourself out, if done wrong.
 > usermod -a -G sudo gradido
 
+# change gradido default shell
+> chsh -s /bin/bash gradido
 # Install sudo
 > apt-get install sudo
 # switch to the new user
@@ -67,11 +69,18 @@ chsh
 > sudo ufw enable
 
 ## fail2ban
-> sudo apt-get install fail2ban
+> sudo apt-get install -y fail2ban
 > sudo /etc/init.d/fail2ban restart
 
 # Install gradido
 > sudo apt-get install git
 > git clone https://github.com/gradido/gradido.git
 > cd gradido/deployment/bare_metal
+
+# Adjust .env
+> cd gradido/deployment/bare_metal
+> cp .env.dist .env
+> nano .env
+>> Adjust values accordingly
+# TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
 > ./install.sh
