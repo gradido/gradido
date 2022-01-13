@@ -14,6 +14,7 @@ import { LoginPendingTasksAdminRepository } from '../../typeorm/repository/Login
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
+import SearchUsersArgs from '../arg/SearchUsersArgs'
 import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { TransactionCreation } from '@entity/TransactionCreation'
@@ -27,10 +28,12 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => [UserAdmin])
-  async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
+  async searchUsers(
+    @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
+  ): Promise<UserAdmin[]> {
     const userRepository = getCustomRepository(UserRepository)
     const users = await userRepository.findBySearchCriteria(searchText)
-    const adminUsers = await Promise.all(
+    let adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
         adminUser.userId = user.id
@@ -42,7 +45,8 @@ export class AdminResolver {
         return adminUser
       }),
     )
-    return adminUsers
+    if (notActivated) adminUsers = adminUsers.filter((u) => !u.emailChecked)
+    return adminUsers.slice(currentPage - 1, currentPage + pageSize - 1)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
