@@ -31,8 +31,8 @@ const klicktipp = {
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
-  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/vue/',
-  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/vue/register',
+  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
+  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
@@ -50,13 +50,13 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-  EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
+  EMAIL_LINK_VERIFICATION: process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/$1',
+  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/$1',
   RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 
 const webhook = {
+  // Elopage
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 
