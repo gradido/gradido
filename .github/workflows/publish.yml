@@ -248,7 +248,7 @@ jobs:
       ##########################################################################
       - name: Nginx | Build `production` image
         run: |
-          docker build -t "gradido/nginx:latest" -t "gradido/nginx:production" -t "gradido/nginx:${VERSION}" -t "gradido/nginx:${BUILD_VERSION}" -f ./nginx/Dockerfile ./
+          docker build -t "gradido/nginx:latest" -t "gradido/nginx:production" -t "gradido/nginx:${VERSION}" -t "gradido/nginx:${BUILD_VERSION}" nginx/
           docker save "gradido/nginx" > /tmp/nginx.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

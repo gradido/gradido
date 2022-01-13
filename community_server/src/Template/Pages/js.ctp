@@ -37,5 +37,5 @@
 </div>
 <!-- built files will be auto injected -->
 <script type="text/javascript">csfr = "<?= $this->request->getParam('_csrfToken') ?>";</script>
-<script type="text/javascript" src="/vue/app.js"></script></body>
+<script type="text/javascript" src="/app.js"></script></body>
 </html>

@@ -20,7 +20,7 @@ const apolloQueryMock = jest
         name: 'test12',
         description: 'test community 12',
         url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/vue/register',
+        registerUrl: 'http://test12.test12/register',
       },
     },
   })
@@ -31,22 +31,22 @@ const apolloQueryMock = jest
           id: 1,
           name: 'Gradido Entwicklung',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register-community',
+          url: 'http://localhost/',
+          registerUrl: 'http://localhost/register-community',
         },
         {
           id: 2,
           name: 'Gradido Staging',
           description: 'Der Testserver der Gradido-Akademie.',
-          url: 'https://stage1.gradido.net/vue/',
-          registerUrl: 'https://stage1.gradido.net/vue/register-community',
+          url: 'https://stage1.gradido.net/',
+          registerUrl: 'https://stage1.gradido.net/register-community',
         },
         {
           id: 3,
           name: 'Gradido-Akademie',
           description: 'Freies Institut für Wirtschaftsbionik.',
           url: 'https://gradido.net',
-          registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+          registerUrl: 'https://gdd1.gradido.com/register-community',
         },
       ],
     },
@@ -139,8 +139,8 @@ describe('RegisterSelectCommunity', () => {
         mocks.$store.state.community = {
           name: 'Gradido Entwicklung',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register-community',
+          url: 'http://localhost/',
+          registerUrl: 'http://localhost/register-community',
         }
         wrapper = Wrapper()
       })
@@ -172,15 +172,15 @@ describe('RegisterSelectCommunity', () => {
                 id: 2,
                 name: 'Gradido Staging',
                 description: 'Der Testserver der Gradido-Akademie.',
-                url: 'https://stage1.gradido.net/vue/',
-                registerUrl: 'https://stage1.gradido.net/vue/register-community',
+                url: 'https://stage1.gradido.net/',
+                registerUrl: 'https://stage1.gradido.net/register-community',
               },
               {
                 id: 3,
                 name: 'Gradido-Akademie',
                 description: 'Freies Institut für Wirtschaftsbionik.',
                 url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+                registerUrl: 'https://gdd1.gradido.com/register-community',
               },
             ],
           })

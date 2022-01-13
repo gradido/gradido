@@ -199,7 +199,7 @@ jobs:
       ##########################################################################
       - name: nginx | Build `test` image
         run: |
-          docker build -t "gradido/nginx:test" -f ./nginx/Dockerfile ./
+          docker build -t "gradido/nginx:test" nginx/
           docker save "gradido/nginx:test" > /tmp/nginx.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
