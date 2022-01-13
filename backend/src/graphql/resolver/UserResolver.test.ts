@@ -261,10 +261,10 @@ describe('UserResolver', () => {
         setPassword(code: $code, password: $password)
       }
     `
+    let result: any
+    let emailOptIn: string
 
     describe('valid optin code and valid password', () => {
-      let emailOptIn: string
-      let result: any
       let loginUser: any
       let newLoginUser: any
       let newUser: any
@@ -286,6 +286,10 @@ describe('UserResolver', () => {
 
       afterAll(async () => {
         await resetDB()
+      })
+
+      it('sets email checked to true', () => {
+        expect(newLoginUser[0].emailChecked).toBeTruthy()
       })
 
       it('updates the password', () => {
@@ -320,6 +324,58 @@ describe('UserResolver', () => {
 
       it('returns true', () => {
         expect(result).toBeTruthy()
+      })
+    })
+
+    describe('no valid password', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
+          .createQueryBuilder('login_email_optin')
+          .getMany()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: emailOptIn, password: 'not-valid' },
+        })
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError(
+                'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+              ),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('no valid optin code', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: 'not valid', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Could not login with emailVerificationCode')],
+          }),
+        )
       })
     })
   })
