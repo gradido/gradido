@@ -133,16 +133,16 @@ export default {
 
       switch (event) {
         case 'push':
-          findArr = this.itemsList.find((arr) => arr.id === e.id)
+          findArr = this.itemsList.find((item) => e.userId === item.userId)
           index = this.itemsList.indexOf(findArr)
           this.itemsList.splice(index, 1)
-          this.itemsMassCreation.push(e)
+          this.itemsMassCreation.push(findArr)
           break
         case 'remove':
-          findArr = this.itemsMassCreation.find((arr) => arr.id === e.id)
+          findArr = this.itemsMassCreation.find((item) => e.userId === item.userId)
           index = this.itemsMassCreation.indexOf(findArr)
           this.itemsMassCreation.splice(index, 1)
-          this.itemsList.push(e)
+          this.itemsList.push(findArr)
           break
         default:
           throw new Error(event)
