@@ -46,9 +46,8 @@ const run = async (command: string) => {
       await runSeeder(CreateBibiBloxbergSeed)
       await runSeeder(CreateRaeuberHotzenplotzSeed)
       await runSeeder(CreateBobBaumeisterSeed)
-      // eslint-disable-next-line no-case-declarations
-      const arr = new Array(96)
-      arr.forEach(async () => {
+      // eslint-disable-next-line prefer-spread
+      Array.apply(null, Array(96)).forEach(async () => {
         await runSeeder(CreateUserSeed)
       })
       await runSeeder(CreateGarrickOllivanderSeed)
