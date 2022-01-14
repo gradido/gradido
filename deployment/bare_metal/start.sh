@@ -11,14 +11,13 @@ NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
 # Load .env or .env.dist if not present
-set -o allexport
-#TODO
+# NOTE: all config values will be in process.env when starting
+# the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    source $SCRIPT_DIR/.env
+    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
 else
-    source $SCRIPT_DIR/.env.dist
+    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
 fi
-set +o allexport
 
 # lock start
 if [ -f $LOCK_FILE ] ; then

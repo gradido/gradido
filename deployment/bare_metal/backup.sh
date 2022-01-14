@@ -10,19 +10,19 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 set +o allexport
 
 # Load backend .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
-set -o allexport
+# NOTE: all config values will be in process.env when starting
+# the services and will therefore take precedence over the .env
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
-    source $PROJECT_ROOT/backend/.env
+    export $(cat $PROJECT_ROOT/backend/.env | sed 's/#.*//g' | xargs)
 else
-    source $PROJECT_ROOT/backend/.env.dist
+    export $(cat $PROJECT_ROOT/backend/.env.dist | sed 's/#.*//g' | xargs)
 fi
-set +o allexport
 
 # Stop Services
-pm2 stop all
+pm2 stop gradido-backend
 
 # Backup data
 mysqldump --databases --single-transaction --quick --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
 
 # Start Services
-pm2 start all
+pm2 start gradido-backend
