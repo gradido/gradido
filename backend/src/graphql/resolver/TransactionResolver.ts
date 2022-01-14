@@ -6,7 +6,7 @@ import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, QueryRunner } from 'typeorm'
 
 import CONFIG from '../../config'
-import { sendEMail } from '../../util/sendEMail'
+import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '../model/Transaction'
 import { TransactionList } from '../model/TransactionList'
@@ -651,21 +651,14 @@ export class TransactionResolver {
     }
     // send notification email
     // TODO: translate
-    await sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-      to: `${recipiantUser.firstName} ${recipiantUser.lastName} <${recipiantUser.email}>`,
-      subject: 'Gradido Überweisung',
-      text: `Hallo ${recipiantUser.firstName} ${recipiantUser.lastName}
-      
-      Du hast soeben ${amount} GDD von ${senderUser.firstName} ${senderUser.lastName} erhalten.
-      ${senderUser.firstName} ${senderUser.lastName} schreibt:
-      
-      ${memo}
-      
-      Bitte antworte nicht auf diese E-Mail!
-      
-      Mit freundlichen Grüßen,
-      dein Gradido-Team`,
+    await sendTransactionReceivedEmail({
+      senderFirstName: senderUser.firstName,
+      senderLastName: senderUser.lastName,
+      recipientFirstName: recipiantUser.firstName,
+      recipientLastName: recipiantUser.lastName,
+      email: recipiantUser.email,
+      amount,
+      memo,
     })
 
     return 'success'
