@@ -9,6 +9,12 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/../..
 set +o allexport
 
+# Parameter is a proper file?
+export BACKUP_FILE=${SCRIPT_DIR}/backup/$1 
+if [ ! -f "$BACKUP_FILE" ]; then
+    return "File '$BACKUP_FILE' does not exist" 2>/dev/null || exit 1
+fi
+
 # Load backend .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -26,7 +32,7 @@ mysqldump --databases --single-transaction --quick --lock-tables=false > ${SCRIP
 
 # Restore Data
 mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
-    source ${SCRIPT_DIR}/backup/mariadb-restore-backup-14-01-2022_10-05-44.sql
+    source $BACKUP_FILE
 EOFMYSQL
 
 # Update database if needed (use dev_up for seeding setups)
