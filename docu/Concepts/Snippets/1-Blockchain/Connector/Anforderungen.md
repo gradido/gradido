@@ -23,15 +23,6 @@ Das Ziel ist es also erstmal die Skalierbarkeit durch Effizienz und durch Partit
 - Sichern der Private Keys so das kein Hacker sie selbst bei einem Server Hack in die Finger bekommen kann
 - Transparenz (das man z.B. bei Politikern sehen kann von wem sie alles Geld bekommen)
 
-Mit einem C++ Programm hat man die Möglichkeit dem Program beim Start einen Schlüssel mitzugeben der zusätzlich für die Verschlüsselung der Passwörter verwendet wird. 
-Nicht als Parameter sondern per Eingabe so das das Passwort nicht im bash log auftaucht. 
-Oder schon direkt beim compilieren und auf dem Production Server landet dann nur das compilierte Binary. Das ist aber weniger sicher, 
-weil ein Hacker das Binary untersuchen kann um den Schlüssel daraus zu extrahieren, auch wenn es mit Obfuscator Techniken erschwert werden kann.
-
-Auf die Art wäre es für einen Hacker selbst dann unmöglich an die Private Keys der Benutzer zu kommen, wenn er den Server gehackt hat,
-auf dem der Login-Server läuft und er E-Mails und Passwörter von Benutzern erbeutet hat. Dieser Schlüssel würde also nirgendwo auf dem 
-Server gespeichert werden und läge damit nur im Arbeitsspeicher vor. Dazu müsste man dann noch Techniken benutzen um zu verhindern 
-das der Schlüssel aus dem Arbeitsspeicher gelesen werden kann. 
 
 ### In der Benutzung so einfach wie paypal
 Also das Gradidos einfach an eine E-Mail Addresse gesendet werden können.
