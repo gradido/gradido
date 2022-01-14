@@ -88,11 +88,6 @@ webhook -hooks ~/hooks.json &
 # create db user
 export DB_USER=gradido
 export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
-# create table 
-#create database gradido_community 
-#    DEFAULT CHARACTER SET utf8mb4
-#    DEFAULT COLLATE utf8mb4_unicode_ci;
-# GRANT ALL PRIVILEGES ON gradido_community.* TO '$DB_USER'@'localhost';
 sudo mysql <<EOFMYSQL
     CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
     GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
@@ -111,8 +106,6 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 
 # Configure admin
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
-
-#TODO import old database
 
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
