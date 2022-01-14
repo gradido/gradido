@@ -24,11 +24,6 @@ pm2 stop all
 # Backup data
 mysqldump --databases --single-transaction --quick --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-restore-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
 
-# Drop Database
-mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
-    DROP DATABASE $DB_DATABASE;
-EOFMYSQL
-
 # Restore Data
 mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
     source ${SCRIPT_DIR}/backup/mariadb-restore-backup-14-01-2022_10-05-44.sql
