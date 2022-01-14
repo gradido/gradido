@@ -133,4 +133,8 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>
