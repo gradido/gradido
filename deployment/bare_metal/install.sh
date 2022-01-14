@@ -79,50 +79,11 @@ sudo apt install webhook
 # TODO adjust secret
 # TODO adjust branch if needed
 # https://stage1.gradido.net/hooks/github
-nano ~/hooks.json
-```
-[
-  {
-    "id": "github",
-    "execute-command": "/home/gradido/gradido/deployment/bare_metal/start.sh",
-    "pass-arguments-to-command": [
-      {
-        "source": "string",
-        "name": "master"
-      },
-    ],
-    "command-working-directory": "/home/gradido/gradido/deployment/bare_metal",
-    "trigger-rule": {
-      "and": [
-        {
-          "match": {
-            "type": "payload-hash-sha1",
-            "secret": "secret",
-            "parameter": {
-              "source": "header",
-              "name": "X-Hub-Signature"
-            }
-          }
-        },
-        {
-          "match": {
-            "type": "value",
-            "value": "refs/heads/master",
-            "parameter": {
-              "source": "payload",
-              "name": "ref"
-            }
-          }
-        }
-      ]
-    }
-  }
-]
-```
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/webhook/hooks.json.template > ~/hooks.json
 
 webhook -hooks ~/hooks.json &
 # or for debugging
-webhook -hooks ~/hooks.json -verbose
+# webhook -hooks ~/hooks.json -verbose
 
 # create db user
 export DB_USER=gradido
