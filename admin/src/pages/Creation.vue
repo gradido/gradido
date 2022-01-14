@@ -116,7 +116,7 @@ export default {
           },
         })
         .then((result) => {
-          this.itemsList = result.data.searchUsers.map((user) => {
+          this.itemsList = result.data.searchUsers.userList.map((user) => {
             return {
               ...user,
               showDetails: false,

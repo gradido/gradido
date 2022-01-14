@@ -1,4 +1,5 @@
 {
+  "all_emails": "Alle E-Mails",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
   "creation_form": {
@@ -53,7 +54,7 @@
   "transactionlist": {
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
-  "unregistered_emails": "Unregistrierte E-Mails",
+  "unregistered_emails": "Nur unregistrierte E-Mails",
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
