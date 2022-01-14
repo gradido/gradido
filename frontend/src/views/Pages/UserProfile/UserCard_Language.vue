@@ -3,7 +3,10 @@
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
-          <a @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()">
+          <a
+            class="cursor-pointer"
+            @click="showLanguage ? (showLanguage = !showLanguage) : cancelEdit()"
+          >
             <span class="pointer mr-3">{{ $t('settings.language.changeLanguage') }}</span>
             <b-icon v-if="showLanguage" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
@@ -110,3 +113,8 @@ export default {
   },
 }
 </script>
+<style>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>
