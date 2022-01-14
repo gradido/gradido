@@ -3,7 +3,7 @@
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
-import { UserAdmin } from '../model/UserAdmin'
+import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
@@ -27,10 +27,10 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 @Resolver()
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
-  @Query(() => [UserAdmin])
+  @Query(() => SearchUsersResult)
   async searchUsers(
     @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
-  ): Promise<UserAdmin[]> {
+  ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
     const users = await userRepository.findBySearchCriteria(searchText)
     let adminUsers = await Promise.all(
@@ -46,7 +46,11 @@ export class AdminResolver {
       }),
     )
     if (notActivated) adminUsers = adminUsers.filter((u) => !u.emailChecked)
-    return adminUsers.slice(currentPage - 1, currentPage + pageSize - 1)
+    const first = (currentPage - 1) * pageSize
+    return {
+      userCount: adminUsers.length,
+      userList: adminUsers.slice(first, first + pageSize),
+    }
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
