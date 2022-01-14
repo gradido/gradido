@@ -25,10 +25,9 @@ server {
     root $NGINX_UPDATE_PAGE_ROOT;
     index updating.html;
 
-    #location / {
-    #    alias $NGINX_UPDATE_PAGE_ROOT;
-    #    index updating.html; 
-    #}
+    location / {
+        try_files /updating.html =404;
+    }
 
     #access_log /var/log/nginx/access.log main;
 
