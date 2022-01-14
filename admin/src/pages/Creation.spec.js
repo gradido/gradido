@@ -230,6 +230,22 @@ describe('Creation', () => {
       })
     })
 
+    describe('watchers', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+      })
+
+      it('calls API when criteria changes', async () => {
+        await wrapper.setData({ criteria: 'XX' })
+        expect(apolloQueryMock).toBeCalled()
+      })
+
+      it('calls API when currentPage changes', async () => {
+        await wrapper.setData({ currentPage: 2 })
+        expect(apolloQueryMock).toBeCalled()
+      })
+    })
+
     describe('apollo returns error', () => {
       beforeEach(() => {
         apolloQueryMock.mockRejectedValue({
