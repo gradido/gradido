@@ -75,6 +75,10 @@ sudo certbot
 # Webhooks (optional) (for development)
 sudo apt install webhook
 # TODO generate
+# put hook into ithub
+# TODO adjust secret
+# TODO adjust branch if needed
+# https://stage1.gradido.net/hooks/github
 nano ~/hooks.json
 ```
 [
