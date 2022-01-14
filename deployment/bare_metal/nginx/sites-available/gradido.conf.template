@@ -9,6 +9,7 @@ server {
 	#include /etc/nginx/common/ssl.conf;
 
     #gzip_static  on;
+    gzip on;
 
     # Legacy URLS
     set $REWRITE_LEGACY_URLS "$NGINX_REWRITE_LEGACY_URLS";

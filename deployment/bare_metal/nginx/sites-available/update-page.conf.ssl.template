@@ -22,6 +22,8 @@ server {
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
 
+    gzip on;
+
     root $NGINX_UPDATE_PAGE_ROOT;
     index updating.html;
 
