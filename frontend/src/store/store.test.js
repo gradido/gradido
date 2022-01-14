@@ -124,13 +124,13 @@ describe('Vuex store', () => {
           name: 'test12',
           description: 'test community 12',
           url: 'http://test12.test12/',
-          registerUrl: 'http://test12.test12/vue/register',
+          registerUrl: 'http://test12.test12/register',
         })
         expect(state.community).toEqual({
           name: 'test12',
           description: 'test community 12',
           url: 'http://test12.test12/',
-          registerUrl: 'http://test12.test12/vue/register',
+          registerUrl: 'http://test12.test12/register',
         })
       })
     })

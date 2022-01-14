@@ -6,10 +6,10 @@ describe('router', () => {
     const { options } = router
     const { scrollBehavior, routes } = options
 
-    it('has "/vue" as base', () => {
+    it('has "/" as base', () => {
       expect(options).toEqual(
         expect.objectContaining({
-          base: '/vue',
+          base: '/',
         }),
       )
     })

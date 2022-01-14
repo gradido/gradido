@@ -9,7 +9,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
       name: 'test12',
       description: 'test community 12',
       url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/vue/register',
+      registerUrl: 'http://test12.test12/register',
     },
   },
 })
@@ -61,7 +61,7 @@ describe('RegisterCommunity', () => {
         name: 'test12',
         description: 'test community 12',
         url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/vue/register',
+        registerUrl: 'http://test12.test12/register',
       })
     })
 
@@ -87,8 +87,8 @@ describe('RegisterCommunity', () => {
         jest.clearAllMocks()
         mocks.$store.state.community = {
           name: 'Gradido Entwicklung',
-          url: 'http://localhost/vue/',
-          registerUrl: 'http://localhost/vue/register',
+          url: 'http://localhost/',
+          registerUrl: 'http://localhost/register',
           description: 'Die lokale Entwicklungsumgebung von Gradido.',
         }
         wrapper = Wrapper()

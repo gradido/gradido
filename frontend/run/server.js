@@ -1,15 +1,21 @@
 // Imports
 const express = require('express')
-const serveStatic = require('serve-static')
+const path = require('path')
 
-// Port
+// Host & Port
+const hostname = '127.0.0.1'
 const port = process.env.PORT || 3000
 
 // Express Server
 const app = express()
-// eslint-disable-next-line node/no-path-concat
-app.use(serveStatic(__dirname + '/../dist'))
-app.listen(port)
+// Serve files
+app.use(express.static(path.join(__dirname, '../dist')))
+// Default to index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'))
+})
 
-// eslint-disable-next-line no-console
-console.log(`http://frontend:${port} server started.`)
+app.listen(port, hostname, () => {
+  // eslint-disable-next-line no-console
+  console.log('Listening at http://%s:%s/', hostname, port)
+})
