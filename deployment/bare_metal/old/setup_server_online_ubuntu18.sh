@@ -6,30 +6,6 @@ log_format main '$http_x_forwarded_for - $remote_user [$time_local] '
  '$status $body_bytes_sent "$http_referer" '
  '"$http_user_agent" $request_time';
 EOF
- 
-# fail2ban enable blocking to many http request resulting in forbidden 
-echo "fail2ban config"
-cd /etc/fail2ban/filter.d
-sudo cat <<EOF > nginx-forbidden.conf
-[Definition]
-failregex = ^.*\[error\] \d+#\d+: .* forbidden .*, client: <HOST>, .*$
-
-ignoreregex =
-EOF
-
-cd /etc/fail2ban/jail.d
-sudo cat <<EOF > nginx-forbidden.conf
-[nginx-forbidden]
-enabled = true
-filter = nginx-forbidden
-port = http,https
-logpath = /var/log/nginx/*error*.log
-findtime = 60
-bantime = 6000
-maxretry = 3
-EOF
-
-sudo service fail2ban restart
 
 # phpmyadmin
 echo "install and secure phpmyadmin"
