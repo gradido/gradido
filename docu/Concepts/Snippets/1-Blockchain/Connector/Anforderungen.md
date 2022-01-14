@@ -3,7 +3,7 @@ Anforderungen von Gradido die von Bernd genannt wurden oder die ich aus den Gesp
 
 ### So skalierbar das es von der ganzen Welt verwendet werden kann
 Gegenwärtiges Transaktionsvolumen auf der Welt: 3,5 Milliarden Transaktionen pro Tag.
-Der erste Schritt um das besser erüllbar zu machen war die Aufteilung auf Gemeinschaften, bzw. Gruppen,
+Der erste Schritt um das besser erfüllbar zu machen war die Aufteilung auf Gemeinschaften, bzw. Gruppen,
 nicht nur von der Verwaltung her sondern auch auf Datenebene.
 Auch wenn die Weltbevölkerung aufgeteilt wird auf einzelne Gemeinschaften können diese teilweise auch sehr groß werden. 
 China hat die größte Bevölkerung und von daher auch die größten Verwaltungseinheiten. 
@@ -13,6 +13,8 @@ Meine Planung war bisher dafür Programmiersprachen einzusetzen die besonders pe
 Dadurch kann ich die Antwortszeit auf Request die keine Datenbankabfrage benötigen auf unter 1 ms drücken und ein einziger Server kann viel mehr Benutzer bedienen.
 Dennoch haben wir uns anfangs dazu entschieden ein Teil der Community Funktionen in php abzubilden um in der Entwicklung schneller 
 voran zu kommen. Nur die sicherheitsrelevanten Teile blieben in C++.
+Das Ziel ist es also erstmal die Skalierbarkeit durch Effizienz und durch Partitionierung hinauszuzögern. 
+
 
 ### Gesichert vor Hackern und Abschaltung
 - Geschützt vor einzelnen Hacker die sich ein paar Gradidos dazu tricksen wollen
@@ -48,4 +50,22 @@ Sind es große Firmen die sich fette Server leisten können? Oder sind es kleine
 Sind es Einzelkämpfer die klein-computer wie Raspberry-PI betreiben? 
 
 
+### Ausblick Skalierbarkeit
+
+#### Login-Server
+Wenn die Kombination Login-Server und Apollo-Server verwendet wird und die Größe
+einer Community die Leistungsfähigkeit einer Instanz übersteigt sähe ein mögliches Szenario aus meiner Sicht so aus:
+- Apollo benutzt kein Caching und kann daher mit beliebig vielen Instanzen betrieben werden
+- Alle Requests an die Login-Server werden über ein load balancer mit Hashing an die Login-Server versendet so das jeder request von derselben ip immer am gleichen Login-Server eintrifft
+- die Datenbank kann als MariaDB Galera Cluster auf mehrere Instanzen verteilt werden solange die Sortierung der Transaktionen 
+vom Gradido Node Server erfolgt. 
+
+#### Big-Frontend
+Die entschlüsselten Keys werden vom Frontend im Arbeitsspeicher (nicht local store) gehalten. 
+Das Unterzeichnen der Transaktionen wird vom Frontend übernommen, sowie die proof-of-work Berechnung für die Transaktion,
+damit sie mit iota versendet werden kann. 
+Damit dient der Apollo-Server nur noch als reine Datenbankschnittstelle und hat weniger zu tun.
+Der Login-Server wird auch nicht benötigt. 
+Apollo kann dann problemlos mit mehreren Instanzen betrieben werden ebenso die Datenbank als MariaDB Galera Cluster solange
+die Transaktionen vom Gradido Node sortiert werden.
 
