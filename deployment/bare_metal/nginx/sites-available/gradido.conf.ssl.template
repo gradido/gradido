@@ -26,6 +26,14 @@ server {
     #gzip_static  on;
     gzip on;
     gzip_proxied any;
+    gzip_types
+        text/css
+        text/javascript
+        text/xml
+        text/plain
+        application/javascript
+        application/x-javascript
+        application/json;
 
     # Legacy URLS
     set $REWRITE_LEGACY_URLS "$NGINX_REWRITE_LEGACY_URLS";
