@@ -9,7 +9,7 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/../..
 set +o allexport
 
-# Load backend .env for DB_USERNAME & DB_PASSWORD
+# Load backend .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
 set -o allexport
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     source $PROJECT_ROOT/backend/.env
@@ -22,7 +22,7 @@ set +o allexport
 pm2 stop all
 
 # Backup data
-mysqldump --all-databases --single-transaction --quick --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD}
+mysqldump --databases --single-transaction --quick --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
 
 # Start Services
 pm2 start all
