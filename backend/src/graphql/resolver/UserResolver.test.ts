@@ -12,12 +12,12 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
-import { sendEMail } from '../../util/sendEMail'
+import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
 
-jest.mock('../../util/sendEMail', () => {
+jest.mock('../../mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
-    sendEMail: jest.fn(),
+    sendAccountActivationEmail: jest.fn(),
   }
 })
 
@@ -62,7 +62,6 @@ describe('UserResolver', () => {
 
     let result: any
     let emailOptIn: string
-    let newUser: User
 
     beforeAll(async () => {
       result = await mutate({ mutation, variables })
@@ -90,7 +89,6 @@ describe('UserResolver', () => {
         loginEmailOptIn = await getRepository(LoginEmailOptIn)
           .createQueryBuilder('login_email_optin')
           .getMany()
-        newUser = user[0]
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
       })
 
@@ -165,13 +163,11 @@ describe('UserResolver', () => {
     describe('account activation email', () => {
       it('sends an account activation email', () => {
         const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/\$1/g, emailOptIn)
-        expect(sendEMail).toBeCalledWith({
-          from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-          to: `${newUser.firstName} ${newUser.lastName} <${newUser.email}>`,
-          subject: 'Gradido: E-Mail Überprüfung',
-          text:
-            expect.stringContaining(`Hallo ${newUser.firstName} ${newUser.lastName},`) &&
-            expect.stringContaining(activationLink),
+        expect(sendAccountActivationEmail).toBeCalledWith({
+          link: activationLink,
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
         })
       })
     })

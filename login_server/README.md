@@ -113,7 +113,7 @@ loginServer.db.password =
 loginServer.db.port = 3306
 
 # check email path for new frontend for link generation in emails
-frontend.checkEmailPath = http://localhost/vue/reset
+frontend.checkEmailPath = http://localhost/reset
 
 # disable email all together
 email.disable = true

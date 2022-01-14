@@ -1,5 +1,5 @@
 ### User creation
-A user needs to be created on the login_server we do this when we create a User in the client https://$community_domain/vue/register.
+A user needs to be created on the login_server we do this when we create a User in the client https://$community_domain/register.
 
 ### Admin user
 To set a User admin we need the following SQL query on the gradido_login database:

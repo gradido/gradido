@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
 import { UserAdmin } from '../model/UserAdmin'
@@ -62,9 +65,9 @@ export class AdminResolver {
       loginPendingTaskAdmin.memo = memo
       loginPendingTaskAdmin.moderator = moderator
 
-      loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
     }
-    return await getUserCreations(user.id)
+    return getUserCreations(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
