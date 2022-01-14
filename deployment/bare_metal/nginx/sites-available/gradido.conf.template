@@ -10,6 +10,7 @@ server {
 
     #gzip_static  on;
     gzip on;
+    gzip_proxied any;
 
     # Legacy URLS
     set $REWRITE_LEGACY_URLS "$NGINX_REWRITE_LEGACY_URLS";
