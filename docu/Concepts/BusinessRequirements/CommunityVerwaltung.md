@@ -286,7 +286,7 @@ Der Prozess *Neue Community erstellen* wird entweder automatisiert beim erstmali
 
 Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
 
-1. den eigentlichen Community-Prozess "*neue Community erstellen*" (links in grün gehalten), in dem die Community spezifischen Attribute erfasst, geladen und/oder angelegt werden. Dazu gehören neben dem Erfassen der Community eigenen Attributen, das Laden von vordefinierten Standard-Daten wie die Tätigkeitsliste, Berechtigungen, etc. und optional als eigenständiger Prozess die Erfassung bzw das Anlegen von neuen Community-Mitgliedern.
+1. )den eigentlichen Community-Prozess "*neue Community erstellen*" (links in grün gehalten), in dem die Community spezifischen Attribute erfasst, geladen und/oder angelegt werden. Dazu gehören neben dem Erfassen der Community eigenen Attributen, das Laden von vordefinierten Standard-Daten wie die Tätigkeitsliste, Berechtigungen, etc. und optional als eigenständiger Prozess die Erfassung bzw das Anlegen von neuen Community-Mitgliedern.
 2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Dietechnischen Details der *Federation* werden im Dokument [Federation](../TechnicalRequirements/Federation.md " ") beschrieben. Dabei wird
    * als erstes geprüft, ob in der eigenen Community die notwendigen Attribute wie Community-Key, URL und ggf. weitere korrekt initialisiert und gespeichert sind. Falls nicht wird der Hintergrundprozess mit einem Fehler abgebrochen
    * dann werden die Attribute Community-Key und URL in eine *newCommunity*-Message gepackt und asynchron an den Public-Channel der Community-Federation des Gradido-Community-Verbundes gesendet
@@ -297,7 +297,12 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
      * *newCommunity*-Messages werden von neu erstellten Communities im Rahmen derer Federation in den Public-Channel gesendet. Diese Messages sollten möglichst zeitnah von möglichst vielen schon existierenden Communities beantwortet werden. Dazu wird zuerst in der Community-Datenbank nach Einträgen gesucht, die den gleichen Community-Key aber eine unterschiedliche URL als zu den empfangenen Daten haben:
        * Sollte es einen solchen Eintrag geben, dann wird eine *replyNewCommunity*-Message erzeugt mit *MessageState = requestNewKey* und ohne weitere Daten in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
        * Sollte es keine solche Einträge geben, dann werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt, der *MessageState = OK* gesetzt und direkt in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
-3. und die *"Community-Communication"* als Hintergrundprozess. Dieser liest zuerst die eigenen Community-Daten und geht dann per Direkt-Verbindung über die URL mit der neuen Community in Dialog, um sich zuerst gegenseitig zu authentifizieren und um dann die Community spezifischen Daten untereinander auszutauschen. Der fachlich logische Ablauf dieser Kommunikation soll wie folgt dagestellt ablaufen:  Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md).
+3. und die *"Community-Communication"* als Hintergrundprozess. Dieser liest zuerst die eigenen Community-Daten und geht dann per Direkt-Verbindung über die URL mit der neuen Community in Dialog, um sich zuerst gegenseitig zu authentifizieren und um dann die Community spezifischen Daten untereinander auszutauschen. Der logische Ablauf dieser Kommunikation soll wie folgt dargestellt ablaufen:
+
+
+![AuthenticateCommunityCommunication](.\image\AuthenticateCommunityCommunication.png " ") 
+
+Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md).
 
 #### Ende Status
 

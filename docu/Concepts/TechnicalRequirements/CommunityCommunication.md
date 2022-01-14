@@ -2,7 +2,7 @@
 
 This document contains the detailed descriptions of the public API of a community.
 
-## Authentication and Autorization
+## Authentication/Autorization of new Community
 
 Each public API of a community has to be authenticated and autorized before. 
 
@@ -12,33 +12,74 @@ This could be done by following the *OpenID Connect* protocoll. To fullfil these
 
 Following the link [OpenID Connect](https://www.npmjs.com/package/openid-client) there can be found a server-side OpenID relying party implementation for node.js runtime.
 
-The authentication of communities base on the community-attributes *key* and *URL*, which where exchanged during the *federation process* before. In concequence a community that hasn't execute his federation well will be unknown for other communities and can't be authenticated and autorized for further API calls.
+The authentication of communities base on the community-attributes *key* and *URL*, which where exchanged during the *federation process* before. In concequence a community that hasn't execute his federation well will be unknown for other communities and can't be authenticated and autorized for further cross community API calls.
 
 ### Variant B:
 
-A similar solution of authentication to variant A but without autorization can be done by using private and public key encryption. The *community creation* process will create a private and public key and store them internally. As the third step of the federation the *community communication* background process of the new community will be startet and a sequence of service invocations will exchange the necessary security data:
+A similar solution of authentication to variant A but **without autorization** can be done by using private and public key encryption. The *community creation* process will create a private and public key and store them internally. As the third step of the federation the *community communication* background process of the new *community-A* will be startet and a sequence of service invocations will exchange the necessary security data:
 
-1. the service *authenticateCommunity* sends the own community key as input data, which will be checked against the internally stored list of communities and their keys.
-2. If the given key is found a one-time code is passed back to a predefined Redirect URI of the invoker community.
-3. The next invocation of the new community sends the one-time code, the encrypted community-key of the receiver community, the own public key to
+1. the new *community-A* encrypt the community key of the existing *community-B* with its own privat key. Then it invokes the service *authenticateCommunity* at *community-B* by sending the own community key, the encrypted community key of *community-B* and a redirect URI back to *community-A* as input data. The *community-B* will search the given community key of *community-A* in the internally stored list of communities, which are a result of the previous *federation process* collected over a different medium.
+2. If in *community-B* the given community key of *community-A* is found, a generated one-time code is kept together with the given encrypted community key, till an invocation of the service verifyOneTimeCode with this one-time-code. The one-time-code is passed back to the given Redirect URI of the *community-A*.
+3. *Community-A* will send with the next invocation to *community-B* the received one-time code and the own public key by requesting the service *verifyOneTimeCode* at *community-B*.
+4. *Community-B* will verify the given one-time-code and if valid, decrypt the previous received and encrypted community key from step 1 of the invocation-chain by using the given public key from *community-A*. If the decrypted community-key is equals the own community key, the public key of *community-A* is stored in the entry of *community-A* of the internal community list. As response of the *verifyOneTimeCode* the *community-B* will send back his own public key to *community-A*.
+5. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
 
-The first invocation of a cross community communication must be the service "Authenticate Community". This service will exchange the necesarry data to ensure a sufficient security level for the community communication.
+The result of this invocation chain is the public key exchange of the involved communities, which is the foundation to authenticate a future cross community communication.
+
+To reach in Variant B nearly the same security level as in Variant A each community has to integrate several components to process this invocation chain like Variant A does.
 
 ### Variant C:
 
-like Variant B but without one-time code and direct response of public key of community B
+The third Variant exchange the all necessary data directly without the step in between returning a one-time code per redirection URI:
 
+1. the new *community-A* encrypt the community key of the existing *community-B* with its own privat key. Then it invokes the service *authenticateCommunity* at *community-B* by sending the own community key, the encrypted community key of *community-B* and its own public key as input data. The *community-B* will search the given community key of *community-A* in the internally stored list of communities, which are a result of the previous *federation process* collected over a different medium.
+2. If in *community-B* the given community key of *community-A* is found and if the decryption of the given encrypted community key with the given public key is equals the own community key, the public key of *community-A* is stored in the entry of *community-A* of the internal community list. As response of the *authenticateCommunity* the *community-B* will send back his own public key to *community-A*.
+3. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
+
+Variant C is quite similar to Variant B, but to exchange all security relevant data in a single request-response-roundtrip bears more security risks.
 
 
 ## Service: "Authenticate Community"
 
-This service must be invoked at first before further cross community communication can be done. 
+This service must be invoked at first to exchange the security relevant data before further cross community communication can be done.
 
 The third step of the *federation process* starts the background process for community communication. As result of the previous federation steps the new community has received from at least one existing community the URL and the community key.
 
-To prepare the input-data for the invocation the own community key and the community key of the 
+After receiving the input data the service answers directly with an empty response. Then it searches for the attribute "community-key-A" in the internal community list the entry of *community-A*. If the entry of *community-A* could be found with this key, a new one-time-code is generated and stored together with the attribute "community-key-B" till the invocation of service "verifyOneTimeCode". With the given redirection URI a callback at *community-A* is invoked by sending the generated One-Time-Code back to *community-A*.
 
 ### Route:
+
+POST https://<New_Community_URL>/authenticateCommunity
+
+### Input-Data:
+
+```
+{
+	"community-key-A" : "the community-key of the new community-A"
+	"community-key-B" : "the community-key of the existing community-B, which was replied during the federation, encrypted by the own private key"
+}
+```
+
+### Output-Data:
+
+* none
+* redirection URI: "one-time-code" : "one-time usable code as input for the service verifyOneTimeCode"
+
+### Exceptions:
+
+
+
+## Service: "Verify OneTimeCode"
+
+This service must be invoked at first to exchange the security relevant data before further cross community communication can be done.
+
+The third step of the *federation process* starts the background process for community communication. As result of the previous federation steps the new community has received from at least one existing community the URL and the community key.
+
+To prepare the input-data for the invocation the own community key and the community key of the new community
+
+### Route:
+
+POST https://<New_Community_URL>/verifyOneTimeCode
 
 ### Input-Data:
 
@@ -47,6 +88,27 @@ To prepare the input-data for the invocation the own community key and the commu
 	"public-key" : "the public key of the new community (community-B)"
 	"src-community-key" : "the community-key of the new community encrypted by the own private key"
 	"dst-community-key" : "the community-key of the existing community, which replied during the federation encrypted by the own provate key"
+}
+```
+
+### Output-Data:
+
+### Exceptions:
+
+
+
+## Service: "open Communication"
+
+
+### Route:
+
+POST https://<New_Community_URL>/openCommunication
+
+### Input-Data:
+
+```
+{
+
 }
 ```
 
