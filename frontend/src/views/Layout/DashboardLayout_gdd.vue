@@ -108,7 +108,7 @@ export default {
       this.balance -= ammount
     },
     admin() {
-      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$token', this.$store.state.token))
+      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
     },
     setVisible(bool) {

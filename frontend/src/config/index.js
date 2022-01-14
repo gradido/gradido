@@ -20,7 +20,7 @@ const environment = {
 
 const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost/graphql',
-  ADMIN_AUTH_URL: process.env.ADMIN_AUTH_URL || 'http://localhost/admin/authenticate?token=$token',
+  ADMIN_AUTH_URL: process.env.ADMIN_AUTH_URL || 'http://localhost/admin/authenticate?token={token}',
 }
 
 const options = {}
