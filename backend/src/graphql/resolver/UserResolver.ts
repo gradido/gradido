@@ -448,7 +448,7 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(loginUserId, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /\$1/g,
+        /\$code/g,
         emailOptIn.verificationCode.toString(),
       )
       const emailSent = await sendAccountActivationEmail({
@@ -486,7 +486,7 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(loginUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /\$1/g,
+        /\$code/g,
         emailOptIn.verificationCode.toString(),
       )
 
@@ -523,7 +523,7 @@ export class UserResolver {
     const optInCode = await getOptInCode(loginUser)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /\$1/g,
+      /\$code/g,
       optInCode.verificationCode.toString(),
     )
 

@@ -38,7 +38,7 @@ export default {
       this.$store.dispatch('logout')
     },
     wallet() {
-      window.location = CONFIG.WALLET_AUTH_URL.replace('$1', this.$store.state.token)
+      window.location = CONFIG.WALLET_AUTH_URL.replace('$token', this.$store.state.token)
       this.$store.dispatch('logout') // logout without redirect
     },
   },
