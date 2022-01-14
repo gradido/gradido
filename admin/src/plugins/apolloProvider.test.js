@@ -125,7 +125,7 @@ describe('apolloProvider', () => {
       })
 
       it('redirects to logout', () => {
-        expect(windowLocationMock).toBeCalledWith('http://localhost/vue/login')
+        expect(windowLocationMock).toBeCalledWith('http://localhost/login')
       })
     })
 
