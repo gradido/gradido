@@ -24,7 +24,7 @@ else
     export $(cat $PROJECT_ROOT/backend/.env.dist | sed 's/#.*//g' | xargs)
 fi
 
-# Stop Services
+# Stop gradido-backend service
 pm2 stop gradido-backend
 
 # Backup data
@@ -38,5 +38,5 @@ EOFMYSQL
 # Update database if needed (use dev_up for seeding setups)
 yarn --cwd $PROJECT_ROOT/database up
 
-# Start Services
+# Start gradido-backend service
 pm2 start gradido-backend
