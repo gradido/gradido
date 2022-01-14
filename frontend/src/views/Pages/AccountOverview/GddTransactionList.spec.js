@@ -61,6 +61,12 @@ describe('GddTransactionList', () => {
     })
 
     describe('without any properties', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: [],
+          transactionCount: -1,
+        })
+      })
       it('renders text saying that there are error.empty-transactionlist ', () => {
         expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
           'transaction.nullTransactions',
