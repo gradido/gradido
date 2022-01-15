@@ -86,7 +86,7 @@ describe('DashboardLayoutGdd', () => {
     })
 
     it('has a footer inside the main content', () => {
-      expect(wrapper.find('div.main-page').find('footer.footer').exists()).toBeTruthy()
+      expect(wrapper.find('footer').find('.footer').exists()).toBeTruthy()
     })
 
     describe('navigation bar', () => {
