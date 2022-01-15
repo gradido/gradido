@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div>
     <div class="main-content mt-4">
       <router-view></router-view>
       <language-switch class="text-center mb-5 mt-5" />
