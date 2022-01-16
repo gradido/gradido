@@ -21,7 +21,8 @@ fi
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
-  return "Already building!" 2>/dev/null || exit 1
+  echo "Already building!"
+  exit 1
 fi
 touch $LOCK_FILE
 
