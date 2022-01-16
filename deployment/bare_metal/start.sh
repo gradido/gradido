@@ -77,6 +77,9 @@ else
   yarn up
 fi
 
+# TODO maybe handle this differently?
+export NODE_ENV=production
+
 # Install & build backend
 echo 'Updating backend<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
