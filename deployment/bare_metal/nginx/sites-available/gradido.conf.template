@@ -6,7 +6,7 @@ server {
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
-	#include /etc/nginx/common/ssl.conf;
+	include /etc/nginx/common/logging.conf
 
     #gzip_static  on;
     gzip on;
@@ -37,6 +37,8 @@ server {
 		
 		proxy_pass         http://127.0.0.1:3000;
 		proxy_redirect     off;
+
+        access_log $NGINX_LOG_PATH/nginx-access.frontend.log gradido_log;
 	}
 
     # Backend
@@ -50,6 +52,8 @@ server {
         
         proxy_pass         http://127.0.0.1:4000;
         proxy_redirect     off;
+
+        access_log $NGINX_LOG_PATH/nginx-access.backend.log gradido_log;
     }
 
     # Backend webhooks
@@ -64,11 +68,15 @@ server {
         # no trailing slash to keep the hook/ prefix
         proxy_pass         http://127.0.0.1:4000/hook;
         proxy_redirect     off;
+
+        access_log $NGINX_LOG_PATH/nginx-access.backend.hook.log gradido_log;
     }
 
     # Webhook reverse proxy
     location /hooks/ {
         proxy_pass http://127.0.0.1:9000/hooks/;
+
+        access_log $NGINX_LOG_PATH/nginx-access.hooks.log gradido_log;
     }
 
     # Admin Frontend
@@ -82,6 +90,8 @@ server {
         
         proxy_pass         http://127.0.0.1:8080/;
         proxy_redirect     off;
+
+        access_log $NGINX_LOG_PATH/nginx-access.admin.log gradido_log;
     }
 
     # TODO this could be a performance optimization
@@ -94,6 +104,4 @@ server {
     #    }
     #    try_files $uri $uri/ /index.html = 404;
     #}
-
-    #access_log /var/log/nginx/access.log main;
 }

@@ -1,12 +1,3 @@
-# nginx security
-cd /etc/nginx/conf.d
-sudo cat <<EOF > logging.conf
-log_format main '$http_x_forwarded_for - $remote_user [$time_local] '
- '"$request_method $scheme://$host$request_uri $server_protocol" '
- '$status $body_bytes_sent "$http_referer" '
- '"$http_user_agent" $request_time';
-EOF
-
 # phpmyadmin
 echo "install and secure phpmyadmin"
 sudo apt install phpmyadmin

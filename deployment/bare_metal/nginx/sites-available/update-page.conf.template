@@ -6,6 +6,7 @@ server {
 
     include /etc/nginx/common/protect.conf;
     include /etc/nginx/common/protect_add_header.conf;
+    include /etc/nginx/common/logging.conf
 
     gzip on;
 
@@ -16,6 +17,6 @@ server {
       try_files /updating.html =404;
     }
 
-    #access_log /var/log/nginx/access.log main;
+    access_log $NGINX_LOG_PATH/nginx-access.update-page.log gradido_log;
 }
 
