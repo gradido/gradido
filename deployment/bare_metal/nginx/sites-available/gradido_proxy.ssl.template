@@ -1,0 +1,38 @@
+server {
+    if ($host = $NGINX_PROXY_SERVER_NAME) {
+        return 301 https://$host$request_uri;
+    }
+
+    server_name $NGINX_PROXY_SERVER_NAME;
+    listen 80;
+    listen [::]:80;
+    return 404;
+}
+
+server {
+    server_name $NGINX_PROXY_SERVER_NAME;
+
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl;
+    ssl_certificate $NGINX_PROXY_SSL_CERTIFICATE;
+    ssl_certificate_key $NGINX_PROXY_SSL_CERTIFICATE_KEY;
+    include $NGINX_SSL_INCLUDE;
+    ssl_dhparam $NGINX_SSL_DHPARAM;
+
+    include /etc/nginx/common/protect.conf;
+    include /etc/nginx/common/protect_add_header.conf;
+	#include /etc/nginx/common/ssl.conf;
+
+    location / {
+		proxy_http_version 1.1;
+		proxy_set_header   Upgrade $http_upgrade;
+		proxy_set_header   Connection 'upgrade';
+		proxy_set_header   X-Forwarded-For $remote_addr;
+		proxy_set_header   X-Real-IP  $remote_addr;
+		proxy_set_header   Host $host;
+		
+		proxy_pass         $NGINX_SERVER_NAME;
+		proxy_redirect     off;
+	}
+    #access_log /var/log/nginx/access.log main;
+}
