@@ -16,6 +16,6 @@ server {
       try_files /updating.html =404;
     }
 
-    access_log $NGINX_LOG_PATH/nginx-access.update-page.log gradido_log;
+    access_log $GRADIDO_LOG_PATH/nginx-access.update-page.log gradido_log;
 }
 
