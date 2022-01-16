@@ -40,6 +40,8 @@ sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/gra
 # sudo ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/sites-available/update-page.conf /etc/nginx/sites-available
 sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/common /etc/nginx/
+sudo rmdir /etc/nginx/conf.d
+sudo ln -s /home/gradido/gradido/deployment/bare_metal/nginx/conf.d /etc/nginx/
 
 # Allow nginx configuration and restart for gradido
 #TODO generate file
