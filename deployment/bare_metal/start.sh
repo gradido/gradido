@@ -82,7 +82,7 @@ cd $PROJECT_ROOT/backend
 yarn install
 yarn build
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -o $GRADIDO_LOG_PATH/pm2.backend.log -e $GRADIDO_LOG_PATH/pm2.backend.error.log
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.log -e
 pm2 save
 
 # Install & build frontend
@@ -91,7 +91,7 @@ cd $PROJECT_ROOT/frontend
 yarn install
 yarn build
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -o $GRADIDO_LOG_PATH/pm2.frontend.log -e $GRADIDO_LOG_PATH/pm2.frontend.error.log
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.log
 pm2 save
 
 # Install & build admin
@@ -100,7 +100,7 @@ cd $PROJECT_ROOT/admin
 yarn install
 yarn build
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -o $GRADIDO_LOG_PATH/pm2.admin.log -e $GRADIDO_LOG_PATH/pm2.admin.error.log
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.log
 pm2 save
 
 # let nginx showing gradido
