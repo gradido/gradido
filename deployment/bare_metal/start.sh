@@ -80,6 +80,8 @@ fi
 # Install & build backend
 echo 'Updating backend<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
 # TODO maybe handle this differently?
@@ -91,8 +93,12 @@ pm2 save
 # Install & build frontend
 echo 'Updating frontend<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-frontend
 pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
@@ -100,8 +106,12 @@ pm2 save
 # Install & build admin
 echo 'Updating admin<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-admin
 pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
