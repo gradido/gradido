@@ -74,10 +74,14 @@ sudo certbot
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
 
+# Install logrotate
+# sudo apt-get install -y logrotate
+sudo envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > /etc/logrotate.d/gradido.conf
+
 # Webhooks (optional) (for development)
 sudo apt install webhook
 # TODO generate
-# put hook into ithub
+# put hook into github
 # TODO adjust secret
 # TODO adjust branch if needed
 # https://stage1.gradido.net/hooks/github
