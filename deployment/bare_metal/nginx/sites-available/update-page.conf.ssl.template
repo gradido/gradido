@@ -32,6 +32,6 @@ server {
     }
 
     access_log $GRADIDO_LOG_PATH/nginx-access.update-page.log gradido_log;
-    error_log $GRADIDO_LOG_PATH/nginx-error.update-page.log gradido_log;
+    error_log $GRADIDO_LOG_PATH/nginx-error.update-page.log warn;
 }
 

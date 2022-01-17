@@ -38,7 +38,7 @@ server {
 		proxy_redirect     off;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.frontend.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.frontend.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.frontend.log warn;
 	}
 
     # Backend
@@ -54,7 +54,7 @@ server {
         proxy_redirect     off;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.backend.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.backend.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.backend.log warn;
     }
 
     # Backend webhooks
@@ -71,7 +71,7 @@ server {
         proxy_redirect     off;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.backend.hook.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.backend.hook.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.backend.hook.log warn;
     }
 
     # Webhook reverse proxy
@@ -79,7 +79,7 @@ server {
         proxy_pass http://127.0.0.1:9000/hooks/;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.hooks.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.hooks.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.hooks.log warn;
     }
 
     # Admin Frontend
@@ -95,7 +95,7 @@ server {
         proxy_redirect     off;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.admin.log gradido_log;
-        error_log $GRADIDO_LOG_PATH/nginx-error.admin.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.admin.log warn;
     }
 
     # TODO this could be a performance optimization
