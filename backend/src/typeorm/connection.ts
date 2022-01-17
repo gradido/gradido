@@ -1,4 +1,4 @@
-import { createConnection, Connection } from 'typeorm'
+import { createConnection, Connection, FileLogger } from 'typeorm'
 import CONFIG from '../config'
 import { entities } from '@entity/index'
 
@@ -15,6 +15,10 @@ const connection = async (): Promise<Connection | null> => {
       database: CONFIG.DB_DATABASE,
       entities,
       synchronize: false,
+      logging: true,
+      logger: new FileLogger("all", {
+        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH
+      }),
     })
   } catch (error) {
     // eslint-disable-next-line no-console
