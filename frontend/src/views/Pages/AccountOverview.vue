@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="container-fluid">
+    <b-container fluid>
       <b-row>
         <b-col class="col-6">
           <b-row>
@@ -36,7 +36,7 @@
         @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
-    </div>
+    </b-container>
   </div>
 </template>
 <script>
