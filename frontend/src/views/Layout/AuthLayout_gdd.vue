@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <div class="main-content mt-4">
       <router-view></router-view>
       <language-switch v-if="$route.path !== '/register'" class="text-center mb-5 mt-5" />

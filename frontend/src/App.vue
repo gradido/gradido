@@ -1,13 +1,8 @@
 <template>
-  <div>
-    <div id="app" class="wrapper font-sans text-gray-800">
-      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'"></component>
-      <particles-bg
-        v-if="$store.state.coinanimation"
-        type="custom"
-        :config="config"
-        :bg="true"
-      ></particles-bg>
+  <div id="app" class="font-sans text-gray-800">
+    <div>
+      <particles-bg v-if="$store.state.coinanimation" type="custom" :config="config" :bg="true" />
+      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
     </div>
   </div>
 </template>
