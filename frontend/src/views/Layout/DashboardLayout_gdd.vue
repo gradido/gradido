@@ -100,6 +100,7 @@ export default {
         })
         .catch((error) => {
           this.pending = true
+          this.transactionCount = -1
           this.$toasted.global.error(error.message)
           // what to do when loading balance fails?
         })

@@ -7,7 +7,7 @@
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
-      <div v-if="!transactionCount" class="test-empty-transactionlist text-right">
+      <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
@@ -134,7 +134,7 @@
         :per-page="pageSize"
         :total-rows="transactionCount"
       ></pagination-buttons>
-      <div v-if="transactionCount === 0" class="mt-4 text-center">
+      <div v-if="transactionCount < 0" class="mt-4 text-center">
         <span>{{ $t('transaction.nullTransactions') }}</span>
       </div>
     </div>
