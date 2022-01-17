@@ -1,5 +1,5 @@
 <template>
-  <div fluid="sm">
+  <b-container>
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <form-user-data />
     <hr />
@@ -10,7 +10,7 @@
     <form-user-newsletter />
     <hr />
     <form-user-coin-animation />
-  </div>
+  </b-container>
 </template>
 <script>
 import UserCard from './UserProfile/UserCard.vue'

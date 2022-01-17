@@ -9,7 +9,7 @@
         ></vue-qrcode>
       </div>
 
-      <div class="card-profile-stats d-flex justify-content-center mt-md-5">
+      <div class="card-profile-stats d-flex mt-md-5">
         <div>
           <span class="heading">
             {{ $n(balance, 'decimal') }}

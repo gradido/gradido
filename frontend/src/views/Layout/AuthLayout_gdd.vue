@@ -1,10 +1,10 @@
 <template>
   <div class="wrapper">
-    <div class="main-content mt-4">
+    <b-container class="mt-4">
       <router-view></router-view>
       <language-switch v-if="$route.path !== '/register'" class="text-center mb-5 mt-5" />
       <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-    </div>
+    </b-container>
   </div>
 </template>
 <script>

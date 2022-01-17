@@ -15,7 +15,7 @@
       </div>
 
       <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">
-        <div class="main-content">
+        <b-container style="float: left">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
               ref="router-view"
@@ -28,8 +28,8 @@
               @update-transactions="updateTransactions"
             ></router-view>
           </fade-transition>
-        </div>
-        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        </b-container>
       </div>
     </div>
   </div>
