@@ -16,8 +16,8 @@ const connection = async (): Promise<Connection | null> => {
       entities,
       synchronize: false,
       logging: true,
-      logger: new FileLogger("all", {
-        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH
+      logger: new FileLogger('all', {
+        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
       }),
     })
   } catch (error) {

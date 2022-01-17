@@ -18,7 +18,8 @@ const database = {
   DB_USER: process.env.DB_USER || 'root',
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
-  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH || '../deployment/bare_metal/log/typeorm.backend.log'
+  TYPEORM_LOGGING_RELATIVE_PATH:
+    process.env.TYPEORM_LOGGING_RELATIVE_PATH || '../deployment/bare_metal/log/typeorm.backend.log',
 }
 
 const klicktipp = {
