@@ -8,13 +8,17 @@
       @set-visible="setVisible"
       @admin="admin"
       @logout="logout"
+      style="position: fixed; z-index: 1000; width: 100%"
     />
     <div class="content-gradido">
-      <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg" style="width: 300px">
+      <div
+        class="d-none d-sm-none d-md-none d-lg-flex shadow-lg"
+        style="position: fixed; height: 100%; background-color: #ffffff"
+      >
         <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
       </div>
-
-      <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">
+      <div class="d-none d-sm-none d-md-none d-lg-flex" style="width: 200px"></div>
+      <div class="main-page ml-2 mr-2" @click="visible = false">
         <b-container style="float: left">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
@@ -136,6 +140,7 @@ export default {
   width: 100%;
   height: 91%;
   position: absolute;
+  margin-top: 75px;
 }
 .navbar-brand-img {
   height: 2rem;

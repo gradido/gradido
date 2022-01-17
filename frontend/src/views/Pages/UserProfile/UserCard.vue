@@ -42,4 +42,8 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+.card-profile-stats {
+  justify-content: center;
+}
+</style>
