@@ -64,6 +64,8 @@ sudo apt-get install -y yarn
 
 # Install pm2
 sudo yarn global add pm2
+pm2 startup
+> execute command output in shell
 
 # Install certbot
 sudo apt-get install -y certbot
