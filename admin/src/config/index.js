@@ -19,7 +19,8 @@ const environment = {
 
 const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost:4000/graphql',
-  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/vue/authenticate?token=$1',
+  WALLET_AUTH_URL: process.env.WALLET_AUTH_URL || 'http://localhost/authenticate?token=$1',
+  WALLET_URL: process.env.WALLET_URL || 'http://localhost/login',
 }
 
 const debug = {

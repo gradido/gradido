@@ -3,7 +3,6 @@ import { createTransport } from 'nodemailer'
 import CONFIG from '../config'
 
 export const sendEMail = async (emailDef: {
-  from: string
   to: string
   subject: string
   text: string
@@ -23,7 +22,10 @@ export const sendEMail = async (emailDef: {
       pass: CONFIG.EMAIL_PASSWORD,
     },
   })
-  const info = await transporter.sendMail(emailDef)
+  const info = await transporter.sendMail({
+    ...emailDef,
+    from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+  })
   if (!info.messageId) {
     throw new Error('error sending notification email, but transaction succeed')
   }

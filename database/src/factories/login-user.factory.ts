@@ -19,7 +19,7 @@ define(LoginUser, (faker: typeof Faker, context?: LoginUserContext) => {
   user.privKey = context.privKey ? context.privKey : randomBytes(80)
   user.emailHash = context.emailHash ? context.emailHash : randomBytes(32)
   user.createdAt = context.createdAt ? context.createdAt : faker.date.recent()
-  user.emailChecked = context.emailChecked ? context.emailChecked : true
+  user.emailChecked = context.emailChecked === undefined ? false : context.emailChecked
   user.passphraseShown = context.passphraseShown ? context.passphraseShown : false
   user.language = context.language ? context.language : 'en'
   user.disabled = context.disabled ? context.disabled : false

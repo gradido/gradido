@@ -23,7 +23,11 @@ const apollo = {
   query: apolloQueryMock,
 }
 
-addNavigationGuards(router, store, apollo)
+const i18n = {
+  locale: jest.fn(),
+}
+
+addNavigationGuards(router, store, apollo, i18n)
 
 describe('navigation guards', () => {
   beforeEach(() => {
