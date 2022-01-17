@@ -80,8 +80,11 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradi
 sudo mv $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 sudo chown root:root /etc/logrotate.d/gradido.conf
 
+# Install mysql autobackup
+sudo apt-get install -y automysqlbackup
+
 # Webhooks (optional) (for development)
-sudo apt install webhook
+sudo apt install -y webhook
 # TODO generate
 # put hook into github
 # TODO adjust secret
