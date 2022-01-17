@@ -76,7 +76,8 @@ sudo certbot
 
 # Install logrotate
 # sudo apt-get install -y logrotate
-sudo envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > /etc/logrotate.d/gradido.conf
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
+sudo mv $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 
 # Webhooks (optional) (for development)
 sudo apt install webhook
