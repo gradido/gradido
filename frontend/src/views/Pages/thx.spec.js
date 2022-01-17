@@ -88,4 +88,22 @@ describe('Thx', () => {
       expect(wrapper.find('a.btn').attributes('href')).toBe('/overview')
     })
   })
+
+  describe('coming from /login', () => {
+    beforeEach(() => {
+      wrapper = Wrapper(createMockObject('login'))
+    })
+
+    it('renders the thanks text', () => {
+      expect(wrapper.find('p.h4').text()).toBe('site.thx.activateEmail')
+    })
+
+    it('renders the thanks redirect button', () => {
+      expect(wrapper.find('a.btn').text()).toBe('login')
+    })
+
+    it('links the redirect button to /login', () => {
+      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+    })
+  })
 })
