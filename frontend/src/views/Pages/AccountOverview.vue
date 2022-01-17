@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="container-fluid">
-      <b-row class="row-fluid">
+      <b-row>
         <b-col class="col-6">
           <b-row>
             <b-col class="col-11 ml-2 p-3 bg-lightgrey">
