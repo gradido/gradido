@@ -11,18 +11,18 @@ NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
 # Load .env or .env.dist if not present
-set -o allexport
-#TODO
+# NOTE: all config values will be in process.env when starting
+# the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    source $SCRIPT_DIR/.env
+    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
 else
-    source $SCRIPT_DIR/.env.dist
+    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
 fi
-set +o allexport
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
-  return "Already building!" 2>/dev/null || exit 1
+  echo "Already building!"
+  exit 1
 fi
 touch $LOCK_FILE
 
@@ -80,28 +80,40 @@ fi
 # Install & build backend
 echo 'Updating backend<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start"
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # Install & build frontend
 echo 'Updating frontend<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start"
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # Install & build admin
 echo 'Updating admin<br>' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
+# TODO maybe handle this differently?
+unset NODE_ENV
 yarn install
 yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start"
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido

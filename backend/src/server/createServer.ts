@@ -74,6 +74,7 @@ const createServer = async (context: any = serverContext): Promise<any> => {
   const apollo = new ApolloServer({
     schema: await schema(),
     playground: CONFIG.GRAPHIQL,
+    introspection: CONFIG.GRAPHIQL,
     context,
     plugins,
   })
