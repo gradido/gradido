@@ -63,7 +63,7 @@ describe('ForgotPassword', () => {
       })
 
       it('links to login', () => {
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual('/Login')
+        expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual('/login')
       })
     })
 
