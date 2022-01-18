@@ -34,7 +34,7 @@
     </b-row>
 
     <b-container class="bv-example-row mt-3 gray-background p-2">
-      <p>Vorausberechnung - Calculation in advance</p>
+      <p>{{ $t('advance-calculation') }}</p>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
         <b-col class="text-right">{{ $n(balance, 'decimal') }}</b-col>
@@ -49,7 +49,7 @@
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">~ {{ $n(balance - amount, 'decimal') }}</b-col>
+        <b-col class="text-right"> <strong>~ {{ $n(balance - amount, 'decimal') }} </strong></b-col>
       </b-row>
     </b-container>
 
