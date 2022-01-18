@@ -43,7 +43,7 @@
         <b-col class="text-right">
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
-        <b-col class="text-right">
+        <b-col class="text-right borderbottom">
           <strong>- {{ $n(amount, 'decimal') }}</strong>
         </b-col>
       </b-row>
@@ -93,5 +93,6 @@ export default {
 }
 .borderbottom {
   border-bottom: 1px solid rgb(70, 65, 65);
+  border-bottom-style: double;
 }
 </style>
