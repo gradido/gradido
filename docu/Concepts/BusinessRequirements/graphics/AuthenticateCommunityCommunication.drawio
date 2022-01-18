@@ -4,15 +4,21 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
+                <mxCell id="30" value="" style="endArrow=none;html=1;fontSize=20;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="260" y="1480" as="sourcePoint"/>
+                        <mxPoint x="260" y="540" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
                 <mxCell id="64" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="63" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="1299.5" y="1621" as="sourcePoint"/>
+                        <mxPoint x="1300" y="1480" as="sourcePoint"/>
                         <mxPoint x="1299.5" y="200" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="62" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="61" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="1160" y="1621" as="sourcePoint"/>
+                        <mxPoint x="1160" y="1190" as="sourcePoint"/>
                         <mxPoint x="890" y="380" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
@@ -82,26 +88,17 @@
                         <mxPoint x="970" y="1363" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="21" value="request with TradingLevelTO-InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="20" vertex="1" connectable="0">
+                <mxCell id="21" value="request with JWT-Token and TradingLevelTO-InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="20" vertex="1" connectable="0">
                     <mxGeometry x="0.1296" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
-                </mxCell>
-                <mxCell id="22" value="store&lt;br&gt;TradingLevel" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="1250" y="1423" width="100" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="23" value="create open admin request for&lt;br&gt;TradingLevel" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="1250" y="1463" width="100" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="24" value="create open admin request for&lt;br&gt;TradingLevel" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="1250" y="1523" width="100" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="8" value="Service:&lt;br&gt;&lt;b&gt;authenticate&lt;br&gt;Community&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
                     <mxGeometry x="970" y="280" width="100" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="26" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" target="8" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="1020" y="1620" as="sourcePoint"/>
+                        <mxPoint x="1020" y="1190" as="sourcePoint"/>
                         <mxPoint x="1019.5" y="220" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
@@ -110,12 +107,6 @@
                 </mxCell>
                 <mxCell id="28" value="generate and keep&lt;br&gt;one-time code together with given encrypted community key&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
                     <mxGeometry x="970" y="380" width="100" height="90" as="geometry"/>
-                </mxCell>
-                <mxCell id="30" value="" style="endArrow=none;html=1;fontSize=20;" parent="1" edge="1">
-                    <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="260" y="1622" as="sourcePoint"/>
-                        <mxPoint x="260" y="540" as="targetPoint"/>
-                    </mxGeometry>
                 </mxCell>
                 <mxCell id="31" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="28" target="38" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -154,8 +145,8 @@
                 <mxCell id="13" value="initialize CommunityTO" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
                     <mxGeometry x="210" y="1203" width="100" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="15" value="define and store&lt;br&gt;TradingLevel" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="210" y="1333" width="100" height="30" as="geometry"/>
+                <mxCell id="15" value="define and offer&lt;br&gt;own TradingLevel Idea" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="1320" width="100" height="43" as="geometry"/>
                 </mxCell>
                 <mxCell id="39" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="47" target="46" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -262,11 +253,11 @@
                         <mxPoint x="1370" y="210.00000000000045" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="66" value="&lt;font style=&quot;font-size: 16px&quot;&gt;singular processing after community creation&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="210" width="140" height="100" as="geometry"/>
+                <mxCell id="66" value="&lt;font style=&quot;font-size: 16px&quot;&gt;1. Sequence:&lt;br&gt;singular processing after community creation&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="210" width="140" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="67" value="&lt;font style=&quot;font-size: 16px&quot;&gt;recurrent processing to open community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="810" width="140" height="120" as="geometry"/>
+                <mxCell id="67" value="&lt;font style=&quot;font-size: 16px&quot;&gt;2. Sequence:&lt;br&gt;recurrent processing to open community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="810" width="140" height="150" as="geometry"/>
                 </mxCell>
                 <mxCell id="68" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=2;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -274,8 +265,20 @@
                         <mxPoint x="1370" y="1190" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="69" value="&lt;font style=&quot;font-size: 16px&quot;&gt;community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="1190" width="140" height="80" as="geometry"/>
+                <mxCell id="69" value="&lt;font style=&quot;font-size: 16px&quot;&gt;3. Sequence:&lt;br&gt;community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1190" width="140" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=4;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="261" y="1580" as="sourcePoint"/>
+                        <mxPoint x="261" y="1480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=4;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1299.5" y="1580" as="sourcePoint"/>
+                        <mxPoint x="1299.5" y="1480" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>

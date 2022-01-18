@@ -96,7 +96,7 @@ Da es also mehrere Communities geben wird, benötigt jede Community ihren eigene
 
 Für die Verwaltung von Community-Mitgliedern werden entsprechende Verwaltungsprozesse wie Registrierung, Login mit Autentifizierung, eine Benutzerverwaltung für neue, bestehende und ausscheidende Mitgleider benötigt. Die Benutzerverwaltung stellt zusätzlich die Anforderung, dass ein Community-Mitglied eindeutig identifizierbar ist und das Community übergreifend. Das bedeutet es kann eine Person immer nur einmal existieren und darf auch niemals in mehreren Communities gleichzeitig Mitglied sein. Denn es muss sichergestellt werden, dass eine Person sich keine unerlaubte Vorteile durch zum Beispiel mehrfache Geldschöpfung in mehreren Communities verschafft.
 
-Die Details der Mitgliederverwaltung werden beschrieben im Dokument [BenutzerVerwaltung](.\BenutzerVerwaltung.md).
+Die Details der Mitgliederverwaltung werden beschrieben im Dokument [BenutzerVerwaltung](./BenutzerVerwaltung.md).
 
 ### Community-Netzwerk
 
@@ -183,7 +183,7 @@ Für die Dreifach-Geldschöpfung verwaltet die Community drei Arten von Konten: 
 
 Für jedes Mitglied der Community wird also ein eigenes AktiveGrundeinkommen-Konto verwaltet, auf das ein Drittel der monatlichen Geldschöpfung unter Einhaltung der AGE-Regeln fließt. Das Gemeinwohlkonto und das AUF-Konto existieren pro Community einmal und auf jedes der beiden Konten fließen monatlich die beiden anderen Drittel der Geldschöpfung.
 
-Somit muss also eine Community für jede Kontoart die entsprechenden Kontoverwaltungsprozesse anbieten. Einmal in Verbindung pro Mitglied für das AGE-Konto und dann jeweils eine Verwaltung für das Gemeinwohlkonto und eine Verwaltung für das AUF-Konto. Die Berechtigungen für die Zugriffe auf die drei Kontoarten müssen ebenfalls in der Community gepflegt und kontrolliert werden. Das bedeutet die Community muss ihren Mitgliedern auf ihre eigenen AGE-Konten Zugriffsrechte erteilen und diese auch kontrollieren, so dass keine unerlaubten Zugriffe stattfinden können. Dann müssen in der Community bestimmte Mitglieder Sonderberechtigungen erhalten, um die Verwaltung des Gemeinwohlkontos und des AUF-Kontos durchführen zu können. Die Verwaltung der Berechtigungen ist wiederum alleine dem Community-Administrator erlaubt. Die Details der Kontenverwaltung ist im Dokument [KontenVerwaltung](.\KontenVerwaltung.md) beschrieben.
+Somit muss also eine Community für jede Kontoart die entsprechenden Kontoverwaltungsprozesse anbieten. Einmal in Verbindung pro Mitglied für das AGE-Konto und dann jeweils eine Verwaltung für das Gemeinwohlkonto und eine Verwaltung für das AUF-Konto. Die Berechtigungen für die Zugriffe auf die drei Kontoarten müssen ebenfalls in der Community gepflegt und kontrolliert werden. Das bedeutet die Community muss ihren Mitgliedern auf ihre eigenen AGE-Konten Zugriffsrechte erteilen und diese auch kontrollieren, so dass keine unerlaubten Zugriffe stattfinden können. Dann müssen in der Community bestimmte Mitglieder Sonderberechtigungen erhalten, um die Verwaltung des Gemeinwohlkontos und des AUF-Kontos durchführen zu können. Die Verwaltung der Berechtigungen ist wiederum alleine dem Community-Administrator erlaubt. Die Details der Kontenverwaltung ist im Dokument [KontenVerwaltung](./KontenVerwaltung.md) beschrieben.
 
 ### Tätigkeitsverwaltung
 
@@ -242,11 +242,11 @@ Dieses Listenattribut beinhaltet Benutzer-Elemente, die erfolgreich als Mitglied
 
 #### Gemeinwohlkonto
 
-Das Attribut *Gemeinwohlkonto* dient als ein Konto-Element, das den Kontotyp Gemeinwohlkonto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das Gemeinwohl dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
+Das Attribut *Gemeinwohlkonto* dient als ein Konto-Element, das den Kontotyp Gemeinwohlkonto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das Gemeinwohl dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](./KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](./RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
 
 #### Ausgleichs- und Umweltkonto AUF-Konto
 
-Das Attribut *Ausgleichs- und Umweltkonto* dient als ein Konto-Element, das den Kontotyp AUF-Konto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das AUF-Konto dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
+Das Attribut *Ausgleichs- und Umweltkonto* dient als ein Konto-Element, das den Kontotyp AUF-Konto repräsentiert. Alle Kontobewegungen, wie Geldschöpfung, Geldtransfers, etc., die das AUF-Konto dieser Community betreffen, werden über dieses Attribut abgewickelt. Details zu Kontobewegungen werden im Dokument [KontenVerwaltung](./KontenVerwaltung.md) beschrieben und die Regeln und Vorgänge der Geldschöpfung sind im Dokument [RegelnDerGeldschoepfung](./RegelnDerGeldschoepfung.md) zu finden. Auf dieses Attribut haben nur Mitglieder mit entsprechenden Zugriffsrechten die Erlaubnis und Möglichkeiten darauf Einsicht zu nehmen und Prozesse auszulösen.
 
 #### Verteilungsschlüssel der Dreifachen-Schöpfung
 
@@ -299,25 +299,30 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
        * Sollte es keine solche Einträge geben, dann werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt, der *MessageState = OK* gesetzt und direkt in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
 3. und die *"Community-Communication"* als Hintergrundprozess. Dieser liest zuerst die eigenen Community-Daten und geht dann per Direkt-Verbindung über die URL mit der neuen Community in Dialog, um sich zuerst gegenseitig zu authentifizieren und um dann die Community spezifischen Daten untereinander auszutauschen. Der logische Ablauf dieser Kommunikation soll wie folgt dargestellt ablaufen:
 
+![AuthenticateCommunityCommunication](.\image\AuthenticateCommunityCommunication.png " ")
 
-![AuthenticateCommunityCommunication](.\image\AuthenticateCommunityCommunication.png " ") 
+Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md). Wie der obigen Grafik zu entnehmen ist, erfolgt bei einer neuen Community eine einmalig zu durchlaufende Aufruf-Kette zur Authentifizierung (1. Sequenz), deren Ergebnisse in den beteiligten Communities gespeichert bleiben. Der danach folgende Request (2. Sequenz) wird vor jeder neu initiierten Kommunikation zwischen zwei Communities notwendig, um ein zeitlich gültiges Authentifizierungs-Token für die nachfolgenden fachlichen Requeste (3. Sequenz) zu erhalten.
 
-Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md).
+Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon existierenden Community ist die Annäherung der beiden Communities in dem sie sich gegenseitig mit dem Request "*familiarizeCommunity*" ihre eigenen Daten in Form eines *CommunityTO*-TransferObjektes austauschen. Im zweiten Schritt erfragen sie sich gegenseitig, wie sie zukünftig miteinander Handel treiben wollen. Die Details über diesen *request/confirm-TradingLevel*-Prozess sind im technischen Dokument [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md " ") beschrieben.
+
 
 #### Ende Status
 
 1. Community-Infrastruktur ist installiert und aktiv
 2. neue Community ist erzeugt und Daten in der Community-DB gespeichert
-3. der Hintergrundprozess "Community-Vernetzung" ist am Laufen
+3. der Hintergrundprozess *Federatio*n ist am Laufen
    * die initiale "newCommunity-Msg" mit den eigenen Community-Daten ist in den Public-Channel versendet
    * ein Listener lauscht am Public-Channel auf Antworten (*replyNewCommunity*-Msg) der schon existenten Communities
    * ein Listener lauscht am Public-Channel auf initiale "*newCommunity*-Msg" anderer neuer Communities
-4. mit dem ersten Empfangen einer *replyNewCommunity*-Msg einer anderen Community, wird der *Community-Communication* Prozess gestartet, der mit jedem Empfang von neuen Community-Daten eine P2P-Verbindung zu dieser Community aufbaut, um direkt detaillierte Daten auszutauschen
-5. die vordefinierte Tätigkeitsliste ist geladen
-6. die vordefinierten Berechtigungen sind aktiv
-7. optional sind schon Mitglieder erfasst und in der Datenbank gespeichert
+4. mit dem ersten Empfangen einer *replyNewCommunity*-Msg einer anderen Community, wird der *Community-Communication* Prozess gestartet und ist am Laufen.
+5. mit jedem Empfang einer *replyNewCommunity*-Msg haben sich die involvierten Communities direkt miteinander verbunden, sich gegenseitig authentifiziert (Austausch der public-Keys) und weitere Daten ausgetauscht
+6. die vordefinierte Tätigkeitsliste ist geladen
+7. die vordefinierten Berechtigungen sind aktiv
+8. optional sind schon Mitglieder erfasst und in der Datenbank gespeichert
 
 #### Fehlerfälle
+
+
 
 ### Community bearbeiten
 

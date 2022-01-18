@@ -4,7 +4,7 @@ This document contains the detailed descriptions of the public API of a communit
 
 ## Authentication/Autorization of new Community
 
-Each public API of a community has to be authenticated and autorized before. 
+Each public API of a community has to be authenticated and autorized before.
 
 ### Variant A:
 
@@ -18,13 +18,17 @@ The authentication of communities base on the community-attributes *key* and *UR
 
 A similar solution of authentication to variant A but **without autorization** can be done by using private and public key encryption. The *community creation* process will create a private and public key and store them internally. As the third step of the federation the *community communication* background process of the new *community-A* will be startet and a sequence of service invocations will exchange the necessary security data:
 
+![../BusinessRequirements/image/AuthenticateCommunityCommunication.png](../BusinessRequirements/image/AuthenticateCommunityCommunication.png)
+
+**1.Sequence**
+
 1. the new *community-A* encrypt the community key of the existing *community-B* with its own privat key. Then it invokes the service *authenticateCommunity* at *community-B* by sending the own community key, the encrypted community key of *community-B* and a redirect URI back to *community-A* as input data. The *community-B* will search the given community key of *community-A* in the internally stored list of communities, which are a result of the previous *federation process* collected over a different medium.
-2. If in *community-B* the given community key of *community-A* is found, a generated one-time code is kept together with the given encrypted community key, till an invocation of the service verifyOneTimeCode with this one-time-code. The one-time-code is passed back to the given Redirect URI of the *community-A*.
+2. If in *community-B* the given community key of *community-A* is found, a generated one-time code is stored together with the given encrypted community key in the community-entry of community-A, till an invocation of the service *verifyOneTimeCode* with this one-time-code. The one-time-code is passed back to the given Redirect URI of the *community-A*.
 3. *Community-A* will send with the next invocation to *community-B* the received one-time code and the own public key by requesting the service *verifyOneTimeCode* at *community-B*.
 4. *Community-B* will verify the given one-time-code and if valid, decrypt the previous received and encrypted community key from step 1 of the invocation-chain by using the given public key from *community-A*. If the decrypted community-key is equals the own community key, the public key of *community-A* is stored in the entry of *community-A* of the internal community list. As response of the *verifyOneTimeCode* the *community-B* will send back his own public key to *community-A*.
 5. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
 
-The result of this invocation chain is the public key exchange of the involved communities, which is the foundation to authenticate a future cross community communication.
+The result of this invocation chain is the public key exchange of the involved communities, which is the foundation to authenticate a future cross community communication - see Sequnce 2 and 3.
 
 To reach in Variant B nearly the same security level as in Variant A each community has to integrate several components to process this invocation chain like Variant A does.
 
@@ -36,12 +40,12 @@ The third Variant exchange the all necessary data directly without the step in b
 2. If in *community-B* the given community key of *community-A* is found and if the decryption of the given encrypted community key with the given public key is equals the own community key, the public key of *community-A* is stored in the entry of *community-A* of the internal community list. As response of the *authenticateCommunity* the *community-B* will send back his own public key to *community-A*.
 3. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
 
-Variant C is quite similar to Variant B, but to exchange all security relevant data in a single request-response-roundtrip bears more security risks.
+Variant C is quite similar to Variant B, but to exchange all security relevant data in a single request-response-roundtrip bears more security risks and should be avoided.
 
 
 ## Service: "Authenticate Community"
 
-This service must be invoked at first to exchange the security relevant data before further cross community communication can be done.
+This service must be invoked at first - see Variant B above - to exchange the security relevant data before further cross community communication can be done.
 
 The third step of the *federation process* starts the background process for community communication. As result of the previous federation steps the new community has received from at least one existing community the URL and the community key.
 
@@ -56,26 +60,27 @@ POST https://<New_Community_URL>/authenticateCommunity
 ```
 {
 	"community-key-A" : "the community-key of the new community-A"
-	"community-key-B" : "the community-key of the existing community-B, which was replied during the federation, encrypted by the own private key"
+	"community-key-B" : "the community-key of the community-B, replied during the federation, encrypted by the private key of community-A"
+	"redirectionURI" : "the URI for the redirection callback"
 }
 ```
 
 ### Output-Data:
 
 * none
-* redirection URI: "one-time-code" : "one-time usable code as input for the service verifyOneTimeCode"
+* redirection URI: "one-time-code" : "one-time usable code with short expiration time as input for the service *verifyOneTimeCode*"
 
 ### Exceptions:
+
+*MissingParameterException* if any of the parameter attributes is not initialized.
+
+*UnknownCommunityException* if the community search with the value of parameter "community-key-A" could not find a matching community entry with this key.
 
 
 
 ## Service: "Verify OneTimeCode"
 
-This service must be invoked at first to exchange the security relevant data before further cross community communication can be done.
-
-The third step of the *federation process* starts the background process for community communication. As result of the previous federation steps the new community has received from at least one existing community the URL and the community key.
-
-To prepare the input-data for the invocation the own community key and the community key of the new community
+This service must be invoked directly after getting the *one-time code*, because this code has a very short expiration time. Together with the public key of *community-A* the one-time code is send as input data to *community-B*. The service verifies the given *one-time code* and if valid it decrypt with the given *public key* the previous receive *community-key-B* from the request *authenticateCommunity*. If this decrypted community-key is equals the own community-key the *public key* is stored in the community-entry of *community-A* of the internal community-list.
 
 ### Route:
 
@@ -85,19 +90,31 @@ POST https://<New_Community_URL>/verifyOneTimeCode
 
 ```
 {
-	"public-key" : "the public key of the new community (community-B)"
-	"src-community-key" : "the community-key of the new community encrypted by the own private key"
-	"dst-community-key" : "the community-key of the existing community, which replied during the federation encrypted by the own provate key"
+	"one-time-code" : "one-time code with short expiration, received from community-B per redirect URI"
+	"public-key" : "the public key of the new community (community-A)"
 }
 ```
 
 ### Output-Data:
 
+```
+{
+	"public-key" : "the public key of community-B"
+}
+```
+
 ### Exceptions:
 
+*MissingParameterException* if one of the parameter attributes is not initialized.
+
+*InvalidOneTimeCodeException* if the one-time-code is expired, invalid or unknown.
+
+*SecurityException* if the decryption result with the given parameter *public-key* and previous receive *community-key-B* from the request *authenticateCommunity* doesn't match with the own community-key.
 
 
 ## Service: "open Communication"
+
+**ongoing...**
 
 
 ### Route:
@@ -115,6 +132,7 @@ POST https://<New_Community_URL>/openCommunication
 ### Output-Data:
 
 ### Exceptions:
+
 
 
 ## Service: "Familiarize communities"
@@ -175,10 +193,9 @@ In case the transferred community-key from the service-consumer will not match t
 
 In case the transferred data can't be stored on service-provider the exception *WriteAccessException* will be thrown.
 
-
 ## Service: "request TradingLevel"
 
-With this service a community can ask for a trading level with another community. The *community-A* invokes this service at *community-B* to offer the own  vision of trading with *community-B* by sending a TradingLevelTO with all the initialized Flags for future data exchanges. *Community-B* will store these data in the entry of *community-A* of its internal community list and mark it as an *open admin request* for trading level.  Such an *open admin request* will inform the administrator of *community-B*, because administrative interactions and decisions are necessary. 
+With this service a community can ask for a trading level with another community. The *community-A* invokes this service at *community-B* to offer the own  vision of trading with *community-B* by sending a TradingLevelTO with all the initialized Flags for future data exchanges. *Community-B* will store these data in the entry of *community-A* of its internal community list and mark it as an *open admin request* for trading level.  Such an *open admin request* will inform the administrator of *community-B*, because administrative interactions and decisions are necessary.
 
 After the administrator of *community-B* has cleared all community internal aspects for the requested trading level with *community-A,* he will update the stored trading level flags for *community-A* and send this data by calling the service "confirm trading Level" of *community-A*.
 
@@ -213,8 +230,6 @@ POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
 ```
 
 ### Exceptions:
-
-
 
 ## Service: "confirm TradingLevel"
 
@@ -253,7 +268,6 @@ POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
 ```
 
 ### Exceptions:
-
 
 ## Service: "Member of Community"
 
