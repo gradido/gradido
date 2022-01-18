@@ -1,4 +1,5 @@
 {
+  "all_emails": "All users",
   "bookmark": "Remember",
   "confirmed": "confirmed",
   "creation_form": {
@@ -53,7 +54,7 @@
   "transactionlist": {
     "title": "All creation-transactions for the user"
   },
-  "unregistered_emails": "Unregistered e-mails",
+  "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",

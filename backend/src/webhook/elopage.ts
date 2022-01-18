@@ -35,7 +35,7 @@ import { LoginUserRepository } from '../typeorm/repository/LoginUser'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
-  console.log('Elopage Hook received')
+  console.log('Elopage Hook received', req.body)
   res.status(200).end() // Responding is important
   const loginElopgaeBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
   const loginElopgaeBuy = new LoginElopageBuys()

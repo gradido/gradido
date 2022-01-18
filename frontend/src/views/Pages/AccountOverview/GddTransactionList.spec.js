@@ -56,16 +56,20 @@ describe('GddTransactionList', () => {
         })
       })
       it('Transactions Array is empty, 0 transactions', () => {
-        expect(wrapper.find('div.test-empty-transactionlist').text()).toContain(
-          'error.empty-transactionlist',
-        )
+        expect(wrapper.find('div.test-empty-transactionlist').exists()).toBe(false)
       })
     })
 
     describe('without any properties', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: [],
+          transactionCount: -1,
+        })
+      })
       it('renders text saying that there are error.empty-transactionlist ', () => {
         expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
-          'error.empty-transactionlist',
+          'transaction.nullTransactions',
         )
       })
       it('renders text saying that there are no transaction.nullTransactions', () => {

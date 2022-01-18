@@ -1,14 +1,22 @@
 import gql from 'graphql-tag'
 
 export const searchUsers = gql`
-  query ($searchText: String!) {
-    searchUsers(searchText: $searchText) {
-      userId
-      firstName
-      lastName
-      email
-      creation
-      emailChecked
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $notActivated: Boolean) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      notActivated: $notActivated
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+      }
     }
   }
 `
