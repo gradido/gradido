@@ -18,6 +18,8 @@ const database = {
   DB_USER: process.env.DB_USER || 'root',
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
+  TYPEORM_LOGGING_RELATIVE_PATH:
+    process.env.TYPEORM_LOGGING_RELATIVE_PATH || '../deployment/bare_metal/log/typeorm.backend.log',
 }
 
 const klicktipp = {
@@ -50,8 +52,9 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
-  EMAIL_LINK_VERIFICATION: process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/$1',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/$1',
+  EMAIL_LINK_VERIFICATION:
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
+  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/{code}',
   RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 

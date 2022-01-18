@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { ApolloLogPlugin } from 'apollo-log'
+
 const plugins = [
   {
     requestDidStart() {
@@ -19,6 +21,7 @@ const plugins = [
       }
     },
   },
+  ApolloLogPlugin(),
 ]
 
 export default plugins
