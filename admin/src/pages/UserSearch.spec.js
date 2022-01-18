@@ -5,15 +5,18 @@ const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    searchUsers: [
-      {
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        email: 'bibi@bloxberg.de',
-        creation: [200, 400, 600],
-        emailChecked: false,
-      },
-    ],
+    searchUsers: {
+      userCount: 1,
+      userList: [
+        {
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          email: 'bibi@bloxberg.de',
+          creation: [200, 400, 600],
+          emailChecked: false,
+        },
+      ],
+    },
   },
 })
 

@@ -3,7 +3,7 @@
     <div style="text-align: right">
       <b-button block variant="danger" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="light"></b-icon>
-        {{ $t('unregistered_emails') }}
+        {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -21,6 +21,14 @@
       :fieldsTable="fields"
       :criteria="criteria"
     />
+    <b-pagination
+      pills
+      size="lg"
+      v-model="currentPage"
+      per-page="perPage"
+      :total-rows="rows"
+      align="center"
+    ></b-pagination>
     <div></div>
   </div>
 </template>
@@ -67,14 +75,16 @@ export default {
       beforeLastMonth: {
         short: this.$moment().subtract(2, 'month').format('MMMM'),
       },
+      filterCheckedEmails: false,
+      rows: 0,
+      currentPage: 1,
+      perPage: 25,
     }
   },
-
   methods: {
     unconfirmedRegisterMails() {
-      this.searchResult = this.searchResult.filter((user) => {
-        return !user.emailChecked
-      })
+      this.filterCheckedEmails = !this.filterCheckedEmails
+      this.getUsers()
     },
     getUsers() {
       this.$apollo
@@ -82,14 +92,23 @@ export default {
           query: searchUsers,
           variables: {
             searchText: this.criteria,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
+            notActivated: this.filterCheckedEmails,
           },
         })
         .then((result) => {
-          this.searchResult = result.data.searchUsers
+          this.rows = result.data.searchUsers.userCount
+          this.searchResult = result.data.searchUsers.userList
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+  },
+  watch: {
+    currentPage() {
+      this.getUsers()
     },
   },
   created() {

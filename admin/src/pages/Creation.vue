@@ -18,6 +18,13 @@
           :creation="creation"
           @update-item="updateItem"
         />
+        <b-pagination
+          pills
+          v-model="currentPage"
+          per-page="perPage"
+          :total-rows="rows"
+          align="center"
+        ></b-pagination>
       </b-col>
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
@@ -101,6 +108,9 @@ export default {
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
+      rows: 0,
+      currentPage: 1,
+      perPage: 25,
     }
   },
   async created() {
@@ -113,10 +123,13 @@ export default {
           query: searchUsers,
           variables: {
             searchText: this.criteria,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
           },
         })
         .then((result) => {
-          this.itemsList = result.data.searchUsers.map((user) => {
+          this.rows = result.data.searchUsers.userCount
+          this.itemsList = result.data.searchUsers.userList.map((user) => {
             return {
               ...user,
               showDetails: false,
@@ -151,6 +164,14 @@ export default {
     removeAllBookmark() {
       this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
       this.itemsMassCreation = []
+    },
+  },
+  watch: {
+    currentPage() {
+      this.getUsers()
+    },
+    criteria() {
+      this.getUsers()
     },
   },
 }
