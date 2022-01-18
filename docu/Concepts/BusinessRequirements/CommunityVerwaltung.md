@@ -303,8 +303,7 @@ Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
 
 Die genaue Beschreibung der dazu verwendeten APIs beider Communities erfolgt in der technischen Konzeption [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md). Wie der obigen Grafik zu entnehmen ist, erfolgt bei einer neuen Community eine einmalig zu durchlaufende Aufruf-Kette zur Authentifizierung (1. Sequenz), deren Ergebnisse in den beteiligten Communities gespeichert bleiben. Der danach folgende Request (2. Sequenz) wird vor jeder neu initiierten Kommunikation zwischen zwei Communities notwendig, um ein zeitlich gültiges Authentifizierungs-Token für die nachfolgenden fachlichen Requeste (3. Sequenz) zu erhalten.
 
-Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon existierenden Community ist die Annäherung der beiden Communities in dem sie sich gegenseitig mit dem Request "*familiarizeCommunity*" ihre eigenen Daten in Form eines *CommunityTO*-TransferObjektes austauschen. Im zweiten Schritt erfragen sie sich gegenseitig, wie sie zukünftig miteinander Handel treiben wollen. Die Details über diesen *request/confirm-TradingLevel*-Prozess sind im technischen Dokument [CommunityCommunication](../TechnicalRequirements/CommunityCommunication.md " ") beschrieben.
-
+Die aller erste fachliche Kommunikation zwischen einer neu erstellten und einer schon existierenden Community ist die Annäherung der beiden Communities, in dem sie sich gegenseitig mit dem Request "*familiarizeCommunity*" ihre eigenen Daten in Form eines *CommunityTO*-TransferObjektes austauschen. Im zweiten Schritt erfragen sie sich gegenseitig, wie sie zukünftig miteinander Handel treiben wollen. Die Details über die Aushandlung des Tradinglevels der beiden Communities sind hier im Dokument im Anwendungsfall  [Communities Tradinglevel aushandeln](#Communities-Tradinglevel-aushandeln) beschrieben.
 
 #### Ende Status
 
@@ -322,6 +321,57 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 
 #### Fehlerfälle
 
+
+
+### Communities Tradinglevel aushandeln {Communities-Tradinglevel-aushandeln}
+
+Im Anwendungsfall *Communities Tradinglevel aushandeln* geht es darum, dass die beiden involvierten Communities sich gegenseitig anfragen und bestätigen auf welchem Level bzw. mit welchen Detailtiefe sie zukünftig Datenaustauschen und miteinander interagieren.
+
+Diese Aushandlung bedarf auf beiden Seiten administrative als auch strategische Interaktionen und Entscheidungen. Daher kann dies kein synchroner Anfrage-Bestätigungs-Loop sein, sondern es muss zwischen einer Tradinglevel-Anfrage und ihrer Bestätigung ein Zeitfenster von gegebenenfalls mehreren Tagen vorgesehen werden.
+
+Folgende Tradinglevels sind derzeit vorgesehen:
+
+* Mitglieder-Details senden : Kennung, ob die *Community-A* zukünftig weitere Details über die eigenen Mitglieder an *Community-B* sendet
+* Mitglieder-Details empfangen : Kennung, ob die *Community-A* zukünftig weitere Details über die Mitglieder von *Community-B* empfängt
+* Geld empfangen : Kennung, ob *Community-A* zukünftig Geld an *Community-B* sendet
+* Geld senden : Kennung, ob *Community-A* zukünftig Geld von *Community-B* empfängt
+* Aktivitäten senden : Kennung, ob *Community-A* zukünftig die offenen Aktivitäten seiner Mitglieder an *Community-B* zur Bestätigung sendet
+* Aktivitäten empfangen : Kennung, ob *Community-A* zukünftig die offenen Aktivitäten der Mitglieder von *Community-B* zur Bestätigung empfängt
+* Backup senden : Kennung, ob *Community-A* zukünftig Daten an *Community-B* als Backup sendet
+* Backup empfangen : Kennung, ob *Community-A* zukünftig Daten von *Community-B* als Backup empfängt
+
+#### Vorraussetzungen
+
+Bevor *Community-A* mit dem Aushandeln des Tradinglevels mit *Community-B* beginnen kann, muss in der *Community-A* erst einmal selbst Konsens geschaffen sein, welchen Level mal haben und auch unterstützen will. Das bedeutet der Administrator und die Community-Verantwortlichen müssen in der *Community-A* mit den eigenen Mitgliedern sich darüber einig sein, wie sie zukünftig mit der *Community-B* und deren Mitgliedern im Vertrauen und im Austausch stehen wollen.
+
+Sobald diese Vorstellung des zukünftigen Austausches klar ist und die administrativen und organisatorischen Vorraussetzungen dazu getroffen und umgesetzt sind - z.B. bei Bereitschaft für Backup-Daten empfangen müssen auch ausreichend Resourcen für diesen Dienst vorhanden sein oder bei Mitglieder-Details senden müssen die Mitglieder damit einverstanden sein - kann die Anfrage von *Community-A* an *Community-B* gestartet werden.
+
+#### Ablauf
+
+Community-A startet den Prozess des Tradinglevel-aushandelns indem der Administrator die zuvor geschaffenen Vorraussetzungen entsprechend in der Community internen Datenbank erfasst. Ob dies per Configurationsdatei oder über ein Admin-Dialog umgesetzt wird, bleibt erst einmal offen.
+
+Um den eigentlichen fachlichen Request mit den vorhandenen Tradinglevel-Daten aufrufen zu können, muss zuerst die Kommunikation zwischen den Communities zur Authentifizierung mit dem Request *openCommunication* abgesetzt werden. Nach Erhalt eines gültigen JWT-Tokens wird dann die Anfrage von *Community-A* nach dem gewünschten Trading-Level mit *Community-B* über den Aufruf requestTradingLevel abgesetzt. Als direktes Ergebnis dieser Anfrage erhält Community-A nur die Information, ob Community-B die TradingLevel-Daten erfolgreich erhalten hat oder nicht.
+
+In *Community-A* selbst wird intern vermerkt, dass die TradingLevel-Anfrage an *Community-B* abgeschickt und offen ist.
+
+In *Community-B* sind die angefragten Tradinglevel-Daten von *Community-A* in der internen Community-Liste gespeichert und müssen nun die Community internen Abstimmungen und Vorbereitungen erfolgen. Diese kann durchaus über einen längeren Zeitraum von mehreren Tagen dauern.
+
+Sobald in *Community-B* das Abstimmungsprozedere und die Vorstellungen des zukünftigen Interagierens mit *Community-A* beendet und erfasst sind, startet *Community-B* selbst die Bestätigung der offenen Anfrage von *Community-A*. Dazu muss auch wieder erst die Kommunikation authentifiziert und eröffnet werden, um ein gültiges JWT-Token zu erhalten. Mit dem Token und den in *Community-B* abgestimmten TradingLevel-Daten erfolgt über *confirmTradingLevel* die Übertragung der Daten nach *Community-A*. Mit Erhalt und Speicherung der Daten erfolgt eine erste Auswertung für den direkten Response an *Community-B*. Dieses Ergebnis für *Community-B* kann folgende Konstellationen haben:
+
+* OK : bei vollständiger Übereinstimmung des zuvor angefragten TradingLevels
+* ERROR : der Empfang und die Prüfung der erhaltenen TradingLevel-Daten sind technisch fehlerhaft. *Community-B* muss den *confirmTradingLevel*-Request ausführen.
+* RESERVE : die Daten wurden erfolgreich empfangen, die Prüfung ergab Unterschiede, der Trading-Level wird unter Vorbehalt bis zur abschliessenden Prüfung erst einmal so gestartet. Eventuelle Änderungen erfolgen mit einem erneuten *Request/ConfirmTradingLevel*-Loop.
+* REJECT : die Daten wurden erfolgreich empfangen, die Prüfung ergab gravierende Unterschiede, der Trading-Level muss erneut vollständig ausgehandelt werden. Bis dahin werden alle Trading-Interaktion zwischen den beiden Communities abgelehnt.
+
+#### Ende Status
+
+Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
+
+* die Abstimmung und der Austausch waren erfolgreich, so dass nun in beiden Communities der gleiche TradingLevel zu jeder involvierten Community gespeichert ist. Die Interaktionen des ausgehandelten TradingLevels sind nicht aktiviert, es stehen lediglich die Informationen bereit welche Interaktionen zwischen den Communities A und B erwünscht und bestätigt sind.
+* die Abstimmung und der Austausch wurden unter Vorbehalt angenommen. Es sind in beiden Communities der gleiche TradingLevel zu jeder involvierten Community gespeichert. Die Interaktionen des ausgehandelten TradingLevels sind nicht aktiviert, es stehen lediglich die Informationen bereit welche Interaktionen zwischen den Communities A und B ausgehandelt sind und unter Vorbehalt angewendet werden können.
+* Die Abstimmung und der Austausch sind erfolgt, im Ergebnis sind die TradingLevels der beiden Communities zu unterschiedlich, so dass diese abgelehnt wurden. Die Daten bleiben aber auch in diesem Fall in der jeweiligen Community gespeichert, so dass für zukünftige Anfragen schon einmal ein Eindruck der jeweiligen Community vorhanden ist.
+
+#### Fehlerfälle
 
 
 ### Community bearbeiten
@@ -348,6 +398,7 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 
 #### Fehlerfälle
 
+
 ### Trusted Community verbinden
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -359,6 +410,7 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 #### Ende Status
 
 #### Fehlerfälle
+
 
 ### Trusted Community lösen
 
@@ -372,6 +424,7 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 
 #### Fehlerfälle
 
+
 ### Parent Community einrichten
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -384,6 +437,7 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 
 #### Fehlerfälle
 
+
 ### Parent Community löschen
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -395,77 +449,3 @@ Die erste fachliche Kommunikation zwischen einer neu erstellten und einer schon 
 #### Ende Status
 
 #### Fehlerfälle
-
-# Besprechung 19.08.2021 19:00 mit Bernd
-
-## Kreis-Mensch-Sein-Community
-
-Felix Kramer
-
-noch keine eigene Währung, wollen gerne Gradido
-
-haben auch aktives Grundeinkommen
-
-passt aber nicht ganz zur Gradido Philosophie, weil Gemeinwohlleistung zu unterschiedlich bewertet werden.
-
--> Colored Gradido?
-
-Community-Creation
-
-GDD1 (gold) ist existent
-
-Felix baut GGD2-Infrastruktur auf
-
-* Frage: willst du GDD1(gold) oder eigene Währung?
-* Antwort: nein ich will eigene GDD2 (rot)
-  * muss neue Währung erzeugen
-* Antwort: ja, dann Anfrage an GDD1, dass GDD2 auch Goldene GDD1 schöpfen darf?
-  * Ja wird akzeptiert
-  * dann bekommt GDD2 die Lizenz goldene GDD1 schöpfen kann
-
-Kommt später heraus, dass GDD2 nicht mehr den goldenen Regeln entspricht, dann muss die Lizenz zum goldene GDD1 Schöpfen für GDD2 gesperrt werden.
-
-Bisher geschöpfte goldene GDD2 beleiben aber erhalten.
-
-Es darf keine Markierung des Bot-Mitglieds geben, da Missbrauch/Fehler möglich
-
-Identität für ein Mitglied muss Human/Nichthuman enthalten
-
-GDD2 muss mit Lizenzentzug wechseln auf eigene Währung um weiterschöpfen zu können.
-
-Mitgliederwechsel in andere Community muss dann auch Währungswechsel berücksichtigen.
-
-Bestcase: 1 Blockchain pro Währung
-
-GDD1(gold) existent
-
-GDD2(gold) soll gegründet werden
-
-GDD2 baut Infrasturktur auf
-
-Frage an GDD2, ob goldene oder andere?
-
-### Tätigkeiten, die von der Community aktzeptiert werden
-
-Nachweise für durchgeführte Tätigkeiten, bevor diese dem AGE-Konto gutgeschrieben werden?
-
-Liste der Tätigkeiten muss von Community erstellt, bestätigt und verwaltet werden
-
-Bei Tätigkeit von x Stunden für das  AGE muss aus der Liste die passende Tätigkeit gewählt werden und per Nachweis (andere Mitglieder, Video, o.ä.)
-
-Bei Krankheit o.ä. muss es aber möglich sein, dass dennoch Geld auf das AGE-Konto kommt.
-
-| PR-Kommentar           |                                                                                                                                                                                                                                                                                                                                                                             |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ulf 07.11.2021         | Definition? Ist Faulheit eine Krankheit?                                                                                                                                                                                                                                                                                                                                    |
-| Claus-Peter 25.11.2021 | :-) Das kommt auf die solidarische Einstellung der Community an ;-)<br /><br />da drängt sich mir die Gegenfrage auf: Bis zu welchem Alter bekommt ein Kind sein AGE-Geld geschöpft nur durch seine blos Existenz? Oder andersherum, ab und bis zu welchem Alter muss eine Gegenleistung erbracht werden, Stichworte: unbeschwerte Kindheit und wohlverdiente Altersruhe? |
-
-Kontaktförderung durch gewichtete Tätigkeitsbestätigung ( bei mind. 2 Bestätigungen pro Tätigkeit muss mind. ein neues Mitglied dabei sein)
-
-Liste von Mitgliedern, die ich bestätigt habe:
-
-* Kontaktpflege
-* Gewichtung
-* Vernetzung
-
-Ricardo Leppe Podcast Lern und Memotechniken

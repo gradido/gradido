@@ -114,24 +114,42 @@ POST https://<New_Community_URL>/verifyOneTimeCode
 
 ## Service: "open Communication"
 
-**ongoing...**
+This service must be used to start a new communication session between two communities to authenticate with the returned JWT-Token further requests.
 
+*Community-A* will communicate with *community-B*, then *community-A* has to encrypt with its own private key the community key of *community-B*, put its own community-key and the encrypted community-key of *community-B* as input data and start with *openCommunication* to get a valid JWT-Token from *community-B*.
+
+In *community-B* the given "community-key-A" will be used to search in the internal community-list for the community-entry with this key. If it exists the corresponding public key is used to decrypt the given parameter "community-key-B". If the decrypted result is equals the own community-key a JWT-Token is generated with a preconfigered expiration time for a community-communication-session. The token is stored internally and returned as result for *community-A.*
 
 ### Route:
 
-POST https://<New_Community_URL>/openCommunication
+POST https://<Community-B_URL>/openCommunication
 
 ### Input-Data:
 
+The requesting *community-A* will initialize these input data:
+
 ```
 {
-
+	"community-key-A" : "the community-key of the community-A"
+	"community-key-B" : "the community-key of the community-B, encrypted by the private key of community-A"
 }
 ```
 
 ### Output-Data:
 
+```
+{
+	"token" : "valid JWT-Token with a preconfigered expiration time"
+}
+```
+
 ### Exceptions:
+
+*MissingParameterException* if one of the parameter attributes is not initialized.
+
+*UnknownCommunityException* if the community search with the value of parameter "community-key-A" could not find a matching community entry with this key.
+
+*SecurityException* if the decrypted community-key-B will not match the own community key.
 
 
 
@@ -231,17 +249,30 @@ POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
 
 ### Exceptions:
 
+A *SecurityException* will be thrown, if the security-accesstoken is not valid or the if internal autorization rules like black-listings will not allow access.
+
+In case the transferred data can't be stored on service-provider the exception *WriteAccessException* will be thrown.
+
+
 ## Service: "confirm TradingLevel"
 
 With this service a community sends his trading level confirmation to a previous *requestTradingLevel* invocation of another community. The *community-B* invokes this service at *community-A* to confirm the previous received and optionally updated vision of trading level data with *community-A*. This service sends the TradingLevelTO with the confirmed flags for future data exchanges between *community-A* and *community-B*. *Community-A* will store this data in the entry of *community-B* of its internal community list and mark it as a *confirmed admin request* for trading level.  The update of a *admin request* to state *confirmed* will inform the administrator of *community-A* to trigger administrative interactions and decisions.
 
-If the confirmated trading level from *community-B* will not acceptable for *community-A* an additional roundtrip to deal a new tradinglevel between both communities must be started.
+If the confirmed trading level from *community-B* will match exactly the requested once of *community-A* the confirm request will response with an OK.
+
+If the confirmed trading level from *community-B* can't be verified in *community-A* the confirm request will response with an ERROR.
+
+If the confirmed trading level from *community-B* will differ, but acceptable under reservations for *community-A* the confirm request will response with an RESERVE. If one of the involved communities will change this, it has to start the tradinglevel handshake again.
+
+If the confirmated trading level from *community-B* will absolutely not acceptable for *community-A* the confirm request will response with an REJECT and an additional roundtrip to deal a new tradinglevel between both communities will be necessary.
 
 ### Route:
 
-POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
+POST https://<Community-A_URL>/confirmTradingLevel/`<security-accesstoken>`
 
 ### Input-Data:
+
+The meaning of the *TradingLevelTO*-attributes in the confirmTradingLevel request must be interpreted from the confirmator point of view. For example "receiveBackup = TRUE" means *community-A* is ready to receive backup data from *community-B*, but *community-B* is as confirmator also prepared to send its data to *community-A* for backup.
 
 ```
 {
@@ -263,11 +294,15 @@ POST https://<Community-B_URL>/requestTradingLevel/`<security-accesstoken>`
 
 ```
 {
-	"result" : "Message if the trading level request is accepted and stored or reasons, why the request is rejected"
+	"state" : "OK, ERROR, RESERVE, REJECT"
+	"result" : "optional Message to explain the state in detail"
 }
 ```
 
 ### Exceptions:
+
+A *SecurityException* will be thrown, if the security-accesstoken is not valid or the if internal autorization rules like black-listings will not allow access.
+
 
 ## Service: "Member of Community"
 
