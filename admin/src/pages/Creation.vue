@@ -1,7 +1,7 @@
 <template>
   <div class="creation">
     <b-row>
-      <b-col cols="12" lg="5">
+      <b-col cols="12" lg="6">
         <label>Usersuche</label>
         <b-input
           type="text"
@@ -18,8 +18,15 @@
           :creation="creation"
           @update-item="updateItem"
         />
+        <b-pagination
+          pills
+          v-model="currentPage"
+          per-page="perPage"
+          :total-rows="rows"
+          align="center"
+        ></b-pagination>
       </b-col>
-      <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
+      <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
           v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
@@ -62,14 +69,38 @@ export default {
         { key: 'bookmark', label: 'bookmark' },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
-        { key: 'creation', label: this.$t('open_creations') },
+        {
+          key: 'creation',
+          // label: this.$t('open_creation') + 'Jan | Feb | März',
+          label:
+            this.$moment().subtract(2, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().subtract(1, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().format('MMM'),
+          formatter: (value, key, item) => {
+            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
+          },
+        },
         { key: 'email', label: this.$t('e_mail') },
       ],
       fields: [
         { key: 'email', label: this.$t('e_mail') },
         { key: 'firstName', label: this.$t('firstname') },
         { key: 'lastName', label: this.$t('lastname') },
-        { key: 'creation', label: this.$t('open_creations') },
+        {
+          key: 'creation',
+          // label: this.$t('open_creation') + 'Jan | Feb | März',
+          label:
+            this.$moment().subtract(2, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().subtract(1, 'month').format('MMM') +
+            ' | ' +
+            this.$moment().format('MMM'),
+          formatter: (value, key, item) => {
+            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
+          },
+        },
         { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
@@ -77,6 +108,9 @@ export default {
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
+      rows: 0,
+      currentPage: 1,
+      perPage: 25,
     }
   },
   async created() {
@@ -89,10 +123,13 @@ export default {
           query: searchUsers,
           variables: {
             searchText: this.criteria,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
           },
         })
         .then((result) => {
-          this.itemsList = result.data.searchUsers.map((user) => {
+          this.rows = result.data.searchUsers.userCount
+          this.itemsList = result.data.searchUsers.userList.map((user) => {
             return {
               ...user,
               showDetails: false,
@@ -109,16 +146,16 @@ export default {
 
       switch (event) {
         case 'push':
-          findArr = this.itemsList.find((arr) => arr.id === e.id)
+          findArr = this.itemsList.find((item) => e.userId === item.userId)
           index = this.itemsList.indexOf(findArr)
           this.itemsList.splice(index, 1)
-          this.itemsMassCreation.push(e)
+          this.itemsMassCreation.push(findArr)
           break
         case 'remove':
-          findArr = this.itemsMassCreation.find((arr) => arr.id === e.id)
+          findArr = this.itemsMassCreation.find((item) => e.userId === item.userId)
           index = this.itemsMassCreation.indexOf(findArr)
           this.itemsMassCreation.splice(index, 1)
-          this.itemsList.push(e)
+          this.itemsList.push(findArr)
           break
         default:
           throw new Error(event)
@@ -127,6 +164,14 @@ export default {
     removeAllBookmark() {
       this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
       this.itemsMassCreation = []
+    },
+  },
+  watch: {
+    currentPage() {
+      this.getUsers()
+    },
+    criteria() {
+      this.getUsers()
     },
   },
 }

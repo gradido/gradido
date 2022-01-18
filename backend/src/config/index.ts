@@ -18,6 +18,7 @@ const database = {
   DB_USER: process.env.DB_USER || 'root',
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
+  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH || 'typeorm.backend.log',
 }
 
 const klicktipp = {
@@ -31,8 +32,8 @@ const klicktipp = {
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
-  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/vue/',
-  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/vue/register',
+  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
+  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
@@ -51,12 +52,13 @@ const email = {
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/vue/checkEmail/$1',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/vue/reset/$1',
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
+  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/{code}',
   RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 
 const webhook = {
+  // Elopage
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 

@@ -199,7 +199,7 @@ jobs:
       ##########################################################################
       - name: nginx | Build `test` image
         run: |
-          docker build -t "gradido/nginx:test" -f ./nginx/Dockerfile ./
+          docker build -t "gradido/nginx:test" nginx/
           docker save "gradido/nginx:test" > /tmp/nginx.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -470,7 +470,7 @@ jobs:
           report_name: Coverage Admin Interface
           type: lcov
           result_path: ./coverage/lcov.info
-          min_coverage: 76
+          min_coverage: 77
           token: ${{ github.token }}
 
   ##############################################################################
@@ -520,7 +520,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 40
+          min_coverage: 45
           token: ${{ github.token }}
 
   ##############################################################################

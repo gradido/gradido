@@ -20,9 +20,10 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { LoginUser } from '@entity/LoginUser'
 import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendEMail } from '../../util/sendEMail'
+import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
 import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
-import { signIn } from '../../apis/KlicktippController'
+import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
@@ -447,15 +448,15 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(loginUserId, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /\$1/g,
+        /{code}/g,
         emailOptIn.verificationCode.toString(),
       )
-      const emailSent = await this.sendAccountActivationEmail(
-        activationLink,
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
         firstName,
         lastName,
         email,
-      )
+      })
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -472,29 +473,6 @@ export class UserResolver {
     return 'success'
   }
 
-  private sendAccountActivationEmail(
-    activationLink: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-  ): Promise<boolean> {
-    return sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-      to: `${firstName} ${lastName} <${email}>`,
-      subject: 'Gradido: E-Mail Überprüfung',
-      text: `Hallo ${firstName} ${lastName},
-        
-        Deine EMail wurde soeben bei Gradido registriert.
-        
-        Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
-        ${activationLink}
-        oder kopiere den obigen Link in dein Browserfenster.
-        
-        Mit freundlichen Grüßen,
-        dein Gradido-Team`,
-    })
-  }
-
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
@@ -508,16 +486,16 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(loginUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /\$1/g,
+        /{code}/g,
         emailOptIn.verificationCode.toString(),
       )
 
-      const emailSent = await this.sendAccountActivationEmail(
-        activationLink,
-        loginUser.firstName,
-        loginUser.lastName,
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName: loginUser.firstName,
+        lastName: loginUser.lastName,
         email,
-      )
+      })
 
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -545,22 +523,15 @@ export class UserResolver {
     const optInCode = await getOptInCode(loginUser)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /\$1/g,
+      /{code}/g,
       optInCode.verificationCode.toString(),
     )
 
-    const emailSent = await sendEMail({
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-      to: `${loginUser.firstName} ${loginUser.lastName} <${email}>`,
-      subject: 'Gradido: Reset Password',
-      text: `Hallo ${loginUser.firstName} ${loginUser.lastName},
-      
-      Du oder jemand anderes hat für dieses Konto ein Zurücksetzen des Passworts angefordert.
-      Wenn du es warst, klicke bitte auf den Link: ${link}
-      oder kopiere den obigen Link in Dein Browserfenster.
-      
-      Mit freundlichen Grüßen,
-      dein Gradido-Team`,
+    const emailSent = await sendResetPasswordEmail({
+      link,
+      firstName: loginUser.firstName,
+      lastName: loginUser.lastName,
+      email,
     })
 
     // In case EMails are disabled log the activation link for the user
@@ -670,7 +641,12 @@ export class UserResolver {
     // TODO do we always signUp the user? How to handle things with old users?
     if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
       try {
-        await signIn(loginUser.email, loginUser.language, loginUser.firstName, loginUser.lastName)
+        await klicktippSignIn(
+          loginUser.email,
+          loginUser.language,
+          loginUser.firstName,
+          loginUser.lastName,
+        )
       } catch {
         // TODO is this a problem?
         // eslint-disable-next-line no-console
@@ -738,7 +714,7 @@ export class UserResolver {
     if (password && passwordNew) {
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
       const oldPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, password)
-      if (loginUser.password !== oldPasswordHash[0].readBigUInt64LE()) {
+      if (BigInt(loginUser.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
         throw new Error(`Old password is invalid`)
       }
 
@@ -748,7 +724,7 @@ export class UserResolver {
       const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
 
       // Save new password hash and newly encrypted private key
-      loginUser.password = newPasswordHash[0].readBigInt64LE()
+      loginUser.password = newPasswordHash[0].readBigUInt64LE()
       loginUser.privKey = encryptedPrivkey
     }
 

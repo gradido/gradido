@@ -129,10 +129,6 @@ services:
   ## NGINX ################################################
   #########################################################
   nginx:
-    depends_on:
-      - frontend 
-      - community-server
-      - login-server
     volumes: 
       - ./logs/nginx:/var/log/nginx 
   

@@ -1,7 +1,7 @@
 import { ArgsType, Field, Float, Int } from 'type-graphql'
 
 @ArgsType()
-export default class CreatePendingCreationArgs {
+export default class UpdatePendingCreationArgs {
   @Field(() => Int)
   id: number
 

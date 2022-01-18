@@ -17,7 +17,6 @@ export const bibiBloxberg = {
   language: 'de',
   disabled: false,
   groupId: 1,
-  publisherId: null,
   passphrase:
     'knife normal level all hurdle crucial color avoid warrior stadium road bachelor affair topple hawk pottery right afford immune two ceiling budget glance hour ',
   mnemonicType: 2,

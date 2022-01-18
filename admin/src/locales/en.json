@@ -1,8 +1,9 @@
 {
+  "all_emails": "All users",
   "bookmark": "Remember",
   "confirmed": "confirmed",
   "creation_form": {
-    "creation_for": "Creation for ",
+    "creation_for": "Creation for",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
@@ -53,13 +54,14 @@
   "transactionlist": {
     "title": "All creation-transactions for the user"
   },
-  "unregistered_emails": "Unregistered e-mails",
+  "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",
     "info": "Confirm email, send repeatedly to:",
     "success": "Successfully send the confirmation link to the user's email! ({email})",
-    "text": " The last email was sent to the member ({mail}) on <b>{date} clock</b>."
+    "text_false": "The last email was sent to the member ({mail}) on {date} clock.",
+    "text_true": "The email was confirmed on {date} clock."
   },
   "user_search": "User search"
 }

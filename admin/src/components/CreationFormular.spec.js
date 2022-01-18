@@ -99,7 +99,10 @@ describe('CreationFormular', () => {
       describe('with mass creation', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.setProps({ type: 'massCreation' })
+          await wrapper.setProps({ type: 'massCreation', creation: [200, 400, 600] })
+          await wrapper.setData({ rangeMin: 180 })
+          await wrapper.setData({ text: 'Test create coins' })
+          await wrapper.setData({ value: 90 })
         })
 
         describe('first radio button', () => {
