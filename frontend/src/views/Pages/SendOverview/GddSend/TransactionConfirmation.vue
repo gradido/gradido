@@ -50,7 +50,7 @@
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
         <b-col class="text-right">
-          <strong>~ {{ $n(balance - amount, 'decimal') }}</strong>
+          ~ {{ $n(balance - amount, 'decimal') }}
         </b-col>
       </b-row>
     </b-container>
