@@ -1,0 +1,7 @@
+$GRADIDO_LOG_PATH/* {
+    weekly
+    rotate 26
+    size 10M
+    compress
+    delaycompress
+}
