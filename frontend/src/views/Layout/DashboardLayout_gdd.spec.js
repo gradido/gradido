@@ -81,8 +81,8 @@ describe('DashboardLayoutGdd', () => {
       expect(wrapper.find('.main-sidebar').exists()).toBeTruthy()
     })
 
-    it('has a main content div', () => {
-      expect(wrapper.find('div.main-content').exists()).toBeTruthy()
+    it('has a main container div', () => {
+      expect(wrapper.find('div.container').exists()).toBeTruthy()
     })
 
     it('has a footer inside the main content', () => {

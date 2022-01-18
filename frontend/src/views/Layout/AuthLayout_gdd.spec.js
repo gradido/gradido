@@ -41,12 +41,12 @@ describe('AuthLayoutGdd', () => {
       expect(wrapper.find('nav#sidenav-main').exists()).not.toBeTruthy()
     })
 
-    it('has a main content div', () => {
-      expect(wrapper.find('div.main-content').exists()).toBeTruthy()
+    it('has a main container div', () => {
+      expect(wrapper.find('div.container').exists()).toBeTruthy()
     })
 
-    it('has a footer inside the main content', () => {
-      expect(wrapper.find('div.main-content').find('footer.footer').exists()).toBeTruthy()
+    it('has a footer inside the main container', () => {
+      expect(wrapper.find('div.container').find('footer.footer').exists()).toBeTruthy()
     })
 
     it('has LanguageSwitch', () => {
