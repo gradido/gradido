@@ -25,7 +25,7 @@
       pills
       size="lg"
       v-model="currentPage"
-      per-page="25"
+      per-page="perPage"
       :total-rows="rows"
       align="center"
     ></b-pagination>
@@ -78,6 +78,7 @@ export default {
       filterCheckedEmails: false,
       rows: 0,
       currentPage: 1,
+      perPage: 25,
     }
   },
   methods: {
@@ -92,6 +93,7 @@ export default {
           variables: {
             searchText: this.criteria,
             currentPage: this.currentPage,
+            pageSize: this.perPage,
             notActivated: this.filterCheckedEmails,
           },
         })
