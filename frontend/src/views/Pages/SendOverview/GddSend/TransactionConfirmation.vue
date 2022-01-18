@@ -34,6 +34,7 @@
     </b-row>
 
     <b-container class="bv-example-row mt-3 gray-background p-2">
+      <p>Vorausberechnung - Calculation in advance</p>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
         <b-col class="text-right">{{ $n(balance, 'decimal') }}</b-col>
