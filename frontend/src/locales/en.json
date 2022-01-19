@@ -120,7 +120,6 @@
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
   "publisher": {
-    "infoNoRegister": "This is not necessary for registration.",
     "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID"
   },
