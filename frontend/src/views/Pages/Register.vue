@@ -164,10 +164,7 @@
                       <b-button
                         :disabled="disabled"
                         type="submit"
-                        :variant="disabled
-                            ? 'outline-light'
-                            : 'primary'
-                        "
+                        :variant="disabled ? 'outline-light' : 'primary'"
                       >
                         {{ $t('signup') }}
                       </b-button>
