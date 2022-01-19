@@ -53,7 +53,9 @@ export default {
           },
         })
         .then((result) => {
+          console.log(result)
           this.items = result.data.transactionList.transactions.filter((t) => t.type === 'creation')
+          console.log( this.items)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
