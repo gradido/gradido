@@ -214,26 +214,20 @@ describe('Register', () => {
     })
     */
 
-    describe('API calls when form is missing', () => {
-      it('has disabled submit button when missing checked box', () => {
-        beforeEach(() => {
-          wrapper.find('#registerFirstname').setValue('Max')
-          wrapper.find('#registerLastname').setValue('Mustermann')
-          wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-          wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-          wrapper.find('#publisherid').setValue('12345')
-        })
+    describe('API calls when form is missing input', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#publisherid').setValue('12345')
+      })
+      it('has disabled submit button when missing input checked box', () => {
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
 
       it('has disabled submit button when missing email input', () => {
-        beforeEach(() => {
-          wrapper.find('#registerFirstname').setValue('Max')
-          wrapper.find('#registerLastname').setValue('Mustermann')
-          wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-          wrapper.find('#publisherid').setValue('12345')
-          wrapper.find('#registerCheckbox').setChecked()
-        })
+        wrapper.find('#registerCheckbox').setChecked()
         expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
       })
     })
