@@ -221,7 +221,7 @@ describe('Register', () => {
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('#publisherid').setValue('12345')
-        wrapper.find('#registerCheckbox').trigger('click')
+        wrapper.find('#registerCheckbox').setChecked()
       })
 
       it('commits publisherId to store', () => {
@@ -230,7 +230,7 @@ describe('Register', () => {
 
       it('has enabled submit button when completely filled', async () => {
         await wrapper.vm.$nextTick()
-        expect(wrapper.find('button[type="submit"]').disabled).toBeFalsy()
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
       })
 
       describe('server sends back error', () => {
