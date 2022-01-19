@@ -215,7 +215,6 @@ describe('Register', () => {
     */
 
     describe('API calls when form is missing', () => {
-
       it('has disabled submit button when missing checked box', () => {
         beforeEach(() => {
           wrapper.find('#registerFirstname').setValue('Max')
