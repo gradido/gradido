@@ -229,7 +229,7 @@ describe('Register', () => {
       })
 
       it('has enabled submit button when completely filled', async () => {
-       await wrapper.vm.$nextTick()
+        await wrapper.vm.$nextTick()
         expect(wrapper.find('button[type="submit"]').disabled).toBeFalsy()
       })
 
