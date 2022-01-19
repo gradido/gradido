@@ -21,7 +21,13 @@ export default {
             return this.$moment(value).format(this.$t('transactionlist.formatter'))
           },
         },
-        { key: 'balance', label: this.$t('transactionlist.amount') },
+        {
+          key: 'balance',
+          label: this.$t('transactionlist.amount'),
+          formatter: (value, key, item) => {
+            return `${value} GDD`
+          },
+        },
         { key: 'name', label: this.$t('transactionlist.community') },
         { key: 'memo', label: this.$t('transactionlist.memo') },
         {
