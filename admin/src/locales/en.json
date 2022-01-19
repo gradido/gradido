@@ -52,7 +52,13 @@
   "remove": "Remove",
   "transaction": "Transaction",
   "transactionlist": {
-    "title": "All creation-transactions for the user"
+    "title": "All creation-transactions for the user",
+    "amount":"Amount",
+    "memo":"Message",
+    "date":"Date",
+    "decay":"Decay",
+    "community":"Community",
+    "formatter":"MM.DD.YYYY"
   },
   "unregistered_emails": "Only unregistered users",
   "unregister_mail": {

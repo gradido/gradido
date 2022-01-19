@@ -1,7 +1,7 @@
 <template>
   <div class="component-creation-transaction-list">
     {{ $t('transactionlist.title') }}
-    <b-table striped hover :items="items"></b-table>
+    <b-table striped hover :fields="fields" :items="items"></b-table>
   </div>
 </template>
 <script>
@@ -13,6 +13,29 @@ export default {
   },
   data() {
     return {
+      fields: [
+        {
+          key: 'date',
+          label: this.$t('transactionlist.date'),
+          formatter: (value, key, item) => {
+            return this.$moment(value).format(this.$t('transactionlist.formatter'))
+          },
+        },
+        { key: 'name', label: this.$t('transactionlist.community') },
+        { key: 'balance', label: this.$t('transactionlist.amount') },
+        { key: 'memo', label: this.$t('transactionlist.memo') },
+        {
+          key: 'decay',
+          label: this.$t('transactionlist.decay'),
+          formatter: (value, key, item) => {
+            if (value && value.balance >= 0) {
+              return value.balance
+            } else {
+              return '0'
+            }
+          },
+        },
+      ],
       items: [],
     }
   },
