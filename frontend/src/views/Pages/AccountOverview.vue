@@ -14,20 +14,15 @@
             </b-col>
           </b-row>
         </b-col>
-        <b-col class="col-6 text-right bg-lightgrey">
-          <b-row>
-            <b-col class="p-3">
-              <status
-                class="gdd-status-gdt"
-                :pending="pending"
-                :balance="GdtBalance"
-                status-text="GDT"
-              />
-            </b-col>
-          </b-row>
+        <b-col class="col-6 p-3 text-right g-border">
+          <status
+            class="gdd-status-gdt"
+            :pending="pending"
+            :balance="GdtBalance"
+            status-text="GDT"
+          />
         </b-col>
       </b-row>
-      <br />
       <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"
@@ -75,3 +70,10 @@ export default {
   },
 }
 </script>
+<style>
+.g-border {
+  border: #ffffff 2px;
+  border-style: inset;
+  border-radius: 5px;
+}
+</style>
