@@ -17,6 +17,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      SET state_users.email = IF(state_users.email = '', login_users.email, state_users.email)
      WHERE state_users.email = '';`,
   )
+  // Delete remaining ones
+  await queryFn(`DELETE FROM state_users WHERE email = ''`)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
