@@ -6,6 +6,9 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/../..
 set +o allexport
 
+BACKUP_FILE_LOGIN=$1 #gradido_login_21-11-30.sql
+BACKUP_FILE_COMMUNITY=$2 #gradido_node_21-11-30.sql
+
 # Load backend .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -18,8 +21,8 @@ fi
 # Delete whole database
 sudo mysql -uroot -e "show databases" | grep -v Database | grep -v mysql| grep -v information_schema| gawk '{print "drop database `" $1 "`;select sleep(0.1);"}' | sudo mysql -uroot
 
-BACKUP_LOGIN=$SCRIPT_DIR/backup/gradido_login_21-11-30.sql
-BACKUP_COMMUNITY=$SCRIPT_DIR/backup/gradido_node_21-11-30.sql
+BACKUP_LOGIN=$SCRIPT_DIR/backup/$BACKUP_FILE_LOGIN
+BACKUP_COMMUNITY=$SCRIPT_DIR/backup/$BACKUP_FILE_COMMUNITY
 
 # import backup login
 mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
