@@ -2,7 +2,7 @@
   <div class="component-nabvar">
     <b-navbar toggleable="md" type="dark" variant="success" class="p-3">
       <b-navbar-brand to="/">
-        <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
+        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img" alt="..." />
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
