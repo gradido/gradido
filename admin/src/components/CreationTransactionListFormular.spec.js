@@ -103,9 +103,7 @@ describe('CreationTransactionListFormular', () => {
       )
     })
 
-    it('has two values for the transaction', async () => {
-      await wrapper.vm.$nextTick()
-      console.log(wrapper.html())
+    it('has two values for the transaction', () => {
       expect(wrapper.find('tbody').findAll('tr').length).toBe(2)
     })
 
