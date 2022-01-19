@@ -214,7 +214,46 @@ describe('Register', () => {
     })
     */
 
-    describe('API calls', () => {
+    describe('API calls when form is missing', () => {
+
+      it('has disabled submit button when missing checked box', () => {
+        beforeEach(() => {
+          wrapper.find('#registerFirstname').setValue('Max')
+          wrapper.find('#registerLastname').setValue('Mustermann')
+          wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+          wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+          wrapper.find('#publisherid').setValue('12345')
+        })
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+      })
+
+      it('has disabled submit button when missing email input', () => {
+        beforeEach(() => {
+          wrapper.find('#registerFirstname').setValue('Max')
+          wrapper.find('#registerLastname').setValue('Mustermann')
+          wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+          wrapper.find('#publisherid').setValue('12345')
+          wrapper.find('#registerCheckbox').setChecked()
+        })
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+      })
+    })
+
+    describe('API calls when completely filled and missing publisherid', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#registerCheckbox').setChecked()
+      })
+      it('has enabled submit button when completely filled', async () => {
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
+      })
+    })
+
+    describe('API calls when completely filled', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
