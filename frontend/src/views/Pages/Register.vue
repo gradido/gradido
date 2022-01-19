@@ -164,7 +164,8 @@
                       <b-button
                         :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
                         type="submit"
-                        variant="primary"
+                        :variant="!(namesFilled && emailFilled && form.agree && !!language) ? 'outline-light': 'primary'"
+
                       >
                         {{ $t('signup') }}
                       </b-button>
