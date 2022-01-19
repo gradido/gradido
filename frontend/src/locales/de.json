@@ -120,7 +120,6 @@
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
   "publisher": {
-    "infoNoRegister": "Dies ist für die Registrieung nicht nötig.",
     "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
     "publisherId": "Publisher-Id"
   },
