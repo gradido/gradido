@@ -12,12 +12,20 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
-import { sendEMail } from '../../util/sendEMail'
+import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '../../apis/KlicktippController'
 
-jest.mock('../../util/sendEMail', () => {
+jest.mock('../../mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
-    sendEMail: jest.fn(),
+    sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('../../apis/KlicktippController', () => {
+  return {
+    __esModule: true,
+    klicktippSignIn: jest.fn(),
   }
 })
 
@@ -62,7 +70,6 @@ describe('UserResolver', () => {
 
     let result: any
     let emailOptIn: string
-    let newUser: User
 
     beforeAll(async () => {
       result = await mutate({ mutation, variables })
@@ -90,7 +97,6 @@ describe('UserResolver', () => {
         loginEmailOptIn = await getRepository(LoginEmailOptIn)
           .createQueryBuilder('login_email_optin')
           .getMany()
-        newUser = user[0]
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
       })
 
@@ -164,14 +170,12 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/\$1/g, emailOptIn)
-        expect(sendEMail).toBeCalledWith({
-          from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-          to: `${newUser.firstName} ${newUser.lastName} <${newUser.email}>`,
-          subject: 'Gradido: E-Mail Überprüfung',
-          text:
-            expect.stringContaining(`Hallo ${newUser.firstName} ${newUser.lastName},`) &&
-            expect.stringContaining(activationLink),
+        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/{code}/g, emailOptIn)
+        expect(sendAccountActivationEmail).toBeCalledWith({
+          link: activationLink,
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
         })
       })
     })
@@ -220,6 +224,157 @@ describe('UserResolver', () => {
               publisherId: null,
             }),
           ]),
+        )
+      })
+    })
+  })
+
+  describe('setPassword', () => {
+    const createUserMutation = gql`
+      mutation (
+        $email: String!
+        $firstName: String!
+        $lastName: String!
+        $language: String!
+        $publisherId: Int
+      ) {
+        createUser(
+          email: $email
+          firstName: $firstName
+          lastName: $lastName
+          language: $language
+          publisherId: $publisherId
+        )
+      }
+    `
+
+    const createUserVariables = {
+      email: 'peter@lustig.de',
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      language: 'de',
+      publisherId: 1234,
+    }
+
+    const setPasswordMutation = gql`
+      mutation ($code: String!, $password: String!) {
+        setPassword(code: $code, password: $password)
+      }
+    `
+    let result: any
+    let emailOptIn: string
+
+    describe('valid optin code and valid password', () => {
+      let loginUser: any
+      let newLoginUser: any
+      let newUser: any
+
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
+          .createQueryBuilder('login_email_optin')
+          .getMany()
+        loginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: emailOptIn, password: 'Aa12345_' },
+        })
+        newLoginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
+        newUser = await getRepository(User).createQueryBuilder('state_user').getMany()
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('sets email checked to true', () => {
+        expect(newLoginUser[0].emailChecked).toBeTruthy()
+      })
+
+      it('updates the password', () => {
+        expect(newLoginUser[0].password).toEqual('3917921995996627700')
+      })
+
+      it('updates the public Key on both user tables', () => {
+        expect(newLoginUser[0].pubKey).toEqual(expect.any(Buffer))
+        expect(newLoginUser[0].pubKey).not.toEqual(loginUser[0].pubKey)
+        expect(newLoginUser[0].pubKey).toEqual(newUser[0].pubkey)
+      })
+
+      it('updates the private Key', () => {
+        expect(newLoginUser[0].privKey).toEqual(expect.any(Buffer))
+        expect(newLoginUser[0].privKey).not.toEqual(loginUser[0].privKey)
+      })
+
+      it('removes the optin', async () => {
+        await expect(
+          getRepository(LoginEmailOptIn).createQueryBuilder('login_email_optin').getMany(),
+        ).resolves.toHaveLength(0)
+      })
+
+      it('calls the klicktipp API', () => {
+        expect(klicktippSignIn).toBeCalledWith(
+          loginUser[0].email,
+          loginUser[0].language,
+          loginUser[0].firstName,
+          loginUser[0].lastName,
+        )
+      })
+
+      it('returns true', () => {
+        expect(result).toBeTruthy()
+      })
+    })
+
+    describe('no valid password', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
+          .createQueryBuilder('login_email_optin')
+          .getMany()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: emailOptIn, password: 'not-valid' },
+        })
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError(
+                'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+              ),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('no valid optin code', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        result = await mutate({
+          mutation: setPasswordMutation,
+          variables: { code: 'not valid', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await resetDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Could not login with emailVerificationCode')],
+          }),
         )
       })
     })

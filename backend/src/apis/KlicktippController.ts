@@ -5,7 +5,7 @@ import CONFIG from '../config'
 
 const klicktippConnector = new KlicktippConnector()
 
-export const signIn = async (
+export const klicktippSignIn = async (
   email: string,
   language: string,
   firstName?: string,

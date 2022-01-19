@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class UserAdmin {
@@ -19,4 +19,13 @@ export class UserAdmin {
 
   @Field(() => Boolean)
   emailChecked: boolean
+}
+
+@ObjectType()
+export class SearchUsersResult {
+  @Field(() => Int)
+  userCount: number
+
+  @Field(() => [UserAdmin])
+  userList: UserAdmin[]
 }

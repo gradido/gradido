@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
 import { getCustomRepository, Raw } from 'typeorm'
-import { UserAdmin } from '../model/UserAdmin'
+import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
@@ -11,6 +14,7 @@ import { LoginPendingTasksAdminRepository } from '../../typeorm/repository/Login
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
+import SearchUsersArgs from '../arg/SearchUsersArgs'
 import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { TransactionCreation } from '@entity/TransactionCreation'
@@ -23,11 +27,13 @@ import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 @Resolver()
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
-  @Query(() => [UserAdmin])
-  async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
+  @Query(() => SearchUsersResult)
+  async searchUsers(
+    @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
+  ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
     const users = await userRepository.findBySearchCriteria(searchText)
-    const adminUsers = await Promise.all(
+    let adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
         adminUser.userId = user.id
@@ -39,7 +45,12 @@ export class AdminResolver {
         return adminUser
       }),
     )
-    return adminUsers
+    if (notActivated) adminUsers = adminUsers.filter((u) => !u.emailChecked)
+    const first = (currentPage - 1) * pageSize
+    return {
+      userCount: adminUsers.length,
+      userList: adminUsers.slice(first, first + pageSize),
+    }
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
@@ -62,9 +73,9 @@ export class AdminResolver {
       loginPendingTaskAdmin.memo = memo
       loginPendingTaskAdmin.moderator = moderator
 
-      loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
     }
-    return await getUserCreations(user.id)
+    return getUserCreations(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])

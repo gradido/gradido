@@ -3,7 +3,10 @@
     <div>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
-          <a @click="showPassword ? (showPassword = !showPassword) : cancelEdit()">
+          <a
+            class="cursor-pointer"
+            @click="showPassword ? (showPassword = !showPassword) : cancelEdit()"
+          >
             <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
             <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon>
@@ -91,3 +94,8 @@ export default {
   },
 }
 </script>
+<style>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

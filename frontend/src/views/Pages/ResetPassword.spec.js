@@ -28,6 +28,9 @@ const createMockObject = (comingFrom) => {
           optin: '123',
           comingFrom,
         },
+        path: {
+          includes: (t) => t,
+        },
       },
       $toasted: {
         global: {

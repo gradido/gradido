@@ -100,6 +100,7 @@ export default {
         })
         .catch((error) => {
           this.pending = true
+          this.transactionCount = -1
           this.$toasted.global.error(error.message)
           // what to do when loading balance fails?
         })
@@ -108,7 +109,7 @@ export default {
       this.balance -= ammount
     },
     admin() {
-      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('$1', this.$store.state.token))
+      window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
     },
     setVisible(bool) {
