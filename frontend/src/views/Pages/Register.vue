@@ -162,10 +162,9 @@
                         </b-button>
                       </router-link>
                       <b-button
-                        :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
+                        :disabled="disabled"
                         type="submit"
-                        :variant="
-                          !(namesFilled && emailFilled && form.agree && !!language)
+                        :variant="disabled
                             ? 'outline-light'
                             : 'primary'
                         "
@@ -271,6 +270,9 @@ export default {
     },
     emailFilled() {
       return this.form.email !== ''
+    },
+    disabled() {
+      return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
     },
   },
 }
