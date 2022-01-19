@@ -108,6 +108,7 @@ sudo mysql <<EOFMYSQL
 EOFMYSQL
 
 # Configure database
+# TODO - do this in the start.sh to regenerate configs on each deploy
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend
