@@ -25,10 +25,10 @@
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
+    "my-account": "My Account",
     "open_creation": "Open creations",
     "overview": "Overview",
-    "user_search": "User search",
-    "wallet": "Wallet"
+    "user_search": "User search"
   },
   "not_open_creations": "No open creations",
   "open_creation": "Open creation",
