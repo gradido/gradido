@@ -40,8 +40,8 @@ export class User {
   @Field(() => String)
   username: string
 
-  @Field(() => String)
-  description: string
+  @Field(() => String, { nullable: true })
+  description?: string
 
   @Field(() => String)
   pubkey: string
