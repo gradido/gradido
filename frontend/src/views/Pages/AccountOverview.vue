@@ -1,33 +1,19 @@
 <template>
   <div>
     <div class="container-fluid">
-      <b-row>
-        <b-col class="col-6">
-          <b-row>
-            <b-col class="col-11 ml-2 p-3 bg-lightgrey">
-              <status
-                class="gdd-status-gdd"
-                :pending="pending"
-                :balance="balance"
-                status-text="GDD"
-              />
-            </b-col>
-          </b-row>
+      <b-row class="ml-1 mr-1 mb-2">
+        <b-col class="col-6 p-3 g-border">
+          <status class="gdd-status-gdd" :pending="pending" :balance="balance" status-text="GDD" />
         </b-col>
-        <b-col class="col-6 text-right bg-lightgrey">
-          <b-row>
-            <b-col class="p-3">
-              <status
-                class="gdd-status-gdt"
-                :pending="pending"
-                :balance="GdtBalance"
-                status-text="GDT"
-              />
-            </b-col>
-          </b-row>
+        <b-col class="col-6 p-3 text-right g-border">
+          <status
+            class="gdd-status-gdt"
+            :pending="pending"
+            :balance="GdtBalance"
+            status-text="GDT"
+          />
         </b-col>
       </b-row>
-      <br />
       <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"
@@ -75,3 +61,10 @@ export default {
   },
 }
 </script>
+<style>
+.g-border {
+  border: #ffffff 2px;
+  border-style: inset;
+  border-radius: 5px;
+}
+</style>

@@ -145,7 +145,6 @@
                           class="text-center mt-1 shadow-lg p-3 mb-5 rounded"
                         >
                           {{ $t('publisher.infoText') }}
-                          <span class="text-dark">{{ $t('publisher.infoNoRegister') }}</span>
                           <div class="text-center">
                             <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
                           </div>
