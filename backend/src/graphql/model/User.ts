@@ -38,7 +38,7 @@ export class User {
   lastName: string
 
   @Field(() => String)
-  username: string
+  username?: string
 
   @Field(() => String, { nullable: true })
   description?: string
