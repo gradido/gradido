@@ -7,6 +7,7 @@ const propsData = {
   balance: 1234,
   visible: false,
   elopageUri: 'https://elopage.com',
+  pending: false,
 }
 
 const mocks = {
@@ -20,6 +21,7 @@ const mocks = {
       isAdmin: true,
     },
   },
+  $n: jest.fn((n) => n),
 }
 
 describe('Navbar', () => {
