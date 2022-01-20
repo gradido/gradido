@@ -37,9 +37,9 @@ export default {
         { key: 'memo', label: 'Text' },
         {
           key: 'date',
-          label: 'Datum',
+          label: this.$t('date'),
           formatter: (value) => {
-            return this.$moment(value).format('ll')
+            return this.$d(new Date(value), 'short')
           },
         },
         { key: 'moderator', label: 'Moderator' },

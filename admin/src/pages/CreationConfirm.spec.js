@@ -38,6 +38,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({})
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $store: {
     commit: storeCommitMock,
   },
@@ -49,11 +50,6 @@ const mocks = {
     error: toastedErrorMock,
     success: toastedSuccessMock,
   },
-  $moment: jest.fn((value) => {
-    return {
-      format: jest.fn((format) => value),
-    }
-  }),
 }
 
 describe('CreationConfirm', () => {
