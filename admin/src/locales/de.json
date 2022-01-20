@@ -56,7 +56,6 @@
     "community": "Gemeinschaft",
     "date": "Datum",
     "decay": "Vergänglichkeit",
-    "formatter": "DD.MM.YYYY",
     "memo": "Nachricht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },

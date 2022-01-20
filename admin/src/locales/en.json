@@ -56,7 +56,6 @@
     "community": "Community",
     "date": "Date",
     "decay": "Decay",
-    "formatter": "MM.DD.YYYY",
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
