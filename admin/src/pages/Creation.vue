@@ -65,32 +65,6 @@ export default {
   data() {
     return {
       showArrays: false,
-      Searchfields: [
-        { key: 'bookmark', label: 'bookmark' },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          label: this.creationLabel,
-          formatter: (value, key, item) => {
-            return value.join(' | ')
-          },
-        },
-        { key: 'email', label: this.$t('e_mail') },
-      ],
-      fields: [
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          label: this.creationLabel,
-          formatter: (value, key, item) => {
-            return value.join(' | ')
-          },
-        },
-        { key: 'bookmark', label: this.$t('remove') },
-      ],
       itemsList: [],
       itemsMassCreation: [],
       radioSelectedMass: '',
@@ -156,6 +130,36 @@ export default {
     },
   },
   computed: {
+    Searchfields() {
+      return [
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'email', label: this.$t('e_mail') },
+      ]
+    },
+    fields() {
+      return [
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'bookmark', label: this.$t('remove') },
+      ]
+    },
     creationLabel() {
       const now = new Date(this.now)
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
