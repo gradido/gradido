@@ -107,6 +107,7 @@ describe('UserTable', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $d: jest.fn((d) => d),
     $moment: jest.fn(() => {
       return {
         format: jest.fn((m) => m),
