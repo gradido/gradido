@@ -585,11 +585,17 @@ export class UserResolver {
     })
 
     const loginUserBackupRepository = await getRepository(LoginUserBackup)
-    const loginUserBackup = await loginUserBackupRepository
-      .findOneOrFail({ userId: loginUser.id })
-      .catch(() => {
-        throw new Error('Could not find corresponding BackupUser')
-      })
+    let loginUserBackup = await loginUserBackupRepository.findOne({ userId: loginUser.id })
+
+    // Generate Passphrase if needed
+    if (!loginUserBackup) {
+      const passphrase = PassphraseGenerate()
+      loginUserBackup = new LoginUserBackup()
+      loginUserBackup.userId = loginUser.id
+      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
+      loginUserBackupRepository.save(loginUserBackup)
+    }
 
     const passphrase = loginUserBackup.passphrase.slice(0, -1).split(' ')
     if (passphrase.length < PHRASE_WORD_COUNT) {
