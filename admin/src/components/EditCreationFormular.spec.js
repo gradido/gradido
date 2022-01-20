@@ -108,7 +108,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: '2021-10-31',
+                    creationDate: '2021-11-01',
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
@@ -180,7 +180,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: '2021-11-30',
+                    creationDate: '2021-12-01',
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
