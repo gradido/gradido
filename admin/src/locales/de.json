@@ -52,6 +52,11 @@
   "remove": "Entfernen",
   "transaction": "Transaktion",
   "transactionlist": {
+    "amount": "Betrag",
+    "community": "Gemeinschaft",
+    "date": "Datum",
+    "decay": "Vergänglichkeit",
+    "memo": "Nachricht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "unregistered_emails": "Nur unregistrierte Nutzer",

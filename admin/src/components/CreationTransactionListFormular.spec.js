@@ -15,7 +15,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           decayDuration: 0,
           memo: 'Testing',
           transactionId: 1,
-          name: 'Bibi',
+          name: 'Gradido Akademie',
           email: 'bibi@bloxberg.de',
           date: new Date(),
           decay: {
@@ -34,7 +34,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           decayDuration: 0,
           memo: 'Testing 2',
           transactionId: 2,
-          name: 'Bibi',
+          name: 'Gradido Akademie',
           email: 'bibi@bloxberg.de',
           date: new Date(),
           decay: {
@@ -53,6 +53,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 const toastedErrorMock = jest.fn()
 
 const mocks = {
+  $d: jest.fn((t) => t),
   $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
@@ -64,6 +65,7 @@ const mocks = {
 
 const propsData = {
   userId: 1,
+  fields: ['date', 'balance', 'name', 'memo', 'decay'],
 }
 
 describe('CreationTransactionListFormular', () => {
