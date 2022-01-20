@@ -18,7 +18,7 @@ export default {
           key: 'date',
           label: this.$t('transactionlist.date'),
           formatter: (value, key, item) => {
-            return this.$moment(value).format(this.$t('transactionlist.formatter'))
+            return this.$d(new Date(value))
           },
         },
         {
