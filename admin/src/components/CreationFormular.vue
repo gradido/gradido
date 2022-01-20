@@ -15,7 +15,7 @@
               @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
             >
               <label for="beforeLastMonth">
-                {{ beforeLastMonth.short }} {{ creation[0] != null ? creation[0] + ' GDD' : '' }}
+                {{ beforeLastMonth.short }} {{ creation[0] ? creation[0] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -29,7 +29,7 @@
               @change="updateRadioSelected(lastMonth, 1, creation[1])"
             >
               <label for="lastMonth">
-                {{ lastMonth.short }} {{ creation[1] != null ? creation[1] + ' GDD' : '' }}
+                {{ lastMonth.short }} {{ creation[1] ? creation[1] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -43,7 +43,7 @@
               @change="updateRadioSelected(currentMonth, 2, creation[2])"
             >
               <label for="currentMonth">
-                {{ currentMonth.short }} {{ creation[2] != null ? creation[2] + ' GDD' : '' }}
+                {{ currentMonth.short }} {{ creation[2] ? creation[2] + ' GDD' : '' }}
               </label>
             </b-form-radio>
           </b-col>
@@ -169,24 +169,10 @@ export default {
       value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
-      currentMonth: {
-        short: this.$moment().format('MMMM'),
-        long: this.$moment().format('YYYY-MM-DD'),
-        year: this.$moment().format('YYYY'),
-      },
-      lastMonth: {
-        short: this.$moment().subtract(1, 'month').format('MMMM'),
-        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
-        year: this.$moment().subtract(1, 'month').format('YYYY'),
-      },
-      beforeLastMonth: {
-        short: this.$moment().subtract(2, 'month').format('MMMM'),
-        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
-        year: this.$moment().subtract(2, 'month').format('YYYY'),
-      },
       submitObj: null,
       isdisabled: true,
       createdIndex: null,
+      now: Date.now(),
     }
   },
 
@@ -296,6 +282,33 @@ export default {
         .catch(() => {
           this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
         })
+    },
+  },
+  computed: {
+    currentMonth() {
+      return {
+        short: this.$d(this.now, 'month'),
+        long: this.$d(this.now, 'short'),
+        year: this.$d(this.now, 'year'),
+      }
+    },
+    lastMonth() {
+      const now = new Date(this.now)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return {
+        short: this.$d(lastMonth, 'month'),
+        long: this.$d(lastMonth, 'short'),
+        year: this.$d(lastMonth, 'year'),
+      }
+    },
+    beforeLastMonth() {
+      const now = new Date(this.now)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      return {
+        short: this.$d(beforeLastMonth, 'month'),
+        long: this.$d(beforeLastMonth, 'short'),
+        year: this.$d(beforeLastMonth, 'year'),
+      }
     },
   },
   created() {
