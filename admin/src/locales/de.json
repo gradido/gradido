@@ -2,7 +2,6 @@
   "all_emails": "Alle Nutzer",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
-  "date": "Datum",
   "creation_form": {
     "creation_for": "Schöpfung für",
     "enter_text": "Text eintragen",
@@ -16,6 +15,7 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "date": "Datum",
   "details": "Details",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
