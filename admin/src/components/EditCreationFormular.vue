@@ -169,11 +169,10 @@ export default {
       this.rangeMax = this.creation[index]
     },
     submitCreation() {
-      const date = new Date(this.radioSelected.date)
       this.submitObj = {
         id: this.item.id,
         email: this.item.email,
-        creationDate: date.toISOString(),
+        creationDate: this.radioSelected.date,
         amount: Number(this.value),
         memo: this.text,
         moderator: Number(this.$store.state.moderator.id),
@@ -222,25 +221,25 @@ export default {
       return {
         short: this.$d(this.now, 'month'),
         long: this.$d(this.now, 'short'),
-        date: this.now,
+        date: this.$d(this.now, 'short', 'en'),
       }
     },
     lastMonth() {
       const now = new Date(this.now)
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0)
       return {
         short: this.$d(lastMonth, 'month'),
         long: this.$d(lastMonth, 'short'),
-        date: lastMonth,
+        date: this.$d(lastMonth, 'short', 'en'),
       }
     },
     beforeLastMonth() {
       const now = new Date(this.now)
-      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0)
       return {
         short: this.$d(beforeLastMonth, 'month'),
         long: this.$d(beforeLastMonth, 'short'),
-        date: beforeLastMonth,
+        date: this.$d(beforeLastMonth, 'short', 'en'),
       }
     },
   },

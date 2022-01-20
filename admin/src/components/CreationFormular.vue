@@ -199,11 +199,10 @@ export default {
         // eslint-disable-next-line no-console
         console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
         this.submitObj = []
-        const date = new Date(this.radioSelected.date)
         this.items.forEach((item) => {
           this.submitObj.push({
             email: item.email,
-            creationDate: date.toISOString(),
+            creationDate: this.radioSelected.date,
             amount: Number(this.value),
             memo: this.text,
             moderator: Number(this.$store.state.moderator.id),
@@ -235,15 +234,13 @@ export default {
             this.$toasted.error(error.message)
           })
       } else if (this.type === 'singleCreation') {
-        const date = new Date(this.radioSelected.date)
         this.submitObj = {
           email: this.item.email,
-          creationDate: date.toISOString(),
+          creationDate: this.radioSelected.date,
           amount: Number(this.value),
           memo: this.text,
           moderator: Number(this.$store.state.moderator.id),
         }
-
         this.$apollo
           .mutate({
             mutation: createPendingCreation,
@@ -292,7 +289,7 @@ export default {
         short: this.$d(this.now, 'month'),
         long: this.$d(this.now, 'short'),
         year: this.$d(this.now, 'year'),
-        date: this.now,
+        date: this.$d(this.now, 'short', 'en'),
       }
     },
     lastMonth() {
@@ -302,7 +299,7 @@ export default {
         short: this.$d(lastMonth, 'month'),
         long: this.$d(lastMonth, 'short'),
         year: this.$d(lastMonth, 'year'),
-        date: lastMonth,
+        date: this.$d(lastMonth, 'short', 'en'),
       }
     },
     beforeLastMonth() {
@@ -312,7 +309,7 @@ export default {
         short: this.$d(beforeLastMonth, 'month'),
         long: this.$d(beforeLastMonth, 'short'),
         year: this.$d(beforeLastMonth, 'year'),
-        date: beforeLastMonth,
+        date: this.$d(beforeLastMonth, 'short', 'en'),
       }
     },
   },
