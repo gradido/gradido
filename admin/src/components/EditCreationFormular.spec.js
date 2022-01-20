@@ -20,7 +20,10 @@ const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $d: jest.fn((d) => {
+    const date = new Date(d)
+    return date.toISOString().split('T')[0]
+  }),
   $apollo: {
     mutate: apolloMutateMock,
   },
@@ -44,7 +47,7 @@ const propsData = {
   creationUserData: {
     memo: 'Test schöpfung 1',
     amount: 100,
-    date: '2021-12-01',
+    date: '2022-01-20',
   },
   item: {
     id: 0,
@@ -105,7 +108,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: 'YYYY-MM-01',
+                    creationDate: '2021-10-31',
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
@@ -177,7 +180,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: 'YYYY-MM-01',
+                    creationDate: '2021-11-30',
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
@@ -233,7 +236,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: 'YYYY-MM-DD',
+                    creationDate: '2022-01-20',
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',

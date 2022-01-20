@@ -242,7 +242,7 @@ export default {
   },
   created() {
     if (this.creationUserData.date) {
-      switch (this.$moment(this.creationUserData.date).format('MMMM')) {
+      switch (this.$d(new Date(this.creationUserData.date), 'month')) {
         case this.currentMonth.short:
           this.createdIndex = 2
           this.radioSelected = this.currentMonth
