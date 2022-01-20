@@ -71,15 +71,9 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
+          label: this.creationLabel,
           formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
+            return value.join(' | ')
           },
         },
         { key: 'email', label: this.$t('e_mail') },
@@ -90,15 +84,9 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
+          label: this.creationLabel,
           formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
+            return value.join(' | ')
           },
         },
         { key: 'bookmark', label: this.$t('remove') },
@@ -111,6 +99,7 @@ export default {
       rows: 0,
       currentPage: 1,
       perPage: 25,
+      now: Date.now(),
     }
   },
   async created() {
@@ -164,6 +153,18 @@ export default {
     removeAllBookmark() {
       this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
       this.itemsMassCreation = []
+    },
+  },
+  computed: {
+    creationLabel() {
+      const now = new Date(this.now)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      return [
+        this.$d(beforeLastMonth, 'monthShort'),
+        this.$d(lastMonth, 'monthShort'),
+        this.$d(now, 'monthShort'),
+      ].join(' | ')
     },
   },
   watch: {
