@@ -24,6 +24,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      )`,
   )
   // Remove duplicate data from state_users with dead pubkeys
+  // 18 entries
   await queryFn(
     `DELETE FROM state_users
      WHERE id IN
