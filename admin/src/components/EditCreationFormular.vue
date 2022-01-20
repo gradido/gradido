@@ -154,22 +154,11 @@ export default {
       value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
-      currentMonth: {
-        short: this.$moment().format('MMMM'),
-        long: this.$moment().format('YYYY-MM-DD'),
-      },
-      lastMonth: {
-        short: this.$moment().subtract(1, 'month').format('MMMM'),
-        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
-      },
-      beforeLastMonth: {
-        short: this.$moment().subtract(2, 'month').format('MMMM'),
-        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
-      },
       submitObj: null,
       isdisabled: true,
       createdIndex: null,
       selectedOpenCreationAmount: {},
+      now: Date.now(),
     }
   },
 
@@ -225,6 +214,30 @@ export default {
           // Den geschöpften Wert auf o setzen
           this.value = 0
         })
+    },
+  },
+  computed: {
+    currentMonth() {
+      return {
+        short: this.$d(this.now, 'month'),
+        long: this.$d(this.now, 'short'),
+      }
+    },
+    lastMonth() {
+      const now = new Date(this.now)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return {
+        short: this.$d(lastMonth, 'month'),
+        long: this.$d(lastMonth, 'short'),
+      }
+    },
+    beforeLastMonth() {
+      const now = new Date(this.now)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      return {
+        short: this.$d(beforeLastMonth, 'month'),
+        long: this.$d(beforeLastMonth, 'short'),
+      }
     },
   },
   created() {
