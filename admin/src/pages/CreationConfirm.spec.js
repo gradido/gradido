@@ -189,7 +189,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('Pending Creation has been deleted')
+        expect(toastedSuccessMock).toBeCalledWith('Creation has been created')
       })
     })
 
