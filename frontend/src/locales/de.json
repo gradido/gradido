@@ -1,5 +1,6 @@
 {
   "admin_area": "Adminbereich",
+  "advanced-calculation": "Vorausberechnung",
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -120,7 +121,6 @@
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
   "publisher": {
-    "infoNoRegister": "Dies ist für die Registrieung nicht nötig.",
     "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
     "publisherId": "Publisher-Id"
   },
@@ -198,7 +198,7 @@
     },
     "thx": {
       "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink!",
-      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert.",
+      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
       "email": "Wir haben dir eine E-Mail gesendet.",
       "emailActivated": "Danke dass Du deine E-Mail bestätigt hast.",
       "errorTitle": "Achtung!",

@@ -145,7 +145,6 @@
                           class="text-center mt-1 shadow-lg p-3 mb-5 rounded"
                         >
                           {{ $t('publisher.infoText') }}
-                          <span class="text-dark">{{ $t('publisher.infoNoRegister') }}</span>
                           <div class="text-center">
                             <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
                           </div>
@@ -162,9 +161,9 @@
                         </b-button>
                       </router-link>
                       <b-button
-                        :disabled="!(namesFilled && emailFilled && form.agree && !!language)"
+                        :disabled="disabled"
                         type="submit"
-                        variant="primary"
+                        :variant="disabled ? 'outline-light' : 'primary'"
                       >
                         {{ $t('signup') }}
                       </b-button>
@@ -192,7 +191,6 @@
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { createUser } from '../../graphql/mutations'
-import { localeChanged } from 'vee-validate'
 import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
@@ -219,8 +217,6 @@ export default {
     updateLanguage(e) {
       this.language = e
       this.$store.commit('language', this.language)
-      this.$i18n.locale = this.language
-      localeChanged(this.language)
     },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
@@ -267,6 +263,9 @@ export default {
     },
     emailFilled() {
       return this.form.email !== ''
+    },
+    disabled() {
+      return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
     },
   },
 }

@@ -1,5 +1,6 @@
 {
   "admin_area": "Admin Area",
+  "advanced-calculation": "Advanced calculation",
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -120,7 +121,6 @@
   "overview": "Overview",
   "privacy_policy": "Privacy policy",
   "publisher": {
-    "infoNoRegister": "This is not necessary for registration.",
     "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID"
   },
@@ -198,7 +198,7 @@
     },
     "thx": {
       "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
-      "checkEmail": "Your email has been successfully verified.",
+      "checkEmail": "Your email has been successfully verified. You can sign in now.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
       "errorTitle": "Attention!",
