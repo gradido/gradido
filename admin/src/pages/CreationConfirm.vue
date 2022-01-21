@@ -66,7 +66,7 @@ export default {
               index = this.confirmResult.indexOf(findArr)
               this.confirmResult.splice(index, 1)
               this.$store.commit('openCreationsMinus', 1)
-              this.$toasted.success('Pending Creation has been deleted')
+              this.$toasted.success(this.$t('creation_form.toasted_delete'))
             })
             .catch((error) => {
               this.$toasted.error(error.message)
@@ -75,10 +75,10 @@ export default {
         case 'confirmed':
           this.confirmResult.splice(index, 1)
           this.$store.commit('openCreationsMinus', 1)
-          this.$toasted.success('Creation has been created')
+          this.$toasted.success(this.$t('creation_form.toasted_created'))
           break
         default:
-          this.$toasted.error('Case ' + event + ' is not supported')
+          this.$toasted.error(this.$t('creation_form.toasted_default', { event }))
       }
     },
     getPendingCreations() {

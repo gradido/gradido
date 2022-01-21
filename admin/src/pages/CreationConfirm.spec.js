@@ -127,7 +127,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('Pending Creation has been deleted')
+        expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_delete')
       })
     })
 
@@ -189,7 +189,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('Creation has been created')
+        expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_created')
       })
     })
 
@@ -201,7 +201,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Case confirm is not supported')
+        expect(toastedErrorMock).toBeCalledWith('creation_form.toasted_default')
       })
     })
 
