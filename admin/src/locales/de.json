@@ -12,11 +12,11 @@
     "select_value": "Betrag auswählen",
     "submit_creation": "Schöpfung einreichen",
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
-    "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
-    "update_creation": "Schöpfung aktualisieren",
-    "toasted_delete": "Offene Schöpfung wurde gelöscht",
     "toasted_created": "Schöpfung wurde erfolgreich erstellt",
-    "toasted_default": "`Case {event} is not supported`"
+    "toasted_default": "`Case {event} is not supported`",
+    "toasted_delete": "Offene Schöpfung wurde gelöscht",
+    "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
+    "update_creation": "Schöpfung aktualisieren"
   },
   "details": "Details",
   "e_mail": "E-Mail",
