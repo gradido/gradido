@@ -64,8 +64,36 @@ Bei der bisherigen Übertragungsart gibt es nur die Regel, dass der eingegebene 
 
 #### per Link / per QR-Code
 
+Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion beim Empfänger gebucht und somit beim Sender valutiert wird. Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit von der konfigurierten maximalen Gültigkeitsdauer berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, den er noch für andere Transaktionen offen hat, muss um den "vorgebuchten" Betrag reduziert werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
+
+![VorgebuchterTransaktionsbetrag](.\image\VorgebuchterTransaktionsbetrag.png)
+
+Diese Berücksichtigung der Vergänglichkeit muss auch bei der Erfassung im Sende-Dialog schon mit einfließen. Es sollte bei der Eingabe des Betrages aber vor dem Aktivieren des "Jetzt generieren"-Buttons eine Validierungs durchgeführt werden, dass der zu blockende Betrag inklusive Vergänglichkeit kleiner als der aktuelle Kontostand ist.
 
 
+### Generierung des Links/QR-Codes
+
+Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
+
+* Gradido-Id des Senders: diese definiert sich gemäß dem Pattern:  `<communityname>`/`<useralias>` und ist im Detail [hier](.\Benutzerverwaltung.md#Gradido-Id) beschrieben.
+* Betrag : die Summe, die der Sender dem Empfänger übertragen möchte
+* Secret : ein kryptographisches Geheimnis, das den Empfänger = Besitzer des Links/QR-Codes legitimiert die Transaktion durch führen zu können
+* Verwendungszweck : optionale Nachricht, die den Zweck der Transaktion beschreibt
+
+
+
+[https://community.com/send/1234567890](https://community.com/send/1234567890)
+
+oder für offline-Übertragung per QR-Code:
+
+[https://community.com/send/1234567890/user/betrag](https://community.com/send/1234567890/user/betrag)
+
+Die technischen Details des Linkformates bzw. des QR-Codes werden im noch zu erstellenden technischen Konzept näher beschrieben.
+
+
+### Ausgabe des Links/QR-Codes
+
+Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren.
 
 
 ## Perspektive des Empfängers
@@ -120,6 +148,7 @@ Vorschlag: Gültigkeit 14 Tage fest eingestellt.Die Gültigkeitsdauer würde ich
 * Empfänger klickt auf den Link / fotografiert QR-Code
 * Wenn Empfänger noch kein Gradido-Konto hat, kann er sich jetzt möglichst einfach registrieren.
 * Wenn der Empfänger bereits ein Konto hat, loggt er sich ein und erhält den Betrag gutgeschrieben
+* Händler empfängt/scanned QR-Code, dieser wird ohne login kurz entschlüsselt, um den Betrag zu prüfen und die Daten werden temporär lokal gespeichert um dann später nach Login verarbeitet zu werden
 
 ### Detail-Beschreibungen
 
