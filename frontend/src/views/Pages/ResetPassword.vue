@@ -92,9 +92,10 @@ export default {
         })
         .then(() => {
           this.form.password = ''
-          if (textFields.checkEmail) {
+          if (this.$route.path.includes('checkEmail')) {
             this.$router.push('/thx/checkEmail')
-          } else {
+          }
+          if (this.$route.path.includes('reset')) {
             this.$router.push('/thx/reset')
           }
         })
