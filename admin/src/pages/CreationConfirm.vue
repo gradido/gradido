@@ -75,7 +75,7 @@ export default {
         case 'confirmed':
           this.confirmResult.splice(index, 1)
           this.$store.commit('openCreationsMinus', 1)
-          this.$toasted.success('Pending Creation has been deleted')
+          this.$toasted.success('Creation has been created')
           break
         default:
           this.$toasted.error('Case ' + event + ' is not supported')
