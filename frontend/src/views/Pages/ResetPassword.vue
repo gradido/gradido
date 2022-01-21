@@ -94,8 +94,7 @@ export default {
           this.form.password = ''
           if (this.$route.path.includes('checkEmail')) {
             this.$router.push('/thx/checkEmail')
-          }
-          if (this.$route.path.includes('reset')) {
+          } else if (this.$route.path.includes('reset')) {
             this.$router.push('/thx/reset')
           }
         })
