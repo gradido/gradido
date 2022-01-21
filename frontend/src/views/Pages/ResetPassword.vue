@@ -92,7 +92,11 @@ export default {
         })
         .then(() => {
           this.form.password = ''
-          this.$router.push('/thx/reset')
+          if (textFields.checkEmail) {
+            this.$router.push('/thx/checkEmail')
+          } else {
+            this.$router.push('/thx/reset')
+          }
         })
         .catch((error) => {
           this.$toasted.global.error(error.message)
