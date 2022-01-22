@@ -49,7 +49,10 @@ const isLanguage = (language: string): boolean => {
 }
 
 const PHRASE_WORD_COUNT = 24
-const WORDS = fs.readFileSync('src/config/mnemonic.english.txt').toString().split('\n')
+const WORDS = fs
+  .readFileSync('src/config/mnemonic.uncompressed_buffer13116.txt')
+  .toString()
+  .split(',')
 const PassphraseGenerate = (): string[] => {
   const result = []
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
@@ -418,7 +421,7 @@ export class UserResolver {
       // Table: login_user_backups
       const loginUserBackup = new LoginUserBackup()
       loginUserBackup.userId = loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
       loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
 
       await queryRunner.manager.save(loginUserBackup).catch((error) => {
@@ -592,14 +595,16 @@ export class UserResolver {
       const passphrase = PassphraseGenerate()
       loginUserBackup = new LoginUserBackup()
       loginUserBackup.userId = loginUser.id
-      loginUserBackup.passphrase = passphrase.join(' ') + ' ' // login server saves trailing space
+      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
       loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
       loginUserBackupRepository.save(loginUserBackup)
     }
 
-    const passphrase = loginUserBackup.passphrase.slice(0, -1).split(' ')
+    const passphrase = loginUserBackup.passphrase.split(' ')
     if (passphrase.length < PHRASE_WORD_COUNT) {
       // TODO if this can happen we cannot recover from that
+      // this seem to be good on production data, if we dont
+      // make a coding mistake we do not have a problem here
       throw new Error('Could not load a correct passphrase')
     }
 
