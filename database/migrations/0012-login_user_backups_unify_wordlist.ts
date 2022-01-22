@@ -46,9 +46,6 @@ const detectMnemonic = (passphrase: string[]): string[] => {
 }
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // Delete data with no reference in login_users table
-  // eslint-disable-next-line no-console
-  // 663 affected rows
   const userBackups = await queryFn(`SELECT * FROM login_user_backups`)
   let i = 0
   // eslint-disable-next-line no-console
@@ -62,19 +59,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       )
       i++
       // eslint-disable-next-line no-console
-      console.log(
-        'Changed passphrase mnemonic type',
-        i,
-        `"${userBackup.passphrase}"`,
-        'TO',
-        `"${newPassphrase}"`,
-      )
+      console.log(`Updated passphrase of user ${userBackup.user_id}`)
     }
   })
-  // Searching for users with a missing password and a backup entry
-  // `SELECT * FROM login_user_backups WHERE user_id IN (SELECT id FROM login_users WHERE password = 0)`
-  // results in only new users with the proper passphrase scheme - luckily we seem to be good on this one
-  // 142 entries in total are found and every entry has type 2 (new one).
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
