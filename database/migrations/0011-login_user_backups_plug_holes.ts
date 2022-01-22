@@ -12,6 +12,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // `SELECT * FROM login_user_backups WHERE user_id IN (SELECT id FROM login_users WHERE password = 0)`
   // results in only new users with the proper passphrase scheme - luckily we seem to be good on this one
   // 142 entries in total are found and every entry has type 2 (new one).
+
+  // Delete duplicates which have changed for some reasons
+  await queryFn(`DELETE FROM login_user_backups WHERE id IN (21, 103, 313, 325, 726, 750, 1098)`)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
