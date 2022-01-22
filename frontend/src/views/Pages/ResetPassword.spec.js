@@ -146,8 +146,8 @@ describe('ResetPassword', () => {
             expect(toasterMock).toHaveBeenCalledWith('...Code is older than 10 minutes')
           })
 
-          it('router pushes to /password/reset', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/password/reset')
+          it('router pushes to /thx/login', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/thx/login')
           })
         })
 
