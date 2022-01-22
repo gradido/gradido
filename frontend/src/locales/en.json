@@ -197,13 +197,14 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
-      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
+      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link! Or order a new activation link over the password reset page.",
       "checkEmail": "Your email has been successfully verified.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
       "errorTitle": "Attention!",
       "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
+      "resetPassword": "The code you used was to old please order a new on over the password reset page.",
       "title": "Thank you!"
     }
   },

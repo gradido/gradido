@@ -97,7 +97,7 @@ export default {
         .catch((error) => {
           this.$toasted.global.error(error.message)
           if (error.message.includes('Code is older than 10 minutes')) {
-            this.$router.push('/thx/login')
+            this.$router.push('/thx/resetFailed')
           }
         })
     },
