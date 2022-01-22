@@ -77,6 +77,14 @@
 > git clone https://github.com/gradido/gradido.git
 > cd gradido/deployment/bare_metal
 
+# Timezone
+# Note: gradido academy needs german timezone Europe/Berlin
+> sudo timedatectl set-timezone Europe/Berlin
+> sudo timedatectl set-ntp on
+> sudo apt purge ntp
+> sudo systemctl start systemd-timesyncd
+>> timedatectl to verify
+
 # Adjust .env
 # NOTE ';' can not be part of any value
 > cd gradido/deployment/bare_metal
