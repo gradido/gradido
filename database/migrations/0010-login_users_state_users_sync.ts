@@ -11,7 +11,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      (public_key, email, first_name, last_name, username, disabled)
      (SELECT pubkey as public_key, email, first_name, last_name, username, disabled
       FROM login_users
-      WHERE email NOT IN (SELECT email from state_users) AND privkey IS NOT NULL
+      WHERE email NOT IN (SELECT email from state_users)
+      AND privkey IS NOT NULL
      )`,
   )
   // Copy data without intact private key, generate random pubkey
@@ -20,7 +21,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      (public_key, email, first_name, last_name, username, disabled)
      (SELECT UNHEX(SHA1(RAND())) as public_key, email, first_name, last_name, username, disabled
       FROM login_users
-      WHERE email NOT IN (SELECT email from state_users) AND privkey IS NULL
+      WHERE email NOT IN (SELECT email from state_users)
+      AND privkey IS NULL
      )`,
   )
   // Remove duplicate data from state_users with dead pubkeys
