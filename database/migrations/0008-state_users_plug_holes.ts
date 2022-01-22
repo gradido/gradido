@@ -8,9 +8,6 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Fill in missing emails from login_users
-  // SELECT COUNT(*) FROM state_users LEFT JOIN login_users ON login_users.pubkey = state_users.public_key WHERE state_users.email = '';
-  // Before: 50
-  // After: 12
   await queryFn(
     `UPDATE state_users
      INNER JOIN login_users ON state_users.public_key = login_users.pubkey
