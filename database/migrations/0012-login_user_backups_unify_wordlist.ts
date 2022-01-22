@@ -1,7 +1,8 @@
 /* MIGRATION TO CLEAN PRODUCTION DATA
  *
  * the way the passphrases are stored in login_user_backups is inconsistent.
- * we need to try to detect which word list was used and transform it accordingly
+ * we need to detect which word list was used and transform it accordingly.
+ * This also removes the trailing space
  */
 import fs from 'fs'
 
@@ -46,9 +47,8 @@ const detectMnemonic = (passphrase: string[]): string[] => {
 }
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // Loop through all user backups and update passphrase and mnemonic type if needed
   const userBackups = await queryFn(`SELECT * FROM login_user_backups`)
-  let i = 0
-  // eslint-disable-next-line no-console
   userBackups.forEach(async (userBackup) => {
     const passphrase = userBackup.passphrase.split(' ')
     const newPassphrase = detectMnemonic(passphrase).join(' ')
@@ -57,9 +57,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         `UPDATE login_user_backups SET passphrase = ?, mnemonic_type = ? WHERE id = ?`,
         [newPassphrase, TARGET_MNEMONIC_TYPE, userBackup.id],
       )
-      i++
-      // eslint-disable-next-line no-console
-      console.log(`Updated passphrase of user ${userBackup.user_id}`)
     }
   })
 }
