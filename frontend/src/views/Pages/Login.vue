@@ -64,7 +64,6 @@ import InputPassword from '../../components/Inputs/InputPassword'
 import InputEmail from '../../components/Inputs/InputEmail'
 import { login } from '../../graphql/queries'
 import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
-import { localeChanged } from 'vee-validate'
 
 export default {
   name: 'login',
@@ -102,8 +101,6 @@ export default {
             data: { login },
           } = result
           this.$store.dispatch('login', login)
-          this.$i18n.locale = login.language
-          localeChanged(login.language)
           this.$router.push('/overview')
           loader.hide()
         })
