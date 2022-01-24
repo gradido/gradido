@@ -1,6 +1,6 @@
 import { verifyLogin } from '../graphql/queries'
 
-const addNavigationGuards = (router, store, apollo, i18n) => {
+const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
   router.beforeEach((to, from, next) => {
     const publisherId = to.query.pid
@@ -21,7 +21,6 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          i18n.locale = result.data.verifyLogin.language
           store.dispatch('login', result.data.verifyLogin)
           next({ path: '/overview' })
         })

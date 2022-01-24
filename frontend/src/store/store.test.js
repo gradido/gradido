@@ -1,8 +1,18 @@
 import { mutations, actions } from './store'
 import Vuex from 'vuex'
 import Vue from 'vue'
+import i18n from '../i18n.js'
+import { localeChanged } from 'vee-validate'
 
 jest.mock('vuex')
+jest.mock('../i18n.js')
+jest.mock('vee-validate', () => {
+  return {
+    localeChanged: jest.fn(),
+  }
+})
+
+i18n.locale = 'blubb'
 
 const {
   language,
@@ -28,6 +38,14 @@ describe('Vuex store', () => {
         const state = { language: 'en' }
         language(state, 'de')
         expect(state.language).toEqual('de')
+      })
+
+      it('sets the i18n locale', () => {
+        expect(i18n.locale).toBe('de')
+      })
+
+      it('calls localChanged of vee-validate', () => {
+        expect(localeChanged).toBeCalledWith('de')
       })
     })
 

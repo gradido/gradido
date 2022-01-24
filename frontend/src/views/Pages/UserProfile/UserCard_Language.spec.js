@@ -138,10 +138,6 @@ describe('UserCard_Language', () => {
               expect(storeCommitMock).toBeCalledWith('language', 'en')
             })
 
-            it('changes the i18n locale', () => {
-              expect(mocks.$i18n.locale).toBe('en')
-            })
-
             it('has no select field anymore', () => {
               expect(wrapper.find('select').exists()).toBeFalsy()
             })
