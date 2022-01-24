@@ -191,7 +191,6 @@
 import InputEmail from '../../components/Inputs/InputEmail.vue'
 import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
 import { createUser } from '../../graphql/mutations'
-import { localeChanged } from 'vee-validate'
 import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
 
 export default {
@@ -218,8 +217,6 @@ export default {
     updateLanguage(e) {
       this.language = e
       this.$store.commit('language', this.language)
-      this.$i18n.locale = this.language
-      localeChanged(this.language)
     },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
