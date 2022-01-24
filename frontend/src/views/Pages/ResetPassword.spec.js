@@ -189,7 +189,7 @@ describe('ResetPassword', () => {
             )
           })
 
-          it('redirects to "/thx/reset"', () => {
+          it('redirects to "/thx/heckEmail"', () => {
             expect(routerPushMock).toHaveBeenCalledWith('/thx/checkEmail')
           })
         })
