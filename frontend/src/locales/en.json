@@ -198,7 +198,7 @@
     },
     "thx": {
       "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
-      "checkEmail": "Your email has been successfully verified.",
+      "checkEmail": "Your email has been successfully verified. You can sign in now.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
       "errorTitle": "Attention!",

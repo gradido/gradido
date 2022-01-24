@@ -4,7 +4,7 @@
       <p></p>
       <div class="mb-6">
         <b-nav vertical class="w-200">
-          <b-nav-item to="/overview" class="mb-3" active>
+          <b-nav-item to="/overview" class="mb-3">
             <b-icon icon="house" aria-hidden="true"></b-icon>
             {{ $t('overview') }}
           </b-nav-item>
@@ -52,3 +52,9 @@ export default {
   },
 }
 </script>
+<style>
+#component-sidebar .active,
+.component-navbar .active {
+  font-weight: bold;
+}
+</style>

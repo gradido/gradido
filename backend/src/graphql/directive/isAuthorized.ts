@@ -8,16 +8,28 @@ import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { getCustomRepository } from 'typeorm'
 import { UserRepository } from '../../typeorm/repository/User'
+import { INALIENABLE_RIGHTS } from '../../auth/INALIENABLE_RIGHTS'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // Do we have a token?
   if (context.token) {
+    // Decode the token
     const decoded = decode(context.token)
     if (!decoded) {
-      // we always throw on an invalid token
-      throw new Error('403.13 - Client certificate revoked')
+      // Are all rights requested public?
+      const isInalienable = (<RIGHTS[]>rights).reduce(
+        (acc, right) => acc && INALIENABLE_RIGHTS.includes(right),
+        true,
+      )
+      if (isInalienable) {
+        // If public dont throw and permit access
+        return true
+      } else {
+        // Throw on a protected route
+        throw new Error('403.13 - Client certificate revoked')
+      }
     }
     // Set context pubKey
     context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
