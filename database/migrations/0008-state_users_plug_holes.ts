@@ -11,7 +11,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `UPDATE state_users
      INNER JOIN login_users ON state_users.public_key = login_users.pubkey
-     SET state_users.email = IF(state_users.email = '', login_users.email, state_users.email)
+     SET state_users.email = login_users.email
      WHERE state_users.email = '';`,
   )
   // Delete remaining ones
