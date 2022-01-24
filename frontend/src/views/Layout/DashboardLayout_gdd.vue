@@ -4,6 +4,7 @@
       class="main-navbar"
       :balance="balance"
       :visible="visible"
+      :pending="pending"
       :elopageUri="elopageUri"
       @set-visible="setVisible"
       @admin="admin"

@@ -13,7 +13,15 @@ jest.mock('vue')
 jest.mock('vue-apollo')
 jest.mock('vuex')
 jest.mock('vue-i18n')
-jest.mock('./store/store')
+jest.mock('./store/store', () => {
+  return {
+    state: {
+      moderator: {
+        language: 'es',
+      },
+    },
+  }
+})
 jest.mock('./i18n')
 jest.mock('./router/router')
 
@@ -94,5 +102,9 @@ describe('main', () => {
         router,
       }),
     )
+  })
+
+  it('sets the locale from store', () => {
+    expect(i18n.locale).toBe('es')
   })
 })
