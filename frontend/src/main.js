@@ -28,7 +28,7 @@ Vue.toasted.register(
 
 loadAllRules(i18n)
 
-addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
+addNavigationGuards(router, store, apolloProvider.defaultClient)
 
 if (!store) {
   setTimeout(
