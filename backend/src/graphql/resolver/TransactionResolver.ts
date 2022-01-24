@@ -425,8 +425,12 @@ async function addUserTransaction(
   queryRunner: QueryRunner,
 ): Promise<dbUserTransaction> {
   let newBalance = centAmount
+  // eslint-disable-next-line no-console
+  console.log('newBalance', newBalance)
   const userTransactionRepository = getCustomRepository(UserTransactionRepository)
   const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
+  // eslint-disable-next-line no-console
+  console.log('lastUserTransaction', lastUserTransaction)
   if (lastUserTransaction) {
     newBalance += Number(
       await calculateDecay(
@@ -437,6 +441,8 @@ async function addUserTransaction(
         throw new Error('error by calculating decay')
       }),
     )
+    // eslint-disable-next-line no-console
+    console.log('newBalance', newBalance)
   }
 
   if (newBalance <= 0) {
@@ -576,6 +582,8 @@ export class TransactionResolver {
         .catch((error) => {
           throw new Error('error loading saved transaction: ' + error)
         })
+      // eslint-disable-next-line no-console
+      console.log('transaction', transaction)
 
       // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
@@ -584,6 +592,8 @@ export class TransactionResolver {
         -centAmount,
         queryRunner,
       )
+      // eslint-disable-next-line no-console
+      console.log('senderUserTransactionBalance', senderUserTransactionBalance)
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
         recipiantUser,
@@ -591,6 +601,8 @@ export class TransactionResolver {
         centAmount,
         queryRunner,
       )
+      // eslint-disable-next-line no-console
+      console.log('recipiantUserTransactionBalance', recipiantUserTransactionBalance)
 
       // Update Balance: sender - amount
       const senderStateBalance = await updateStateBalance(
@@ -599,6 +611,8 @@ export class TransactionResolver {
         transaction.received,
         queryRunner,
       )
+      // eslint-disable-next-line no-console
+      console.log('senderStateBalance', senderStateBalance)
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
         recipiantUser,
@@ -606,8 +620,16 @@ export class TransactionResolver {
         transaction.received,
         queryRunner,
       )
+      // eslint-disable-next-line no-console
+      console.log('recipiantStateBalance', recipiantStateBalance)
 
       if (senderStateBalance.amount !== senderUserTransactionBalance.balance) {
+        // eslint-disable-next-line no-console
+        console.log(
+          'db data corrupted, sender',
+          senderStateBalance.amount,
+          senderUserTransactionBalance.balance,
+        )
         throw new Error('db data corrupted, sender')
       }
       if (recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance) {
