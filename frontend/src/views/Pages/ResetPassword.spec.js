@@ -15,54 +15,48 @@ const stubs = {
   RouterLink: RouterLinkStub,
 }
 
-const createMockObject = (comingFrom) => {
-  return {
-    localVue,
-    mocks: {
-      $i18n: {
-        locale: 'en',
-      },
-      $t: jest.fn((t) => t),
-      $route: {
-        params: {
-          optin: '123',
-          comingFrom,
-        },
-        path: {
-          includes: (t) => t,
-        },
-      },
-      $toasted: {
-        global: {
-          error: toasterMock,
-        },
-      },
-      $router: {
-        push: routerPushMock,
-      },
-      $loading: {
-        show: jest.fn(() => {
-          return { hide: jest.fn() }
-        }),
-      },
-      $apollo: {
-        mutate: apolloMutationMock,
-      },
+const mocks = {
+  $i18n: {
+    locale: 'en',
+  },
+  $t: jest.fn((t) => t),
+  $route: {
+    params: {
+      optin: '123',
     },
-    stubs,
-  }
+    path: {
+      mock: 'checkEmail',
+      includes: jest.fn((t) => t === mocks.$route.path.mock),
+    },
+  },
+  $toasted: {
+    global: {
+      error: toasterMock,
+    },
+  },
+  $router: {
+    push: routerPushMock,
+  },
+  $loading: {
+    show: jest.fn(() => {
+      return { hide: jest.fn() }
+    }),
+  },
+  $apollo: {
+    mutate: apolloMutationMock,
+  },
 }
 
 describe('ResetPassword', () => {
   let wrapper
 
-  const Wrapper = (functionName) => {
-    return mount(ResetPassword, functionName)
+  const Wrapper = () => {
+    return mount(ResetPassword, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject())
+      wrapper = Wrapper()
     })
 
     describe('No valid optin', () => {
@@ -86,11 +80,32 @@ describe('ResetPassword', () => {
       })
 
       describe('Register header', () => {
-        it('has a welcome message', async () => {
-          expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
-          expect(wrapper.find('div.header').text()).toContain(
-            'settings.password.reset-password.text',
-          )
+        describe('from reset', () => {
+          beforeEach(() => {
+            mocks.$route.path.mock = 'reset'
+            wrapper = Wrapper()
+          })
+
+          it('has a welcome message', async () => {
+            expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
+            expect(wrapper.find('div.header').text()).toContain(
+              'settings.password.reset-password.text',
+            )
+          })
+        })
+
+        describe('from checkEmail', () => {
+          beforeEach(() => {
+            mocks.$route.path.mock = 'checkEmail'
+            wrapper = Wrapper()
+          })
+
+          it('has a welcome message', async () => {
+            expect(wrapper.find('div.header').text()).toContain('settings.password.set')
+            expect(wrapper.find('div.header').text()).toContain(
+              'settings.password.set-password.text',
+            )
+          })
         })
       })
 
@@ -128,7 +143,6 @@ describe('ResetPassword', () => {
 
       describe('submit form', () => {
         beforeEach(async () => {
-          // wrapper = Wrapper(createMockObject())
           await wrapper.findAll('input').at(0).setValue('Aa123456_')
           await wrapper.findAll('input').at(1).setValue('Aa123456_')
           await flushPromises()
@@ -164,14 +178,14 @@ describe('ResetPassword', () => {
           })
         })
 
-        describe('server response with success', () => {
+        describe('server response with success on /checkEmail', () => {
           beforeEach(async () => {
+            mocks.$route.path.mock = 'checkEmail'
             apolloMutationMock.mockResolvedValue({
               data: {
                 resetPassword: 'success',
               },
             })
-            wrapper = Wrapper(createMockObject('checkEmail'))
             await wrapper.findAll('input').at(0).setValue('Aa123456_')
             await wrapper.findAll('input').at(1).setValue('Aa123456_')
             await wrapper.find('form').trigger('submit')
@@ -187,6 +201,26 @@ describe('ResetPassword', () => {
                 },
               }),
             )
+          })
+
+          it('redirects to "/thx/checkEmail"', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/thx/checkEmail')
+          })
+        })
+
+        describe('server response with success on /reset', () => {
+          beforeEach(async () => {
+            mocks.$route.path.mock = 'reset'
+            wrapper = Wrapper()
+            apolloMutationMock.mockResolvedValue({
+              data: {
+                resetPassword: 'success',
+              },
+            })
+            await wrapper.findAll('input').at(0).setValue('Aa123456_')
+            await wrapper.findAll('input').at(1).setValue('Aa123456_')
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
 
           it('redirects to "/thx/reset"', () => {

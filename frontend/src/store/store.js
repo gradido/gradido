@@ -1,11 +1,15 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+import { localeChanged } from 'vee-validate'
+import i18n from '../i18n.js'
 
 Vue.use(Vuex)
 
 export const mutations = {
   language: (state, language) => {
+    i18n.locale = language
+    localeChanged(language)
     state.language = language
   },
   email: (state, email) => {
