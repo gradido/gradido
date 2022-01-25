@@ -98,6 +98,8 @@ COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
+# TODO
+COPY --from=build ${DOCKER_WORKDIR}/src ./src
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
