@@ -3,14 +3,6 @@ import CreationFormular from './CreationFormular.vue'
 
 const localVue = global.localVue
 
-const apolloMock = jest.fn().mockResolvedValue({
-  data: {
-    verifyLogin: {
-      name: 'success',
-      id: 0,
-    },
-  },
-})
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
     createPendingCreation: [0, 0, 0],
@@ -24,7 +16,6 @@ const mocks = {
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => d),
   $apollo: {
-    query: apolloMock,
     mutate: apolloMutateMock,
   },
   $store: {
@@ -64,29 +55,12 @@ describe('CreationFormular', () => {
       expect(wrapper.find('.component-creation-formular').exists()).toBeTruthy()
     })
 
-    describe('server sends back moderator data', () => {
-      it('called store commit with mocked data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { name: 'success', id: 0 })
-      })
-    })
-
-    describe('server throws error for moderator data call', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        apolloMock.mockRejectedValueOnce({ message: 'Ouch!' })
-        wrapper = Wrapper()
-      })
-
-      it('has called store commit with fake data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
-      })
-    })
-
     describe('radio buttons to selcet month', () => {
       it('has three radio buttons', () => {
         expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
       })
 
+      /*
       describe('with mass creation', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
@@ -132,6 +106,7 @@ describe('CreationFormular', () => {
           })
         })
       })
+      */
 
       describe('with single creation', () => {
         beforeEach(async () => {

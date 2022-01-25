@@ -141,17 +141,11 @@ export default {
     }
   },
   methods: {
-    // Auswählen eines Zeitraumes
     updateRadioSelected(name) {
       this.createdIndex = this.radioOptions.findIndex((obj) => name === obj.item)
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
-      // Wenn Mehrfachschöpfung
-      if (this.type === 'massCreation') {
-        // An Creation.vue emitten und radioSelectedMass aktualisieren
-        this.$emit('update-radio-selected', [name, this.createdIndex])
-      } else if (this.type === 'singleCreation') {
+      if (this.type === 'singleCreation') {
         this.rangeMin = 0
-        // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
         this.rangeMax = name.creation
       }
     },
@@ -166,7 +160,7 @@ export default {
         this.items.forEach((item) => {
           this.submitObj.push({
             email: item.email,
-            creationDate: this.radioSelected.date,
+            creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
             moderator: Number(this.$store.state.moderator.id),
@@ -243,48 +237,11 @@ export default {
     },
   },
   computed: {
-    currentMonth() {
-      return {
-        short: this.$d(this.now, 'month'),
-        long: this.$d(this.now, 'short'),
-        year: this.$d(this.now, 'year'),
-        date: this.$d(this.now, 'short', 'en'),
-      }
-    },
-    lastMonth() {
-      const now = new Date(this.now)
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      return {
-        short: this.$d(lastMonth, 'month'),
-        long: this.$d(lastMonth, 'short'),
-        year: this.$d(lastMonth, 'year'),
-        date: this.$d(lastMonth, 'short', 'en'),
-      }
-    },
-    beforeLastMonth() {
-      const now = new Date(this.now)
-      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-      return {
-        short: this.$d(beforeLastMonth, 'month'),
-        long: this.$d(beforeLastMonth, 'short'),
-        year: this.$d(beforeLastMonth, 'year'),
-        date: this.$d(beforeLastMonth, 'short', 'en'),
-      }
-    },
     radioOptions() {
       return this.creationDateObjects.map((obj, idx) => {
         return {
           item: { ...obj, creation: this.creation[idx] },
           name: obj.short + (this.creation[idx] ? ' ' + this.creation[idx] + ' GDD' : ''),
-        }
-      })
-    },
-    creationObjects() {
-      return this.creationDateObjects.map((obj, idx) => {
-        return {
-          ...obj,
-          creation: this.creation[idx],
-          selected: '',
         }
       })
     },

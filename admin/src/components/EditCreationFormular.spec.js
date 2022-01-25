@@ -42,12 +42,18 @@ const mocks = {
   },
 }
 
+const now = new Date(Date.now())
+const getCreationDate = (sub) => {
+  const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
+  return date.toISOString().split('T')[0]
+}
+
 const propsData = {
   creation: [200, 400, 600],
   creationUserData: {
     memo: 'Test schöpfung 1',
     amount: 100,
-    date: '2022-01-20',
+    date: getCreationDate(0),
   },
   item: {
     id: 0,
@@ -108,7 +114,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: '2021-11-01',
+                    creationDate: getCreationDate(2),
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
@@ -180,7 +186,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: '2021-12-01',
+                    creationDate: getCreationDate(1),
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
@@ -236,7 +242,7 @@ describe('EditCreationFormular', () => {
                 expect.objectContaining({
                   variables: {
                     amount: 90,
-                    creationDate: '2022-01-20',
+                    creationDate: getCreationDate(0),
                     email: 'bob@baumeister.de',
                     id: 0,
                     memo: 'Test create coins',
