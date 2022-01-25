@@ -503,7 +503,7 @@ export class TransactionResolver {
       email: userEntity.email,
     })
     if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum / 100) || 0
+    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
