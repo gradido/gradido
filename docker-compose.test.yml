@@ -19,7 +19,10 @@ services:
   ########################################################
   # DATABASE #############################################
   ########################################################
-  #database:
+  database:
+    build:
+      context: ./database
+      target: production_up
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
