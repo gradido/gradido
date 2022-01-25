@@ -89,6 +89,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.rows = result.data.searchUsers.userCount
