@@ -13,7 +13,7 @@
             name="month-selection"
           ></b-form-radio-group>
         </b-row>
-        <b-row class="m-4" v-show="createdIndex != null">
+        <b-row class="m-4" v-show="selected !== ''">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -61,11 +61,10 @@
                 variant="success"
                 class="test-submit"
                 @click="submitCreation"
-                :disabled="radioSelected === '' || value <= 0 || text.length < 10"
+                :disabled="selected === '' || value <= 0 || text.length < 10"
               >
                 {{ $t('creation_form.update_creation') }}
               </b-button>
-
               <b-button
                 v-else
                 type="button"
@@ -128,21 +127,15 @@ export default {
   },
   data() {
     return {
-      radioSelected: '',
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
-      submitObj: null,
-      isdisabled: true,
-      createdIndex: null,
-      now: Date.now(),
       selected: '',
     }
   },
   methods: {
     updateRadioSelected(name) {
-      this.createdIndex = this.radioOptions.findIndex((obj) => name === obj.item)
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
       if (this.type === 'singleCreation') {
         this.rangeMin = 0
@@ -150,15 +143,10 @@ export default {
       }
     },
     submitCreation() {
+      let submitObj = []
       if (this.type === 'massCreation') {
-        // Die anzahl der Mitglieder aus der Mehrfachschöpfung
-        const i = Object.keys(this.items).length
-        // hinweis das eine Mehrfachschöpfung ausgeführt wird an (Anzahl der MItgleider an die geschöpft wird)
-        // eslint-disable-next-line no-console
-        console.log('SUBMIT CREATION => ' + this.type + ' >> für VIELE ' + i + ' Mitglieder')
-        this.submitObj = []
         this.items.forEach((item) => {
-          this.submitObj.push({
+          submitObj.push({
             email: item.email,
             creationDate: this.selected.date,
             amount: Number(this.value),
@@ -166,13 +154,11 @@ export default {
             moderator: Number(this.$store.state.moderator.id),
           })
         })
-        // eslint-disable-next-line no-console
-        console.log('MehrfachSCHÖPFUNG ABSENDEN FÜR >> ' + i + ' Mitglieder')
         this.$apollo
           .mutate({
             mutation: createPendingCreations,
             variables: {
-              pendingCreations: this.submitObj,
+              pendingCreations: submitObj,
             },
             fetchPolicy: 'no-cache',
           })
@@ -192,7 +178,7 @@ export default {
             this.$toasted.error(error.message)
           })
       } else if (this.type === 'singleCreation') {
-        this.submitObj = {
+        submitObj = {
           email: this.item.email,
           creationDate: this.selected.date,
           amount: Number(this.value),
@@ -202,7 +188,7 @@ export default {
         this.$apollo
           .mutate({
             mutation: createPendingCreation,
-            variables: this.submitObj,
+            variables: submitObj,
           })
           .then((result) => {
             this.$emit('update-user-data', this.item, result.data.createPendingCreation)
@@ -213,8 +199,6 @@ export default {
               }),
             )
             this.$store.commit('openCreationsPlus', 1)
-            this.submitObj = null
-            this.createdIndex = null
             // das creation Formular reseten
             this.$refs.creationForm.reset()
             // Den geschöpften Wert auf o setzen
@@ -222,7 +206,6 @@ export default {
           })
           .catch((error) => {
             this.$toasted.error(error.message)
-            this.submitObj = null
             // das creation Formular reseten
             this.$refs.creationForm.reset()
             // Den geschöpften Wert auf o setzen
