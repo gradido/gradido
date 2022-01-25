@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && cp ./src/config/*.txt ./build/src/config/",
     "clean": "tsc --build --clean",
     "up": "node build/src/index.js up",
     "down": "node build/src/index.js down",
