@@ -3,52 +3,16 @@
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
-        <b-row class="m-4">
+        <b-row>
           <label>{{ $t('creation_form.select_month') }}</label>
-          <b-col class="text-left">
-            <b-form-radio
-              id="beforeLastMonth"
-              v-model="radioSelected"
-              :value="beforeLastMonth"
-              :disabled="creation[0] === 0"
-              size="lg"
-              @change="updateRadioSelected(beforeLastMonth, 0, creation[0])"
-            >
-              <label for="beforeLastMonth">
-                {{ beforeLastMonth.short }} {{ creation[0] ? creation[0] + ' GDD' : '' }}
-              </label>
-            </b-form-radio>
-          </b-col>
-          <b-col>
-            <b-form-radio
-              id="lastMonth"
-              v-model="radioSelected"
-              :value="lastMonth"
-              :disabled="creation[1] === 0"
-              size="lg"
-              @change="updateRadioSelected(lastMonth, 1, creation[1])"
-            >
-              <label for="lastMonth">
-                {{ lastMonth.short }} {{ creation[1] ? creation[1] + ' GDD' : '' }}
-              </label>
-            </b-form-radio>
-          </b-col>
-          <b-col class="text-right">
-            <b-form-radio
-              id="currentMonth"
-              v-model="radioSelected"
-              :value="currentMonth"
-              :disabled="creation[2] === 0"
-              size="lg"
-              @change="updateRadioSelected(currentMonth, 2, creation[2])"
-            >
-              <label for="currentMonth">
-                {{ currentMonth.short }} {{ creation[2] ? creation[2] + ' GDD' : '' }}
-              </label>
-            </b-form-radio>
-          </b-col>
+          <b-form-radio-group
+            v-model="selected"
+            :options="radioOptions"
+            value-field="item"
+            text-field="name"
+            name="month-selection"
+          ></b-form-radio-group>
         </b-row>
-
         <b-row class="m-4" v-show="createdIndex != null">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
@@ -60,7 +24,6 @@
                 :max="rangeMax"
               ></b-form-input>
             </b-input-group>
-
             <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
                 type="range"
@@ -109,7 +72,7 @@
                 variant="success"
                 class="test-submit"
                 @click="submitCreation"
-                :disabled="radioSelected === '' || value <= 0 || text.length < 10"
+                :disabled="selected === '' || value <= 0 || text.length < 10"
               >
                 {{ $t('creation_form.submit_creation') }}
               </b-button>
@@ -121,11 +84,12 @@
   </div>
 </template>
 <script>
-import { verifyLogin } from '../graphql/verifyLogin'
 import { createPendingCreation } from '../graphql/createPendingCreation'
 import { createPendingCreations } from '../graphql/createPendingCreations'
+import { creationMonths } from '../mixins/creationMonths'
 export default {
   name: 'CreationFormular',
+  mixins: [creationMonths],
   props: {
     type: {
       type: String,
@@ -173,22 +137,22 @@ export default {
       isdisabled: true,
       createdIndex: null,
       now: Date.now(),
+      selected: '',
     }
   },
-
   methods: {
     // Auswählen eines Zeitraumes
-    updateRadioSelected(name, index, openCreation) {
-      this.createdIndex = index
+    updateRadioSelected(name) {
+      this.createdIndex = this.radioOptions.findIndex((obj) => name === obj.item)
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
       // Wenn Mehrfachschöpfung
       if (this.type === 'massCreation') {
         // An Creation.vue emitten und radioSelectedMass aktualisieren
-        this.$emit('update-radio-selected', [name, index])
+        this.$emit('update-radio-selected', [name, this.createdIndex])
       } else if (this.type === 'singleCreation') {
         this.rangeMin = 0
         // Der maximale offene Betrag an GDD die für ein User noch geschöpft werden kann
-        this.rangeMax = openCreation
+        this.rangeMax = name.creation
       }
     },
     submitCreation() {
@@ -236,7 +200,7 @@ export default {
       } else if (this.type === 'singleCreation') {
         this.submitObj = {
           email: this.item.email,
-          creationDate: this.radioSelected.date,
+          creationDate: this.selected.date,
           amount: Number(this.value),
           memo: this.text,
           moderator: Number(this.$store.state.moderator.id),
@@ -272,15 +236,10 @@ export default {
           })
       }
     },
-    searchModeratorData() {
-      this.$apollo
-        .query({ query: verifyLogin })
-        .then((result) => {
-          this.$store.commit('moderator', result.data.verifyLogin)
-        })
-        .catch(() => {
-          this.$store.commit('moderator', { id: 0, name: 'Test Moderator' })
-        })
+  },
+  watch: {
+    selected() {
+      this.updateRadioSelected(this.selected)
     },
   },
   computed: {
@@ -312,9 +271,23 @@ export default {
         date: this.$d(beforeLastMonth, 'short', 'en'),
       }
     },
-  },
-  created() {
-    this.searchModeratorData()
+    radioOptions() {
+      return this.creationDateObjects.map((obj, idx) => {
+        return {
+          item: { ...obj, creation: this.creation[idx] },
+          name: obj.short + (this.creation[idx] ? ' ' + this.creation[idx] + ' GDD' : ''),
+        }
+      })
+    },
+    creationObjects() {
+      return this.creationDateObjects.map((obj, idx) => {
+        return {
+          ...obj,
+          creation: this.creation[idx],
+          selected: '',
+        }
+      })
+    },
   },
 }
 </script>
