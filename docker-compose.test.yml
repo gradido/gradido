@@ -19,8 +19,8 @@ services:
   ########################################################
   # DATABASE #############################################
   ########################################################
-  database:
-    restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
+  #database:
+  #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## MARIADB ##############################################
