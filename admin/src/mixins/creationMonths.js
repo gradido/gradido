@@ -1,4 +1,7 @@
 export const creationMonths = {
+  props: {
+    creation: [1000, 1000, 1000],
+  },
   computed: {
     creationDates() {
       const now = new Date(Date.now())
@@ -19,6 +22,14 @@ export const creationMonths = {
         })
       })
       return result
+    },
+    radioOptions() {
+      return this.creationDateObjects.map((obj, idx) => {
+        return {
+          item: { ...obj, creation: this.creation[idx] },
+          name: obj.short + (this.creation[idx] ? ' ' + this.creation[idx] + ' GDD' : ''),
+        }
+      })
     },
   },
 }

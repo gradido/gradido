@@ -199,16 +199,12 @@ export default {
               }),
             )
             this.$store.commit('openCreationsPlus', 1)
-            // das creation Formular reseten
             this.$refs.creationForm.reset()
-            // Den geschöpften Wert auf o setzen
             this.value = 0
           })
           .catch((error) => {
             this.$toasted.error(error.message)
-            // das creation Formular reseten
             this.$refs.creationForm.reset()
-            // Den geschöpften Wert auf o setzen
             this.value = 0
           })
       }
@@ -217,16 +213,6 @@ export default {
   watch: {
     selected() {
       this.updateRadioSelected(this.selected)
-    },
-  },
-  computed: {
-    radioOptions() {
-      return this.creationDateObjects.map((obj, idx) => {
-        return {
-          item: { ...obj, creation: this.creation[idx] },
-          name: obj.short + (this.creation[idx] ? ' ' + this.creation[idx] + ' GDD' : ''),
-        }
-      })
     },
   },
 }
