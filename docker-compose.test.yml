@@ -26,18 +26,9 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    build:
-      context: .
-      dockerfile: ./mariadb/Dockerfile
-      target: mariadb_server
-    environment:
-      - MARIADB_ALLOW_EMPTY_PASSWORD=1
-      - MARIADB_USER=root
     networks: 
       - internal-net
       - external-net
-    ports: 
-      - 3306:3306
     volumes: 
       - db_test_vol:/var/lib/mysql
 
