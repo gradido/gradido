@@ -22,7 +22,7 @@ services:
   database:
     build:
       context: ./database
-      target: production_up
+      target: test_up
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
