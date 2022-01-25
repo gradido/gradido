@@ -108,7 +108,7 @@ services:
   # DATABASE #############################################
   ########################################################
   database:
-    image: gradido/database:production_up
+    #image: gradido/database:production_up
     build:
       context: ./database
       target: production_up

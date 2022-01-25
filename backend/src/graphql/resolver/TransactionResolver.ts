@@ -584,6 +584,7 @@ export class TransactionResolver {
         -centAmount,
         queryRunner,
       )
+
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
         recipiantUser,
@@ -599,6 +600,7 @@ export class TransactionResolver {
         transaction.received,
         queryRunner,
       )
+
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
         recipiantUser,
