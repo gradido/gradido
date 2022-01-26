@@ -73,9 +73,9 @@
 > sudo /etc/init.d/fail2ban restart
 
 # Install gradido
-> sudo apt-get install git
+> sudo apt-get install -y git
+> cd ~
 > git clone https://github.com/gradido/gradido.git
-> cd gradido/deployment/bare_metal
 
 # Timezone
 # Note: This is not needed - UTC(default) is REQUIRED for production data
