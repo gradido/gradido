@@ -36,8 +36,7 @@ export default {
           },
         })
         .then((result) => {
-          this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== item.id)
-          this.$store.commit('openCreationsMinus', 1)
+          this.updatePendingCreations(item.id)
           this.$toasted.success(this.$t('creation_form.toasted_delete'))
         })
         .catch((error) => {
@@ -53,8 +52,7 @@ export default {
           },
         })
         .then((result) => {
-          this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== item.id)
-          this.$store.commit('openCreationsMinus', 1)
+          this.updatePendingCreations(item.id)
           this.$toasted.success(this.$t('creation_form.toasted_created'))
         })
         .catch((error) => {
@@ -75,6 +73,10 @@ export default {
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+    updatePendingCreations(id) {
+      this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
+      this.$store.commit('openCreationsMinus', 1)
     },
   },
   computed: {
