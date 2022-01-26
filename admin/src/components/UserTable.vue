@@ -341,4 +341,13 @@ export default {
   z-index: 1000000;
   cursor: pointer;
 }
+
+.input-group {
+  -ms-flex-wrap: inherit;
+  flex-wrap: inherit;
+}
+
+.input-group-text {
+  background-color: rgba(224, 223, 219, 0.472);
+}
 </style>

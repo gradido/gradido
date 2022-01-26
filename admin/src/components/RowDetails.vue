@@ -1,5 +1,5 @@
 <template>
-  <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+  <div class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
     <b-row class="mb-2">
       <b-col></b-col>
     </b-row>
@@ -11,7 +11,7 @@
       ></b-icon>
       {{ $t('hide_details') }} {{ row.item.firstName }} {{ row.item.lastName }}
     </b-button>
-  </b-card>
+  </div>
 </template>
 
 <script>

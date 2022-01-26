@@ -3,8 +3,10 @@
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
-        <b-row>
+        <div>
           <label>{{ $t('creation_form.select_month') }}</label>
+        </div>
+        <div>
           <b-form-radio-group
             v-model="selected"
             :options="radioOptions"
@@ -12,8 +14,8 @@
             text-field="name"
             name="month-selection"
           ></b-form-radio-group>
-        </b-row>
-        <b-row class="m-4" v-show="selected !== ''">
+        </div>
+        <div class="m-4" v-show="selected !== ''">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -22,6 +24,7 @@
                 v-model="value"
                 :min="rangeMin"
                 :max="rangeMax"
+                class="pl-2"
               ></b-form-input>
             </b-input-group>
             <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
@@ -34,19 +37,18 @@
               ></b-form-input>
             </b-input-group>
           </div>
-        </b-row>
-        <b-row class="m-4">
+        </div>
+        <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
-          <div>
-            <b-form-textarea
-              id="textarea-state"
-              v-model="text"
-              :state="text.length >= 10"
-              :placeholder="$t('creation_form.min_characters')"
-              rows="3"
-            ></b-form-textarea>
-          </div>
-        </b-row>
+
+          <b-form-textarea
+            id="textarea-state"
+            v-model="text"
+            :state="text.length >= 10"
+            :placeholder="$t('creation_form.min_characters')"
+            rows="3"
+          ></b-form-textarea>
+        </div>
         <b-row class="m-4">
           <b-col class="text-center">
             <b-button type="reset" variant="danger" @click="$refs.creationForm.reset()">
