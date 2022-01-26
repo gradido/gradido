@@ -19,7 +19,7 @@ export class LoginUser extends BaseEntity {
   @Column({ length: 255, default: '' })
   username: string
 
-  @Column({ default: '' })
+  @Column({ default: '', nullable: true })
   description: string
 
   @Column({ type: 'bigint', default: 0, unsigned: true })

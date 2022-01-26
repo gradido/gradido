@@ -37,8 +37,8 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
   console.log('Elopage Hook received', req.body)
   res.status(200).end() // Responding is important
-  const loginElopgaeBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
-  const loginElopgaeBuy = new LoginElopageBuys()
+  const loginElopageBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
+  const loginElopageBuy = new LoginElopageBuys()
   let firstName = ''
   let lastName = ''
   const entries = req.body.split('&')
@@ -51,39 +51,39 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     const val = decodeURIComponent(keyVal[1]).replace('+', ' ').trim()
     switch (key) {
       case 'product[affiliate_program_id]':
-        loginElopgaeBuy.affiliateProgramId = parseInt(val)
+        loginElopageBuy.affiliateProgramId = parseInt(val)
         break
       case 'publisher[id]':
-        loginElopgaeBuy.publisherId = parseInt(val)
+        loginElopageBuy.publisherId = parseInt(val)
         break
       case 'order_id':
-        loginElopgaeBuy.orderId = parseInt(val)
+        loginElopageBuy.orderId = parseInt(val)
         break
       case 'product_id':
-        loginElopgaeBuy.productId = parseInt(val)
+        loginElopageBuy.productId = parseInt(val)
         break
       case 'product[price]':
         // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
-        loginElopgaeBuy.productPrice = Math.trunc(parseFloat(val) * 100)
+        loginElopageBuy.productPrice = Math.trunc(parseFloat(val) * 100)
         break
       case 'payer[email]':
-        loginElopgaeBuy.payerEmail = val
+        loginElopageBuy.payerEmail = val
         break
       case 'publisher[email]':
-        loginElopgaeBuy.publisherEmail = val
+        loginElopageBuy.publisherEmail = val
         break
       case 'payment_state':
-        loginElopgaeBuy.payed = val === 'paid'
+        loginElopageBuy.payed = val === 'paid'
         break
       case 'success_date':
-        loginElopgaeBuy.successDate = new Date(val)
+        loginElopageBuy.successDate = new Date(val)
         break
       case 'event':
-        loginElopgaeBuy.event = val
+        loginElopageBuy.event = val
         break
       case 'membership[id]':
         // TODO this was never set on login_server - its unclear if this is the correct value
-        loginElopgaeBuy.elopageUserId = parseInt(val)
+        loginElopageBuy.elopageUserId = parseInt(val)
         break
       case 'payer[first_name]':
         firstName = val
@@ -100,14 +100,14 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   })
 
   // Do not process certain events
-  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(loginElopgaeBuy.event)) {
+  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(loginElopageBuy.event)) {
     // eslint-disable-next-line no-console
     console.log('User viewed, completed or commented - not saving hook')
     return
   }
 
   // Save the hook data
-  await loginElopgaeBuyRepository.save(loginElopgaeBuy)
+  await loginElopageBuyRepository.save(loginElopageBuy)
 
   // create user for certain products
   /*
@@ -118,8 +118,8 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     Business-Mitgliedschaft,          43960
     Förderbeitrag:                    49106
   */
-  if ([36001, 43741, 43870, 43944, 43960, 49106].includes(loginElopgaeBuy.productId)) {
-    const email = loginElopgaeBuy.payerEmail
+  if ([36001, 43741, 43870, 43944, 43960, 49106].includes(loginElopageBuy.productId)) {
+    const email = loginElopageBuy.payerEmail
 
     const VALIDATE_EMAIL = /^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
     const VALIDATE_NAME = /^<>&;]{2,}$/
@@ -152,7 +152,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         email,
         firstName,
         lastName,
-        publisherId: loginElopgaeBuy.publisherId,
+        publisherId: loginElopageBuy.publisherId,
       })
     } catch (error) {
       // eslint-disable-next-line no-console

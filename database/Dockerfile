@@ -98,6 +98,8 @@ COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
+# Copy Mnemonic files
+COPY --from=build ${DOCKER_WORKDIR}/src/config/*.txt ./src/config/
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
@@ -112,7 +114,7 @@ CMD /bin/sh -c "yarn run up"
 ##################################################################################
 # PRODUCTION RESET ###############################################################
 ##################################################################################
-# FROM production as production_reset
+FROM production as production_reset
 
 # Run command
 CMD /bin/sh -c "yarn run reset"
