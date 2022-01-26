@@ -3,7 +3,7 @@
     <user-table
       class="mt-4"
       type="PageCreationConfirm"
-      :itemsUser="confirmResult"
+      :itemsUser="pendingCreations"
       :fieldsTable="fields"
       @remove-creation="removeCreation"
       @confirm-creation="confirmCreation"
@@ -23,7 +23,7 @@ export default {
   },
   data() {
     return {
-      confirmResult: [],
+      pendingCreations: [],
     }
   },
   methods: {
@@ -36,7 +36,7 @@ export default {
           },
         })
         .then((result) => {
-          this.confirmResult = this.confirmResult.filter((obj) => obj.id !== item.id)
+          this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== item.id)
           this.$store.commit('openCreationsMinus', 1)
           this.$toasted.success(this.$t('creation_form.toasted_delete'))
         })
@@ -52,8 +52,8 @@ export default {
             id: item.id,
           },
         })
-        .then(() => {
-          this.confirmResult = this.confirmResult.filter((obj) => obj.id !== item.id)
+        .then((result) => {
+          this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== item.id)
           this.$store.commit('openCreationsMinus', 1)
           this.$toasted.success(this.$t('creation_form.toasted_created'))
         })
@@ -69,7 +69,7 @@ export default {
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations
+          this.pendingCreations = result.data.getPendingCreations
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
