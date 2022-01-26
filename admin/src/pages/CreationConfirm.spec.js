@@ -152,7 +152,7 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('server response got get pending creations is error', () => {
+    describe('server response for get pending creations is error', () => {
       beforeEach(() => {
         jest.clearAllMocks()
         apolloQueryMock.mockRejectedValue({
