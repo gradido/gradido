@@ -107,8 +107,10 @@ export default {
         .catch((error) => {
           this.$toasted.global.error(this.$t('error.no-account'))
           if (error.message.includes('User email not validated')) {
+            this.$store.commit('email', this.form.email)
             this.$router.push('/thx/login')
           } else if (error.message.includes('User has no password set yet')) {
+            this.$store.commit('email', this.form.email)
             this.$router.push('/reset/login')
           }
           loader.hide()

@@ -19,7 +19,7 @@
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <input-email v-model="form.email"></input-email>
+                  <input-email v-model="form.email" :defaultValue="defaultEmail"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
                       {{ $t(displaySetup.button) }}
@@ -68,6 +68,7 @@ export default {
         email: '',
       },
       displaySetup: {},
+      defaultEmail: this.$store.state.email,
     }
   },
   methods: {
