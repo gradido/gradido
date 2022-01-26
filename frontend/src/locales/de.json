@@ -198,7 +198,7 @@
     },
     "thx": {
       "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink! Oder fordere einen neuen Aktivierungslink über die password reset seite.",
-      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.
+      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
       "email": "Wir haben dir eine E-Mail gesendet.",
       "emailActivated": "Danke dass Du deine E-Mail bestätigt hast.",
       "errorTitle": "Achtung!",
