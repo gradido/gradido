@@ -113,25 +113,35 @@ export class AdminResolver {
     const user = await userRepository.findByEmail(email)
 
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const updatedCreation = await loginPendingTasksAdminRepository.findOneOrFail({ id })
+    const pendingCreationToUpdate = await loginPendingTasksAdminRepository.findOneOrFail({ id })
 
-    if (updatedCreation.userId !== user.id)
+    if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
+    }
 
-    updatedCreation.amount = BigInt(amount * 10000)
-    updatedCreation.memo = memo
-    updatedCreation.date = new Date(creationDate)
-    updatedCreation.moderator = moderator
+    const creationDateObj = new Date(creationDate)
+    const creations = await getUserCreations(user.id)
 
-    await loginPendingTasksAdminRepository.save(updatedCreation)
-    const result = new UpdatePendingCreation()
-    result.amount = parseInt(amount.toString())
-    result.memo = updatedCreation.memo
-    result.date = updatedCreation.date
-    result.moderator = updatedCreation.moderator
-    result.creation = await getUserCreations(user.id)
+    if (isCreationValid(creations, amount, creationDateObj)) {
+      // TODO Check if open creation (of creationDate) + amount * 10000 <= 1000
 
-    return result
+      pendingCreationToUpdate.amount = BigInt(amount * 10000)
+      pendingCreationToUpdate.memo = memo
+      pendingCreationToUpdate.date = new Date(creationDate)
+      pendingCreationToUpdate.moderator = moderator
+
+      await loginPendingTasksAdminRepository.save(pendingCreationToUpdate)
+      const result = new UpdatePendingCreation()
+      result.amount = parseInt(amount.toString())
+      result.memo = pendingCreationToUpdate.memo
+      result.date = pendingCreationToUpdate.date
+      result.moderator = pendingCreationToUpdate.moderator
+      result.creation = await getUserCreations(user.id)
+
+      return result
+    } else {
+      throw new Error('Creation is not valid')
+    }
   }
 
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
