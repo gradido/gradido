@@ -126,8 +126,8 @@ export default {
       }
     },
     removeAllBookmark() {
-      this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
       this.itemsMassCreation = []
+      this.getUsers()
     },
   },
   computed: {

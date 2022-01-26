@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 const localVue = global.localVue
 
@@ -26,7 +27,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         lastName: 'Hotzenplotz',
         email: 'raeuber@hotzenplotz.de',
         amount: 1000000,
-        memo: 'Gut Ergatert',
+        memo: 'Gut Ergattert',
         date: new Date(),
         moderator: 0,
       },
@@ -69,6 +70,10 @@ describe('CreationConfirm', () => {
       expect(wrapper.find('div.creation-confirm').exists()).toBeTruthy()
     })
 
+    it('has two pending creations', () => {
+      expect(wrapper.vm.pendingCreations).toHaveLength(2)
+    })
+
     describe('store', () => {
       it('commits resetOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
@@ -78,37 +83,9 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('delete creation delete with success', () => {
+    describe('remove creation with success', () => {
       beforeEach(async () => {
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            getPendingCreations: [
-              {
-                id: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                amount: 500,
-                memo: 'Danke für alles',
-                date: new Date(),
-                moderator: 0,
-              },
-              {
-                id: 2,
-                firstName: 'Räuber',
-                lastName: 'Hotzenplotz',
-                email: 'raeuber@hotzenplotz.de',
-                amount: 1000000,
-                memo: 'Gut Ergatert',
-                date: new Date(),
-                moderator: 0,
-              },
-            ],
-          },
-        })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('remove-creation', { id: 1 })
       })
 
       it('calls the deletePendingCreation mutation', () => {
@@ -127,12 +104,10 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('delete creation delete with error', () => {
+    describe('remove creation with error', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('remove-creation', { id: 1 })
       })
 
       it('toasts an error message', () => {
@@ -140,43 +115,16 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('confirm creation delete with success', () => {
+    describe('confirm creation with success', () => {
       beforeEach(async () => {
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            getPendingCreations: [
-              {
-                id: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                amount: 500,
-                memo: 'Danke für alles',
-                date: new Date(),
-                moderator: 0,
-              },
-              {
-                id: 2,
-                firstName: 'Räuber',
-                lastName: 'Hotzenplotz',
-                email: 'raeuber@hotzenplotz.de',
-                amount: 1000000,
-                memo: 'Gut Ergatert',
-                date: new Date(),
-                moderator: 0,
-              },
-            ],
-          },
-        })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'confirmed')
+        apolloMutateMock.mockResolvedValue({})
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('confirm-creation', { id: 2 })
       })
 
-      it('calls the deletePendingCreation mutation', () => {
-        expect(apolloMutateMock).not.toBeCalledWith({
-          mutation: deletePendingCreation,
-          variables: { id: 1 },
+      it('calls the confirmPendingCreation mutation', () => {
+        expect(apolloMutateMock).toBeCalledWith({
+          mutation: confirmPendingCreation,
+          variables: { id: 2 },
         })
       })
 
@@ -189,19 +137,18 @@ describe('CreationConfirm', () => {
       })
     })
 
-    describe('delete creation delete with error', () => {
+    describe('confirm creation with error', () => {
       beforeEach(async () => {
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'confirm')
+        apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('confirm-creation', { id: 2 })
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('creation_form.toasted_default')
+        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
       })
     })
 
-    describe('server response is error', () => {
+    describe('server response for get pending creations is error', () => {
       beforeEach(() => {
         jest.clearAllMocks()
         apolloQueryMock.mockRejectedValue({

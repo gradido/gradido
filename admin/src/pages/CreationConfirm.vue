@@ -3,9 +3,10 @@
     <user-table
       class="mt-4"
       type="PageCreationConfirm"
-      :itemsUser="confirmResult"
+      :itemsUser="pendingCreations"
       :fieldsTable="fields"
-      @remove-confirm-result="removeConfirmResult"
+      @remove-creation="removeCreation"
+      @confirm-creation="confirmCreation"
     />
   </div>
 </template>
@@ -13,6 +14,7 @@
 import UserTable from '../components/UserTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
   name: 'CreationConfirm',
@@ -21,8 +23,65 @@ export default {
   },
   data() {
     return {
-      showArrays: false,
-      fields: [
+      pendingCreations: [],
+    }
+  },
+  methods: {
+    removeCreation(item) {
+      this.$apollo
+        .mutate({
+          mutation: deletePendingCreation,
+          variables: {
+            id: item.id,
+          },
+        })
+        .then((result) => {
+          this.updatePendingCreations(item.id)
+          this.$toasted.success(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
+    confirmCreation(item) {
+      this.$apollo
+        .mutate({
+          mutation: confirmPendingCreation,
+          variables: {
+            id: item.id,
+          },
+        })
+        .then((result) => {
+          this.updatePendingCreations(item.id)
+          this.$toasted.success(this.$t('creation_form.toasted_created'))
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
+    getPendingCreations() {
+      this.$apollo
+        .query({
+          query: getPendingCreations,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.$store.commit('resetOpenCreations')
+          this.pendingCreations = result.data.getPendingCreations
+          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
+    updatePendingCreations(id) {
+      this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
+      this.$store.commit('openCreationsMinus', 1)
+    },
+  },
+  computed: {
+    fields() {
+      return [
         { key: 'bookmark', label: 'löschen' },
         { key: 'email', label: 'Email' },
         { key: 'firstName', label: 'Vorname' },
@@ -45,56 +104,7 @@ export default {
         { key: 'moderator', label: 'Moderator' },
         { key: 'edit_creation', label: 'ändern' },
         { key: 'confirm', label: 'speichern' },
-      ],
-      confirmResult: [],
-    }
-  },
-  methods: {
-    removeConfirmResult(e, event) {
-      let index = 0
-      const findArr = this.confirmResult.find((arr) => arr.id === e.id)
-      switch (event) {
-        case 'remove':
-          this.$apollo
-            .mutate({
-              mutation: deletePendingCreation,
-              variables: {
-                id: findArr.id,
-              },
-            })
-            .then((result) => {
-              index = this.confirmResult.indexOf(findArr)
-              this.confirmResult.splice(index, 1)
-              this.$store.commit('openCreationsMinus', 1)
-              this.$toasted.success(this.$t('creation_form.toasted_delete'))
-            })
-            .catch((error) => {
-              this.$toasted.error(error.message)
-            })
-          break
-        case 'confirmed':
-          this.confirmResult.splice(index, 1)
-          this.$store.commit('openCreationsMinus', 1)
-          this.$toasted.success(this.$t('creation_form.toasted_created'))
-          break
-        default:
-          this.$toasted.error(this.$t('creation_form.toasted_default', { event }))
-      }
-    },
-    getPendingCreations() {
-      this.$apollo
-        .query({
-          query: getPendingCreations,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations
-          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
-        })
-        .catch((error) => {
-          this.$toasted.error(error.message)
-        })
+      ]
     },
   },
   async created() {
