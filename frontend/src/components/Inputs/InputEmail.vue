@@ -38,10 +38,11 @@ export default {
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
     value: { required: true, type: String },
+    defaultValue: { type: String },
   },
   data() {
     return {
-      currentValue: '',
+      currentValue: this.defaultValue !== null ? this.defaultValue : '',
     }
   },
   computed: {
