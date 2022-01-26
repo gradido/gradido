@@ -34,9 +34,9 @@ Mit diesem Usecase soll es zukünftig möglich sein neben dem direkten *synchron
 
 **Neu**
 
-* **asynchrones Senden** : beim asynchronen Senden werden die Daten der Transaktion (Sender, Betrag und ggf. Verwendungszweck) in ein Ausgabe-Medium kodiert, das dann asynchron vom User über ein anderes Transportmedium ausserhalb der Gradido-Anwendung an den Empfänger übertragen wird. Der Empfänger wird nicht schon wie üblich beim Erfassen der Transaktionsdaten bestimmt, sondern dies erfolgt in einem späteren Schritt des Übertragungsprozesses in Eigenverantwortung des Users.
+* **asynchrones Senden** : beim asynchronen Senden werden die Daten der Transaktion (Sender, Betrag und ggf. Verwendungszweck) in ein Ausgabe-Medium kodiert, das dann asynchron vom User über ein anderes Transportmedium ausserhalb der Gradido-Anwendung an den Empfänger übertragen wird. Der Empfänger wird nicht schon wie üblich beim Erfassen der Transaktionsdaten bestimmt, sondern dies erfolgt in einem nachgelagerten Schritt des Übertragungsprozesses zum Beispiel in einem Messenger o.ä. in Eigenverantwortung des Users.
   * **Ausgabe-Medium als Link** : die Kodierung der Transaktionsdaten in einen Link eröffnen dem User eine Vielzahl an möglichen Übertragungswege. Der Link kann in Emails, Messages und für ihn sonstige verfügbare Medien kopiert werden, wo er dann in Eigenverantwortung aus seinen persönlichen Kontakten den Empfänger bestimmt.
-  * **Ausgabe-Medium als QR-Code** : die Kodierung der Transaktionsdaten in einen QR-Code ist lediglich die Formatierung in Bildformat statt wie der Link in Text-Format. Der User kann auch den QR-Code in Emails, Messages und für ihn sonstige verfügbare Medien kopieren und übertragen. Letztendlich muss der Empfänger ein optischen QR-Scan mit einem ihm verfügbarem Medium wie beispielsweise Handy-, Tablet- oder PC-Kamera durchführen, um daraus wieder den eigentlichen Link zur Weiterverarbeitung zu erzeugen.
+  * **Ausgabe-Medium als QR-Code** : die Kodierung der Transaktionsdaten in einen QR-Code ist lediglich die Formatierung in Bildformat statt wie der Link in Text-Format. Der User kann auch den QR-Code in Emails, Messages und für ihn sonstige verfügbare Medien kopieren und übertragen. Letztendlich muss der Empfänger ein optischen QR-Scan mit einem ihm verfügbarem Medium wie beispielsweise Handy-, Tablet- oder PC-Kamera durchführen, um den Inhalt des Codes lesen zu können und um daraus wieder den eigentlichen Prozess der Weiterverarbeitung zu starten.
 
 #### Auswahl des Übertragungsweges
 
@@ -52,7 +52,17 @@ Wenn die Auswahl des Übertragungsweges im existierenden Senden-Dialog stattfind
 
 ![UC_Send_Users_Gradido_SendDialogPerLink](.\image\UC_Send_Users_Gradido_SendDialogPerLink.png)
 
-Die Idee zeigt die Auswahl der Übertragungart als Radio-Buttons für "sofort online" - entspricht der bisherigen Art - "per Link" und "per QR-Code". Sobald eine der beiden neuen Arten ausgewählt ist, wird das Empfänger-Feld ausgeblendet und der Text des Sende-Buttons von "Jetzt senden" auf "Jetzt generieren" geändert. Mit drücken des "Jetzt generieren"-Buttons erfolgt die Generierung des Links bzw des QR-Codes aus den erfassten Transaktionsdaten. Der fertig erzeugte Link bzw. QR-Code wird in einem Popup-Fenster zur Anzeige gebracht. Von dort kann der User den Fensterinhalt manuell herauskopieren und in ein anderes Übertragungsmedium wie Email, etc. einfügen bzw. abfotographieren oder in einer Datei lokal speichern.
+Die Idee zeigt die Auswahl der Übertragungart als Radio-Buttons für "sofort online" - entspricht der bisherigen Art - "per Link" und "per QR-Code". Sobald eine der beiden neuen Arten ausgewählt ist, wird das Empfänger-Feld ausgeblendet und der Text des Sende-Buttons von "Jetzt senden" auf "Jetzt generieren" geändert.
+
+Bei bzw. nach der Eingabe des Betrages für eine asynchrone Transaktion muss eine Validierung gegenüber dem Kontostand oder genauer gesagt gegenüber dem noch verfügbaren Betrag durchgeführt werden. Denn eine asynchrone Transaktion unterliegt finanzkalkulatorisch einem anderen Regelwerk als eine synchrone Tranaktion. Die Details des Regelwerks sind im nachfolgenden Kapitel beschrieben. Wenn die Validierung des Betrages für eine asynchrone Transaktion fehlschlägt, muss der "Jetzt generieren"-Button deaktiviert und eine aussagekräftige Fehlermeldung dem User angezeigt werden. Hier eine mögliche Formulierung als Vorschlag:
+
+```
+"Der Betrag X für die Überweisung als Link, inklusive einer einkalkulierten Vergänglichkeitsreserve von Y, wird durch den aktuellen Verfügungsrahmen Z bei Kontostand N nicht gedeckt! "
+```
+
+Sobald der eingegebene Betrag für eine asynchrone Transaktion valide ist, wird der "Jetzt generieren"-Button wieder aktiviert.
+
+Mit drücken des "Jetzt generieren"-Buttons erfolgt die Generierung des Links bzw des QR-Codes aus den erfassten Transaktionsdaten. Der fertig erzeugte Link bzw. QR-Code wird in einem Popup-Fenster zur Anzeige gebracht. Für eine Transaktion als Link kann ein vorkonfigurierter bzw. für den User administrierbarer Meldungstext zusammen mit dem Link angezeigt werden. Der Inhalt des Popup-Fensters - Meldungstext inkl. Link oder QR-Code - kann der User entweder manuell herauskopieren und für den Versand in ein anderes Übertragungsmedium wie Email, Messenger, etc. einfügen, für einen QR-Code-Scan vom Empfänger abfotographieren lassen oder für evtl. spätere Aktionen in einer Datei lokal speichern.
 
 ### Finanzkalkulatorische Logik
 
@@ -64,14 +74,39 @@ Bei der bisherigen Übertragungsart gibt es nur die Regel, dass der eingegebene 
 
 #### per Link / per QR-Code
 
-Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion beim Empfänger gebucht und somit beim Sender valutiert wird. Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit von der konfigurierten maximalen Gültigkeitsdauer berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, den er noch für andere Transaktionen offen hat, muss um den "vorgebuchten" Betrag reduziert werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
+Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion beim Empfänger gebucht und somit beim Sender valutiert wird. Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit für die konfigurierte maximale Gültigkeitsdauer des Links/QR-Codes berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, der ihm noch für andere Transaktionen zur Verfügung steht, muss um den "vorgebuchten" Betrag reduziert und als Verfügbarkeits-Betrag zusätzlich unterhalb des Kontostandes korrigiert angezeigt werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
 
 ![VorgebuchterTransaktionsbetrag](.\image\VorgebuchterTransaktionsbetrag.png)
 
-Diese Berücksichtigung der Vergänglichkeit muss auch bei der Erfassung im Sende-Dialog schon mit einfließen. Es sollte bei der Eingabe des Betrages aber vor dem Aktivieren des "Jetzt generieren"-Buttons eine Validierungs durchgeführt werden, dass der zu blockende Betrag inklusive Vergänglichkeit kleiner als der aktuelle Kontostand ist.
+Diese Berücksichtigung der Vergänglichkeit muss also auch schon bei der Erfassung einer asynchronen Transaktion im Sende-Dialog mit einfließen und sollte bei der Eingabe des Betrages, aber spätestens vor dem Aktivieren des "Jetzt generieren"-Buttons durch eine Validierung sichergestellt werden.
 
+#### Regelwerk
+
+Folgendes Regelwerk gilt es bei der Validierung auszuführen und zu überprüfen:
+
+* Dx = Decay des eingegebenen Betrags X für den konfigurierten MaxAsyncExpiration t (default = 14 Tage)
+* Vo = offener Verfügungsrahmen aus Kontostand K minus Summe aller vorgebuchten Beträge Vb
+* Prüfung auf: Vo > X + Dx
+
+#### Kontoverwaltung
+
+Auch auf die Kontoverwaltung hat die Einführung einer asynchronen Transaktion gewisse Auswirkungen. So muss für die Anzeige der Tranaktionsübersicht eine Möglichkeit für den User geschaffen werden seine *gebuchten* sowie seine *vorgebuchten* Transaktionen auflisten zu können. Der existierende Dialog der Transaktionsübersicht
+
+![.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png](.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png)
+
+zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter. Wie oben beschrieben wird mit Einführung von asynchronen Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich vorgebuchten Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Das folgende Bild zeigt ein Entwurf für den Transaktionsübersicht-Dialog:
+
+![UC_Send_Users_Gradido_TxClosedFunds.png.png](.\image\UC_Send_Users_Gradido_TxClosedFunds.png)
+
+Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene vorgebuchte Transaktionen geringer sein als der eigentliche Kontostand. Oberhalb der Transaktionsliste ist eine Combobox sichtbar, über die der User auswählen kann, ob die darunter liegende Transaktionsliste die schon *gebuchten* Transaktionen oder die *vorgebuchten* und somit noch offenen Transaktionen anzeigen soll. Im nachfolgenden Bild ist die Liste der vorgebuchten Transaktionen zu sehen, die per Combo-Box ausgewählt wurde:
+
+![UC_Send_Users_Gradido_TxReservedFunds.png](.\image\UC_Send_Users_Gradido_TxReservedFunds.png)
+
+Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die vorgebuchte Transaktion als Link oder als QR-Code generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die vorgebuchte Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle vorgebuchten Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen als Verfügbarkeitrahmen geführt wird.
 
 ### Generierung des Links/QR-Codes
+
+ToDo: Partnerlink beachten?
 
 Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
 
@@ -79,8 +114,6 @@ Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
 * Betrag : die Summe, die der Sender dem Empfänger übertragen möchte
 * Secret : ein kryptographisches Geheimnis, das den Empfänger = Besitzer des Links/QR-Codes legitimiert die Transaktion durch führen zu können
 * Verwendungszweck : optionale Nachricht, die den Zweck der Transaktion beschreibt
-
-
 
 [https://community.com/send/1234567890](https://community.com/send/1234567890)
 
@@ -90,11 +123,9 @@ oder für offline-Übertragung per QR-Code:
 
 Die technischen Details des Linkformates bzw. des QR-Codes werden im noch zu erstellenden technischen Konzept näher beschrieben.
 
-
 ### Ausgabe des Links/QR-Codes
 
 Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren.
-
 
 ## Perspektive des Empfängers
 
@@ -135,6 +166,7 @@ Vorschlag: Gültigkeit 14 Tage fest eingestellt.Die Gültigkeitsdauer würde ich
 #### Gradido senden / Betrag blockieren
 
 * Der zu sendende Betrag wird blockiert, d.h. vom verfügbaren Betrag abgezogen.
+* Einstellung des Betrag-Limits im User-Bereich mit Verzug der Gültigkeit  von zB. 1Tag bei Umstellung
 * Zusätzlich wird ein “Vergänglichkeitspuffer” von 3% (ungefähre Vergänglichkeit für 14 Tage, genau 2,63*) des zu sendenden Betrags blockiert, der sicherstellt, dass immer genug auf dem Konto ist, um den Betrag zu transferieren.
 * Der Kontostand bleibt dabei erhalten. Da sich die Vergänglichkeit auf den Kontostand bezieht, braucht sie bei den blockierten Beträgen nicht berücksichtigt zu werden.
 * Die entsprechenden Links / QR-Codes werden erstellt und in der Software zur Verfügung gestellt
