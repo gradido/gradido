@@ -61,21 +61,25 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
-    const creations = await getUserCreations(user.id)
-    const creationDateObj = new Date(creationDate)
-    if (isCreationValid(creations, amount, creationDateObj)) {
-      const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-      const loginPendingTaskAdmin = loginPendingTasksAdminRepository.create()
-      loginPendingTaskAdmin.userId = user.id
-      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-      loginPendingTaskAdmin.created = new Date()
-      loginPendingTaskAdmin.date = creationDateObj
-      loginPendingTaskAdmin.memo = memo
-      loginPendingTaskAdmin.moderator = moderator
+    if (!user.disabled) {
+      const creations = await getUserCreations(user.id)
+      const creationDateObj = new Date(creationDate)
+      if (isCreationValid(creations, amount, creationDateObj)) {
+        const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
+        const loginPendingTaskAdmin = loginPendingTasksAdminRepository.create()
+        loginPendingTaskAdmin.userId = user.id
+        loginPendingTaskAdmin.amount = BigInt(amount * 10000)
+        loginPendingTaskAdmin.created = new Date()
+        loginPendingTaskAdmin.date = creationDateObj
+        loginPendingTaskAdmin.memo = memo
+        loginPendingTaskAdmin.moderator = moderator
 
-      await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+        await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      }
+      return getUserCreations(user.id)
+    } else {
+      throw new Error('Creation could not be saved, Email is not activated')
     }
-    return getUserCreations(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
