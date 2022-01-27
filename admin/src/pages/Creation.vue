@@ -126,6 +126,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.rows = result.data.searchUsers.userCount
@@ -162,8 +163,8 @@ export default {
       }
     },
     removeAllBookmark() {
-      this.itemsMassCreation.forEach((item) => this.itemsList.push(item))
       this.itemsMassCreation = []
+      this.getUsers()
     },
   },
   watch: {

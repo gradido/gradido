@@ -47,7 +47,13 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+        <b-button
+          variant="info"
+          size="md"
+          v-if="row.item.emailChecked"
+          @click="rowToogleDetails(row, 0)"
+          class="mr-2"
+        >
           <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
         </b-button>
       </template>
@@ -161,8 +167,6 @@ import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormul
 import CreationTransactionListFormular from '../components/CreationTransactionListFormular.vue'
 import RowDetails from '../components/RowDetails.vue'
 
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
-
 const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
 
 export default {
@@ -272,7 +276,7 @@ export default {
         this.bookmarkRemove(item)
       }
       if (bookmarkType === 'confirm') {
-        this.bookmarkConfirm(item)
+        this.$emit('confirm-creation', item)
       }
       this.overlay = false
     },
@@ -288,23 +292,8 @@ export default {
       }
 
       if (this.type === 'PageCreationConfirm') {
-        this.$emit('remove-confirm-result', item, 'remove')
+        this.$emit('remove-creation', item)
       }
-    },
-    bookmarkConfirm(item) {
-      this.$apollo
-        .mutate({
-          mutation: confirmPendingCreation,
-          variables: {
-            id: item.id,
-          },
-        })
-        .then(() => {
-          this.$emit('remove-confirm-result', item, 'confirmed')
-        })
-        .catch((error) => {
-          this.$toasted.error(error.message)
-        })
     },
     updateCreationData(data) {
       this.creationUserData.amount = data.amount
