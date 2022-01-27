@@ -61,7 +61,10 @@ export class AdminResolver {
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-
+    const isActivated = await hasActivatedEmail(user.email)
+    if (!isActivated) {
+      throw new Error('Creation could not be saved, Email is not activated')
+    }
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
