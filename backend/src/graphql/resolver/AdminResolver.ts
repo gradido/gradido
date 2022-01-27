@@ -122,28 +122,27 @@ export class AdminResolver {
 
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreations(user.id)
-    creations = updateCreations(creations, pendingCreationToUpdate)
+    if (pendingCreationToUpdate.date.getMonth() === creationDateObj.getMonth()) {
+      creations = updateCreations(creations, pendingCreationToUpdate)
+    }
 
-    if (isCreationValid(creations, amount, creationDateObj)) {
-      // TODO Check if open creation (of creationDate) + amount * 10000 <= 1000
-
-      pendingCreationToUpdate.amount = BigInt(amount * 10000)
-      pendingCreationToUpdate.memo = memo
-      pendingCreationToUpdate.date = new Date(creationDate)
-      pendingCreationToUpdate.moderator = moderator
-
-      await loginPendingTasksAdminRepository.save(pendingCreationToUpdate)
-      const result = new UpdatePendingCreation()
-      result.amount = parseInt(amount.toString())
-      result.memo = pendingCreationToUpdate.memo
-      result.date = pendingCreationToUpdate.date
-      result.moderator = pendingCreationToUpdate.moderator
-      result.creation = await getUserCreations(user.id)
-
-      return result
-    } else {
+    if (!isCreationValid(creations, amount, creationDateObj)) {
       throw new Error('Creation is not valid')
     }
+    pendingCreationToUpdate.amount = BigInt(amount * 10000)
+    pendingCreationToUpdate.memo = memo
+    pendingCreationToUpdate.date = new Date(creationDate)
+    pendingCreationToUpdate.moderator = moderator
+
+    await loginPendingTasksAdminRepository.save(pendingCreationToUpdate)
+    const result = new UpdatePendingCreation()
+    result.amount = parseInt(amount.toString())
+    result.memo = pendingCreationToUpdate.memo
+    result.date = pendingCreationToUpdate.date
+    result.moderator = pendingCreationToUpdate.moderator
+    result.creation = await getUserCreations(user.id)
+
+    return result
   }
 
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
