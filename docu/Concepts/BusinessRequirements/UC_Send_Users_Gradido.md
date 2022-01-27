@@ -94,42 +94,74 @@ Auch auf die Kontoverwaltung hat die Einführung einer asynchronen Transaktion g
 
 ![.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png](.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png)
 
-zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter. Wie oben beschrieben wird mit Einführung von asynchronen Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich vorgebuchten Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Das folgende Bild zeigt ein Entwurf für den Transaktionsübersicht-Dialog:
+zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter. Wie oben beschrieben wird mit Einführung von *asynchronen* Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich *vorgebuchten* Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Das folgende Bild zeigt einen Entwurf für den Transaktionsübersicht-Dialog:
 
 ![UC_Send_Users_Gradido_TxClosedFunds.png.png](.\image\UC_Send_Users_Gradido_TxClosedFunds.png)
 
-Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene vorgebuchte Transaktionen geringer sein als der eigentliche Kontostand. Oberhalb der Transaktionsliste ist eine Combobox sichtbar, über die der User auswählen kann, ob die darunter liegende Transaktionsliste die schon *gebuchten* Transaktionen oder die *vorgebuchten* und somit noch offenen Transaktionen anzeigen soll. Im nachfolgenden Bild ist die Liste der vorgebuchten Transaktionen zu sehen, die per Combo-Box ausgewählt wurde:
+Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. Unterhalb der Anzeige von Kontostand und Verfügbarkeitsrahmen ist eine Combobox sichtbar, über die der User auswählen kann, ob die darunter liegende Transaktionsliste die schon *gebuchten* Transaktionen oder die *vorgebuchten* und somit noch offenen Transaktionen anzeigen soll. Im nachfolgenden Bild ist die Liste der vorgebuchten Transaktionen zu sehen, die per Combo-Box ausgewählt wurde:
 
 ![UC_Send_Users_Gradido_TxReservedFunds.png](.\image\UC_Send_Users_Gradido_TxReservedFunds.png)
 
-Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die vorgebuchte Transaktion als Link oder als QR-Code generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die vorgebuchte Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle vorgebuchten Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen als Verfügbarkeitrahmen geführt wird.
+Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die vorgebuchte Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle vorgebuchten Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen und als verfügbarer Betrag angezeigt wird.
 
 ### Generierung des Links/QR-Codes
 
-ToDo: Partnerlink beachten?
+**ToDo**: PartnerID beachten?
 
 Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
 
 * Gradido-Id des Senders: diese definiert sich gemäß dem Pattern:  `<communityname>`/`<useralias>` und ist im Detail [hier](.\Benutzerverwaltung.md#Gradido-Id) beschrieben.
 * Betrag : die Summe, die der Sender dem Empfänger übertragen möchte
-* Secret : ein kryptographisches Geheimnis, das den Empfänger = Besitzer des Links/QR-Codes legitimiert die Transaktion durch führen zu können
-* Verwendungszweck : optionale Nachricht, die den Zweck der Transaktion beschreibt
+* Secret : ein Key, der zur Ausführung der asynchronen Transaktion die ungebuchten Transaktionsdaten identifiziert
+* Verwendungszweck : Nachricht, die den Zweck der Transaktion beschreibt
 
-[https://community.com/send/1234567890](https://community.com/send/1234567890)
+Aus diesen Daten wird ein Link nach folgendem Pattern erzeugt:
 
-oder für offline-Übertragung per QR-Code:
+https://`<communityname>`/send/`<token>`
 
-[https://community.com/send/1234567890/user/betrag](https://community.com/send/1234567890/user/betrag)
+Das Token wird so generiert, dass es alle fachlich notwendigen Daten beinhaltet, um beim Empfang evtl. Überprüfungen auf fachliche Korrektheit von Betrag, Nachricht oder Gültigkeitsablaufdatum durchführen zu können. Zusätzlich muss das Token die technischen und fachlichen Daten enthalten, die bei der Ausführung der Transaktion die dafür ablaufenden Prozesse korrekt initiiert und gesteuert werden können. Die Details für die Anforderungen beim Empfang des Tokens werden weiter unten im Kapitel *Perspektive des Empfängers* beschrieben.
 
-Die technischen Details des Linkformates bzw. des QR-Codes werden im noch zu erstellenden technischen Konzept näher beschrieben.
+Für die Übertragung per QR-Code wird der zuvor erzeugte Link in ein QR-Code konvertiert. Dabei sind ggf. weitere Konfigurationsdaten wie QR-Code Größe, Korrektur-Level beim QR-Code Scannen und Encoding o.ä. notwendig.
+
+Die technischen Details zum Linkformat bzw. QR-Code werden im noch zu erstellenden technischen Konzept näher beschrieben.
+
 
 ### Ausgabe des Links/QR-Codes
 
-Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren.
+Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren. Die folgenden Bilder zeigen wie eine Ausgabe des Übertragungslinks
+
+![UC_Send_Users_Gradido_TxPopupLink.png](.\image\UC_Send_Users_Gradido_TxPopupLink.png)
+
+bzw. des QR-Codes aussehen könnte.
+
+![UC_Send_Users_Gradido_TxPopupQRCode.png](.\image\UC_Send_Users_Gradido_TxPopupQRCode.png)
+
 
 ## Perspektive des Empfängers
 
 In diesem Kapitel werden alle Aspekte aus Sicht des Empfängers beschrieben. Es werden dabei die Empfangs- und Aktivierungsmöglichkeiten sowie die Interpretation der erhaltenen Daten, die unterschiedlichen Szenarien, die der User durch eine Aktivierung durchlaufen kann und die logischen und finanzkalkulatorischen Schritte des Geldeingangs beschrieben.
+
+
+### Starten der Gradido-Sende Valutierung
+
+Sobald der Empfänger den QR-Code gescannt und zu dem Übertragungslink zurück konvertiert bzw. den Übertragungslink erhalten hat, startet mit der Aktivierung des Übertragungslink der eigentliche Valutierungsprozess des gesendeten Gradido-Betrages.
+
+Der Link führt den User mit einem Request direkt an den Community-Server des Senders. Dieser startet die Dekodierung des im Link enthaltenen Tokens. Als erstes wird geprüft, ob das im Token enthaltene Ablaufdatum noch nicht überschritten ist. Falls dies der Fall sein sollte, dann wird dem User eine Fehlermeldung mit Detailinformationen angezeigt, wie zum Beispiel:
+
+```
+Leider ist die Gültigkeit des am <Erzeugungszeitpunkt> erzeugten Links am <Ablaufzeitpunkt> abgelaufen. Für weitere Fragen wenden sie sich bitte an den Absender, um weitere Details zu klären.
+```
+
+Im Falle eines noch gültigen Tokens wird im zweiten Schritt der im Token enthaltene Key verwendet, um die zu diesem Key gespeicherte *vorgebuchte* Transaktion zu lesen. Falls diese nicht mehr existiert, sprich evtl. schon vorher durch eine Aktivierung valutiert wurde, wird dem User eine Fehlermeldung angezeigt mit detaillierten Informationen wie:
+
+```
+Die zu diesem Link gehörende Transaktion <Betrag, Nachricht, Erzeugungszeitpunkt> ist nicht mehr gültig oder wurde am <Valutierungsdatum>. Zur Klärung weiterer Fragen wenden sie sich bitte an den Absender des Übertrangsungslinks bzw. QR-Codes.
+```
+
+Sind die Daten der vorgebuchten Transaktion noch offen zur Valutierung, dann wird der User jetzt auf eine Seite geleitet, auf der er zwischen einem Loggin oder einer Registrierung auswählen kann. Der Loggin bzw. Registrierungsprozess unterscheidet sich im Zusammenhang einer Valutierung von den Standard-Loggin bzw. Registrierungsprozessen dahin gehend, dass sie im Anschluss nach der erfolgreichen Anmeldung des Users direkt mit der Valutierung weiter fortfahren. Dies muss auch gewährleistet sein, wenn sich der Empfänger bei einer anderen Community als der SenderCommunity angemeldet hat.
+
+
+
 
 ## Brainstorming
 
