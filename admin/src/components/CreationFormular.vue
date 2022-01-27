@@ -3,9 +3,10 @@
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
-      <div class="ml-4">  <label>{{ $t('creation_form.select_month') }}</label></div>
+        <div class="ml-4">
+          <label>{{ $t('creation_form.select_month') }}</label>
+        </div>
         <b-row class="ml-4">
-         
           <b-col>
             <b-form-radio
               id="beforeLastMonth"
