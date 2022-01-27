@@ -73,9 +73,17 @@
 > sudo /etc/init.d/fail2ban restart
 
 # Install gradido
-> sudo apt-get install git
+> sudo apt-get install -y git
+> cd ~
 > git clone https://github.com/gradido/gradido.git
-> cd gradido/deployment/bare_metal
+
+# Timezone
+# Note: This is not needed - UTC(default) is REQUIRED for production data
+# > sudo timedatectl set-timezone UTC
+# > sudo timedatectl set-ntp on
+# > sudo apt purge ntp
+# > sudo systemctl start systemd-timesyncd
+# >> timedatectl to verify
 
 # Adjust .env
 # NOTE ';' can not be part of any value

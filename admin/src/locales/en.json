@@ -12,6 +12,9 @@
     "select_value": "Select amount",
     "submit_creation": "Submit creation",
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
+    "toasted_created": "Creation has been successfully saved",
+    "toasted_default": "`Case {event} is not supported`",
+    "toasted_delete": "Open creation has been deleted",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
@@ -52,6 +55,11 @@
   "remove": "Remove",
   "transaction": "Transaction",
   "transactionlist": {
+    "amount": "Amount",
+    "community": "Community",
+    "date": "Date",
+    "decay": "Decay",
+    "memo": "Message",
     "title": "All creation-transactions for the user"
   },
   "unregistered_emails": "Only unregistered users",

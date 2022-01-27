@@ -60,7 +60,6 @@
   </b-card>
 </template>
 <script>
-import { localeChanged } from 'vee-validate'
 import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
 import { updateUserInfos } from '../../../graphql/mutations'
 
@@ -97,8 +96,6 @@ export default {
         })
         .then(() => {
           this.$store.commit('language', this.language)
-          this.$i18n.locale = this.language
-          localeChanged(this.language)
           this.cancelEdit()
           this.$toasted.success(this.$t('settings.language.success'))
         })

@@ -503,7 +503,7 @@ export class TransactionResolver {
       email: userEntity.email,
     })
     if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum / 100) || 0
+    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
@@ -584,6 +584,7 @@ export class TransactionResolver {
         -centAmount,
         queryRunner,
       )
+
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
         recipiantUser,
@@ -599,6 +600,7 @@ export class TransactionResolver {
         transaction.received,
         queryRunner,
       )
+
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
         recipiantUser,
