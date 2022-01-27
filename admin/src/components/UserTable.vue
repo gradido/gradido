@@ -47,7 +47,13 @@
       </template>
 
       <template #cell(show_details)="row">
-        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+        <b-button
+          variant="info"
+          size="md"
+          v-if="row.item.emailChecked"
+          @click="rowToogleDetails(row, 0)"
+          class="mr-2"
+        >
           <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
         </b-button>
       </template>
