@@ -3,9 +3,11 @@
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
-        <b-row class="m-4">
+        <div class="ml-4">
           <label>{{ $t('creation_form.select_month') }}</label>
-          <b-col class="text-left">
+        </div>
+        <b-row class="ml-4">
+          <b-col>
             <b-form-radio
               id="beforeLastMonth"
               v-model="radioSelected"
@@ -33,7 +35,7 @@
               </label>
             </b-form-radio>
           </b-col>
-          <b-col class="text-right">
+          <b-col>
             <b-form-radio
               id="currentMonth"
               v-model="radioSelected"
@@ -49,7 +51,7 @@
           </b-col>
         </b-row>
 
-        <b-row class="m-4" v-show="createdIndex != null">
+        <div class="m-4" v-show="createdIndex != null">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -71,8 +73,8 @@
               ></b-form-input>
             </b-input-group>
           </div>
-        </b-row>
-        <b-row class="m-4">
+        </div>
+        <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
             <b-form-textarea
@@ -83,9 +85,9 @@
               rows="3"
             ></b-form-textarea>
           </div>
-        </b-row>
+        </div>
         <b-row class="m-4">
-          <b-col class="text-center">
+          <b-col class="text-left">
             <b-button type="reset" variant="danger" @click="$refs.creationForm.reset()">
               {{ $t('creation_form.reset') }}
             </b-button>
