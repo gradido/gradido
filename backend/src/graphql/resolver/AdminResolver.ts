@@ -60,8 +60,8 @@ export class AdminResolver {
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-
-    if (!user.disabled) {
+    const isActivated = await hasActivatedEmail(user.email)
+    if (isActivated) {
       const creations = await getUserCreations(user.id)
       const creationDateObj = new Date(creationDate)
       if (isCreationValid(creations, amount, creationDateObj)) {
