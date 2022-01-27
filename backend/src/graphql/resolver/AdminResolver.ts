@@ -23,6 +23,7 @@ import { UserTransactionRepository } from '../../typeorm/repository/UserTransact
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
 
 @Resolver()
 export class AdminResolver {
@@ -116,22 +117,32 @@ export class AdminResolver {
     const user = await userRepository.findByEmail(email)
 
     const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const updatedCreation = await loginPendingTasksAdminRepository.findOneOrFail({ id })
+    const pendingCreationToUpdate = await loginPendingTasksAdminRepository.findOneOrFail({ id })
 
-    if (updatedCreation.userId !== user.id)
+    if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
+    }
 
-    updatedCreation.amount = BigInt(amount * 10000)
-    updatedCreation.memo = memo
-    updatedCreation.date = new Date(creationDate)
-    updatedCreation.moderator = moderator
+    const creationDateObj = new Date(creationDate)
+    let creations = await getUserCreations(user.id)
+    if (pendingCreationToUpdate.date.getMonth() === creationDateObj.getMonth()) {
+      creations = updateCreations(creations, pendingCreationToUpdate)
+    }
 
-    await loginPendingTasksAdminRepository.save(updatedCreation)
+    if (!isCreationValid(creations, amount, creationDateObj)) {
+      throw new Error('Creation is not valid')
+    }
+    pendingCreationToUpdate.amount = BigInt(amount * 10000)
+    pendingCreationToUpdate.memo = memo
+    pendingCreationToUpdate.date = new Date(creationDate)
+    pendingCreationToUpdate.moderator = moderator
+
+    await loginPendingTasksAdminRepository.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
     result.amount = parseInt(amount.toString())
-    result.memo = updatedCreation.memo
-    result.date = updatedCreation.date
-    result.moderator = updatedCreation.moderator
+    result.memo = pendingCreationToUpdate.memo
+    result.date = pendingCreationToUpdate.date
+    result.moderator = pendingCreationToUpdate.moderator
     result.creation = await getUserCreations(user.id)
 
     return result
@@ -323,6 +334,28 @@ async function getUserCreations(id: number): Promise<number[]> {
     1000 - usedCreationLastMonth,
     1000 - usedCreationCurrentMonth,
   ]
+}
+
+function updateCreations(creations: number[], pendingCreation: LoginPendingTasksAdmin): number[] {
+  const dateMonth = moment().format('YYYY-MM')
+  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
+  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
+  const creationDateMonth = moment(pendingCreation.date).format('YYYY-MM')
+
+  switch (creationDateMonth) {
+    case dateMonth:
+      creations[2] += parseInt(pendingCreation.amount.toString())
+      break
+    case dateLastMonth:
+      creations[1] += parseInt(pendingCreation.amount.toString())
+      break
+    case dateBeforeLastMonth:
+      creations[0] += parseInt(pendingCreation.amount.toString())
+      break
+    default:
+      throw new Error('UpdatedCreationDate is not in the last three months')
+  }
+  return creations
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
