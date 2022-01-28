@@ -2,7 +2,7 @@ import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 
 import Toasted from 'vue-toasted'
-
+import PortalVue from 'portal-vue'
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
@@ -25,6 +25,7 @@ export default {
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)
+    Vue.use(PortalVue)
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
