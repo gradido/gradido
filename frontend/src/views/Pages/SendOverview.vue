@@ -27,8 +27,6 @@
       </gdd-send>
       <hr />
     </b-container>
-    <b-button variant="secondary" @click="makeToast('secondary')" class="mb-2">Secondary</b-button>
-   
   </div>
 </template>
 <script>
@@ -74,13 +72,6 @@ export default {
     },
   },
   methods: {
-     makeToast(variant = null) {
-        this.$bvToast.toast('Toast body content', {
-          title: `Variant ${variant || 'default'}`,
-          variant: variant,
-          solid: true
-        })
-      },
     setTransaction(data) {
       this.transactionData = { ...data }
       this.currentTransactionStep = 1
