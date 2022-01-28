@@ -1,4 +1,6 @@
- @import "~bootstrap/scss/functions";
+
+
+@import "~bootstrap/scss/functions";
 
 @import "custom/variables";
 // @import "~bootstrap/scss/variables"; wird am 
@@ -33,3 +35,4 @@
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/variables";
 
+@import '~bootstrap-vue/src/index.scss';
