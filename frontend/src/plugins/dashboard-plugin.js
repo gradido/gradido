@@ -3,6 +3,7 @@ import GlobalDirectives from './globalDirectives'
 
 import Toasted from 'vue-toasted'
 import PortalVue from 'portal-vue'
+
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
