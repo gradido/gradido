@@ -37,7 +37,6 @@
     "flatpickr": "^4.5.7",
     "flush-promises": "^1.0.2",
     "fuse.js": "^3.2.0",
-    "google-maps": "^3.2.1",
     "graphql": "^15.5.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^26.6.3",
