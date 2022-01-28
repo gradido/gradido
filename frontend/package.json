@@ -40,7 +40,6 @@
     "flatpickr": "^4.5.7",
     "flush-promises": "^1.0.2",
     "graphql": "^15.5.1",
-    "identity-obj-proxy": "^3.0.0",
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.1",
     "jest-environment-jsdom-sixteen": "^2.0.0",
