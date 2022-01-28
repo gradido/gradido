@@ -53,7 +53,6 @@
     "vue-apollo": "^3.0.7",
     "vue-cli-plugin-i18n": "^1.0.1",
     "vue-clickaway": "^2.2.2",
-    "vue-clipboard2": "^0.3.0",
     "vue-flatpickr-component": "^8.1.2",
     "vue-focus": "^2.1.0",
     "vue-i18n": "^8.22.4",
