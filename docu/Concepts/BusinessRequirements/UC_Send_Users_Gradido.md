@@ -193,6 +193,8 @@ Der eigentliche Valutierungsprozess kann erst starten, sobald durch ein Login bz
   * Generierungszeitpunkt : der Zeitpunkt an dem die vorgebuchte Transaktion generiert wurde
   * Key : der Primärschlüssel der vorgebuchten Transaktion für einen Direktzugriff auf die schon gespeicherten Daten
 
+
+
 ## Brainstorming
 
 Kopie aus dem Original-Dokument von Bernd:
