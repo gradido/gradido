@@ -299,7 +299,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`
     INSERT INTO \`state_errors\` VALUES
       (9,11,1,'2020-08-07 10:40:03','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'),
-      (17,528,2,'2021-02-10 08:04:32','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"sender 0 hasn't enough GDD"}]}'),
+      (17,528,2,'2021-02-10 08:04:32','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"sender 0 hasn\\'t enough GDD"}]}'),
       (115,82,1,'2021-09-01 11:14:25','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'),
       (119,82,1,'2021-09-06 18:55:55','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'),
       (138,502,1,'2021-10-31 00:00:32','{"state":"error","msg":"error validate transaction","details":[{"TransactionCreation::validate":"Creation more than 1.000 GDD per Month for  in target_date not allowed"}]}'),
