@@ -102,29 +102,36 @@ Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der f
 
 ![UC_Send_Users_Gradido_TxReservedFunds.png](.\image\UC_Send_Users_Gradido_TxReservedFunds.png)
 
-Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die vorgebuchte Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle vorgebuchten Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen und als verfügbarer Betrag angezeigt wird.
+Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die *vorgebuchte* Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle *vorgebuchten* Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen und als verfügbarer Betrag angezeigt wird.
+
+#### ToDo:
+
+Die weiteren technischen Anforderungen, die sich aus der beschriebenen Anzeige und Verarbeitung von *gebuchten* und *vorgebuchten* Transaktionen für das Backend und die Persistenz ergeben, werden im noch zu erstellenden *Technischen Konzept* zu diesem UseCase beschrieben.
 
 ### Generierung des Links/QR-Codes
 
-**ToDo**: PartnerID beachten?
+#### **ToDo**:
+
+PartnerID beachten?
 
 Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
 
 * Gradido-Id des Senders: diese definiert sich gemäß dem Pattern:  `<communityname>`/`<useralias>` und ist im Detail [hier](.\Benutzerverwaltung.md#Gradido-Id) beschrieben.
 * Betrag : die Summe, die der Sender dem Empfänger übertragen möchte
-* Secret : ein Key, der zur Ausführung der asynchronen Transaktion die ungebuchten Transaktionsdaten identifiziert
+* Secret : ein Key, der zur Ausführung der asynchronen Transaktion die *ungebuchten* Transaktionsdaten beim Sender identifiziert und kryptographisch sicherstellt, dass die ursprünglich gesendeten Daten nicht verfälscht sind.
 * Verwendungszweck : Nachricht, die den Zweck der Transaktion beschreibt
 
 Aus diesen Daten wird ein Link nach folgendem Pattern erzeugt:
 
 https://`<communityname>`/send/`<token>`
 
-Das Token wird so generiert, dass es alle fachlich notwendigen Daten beinhaltet, um beim Empfang evtl. Überprüfungen auf fachliche Korrektheit von Betrag, Nachricht oder Gültigkeitsablaufdatum durchführen zu können. Zusätzlich muss das Token die technischen und fachlichen Daten enthalten, die bei der Ausführung der Transaktion die dafür ablaufenden Prozesse korrekt initiiert und gesteuert werden können. Die Details für die Anforderungen beim Empfang des Tokens werden weiter unten im Kapitel *Perspektive des Empfängers* beschrieben.
+Das Token wird so generiert, dass es alle fachlich notwendigen Daten beinhaltet, um beim Empfänger evtl. Überprüfungen auf fachliche Korrektheit von Betrag, Nachricht oder Gültigkeitsablaufdatum durchführen zu können. Zusätzlich muss das Token die technischen und fachlichen Daten enthalten, dass die bei der Ausführung der Transaktion ablaufenden Prozesse korrekt initiiert und gesteuert werden können. Die Details für die Anforderungen beim Empfang des Tokens werden weiter unten im Kapitel *Perspektive des Empfängers* beschrieben.
 
-Für die Übertragung per QR-Code wird der zuvor erzeugte Link in ein QR-Code konvertiert. Dabei sind ggf. weitere Konfigurationsdaten wie QR-Code Größe, Korrektur-Level beim QR-Code Scannen und Encoding o.ä. notwendig.
+Für die Übertragung per QR-Code wird der zuvor erzeugte Link in ein QR-Code konvertiert. Dabei sind ggf. weitere Konfigurationsdaten wie QR-Code Größe, Korrektur-Level für das QR-Code Scannen und Encoding o.ä. notwendig.
 
-Die technischen Details zum Linkformat bzw. QR-Code werden im noch zu erstellenden technischen Konzept näher beschrieben.
+#### ToDo:
 
+Die technischen Details zum Linkformat bzw. QR-Code werden im noch zu erstellenden *Technischen Konzept* näher beschrieben.
 
 ### Ausgabe des Links/QR-Codes
 
@@ -136,30 +143,55 @@ bzw. des QR-Codes aussehen könnte.
 
 ![UC_Send_Users_Gradido_TxPopupQRCode.png](.\image\UC_Send_Users_Gradido_TxPopupQRCode.png)
 
-
 ## Perspektive des Empfängers
 
 In diesem Kapitel werden alle Aspekte aus Sicht des Empfängers beschrieben. Es werden dabei die Empfangs- und Aktivierungsmöglichkeiten sowie die Interpretation der erhaltenen Daten, die unterschiedlichen Szenarien, die der User durch eine Aktivierung durchlaufen kann und die logischen und finanzkalkulatorischen Schritte des Geldeingangs beschrieben.
 
+### Aktivierung und Validierung des Links
 
-### Starten der Gradido-Sende Valutierung
-
-Sobald der Empfänger den QR-Code gescannt und zu dem Übertragungslink zurück konvertiert bzw. den Übertragungslink erhalten hat, startet mit der Aktivierung des Übertragungslink der eigentliche Valutierungsprozess des gesendeten Gradido-Betrages.
+Sobald der Empfänger den QR-Code erhalten, gescannt und zu dem Übertragungslink zurück konvertiert bzw. den Übertragungslink erhalten hat, startet mit der Aktivierung des Übertragungslink der eigentliche Valutierungsprozess des gesendeten Gradido-Betrages.
 
 Der Link führt den User mit einem Request direkt an den Community-Server des Senders. Dieser startet die Dekodierung des im Link enthaltenen Tokens. Als erstes wird geprüft, ob das im Token enthaltene Ablaufdatum noch nicht überschritten ist. Falls dies der Fall sein sollte, dann wird dem User eine Fehlermeldung mit Detailinformationen angezeigt, wie zum Beispiel:
 
 ```
-Leider ist die Gültigkeit des am <Erzeugungszeitpunkt> erzeugten Links am <Ablaufzeitpunkt> abgelaufen. Für weitere Fragen wenden sie sich bitte an den Absender, um weitere Details zu klären.
+Leider ist die Gültigkeit des am <Erzeugungszeitpunkt> erzeugten Links am <Ablaufzeitpunkt> abgelaufen. Zur Klärung von Details und weiteren Fragen wenden sie sich bitte an den Absender, von dem sie diesen Link erhalten haben.
 ```
 
-Im Falle eines noch gültigen Tokens wird im zweiten Schritt der im Token enthaltene Key verwendet, um die zu diesem Key gespeicherte *vorgebuchte* Transaktion zu lesen. Falls diese nicht mehr existiert, sprich evtl. schon vorher durch eine Aktivierung valutiert wurde, wird dem User eine Fehlermeldung angezeigt mit detaillierten Informationen wie:
+Es wird mit Absicht keine Detailinformationen des Absenders in der Fehlermeldung preisgegeben, da nicht bekannt bzw. sichergestellt ist, ob der User, der den Link aktiviert auch der ist, der den Link ursprünglich vom Empfänger erhalten hat.
+
+Im Falle eines noch gültigen Tokens wird im zweiten Schritt der im Token enthaltene Key verwendet, um die zu diesem Key gespeicherte *vorgebuchte* Transaktion zu lesen. Falls diese nicht mehr als offene Transaktion existiert, sprich evtl. schon vorher durch eine Aktivierung valutiert wurde, wird dem User eine Fehlermeldung angezeigt mit detaillierten Informationen wie:
 
 ```
-Die zu diesem Link gehörende Transaktion <Betrag, Nachricht, Erzeugungszeitpunkt> ist nicht mehr gültig oder wurde am <Valutierungsdatum>. Zur Klärung weiterer Fragen wenden sie sich bitte an den Absender des Übertrangsungslinks bzw. QR-Codes.
+Die zu diesem Link gehörende Transaktion <Betrag, Nachricht, Erzeugungszeitpunkt> ist nicht mehr gültig oder wurde am <Valutierungsdatum> schon eingelöst. Zur Klärung weiterer Fragen wenden sie sich bitte an den Absender, von dem sie diesen Übertrangsungslinks bzw. QR-Codes erhalten haben.
 ```
 
-Sind die Daten der vorgebuchten Transaktion noch offen zur Valutierung, dann wird der User jetzt auf eine Seite geleitet, auf der er zwischen einem Loggin oder einer Registrierung auswählen kann. Der Loggin bzw. Registrierungsprozess unterscheidet sich im Zusammenhang einer Valutierung von den Standard-Loggin bzw. Registrierungsprozessen dahin gehend, dass sie im Anschluss nach der erfolgreichen Anmeldung des Users direkt mit der Valutierung weiter fortfahren. Dies muss auch gewährleistet sein, wenn sich der Empfänger bei einer anderen Community als der SenderCommunity angemeldet hat.
+Konnten die Daten der *vorgebuchten* Transaktion zu diesem Key gelesen werden, erfolgt vor dem Starten des eigentlichen Valutierungsprozesses eine inhaltliche Prüfung, ob die Link-Daten zu den gelesenen Daten auch passen, um sicherzugehen, dass keine Manipulationen im Link stattgefunden haben.
 
+#### ToDo:
+
+Wie diese Überprüfung technisch umgesetzt wird, bleibt hier im Detail offen und wird im *Technischen Konzept* näher beschrieben.
+
+Ein mögliche Variante wäre, dass beim Generieren des Links eine Checksumme über den fachlichen Inhalt erzeugt wird, die zusammen mit dem Key in der Datenbank gespeichert ist. Die Checksumme muss zu den fachlichen Daten im Link und in den gelesenen Daten passen, ansonsten gibt es eine Fehlermeldung.
+
+### Start der Valutierung
+
+Mit erfolgreicher *Validierung des Links* wird der User jetzt auf eine Seite geleitet, auf der er zwischen einem Login oder einer Registrierung auswählen kann. Sobald zukünftig Communities unterstützt werden, muss auf dieser Login- bzw. Registrierungsseite auch die Auswahl einer Community möglich sein. Der Login- bzw. Registrierungsprozess unterscheidet sich im Zusammenhang einer Valutierung von den Standard-Login- bzw. -Registrierungsprozessen dahin gehend, dass sie im Anschluss nach der erfolgreichen Anmeldung des Users direkt mit dem Valutierungsprozess weiter fortfahren. Dies muss auch gewährleistet sein, wenn sich der Empfänger bei einer anderen Community als der Sender-Community angemeldet hat. Dies zieht zusätzliche Kommunikationsschritte zwischen den beiden Community-Servern nach sich, da erst mit dem Login bzw. der Registrierung die eigentliche *Empfänger-ID* (Gradido-ID des Empfängers) bekannt und für den *Valutierungsprozess* nutzbar ist.
+
+Um diese einzelnen Schritte nocheinmal zu verdeutlichen stellt das nachfolgende Bild dies schemenhaft dar:
+
+![UC_Send_Users_Gradido_StartValutierung.png](.\image\UC_Send_Users_Gradido_StartValutierung.png)
+
+### Valutierungsprozess
+
+Der eigentliche Valutierungsprozess kann erst starten, sobald durch ein Login bzw. eine Registrierung die *Empfänger-ID* bekannt ist. Somit erhält der Valutierungsprozess folgende Eingabeparameter:
+
+* Sender-ID : die Gradido-ID des Senders
+* Empfänger-ID : die Gradido-ID des Empfängers
+* Tx-Daten :
+  * Betrag : der Betrag, der mit der vorgebuchten Transaktion ausgezahlt werden soll
+  * Nachricht : der Verwendungszweck der Transaktion
+  * Generierungszeitpunkt : der Zeitpunkt an dem die vorgebuchte Transaktion generiert wurde
+  * Key : der Primärschlüssel der vorgebuchten Transaktion für einen Direktzugriff auf die schon gespeicherten Daten
 
 
 
