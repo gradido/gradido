@@ -29,7 +29,7 @@ describe('dashboard plugin', () => {
   })
 
   describe('vue toasted', () => {
-    const toastedAction = vueUseMock.mock.calls[8][1].action.onClick
+    const toastedAction = vueUseMock.mock.calls[9][1].action.onClick
     const goAwayMock = jest.fn()
     const toastObject = {
       goAway: goAwayMock,
