@@ -242,6 +242,8 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   // NOTE: This data is not used - therefore we remove it.
   //       This data is aligned to the `server_users` table except the entry 4,
   //       this one is missing in the other table
+  //       and after checking with administration, we figured out that
+  //       this is a data fragement no longer needed.
   await queryFn(`
     INSERT INTO \`login_user_roles\` VALUES
       (1,28,1),
