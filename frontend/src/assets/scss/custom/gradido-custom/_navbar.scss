@@ -1,0 +1,49 @@
+// Navbar
+
+$navbar-transition:                 all .15s linear !default;
+$navbar-padding-y:                  1rem !default;
+$navbar-padding-x:                  1rem !default;
+
+$navbar-nav-link-padding-x:         1rem !default;
+$navbar-nav-link-padding-y:         1rem !default;
+
+$navbar-nav-link-font-size:         .9rem !default;
+$navbar-nav-link-font-weight:       400 !default;
+$navbar-nav-link-text-transform:    normal !default;
+$navbar-nav-link-letter-spacing:    0 !default;
+$navbar-nav-link-border-radius:     $border-radius !default;
+
+$navbar-search-width:               270px !default;
+$navbar-search-bg:                  transparent !default;
+
+$navbar-search-border-radius:       2rem !default;
+$navbar-search-border-width:        2px !default;
+
+$navbar-dark-bg:                    transparent !default;
+$navbar-dark-hover-bg:              rgba(255, 255, 255, .1) !default;
+$navbar-dark-active-bg:             rgba(255, 255, 255, .1) !default;
+$navbar-dark-color:                 rgba($white, .95) !default;
+$navbar-dark-hover-color:           rgba($white, .65) !default;
+$navbar-dark-active-color:          rgba($white, .65) !default;
+$navbar-dark-disabled-color:        rgba($white, .25) !default;
+$navbar-dark-toggler-border-color:  transparent !default;
+
+$navbar-search-dark-border-color:   rgba(255, 255, 255, .6) !default;
+$navbar-search-dark-color:          rgba(255, 255, 255, .6) !default;
+$navbar-search-dark-focus-border-color: rgba(255, 255, 255, .9) !default;
+$navbar-search-dark-focus-color:    rgba(255, 255, 255, .9) !default;
+
+$navbar-light-bg:                   transparent !default;
+$navbar-light-hover-bg:             rgba(0, 0, 0, .1) !default;
+$navbar-light-active-bg:            rgba(0, 0, 0, .1) !default;
+$navbar-light-border-color:         $gray-100 !default;
+$navbar-light-color:                rgba($black, .5) !default;
+$navbar-light-hover-color:          rgba($black, .7) !default;
+$navbar-light-active-color:         rgba($black, .9) !default;
+$navbar-light-disabled-color:       rgba($black, .3) !default;
+$navbar-light-toggler-border-color: transparent !default;
+
+$navbar-search-light-border-color:  rgba(0, 0, 0, .6) !default;
+$navbar-search-light-color:          rgba(0, 0, 0, .6) !default;
+$navbar-search-light-focus-border-color: rgba(0, 0, 0, .9) !default;
+$navbar-search-light-focus-color:    rgba(0, 0, 0, .9) !default;

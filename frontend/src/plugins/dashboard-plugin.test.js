@@ -6,6 +6,8 @@ import GlobalDirectives from './globalDirectives'
 
 import Toasted from 'vue-toasted'
 
+import './assets/scss/app.scss'
+
 jest.mock('./globalComponents')
 jest.mock('./globalDirectives')
 jest.mock('vue-toasted')

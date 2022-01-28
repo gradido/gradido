@@ -6,9 +6,7 @@ import Toasted from 'vue-toasted'
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
-// asset imports
-import '@/assets/scss/argon.scss'
-import '@/assets/vendor/nucleo/css/nucleo.css'
+import '@/assets/scss/gradido.scss'
 
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
