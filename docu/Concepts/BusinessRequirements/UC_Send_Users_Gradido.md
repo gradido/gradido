@@ -20,7 +20,7 @@ In diesem Kapitel werden alle Aspekte aus Sicht des Senders beschrieben. Es werd
 
 Der User öffnet in seinem Gradido-Konto die Anzeige zum Senden von Gradidos:
 
-![.\image\UC_Send_Users_Gradido_SendDialog.png](.\image\UC_Send_Users_Gradido_SendDialog.png)
+![./image/UC_Send_Users_Gradido_SendDialog.png](./image/UC_Send_Users_Gradido_SendDialog.png)
 
 Vorausgesetzt der User hat auf seinem GDD-Konto ein Guhaben, dann kann er (bisher) einem ihm bzw. dem System bekannten anderen User einen beliebigen Betrag innerhalb seines Verfügungsrahmens direkt *synchron* senden.
 
@@ -50,7 +50,7 @@ Wenn die Auswahl des Übertragungsweges ob synchron,  asynchron per Link oder as
 
 Wenn die Auswahl des Übertragungsweges im existierenden Senden-Dialog stattfinden soll, dann muss der existierende Senden-Dialog entsprechend angepasst und in der Logik überarbeitet werden. Die nachfolgende Skizze zeigt einen möglichen Entwurf:
 
-![UC_Send_Users_Gradido_SendDialogPerLink](.\image\UC_Send_Users_Gradido_SendDialogPerLink.png)
+![UC_Send_Users_Gradido_SendDialogPerLink](./image/UC_Send_Users_Gradido_SendDialogPerLink.png)
 
 Die Idee zeigt die Auswahl der Übertragungart als Radio-Buttons für "sofort online" - entspricht der bisherigen Art - "per Link" und "per QR-Code". Sobald eine der beiden neuen Arten ausgewählt ist, wird das Empfänger-Feld ausgeblendet und der Text des Sende-Buttons von "Jetzt senden" auf "Jetzt generieren" geändert.
 
@@ -76,7 +76,7 @@ Bei der bisherigen Übertragungsart gibt es nur die Regel, dass der eingegebene 
 
 Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion beim Empfänger gebucht und somit beim Sender valutiert wird. Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit für die konfigurierte maximale Gültigkeitsdauer des Links/QR-Codes berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, der ihm noch für andere Transaktionen zur Verfügung steht, muss um den "vorgebuchten" Betrag reduziert und als Verfügbarkeits-Betrag zusätzlich unterhalb des Kontostandes korrigiert angezeigt werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
 
-![VorgebuchterTransaktionsbetrag](.\image\VorgebuchterTransaktionsbetrag.png)
+![VorgebuchterTransaktionsbetrag](./image/VorgebuchterTransaktionsbetrag.png)
 
 Diese Berücksichtigung der Vergänglichkeit muss also auch schon bei der Erfassung einer asynchronen Transaktion im Sende-Dialog mit einfließen und sollte bei der Eingabe des Betrages, aber spätestens vor dem Aktivieren des "Jetzt generieren"-Buttons durch eine Validierung sichergestellt werden.
 
@@ -92,15 +92,15 @@ Folgendes Regelwerk gilt es bei der Validierung auszuführen und zu überprüfen
 
 Auch auf die Kontoverwaltung hat die Einführung einer asynchronen Transaktion gewisse Auswirkungen. So muss für die Anzeige der Tranaktionsübersicht eine Möglichkeit für den User geschaffen werden seine *gebuchten* sowie seine *vorgebuchten* Transaktionen auflisten zu können. Der existierende Dialog der Transaktionsübersicht
 
-![.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png](.\image\UC_Send_Users_Gradido_TxÜbersichtDialog.png)
+![./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png](./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png)
 
 zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter. Wie oben beschrieben wird mit Einführung von *asynchronen* Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich *vorgebuchten* Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Das folgende Bild zeigt einen Entwurf für den Transaktionsübersicht-Dialog:
 
-![UC_Send_Users_Gradido_TxClosedFunds.png.png](.\image\UC_Send_Users_Gradido_TxClosedFunds.png)
+![UC_Send_Users_Gradido_TxClosedFunds.png.png](./image/UC_Send_Users_Gradido_TxClosedFunds.png)
 
 Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. Unterhalb der Anzeige von Kontostand und Verfügbarkeitsrahmen ist eine Combobox sichtbar, über die der User auswählen kann, ob die darunter liegende Transaktionsliste die schon *gebuchten* Transaktionen oder die *vorgebuchten* und somit noch offenen Transaktionen anzeigen soll. Im nachfolgenden Bild ist die Liste der vorgebuchten Transaktionen zu sehen, die per Combo-Box ausgewählt wurde:
 
-![UC_Send_Users_Gradido_TxReservedFunds.png](.\image\UC_Send_Users_Gradido_TxReservedFunds.png)
+![UC_Send_Users_Gradido_TxReservedFunds.png](./image/UC_Send_Users_Gradido_TxReservedFunds.png)
 
 Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die *vorgebuchte* Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle *vorgebuchten* Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen und als verfügbarer Betrag angezeigt wird.
 
@@ -137,11 +137,11 @@ Die technischen Details zum Linkformat bzw. QR-Code werden im noch zu erstellend
 
 Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren. Die folgenden Bilder zeigen wie eine Ausgabe des Übertragungslinks
 
-![UC_Send_Users_Gradido_TxPopupLink.png](.\image\UC_Send_Users_Gradido_TxPopupLink.png)
+![UC_Send_Users_Gradido_TxPopupLink.png](./image/UC_Send_Users_Gradido_TxPopupLink.png)
 
 bzw. des QR-Codes aussehen könnte.
 
-![UC_Send_Users_Gradido_TxPopupQRCode.png](.\image\UC_Send_Users_Gradido_TxPopupQRCode.png)
+![UC_Send_Users_Gradido_TxPopupQRCode.png](./image/UC_Send_Users_Gradido_TxPopupQRCode.png)
 
 ## Perspektive des Empfängers
 
@@ -179,7 +179,7 @@ Mit erfolgreicher *Validierung des Links* wird der User jetzt auf eine Seite gel
 
 Um diese einzelnen Schritte nocheinmal zu verdeutlichen stellt das nachfolgende Bild dies schemenhaft dar:
 
-![UC_Send_Users_Gradido_StartValutierung.png](.\image\UC_Send_Users_Gradido_StartValutierung.png)
+![UC_Send_Users_Gradido_StartValutierung.png](./image/UC_Send_Users_Gradido_StartValutierung.png)
 
 ### Valutierungsprozess
 
@@ -192,8 +192,6 @@ Der eigentliche Valutierungsprozess kann erst starten, sobald durch ein Login bz
   * Nachricht : der Verwendungszweck der Transaktion
   * Generierungszeitpunkt : der Zeitpunkt an dem die vorgebuchte Transaktion generiert wurde
   * Key : der Primärschlüssel der vorgebuchten Transaktion für einen Direktzugriff auf die schon gespeicherten Daten
-
-
 
 ## Brainstorming
 
