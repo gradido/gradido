@@ -45,6 +45,7 @@
     "jest-environment-jsdom-sixteen": "^2.0.0",
     "particles-bg-vue": "1.2.3",
     "prettier": "^2.2.1",
+    "identity-obj-proxy": "^3.0.0",
     "qrcode": "^1.4.4",
     "regenerator-runtime": "^0.13.7",
     "vee-validate": "^3.4.5",
