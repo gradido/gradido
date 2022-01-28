@@ -10,9 +10,6 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import '@/assets/scss/argon.scss'
 import '@/assets/vendor/nucleo/css/nucleo.css'
 
-import VueQrcodeReader from 'vue-qrcode-reader'
-import VueQrcode from 'vue-qrcode'
-
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 
@@ -30,8 +27,6 @@ export default {
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)
-    Vue.use(VueQrcodeReader)
-    Vue.use(VueQrcode)
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
