@@ -45,7 +45,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   `)
   await queryFn(`
     INSERT INTO transaction_signatures (transaction_id, signature, pubkey)
-      VALUES (SELECT id as transaction_id, signature, pubkey FROM transactions WHERE signature IS NOT NULL and pubkey IS NOT NULL);
+      (SELECT id as transaction_id, signature, pubkey FROM transactions WHERE signature IS NOT NULL and pubkey IS NOT NULL);
   `)
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `pubkey`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `signature`;')
