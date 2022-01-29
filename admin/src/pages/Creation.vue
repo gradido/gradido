@@ -31,7 +31,7 @@
           v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
-          :itemsUser="itemsMassCreation"
+          :itemsUser="itemsMassCreationReverse"
           :fieldsTable="fields"
           :criteria="null"
           :creation="creation"
@@ -105,6 +105,7 @@ export default {
       ],
       itemsList: [],
       itemsMassCreation: [],
+      itemsMassCreationReverse: [],
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
@@ -161,6 +162,8 @@ export default {
         default:
           throw new Error(event)
       }
+      this.itemsMassCreationReverse = this.itemsMassCreation
+      this.itemsMassCreationReverse.reverse()
     },
     removeAllBookmark() {
       this.itemsMassCreation = []
