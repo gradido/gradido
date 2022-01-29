@@ -125,15 +125,18 @@
         </row-details>
       </template>
       <template #cell(bookmark)="row">
-        <b-button
-          variant="warning"
-          v-show="type === 'UserListSearch'"
-          size="md"
-          @click="bookmarkPush(row.item)"
-          class="mr-2"
-        >
-          <b-icon icon="plus" variant="success"></b-icon>
-        </b-button>
+        <div v-show="type === 'UserListSearch'">
+          <b-button
+            v-if="row.item.emailChecked"
+            variant="warning"
+            size="md"
+            @click="bookmarkPush(row.item)"
+            class="mr-2"
+          >
+            <b-icon icon="plus" variant="success"></b-icon>
+          </b-button>
+          <div v-else>E-Mail!</div>
+        </div>
         <b-button
           variant="danger"
           v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
