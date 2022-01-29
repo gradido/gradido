@@ -1,25 +1,34 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
-import { TransactionCreation } from './TransactionCreation'
-import { TransactionSendCoin } from './TransactionSendCoin'
+import { TransactionCreation } from '../TransactionCreation'
+import { TransactionSendCoin } from '../TransactionSendCoin'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ name: 'transaction_type_id' })
+  @Column({ name: 'state_group_id', unsigned: true, default: null })
+  stateGroupId: number
+
+  @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
   transactionTypeId: number
 
-  @Column({ name: 'tx_hash', type: 'binary', length: 48 })
+  @Column({ name: 'tx_hash', type: 'binary', length: 48, default: null })
   txHash: Buffer
 
-  @Column()
+  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
   received: Date
 
-  @Column({ name: 'blockchain_type_id' })
+  @Column({
+    name: 'blockchain_type_id',
+    type: 'bigint',
+    unsigned: true,
+    nullable: false,
+    default: 1,
+  })
   blockchainTypeId: number
 
   @OneToOne(() => TransactionSendCoin, (transactionSendCoin) => transactionSendCoin.transaction)
