@@ -18,6 +18,7 @@ const routes = [
   {
     path: '/creation',
     component: () => import('@/pages/Creation.vue'),
+    props: { userSelectedInMassCreation: [] },
   },
   {
     path: '/creation-confirm',

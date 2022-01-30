@@ -28,7 +28,7 @@
       </b-col>
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
-          v-show="itemsMassCreation.length > 0"
+          v-show="userSelectedInMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
           :itemsUser="itemsMassCreationReverse"
@@ -37,14 +37,16 @@
           :creation="creation"
           @update-item="updateItem"
         />
-        <div v-if="itemsMassCreation.length === 0">
+        <div v-if="userSelectedInMassCreation.length === 0">
+          userSelectedInMassCreation: {{ userSelectedInMassCreation }}
+          <br />
           {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
           v-else
           type="massCreation"
           :creation="creation"
-          :items="itemsMassCreation"
+          :items="userSelectedInMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
       </b-col>
@@ -61,6 +63,11 @@ export default {
   components: {
     CreationFormular,
     UserTable,
+  },
+  props: {
+    userSelectedInMassCreation: {
+      type: Array,
+    },
   },
   data() {
     return {
@@ -104,8 +111,7 @@ export default {
         { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
-      itemsMassCreation: [],
-      itemsMassCreationReverse: [],
+      itemsMassCreationReverse: this.userSelectedInMassCreation,
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
@@ -137,6 +143,7 @@ export default {
               showDetails: false,
             }
           })
+           this.updateItem(this.userSelectedInMassCreation, 'mounted')
         })
         .catch((error) => {
           this.$toasted.error(error.message)
@@ -151,22 +158,29 @@ export default {
           findArr = this.itemsList.find((item) => e.userId === item.userId)
           index = this.itemsList.indexOf(findArr)
           this.itemsList.splice(index, 1)
-          this.itemsMassCreation.push(findArr)
+          this.userSelectedInMassCreation.push(findArr)
           break
         case 'remove':
-          findArr = this.itemsMassCreation.find((item) => e.userId === item.userId)
-          index = this.itemsMassCreation.indexOf(findArr)
-          this.itemsMassCreation.splice(index, 1)
+          findArr = this.userSelectedInMassCreation.find((item) => e.userId === item.userId)
+          index = this.userSelectedInMassCreation.indexOf(findArr)
+          this.userSelectedInMassCreation.splice(index, 1)
           this.itemsList.push(findArr)
+          break
+        case 'mounted':
+          this.userSelectedInMassCreation.map((value, key) => {
+            findArr = this.itemsList.find((item) => value.userId === item.userId)
+            index = this.itemsList.indexOf(findArr)
+            this.itemsList.splice(index, 1)
+          })
           break
         default:
           throw new Error(event)
       }
-      this.itemsMassCreationReverse = this.itemsMassCreation
+      this.itemsMassCreationReverse = this.userSelectedInMassCreation
       this.itemsMassCreationReverse.reverse()
     },
     removeAllBookmark() {
-      this.itemsMassCreation = []
+      this.userSelectedInMassCreation = []
       this.getUsers()
     },
   },

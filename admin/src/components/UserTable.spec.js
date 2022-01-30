@@ -199,11 +199,6 @@ describe('UserTable', () => {
           })
         })
       })
-
-      // it('expect(wrapper.html()).', () => {
-      //   // eslint-disable-next-line no-console
-      //   console.log(wrapper.html())
-      // })
     })
 
     describe('type UserListSearch', () => {
@@ -214,11 +209,6 @@ describe('UserTable', () => {
       it('has a DIV element with the class.component-user-table', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
-
-      // it('expect(wrapper.html()).', () => {
-      //   // eslint-disable-next-line no-console
-      //   console.log(wrapper.html())
-      // })
     })
 
     describe('type UserListMassCreation', () => {
@@ -229,11 +219,6 @@ describe('UserTable', () => {
       it('has a DIV element with the class.component-user-table', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
-
-      // it('expect(wrapper.html()).', () => {
-      //   // eslint-disable-next-line no-console
-      //   console.log(wrapper.html())
-      // })
     })
 
     describe('type PageCreationConfirm', () => {
@@ -244,48 +229,6 @@ describe('UserTable', () => {
       it('has a DIV element with the class.component-user-table', () => {
         expect(wrapper.find('.component-user-table').exists()).toBeTruthy()
       })
-
-      // it('expect(wrapper.html()).', () => {
-      //   // eslint-disable-next-line no-console
-      //   console.log(wrapper.html())
-      // })
     })
-    /** 
-    <user-table
-      v-if="itemsList.length > 0"
-      type="UserListSearch"
-      :itemsUser="itemsList"
-      :fieldsTable="Searchfields"
-      :criteria="criteria"
-      :creation="creation"
-      @update-item="updateItem"
-    /> 
-    
-    <user-table
-      v-show="itemsMassCreation.length > 0"
-      class="shadow p-3 mb-5 bg-white rounded"
-      type="UserListMassCreation"
-      :itemsUser="itemsMassCreation"
-      :fieldsTable="fields"
-      :criteria="null"
-      :creation="creation"
-      @update-item="updateItem"
-    />
-    
-    <user-table
-      class="mt-4"
-      type="PageCreationConfirm"
-      :itemsUser="confirmResult"
-      :fieldsTable="fields"
-      @remove-confirm-result="removeConfirmResult"
-    />
-
-    <user-table
-      type="PageUserSearch"
-      :itemsUser="searchResult"
-      :fieldsTable="fields"
-      :criteria="criteria"
-    />
-    */
   })
 })

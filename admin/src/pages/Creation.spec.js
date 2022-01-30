@@ -127,8 +127,8 @@ describe('Creation', () => {
           ])
         })
 
-        it('adds the pushed item to itemsMassCreation', () => {
-          expect(wrapper.vm.itemsMassCreation).toEqual([
+        it('adds the pushed item to userSelectedInMassCreation', () => {
+          expect(wrapper.vm.userSelectedInMassCreation).toEqual([
             {
               userId: 2,
               firstName: 'Benjamin',
@@ -156,8 +156,8 @@ describe('Creation', () => {
             )
           })
 
-          it('removes the item from itemsMassCreation', () => {
-            expect(wrapper.vm.itemsMassCreation).toEqual([])
+          it('removes the item from userSelectedInMassCreation', () => {
+            expect(wrapper.vm.userSelectedInMassCreation).toEqual([])
           })
 
           it('adds the item to itemsList', () => {
@@ -221,8 +221,8 @@ describe('Creation', () => {
         wrapper.findComponent({ name: 'CreationFormular' }).vm.$emit('remove-all-bookmark')
       })
 
-      it('removes all items from itemsMassCreation', () => {
-        expect(wrapper.vm.itemsMassCreation).toEqual([])
+      it('removes all items from userSelectedInMassCreation', () => {
+        expect(wrapper.vm.userSelectedInMassCreation).toEqual([])
       })
 
       it('adds all items to itemsList', () => {
