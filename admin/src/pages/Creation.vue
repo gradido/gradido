@@ -38,8 +38,6 @@
           @update-item="updateItem"
         />
         <div v-if="userSelectedInMassCreation.length === 0">
-          userSelectedInMassCreation: {{ userSelectedInMassCreation }}
-          <br />
           {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
@@ -143,7 +141,7 @@ export default {
               showDetails: false,
             }
           })
-           this.updateItem(this.userSelectedInMassCreation, 'mounted')
+          this.updateItem(this.userSelectedInMassCreation, 'mounted')
         })
         .catch((error) => {
           this.$toasted.error(error.message)
