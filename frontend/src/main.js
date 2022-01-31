@@ -12,6 +12,8 @@ import router from './routes/router'
 
 import { apolloProvider } from './plugins/apolloProvider'
 
+import regeneratorRuntime from 'regenerator-runtime'
+
 // plugin setup
 Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
@@ -44,5 +46,6 @@ new Vue({
   store,
   i18n,
   apolloProvider,
+  regeneratorRuntime,
   render: (h) => h(App),
 })
