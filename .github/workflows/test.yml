@@ -553,9 +553,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/community_server.tar
-      # for debugging login-server
-      - name: check login-server
-        run: docker logs ${{ steps.login_server_container.outputs.id }}
       - name: check mariadb
         run: docker logs ${{ steps.mariadb_container.outputs.id }}
       - name: check migration
