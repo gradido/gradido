@@ -50,7 +50,7 @@
     "qrcode": "^1.4.4",
     "regenerator-runtime": "^0.13.7",
     "vee-validate": "^3.4.5",
-    "vue": "^2.6.11",
+    "vue": "2.6.12",
     "vue-apollo": "^3.0.7",
     "vue-cli-plugin-i18n": "^1.0.1",
     "vue-flatpickr-component": "^8.1.2",
