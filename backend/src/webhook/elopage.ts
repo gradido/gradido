@@ -39,65 +39,40 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   res.status(200).end() // Responding is important
   const loginElopageBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
   const loginElopageBuy = new LoginElopageBuys()
-  let firstName = ''
-  let lastName = ''
-  const entries = req.body.split('&')
-  entries.forEach((entry: string) => {
-    const keyVal = entry.split('=')
-    if (keyVal.length > 2) {
-      throw new Error(`Error parsing entry '${entry}'`)
-    }
-    const key = keyVal[0]
-    const val = decodeURIComponent(keyVal[1]).replace('+', ' ').trim()
-    switch (key) {
-      case 'product[affiliate_program_id]':
-        loginElopageBuy.affiliateProgramId = parseInt(val)
-        break
-      case 'publisher[id]':
-        loginElopageBuy.publisherId = parseInt(val)
-        break
-      case 'order_id':
-        loginElopageBuy.orderId = parseInt(val)
-        break
-      case 'product_id':
-        loginElopageBuy.productId = parseInt(val)
-        break
-      case 'product[price]':
-        // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
-        loginElopageBuy.productPrice = Math.trunc(parseFloat(val) * 100)
-        break
-      case 'payer[email]':
-        loginElopageBuy.payerEmail = val
-        break
-      case 'publisher[email]':
-        loginElopageBuy.publisherEmail = val
-        break
-      case 'payment_state':
-        loginElopageBuy.payed = val === 'paid'
-        break
-      case 'success_date':
-        loginElopageBuy.successDate = new Date(val)
-        break
-      case 'event':
-        loginElopageBuy.event = val
-        break
-      case 'membership[id]':
-        // TODO this was never set on login_server - its unclear if this is the correct value
-        loginElopageBuy.elopageUserId = parseInt(val)
-        break
-      case 'payer[first_name]':
-        firstName = val
-        break
-      case 'payer[last_name]':
-        lastName = val
-        break
-      default:
-        // this is too spammy
-        // eslint-disable-next-line no-console
-        // console.log(`Unknown Elopage Value '${entry}'`)
-        break
-    }
-  })
+
+  const {
+    payer,
+    product,
+    publisher,
+    // eslint-disable-next-line camelcase
+    order_id,
+    // eslint-disable-next-line camelcase
+    product_id,
+    // eslint-disable-next-line camelcase
+    payment_state,
+    // eslint-disable-next-line camelcase
+    success_date,
+    event,
+    membership,
+  } = req.body
+
+  loginElopageBuy.affiliateProgramId = parseInt(product.affiliate_program_id)
+  loginElopageBuy.publisherId = parseInt(publisher.id)
+  loginElopageBuy.orderId = parseInt(order_id)
+  loginElopageBuy.productId = parseInt(product_id)
+  // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
+  loginElopageBuy.productPrice = Math.trunc(parseFloat(product.price) * 100)
+  loginElopageBuy.payerEmail = payer.email
+  loginElopageBuy.publisherEmail = publisher.email
+  // eslint-disable-next-line camelcase
+  loginElopageBuy.payed = payment_state === 'paid'
+  loginElopageBuy.successDate = new Date(success_date)
+  loginElopageBuy.event = event
+  // TODO this was never set on login_server - its unclear if this is the correct value
+  loginElopageBuy.elopageUserId = parseInt(membership.id)
+
+  const firstName = payer.first_name
+  const lastName = payer.last_name
 
   // Do not process certain events
   if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(loginElopageBuy.event)) {

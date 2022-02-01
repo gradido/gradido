@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
+import { createPendingCreation } from '../graphql/createPendingCreation'
+import { createPendingCreations } from '../graphql/createPendingCreations'
 
 const localVue = global.localVue
 
@@ -111,10 +113,14 @@ describe('CreationFormular', () => {
       describe('with single creation', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-          await wrapper.setData({ rangeMin: 180 })
-          await wrapper.setData({ text: 'Test create coins' })
-          await wrapper.setData({ value: 90 })
+          await wrapper.setProps({
+            type: 'singleCreation',
+            creation: [200, 400, 600],
+            item: { email: 'benjamin@bluemchen.de' },
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('textarea').setValue('Test create coins')
+          await wrapper.find('input[type="number"]').setValue(90)
         })
 
         describe('first radio button', () => {
@@ -122,12 +128,8 @@ describe('CreationFormular', () => {
             await wrapper.findAll('input[type="radio"]').at(0).setChecked()
           })
 
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
-
           it('sets rangeMax to 200', () => {
-            expect(wrapper.vm.rangeMax).toBe(200)
+            expect(wrapper.vm.rangeMax).toBe(400)
           })
 
           describe('sendForm', () => {
@@ -136,7 +138,18 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  mutation: createPendingCreation,
+                  variables: {
+                    email: 'benjamin@bluemchen.de',
+                    creationDate: 'YYYY-MM-01',
+                    amount: 90,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
             })
           })
 
@@ -323,6 +336,47 @@ describe('CreationFormular', () => {
               expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
             })
           })
+        })
+      })
+
+      describe('with mass creation', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.setProps({
+            type: 'massCreation',
+            creation: [200, 400, 600],
+            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('textarea').setValue('Test mass create coins')
+          await wrapper.find('input[type="number"]').setValue(200)
+          await wrapper.find('.test-submit').trigger('click')
+        })
+
+        it('calls the API', () => {
+          expect(apolloMutateMock).toBeCalledWith(
+            expect.objectContaining({
+              mutation: createPendingCreations,
+              variables: {
+                pendingCreations: [
+                  {
+                    email: 'bob@baumeister.de',
+                    creationDate: 'YYYY-MM-01',
+                    amount: 200,
+                    memo: 'Test mass create coins',
+                    moderator: 0,
+                  },
+                  {
+                    email: 'bibi@bloxberg.de',
+                    creationDate: 'YYYY-MM-01',
+                    amount: 200,
+                    memo: 'Test mass create coins',
+                    moderator: 0,
+                  },
+                ],
+              },
+            }),
+          )
         })
       })
     })

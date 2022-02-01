@@ -183,8 +183,10 @@ describe('UserTable', () => {
             expect(wrapper.findAll('tr:nth-child(1) > td').length).toBe(7)
           })
 
-          it('click button on fifth column', () => {
-            wrapper.find('tbody tr td[aria-colindex="5"] button').trigger('click')
+          it('find button on fifth column', () => {
+            expect(
+              wrapper.findAll('tr:nth-child(1) > td').at(5).find('button').isVisible(),
+            ).toBeTruthy()
           })
         })
       })

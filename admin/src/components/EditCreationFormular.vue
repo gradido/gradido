@@ -2,8 +2,10 @@
   <div class="component-edit-creation-formular">
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="updateCreationForm">
-        <b-row class="m-4">
+        <div class="ml-4">
           <label>{{ $t('creation_form.select_month') }}</label>
+        </div>
+        <b-row class="m-4">
           <b-form-radio-group
             v-model="selected"
             :options="radioOptions"
@@ -12,7 +14,7 @@
             name="month-selection"
           ></b-form-radio-group>
         </b-row>
-        <b-row class="m-4">
+        <div class="m-4">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
             <b-input-group prepend="GDD" append=".00">
@@ -23,7 +25,6 @@
                 :max="rangeMax"
               ></b-form-input>
             </b-input-group>
-
             <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
                 type="range"
@@ -34,8 +35,8 @@
               ></b-form-input>
             </b-input-group>
           </div>
-        </b-row>
-        <b-row class="m-4">
+        </div>
+        <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
             <b-form-textarea
@@ -46,9 +47,9 @@
               rows="3"
             ></b-form-textarea>
           </div>
-        </b-row>
+        </div>
         <b-row class="m-4">
-          <b-col class="text-center">
+          <b-col class="text-left">
             <b-button type="reset" variant="danger" @click="$refs.updateCreationForm.reset()">
               {{ $t('creation_form.reset') }}
             </b-button>

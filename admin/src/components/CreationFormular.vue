@@ -3,8 +3,10 @@
     {{ $t('creation_form.form') }}
     <div class="shadow p-3 mb-5 bg-white rounded">
       <b-form ref="creationForm">
-        <b-row>
+        <div class="ml-4">
           <label>{{ $t('creation_form.select_month') }}</label>
+        </div>
+        <b-row class="ml-4">
           <b-form-radio-group
             v-model="selected"
             :options="radioOptions"
@@ -35,7 +37,7 @@
             </b-input-group>
           </div>
         </b-row>
-        <b-row class="m-4">
+        <div class="m-4">
           <label>{{ $t('creation_form.enter_text') }}</label>
           <div>
             <b-form-textarea
@@ -46,9 +48,9 @@
               rows="3"
             ></b-form-textarea>
           </div>
-        </b-row>
+        </div>
         <b-row class="m-4">
-          <b-col class="text-center">
+          <b-col class="text-left">
             <b-button type="reset" variant="danger" @click="$refs.creationForm.reset()">
               {{ $t('creation_form.reset') }}
             </b-button>

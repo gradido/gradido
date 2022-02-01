@@ -3,7 +3,7 @@
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
   "creation_form": {
-    "creation_for": "Schöpfung für",
+    "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -40,7 +40,7 @@
   "overlay": {
     "confirm": {
       "no": "Nein, nicht speichern.",
-      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
+      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
       "yes": "Ja, Schöpfung bestätigen und speichern!"
