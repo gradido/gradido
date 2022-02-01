@@ -21,7 +21,7 @@ import schema from '../graphql/schema'
 
 // webhooks
 import { elopageWebhook } from '../webhook/elopage'
-import { Connection } from 'typeorm'
+import { Connection } from '@dbTools/typeorm'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";

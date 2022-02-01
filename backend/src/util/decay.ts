@@ -1,4 +1,4 @@
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { Decay } from '../graphql/model/Decay'
 import { TransactionRepository } from '../typeorm/repository/Transaction'
 
