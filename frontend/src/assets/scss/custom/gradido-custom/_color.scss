@@ -1,0 +1,188 @@
+
+
+// Color system
+
+$white:    #fff !default;
+$gray-100: #f6f9fc !default;
+$gray-200: #e9ecef !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;
+$gray-600: #8898aa !default;   // Line footer color
+$gray-700: #525f7f !default;   // Line p color
+$gray-800: #32325d !default;   // Line heading color
+$gray-900: #212529 !default;
+$black:    #000 !default;
+
+$grays: () !default;
+$grays: map-merge((
+  "100": $gray-100,
+  "200": $gray-200,
+  "300": $gray-300,
+  "400": $gray-400,
+  "500": $gray-500,
+  "600": $gray-600,
+  "700": $gray-700,
+  "800": $gray-800,
+  "900": $gray-900
+), $grays);
+
+$blue:    #5e72e4 !default;
+$indigo:  #5603ad !default;
+$purple:  #8965e0 !default;
+$pink:    #f3a4b5 !default;
+$red:     #f5365c !default;
+$orange:  #fb6340 !default;
+$yellow:  #ffd600 !default;
+$green:   #2dce89 !default;
+$teal:    #11cdef !default;
+$cyan:    #2bffc6 !default;
+
+$colors: () !default;
+$colors: map-merge((
+  "blue":       $blue,
+  "indigo":     $indigo,
+  "purple":     $purple,
+  "pink":       $pink,
+  "red":        $red,
+  "orange":     $orange,
+  "yellow":     $yellow,
+  "green":      $green,
+  "teal":       $teal,
+  "cyan":       $cyan,
+  "white":      $white,
+  "gray":       $gray-600,
+  "light":      $gray-400,
+  "lighter":    $gray-200,
+  "gray-dark":  $gray-800
+), $colors);
+
+$default:       #172b4d !default;
+$primary:       #5e72e4 !default;
+$secondary:     #f7fafc !default;
+$success:       $green !default;
+$info:          $teal !default;
+$warning:       $orange !default;
+$danger:        $red !default;
+$light:         $gray-500 !default;
+$dark:          $gray-900 !default;
+$darker:        darken($gray-900, 15%) !default;
+
+$facebook:      #3b5999 !default;
+$twitter:       #1da1f2 !default;
+$google-plus:   #dd4b39 !default;
+$instagram:     #e4405f !default;
+$pinterest:     #bd081c !default;
+$youtube:       #cd201f !default;
+$slack:         #3aaf85 !default;
+$dribbble:      #ea4c89 !default;
+$github:        #222222 !default;
+
+$theme-colors: () !default;
+$theme-colors: map-merge((
+  "default":      $default,
+  "primary":      $primary,
+  "secondary":    $secondary,
+  "success":      $success,
+  "info":         $info,
+  "warning":      $warning,
+  "danger":       $danger,
+  "white":        $white,
+  "neutral":      $white,
+  "dark":         $dark,
+  "darker":       $darker
+), $theme-colors);
+
+$brand-colors: () !default;
+$brand-colors: map-merge((
+  "facebook":     $facebook,
+  "twitter":      $twitter,
+  "google-plus":  $google-plus,
+  "instagram":    $instagram,
+  "pinterest":    $pinterest,
+  "youtube":      $youtube,
+  "slack":        $slack,
+  "dribbble":     $dribbble,
+  "github":       $github
+), $brand-colors);
+
+$shape-colors: () !default;
+$shape-colors: map-merge((
+  "default":      #32325d,
+  "primary":      #5533ff,
+  "secondary":    #24b47e,
+  "neutral":      #e9ecef,
+  "blue-gray":    #b2cbe1,
+
+), $shape-colors);
+
+$shapes-primary-colors: () !default;
+$shapes-primary-colors: map-merge((
+  "step-1-gradient-bg":         #281483,
+  "step-2-gradient-bg":         #8f6ed5,
+  "step-3-gradient-bg":         #d782d9,
+  "span-1-bg":                  #53f,
+  "span-2-bg":                  #4553ff,
+  "span-3-bg":                  #4f40ff,
+  "span-4-bg":                  #25ddf5,
+  "span-5-bg":                  #1fa2ff
+), $shapes-primary-colors);
+
+$shapes-default-colors: () !default;
+$shapes-default-colors: map-merge((
+  "step-1-gradient-bg":         #7795f8,
+  "step-2-gradient-bg":         #6772e5,
+  "step-3-gradient-bg":         #555abf,
+  "span-1-bg":                  #7795f8,
+  "span-2-bg":                  #7b9aff,
+  "span-3-bg":                  #6f8ff8,
+  "span-4-bg":                  #76eea7,
+  "span-5-bg":                  #6adaff
+), $shapes-default-colors);
+
+$shapes-light-colors: () !default;
+$shapes-light-colors: map-merge((
+  "step-1-gradient-bg":         #b2cbe1,
+  "step-2-gradient-bg":         #f6f9fc,
+  "step-3-gradient-bg":         #f6f9fc,
+  "span-1-bg":                  #b4cce1,
+  "span-2-bg":                  #c5dbef,
+  "span-3-bg":                  #b9d5ed,
+  "span-4-bg":                  #74e4a2,
+  "span-5-bg":                  #008169
+), $shapes-light-colors);
+
+$shapes-dark-colors: () !default;
+$shapes-dark-colors: map-merge((
+  "step-1-gradient-bg":         #32325d,
+  "step-2-gradient-bg":         #32325d,
+  "step-3-gradient-bg":         #32325d,
+  "span-1-bg":                  #2e2e57,
+  "span-2-bg":                  #2b2b58,
+  "span-3-bg":                  #25254d,
+  "span-4-bg":                  #d782d9,
+  "span-5-bg":                  #008169
+), $shapes-dark-colors);
+
+
+// Translucent color variations
+$translucent-color-opacity: .6 !default;
+
+// Set a specific jump point for requesting color jumps
+$theme-color-interval:      8% !default;
+
+// The yiq lightness value that determines when the lightness of color changes from "dark" to "light". Acceptable values are between 0 and 255.
+$yiq-contrasted-threshold:  200 !default;
+
+// Customize the light and dark text colors for use in our YIQ color contrast function.
+$yiq-text-dark:             $gray-900 !default;
+$yiq-text-light:            $white !default;
+
+// Action colors
+
+$star-rating-color: $gray-400 !default;
+$star-rating-color-active: $yellow !default;
+
+$favorite-color: $yellow !default;
+$like-color: $blue !default;
+$love-color: $red !default;
