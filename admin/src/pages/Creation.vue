@@ -16,7 +16,7 @@
           :fieldsTable="Searchfields"
           :criteria="criteria"
           :creation="creation"
-          @update-item="updateItem"
+          @push-item="pushItem"
         />
         <b-pagination
           pills
@@ -31,11 +31,11 @@
           v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
-          :itemsUser="itemsMassCreationReverse"
+          :itemsUser="itemsMassCreation"
           :fieldsTable="fields"
           :criteria="null"
           :creation="creation"
-          @update-item="updateItem"
+          @remove-item="removeItem"
         />
         <div v-if="itemsMassCreation.length === 0">
           {{ $t('multiple_creation_text') }}
@@ -113,7 +113,7 @@ export default {
       perPage: 25,
     }
   },
-  async mounted() {
+  async created() {
     await this.getUsers()
   },
   methods: {
@@ -136,7 +136,7 @@ export default {
               showDetails: false,
             }
           })
-          if (this.itemsMassCreation !== []) {
+          if (this.itemsMassCreation.length !== 0) {
             const selectedIndices = this.itemsMassCreation.map((item) => item.userId)
             this.itemsList = this.itemsList.filter((item) => !selectedIndices.includes(item.userId))
           }
@@ -145,37 +145,28 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-    updateItem(selectedItem, event) {
-      switch (event) {
-        case 'push':
-          this.itemsMassCreation.push(
-            this.itemsList.find((item) => selectedItem.userId === item.userId),
-          )
-          this.itemsList = this.itemsList.filter((item) => selectedItem.userId !== item.userId)
-          break
-        case 'remove':
-          this.itemsList.push(
-            this.itemsMassCreation.find((item) => selectedItem.userId === item.userId),
-          )
-          this.itemsMassCreation = this.itemsMassCreation.filter(
-            (item) => selectedItem.userId !== item.userId,
-          )
-          break
-        default:
-          throw new Error(event)
-      }
+    pushItem(selectedItem) {
+      this.itemsMassCreation = [
+        this.itemsList.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsMassCreation,
+      ]
+      this.itemsList = this.itemsList.filter((item) => selectedItem.userId !== item.userId)
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
+    },
+    removeItem(selectedItem) {
+      this.itemsList = [
+        this.itemsMassCreation.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsList,
+      ]
+      this.itemsMassCreation = this.itemsMassCreation.filter(
+        (item) => selectedItem.userId !== item.userId,
+      )
       this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
     removeAllBookmark() {
       this.itemsMassCreation = []
-      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
+      this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
-    },
-  },
-  computed: {
-    itemsMassCreationReverse() {
-      const array = this.itemsMassCreation
-      return array.reverse()
     },
   },
   watch: {

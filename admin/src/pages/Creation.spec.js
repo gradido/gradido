@@ -1,6 +1,5 @@
 import { shallowMount } from '@vue/test-utils'
 import Creation from './Creation.vue'
-import Vue from 'vue'
 
 const localVue = global.localVue
 
@@ -66,6 +65,7 @@ describe('Creation', () => {
 
   describe('shallowMount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -75,7 +75,15 @@ describe('Creation', () => {
 
     describe('apollo returns user array', () => {
       it('calls the searchUser query', () => {
-        expect(apolloQueryMock).toBeCalled()
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+            },
+          }),
+        )
       })
 
       it('sets the data of itemsList', () => {
@@ -100,151 +108,33 @@ describe('Creation', () => {
       })
     })
 
-    describe('update item', () => {
+    describe('push item', () => {
       beforeEach(() => {
-        jest.clearAllMocks()
-      })
-
-      describe('push', () => {
-        beforeEach(() => {
-          wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-            'update-item',
-            {
-              userId: 2,
-              firstName: 'Benjamin',
-              lastName: 'Blümchen',
-              email: 'benjamin@bluemchen.de',
-              creation: [800, 600, 400],
-              showDetails: false,
-            },
-            'push',
-          )
-        })
-        beforeEach(() => {
-          mocks.$store.state.setUserSelectedInMassCreation = [
-            {
-              userId: 2,
-              firstName: 'Benjamin',
-              lastName: 'Blümchen',
-              email: 'benjamin@bluemchen.de',
-              creation: [800, 600, 400],
-              showDetails: false,
-            },
-          ]
-        })
-        it('removes the pushed item from itemsList', () => {
-          expect(wrapper.vm.itemsList).toEqual([
-            {
-              userId: 1,
-              firstName: 'Bibi',
-              lastName: 'Bloxberg',
-              email: 'bibi@bloxberg.de',
-              creation: [200, 400, 600],
-              showDetails: false,
-            },
-          ])
-        })
-
-        it('adds the pushed item to userSelectedInMassCreation', () => {
-          expect(storeCommitMock).toBeCalledWith('userSelectedInMassCreation', [
-            {
-              userId: 2,
-              firstName: 'Benjamin',
-              lastName: 'Blümchen',
-              email: 'benjamin@bluemchen.de',
-              creation: [800, 600, 400],
-              showDetails: false,
-            },
-          ])
-          // expect(wrapper.vm.userSelectedInMassCreation).toEqual([
-          //   {
-          //     userId: 2,
-          //     firstName: 'Benjamin',
-          //     lastName: 'Blümchen',
-          //     email: 'benjamin@bluemchen.de',
-          //     creation: [800, 600, 400],
-          //     showDetails: false,
-          //   },
-          // ])
-        })
-
-        describe('remove', () => {
-          beforeEach(() => {
-            wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-              'update-item',
-              {
-                userId: 2,
-                firstName: 'Benjamin',
-                lastName: 'Blümchen',
-                email: 'benjamin@bluemchen.de',
-                creation: [800, 600, 400],
-                showDetails: false,
-              },
-              'remove',
-            )
-          })
-
-          it('removes the item from userSelectedInMassCreation', () => {
-            expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [
-              {
-                userId: 2,
-                firstName: 'Benjamin',
-                lastName: 'Blümchen',
-                email: 'benjamin@bluemchen.de',
-                creation: [800, 600, 400],
-                showDetails: false,
-              },
-            ])
-          })
-
-          it('adds the item to itemsList', () => {
-            expect(wrapper.vm.itemsList).toEqual([
-              {
-                userId: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                creation: [200, 400, 600],
-                showDetails: false,
-              },
-              {
-                userId: 2,
-                firstName: 'Benjamin',
-                lastName: 'Blümchen',
-                email: 'benjamin@bluemchen.de',
-                creation: [800, 600, 400],
-                showDetails: false,
-              },
-            ])
-          })
+        wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
+          userId: 2,
+          firstName: 'Benjamin',
+          lastName: 'Blümchen',
+          email: 'benjamin@bluemchen.de',
+          creation: [800, 600, 400],
+          showDetails: false,
         })
       })
 
-      describe('error', () => {
-        const consoleErrorMock = jest.fn()
-        const warnHandler = Vue.config.warnHandler
-
-        beforeEach(() => {
-          Vue.config.warnHandler = (w) => {}
-          // eslint-disable-next-line no-console
-          console.error = consoleErrorMock
-          wrapper.findComponent({ name: 'UserTable' }).vm.$emit('update-item', {}, 'no-rule')
-        })
-
-        afterEach(() => {
-          Vue.config.warnHandler = warnHandler
-        })
-
-        it('throws an error', () => {
-          expect(consoleErrorMock).toBeCalledWith(expect.objectContaining({ message: 'no-rule' }))
-        })
+      it('removes the pushed item from itemsList', () => {
+        expect(wrapper.vm.itemsList).toEqual([
+          {
+            userId: 1,
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            creation: [200, 400, 600],
+            showDetails: false,
+          },
+        ])
       })
-    })
 
-    describe('remove all bookmarks', () => {
-      beforeEach(async () => {
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-          'update-item',
+      it('adds the pushed item to itemsMassCreation', () => {
+        expect(wrapper.vm.itemsMassCreation).toEqual([
           {
             userId: 2,
             firstName: 'Benjamin',
@@ -253,17 +143,100 @@ describe('Creation', () => {
             creation: [800, 600, 400],
             showDetails: false,
           },
-          'push',
-        )
+        ])
+      })
+
+      it('updates userSelectedInMassCreation in store', () => {
+        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [
+          {
+            userId: 2,
+            firstName: 'Benjamin',
+            lastName: 'Blümchen',
+            email: 'benjamin@bluemchen.de',
+            creation: [800, 600, 400],
+            showDetails: false,
+          },
+        ])
+      })
+    })
+
+    describe('remove item', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
+          userId: 2,
+          firstName: 'Benjamin',
+          lastName: 'Blümchen',
+          email: 'benjamin@bluemchen.de',
+          creation: [800, 600, 400],
+          showDetails: false,
+        })
+        await wrapper
+          .findAllComponents({ name: 'UserTable' })
+          .at(1)
+          .vm.$emit('remove-item', {
+            userId: 2,
+            firstName: 'Benjamin',
+            lastName: 'Blümchen',
+            email: 'benjamin@bluemchen.de',
+            creation: [800, 600, 400],
+            showDetails: false,
+          })
+      })
+
+      it('adds the removed item to itemsList', () => {
+        expect(wrapper.vm.itemsList).toEqual([
+          {
+            userId: 2,
+            firstName: 'Benjamin',
+            lastName: 'Blümchen',
+            email: 'benjamin@bluemchen.de',
+            creation: [800, 600, 400],
+            showDetails: false,
+          },
+          {
+            userId: 1,
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            creation: [200, 400, 600],
+            showDetails: false,
+          },
+        ])
+      })
+
+      it('removes the item from itemsMassCreation', () => {
+        expect(wrapper.vm.itemsMassCreation).toEqual([])
+      })
+
+      it('commits empty array as userSelectedInMassCreation', () => {
+        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
+      })
+    })
+
+    describe('remove all bookmarks', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
+          userId: 2,
+          firstName: 'Benjamin',
+          lastName: 'Blümchen',
+          email: 'benjamin@bluemchen.de',
+          creation: [800, 600, 400],
+          showDetails: false,
+        })
+        jest.clearAllMocks()
         wrapper.findComponent({ name: 'CreationFormular' }).vm.$emit('remove-all-bookmark')
       })
 
-      it('removes all items from userSelectedInMassCreation', () => {
+      it('removes all items from itemsMassCreation', () => {
+        expect(wrapper.vm.itemsMassCreation).toEqual([])
+      })
+
+      it('commits empty array to userSelectedInMassCreation', () => {
         expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
       })
 
-      it('adds all items to itemsList', () => {
-        expect(wrapper.vm.itemsList).toHaveLength(2)
+      it('calls searchUsers', () => {
+        expect(apolloQueryMock).toBeCalled()
       })
     })
 
@@ -274,12 +247,28 @@ describe('Creation', () => {
 
       it('calls API when criteria changes', async () => {
         await wrapper.setData({ criteria: 'XX' })
-        expect(apolloQueryMock).toBeCalled()
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: 'XX',
+              currentPage: 1,
+              pageSize: 25,
+            },
+          }),
+        )
       })
 
       it('calls API when currentPage changes', async () => {
         await wrapper.setData({ currentPage: 2 })
-        expect(apolloQueryMock).toBeCalled()
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 2,
+              pageSize: 25,
+            },
+          }),
+        )
       })
     })
 
