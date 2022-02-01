@@ -476,6 +476,8 @@ export class UserResolver {
     return 'success'
   }
 
+  // THis is used by the admin only - should we move it to the admin resolver?
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)
