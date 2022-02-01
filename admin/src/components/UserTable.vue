@@ -135,7 +135,7 @@
           >
             <b-icon icon="plus" variant="success"></b-icon>
           </b-button>
-          <div v-else>E-Mail!</div>
+          <div v-else>{{ $t('e_mail') }}!</div>
         </div>
         <b-button
           variant="danger"
