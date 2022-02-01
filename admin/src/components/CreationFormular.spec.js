@@ -56,7 +56,6 @@ const mocks = {
 const propsData = {
   type: '',
   creation: [],
-  userSelectedInMassCreation: {},
 }
 
 describe('CreationFormular', () => {

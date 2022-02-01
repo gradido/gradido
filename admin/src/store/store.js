@@ -24,15 +24,12 @@ export const mutations = {
   moderator: (state, moderator) => {
     state.moderator = moderator
   },
-  userSelectedInMassCreation: (state, userSelectedInMassCreation) => {
+  setUserSelectedInMassCreation: (state, userSelectedInMassCreation) => {
     state.userSelectedInMassCreation = userSelectedInMassCreation
   },
 }
 
 export const actions = {
-  login: ({ dispatch, commit }, data) => {
-    commit('userSelectedInMassCreation', data)
-  },
   logout: ({ commit, state }) => {
     commit('token', null)
     commit('moderator', null)

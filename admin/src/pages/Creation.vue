@@ -174,10 +174,10 @@ export default {
       this.lala = letItemList
       this.itemsMassCreationReverse = letItemList
       this.itemsMassCreationReverse.reverse()
-      this.$store.commit('userSelectedInMassCreation', letItemList)
+      this.$store.commit('setUserSelectedInMassCreation', letItemList)
     },
     removeAllBookmark() {
-      this.$store.commit('userSelectedInMassCreation', [])
+      this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
     },
   },

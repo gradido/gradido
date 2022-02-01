@@ -29,6 +29,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 })
 
 const toastErrorMock = jest.fn()
+const storeCommitMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -48,6 +49,12 @@ const mocks = {
       }),
     }
   }),
+  $store: {
+    commit: storeCommitMock,
+    state: {
+      userSelectedInMassCreation: [],
+    },
+  },
 }
 
 describe('Creation', () => {
@@ -113,7 +120,18 @@ describe('Creation', () => {
             'push',
           )
         })
-
+        beforeEach(() => {
+          mocks.$store.state.setUserSelectedInMassCreation = [
+            {
+              userId: 2,
+              firstName: 'Benjamin',
+              lastName: 'Blümchen',
+              email: 'benjamin@bluemchen.de',
+              creation: [800, 600, 400],
+              showDetails: false,
+            },
+          ]
+        })
         it('removes the pushed item from itemsList', () => {
           expect(wrapper.vm.itemsList).toEqual([
             {
@@ -128,7 +146,7 @@ describe('Creation', () => {
         })
 
         it('adds the pushed item to userSelectedInMassCreation', () => {
-          expect(wrapper.vm.userSelectedInMassCreation).toEqual([
+          expect(storeCommitMock).toBeCalledWith('userSelectedInMassCreation', [
             {
               userId: 2,
               firstName: 'Benjamin',
@@ -138,6 +156,16 @@ describe('Creation', () => {
               showDetails: false,
             },
           ])
+          // expect(wrapper.vm.userSelectedInMassCreation).toEqual([
+          //   {
+          //     userId: 2,
+          //     firstName: 'Benjamin',
+          //     lastName: 'Blümchen',
+          //     email: 'benjamin@bluemchen.de',
+          //     creation: [800, 600, 400],
+          //     showDetails: false,
+          //   },
+          // ])
         })
 
         describe('remove', () => {
@@ -157,7 +185,16 @@ describe('Creation', () => {
           })
 
           it('removes the item from userSelectedInMassCreation', () => {
-            expect(wrapper.vm.userSelectedInMassCreation).toEqual([])
+            expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [
+              {
+                userId: 2,
+                firstName: 'Benjamin',
+                lastName: 'Blümchen',
+                email: 'benjamin@bluemchen.de',
+                creation: [800, 600, 400],
+                showDetails: false,
+              },
+            ])
           })
 
           it('adds the item to itemsList', () => {
@@ -222,7 +259,7 @@ describe('Creation', () => {
       })
 
       it('removes all items from userSelectedInMassCreation', () => {
-        expect(wrapper.vm.userSelectedInMassCreation).toEqual([])
+        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
       })
 
       it('adds all items to itemsList', () => {
