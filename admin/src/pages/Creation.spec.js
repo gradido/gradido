@@ -240,6 +240,35 @@ describe('Creation', () => {
       })
     })
 
+    describe('store has items in userSelectedInMassCreation', () => {
+      beforeEach(() => {
+        mocks.$store.state.userSelectedInMassCreation = [
+          {
+            userId: 2,
+            firstName: 'Benjamin',
+            lastName: 'Blümchen',
+            email: 'benjamin@bluemchen.de',
+            creation: [800, 600, 400],
+            showDetails: false,
+          },
+        ]
+        wrapper = Wrapper()
+      })
+
+      it('has only one item itemsList', () => {
+        expect(wrapper.vm.itemsList).toEqual([
+          {
+            userId: 1,
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            creation: [200, 400, 600],
+            showDetails: false,
+          },
+        ])
+      })
+    })
+
     describe('watchers', () => {
       beforeEach(() => {
         jest.clearAllMocks()
