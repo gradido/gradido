@@ -28,7 +28,7 @@
       </b-col>
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <user-table
-          v-show="$store.state.userSelectedInMassCreation.length > 0"
+          v-show="itemsMassCreation.length > 0"
           class="shadow p-3 mb-5 bg-white rounded"
           type="UserListMassCreation"
           :itemsUser="itemsMassCreationReverse"
@@ -37,14 +37,14 @@
           :creation="creation"
           @update-item="updateItem"
         />
-        <div v-if="$store.state.userSelectedInMassCreation.length === 0">
+        <div v-if="itemsMassCreation.length === 0">
           {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
           v-else
           type="massCreation"
           :creation="creation"
-          :items="$store.state.userSelectedInMassCreation"
+          :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmark"
         />
       </b-col>
@@ -104,7 +104,7 @@ export default {
         { key: 'bookmark', label: this.$t('remove') },
       ],
       itemsList: [],
-      itemsMassCreationReverse: [],
+      itemsMassCreation: this.$store.state.userSelectedInMassCreation,
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
@@ -113,7 +113,7 @@ export default {
       perPage: 25,
     }
   },
-  async created() {
+  async mounted() {
     await this.getUsers()
   },
   methods: {
@@ -136,49 +136,46 @@ export default {
               showDetails: false,
             }
           })
-          this.updateItem(this.$store.state.userSelectedInMassCreation, 'mounted')
+          if (this.itemsMassCreation !== []) {
+            const selectedIndices = this.itemsMassCreation.map((item) => item.userId)
+            this.itemsList = this.itemsList.filter((item) => !selectedIndices.includes(item.userId))
+          }
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
     },
-    updateItem(e, event) {
-      let index = 0
-      let findArr = {}
-      const letItemList = this.$store.state.userSelectedInMassCreation
-
+    updateItem(selectedItem, event) {
       switch (event) {
         case 'push':
-          findArr = this.itemsList.find((item) => e.userId === item.userId)
-          index = this.itemsList.indexOf(findArr)
-          this.itemsList.splice(index, 1)
-          letItemList.push(findArr)
+          this.itemsMassCreation.push(
+            this.itemsList.find((item) => selectedItem.userId === item.userId),
+          )
+          this.itemsList = this.itemsList.filter((item) => selectedItem.userId !== item.userId)
           break
         case 'remove':
-          findArr = letItemList.find((item) => e.userId === item.userId)
-          index = letItemList.indexOf(findArr)
-          letItemList.splice(index, 1)
-          this.itemsList.push(findArr)
-          break
-        case 'mounted':
-          if (this.$store.state.userSelectedInMassCreation === []) return
-          letItemList.forEach((value, key) => {
-            findArr = this.itemsList.find((item) => value.userId === item.userId)
-            index = this.itemsList.indexOf(findArr)
-            this.itemsList.splice(index, 1)
-          })
+          this.itemsList.push(
+            this.itemsMassCreation.find((item) => selectedItem.userId === item.userId),
+          )
+          this.itemsMassCreation = this.itemsMassCreation.filter(
+            (item) => selectedItem.userId !== item.userId,
+          )
           break
         default:
           throw new Error(event)
       }
-      this.lala = letItemList
-      this.itemsMassCreationReverse = letItemList
-      this.itemsMassCreationReverse.reverse()
-      this.$store.commit('setUserSelectedInMassCreation', letItemList)
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
     removeAllBookmark() {
-      this.$store.commit('setUserSelectedInMassCreation', [])
+      this.itemsMassCreation = []
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
       this.getUsers()
+    },
+  },
+  computed: {
+    itemsMassCreationReverse() {
+      const array = this.itemsMassCreation
+      return array.reverse()
     },
   },
   watch: {
