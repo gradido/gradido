@@ -10,7 +10,6 @@ import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
-import { AdminPendingCreationRepository } from '../../typeorm/repository/AdminPendingCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -68,8 +67,7 @@ export class AdminResolver {
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
-      const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-      const adminPendingCreation = adminPendingCreationRepository.create()
+      const adminPendingCreation = AdminPendingCreation.create()
       adminPendingCreation.userId = user.id
       adminPendingCreation.amount = BigInt(amount * 10000)
       adminPendingCreation.created = new Date()
@@ -77,7 +75,7 @@ export class AdminResolver {
       adminPendingCreation.memo = memo
       adminPendingCreation.moderator = moderator
 
-      await adminPendingCreationRepository.save(adminPendingCreation)
+      await AdminPendingCreation.save(adminPendingCreation)
     }
     return getUserCreations(user.id)
   }
@@ -116,8 +114,7 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
-    const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-    const pendingCreationToUpdate = await adminPendingCreationRepository.findOneOrFail({ id })
+    const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
     if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
@@ -137,7 +134,7 @@ export class AdminResolver {
     pendingCreationToUpdate.date = new Date(creationDate)
     pendingCreationToUpdate.moderator = moderator
 
-    await adminPendingCreationRepository.save(pendingCreationToUpdate)
+    await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
     result.amount = parseInt(amount.toString())
     result.memo = pendingCreationToUpdate.memo
@@ -151,8 +148,7 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
-    const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-    const pendingCreations = await adminPendingCreationRepository.find()
+    const pendingCreations = await AdminPendingCreation.find()
 
     const pendingCreationsPromise = await Promise.all(
       pendingCreations.map(async (pendingCreation) => {
@@ -179,18 +175,15 @@ export class AdminResolver {
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
-    const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-    const entity = await adminPendingCreationRepository.findOneOrFail(id)
-    const res = await adminPendingCreationRepository.delete(entity)
+    const entity = await AdminPendingCreation.findOneOrFail(id)
+    const res = await AdminPendingCreation.delete(entity)
     return !!res
   }
 
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
-    const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-    const pendingCreation = await adminPendingCreationRepository.findOneOrFail(id)
-
+    const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
     const userRepository = getCustomRepository(UserRepository)
     const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (moderatorUser.id === pendingCreation.userId)
@@ -251,7 +244,7 @@ export class AdminResolver {
     userBalance.modified = receivedCallDate
     userBalance.recordDate = receivedCallDate
     await balanceRepository.save(userBalance)
-    await adminPendingCreationRepository.delete(pendingCreation)
+    await AdminPendingCreation.delete(pendingCreation)
 
     return true
   }
@@ -280,9 +273,9 @@ async function getUserCreations(id: number): Promise<number[]> {
     .orderBy('target_month', 'ASC')
     .getRawMany()
 
-  const adminPendingCreationRepository = getCustomRepository(AdminPendingCreationRepository)
-  const pendingAmountsQuery = await adminPendingCreationRepository
-    .createQueryBuilder('admin_pending_creations')
+  const pendingAmountsQuery = await AdminPendingCreation.createQueryBuilder(
+    'admin_pending_creations',
+  )
     .select('MONTH(admin_pending_creations.date)', 'target_month')
     .addSelect('SUM(admin_pending_creations.amount)', 'sum')
     .where('admin_pending_creations.userId = :id', { id })
