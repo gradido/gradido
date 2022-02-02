@@ -138,6 +138,7 @@ export default {
   },
   methods: {
     updateRadioSelected(name) {
+      // do we want to reset the memo everytime the month changes?
       this.text = this.$t('creation_form.creation_for') + ' ' + name.short + ' ' + name.year
       if (this.type === 'singleCreation') {
         this.rangeMin = 0
@@ -171,6 +172,7 @@ export default {
             )
             if (result.data.createPendingCreations.failedCreation.length > 0) {
               result.data.createPendingCreations.failedCreation.forEach((failed) => {
+                // TODO: Please localize this error message
                 this.$toasted.error('Could not created PendingCreation for ' + failed)
               })
             }
@@ -201,6 +203,7 @@ export default {
               }),
             )
             this.$store.commit('openCreationsPlus', 1)
+            // what is this? Tests says that this.text is not reseted
             this.$refs.creationForm.reset()
             this.value = 0
           })
