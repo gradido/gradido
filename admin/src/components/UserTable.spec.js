@@ -107,16 +107,7 @@ describe('UserTable', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $moment: jest.fn(() => {
-      return {
-        format: jest.fn((m) => m),
-        subtract: jest.fn(() => {
-          return {
-            format: jest.fn((m) => m),
-          }
-        }),
-      }
-    }),
+    $d: jest.fn((d) => d),
     $apollo: {
       query: apolloQueryMock,
     },

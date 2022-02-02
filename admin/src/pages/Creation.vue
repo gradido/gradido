@@ -65,44 +65,6 @@ export default {
   data() {
     return {
       showArrays: false,
-      Searchfields: [
-        { key: 'bookmark', label: 'bookmark' },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
-          formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
-          },
-        },
-        { key: 'email', label: this.$t('e_mail') },
-      ],
-      fields: [
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
-          formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
-          },
-        },
-        { key: 'bookmark', label: this.$t('remove') },
-      ],
       itemsList: [],
       itemsMassCreation: this.$store.state.userSelectedInMassCreation,
       radioSelectedMass: '',
@@ -111,6 +73,7 @@ export default {
       rows: 0,
       currentPage: 1,
       perPage: 25,
+      now: Date.now(),
     }
   },
   async created() {
@@ -167,6 +130,48 @@ export default {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
+    },
+  },
+  computed: {
+    Searchfields() {
+      return [
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'email', label: this.$t('e_mail') },
+      ]
+    },
+    fields() {
+      return [
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'bookmark', label: this.$t('remove') },
+      ]
+    },
+    creationLabel() {
+      const now = new Date(this.now)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      return [
+        this.$d(beforeLastMonth, 'monthShort'),
+        this.$d(lastMonth, 'monthShort'),
+        this.$d(now, 'monthShort'),
+      ].join(' | ')
     },
   },
   watch: {
