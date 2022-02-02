@@ -28,7 +28,7 @@
 */
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
 import { LoginElopageBuysRepository } from '../typeorm/repository/LoginElopageBuys'
 import { LoginUserRepository } from '../typeorm/repository/LoginUser'

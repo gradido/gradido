@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, getRepository, QueryRunner } from 'typeorm'
+import { getConnection, getCustomRepository, getRepository, QueryRunner } from '@dbTools/typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
@@ -476,6 +476,8 @@ export class UserResolver {
     return 'success'
   }
 
+  // THis is used by the admin only - should we move it to the admin resolver?
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     const loginUserRepository = getCustomRepository(LoginUserRepository)

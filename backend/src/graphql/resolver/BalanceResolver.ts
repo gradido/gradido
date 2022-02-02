@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { Balance } from '../model/Balance'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
