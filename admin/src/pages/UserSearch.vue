@@ -7,14 +7,6 @@
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <b-input
-      type="text"
-      v-model="criteria"
-      class="shadow p-3 mb-3 bg-white rounded"
-      :placeholder="$t('user_search')"
-      @input="getUsers"
-    ></b-input>
-
     <div>
       <b-input-group>
         <b-form-input
