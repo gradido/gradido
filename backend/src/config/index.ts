@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0014-drop_unused_tables_with_data',
+  DB_VERSION: '0015-admin_pending_creations',
 }
 
 const server = {

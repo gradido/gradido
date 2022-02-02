@@ -12,9 +12,10 @@ import { TransactionSendCoin } from './TransactionSendCoin'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
 import { UserTransaction } from './UserTransaction'
-import { LoginPendingTasksAdmin } from './LoginPendingTasksAdmin'
+import { AdminPendingCreation } from './AdminPendingCreation'
 
 export const entities = [
+  AdminPendingCreation,
   Balance,
   LoginElopageBuys,
   LoginEmailOptIn,
@@ -29,5 +30,4 @@ export const entities = [
   User,
   UserSetting,
   UserTransaction,
-  LoginPendingTasksAdmin,
 ]
