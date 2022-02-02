@@ -91,6 +91,9 @@ export default {
         {
           key: 'creation',
           label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
         },
         { key: 'show_details', label: this.$t('details') },
         { key: 'confirm_mail', label: this.$t('confirmed') },
