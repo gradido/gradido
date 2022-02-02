@@ -13,12 +13,7 @@
       class="shadow p-3 mb-3 bg-white rounded"
       :placeholder="$t('user_search')"
     ></b-input>
-    <user-table
-      type="PageUserSearch"
-      :itemsUser="searchResult"
-      :fieldsTable="fields"
-      :criteria="criteria"
-    />
+    <user-table type="PageUserSearch" :itemsUser="searchResult" :fieldsTable="fields" />
     <b-pagination
       pills
       size="lg"

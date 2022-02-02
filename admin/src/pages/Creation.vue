@@ -14,8 +14,6 @@
           type="UserListSearch"
           :itemsUser="itemsList"
           :fieldsTable="Searchfields"
-          :criteria="criteria"
-          :creation="creation"
           @push-item="pushItem"
         />
         <b-pagination
@@ -33,8 +31,6 @@
           type="UserListMassCreation"
           :itemsUser="itemsMassCreation"
           :fieldsTable="fields"
-          :criteria="null"
-          :creation="creation"
           @remove-item="removeItem"
         />
         <div v-if="itemsMassCreation.length === 0">
