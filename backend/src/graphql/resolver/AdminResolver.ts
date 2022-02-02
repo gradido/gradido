@@ -10,7 +10,6 @@ import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
-import { LoginPendingTasksAdminRepository } from '../../typeorm/repository/LoginPendingTasksAdmin'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -23,7 +22,7 @@ import { UserTransactionRepository } from '../../typeorm/repository/UserTransact
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
-import { LoginPendingTasksAdmin } from '@entity/LoginPendingTasksAdmin'
+import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 
 @Resolver()
 export class AdminResolver {
@@ -68,16 +67,15 @@ export class AdminResolver {
     const creations = await getUserCreations(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
-      const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-      const loginPendingTaskAdmin = loginPendingTasksAdminRepository.create()
-      loginPendingTaskAdmin.userId = user.id
-      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-      loginPendingTaskAdmin.created = new Date()
-      loginPendingTaskAdmin.date = creationDateObj
-      loginPendingTaskAdmin.memo = memo
-      loginPendingTaskAdmin.moderator = moderator
+      const adminPendingCreation = AdminPendingCreation.create()
+      adminPendingCreation.userId = user.id
+      adminPendingCreation.amount = BigInt(amount * 10000)
+      adminPendingCreation.created = new Date()
+      adminPendingCreation.date = creationDateObj
+      adminPendingCreation.memo = memo
+      adminPendingCreation.moderator = moderator
 
-      await loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      await AdminPendingCreation.save(adminPendingCreation)
     }
     return getUserCreations(user.id)
   }
@@ -116,8 +114,7 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
 
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const pendingCreationToUpdate = await loginPendingTasksAdminRepository.findOneOrFail({ id })
+    const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
     if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
@@ -137,7 +134,7 @@ export class AdminResolver {
     pendingCreationToUpdate.date = new Date(creationDate)
     pendingCreationToUpdate.moderator = moderator
 
-    await loginPendingTasksAdminRepository.save(pendingCreationToUpdate)
+    await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
     result.amount = parseInt(amount.toString())
     result.memo = pendingCreationToUpdate.memo
@@ -151,8 +148,7 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const pendingCreations = await loginPendingTasksAdminRepository.find()
+    const pendingCreations = await AdminPendingCreation.find()
 
     const pendingCreationsPromise = await Promise.all(
       pendingCreations.map(async (pendingCreation) => {
@@ -179,18 +175,15 @@ export class AdminResolver {
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const entity = await loginPendingTasksAdminRepository.findOneOrFail(id)
-    const res = await loginPendingTasksAdminRepository.delete(entity)
+    const entity = await AdminPendingCreation.findOneOrFail(id)
+    const res = await AdminPendingCreation.delete(entity)
     return !!res
   }
 
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const pendingCreation = await loginPendingTasksAdminRepository.findOneOrFail(id)
-
+    const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
     const userRepository = getCustomRepository(UserRepository)
     const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (moderatorUser.id === pendingCreation.userId)
@@ -251,7 +244,7 @@ export class AdminResolver {
     userBalance.modified = receivedCallDate
     userBalance.recordDate = receivedCallDate
     await balanceRepository.save(userBalance)
-    await loginPendingTasksAdminRepository.delete(pendingCreation)
+    await AdminPendingCreation.delete(pendingCreation)
 
     return true
   }
@@ -280,12 +273,12 @@ async function getUserCreations(id: number): Promise<number[]> {
     .orderBy('target_month', 'ASC')
     .getRawMany()
 
-  const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-  const pendingAmountsQuery = await loginPendingTasksAdminRepository
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('MONTH(login_pending_tasks_admin.date)', 'target_month')
-    .addSelect('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
+  const pendingAmountsQuery = await AdminPendingCreation.createQueryBuilder(
+    'admin_pending_creations',
+  )
+    .select('MONTH(admin_pending_creations.date)', 'target_month')
+    .addSelect('SUM(admin_pending_creations.amount)', 'sum')
+    .where('admin_pending_creations.userId = :id', { id })
     .andWhere({
       date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
         date: dateBeforeLastMonth,
@@ -336,7 +329,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   ]
 }
 
-function updateCreations(creations: number[], pendingCreation: LoginPendingTasksAdmin): number[] {
+function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
   const dateMonth = moment().format('YYYY-MM')
   const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
   const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
