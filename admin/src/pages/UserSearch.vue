@@ -15,24 +15,22 @@
       @input="getUsers"
     ></b-input>
 
-   <div>
-  <b-input-group>
-   
-    <b-form-input  type="text"
-      v-model="criteria"
-      
-      :placeholder="$t('user_search')"
-      @input="getUsers"></b-form-input>
+    <div>
+      <b-input-group>
+        <b-form-input
+          type="text"
+          v-model="criteria"
+          :placeholder="$t('user_search')"
+          @input="getUsers"
+        ></b-form-input>
 
-    <b-input-group-append v-bind="criteria=''" @click="getUsers">
-     
-     
-      <b-input-group-text>
-        <b-icon icon="x" />
-      </b-input-group-text>
-    </b-input-group-append>
-  </b-input-group>
-</div>
+        <b-input-group-append v-bind="(criteria = '')" @click="getUsers">
+          <b-input-group-text>
+            <b-icon icon="x" />
+          </b-input-group-text>
+        </b-input-group-append>
+      </b-input-group>
+    </div>
 
     <user-table
       type="PageUserSearch"
