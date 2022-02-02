@@ -6,6 +6,8 @@ import GlobalDirectives from './globalDirectives'
 
 import Toasted from 'vue-toasted'
 
+import './assets/scss/app.scss'
+
 jest.mock('./globalComponents')
 jest.mock('./globalDirectives')
 jest.mock('vue-toasted')
@@ -27,7 +29,7 @@ describe('dashboard plugin', () => {
   })
 
   describe('vue toasted', () => {
-    const toastedAction = vueUseMock.mock.calls[10][1].action.onClick
+    const toastedAction = vueUseMock.mock.calls[9][1].action.onClick
     const goAwayMock = jest.fn()
     const toastObject = {
       goAway: goAwayMock,

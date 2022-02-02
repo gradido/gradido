@@ -4,6 +4,8 @@ import App from './App.vue'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
 
+import 'regenerator-runtime'
+
 import addNavigationGuards from './routes/guards'
 
 import { store } from './store/store'

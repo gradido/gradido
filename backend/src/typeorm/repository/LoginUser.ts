@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm'
+import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { LoginUser } from '@entity/LoginUser'
 
 @EntityRepository(LoginUser)

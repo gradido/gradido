@@ -116,7 +116,7 @@
             <confirm-register-mail-formular
               :checked="row.item.emailChecked"
               :email="row.item.email"
-              :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
+              :dateLastSend="$d(new Date(), 'long')"
             />
           </template>
           <template #show-transaction-list>
@@ -125,15 +125,18 @@
         </row-details>
       </template>
       <template #cell(bookmark)="row">
-        <b-button
-          variant="warning"
-          v-show="type === 'UserListSearch'"
-          size="md"
-          @click="bookmarkPush(row.item)"
-          class="mr-2"
-        >
-          <b-icon icon="plus" variant="success"></b-icon>
-        </b-button>
+        <div v-show="type === 'UserListSearch'">
+          <b-button
+            v-if="row.item.emailChecked"
+            variant="warning"
+            size="md"
+            @click="bookmarkPush(row.item)"
+            class="mr-2"
+          >
+            <b-icon icon="plus" variant="success"></b-icon>
+          </b-button>
+          <div v-else>{{ $t('e_mail') }}!</div>
+        </div>
         <b-button
           variant="danger"
           v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
@@ -284,11 +287,11 @@ export default {
       this.overlay = false
     },
     bookmarkPush(item) {
-      this.$emit('update-item', item, 'push')
+      this.$emit('push-item', item)
     },
     bookmarkRemove(item) {
       if (this.type === 'UserListMassCreation') {
-        this.$emit('update-item', item, 'remove')
+        this.$emit('remove-item', item)
       }
 
       if (this.type === 'PageCreationConfirm') {

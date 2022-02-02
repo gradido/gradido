@@ -3,6 +3,10 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+const constants = {
+  DB_VERSION: '0014-drop_unused_tables_with_data',
+}
+
 const server = {
   PORT: process.env.PORT || 4000,
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
@@ -67,6 +71,7 @@ const webhook = {
 process.env.APP_SECRET = server.JWT_SECRET
 
 const CONFIG = {
+  ...constants,
   ...server,
   ...database,
   ...klicktipp,

@@ -18,8 +18,9 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "date": "Date",
   "details": "Details",
-  "e_mail": "E-Mail",
+  "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
   "hide_details": "Hide details from",

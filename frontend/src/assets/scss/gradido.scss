@@ -1,0 +1,44 @@
+
+// Bootstrap (4.5.3) functions
+
+@import "~bootstrap/scss/functions";
+
+
+@import "custom/variables";
+// @import "~bootstrap/scss/variables"; wird am 
+// ende der custom/variables angehangen
+
+// Bootstrap (4.5.3) mixins
+
+@import "~bootstrap/scss/mixins"; 
+ 
+// Bootstrap (4.5.3) components
+
+@import "~bootstrap/scss/alert";
+@import "~bootstrap/scss/badge";
+@import "~bootstrap/scss/dropdown";
+@import "~bootstrap/scss/button-group";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/card";
+@import "~bootstrap/scss/custom-forms";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/input-group";
+@import "~bootstrap/scss/list-group";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
+@import "~bootstrap/scss/pagination";
+@import "~bootstrap/scss/print";
+@import "~bootstrap/scss/progress";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/toasts";
+@import "~bootstrap/scss/tooltip";
+@import "~bootstrap/scss/transitions";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/variables";
+
+
+// Bootstrap-vue (2.21.1) scss
+@import '~bootstrap-vue/src/index.scss';
