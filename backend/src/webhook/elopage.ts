@@ -30,14 +30,12 @@
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
-import { LoginElopageBuysRepository } from '../typeorm/repository/LoginElopageBuys'
 import { User as dbUser } from '@entity/User'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
   console.log('Elopage Hook received', req.body)
   res.status(200).end() // Responding is important
-  const loginElopageBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
   const loginElopageBuy = new LoginElopageBuys()
 
   const {
@@ -82,7 +80,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   }
 
   // Save the hook data
-  await loginElopageBuyRepository.save(loginElopageBuy)
+  await LoginElopageBuys.save(loginElopageBuy)
 
   // create user for certain products
   /*
