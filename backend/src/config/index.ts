@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0012-login_user_backups_unify_wordlist',
+  DB_VERSION: '0014-drop_unused_tables_with_data',
 }
 
 const server = {
