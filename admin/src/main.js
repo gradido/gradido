@@ -17,7 +17,6 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-import moment from 'vue-moment'
 import Toasted from 'vue-toasted'
 
 import { apolloProvider } from './plugins/apolloProvider'
@@ -25,8 +24,6 @@ import { apolloProvider } from './plugins/apolloProvider'
 Vue.use(BootstrapVue)
 
 Vue.use(IconsPlugin)
-
-Vue.use(moment)
 
 Vue.use(VueApollo)
 
@@ -48,7 +45,6 @@ i18n.locale =
   store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
 
 new Vue({
-  moment,
   router,
   store,
   i18n,

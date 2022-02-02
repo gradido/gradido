@@ -32,22 +32,13 @@ const toastErrorMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
   },
   $toasted: {
     error: toastErrorMock,
   },
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
-  }),
 }
 
 describe('Creation', () => {

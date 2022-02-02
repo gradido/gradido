@@ -44,41 +44,14 @@ export default {
   data() {
     return {
       showArrays: false,
-      fields: [
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          label: [
-            this.$moment().subtract(2, 'month').format('MMM'),
-            this.$moment().subtract(1, 'month').format('MMM'),
-            this.$moment().format('MMM'),
-          ].join(' | '),
-          formatter: (value, key, item) => {
-            return value.join(' | ')
-          },
-        },
-        { key: 'show_details', label: this.$t('details') },
-        { key: 'confirm_mail', label: this.$t('confirmed') },
-        { key: 'transactions_list', label: this.$t('transaction') },
-      ],
       searchResult: [],
       massCreation: [],
       criteria: '',
-      currentMonth: {
-        short: this.$moment().format('MMMM'),
-      },
-      lastMonth: {
-        short: this.$moment().subtract(1, 'month').format('MMMM'),
-      },
-      beforeLastMonth: {
-        short: this.$moment().subtract(2, 'month').format('MMMM'),
-      },
       filterCheckedEmails: false,
       rows: 0,
       currentPage: 1,
       perPage: 25,
+      now: Date.now(),
     }
   },
   methods: {
@@ -109,6 +82,37 @@ export default {
   watch: {
     currentPage() {
       this.getUsers()
+    },
+  },
+  computed: {
+    lastMonthDate() {
+      const now = new Date(this.now)
+      return new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    },
+    beforeLastMonthDate() {
+      const now = new Date(this.now)
+      return new Date(now.getFullYear(), now.getMonth() - 2, 1)
+    },
+    fields() {
+      return [
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: [
+            this.$d(this.beforeLastMonthDate, 'monthShort'),
+            this.$d(this.lastMonthDate, 'monthShort'),
+            this.$d(this.now, 'monthShort'),
+          ].join(' | '),
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'show_details', label: this.$t('details') },
+        { key: 'confirm_mail', label: this.$t('confirmed') },
+        { key: 'transactions_list', label: this.$t('transaction') },
+      ]
     },
   },
   created() {

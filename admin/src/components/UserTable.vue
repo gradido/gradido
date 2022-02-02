@@ -116,7 +116,7 @@
             <confirm-register-mail-formular
               :checked="row.item.emailChecked"
               :email="row.item.email"
-              :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
+              :dateLastSend="$d(new Date(), 'long')"
             />
           </template>
           <template #show-transaction-list>
