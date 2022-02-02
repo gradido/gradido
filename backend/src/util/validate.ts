@@ -1,6 +1,6 @@
 import { User as dbUser } from '@entity/User'
 import { Balance as dbBalance } from '@entity/Balance'
-import { getRepository } from 'typeorm'
+import { getRepository } from '@dbTools/typeorm'
 import { calculateDecay } from './decay'
 
 function isStringBoolean(value: string): boolean {
