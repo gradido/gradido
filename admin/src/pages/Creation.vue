@@ -4,19 +4,19 @@
       <b-col cols="12" lg="6">
         <label>Usersuche</label>
         <b-input-group>
-        <b-form-input
-          type="text"
-          v-model="criteria"
-          :placeholder="$t('user_search')"
-          @input="getUsers"
-        ></b-form-input>
+          <b-form-input
+            type="text"
+            v-model="criteria"
+            :placeholder="$t('user_search')"
+            @input="getUsers"
+          ></b-form-input>
 
-        <b-input-group-append @click="criteria = ''">
-          <b-input-group-text>
-            <b-icon icon="x" />
-          </b-input-group-text>
-        </b-input-group-append>
-      </b-input-group>
+          <b-input-group-append @click="criteria = ''">
+            <b-input-group-text>
+              <b-icon icon="x" />
+            </b-input-group-text>
+          </b-input-group-append>
+        </b-input-group>
         <user-table
           v-if="itemsList.length > 0"
           type="UserListSearch"
