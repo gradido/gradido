@@ -12,9 +12,7 @@
       v-model="criteria"
       class="shadow p-3 mb-3 bg-white rounded"
       :placeholder="$t('user_search')"
-      @input="getUsers"
     ></b-input>
-
     <user-table
       type="PageUserSearch"
       :itemsUser="searchResult"
@@ -83,6 +81,9 @@ export default {
   },
   watch: {
     currentPage() {
+      this.getUsers()
+    },
+    criteria() {
       this.getUsers()
     },
   },
