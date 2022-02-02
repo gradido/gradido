@@ -81,30 +81,24 @@ describe('UserSearch', () => {
       })
     })
 
-    describe('set value in input search form input', () => {
-      beforeEach( async () => {
+    describe('set value in test-input-criteria', () => {
+      beforeEach(async () => {
         await wrapper.find('.test-input-criteria').setValue('some value')
       })
-  
-      it('sets rangeMax to 200', () => {
+
+      it('check value is setting', () => {
         // await wrapper.find('#test-click-criteria').trigger('click')
         expect(wrapper.find('.test-input-criteria').element.value).toBe('some value')
       })
 
-      describe('set value in input search form input', () => {
+      describe('click test-click-clear-criteria and clear value', () => {
         beforeEach(() => {
           wrapper.find('.test-click-clear-criteria').trigger('click')
         })
-      it('sets rangeMax to 200', () => {
-       
-        expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+        it('is value remove', () => {
+          expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+        })
       })
     })
-
-    })
-
-
   })
-
-
 })
