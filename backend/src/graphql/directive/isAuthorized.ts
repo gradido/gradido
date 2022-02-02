@@ -6,7 +6,7 @@ import { decode, encode } from '../../auth/JWT'
 import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '../../auth/ROLES'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { UserRepository } from '../../typeorm/repository/User'
 import { INALIENABLE_RIGHTS } from '../../auth/INALIENABLE_RIGHTS'
 

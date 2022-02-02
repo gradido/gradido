@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection, QueryRunner } from 'typeorm'
+import { getCustomRepository, getConnection, QueryRunner } from '@dbTools/typeorm'
 
 import CONFIG from '../../config'
 import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
