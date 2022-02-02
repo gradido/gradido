@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '../../config'
 import { GdtEntryList } from '../model/GdtEntryList'
 import Paginated from '../arg/Paginated'

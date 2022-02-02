@@ -60,7 +60,7 @@ docker-compose -f docker-compose.yml up
 - [frontend](./frontend) Wallet frontend
 - [backend](./backend) GraphQL & Business logic backend
 - [mariadb](./mariadb) Database backend
-- [login_server](./login_server) User credential storage & business logic backend
+- [login_server](./login_server) User credential storage & business logic backend (will be removed)
 - [community_server](./community_server/) Business logic backend
 
 We are currently restructuring the service to reduce dependencies and unify business logic into one place. Furthermore the databases defined for each service will be unified into one.
