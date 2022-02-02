@@ -195,7 +195,6 @@ export class AdminResolver {
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
     transaction.received = receivedCallDate
-    transaction.blockchainTypeId = 1
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
 
