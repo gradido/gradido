@@ -9,7 +9,6 @@ import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
-import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -75,8 +74,7 @@ export class AdminResolver {
       adminPendingCreation.memo = memo
       adminPendingCreation.moderator = moderator
 
-      await AdminPendingCreation.save(adminPendingCreation)
-    }
+      await AdminPendingCreation.save(adminPendingCreation)    }
     return getUserCreations(user.id)
   }
 
@@ -198,13 +196,12 @@ export class AdminResolver {
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
 
-    const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
     let transactionCreation = new TransactionCreation()
     transactionCreation.transactionId = transaction.id
     transactionCreation.userId = pendingCreation.userId
     transactionCreation.amount = parseInt(pendingCreation.amount.toString())
     transactionCreation.targetDate = pendingCreation.date
-    transactionCreation = await transactionCreationRepository.save(transactionCreation)
+    transactionCreation = await TransactionCreation.save(transactionCreation)
     if (!transactionCreation) throw new Error('Could not create transactionCreation')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
@@ -256,9 +253,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   const lastMonthNumber = moment().subtract(1, 'month').format('M')
   const currentMonthNumber = moment().format('M')
 
-  const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
-  const createdAmountsQuery = await transactionCreationRepository
-    .createQueryBuilder('transaction_creations')
+  const createdAmountsQuery = await TransactionCreation.createQueryBuilder('transaction_creations')
     .select('MONTH(transaction_creations.target_date)', 'target_month')
     .addSelect('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })

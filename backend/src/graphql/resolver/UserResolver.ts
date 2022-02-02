@@ -22,12 +22,12 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
-import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
 import { randomBytes } from 'crypto'
+import { LoginElopageBuys } from '@entity/LoginElopageBuys'
+import { ServerUser } from '@entity/ServerUser'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -335,8 +335,7 @@ export class UserResolver {
     user.coinanimation = coinanimation
 
     // context.role is not set to the actual role yet on login
-    const serverUserRepository = await getCustomRepository(ServerUserRepository)
-    const countServerUsers = await serverUserRepository.count({ email: user.email })
+    const countServerUsers = await ServerUser.count({ email: user.email })
     user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
@@ -812,8 +811,7 @@ export class UserResolver {
       return false
     }
 
-    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
-    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
+    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
     return elopageBuyCount > 0
   }
 }
