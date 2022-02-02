@@ -287,11 +287,11 @@ export default {
       this.overlay = false
     },
     bookmarkPush(item) {
-      this.$emit('update-item', item, 'push')
+      this.$emit('push-item', item)
     },
     bookmarkRemove(item) {
       if (this.type === 'UserListMassCreation') {
-        this.$emit('update-item', item, 'remove')
+        this.$emit('remove-item', item)
       }
 
       if (this.type === 'PageCreationConfirm') {

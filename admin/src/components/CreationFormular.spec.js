@@ -41,7 +41,6 @@ const mocks = {
 const propsData = {
   type: '',
   creation: [],
-  itemsMassCreation: {},
 }
 
 const now = new Date(Date.now())
