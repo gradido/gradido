@@ -80,7 +80,7 @@ async function calculateAndAddDecayTransactions(
 
     if (previousTransaction) {
       const currentTransaction = userTransaction
-      const decay = await calculateDecay(
+      const decay = calculateDecay(
         previousTransaction.balance,
         previousTransaction.balanceDate,
         currentTransaction.balanceDate,
