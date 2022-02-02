@@ -36,28 +36,6 @@ services:
       - db_test_vol:/var/lib/mysql
 
   #########################################################
-  ## LOGIN SERVER #########################################
-  #########################################################
-  login-server:
-    build:
-      context: ./login_server/
-      dockerfile: Dockerfiles/ubuntu/Dockerfile.test
-    security_opt:
-      - seccomp:unconfined
-    cap_add:
-      - SYS_PTRACE
-    depends_on:
-      - mariadb
-    networks: 
-      - internal-net
-    volumes:
-      - ./logs:/var/log/grd_login 
-      - ./login_server/src:/code/src
-      - ./configs/login_server:/etc/grd_login
-      - login_build_cov:/code/build_cov
-      - ./coverage/login:/code/build_cov/coverage_html
-
-  #########################################################
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
   #########################################################
   community-server:
@@ -98,4 +76,3 @@ networks:
 
 volumes:
   db_test_vol: 
-  login_build_cov:

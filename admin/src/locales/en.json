@@ -18,6 +18,7 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "date": "Date",
   "details": "Details",
   "e_mail": "E-mail",
   "firstname": "Firstname",
