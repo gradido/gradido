@@ -258,26 +258,25 @@ describe('Creation', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch')
       })
     })
- 
 
-  describe('set value in test-input-criteria', () => {
-    beforeEach(async () => {
-      wrapper = Wrapper()
-      await wrapper.find('.test-input-criteria').setValue('some value')
-    })
-
-    it('check value is setting', () => {
-      expect(wrapper.find('.test-input-criteria').element.value).toBe('some value')
-    })
-
-    describe('click test-click-clear-criteria and clear value', () => {
-      beforeEach(() => {
-        wrapper.find('.test-click-clear-criteria').trigger('click')
+    describe('set value in test-input-criteria', () => {
+      beforeEach(async () => {
+        wrapper = Wrapper()
+        await wrapper.find('.test-input-criteria').setValue('some value')
       })
-      it('is value remove', () => {
-        expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+
+      it('check value is setting', () => {
+        expect(wrapper.find('.test-input-criteria').element.value).toBe('some value')
+      })
+
+      describe('click test-click-clear-criteria and clear value', () => {
+        beforeEach(() => {
+          wrapper.find('.test-click-clear-criteria').trigger('click')
+        })
+        it('is value remove', () => {
+          expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+        })
       })
     })
   })
-})
 })
