@@ -2,7 +2,6 @@ import { Balance } from './Balance'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { LoginUser } from './LoginUser'
-import { LoginUserRoles } from './LoginUserRoles'
 import { LoginUserBackup } from './LoginUserBackup'
 import { Migration } from './Migration'
 import { ServerUser } from './ServerUser'
@@ -20,7 +19,6 @@ export const entities = [
   LoginElopageBuys,
   LoginEmailOptIn,
   LoginUser,
-  LoginUserRoles,
   LoginUserBackup,
   Migration,
   ServerUser,
