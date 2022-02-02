@@ -13,10 +13,9 @@
           type="text"
           v-model="criteria"
           :placeholder="$t('user_search')"
-          @input="getUsers"
         ></b-form-input>
 
-        <b-input-group-append v-bind="(criteria = '')" @click="getUsers">
+        <b-input-group-append @click="criteria = ''">
           <b-input-group-text>
             <b-icon icon="x" />
           </b-input-group-text>
@@ -117,6 +116,9 @@ export default {
   },
   watch: {
     currentPage() {
+      this.getUsers()
+    },
+    criteria() {
       this.getUsers()
     },
   },
