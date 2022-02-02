@@ -1,6 +1,9 @@
 export const creationMonths = {
   props: {
-    creation: [1000, 1000, 1000],
+    creation: {
+      type: Array,
+      default: () => [1000, 1000, 1000],
+    },
   },
   computed: {
     creationDates() {
@@ -30,6 +33,9 @@ export const creationMonths = {
           name: obj.short + (this.creation[idx] ? ' ' + this.creation[idx] + ' GDD' : ''),
         }
       })
+    },
+    creationLabel() {
+      return this.creationDates.map((date) => this.$d(date, 'monthShort')).join(' | ')
     },
   },
 }

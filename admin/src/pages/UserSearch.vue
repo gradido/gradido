@@ -35,9 +35,11 @@
 <script>
 import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { creationMonths } from '../mixins/creationMonths'
 
 export default {
   name: 'UserSearch',
+  mixins: [creationMonths],
   components: {
     UserTable,
   },
@@ -85,14 +87,6 @@ export default {
     },
   },
   computed: {
-    lastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    },
-    beforeLastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 2, 1)
-    },
     fields() {
       return [
         { key: 'email', label: this.$t('e_mail') },
@@ -100,14 +94,7 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: [
-            this.$d(this.beforeLastMonthDate, 'monthShort'),
-            this.$d(this.lastMonthDate, 'monthShort'),
-            this.$d(this.now, 'monthShort'),
-          ].join(' | '),
-          formatter: (value, key, item) => {
-            return value.join(' | ')
-          },
+          label: this.creationLabel,
         },
         { key: 'show_details', label: this.$t('details') },
         { key: 'confirm_mail', label: this.$t('confirmed') },

@@ -195,6 +195,7 @@ export default {
     creation: {
       type: Array,
       required: false,
+      default: () => [null, null, null],
     },
   },
   components: {
