@@ -80,5 +80,31 @@ describe('UserSearch', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch')
       })
     })
+
+    describe('set value in input search form input', () => {
+      beforeEach( async () => {
+        await wrapper.find('.test-input-criteria').setValue('some value')
+      })
+  
+      it('sets rangeMax to 200', () => {
+        // await wrapper.find('#test-click-criteria').trigger('click')
+        expect(wrapper.find('.test-input-criteria').element.value).toBe('some value')
+      })
+
+      describe('set value in input search form input', () => {
+        beforeEach(() => {
+          wrapper.find('.test-click-clear-criteria').trigger('click')
+        })
+      it('sets rangeMax to 200', () => {
+       
+        expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+      })
+    })
+
+    })
+
+
   })
+
+
 })

@@ -11,11 +11,12 @@
       <b-input-group>
         <b-form-input
           type="text"
+          class="test-input-criteria"
           v-model="criteria"
           :placeholder="$t('user_search')"
         ></b-form-input>
 
-        <b-input-group-append @click="criteria = ''">
+        <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
           <b-input-group-text>
             <b-icon icon="x" />
           </b-input-group-text>
