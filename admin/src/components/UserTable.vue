@@ -117,7 +117,7 @@
         </row-details>
       </template>
       <template #cell(bookmark)="row">
-        <div v-show="type === 'UserListSearch'">
+        <div v-if="type === 'UserListSearch'">
           <b-button
             v-if="row.item.emailChecked"
             variant="warning"
