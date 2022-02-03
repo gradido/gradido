@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0015-admin_pending_creations',
+  DB_VERSION: '0016-transaction_signatures',
 }
 
 const server = {
