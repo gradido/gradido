@@ -16,7 +16,6 @@ import { klicktippNewsletterStateMiddleware } from '../../middleware/klicktippMi
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
-import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
@@ -25,7 +24,7 @@ import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
-import { randomBytes, randomInt } from 'crypto'
+import { randomInt } from 'crypto'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -373,6 +372,7 @@ export class UserResolver {
     dbUser.emailHash = emailHash
     dbUser.language = language
     dbUser.publisherId = publisherId
+    dbUser.passphrase = passphrase.join(' ')
     // TODO this is a refactor artifact and must be removed quickly
     dbUser.loginUserId = randomInt(9999999999)
     // TODO this field has no null allowed unlike the loginServer table
@@ -390,18 +390,6 @@ export class UserResolver {
         // eslint-disable-next-line no-console
         console.log('Error while saving dbUser', error)
         throw new Error('error saving user')
-      })
-
-      // Table: login_user_backups
-      const loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = dbUser.loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-
-      await queryRunner.manager.save(loginUserBackup).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('insert LoginUserBackup failed', error)
-        throw new Error('insert user backup failed')
       })
 
       // Store EmailOptIn in DB
@@ -536,20 +524,14 @@ export class UserResolver {
       throw new Error('Could not find corresponding Login User')
     })
 
-    const loginUserBackupRepository = await getRepository(LoginUserBackup)
-    let loginUserBackup = await loginUserBackupRepository.findOne({ userId: user.loginUserId })
 
     // Generate Passphrase if needed
-    if (!loginUserBackup) {
+    if (!user.passphrase) {
       const passphrase = PassphraseGenerate()
-      loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = user.loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-      loginUserBackupRepository.save(loginUserBackup)
+      user.passphrase = passphrase.join(' ')
     }
 
-    const passphrase = loginUserBackup.passphrase.split(' ')
+    const passphrase = user.passphrase.split(' ')
     if (passphrase.length < PHRASE_WORD_COUNT) {
       // TODO if this can happen we cannot recover from that
       // this seem to be good on production data, if we dont
