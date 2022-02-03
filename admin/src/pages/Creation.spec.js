@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils'
+import { shallowMount, mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
 
 const localVue = global.localVue
@@ -304,10 +304,26 @@ describe('Creation', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch')
       })
     })
+ 
+  })
+})
+
+describe('Mount Creation', () => {
+  let wrapper
+
+  const Wrapper = () => {
+    return mount(Creation, { localVue, mocks })
+  }
+
+  describe('mount', () => {
+    beforeEach(() => {
+      wrapper = Wrapper()
+    })
+
+    
 
     describe('set value in test-input-criteria', () => {
       beforeEach(async () => {
-        wrapper = Wrapper()
         await wrapper.find('.test-input-criteria').setValue('some value')
       })
 
