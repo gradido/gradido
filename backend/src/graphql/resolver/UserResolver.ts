@@ -232,7 +232,7 @@ export class UserResolver {
     user.lastName = userEntity.lastName
     user.username = userEntity.username
     user.description = loginUser.description
-    user.pubkey = userEntity.pubkey.toString('hex')
+    user.pubkey = userEntity.pubKey.toString('hex')
     user.language = loginUser.language
 
     // Elopage Status & Stored PublisherId
@@ -293,7 +293,7 @@ export class UserResolver {
       userEntity.lastName = loginUser.lastName
       userEntity.username = loginUser.username
       userEntity.email = loginUser.email
-      userEntity.pubkey = loginUser.pubKey
+      userEntity.pubKey = loginUser.pubKey
 
       userRepository.save(userEntity).catch(() => {
         throw new Error('error by save userEntity')
@@ -437,7 +437,7 @@ export class UserResolver {
       dbUser.lastName = lastName
       dbUser.username = username
       // TODO this field has no null allowed unlike the loginServer table
-      dbUser.pubkey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
+      dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
       // dbUser.pubkey = keyPair[0]
 
       await queryRunner.manager.save(dbUser).catch((er) => {
@@ -620,7 +620,7 @@ export class UserResolver {
     loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
     loginUser.pubKey = keyPair[0]
     loginUser.privKey = encryptedPrivkey
-    dbUser.pubkey = keyPair[0]
+    dbUser.pubKey = keyPair[0]
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()

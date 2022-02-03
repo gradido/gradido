@@ -364,7 +364,7 @@ export class TransactionResolver {
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
     const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
-    if (senderUser.pubkey.length !== 32) {
+    if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
     if (!hasUserAmount(senderUser, amount)) {
@@ -454,7 +454,7 @@ export class TransactionResolver {
       const transactionSendCoin = new dbTransactionSendCoin()
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
-      transactionSendCoin.senderPublic = senderUser.pubkey
+      transactionSendCoin.senderPublic = senderUser.pubKey
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
       transactionSendCoin.amount = centAmount
