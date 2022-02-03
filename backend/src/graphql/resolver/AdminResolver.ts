@@ -74,7 +74,8 @@ export class AdminResolver {
       adminPendingCreation.memo = memo
       adminPendingCreation.moderator = moderator
 
-      await AdminPendingCreation.save(adminPendingCreation)    }
+      await AdminPendingCreation.save(adminPendingCreation)
+    }
     return getUserCreations(user.id)
   }
 
