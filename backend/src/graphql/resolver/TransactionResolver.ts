@@ -33,7 +33,6 @@ import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
 
 // Helper function
@@ -290,14 +289,13 @@ async function addUserTransaction(
 }
 
 async function getPublicKey(email: string): Promise<string | null> {
-  const loginUserRepository = getCustomRepository(LoginUserRepository)
-  const loginUser = await loginUserRepository.findOne({ email: email })
+  const user = await dbUser.findOne({ email: email })
   // User not found
-  if (!loginUser) {
+  if (!user) {
     return null
   }
 
-  return loginUser.pubKey.toString('hex')
+  return user.pubKey.toString('hex')
 }
 
 @Resolver()
