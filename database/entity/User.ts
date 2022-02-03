@@ -1,1 +1,1 @@
-export { User } from './0002-add_settings/User'
+export { User } from './0017-combine_user_tables/User'
