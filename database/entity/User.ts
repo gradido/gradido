@@ -1,1 +1,1 @@
-export { User } from './0017-combine_user_tables/User'
+export { User } from './0018-combine_login_user_backups_and_user_table/User'
