@@ -1,8 +1,7 @@
-/* MIGRATION TO COMBINE ALL USER TABLES
+/* MIGRATION TO COMBINE LOGIN_USERS WITH STATE_USERS TABLE
  *
- * This migration combines the tables `login_users`
- * and `login_user_backups` into the `state_users`
- * table.
+ * This migration combines the table `login_users` with
+ * the `state_users` table, where the later is the target.
  */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
