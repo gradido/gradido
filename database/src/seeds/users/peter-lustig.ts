@@ -1,4 +1,5 @@
 export const peterLustig = {
+  loginUserId: 4,
   email: 'peter@lustig.de',
   firstName: 'Peter',
   lastName: 'Lustig',

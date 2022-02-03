@@ -1,4 +1,5 @@
 export const bibiBloxberg = {
+  loginUserId: 1,
   email: 'bibi@bloxberg.de',
   firstName: 'Bibi',
   lastName: 'Bloxberg',
