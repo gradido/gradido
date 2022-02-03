@@ -524,7 +524,6 @@ export class UserResolver {
       throw new Error('Could not find corresponding Login User')
     })
 
-
     // Generate Passphrase if needed
     if (!user.passphrase) {
       const passphrase = PassphraseGenerate()
