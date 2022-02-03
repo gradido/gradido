@@ -14,7 +14,6 @@ define(User, (faker: typeof Faker, context?: UserContext) => {
   user.lastName = context.lastName ? context.lastName : faker.name.lastName()
   user.username = context.username ? context.username : faker.internet.userName()
   user.disabled = context.disabled ? context.disabled : false
-  user.loginUserId = context.loginUserId ? context.loginUserId : randomInt(999999)
   user.indexId = 0
   user.description = context.description ? context.description : faker.random.words(4)
   // TODO Create real password and keys/hash

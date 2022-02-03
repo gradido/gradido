@@ -1,5 +1,4 @@
 export interface UserContext {
-  loginUserId?: number
   pubKey?: Buffer
   email?: string
   firstName?: string

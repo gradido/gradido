@@ -1,6 +1,5 @@
 export interface UserInterface {
   // from user
-  loginUserId?: number
   email?: string
   firstName?: string
   lastName?: string

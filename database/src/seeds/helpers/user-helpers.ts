@@ -40,7 +40,6 @@ const createUserContext = (context: UserInterface): UserContext => {
   return {
     pubKey: context.pubKey,
     email: context.email,
-    loginUserId: context.loginUserId,
     firstName: context.firstName,
     lastName: context.lastName,
     username: context.username,
