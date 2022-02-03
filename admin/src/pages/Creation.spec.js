@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
 
 const localVue = global.localVue
@@ -51,10 +51,10 @@ describe('Creation', () => {
   let wrapper
 
   const Wrapper = () => {
-    return shallowMount(Creation, { localVue, mocks })
+    return mount(Creation, { localVue, mocks })
   }
 
-  describe('shallowMount', () => {
+  describe('mount', () => {
     beforeEach(() => {
       jest.clearAllMocks()
       wrapper = Wrapper()

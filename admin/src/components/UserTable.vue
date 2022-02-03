@@ -27,15 +27,7 @@
         </b-button>
       </b-jumbotron>
     </div>
-    <b-table-lite
-      :items="itemsUser"
-      :fields="fieldsTable"
-      :filter="criteria"
-      caption-top
-      striped
-      hover
-      stacked="md"
-    >
+    <b-table-lite :items="itemsUser" :fields="fieldsTable" caption-top striped hover stacked="md">
       <template #cell(creation)="data">
         <div v-html="data.value"></div>
       </template>
@@ -186,15 +178,6 @@ export default {
     fieldsTable: {
       type: Array,
       required: true,
-    },
-    criteria: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    creation: {
-      type: Array,
-      required: false,
     },
   },
   components: {
