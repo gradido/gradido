@@ -24,7 +24,6 @@ import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
-import { randomInt } from 'crypto'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -373,8 +372,6 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
-    // TODO this is a refactor artifact and must be removed quickly
-    dbUser.loginUserId = randomInt(9999999999)
     // TODO this field has no null allowed unlike the loginServer table
     // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
     // dbUser.pubkey = keyPair[0]
@@ -394,7 +391,7 @@ export class UserResolver {
 
       // Store EmailOptIn in DB
       // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = await createEmailOptIn(dbUser.loginUserId, queryRunner)
+      const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{code}/g,
@@ -433,7 +430,7 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      const emailOptIn = await createEmailOptIn(user.loginUserId, queryRunner)
+      const emailOptIn = await createEmailOptIn(user.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{code}/g,
@@ -469,7 +466,7 @@ export class UserResolver {
 
     const user = await DbUser.findOneOrFail({ email })
 
-    const optInCode = await getOptInCode(user.loginUserId)
+    const optInCode = await getOptInCode(user.id)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /{code}/g,
@@ -520,7 +517,7 @@ export class UserResolver {
     }
 
     // load user
-    const user = await DbUser.findOneOrFail({ loginUserId: optInCode.userId }).catch(() => {
+    const user = await DbUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
       throw new Error('Could not find corresponding Login User')
     })
 
