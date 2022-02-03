@@ -22,8 +22,6 @@
           type="UserListSearch"
           :itemsUser="itemsList"
           :fieldsTable="Searchfields"
-          :criteria="criteria"
-          :creation="creation"
           @push-item="pushItem"
         />
         <b-pagination
@@ -41,8 +39,6 @@
           type="UserListMassCreation"
           :itemsUser="itemsMassCreation"
           :fieldsTable="fields"
-          :criteria="null"
-          :creation="creation"
           @remove-item="removeItem"
         />
         <div v-if="itemsMassCreation.length === 0">
@@ -63,9 +59,11 @@
 import CreationFormular from '../components/CreationFormular.vue'
 import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { creationMonths } from '../mixins/creationMonths'
 
 export default {
   name: 'Creation',
+  mixins: [creationMonths],
   components: {
     CreationFormular,
     UserTable,
@@ -77,7 +75,6 @@ export default {
       itemsMassCreation: this.$store.state.userSelectedInMassCreation,
       radioSelectedMass: '',
       criteria: '',
-      creation: [null, null, null],
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -170,16 +167,6 @@ export default {
         },
         { key: 'bookmark', label: this.$t('remove') },
       ]
-    },
-    creationLabel() {
-      const now = new Date(this.now)
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-      return [
-        this.$d(beforeLastMonth, 'monthShort'),
-        this.$d(lastMonth, 'monthShort'),
-        this.$d(now, 'monthShort'),
-      ].join(' | ')
     },
   },
   watch: {

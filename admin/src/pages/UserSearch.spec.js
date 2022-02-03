@@ -42,6 +42,7 @@ describe('UserSearch', () => {
 
   describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -49,13 +50,73 @@ describe('UserSearch', () => {
       expect(wrapper.find('div.user-search').exists()).toBeTruthy()
     })
 
+    it('calls the API', () => {
+      expect(apolloQueryMock).toBeCalledWith(
+        expect.objectContaining({
+          variables: {
+            searchText: '',
+            currentPage: 1,
+            pageSize: 25,
+            notActivated: false,
+          },
+        }),
+      )
+    })
+
     describe('unconfirmed emails', () => {
       beforeEach(async () => {
         await wrapper.find('button.btn-block').trigger('click')
       })
 
-      it('filters the users by unconfirmed emails', () => {
-        expect(wrapper.vm.searchResult).toHaveLength(1)
+      it('calls API with filter', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+              notActivated: true,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('pagination', () => {
+      beforeEach(async () => {
+        wrapper.setData({ currentPage: 2 })
+      })
+
+      it('calls the API with new page', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 2,
+              pageSize: 25,
+              notActivated: false,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('user search', () => {
+      beforeEach(async () => {
+        wrapper.setData({ criteria: 'search string' })
+      })
+
+      it('calls the API with search string', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: 'search string',
+              currentPage: 1,
+              pageSize: 25,
+              notActivated: false,
+            },
+          }),
+        )
       })
     })
 
