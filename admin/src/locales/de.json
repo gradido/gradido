@@ -18,6 +18,7 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "date": "Datum",
   "details": "Details",
   "e_mail": "E-Mail",
   "firstname": "Vorname",

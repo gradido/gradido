@@ -6,65 +6,14 @@
           <label>{{ $t('creation_form.select_month') }}</label>
         </div>
         <b-row class="m-4">
-          <b-col class="text-left">
-            <b-form-radio
-              id="beforeLastMonth"
-              v-model="radioSelected"
-              :value="beforeLastMonth"
-              :disabled="selectedOpenCreationAmount[0] === 0"
-              size="lg"
-              @change="updateRadioSelected(beforeLastMonth, 0, selectedOpenCreationAmount[0])"
-            >
-              <label for="beforeLastMonth">
-                {{ beforeLastMonth.short }}
-                {{
-                  selectedOpenCreationAmount[0] != null
-                    ? selectedOpenCreationAmount[0] + ' GDD'
-                    : ''
-                }}
-              </label>
-            </b-form-radio>
-          </b-col>
-          <b-col>
-            <b-form-radio
-              id="lastMonth"
-              v-model="radioSelected"
-              :value="lastMonth"
-              :disabled="selectedOpenCreationAmount[1] === 0"
-              size="lg"
-              @change="updateRadioSelected(lastMonth, 1, selectedOpenCreationAmount[1])"
-            >
-              <label for="lastMonth">
-                {{ lastMonth.short }}
-                {{
-                  selectedOpenCreationAmount[1] != null
-                    ? selectedOpenCreationAmount[1] + ' GDD'
-                    : ''
-                }}
-              </label>
-            </b-form-radio>
-          </b-col>
-          <b-col class="text-right">
-            <b-form-radio
-              id="currentMonth"
-              v-model="radioSelected"
-              :value="currentMonth"
-              :disabled="selectedOpenCreationAmount[2] === 0"
-              size="lg"
-              @change="updateRadioSelected(currentMonth, 2, selectedOpenCreationAmount[2])"
-            >
-              <label for="currentMonth">
-                {{ currentMonth.short }}
-                {{
-                  selectedOpenCreationAmount[2] != null
-                    ? selectedOpenCreationAmount[2] + ' GDD'
-                    : ''
-                }}
-              </label>
-            </b-form-radio>
-          </b-col>
+          <b-form-radio-group
+            v-model="selected"
+            :options="radioOptions"
+            value-field="item"
+            text-field="name"
+            name="month-selection"
+          ></b-form-radio-group>
         </b-row>
-
         <div class="m-4">
           <label>{{ $t('creation_form.select_value') }}</label>
           <div>
@@ -76,7 +25,6 @@
                 :max="rangeMax"
               ></b-form-input>
             </b-input-group>
-
             <b-input-group prepend="0" :append="String(rangeMax)" class="mt-3">
               <b-form-input
                 type="range"
@@ -113,7 +61,7 @@
                 variant="success"
                 class="test-submit"
                 @click="submitCreation"
-                :disabled="radioSelected === '' || value <= 0 || text.length < 10"
+                :disabled="selected === '' || value <= 0 || text.length < 10"
               >
                 {{ $t('creation_form.update_creation') }}
               </b-button>
@@ -126,8 +74,11 @@
 </template>
 <script>
 import { updatePendingCreation } from '../graphql/updatePendingCreation'
+import { creationMonths } from '../mixins/creationMonths'
+
 export default {
   name: 'EditCreationFormular',
+  mixins: [creationMonths],
   props: {
     item: {
       type: Object,
@@ -151,51 +102,26 @@ export default {
   },
   data() {
     return {
-      radioSelected: '',
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
       value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
       rangeMin: 0,
       rangeMax: 1000,
-      currentMonth: {
-        short: this.$moment().format('MMMM'),
-        long: this.$moment().format('YYYY-MM-DD'),
-      },
-      lastMonth: {
-        short: this.$moment().subtract(1, 'month').format('MMMM'),
-        long: this.$moment().subtract(1, 'month').format('YYYY-MM') + '-01',
-      },
-      beforeLastMonth: {
-        short: this.$moment().subtract(2, 'month').format('MMMM'),
-        long: this.$moment().subtract(2, 'month').format('YYYY-MM') + '-01',
-      },
-      submitObj: null,
-      isdisabled: true,
-      createdIndex: null,
-      selectedOpenCreationAmount: {},
+      selected: '',
     }
   },
-
   methods: {
-    updateRadioSelected(name, index, openCreation) {
-      this.createdIndex = index
-      this.rangeMin = 0
-      this.rangeMax = this.creation[index]
-    },
     submitCreation() {
-      this.submitObj = {
-        id: this.item.id,
-        email: this.item.email,
-        creationDate: this.radioSelected.long,
-        amount: Number(this.value),
-        memo: this.text,
-        moderator: Number(this.$store.state.moderator.id),
-      }
-
-      // hinweis das eine ein einzelne Schöpfung abgesendet wird an (email)
       this.$apollo
         .mutate({
           mutation: updatePendingCreation,
-          variables: this.submitObj,
+          variables: {
+            id: this.item.id,
+            email: this.item.email,
+            creationDate: this.selected.date,
+            amount: Number(this.value),
+            memo: this.text,
+            moderator: Number(this.$store.state.moderator.id),
+          },
         })
         .then((result) => {
           this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
@@ -212,8 +138,6 @@ export default {
               email: this.item.email,
             }),
           )
-          this.submitObj = null
-          this.createdIndex = null
           // das creation Formular reseten
           this.$refs.updateCreationForm.reset()
           // Den geschöpften Wert auf o setzen
@@ -221,7 +145,6 @@ export default {
         })
         .catch((error) => {
           this.$toasted.error(error.message)
-          this.submitObj = null
           // das creation Formular reseten
           this.$refs.updateCreationForm.reset()
           // Den geschöpften Wert auf o setzen
@@ -231,25 +154,10 @@ export default {
   },
   created() {
     if (this.creationUserData.date) {
-      switch (this.$moment(this.creationUserData.date).format('MMMM')) {
-        case this.currentMonth.short:
-          this.createdIndex = 2
-          this.radioSelected = this.currentMonth
-          break
-        case this.lastMonth.short:
-          this.createdIndex = 1
-          this.radioSelected = this.lastMonth
-          break
-        case this.beforeLastMonth.short:
-          this.createdIndex = 0
-          this.radioSelected = this.beforeLastMonth
-          break
-        default:
-          throw new Error('Something went wrong')
-      }
-      this.selectedOpenCreationAmount[this.createdIndex] =
-        this.creation[this.createdIndex] + this.creationUserData.amount
-      this.rangeMax = this.selectedOpenCreationAmount[this.createdIndex]
+      const month = this.$d(new Date(this.creationUserData.date), 'month')
+      const index = this.radioOptions.findIndex((obj) => obj.item.short === month)
+      this.selected = this.radioOptions[index].item
+      this.rangeMax = this.creation[index] + this.creationUserData.amount
     }
   },
 }
