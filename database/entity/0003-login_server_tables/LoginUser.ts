@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
-import { LoginUserBackup } from '../LoginUserBackup'
+import { LoginUserBackup } from './LoginUserBackup'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('login_users')
