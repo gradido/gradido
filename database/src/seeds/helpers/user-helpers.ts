@@ -1,4 +1,4 @@
-import { UserContext, LoginUserBackupContext, ServerUserContext } from '../../interface/UserContext'
+import { UserContext, ServerUserContext } from '../../interface/UserContext'
 import {
   BalanceContext,
   TransactionContext,
@@ -7,7 +7,6 @@ import {
 } from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
 import { User } from '../../../entity/User'
-import { LoginUserBackup } from '../../../entity/LoginUserBackup'
 import { ServerUser } from '../../../entity/ServerUser'
 import { Balance } from '../../../entity/Balance'
 import { Transaction } from '../../../entity/Transaction'
@@ -17,9 +16,6 @@ import { Factory } from 'typeorm-seeding'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
   const user = await factory(User)(createUserContext(userData)).create()
-  await factory(LoginUserBackup)(
-    createLoginUserBackupContext(userData, (<User>user).loginUserId),
-  ).create()
 
   if (userData.isAdmin) {
     await factory(ServerUser)(createServerUserContext(userData)).create()
@@ -58,17 +54,6 @@ const createUserContext = (context: UserInterface): UserContext => {
     passphraseShown: context.passphraseShown,
     language: context.language,
     publisherId: context.publisherId,
-  }
-}
-
-const createLoginUserBackupContext = (
-  context: UserInterface,
-  loginUserId: number,
-): LoginUserBackupContext => {
-  return {
-    passphrase: context.passphrase,
-    mnemonicType: context.mnemonicType,
-    userId: loginUserId,
   }
 }
 

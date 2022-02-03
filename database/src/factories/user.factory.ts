@@ -26,6 +26,7 @@ define(User, (faker: typeof Faker, context?: UserContext) => {
   user.passphraseShown = context.passphraseShown ? context.passphraseShown : false
   user.language = context.language ? context.language : 'en'
   user.publisherId = context.publisherId ? context.publisherId : 0
+  user.passphrase = context.passphrase ? context.passphrase : faker.random.words(24)
 
   return user
 })

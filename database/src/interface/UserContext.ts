@@ -15,12 +15,7 @@ export interface UserContext {
   passphraseShown?: boolean
   language?: string
   publisherId?: number
-}
-
-export interface LoginUserBackupContext {
-  userId?: number
   passphrase?: string
-  mnemonicType?: number
 }
 
 export interface ServerUserContext {
@@ -32,9 +27,4 @@ export interface ServerUserContext {
   lastLogin?: Date
   created?: Date
   modified?: Date
-}
-
-export interface LoginUserRolesContext {
-  userId?: number
-  roleId?: number
 }

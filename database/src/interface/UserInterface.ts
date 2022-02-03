@@ -17,9 +17,7 @@ export interface UserInterface {
   disabled?: boolean
   groupId?: number
   publisherId?: number
-  // from login user backup
   passphrase?: string
-  mnemonicType?: number
   // from server user
   serverUserPassword?: string
   role?: string
