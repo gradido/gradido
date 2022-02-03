@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0012-login_user_backups_unify_wordlist',
+  DB_VERSION: '0016-transaction_signatures',
 }
 
 const server = {

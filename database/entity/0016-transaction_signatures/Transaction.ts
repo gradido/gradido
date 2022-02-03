@@ -4,11 +4,9 @@ import { TransactionSendCoin } from '../TransactionSendCoin'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  // TODO the id is defined as bigint(20) - there might be problems with that: https://github.com/typeorm/typeorm/issues/2400
+  @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
-
-  @Column({ name: 'state_group_id', unsigned: true, default: null })
-  stateGroupId: number
 
   @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
   transactionTypeId: number
@@ -22,14 +20,11 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
   received: Date
 
-  @Column({
-    name: 'blockchain_type_id',
-    type: 'bigint',
-    unsigned: true,
-    nullable: false,
-    default: 1,
-  })
-  blockchainTypeId: number
+  @Column({ type: 'binary', length: 64, nullable: true, default: null })
+  signature: Buffer
+
+  @Column({ type: 'binary', length: 32, nullable: true, default: null })
+  pubkey: Buffer
 
   @OneToOne(() => TransactionSendCoin, (transactionSendCoin) => transactionSendCoin.transaction)
   transactionSendCoin: TransactionSendCoin

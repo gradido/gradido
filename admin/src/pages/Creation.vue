@@ -16,7 +16,7 @@
           :fieldsTable="Searchfields"
           :criteria="criteria"
           :creation="creation"
-          @update-item="updateItem"
+          @push-item="pushItem"
         />
         <b-pagination
           pills
@@ -35,7 +35,7 @@
           :fieldsTable="fields"
           :criteria="null"
           :creation="creation"
-          @update-item="updateItem"
+          @remove-item="removeItem"
         />
         <div v-if="itemsMassCreation.length === 0">
           {{ $t('multiple_creation_text') }}
@@ -65,52 +65,15 @@ export default {
   data() {
     return {
       showArrays: false,
-      Searchfields: [
-        { key: 'bookmark', label: 'bookmark' },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
-          formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
-          },
-        },
-        { key: 'email', label: this.$t('e_mail') },
-      ],
-      fields: [
-        { key: 'email', label: this.$t('e_mail') },
-        { key: 'firstName', label: this.$t('firstname') },
-        { key: 'lastName', label: this.$t('lastname') },
-        {
-          key: 'creation',
-          // label: this.$t('open_creation') + 'Jan | Feb | März',
-          label:
-            this.$moment().subtract(2, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().subtract(1, 'month').format('MMM') +
-            ' | ' +
-            this.$moment().format('MMM'),
-          formatter: (value, key, item) => {
-            return String(value[0]) + ` | ` + String(value[1]) + ` |  ` + String(value[2])
-          },
-        },
-        { key: 'bookmark', label: this.$t('remove') },
-      ],
       itemsList: [],
-      itemsMassCreation: [],
+      itemsMassCreation: this.$store.state.userSelectedInMassCreation,
       radioSelectedMass: '',
       criteria: '',
       creation: [null, null, null],
       rows: 0,
       currentPage: 1,
       perPage: 25,
+      now: Date.now(),
     }
   },
   async created() {
@@ -136,35 +99,79 @@ export default {
               showDetails: false,
             }
           })
+          if (this.itemsMassCreation.length !== 0) {
+            const selectedIndices = this.itemsMassCreation.map((item) => item.userId)
+            this.itemsList = this.itemsList.filter((item) => !selectedIndices.includes(item.userId))
+          }
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
     },
-    updateItem(e, event) {
-      let index = 0
-      let findArr = {}
-
-      switch (event) {
-        case 'push':
-          findArr = this.itemsList.find((item) => e.userId === item.userId)
-          index = this.itemsList.indexOf(findArr)
-          this.itemsList.splice(index, 1)
-          this.itemsMassCreation.push(findArr)
-          break
-        case 'remove':
-          findArr = this.itemsMassCreation.find((item) => e.userId === item.userId)
-          index = this.itemsMassCreation.indexOf(findArr)
-          this.itemsMassCreation.splice(index, 1)
-          this.itemsList.push(findArr)
-          break
-        default:
-          throw new Error(event)
-      }
+    pushItem(selectedItem) {
+      this.itemsMassCreation = [
+        this.itemsList.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsMassCreation,
+      ]
+      this.itemsList = this.itemsList.filter((item) => selectedItem.userId !== item.userId)
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
+    },
+    removeItem(selectedItem) {
+      this.itemsList = [
+        this.itemsMassCreation.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsList,
+      ]
+      this.itemsMassCreation = this.itemsMassCreation.filter(
+        (item) => selectedItem.userId !== item.userId,
+      )
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
     removeAllBookmark() {
       this.itemsMassCreation = []
+      this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
+    },
+  },
+  computed: {
+    Searchfields() {
+      return [
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'email', label: this.$t('e_mail') },
+      ]
+    },
+    fields() {
+      return [
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'bookmark', label: this.$t('remove') },
+      ]
+    },
+    creationLabel() {
+      const now = new Date(this.now)
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const beforeLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      return [
+        this.$d(beforeLastMonth, 'monthShort'),
+        this.$d(lastMonth, 'monthShort'),
+        this.$d(now, 'monthShort'),
+      ].join(' | ')
     },
   },
   watch: {
