@@ -304,7 +304,6 @@ describe('Creation', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch')
       })
     })
- 
   })
 })
 
@@ -319,8 +318,6 @@ describe('Mount Creation', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
-
-    
 
     describe('set value in test-input-criteria', () => {
       beforeEach(async () => {
