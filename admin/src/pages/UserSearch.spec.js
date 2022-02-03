@@ -118,6 +118,23 @@ describe('UserSearch', () => {
           }),
         )
       })
+
+      describe('reset the search field', () => {
+        it('is value remove', async () => {
+          jest.clearAllMocks()
+          await wrapper.find('.test-click-clear-criteria').trigger('click')
+          expect(apolloQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                searchText: '',
+                currentPage: 1,
+                pageSize: 25,
+                notActivated: false,
+              },
+            }),
+          )
+        })
+      })
     })
 
     describe('apollo returns error', () => {
@@ -130,26 +147,6 @@ describe('UserSearch', () => {
 
       it('toasts an error message', () => {
         expect(toastErrorMock).toBeCalledWith('Ouch')
-      })
-    })
-
-    describe('set value in test-input-criteria', () => {
-      beforeEach(async () => {
-        await wrapper.find('.test-input-criteria').setValue('some value')
-      })
-
-      it('check value is setting', () => {
-        // await wrapper.find('#test-click-criteria').trigger('click')
-        expect(wrapper.find('.test-input-criteria').element.value).toBe('some value')
-      })
-
-      describe('click test-click-clear-criteria and clear value', () => {
-        beforeEach(() => {
-          wrapper.find('.test-click-clear-criteria').trigger('click')
-        })
-        it('is value remove', () => {
-          expect(wrapper.find('.test-input-criteria').element.value).toBe('')
-        })
       })
     })
   })
