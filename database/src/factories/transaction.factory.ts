@@ -12,7 +12,8 @@ define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
   transaction.txHash = context.txHash ? context.txHash : randomBytes(48)
   transaction.memo = context.memo || context.memo === '' ? context.memo : faker.lorem.sentence()
   transaction.received = context.received ? context.received : new Date()
-  transaction.blockchainTypeId = context.blockchainTypeId ? context.blockchainTypeId : 1
+  transaction.signature = context.signature ? context.signature : randomBytes(64)
+  transaction.pubkey = context.signaturePubkey ? context.signaturePubkey : randomBytes(32)
   if (context.transactionSendCoin) transaction.transactionSendCoin = context.transactionSendCoin
   if (context.transactionCreation) transaction.transactionCreation = context.transactionCreation
 

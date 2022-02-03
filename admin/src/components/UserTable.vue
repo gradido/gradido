@@ -116,7 +116,7 @@
             <confirm-register-mail-formular
               :checked="row.item.emailChecked"
               :email="row.item.email"
-              :dateLastSend="$moment().subtract(1, 'month').format('dddd, DD.MMMM.YYYY HH:mm'),"
+              :dateLastSend="$d(new Date(), 'long')"
             />
           </template>
           <template #show-transaction-list>
@@ -287,11 +287,11 @@ export default {
       this.overlay = false
     },
     bookmarkPush(item) {
-      this.$emit('update-item', item, 'push')
+      this.$emit('push-item', item)
     },
     bookmarkRemove(item) {
       if (this.type === 'UserListMassCreation') {
-        this.$emit('update-item', item, 'remove')
+        this.$emit('remove-item', item)
       }
 
       if (this.type === 'PageCreationConfirm') {

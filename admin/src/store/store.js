@@ -24,6 +24,9 @@ export const mutations = {
   moderator: (state, moderator) => {
     state.moderator = moderator
   },
+  setUserSelectedInMassCreation: (state, userSelectedInMassCreation) => {
+    state.userSelectedInMassCreation = userSelectedInMassCreation
+  },
 }
 
 export const actions = {
@@ -44,6 +47,7 @@ const store = new Vuex.Store({
     token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
     moderator: null,
     openCreations: 0,
+    userSelectedInMassCreation: [],
   },
   // Syncronous mutation of the state
   mutations,
