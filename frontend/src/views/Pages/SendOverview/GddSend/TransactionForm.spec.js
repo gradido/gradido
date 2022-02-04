@@ -38,7 +38,7 @@ describe('GddSend', () => {
     })
 
     describe('transaction form disable because balance 0,0 GDD', () => {
-      it('has an disabled input field of type email', () => {
+      it('has a disabled input field of type email', () => {
         expect(wrapper.find('#input-group-1').find('input').attributes('disabled')).toBe('disabled')
       })
       it('has an disabled input field of amount', () => {
