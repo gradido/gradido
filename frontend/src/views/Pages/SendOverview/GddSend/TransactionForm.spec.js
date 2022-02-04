@@ -47,7 +47,7 @@ describe('GddSend', () => {
       it('has an disabled textarea field ', () => {
         expect(wrapper.find('#input-3').find('textarea').attributes('disabled')).toBe('disabled')
       })
-      it('find text-danger ', () => {
+      it('has a message indicating that there are no GDDs to send ', () => {
         expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
       })
       it('find not button reset and submit ', () => {
