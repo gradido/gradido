@@ -21,7 +21,7 @@ describe('GddSend', () => {
   }
 
   const propsData = {
-    balance: 100.0,
+    balance: 0.0,
   }
 
   const Wrapper = () => {
@@ -37,7 +37,44 @@ describe('GddSend', () => {
       expect(wrapper.find('div.transaction-form').exists()).toBeTruthy()
     })
 
+    describe('transaction form disable because balance 0,0 GDD', () => {
+      it('has an disabled input field of type email', () => {
+        expect(wrapper.find('#input-group-1').find('input').attributes('disabled')).toBe('disabled')
+      })
+      it('has an disabled input field of amount', () => {
+        expect(wrapper.find('#input-2').find('input').attributes('disabled')).toBe('disabled')
+      })
+      it('has an disabled textarea field ', () => {
+        expect(wrapper.find('#input-3').find('textarea').attributes('disabled')).toBe('disabled')
+      })
+      it('find text-danger ', () => {
+        expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
+      })
+      it('find not button reset and submit ', () => {
+        expect(wrapper.find('.test-buttons').exists()).toBeFalsy()
+      })
+    })
+
     describe('transaction form', () => {
+      beforeEach(() => {
+        wrapper.setProps({ balance: 100.0 })
+      })
+      describe('transaction form show because balance 100,0 GDD', () => {
+        it('find not text-danger ', () => {
+          expect(wrapper.find('.text-danger').exists()).toBeFalsy()
+        })
+        it('find button reset', () => {
+          expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(
+            'reset',
+          )
+        })
+        it('find button submit', () => {
+          expect(wrapper.find('.test-buttons').findAll('button').at(1).attributes('type')).toBe(
+            'submit',
+          )
+        })
+      })
+
       describe('email field', () => {
         it('has an input field of type email', () => {
           expect(wrapper.find('#input-group-1').find('input').attributes('type')).toBe('email')

@@ -120,7 +120,7 @@
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
             </div>
-            <b-row v-else>
+            <b-row v-else class="test-buttons">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
                   {{ $t('form.reset') }}
