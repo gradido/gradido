@@ -1,9 +1,7 @@
-import { createLocalVue, mount } from '@vue/test-utils'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { mount } from '@vue/test-utils'
 import UserTable from './UserTable.vue'
 
-let localVue
-// const localVue = global.localVue
+const localVue = global.localVue
 
 const apolloQueryMock = jest.fn()
 apolloQueryMock.mockResolvedValue()
@@ -133,9 +131,6 @@ describe('UserTable', () => {
   }
 
   const Wrapper = (propsData) => {
-    localVue = createLocalVue()
-    localVue.use(BootstrapVue)
-    localVue.use(IconsPlugin)
     return mount(UserTable, { localVue, propsData, mocks })
   }
 
