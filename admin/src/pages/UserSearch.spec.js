@@ -120,7 +120,7 @@ describe('UserSearch', () => {
       })
 
       describe('reset the search field', () => {
-        it('is value remove', async () => {
+        it('calls the API with empty criteria', async () => {
           jest.clearAllMocks()
           await wrapper.find('.test-click-clear-criteria').trigger('click')
           expect(apolloQueryMock).toBeCalledWith(
