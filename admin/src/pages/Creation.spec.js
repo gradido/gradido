@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
 
 const localVue = global.localVue
@@ -14,6 +14,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
           creation: [200, 400, 600],
+          emailChecked: true,
         },
         {
           userId: 2,
@@ -21,6 +22,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Blümchen',
           email: 'benjamin@bluemchen.de',
           creation: [800, 600, 400],
+          emailChecked: true,
         },
       ],
     },
@@ -51,10 +53,10 @@ describe('Creation', () => {
   let wrapper
 
   const Wrapper = () => {
-    return shallowMount(Creation, { localVue, mocks })
+    return mount(Creation, { localVue, mocks })
   }
 
-  describe('shallowMount', () => {
+  describe('mount', () => {
     beforeEach(() => {
       jest.clearAllMocks()
       wrapper = Wrapper()
@@ -77,64 +79,66 @@ describe('Creation', () => {
         )
       })
 
-      it('sets the data of itemsList', () => {
-        expect(wrapper.vm.itemsList).toEqual([
-          {
-            userId: 1,
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
-            creation: [200, 400, 600],
-            showDetails: false,
-          },
-          {
-            userId: 2,
-            firstName: 'Benjamin',
-            lastName: 'Blümchen',
-            email: 'benjamin@bluemchen.de',
-            creation: [800, 600, 400],
-            showDetails: false,
-          },
-        ])
+      it('has two rows in the left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
+      })
+
+      it('has nwo rows in the right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
+      })
+
+      it('has correct data in first row ', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain('Bibi')
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'Bloxberg',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          '200 | 400 | 600',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'bibi@bloxberg.de',
+        )
+      })
+
+      it('has correct data in second row ', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'Benjamin',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'Blümchen',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          '800 | 600 | 400',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'benjamin@bluemchen.de',
+        )
       })
     })
 
     describe('push item', () => {
       beforeEach(() => {
-        wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
-          userId: 2,
-          firstName: 'Benjamin',
-          lastName: 'Blümchen',
-          email: 'benjamin@bluemchen.de',
-          creation: [800, 600, 400],
-          showDetails: false,
-        })
+        wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).find('button').trigger('click')
       })
 
-      it('removes the pushed item from itemsList', () => {
-        expect(wrapper.vm.itemsList).toEqual([
-          {
-            userId: 1,
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
-            creation: [200, 400, 600],
-            showDetails: false,
-          },
-        ])
+      it('has one item in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
       })
 
-      it('adds the pushed item to itemsMassCreation', () => {
-        expect(wrapper.vm.itemsMassCreation).toEqual([
-          {
-            userId: 2,
-            firstName: 'Benjamin',
-            lastName: 'Blümchen',
-            email: 'benjamin@bluemchen.de',
-            creation: [800, 600, 400],
-            showDetails: false,
-          },
-        ])
+      it('has one item in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has the correct user in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'bibi@bloxberg.de',
+        )
+      })
+
+      it('has the correct user in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr').at(0).text()).toContain(
+          'benjamin@bluemchen.de',
+        )
       })
 
       it('updates userSelectedInMassCreation in store', () => {
@@ -146,6 +150,7 @@ describe('Creation', () => {
             email: 'benjamin@bluemchen.de',
             creation: [800, 600, 400],
             showDetails: false,
+            emailChecked: true,
           },
         ])
       })
@@ -153,73 +158,89 @@ describe('Creation', () => {
 
     describe('remove item', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
-          userId: 2,
-          firstName: 'Benjamin',
-          lastName: 'Blümchen',
-          email: 'benjamin@bluemchen.de',
-          creation: [800, 600, 400],
-          showDetails: false,
-        })
         await wrapper
-          .findAllComponents({ name: 'UserTable' })
+          .findAll('table')
+          .at(0)
+          .findAll('tbody > tr')
           .at(1)
-          .vm.$emit('remove-item', {
-            userId: 2,
-            firstName: 'Benjamin',
-            lastName: 'Blümchen',
-            email: 'benjamin@bluemchen.de',
-            creation: [800, 600, 400],
-            showDetails: false,
-          })
+          .find('button')
+          .trigger('click')
+        await wrapper
+          .findAll('table')
+          .at(1)
+          .findAll('tbody > tr')
+          .at(0)
+          .find('button')
+          .trigger('click')
       })
 
-      it('adds the removed item to itemsList', () => {
-        expect(wrapper.vm.itemsList).toEqual([
-          {
-            userId: 2,
-            firstName: 'Benjamin',
-            lastName: 'Blümchen',
-            email: 'benjamin@bluemchen.de',
-            creation: [800, 600, 400],
-            showDetails: false,
-          },
-          {
-            userId: 1,
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
-            creation: [200, 400, 600],
-            showDetails: false,
-          },
-        ])
+      it('opens a dialog', () => {
+        expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeTruthy()
       })
 
-      it('removes the item from itemsMassCreation', () => {
-        expect(wrapper.vm.itemsMassCreation).toEqual([])
+      describe('cancel remove item', () => {
+        beforeEach(async () => {
+          await wrapper.findAll('#overlay').at(1).findAll('button').at(0).trigger('click')
+        })
+
+        it('closes the dialog', () => {
+          expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeFalsy()
+        })
+
+        it('has one item in left table', () => {
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
+        })
+
+        it('has one item in right table', () => {
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+        })
       })
 
-      it('commits empty array as userSelectedInMassCreation', () => {
-        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
+      describe('confirm remove item', () => {
+        beforeEach(async () => {
+          await wrapper.findAll('#overlay').at(1).findAll('button').at(1).trigger('click')
+        })
+
+        it('closes the dialog', () => {
+          expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeFalsy()
+        })
+
+        it('has two items in left table', () => {
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
+        })
+
+        it('has the removed user in first row', () => {
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+            'benjamin@bluemchen.de',
+          )
+        })
+
+        it('has no items in right table', () => {
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
+        })
+
+        it('commits empty array as userSelectedInMassCreation', () => {
+          expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
+        })
       })
     })
 
+    // this can only happen after API call in CreationForm
     describe('remove all bookmarks', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('push-item', {
-          userId: 2,
-          firstName: 'Benjamin',
-          lastName: 'Blümchen',
-          email: 'benjamin@bluemchen.de',
-          creation: [800, 600, 400],
-          showDetails: false,
-        })
+        await wrapper
+          .findAll('table')
+          .at(0)
+          .findAll('tbody > tr')
+          .at(1)
+          .find('button')
+          .trigger('click')
         jest.clearAllMocks()
         wrapper.findComponent({ name: 'CreationFormular' }).vm.$emit('remove-all-bookmark')
       })
 
-      it('removes all items from itemsMassCreation', () => {
-        expect(wrapper.vm.itemsMassCreation).toEqual([])
+      it('has no items in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
       })
 
       it('commits empty array to userSelectedInMassCreation', () => {
@@ -241,22 +262,24 @@ describe('Creation', () => {
             email: 'benjamin@bluemchen.de',
             creation: [800, 600, 400],
             showDetails: false,
+            emailChecked: true,
           },
         ]
         wrapper = Wrapper()
       })
 
-      it('has only one item itemsList', () => {
-        expect(wrapper.vm.itemsList).toEqual([
-          {
-            userId: 1,
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
-            creation: [200, 400, 600],
-            showDetails: false,
-          },
-        ])
+      it('has one item in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has one item in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has the stored user in second row', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr').at(0).text()).toContain(
+          'benjamin@bluemchen.de',
+        )
       })
     })
 
