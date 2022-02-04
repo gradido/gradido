@@ -1,35 +1,20 @@
 export interface UserContext {
-  pubkey?: Buffer
+  pubKey?: Buffer
   email?: string
   firstName?: string
   lastName?: string
   username?: string
   disabled?: boolean
-}
-
-export interface LoginUserContext {
-  email?: string
-  firstName?: string
-  lastName?: string
-  username?: string
   description?: string
   password?: BigInt
-  pubKey?: Buffer
   privKey?: Buffer
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
   passphraseShown?: boolean
   language?: string
-  disabled?: boolean
-  groupId?: number
   publisherId?: number
-}
-
-export interface LoginUserBackupContext {
-  userId?: number
   passphrase?: string
-  mnemonicType?: number
 }
 
 export interface ServerUserContext {
@@ -41,9 +26,4 @@ export interface ServerUserContext {
   lastLogin?: Date
   created?: Date
   modified?: Date
-}
-
-export interface LoginUserRolesContext {
-  userId?: number
-  roleId?: number
 }
