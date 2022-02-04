@@ -1,7 +1,7 @@
 <template>
   <div class="pb-4">
     <b-tabs content-class="mt-3 pt-4 pb-4" justified>
-      <b-tab :title="'Gradido  (' + $n(balance, 'decimal') + ' GDD)'" class="px-4 ">
+      <b-tab :title="'Gradido  (' + $n(balance, 'decimal') + ' GDD)'" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
