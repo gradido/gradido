@@ -1,6 +1,6 @@
 <template>
   <div class="pb-4">
-    <b-tabs content-class="mt-3 pt-4 pb-4" justified>
+    <b-tabs content-class="" justified>
       <b-tab :title="'Gradido  (' + $n(balance, 'decimal') + ' GDD)'" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
@@ -54,7 +54,7 @@ export default {
 <style>
 .nav-tabs > li > a {
   padding-top: 14px;
-  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
 
 .nav-tabs .nav-link {
@@ -62,5 +62,11 @@ export default {
 }
 .nav-tabs .nav-link.active {
   background-color: rgb(248 249 254);
+}
+
+.tab-content {
+  padding-top: 25px;
+  border-left: 1px inset rgba(28,110,164,0.1);
+  border-right: 1px inset rgba(28,110,164,0.1);
 }
 </style>
