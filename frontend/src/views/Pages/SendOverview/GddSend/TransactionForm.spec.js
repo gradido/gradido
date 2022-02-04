@@ -68,7 +68,7 @@ describe('GddSend', () => {
             'reset',
           )
         })
-        it('find button submit', () => {
+        it('has a submit button', () => {
           expect(wrapper.find('.test-buttons').findAll('button').at(1).attributes('type')).toBe(
             'submit',
           )
