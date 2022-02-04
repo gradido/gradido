@@ -30,7 +30,7 @@
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
-import { LoginUserRepository } from '../typeorm/repository/LoginUser'
+import { User as dbUser } from '@entity/User'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
@@ -112,8 +112,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     }
 
     // Do we already have such a user?
-    const loginUserRepository = await getCustomRepository(LoginUserRepository)
-    if ((await loginUserRepository.count({ email })) !== 0) {
+    if ((await dbUser.count({ email })) !== 0) {
       // eslint-disable-next-line no-console
       console.log(`Did not create User - already exists with email: ${email}`)
       return
