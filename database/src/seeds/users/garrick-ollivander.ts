@@ -1,5 +1,4 @@
 export const garrickOllivander = {
-  loginUserId: 3,
   email: 'garrick@ollivander.com',
   firstName: 'Garrick',
   lastName: 'Ollivander',
