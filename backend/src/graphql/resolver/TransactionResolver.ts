@@ -33,7 +33,6 @@ import { calculateDecay } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { RIGHTS } from '../../auth/RIGHTS'
 
 // Helper function
@@ -274,14 +273,13 @@ async function addUserTransaction(
 }
 
 async function getPublicKey(email: string): Promise<string | null> {
-  const loginUserRepository = getCustomRepository(LoginUserRepository)
-  const loginUser = await loginUserRepository.findOne({ email: email })
+  const user = await dbUser.findOne({ email: email })
   // User not found
-  if (!loginUser) {
+  if (!user) {
     return null
   }
 
-  return loginUser.pubKey.toString('hex')
+  return user.pubKey.toString('hex')
 }
 
 @Resolver()
@@ -317,11 +315,13 @@ export class TransactionResolver {
     )
 
     // get gdt sum
-    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-      email: userEntity.email,
-    })
-    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    transactions.gdtSum = null
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: userEntity.email,
+      })
+      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {}
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
@@ -348,7 +348,7 @@ export class TransactionResolver {
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
     const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
-    if (senderUser.pubkey.length !== 32) {
+    if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
     if (!hasUserAmount(senderUser, amount)) {
@@ -359,7 +359,7 @@ export class TransactionResolver {
     // TODO: the detour over the public key is unnecessary
     const recipiantPublicKey = await getPublicKey(email)
     if (!recipiantPublicKey) {
-      throw new Error('recipiant not known')
+      throw new Error('recipient not known')
     }
     if (!isHexPublicKey(recipiantPublicKey)) {
       throw new Error('invalid recipiant public key')
@@ -438,7 +438,7 @@ export class TransactionResolver {
       const transactionSendCoin = new dbTransactionSendCoin()
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
-      transactionSendCoin.senderPublic = senderUser.pubkey
+      transactionSendCoin.senderPublic = senderUser.pubKey
       transactionSendCoin.recipiantUserId = recipiantUser.id
       transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
       transactionSendCoin.amount = centAmount

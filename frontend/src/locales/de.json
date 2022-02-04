@@ -69,6 +69,7 @@
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
+    "no_gdd_available": "Du hast keine GDD zum versenden.",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "Neues Passwort",
@@ -108,6 +109,7 @@
     "funding": "Zu den Förderbeiträgen",
     "gdt-received": "GradidoTransform (GDT) erhalten",
     "no-transactions": "Du hast noch keine GradidoTransform (GDT).",
+    "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
@@ -207,6 +209,7 @@
       "title": "Danke!"
     }
   },
+  "success": "Erfolg",
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
     "gdt-text": "GradidoTransform Transaktionen",

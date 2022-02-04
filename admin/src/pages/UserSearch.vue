@@ -7,20 +7,22 @@
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <b-input
-      type="text"
-      v-model="criteria"
-      class="shadow p-3 mb-3 bg-white rounded"
-      :placeholder="$t('user_search')"
-      @input="getUsers"
-    ></b-input>
-
-    <user-table
-      type="PageUserSearch"
-      :itemsUser="searchResult"
-      :fieldsTable="fields"
-      :criteria="criteria"
-    />
+    <div>
+      <b-input-group>
+        <b-form-input
+          type="text"
+          class="test-input-criteria"
+          v-model="criteria"
+          :placeholder="$t('user_search')"
+        ></b-form-input>
+        <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
+          <b-input-group-text class="pointer">
+            <b-icon icon="x" />
+          </b-input-group-text>
+        </b-input-group-append>
+      </b-input-group>
+    </div>
+    <search-user-table type="PageUserSearch" :items="searchResult" :fields="fields" />
     <b-pagination
       pills
       size="lg"
@@ -33,13 +35,15 @@
   </div>
 </template>
 <script>
-import UserTable from '../components/UserTable.vue'
+import SearchUserTable from '../components/Tables/SearchUserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { creationMonths } from '../mixins/creationMonths'
 
 export default {
   name: 'UserSearch',
+  mixins: [creationMonths],
   components: {
-    UserTable,
+    SearchUserTable,
   },
   data() {
     return {
@@ -83,16 +87,11 @@ export default {
     currentPage() {
       this.getUsers()
     },
+    criteria() {
+      this.getUsers()
+    },
   },
   computed: {
-    lastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    },
-    beforeLastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 2, 1)
-    },
     fields() {
       return [
         { key: 'email', label: this.$t('e_mail') },
@@ -100,17 +99,14 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: [
-            this.$d(this.beforeLastMonthDate, 'monthShort'),
-            this.$d(this.lastMonthDate, 'monthShort'),
-            this.$d(this.now, 'monthShort'),
-          ].join(' | '),
+          label: this.creationLabel,
           formatter: (value, key, item) => {
             return value.join(' | ')
           },
         },
         { key: 'show_details', label: this.$t('details') },
         { key: 'confirm_mail', label: this.$t('confirmed') },
+        { key: 'has_elopage', label: 'elopage' },
         { key: 'transactions_list', label: this.$t('transaction') },
       ]
     },

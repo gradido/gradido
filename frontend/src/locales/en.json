@@ -69,6 +69,7 @@
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
+    "no_gdd_available": "You do not have GDD to send.",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -108,6 +109,7 @@
     "funding": "To the funding contributions",
     "gdt-received": "GradidoTransform (GDT) received",
     "no-transactions": "You do not have GradidoTransform (GDT) yet.",
+    "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
@@ -207,6 +209,7 @@
       "title": "Thank you!"
     }
   },
+  "success": "Success",
   "transaction": {
     "gdd-text": "Gradido Transactions",
     "gdt-text": "GradidoTransform Transactions",

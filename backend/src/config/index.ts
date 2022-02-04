@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0016-transaction_signatures',
+  DB_VERSION: '0021-elopagebuys_fields_nullable',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 

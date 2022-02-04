@@ -31,7 +31,12 @@
           <b-row class="text-right">
             <b-col>
               <div class="text-right">
-                <b-button type="submit" variant="primary" class="mt-4">
+                <b-button
+                  type="submit"
+                  :variant="disabled ? 'light' : 'success'"
+                  class="mt-4"
+                  :disabled="disabled"
+                >
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -84,12 +89,20 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.success(this.$t('site.thx.reset'))
+          this.toastSuccess(this.$t('site.thx.reset'))
           this.cancelEdit()
         })
         .catch((error) => {
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
+    },
+  },
+  computed: {
+    disabled() {
+      return !(
+        this.form.newPassword.password !== '' &&
+        this.form.newPassword.password === this.form.newPassword.passwordRepeat
+      )
     },
   },
 }

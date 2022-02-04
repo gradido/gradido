@@ -14,9 +14,13 @@ set +o allexport
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env
+    set +o allexport
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env.dist
+    set +o allexport
 fi
 
 # Configure git
@@ -110,7 +114,6 @@ sudo mysql <<EOFMYSQL
 EOFMYSQL
 
 # Configure database
-# TODO - do this in the start.sh to regenerate configs on each deploy
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend

@@ -9,7 +9,6 @@ import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
-import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -21,8 +20,12 @@ import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { hasElopageBuys } from '../../util/hasElopageBuys'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+
+// const EMAIL_OPT_IN_REGISTER = 1
+// const EMAIL_OPT_UNKNOWN = 3 // elopage?
 
 @Resolver()
 export class AdminResolver {
@@ -41,7 +44,28 @@ export class AdminResolver {
         adminUser.lastName = user.lastName
         adminUser.email = user.email
         adminUser.creation = await getUserCreations(user.id)
-        adminUser.emailChecked = await hasActivatedEmail(user.email)
+        adminUser.emailChecked = user.emailChecked
+        adminUser.hasElopage = await hasElopageBuys(user.email)
+        if (!user.emailChecked) {
+          const emailOptIn = await LoginEmailOptIn.findOne(
+            {
+              userId: user.id,
+            },
+            {
+              order: {
+                updatedAt: 'DESC',
+                createdAt: 'DESC',
+              },
+            },
+          )
+          if (emailOptIn) {
+            if (emailOptIn.updatedAt) {
+              adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+            } else {
+              adminUser.emailConfirmationSend = emailOptIn.createdAt.toISOString()
+            }
+          }
+        }
         return adminUser
       }),
     )
@@ -60,8 +84,7 @@ export class AdminResolver {
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-    const isActivated = await hasActivatedEmail(user.email)
-    if (!isActivated) {
+    if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
     const creations = await getUserCreations(user.id)
@@ -198,13 +221,12 @@ export class AdminResolver {
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
 
-    const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
     let transactionCreation = new TransactionCreation()
     transactionCreation.transactionId = transaction.id
     transactionCreation.userId = pendingCreation.userId
     transactionCreation.amount = parseInt(pendingCreation.amount.toString())
     transactionCreation.targetDate = pendingCreation.date
-    transactionCreation = await transactionCreationRepository.save(transactionCreation)
+    transactionCreation = await TransactionCreation.save(transactionCreation)
     if (!transactionCreation) throw new Error('Could not create transactionCreation')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
@@ -256,9 +278,7 @@ async function getUserCreations(id: number): Promise<number[]> {
   const lastMonthNumber = moment().subtract(1, 'month').format('M')
   const currentMonthNumber = moment().format('M')
 
-  const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
-  const createdAmountsQuery = await transactionCreationRepository
-    .createQueryBuilder('transaction_creations')
+  const createdAmountsQuery = await TransactionCreation.createQueryBuilder('transaction_creations')
     .select('MONTH(transaction_creations.target_date)', 'target_month')
     .addSelect('SUM(transaction_creations.amount)', 'sum')
     .where('transaction_creations.state_user_id = :id', { id })
@@ -375,10 +395,4 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
     throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
   }
   return true
-}
-
-async function hasActivatedEmail(email: string): Promise<boolean> {
-  const repository = getCustomRepository(LoginUserRepository)
-  const user = await repository.findByEmail(email)
-  return user ? user.emailChecked : false
 }

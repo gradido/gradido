@@ -85,7 +85,7 @@ describe('Thx', () => {
     })
 
     it('links the redirect button to /login', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/overview')
+      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
     })
   })
 

@@ -21,7 +21,7 @@ describe('GddSend', () => {
   }
 
   const propsData = {
-    balance: 100.0,
+    balance: 0.0,
   }
 
   const Wrapper = () => {
@@ -37,7 +37,44 @@ describe('GddSend', () => {
       expect(wrapper.find('div.transaction-form').exists()).toBeTruthy()
     })
 
+    describe('transaction form disable because balance 0,0 GDD', () => {
+      it('has a disabled input field of type email', () => {
+        expect(wrapper.find('#input-group-1').find('input').attributes('disabled')).toBe('disabled')
+      })
+      it('has a disabled input field for amount', () => {
+        expect(wrapper.find('#input-2').find('input').attributes('disabled')).toBe('disabled')
+      })
+      it('has a disabled textarea field ', () => {
+        expect(wrapper.find('#input-3').find('textarea').attributes('disabled')).toBe('disabled')
+      })
+      it('has a message indicating that there are no GDDs to send ', () => {
+        expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
+      })
+      it('has no reset button and no submit button ', () => {
+        expect(wrapper.find('.test-buttons').exists()).toBeFalsy()
+      })
+    })
+
     describe('transaction form', () => {
+      beforeEach(() => {
+        wrapper.setProps({ balance: 100.0 })
+      })
+      describe('transaction form show because balance 100,0 GDD', () => {
+        it('has no warning message ', () => {
+          expect(wrapper.find('.text-danger').exists()).toBeFalsy()
+        })
+        it('has a reset button', () => {
+          expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(
+            'reset',
+          )
+        })
+        it('has a submit button', () => {
+          expect(wrapper.find('.test-buttons').findAll('button').at(1).attributes('type')).toBe(
+            'submit',
+          )
+        })
+      })
+
       describe('email field', () => {
         it('has an input field of type email', () => {
           expect(wrapper.find('#input-group-1').find('input').attributes('type')).toBe('email')

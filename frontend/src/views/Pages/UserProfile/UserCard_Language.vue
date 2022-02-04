@@ -44,7 +44,7 @@
             <b-col>
               <div class="text-right" ref="submitButton">
                 <b-button
-                  :variant="loading ? 'default' : 'success'"
+                  :variant="loading ? 'light' : 'success'"
                   type="submit"
                   class="mt-4"
                   :disabled="loading"
@@ -97,11 +97,11 @@ export default {
         .then(() => {
           this.$store.commit('language', this.language)
           this.cancelEdit()
-          this.$toasted.success(this.$t('settings.language.success'))
+          this.toastSuccess(this.$t('settings.language.success'))
         })
         .catch((error) => {
           this.language = this.$store.state.language
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
     },
     buildTagFromLanguageString() {

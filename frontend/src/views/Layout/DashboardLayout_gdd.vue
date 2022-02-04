@@ -15,7 +15,7 @@
         <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
       </div>
 
-      <div class="main-page ml-2 mr-2" style="width: 100%" @click="visible = false">
+      <div class="main-page" style="width: 100%" @click="visible = false">
         <div class="main-content">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
@@ -92,7 +92,7 @@ export default {
           const {
             data: { transactionList },
           } = result
-          this.GdtBalance = Number(transactionList.gdtSum)
+          this.GdtBalance = transactionList.gdtSum === null ? null : Number(transactionList.gdtSum)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.decay)
           this.bookedBalance = Number(transactionList.balance)
@@ -102,7 +102,7 @@ export default {
         .catch((error) => {
           this.pending = true
           this.transactionCount = -1
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
           // what to do when loading balance fails?
         })
     },

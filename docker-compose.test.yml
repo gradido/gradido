@@ -36,24 +36,6 @@ services:
       - db_test_vol:/var/lib/mysql
 
   #########################################################
-  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
-  #########################################################
-  community-server:
-    build: 
-      context: .
-      target: test
-      dockerfile: ./community_server/Dockerfile
-    depends_on: 
-      - mariadb
-    networks: 
-      - internal-net
-    volumes:
-      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-      - ./community_server/src:/var/www/cakephp/src
-      - ./coverage/community:/var/www/cakephp/webroot/coverage
-
-        
-  #########################################################
   ## PHPMYADMIN ###########################################
   #########################################################
   phpmyadmin:

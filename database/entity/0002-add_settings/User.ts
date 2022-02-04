@@ -7,13 +7,13 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'index_id', default: 0 })
+  @Column({ name: 'index_id', type: 'smallint', default: 0, nullable: false })
   indexId: number
 
   @Column({ name: 'group_id', default: 0, unsigned: true })
   groupId: number
 
-  @Column({ type: 'binary', length: 32, name: 'public_key' })
+  @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
   pubkey: Buffer
 
   @Column({ length: 255, nullable: true, default: null, collation: 'utf8mb4_unicode_ci' })
@@ -40,7 +40,7 @@ export class User extends BaseEntity {
   @Column({ length: 255, nullable: true, default: null, collation: 'utf8mb4_unicode_ci' })
   username: string
 
-  @Column()
+  @Column({ type: 'bool', default: false })
   disabled: boolean
 
   @OneToMany(() => UserSetting, (userSetting) => userSetting.user)

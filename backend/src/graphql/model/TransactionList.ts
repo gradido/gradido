@@ -13,8 +13,8 @@ export class TransactionList {
     this.decayDate = ''
   }
 
-  @Field(() => Number)
-  gdtSum: number
+  @Field(() => Number, { nullable: true })
+  gdtSum: number | null
 
   @Field(() => Number)
   count: number
