@@ -13,3 +13,11 @@ export default {
   components: { defaultLayout },
 }
 </script>
+<style>
+.pointer {
+  cursor: pointer;
+}
+.pointer:hover {
+  background-color: rgb(216, 213, 213);
+}
+</style>

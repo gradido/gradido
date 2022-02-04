@@ -241,17 +241,38 @@ describe('Creation', () => {
         jest.clearAllMocks()
       })
 
-      it('calls API when criteria changes', async () => {
-        await wrapper.setData({ criteria: 'XX' })
-        expect(apolloQueryMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              searchText: 'XX',
-              currentPage: 1,
-              pageSize: 25,
-            },
-          }),
-        )
+      describe('search criteria', () => {
+        beforeEach(async () => {
+          await wrapper.setData({ criteria: 'XX' })
+        })
+
+        it('calls API when criteria changes', async () => {
+          expect(apolloQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                searchText: 'XX',
+                currentPage: 1,
+                pageSize: 25,
+              },
+            }),
+          )
+        })
+
+        describe('reset search criteria', () => {
+          it('calls the API', async () => {
+            jest.clearAllMocks()
+            await wrapper.find('.test-click-clear-criteria').trigger('click')
+            expect(apolloQueryMock).toBeCalledWith(
+              expect.objectContaining({
+                variables: {
+                  searchText: '',
+                  currentPage: 1,
+                  pageSize: 25,
+                },
+              }),
+            )
+          })
+        })
       })
 
       it('calls API when currentPage changes', async () => {

@@ -143,6 +143,23 @@ describe('UserSearch', () => {
           }),
         )
       })
+
+      describe('reset the search field', () => {
+        it('calls the API with empty criteria', async () => {
+          jest.clearAllMocks()
+          await wrapper.find('.test-click-clear-criteria').trigger('click')
+          expect(apolloQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                searchText: '',
+                currentPage: 1,
+                pageSize: 25,
+                notActivated: false,
+              },
+            }),
+          )
+        })
+      })
     })
 
     describe('apollo returns error', () => {
