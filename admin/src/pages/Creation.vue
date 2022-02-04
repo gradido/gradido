@@ -29,7 +29,8 @@
           <div class="text-right pr-4 mb-1">
             <b-button @click="removeAllBookmark()" variant="light">
               <b-icon icon="x" scale="2" variant="danger"></b-icon>
-              alle Nutzer entfernen
+              
+               {{ $t('remove_all') }}
             </b-button>
           </div>
           <user-table

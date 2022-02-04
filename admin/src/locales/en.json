@@ -54,6 +54,7 @@
     }
   },
   "remove": "Remove",
+  "remove_all":"Remove all users",
   "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",
