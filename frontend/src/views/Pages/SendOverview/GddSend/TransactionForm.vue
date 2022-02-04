@@ -41,6 +41,7 @@
                     placeholder="E-Mail"
                     style="font-size: large"
                     class="pl-3"
+                    :disabled="isBalanceDisabled"
                   ></b-form-input>
                 </b-input-group>
                 <b-col v-if="errors">
@@ -76,6 +77,7 @@
                     :placeholder="$n(0.01)"
                     style="font-size: large"
                     class="pl-3"
+                    :disabled="isBalanceDisabled"
                   ></b-form-input>
                 </b-input-group>
                 <b-col v-if="errors">
@@ -105,6 +107,7 @@
                     v-model="form.memo"
                     class="pl-3"
                     style="font-size: large"
+                    :disabled="isBalanceDisabled"
                   ></b-form-textarea>
                 </b-input-group>
                 <b-col v-if="errors">
@@ -114,7 +117,8 @@
             </div>
 
             <br />
-            <b-row>
+            <div v-if="!!isBalanceDisabled" class="text-danger">Du hast keine GDD zum versenden. </div>
+            <b-row v-else>
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
                   {{ $t('form.reset') }}
@@ -126,6 +130,7 @@
                 </b-button>
               </b-col>
             </b-row>
+            
 
             <br />
           </b-form>
@@ -192,6 +197,11 @@ export default {
       this.form.email = this.form.email.trim()
     },
   },
+  computed: {
+    isBalanceDisabled(){
+      return this.balance <= 0 ? 'disabled' : false
+    }
+  }
 }
 </script>
 <style>
