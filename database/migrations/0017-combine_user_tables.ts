@@ -10,7 +10,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn('ALTER TABLE `state_users` DROP COLUMN `group_id`;')
 
   // Remove the unique constraint from the pubkey
-  // TODO - check for code impact
   await queryFn('ALTER TABLE `state_users` DROP INDEX `public_key`;')
 
   // Allow NULL on the `state_users` pubkey like it is allowed on `login_users`
@@ -21,11 +20,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     'ALTER TABLE `state_users` MODIFY COLUMN `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL;',
   )
-  // TODO - check for code impact
   await queryFn('ALTER TABLE `state_users` ADD CONSTRAINT `email` UNIQUE KEY (`email`);')
 
   // Create `login_user_id` column - to store the login_users.id field to not break references.
-  // TODO - what happens when we create a new user - how do we generate the login_user_id?
   await queryFn(
     'ALTER TABLE `state_users` ADD COLUMN `login_user_id` int(10) unsigned DEFAULT NULL AFTER `id`;',
   )

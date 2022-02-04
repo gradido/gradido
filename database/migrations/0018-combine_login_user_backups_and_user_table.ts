@@ -7,7 +7,6 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // We only keep the passphrase, the mnemonic type is a constant,
   // since every passphrase was converted to mnemonic type 2
-  // TODO there is now default NULL instead of NOT NULL - check code impact
   await queryFn(
     'ALTER TABLE `state_users` ADD COLUMN `passphrase` text DEFAULT NULL AFTER `publisher_id`;',
   )
