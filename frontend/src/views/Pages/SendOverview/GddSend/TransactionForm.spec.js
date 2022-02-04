@@ -63,7 +63,7 @@ describe('GddSend', () => {
         it('find not text-danger ', () => {
           expect(wrapper.find('.text-danger').exists()).toBeFalsy()
         })
-        it('find button reset', () => {
+        it('has a reset button', () => {
           expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(
             'reset',
           )
