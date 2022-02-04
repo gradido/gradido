@@ -66,7 +66,7 @@ export default {
 
 .tab-content {
   padding-top: 25px;
-  border-left: 1px inset rgba(28,110,164,0.1);
-  border-right: 1px inset rgba(28,110,164,0.1);
+  border-left: 1px inset rgba(28, 110, 164, 0.1);
+  border-right: 1px inset rgba(28, 110, 164, 0.1);
 }
 </style>
