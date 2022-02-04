@@ -14,7 +14,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn('ALTER TABLE `state_users` DROP INDEX `public_key`;')
 
   // Allow NULL on the `state_users` pubkey like it is allowed on `login_users`
-  // TODO remove the random key shenanigans
   await queryFn('ALTER TABLE `state_users` MODIFY COLUMN `public_key` binary(32) DEFAULT NULL;')
 
   // instead use a unique constraint for the email like on `login_users`
