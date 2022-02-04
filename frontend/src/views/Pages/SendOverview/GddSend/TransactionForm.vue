@@ -117,7 +117,9 @@
             </div>
 
             <br />
-            <div v-if="!!isBalanceDisabled" class="text-danger">Du hast keine GDD zum versenden. </div>
+            <div v-if="!!isBalanceDisabled" class="text-danger">
+              Du hast keine GDD zum versenden.
+            </div>
             <b-row v-else>
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
@@ -130,7 +132,6 @@
                 </b-button>
               </b-col>
             </b-row>
-            
 
             <br />
           </b-form>
@@ -198,10 +199,10 @@ export default {
     },
   },
   computed: {
-    isBalanceDisabled(){
+    isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
-    }
-  }
+    },
+  },
 }
 </script>
 <style>
