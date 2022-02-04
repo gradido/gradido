@@ -174,25 +174,14 @@ describe('Creation', () => {
           .trigger('click')
       })
 
-      it('opens a dialog', () => {
-        expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeTruthy()
-      })
-
       describe('cancel remove item', () => {
-        beforeEach(async () => {
-          await wrapper.findAll('#overlay').at(1).findAll('button').at(0).trigger('click')
-        })
-
-        it('closes the dialog', () => {
-          expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeFalsy()
-        })
 
         it('has one item in left table', () => {
-          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
         })
 
         it('has one item in right table', () => {
-          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
         })
       })
 
