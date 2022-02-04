@@ -3,12 +3,20 @@
     <b-row>
       <b-col cols="12" lg="6">
         <label>Usersuche</label>
-        <b-input
-          type="text"
-          v-model="criteria"
-          class="shadow p-3 mb-5 bg-white rounded"
-          placeholder="User suche"
-        ></b-input>
+        <b-input-group>
+          <b-form-input
+            type="text"
+            class="test-input-criteria"
+            v-model="criteria"
+            :placeholder="$t('user_search')"
+          ></b-form-input>
+
+          <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
+            <b-input-group-text class="pointer">
+              <b-icon icon="x" />
+            </b-input-group-text>
+          </b-input-group-append>
+        </b-input-group>
         <user-table
           v-if="itemsList.length > 0"
           type="UserListSearch"
