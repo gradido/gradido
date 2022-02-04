@@ -7,12 +7,21 @@
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
-    <b-input
-      type="text"
-      v-model="criteria"
-      class="shadow p-3 mb-3 bg-white rounded"
-      :placeholder="$t('user_search')"
-    ></b-input>
+    <div>
+      <b-input-group>
+        <b-form-input
+          type="text"
+          class="test-input-criteria"
+          v-model="criteria"
+          :placeholder="$t('user_search')"
+        ></b-form-input>
+        <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
+          <b-input-group-text class="pointer">
+            <b-icon icon="x" />
+          </b-input-group-text>
+        </b-input-group-append>
+      </b-input-group>
+    </div>
     <user-table type="PageUserSearch" :itemsUser="searchResult" :fieldsTable="fields" />
     <b-pagination
       pills
