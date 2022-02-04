@@ -11,22 +11,36 @@ describe('UserTable', () => {
 
   const defaultItemsUser = [
     {
-      email: 'bibi@bloxberg.de',
+      userId: 1,
       firstName: 'Bibi',
       lastName: 'Bloxberg',
-      creation: [1000, 1000, 1000],
+      email: 'bibi@bloxberg.de',
+      creation: [200, 400, 600],
+      emailChecked: true,
     },
     {
-      email: 'bibi@bloxberg.de',
-      firstName: 'Bibi',
-      lastName: 'Bloxberg',
+      userId: 2,
+      firstName: 'Benjamin',
+      lastName: 'Blümchen',
+      email: 'benjamin@bluemchen.de',
       creation: [1000, 1000, 1000],
+      emailChecked: true,
     },
     {
-      email: 'bibi@bloxberg.de',
-      firstName: 'Bibi',
-      lastName: 'Bloxberg',
+      userId: 3,
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+      creation: [0, 0, 0],
+      emailChecked: true,
+    },
+    {
+      userId: 4,
+      firstName: 'New',
+      lastName: 'User',
+      email: 'new@user.ch',
       creation: [1000, 1000, 1000],
+      emailChecked: false,
     },
   ]
 
@@ -107,7 +121,7 @@ describe('UserTable', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
+    $d: jest.fn((d) => String(d)),
     $apollo: {
       query: apolloQueryMock,
     },
@@ -122,7 +136,7 @@ describe('UserTable', () => {
 
   describe('mount', () => {
     describe('type PageUserSearch', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         wrapper = Wrapper(propsDataPageUserSearch)
       })
 
@@ -175,18 +189,122 @@ describe('UserTable', () => {
         })
 
         describe('content', () => {
-          it('has 3 rows', () => {
-            expect(wrapper.findAll('tbody tr').length).toBe(3)
+          it('has 4 rows', () => {
+            expect(wrapper.findAll('tbody tr')).toHaveLength(4)
           })
 
           it('has 7 columns', () => {
-            expect(wrapper.findAll('tr:nth-child(1) > td').length).toBe(7)
+            expect(wrapper.findAll('tr:nth-child(1) > td')).toHaveLength(7)
           })
 
           it('find button on fifth column', () => {
             expect(
               wrapper.findAll('tr:nth-child(1) > td').at(5).find('button').isVisible(),
             ).toBeTruthy()
+          })
+        })
+
+        describe('row toggling', () => {
+          describe('user with email not activated', () => {
+            it('has no details button', () => {
+              expect(
+                wrapper.findAll('tbody > tr').at(3).findAll('td').at(4).find('button').exists(),
+              ).toBeFalsy()
+            })
+
+            it('has a red confirmed button with envelope item', () => {
+              const row = wrapper.findAll('tbody > tr').at(3)
+              expect(row.findAll('td').at(5).find('button').exists()).toBeTruthy()
+              expect(row.findAll('td').at(5).find('button').classes('btn-danger')).toBeTruthy()
+              expect(row.findAll('td').at(5).find('svg').classes('bi-envelope')).toBeTruthy()
+            })
+
+            describe('click on envelope', () => {
+              beforeEach(async () => {
+                await wrapper
+                  .findAll('tbody > tr')
+                  .at(3)
+                  .findAll('td')
+                  .at(5)
+                  .find('button')
+                  .trigger('click')
+              })
+
+              it('opens the details', async () => {
+                expect(wrapper.findAll('tbody > tr')).toHaveLength(6)
+                expect(wrapper.findAll('tbody > tr').at(5).find('input').element.value).toBe(
+                  'new@user.ch',
+                )
+                expect(wrapper.findAll('tbody > tr').at(5).text()).toContain(
+                  'unregister_mail.text_false',
+                )
+                // HACK: for some reason we need to close the row details after this test
+                await wrapper
+                  .findAll('tbody > tr')
+                  .at(3)
+                  .findAll('td')
+                  .at(5)
+                  .find('button')
+                  .trigger('click')
+              })
+
+              describe('click on envelope again', () => {
+                beforeEach(async () => {
+                  await wrapper
+                    .findAll('tbody > tr')
+                    .at(3)
+                    .findAll('td')
+                    .at(5)
+                    .find('button')
+                    .trigger('click')
+                })
+
+                it('closes the details', () => {
+                  expect(wrapper.findAll('tbody > tr')).toHaveLength(4)
+                })
+              })
+
+              describe('click on close details', () => {
+                beforeEach(async () => {
+                  await wrapper.findAll('tbody > tr').at(5).findAll('button').at(1).trigger('click')
+                })
+
+                it('closes the details', () => {
+                  expect(wrapper.findAll('tbody > tr')).toHaveLength(4)
+                })
+              })
+            })
+          })
+
+          describe('different details', () => {
+            it.skip('shows the creation formular for second user', async () => {
+              await wrapper
+                .findAll('tbody > tr')
+                .at(1)
+                .findAll('td')
+                .at(4)
+                .find('button')
+                .trigger('click')
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(6)
+              expect(
+                wrapper
+                  .findAll('tbody > tr')
+                  .at(3)
+                  .find('div.component-creation-formular')
+                  .exists(),
+              ).toBeTruthy()
+            })
+
+            it.skip('shows the transactions for third user', async () => {
+              await wrapper
+                .findAll('tbody > tr')
+                .at(4)
+                .findAll('td')
+                .at(6)
+                .find('button')
+                .trigger('click')
+              expect(wrapper.findAll('tbody > tr')).toHaveLength(6)
+            })
           })
         })
       })
