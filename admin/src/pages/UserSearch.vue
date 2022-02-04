@@ -12,15 +12,8 @@
       v-model="criteria"
       class="shadow p-3 mb-3 bg-white rounded"
       :placeholder="$t('user_search')"
-      @input="getUsers"
     ></b-input>
-
-    <user-table
-      type="PageUserSearch"
-      :itemsUser="searchResult"
-      :fieldsTable="fields"
-      :criteria="criteria"
-    />
+    <user-table type="PageUserSearch" :itemsUser="searchResult" :fieldsTable="fields" />
     <b-pagination
       pills
       size="lg"
@@ -35,9 +28,11 @@
 <script>
 import UserTable from '../components/UserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { creationMonths } from '../mixins/creationMonths'
 
 export default {
   name: 'UserSearch',
+  mixins: [creationMonths],
   components: {
     UserTable,
   },
@@ -83,16 +78,11 @@ export default {
     currentPage() {
       this.getUsers()
     },
+    criteria() {
+      this.getUsers()
+    },
   },
   computed: {
-    lastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    },
-    beforeLastMonthDate() {
-      const now = new Date(this.now)
-      return new Date(now.getFullYear(), now.getMonth() - 2, 1)
-    },
     fields() {
       return [
         { key: 'email', label: this.$t('e_mail') },
@@ -100,11 +90,7 @@ export default {
         { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'creation',
-          label: [
-            this.$d(this.beforeLastMonthDate, 'monthShort'),
-            this.$d(this.lastMonthDate, 'monthShort'),
-            this.$d(this.now, 'monthShort'),
-          ].join(' | '),
+          label: this.creationLabel,
           formatter: (value, key, item) => {
             return value.join(' | ')
           },
