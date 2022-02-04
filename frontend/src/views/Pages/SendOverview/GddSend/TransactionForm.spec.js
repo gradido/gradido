@@ -60,7 +60,7 @@ describe('GddSend', () => {
         wrapper.setProps({ balance: 100.0 })
       })
       describe('transaction form show because balance 100,0 GDD', () => {
-        it('find not text-danger ', () => {
+        it('has no warning message ', () => {
           expect(wrapper.find('.text-danger').exists()).toBeFalsy()
         })
         it('has a reset button', () => {
