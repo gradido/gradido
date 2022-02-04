@@ -69,6 +69,7 @@
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
+    "no_gdd_available":"Du hast keine GDD zum versenden.",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "Neues Passwort",

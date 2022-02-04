@@ -118,7 +118,7 @@
 
             <br />
             <div v-if="!!isBalanceDisabled" class="text-danger">
-              Du hast keine GDD zum versenden.
+              {{ $t('form.no_gdd_available') }}
             </div>
             <b-row v-else>
               <b-col>
