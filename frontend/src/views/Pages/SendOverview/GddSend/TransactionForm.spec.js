@@ -50,7 +50,7 @@ describe('GddSend', () => {
       it('has a message indicating that there are no GDDs to send ', () => {
         expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
       })
-      it('find not button reset and submit ', () => {
+      it('has no reset button and no submit button ', () => {
         expect(wrapper.find('.test-buttons').exists()).toBeFalsy()
       })
     })
