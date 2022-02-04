@@ -27,7 +27,7 @@
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
         <div v-show="itemsMassCreation.length > 0">
           <div class="text-right pr-4 mb-1">
-            <b-button @click="removeAllBookmark()" variant="light">
+            <b-button @click="removeAllBookmarks()" variant="light">
               <b-icon icon="x" scale="2" variant="danger"></b-icon>
 
               {{ $t('remove_all') }}
@@ -49,7 +49,7 @@
           type="massCreation"
           :creation="creation"
           :items="itemsMassCreation"
-          @remove-all-bookmark="removeAllBookmark"
+          @remove-all-bookmark="removeAllBookmarks"
         />
       </b-col>
     </b-row>
@@ -131,7 +131,7 @@ export default {
       )
       this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
-    removeAllBookmark() {
+    removeAllBookmarks() {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()

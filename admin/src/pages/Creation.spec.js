@@ -154,43 +154,16 @@ describe('Creation', () => {
           },
         ])
       })
-    })
 
-    describe('remove item', () => {
-      beforeEach(async () => {
-        await wrapper
-          .findAll('table')
-          .at(0)
-          .findAll('tbody > tr')
-          .at(1)
-          .find('button')
-          .trigger('click')
-        await wrapper
-          .findAll('table')
-          .at(1)
-          .findAll('tbody > tr')
-          .at(0)
-          .find('button')
-          .trigger('click')
-      })
-
-      describe('cancel remove item', () => {
-        it('has one item in left table', () => {
-          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
-        })
-
-        it('has one item in right table', () => {
-          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
-        })
-      })
-
-      describe('confirm remove item', () => {
+      describe('remove item', () => {
         beforeEach(async () => {
-          await wrapper.findAll('#overlay').at(1).findAll('button').at(1).trigger('click')
-        })
-
-        it('closes the dialog', () => {
-          expect(wrapper.findAll('#overlay').at(1).isVisible()).toBeFalsy()
+          await wrapper
+            .findAll('table')
+            .at(1)
+            .findAll('tbody > tr')
+            .at(0)
+            .find('button')
+            .trigger('click')
         })
 
         it('has two items in left table', () => {
@@ -211,32 +184,24 @@ describe('Creation', () => {
           expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
         })
       })
-    })
 
-    // this can only happen after API call in CreationForm
-    describe('remove all bookmarks', () => {
-      beforeEach(async () => {
-        await wrapper
-          .findAll('table')
-          .at(0)
-          .findAll('tbody > tr')
-          .at(1)
-          .find('button')
-          .trigger('click')
-        jest.clearAllMocks()
-        wrapper.findComponent({ name: 'CreationFormular' }).vm.$emit('remove-all-bookmark')
-      })
+      describe('remove all bookmarks', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('button.btn-light').trigger('click')
+        })
 
-      it('has no items in right table', () => {
-        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
-      })
+        it('has no items in right table', () => {
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
+        })
 
-      it('commits empty array to userSelectedInMassCreation', () => {
-        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
-      })
+        it('commits empty array to userSelectedInMassCreation', () => {
+          expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
+        })
 
-      it('calls searchUsers', () => {
-        expect(apolloQueryMock).toBeCalled()
+        it('calls searchUsers', () => {
+          expect(apolloQueryMock).toBeCalled()
+        })
       })
     })
 
