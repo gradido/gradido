@@ -44,7 +44,7 @@ describe('GddSend', () => {
       it('has an disabled input field of amount', () => {
         expect(wrapper.find('#input-2').find('input').attributes('disabled')).toBe('disabled')
       })
-      it('has an disabled textarea field ', () => {
+      it('has a disabled textarea field ', () => {
         expect(wrapper.find('#input-3').find('textarea').attributes('disabled')).toBe('disabled')
       })
       it('has a message indicating that there are no GDDs to send ', () => {
