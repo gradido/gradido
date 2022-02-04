@@ -175,7 +175,6 @@ describe('Creation', () => {
       })
 
       describe('cancel remove item', () => {
-
         it('has one item in left table', () => {
           expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
         })

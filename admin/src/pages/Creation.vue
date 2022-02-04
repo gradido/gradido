@@ -29,8 +29,8 @@
           <div class="text-right pr-4 mb-1">
             <b-button @click="removeAllBookmark()" variant="light">
               <b-icon icon="x" scale="2" variant="danger"></b-icon>
-              
-               {{ $t('remove_all') }}
+
+              {{ $t('remove_all') }}
             </b-button>
           </div>
           <user-table

@@ -54,7 +54,7 @@
     }
   },
   "remove": "Entfernen",
-  "remove_all":"alle Nutzer entfernen",
+  "remove_all": "alle Nutzer entfernen",
   "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",
