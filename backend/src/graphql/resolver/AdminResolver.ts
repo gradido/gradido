@@ -21,9 +21,8 @@ import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
-import { UserResolver } from './UserResolver'
+import { User as dbUser } from '@entity/User'
 
 @Resolver()
 export class AdminResolver {
@@ -380,7 +379,6 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
 }
 
 async function hasActivatedEmail(email: string): Promise<boolean> {
-  const repository = getCustomRepository(LoginUserRepository)
-  const user = await repository.findByEmail(email)
+  const user = await dbUser.findOne({ email })
   return user ? user.emailChecked : false
 }

@@ -3,12 +3,20 @@
     <b-row>
       <b-col cols="12" lg="6">
         <label>Usersuche</label>
-        <b-input
-          type="text"
-          v-model="criteria"
-          class="shadow p-3 mb-5 bg-white rounded"
-          placeholder="User suche"
-        ></b-input>
+        <b-input-group>
+          <b-form-input
+            type="text"
+            class="test-input-criteria"
+            v-model="criteria"
+            :placeholder="$t('user_search')"
+          ></b-form-input>
+
+          <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
+            <b-input-group-text class="pointer">
+              <b-icon icon="x" />
+            </b-input-group-text>
+          </b-input-group-append>
+        </b-input-group>
         <user-table
           v-if="itemsList.length > 0"
           type="UserListSearch"
@@ -25,14 +33,22 @@
         ></b-pagination>
       </b-col>
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
-        <user-table
-          v-show="itemsMassCreation.length > 0"
-          class="shadow p-3 mb-5 bg-white rounded"
-          type="UserListMassCreation"
-          :itemsUser="itemsMassCreation"
-          :fieldsTable="fields"
-          @remove-item="removeItem"
-        />
+        <div v-show="itemsMassCreation.length > 0">
+          <div class="text-right pr-4 mb-1">
+            <b-button @click="removeAllBookmarks()" variant="light">
+              <b-icon icon="x" scale="2" variant="danger"></b-icon>
+
+              {{ $t('remove_all') }}
+            </b-button>
+          </div>
+          <user-table
+            class="shadow p-3 mb-5 bg-white rounded"
+            type="UserListMassCreation"
+            :itemsUser="itemsMassCreation"
+            :fieldsTable="fields"
+            @remove-item="removeItem"
+          />
+        </div>
         <div v-if="itemsMassCreation.length === 0">
           {{ $t('multiple_creation_text') }}
         </div>
@@ -41,7 +57,7 @@
           type="massCreation"
           :creation="creation"
           :items="itemsMassCreation"
-          @remove-all-bookmark="removeAllBookmark"
+          @remove-all-bookmark="removeAllBookmarks"
         />
       </b-col>
     </b-row>
@@ -123,7 +139,7 @@ export default {
       )
       this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
-    removeAllBookmark() {
+    removeAllBookmarks() {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()

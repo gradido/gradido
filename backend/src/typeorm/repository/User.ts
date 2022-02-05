@@ -5,7 +5,7 @@ import { User } from '@entity/User'
 export class UserRepository extends Repository<User> {
   async findByPubkeyHex(pubkeyHex: string): Promise<User> {
     return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
+      .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
   }
 
