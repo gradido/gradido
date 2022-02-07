@@ -26,25 +26,14 @@ fi
 
 # Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    # export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs -0)
-    # export $(grep -v '^#' $SCRIPT_DIR/.env | xargs -d '\n')
     set -o allexport
     source $SCRIPT_DIR/.env
     set +o allexport
 else
-    #export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs -0)
-    #export $(grep -v '^#' $SCRIPT_DIR/.env.dist | xargs -d '\n')
     set -o allexport
     source $SCRIPT_DIR/.env.dist
     set +o allexport
 fi
-
-echo $COMMUNITY_DESCRIPTION
-echo $COMMUNITY_NAME
-echo "$COMMUNITY_DESCRIPTION"
-echo "$COMMUNITY_NAME"
-echo "${COMMUNITY_DESCRIPTION}"
-echo "${COMMUNITY_NAME}"
 
 # lock start
 if [ -f $LOCK_FILE ] ; then

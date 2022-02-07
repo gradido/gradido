@@ -14,9 +14,13 @@ set +o allexport
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env
+    set +o allexport
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env.dist
+    set +o allexport
 fi
 
 # Configure git
