@@ -97,6 +97,12 @@ export default {
     onReset() {
       this.currentTransactionStep = 0
     },
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
+  },
+  created() {
+    this.updateTransactions(0)
   },
 }
 </script>
