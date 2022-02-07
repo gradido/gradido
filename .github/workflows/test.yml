@@ -152,7 +152,7 @@ jobs:
       - name: mariadb | Build image
         run: |
           docker pull mariadb
-          docker save maraidb > /tmp/mariadb.tar
+          docker save maraidb:latest > /tmp/mariadb.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
