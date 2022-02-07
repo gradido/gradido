@@ -19,12 +19,12 @@ export_var(){
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
-    export_var 'DB_USERNAME'
+    export_var 'DB_USER'
     export_var 'DB_PASSWORD'
     export_var 'JWT_SECRET'
 fi
 
-echo $DB_USERNAME
+echo $DB_USER
 echo $DB_PASSWORD
 echo $JWT_SECRET
 
@@ -81,6 +81,10 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
 # Regenerate .env files
+# cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
+cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
+cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
+cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
