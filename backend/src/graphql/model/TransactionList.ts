@@ -31,7 +31,4 @@ export class TransactionList {
 
   @Field(() => [Transaction])
   transactions: Transaction[]
-
-  @Field(() => Boolean)
-  firstTransaction: boolean
 }
