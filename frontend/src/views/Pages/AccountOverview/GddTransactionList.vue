@@ -136,7 +136,7 @@
                 :type="type"
               />
               <div v-if="firstTransaction" class="mt-3 mb-3 text-center">
-                Die erste Transanktion binhaltet keinen Vergänglichkeit.
+                <b>{{ $t('decay.first_transaction') }}</b>
               </div>
             </div>
           </b-collapse>
