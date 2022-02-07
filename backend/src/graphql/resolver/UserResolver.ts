@@ -8,7 +8,6 @@ import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
 import { encode } from '../../auth/JWT'
-import CheckUsernameArgs from '../arg/CheckUsernameArgs'
 import CreateUserArgs from '../arg/CreateUserArgs'
 import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
@@ -224,8 +223,6 @@ export class UserResolver {
     user.email = userEntity.email
     user.firstName = userEntity.firstName
     user.lastName = userEntity.lastName
-    user.username = userEntity.username
-    user.description = userEntity.description
     user.pubkey = userEntity.pubKey.toString('hex')
     user.language = userEntity.language
 
@@ -278,8 +275,6 @@ export class UserResolver {
     user.email = email
     user.firstName = dbUser.firstName
     user.lastName = dbUser.lastName
-    user.username = dbUser.username
-    user.description = dbUser.description
     user.pubkey = dbUser.pubKey.toString('hex')
     user.language = dbUser.language
 
@@ -339,13 +334,6 @@ export class UserResolver {
       language = DEFAULT_LANGUAGE
     }
 
-    // Validate username
-    // TODO: never true
-    const username = ''
-    if (username.length > 3 && !this.checkUsername({ username })) {
-      throw new Error('Username already in use')
-    }
-
     // Validate email unique
     // TODO: i can register an email in upper/lower case twice
     const userRepository = getCustomRepository(UserRepository)
@@ -361,13 +349,10 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
-    // Table: state_users
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
-    dbUser.username = username
-    dbUser.description = ''
     dbUser.emailHash = emailHash
     dbUser.language = language
     dbUser.publisherId = publisherId
@@ -591,8 +576,6 @@ export class UserResolver {
     {
       firstName,
       lastName,
-      description,
-      username,
       language,
       publisherId,
       password,
@@ -604,27 +587,12 @@ export class UserResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    if (username) {
-      throw new Error('change username currently not supported!')
-      // TODO: this error was thrown on login_server whenever you tried to change the username
-      // to anything except "" which is an exception to the rules below. Those were defined
-      // aswell, even tho never used.
-      // ^[a-zA-Z][a-zA-Z0-9_-]*$
-      // username must start with [a-z] or [A-Z] and than can contain also [0-9], - and _
-      // username already used
-      // userEntity.username = username
-    }
-
     if (firstName) {
       userEntity.firstName = firstName
     }
 
     if (lastName) {
       userEntity.lastName = lastName
-    }
-
-    if (description) {
-      userEntity.description = description
     }
 
     if (language) {
@@ -680,30 +648,6 @@ export class UserResolver {
       throw e
     } finally {
       await queryRunner.release()
-    }
-
-    return true
-  }
-
-  @Authorized([RIGHTS.CHECK_USERNAME])
-  @Query(() => Boolean)
-  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
-    // Username empty?
-    if (username === '') {
-      throw new Error('Username must be set.')
-    }
-
-    // Do we fullfil the minimum character length?
-    const MIN_CHARACTERS_USERNAME = 2
-    if (username.length < MIN_CHARACTERS_USERNAME) {
-      throw new Error(`Username must be at minimum ${MIN_CHARACTERS_USERNAME} characters long.`)
-    }
-
-    const usersFound = await DbUser.count({ username })
-
-    // Username already present?
-    if (usersFound !== 0) {
-      throw new Error(`Username "${username}" already taken.`)
     }
 
     return true

@@ -4,11 +4,9 @@ export const login = gql`
   query($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -24,11 +22,9 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -91,12 +87,6 @@ export const transactionsQuery = gql`
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
     sendResetPasswordEmail(email: $email)
-  }
-`
-
-export const checkUsername = gql`
-  query($username: String!) {
-    checkUsername(username: $username)
   }
 `
 

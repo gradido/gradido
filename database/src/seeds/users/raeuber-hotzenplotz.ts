@@ -3,7 +3,7 @@ export const raeuberHotzenplotz = {
   firstName: 'Räuber',
   lastName: 'Hotzenplotz',
   username: 'räuber',
-  description: 'Pfefferpistole',
+  // description: 'Pfefferpistole',
   password: BigInt('12123692783243004812'),
   pubKey: Buffer.from('d7c70f94234dff071d982aa8f41583876c356599773b5911b39080da2b8c2d2b', 'hex'),
   privKey: Buffer.from(
@@ -13,7 +13,6 @@ export const raeuberHotzenplotz = {
   emailHash: Buffer.from('ec8d34112adb40ff2f6538b05660b03440372690f034cd7d6322d17020233c77', 'hex'),
   createdAt: new Date('2021-11-26T11:32:16'),
   emailChecked: true,
-  passphraseShown: false,
   language: 'de',
   disabled: false,
   groupId: 1,
