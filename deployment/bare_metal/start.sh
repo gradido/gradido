@@ -15,8 +15,6 @@ set +o allexport
 
 # We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
 export_var(){
-  echo $1
-  echo $(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
@@ -25,6 +23,10 @@ if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'DB_PASSWORD'
     export_var 'JWT_SECRET'
 fi
+
+echo $DB_USERNAME
+echo $DB_PASSWORD
+echo $JWT_SECRET
 
 # Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
