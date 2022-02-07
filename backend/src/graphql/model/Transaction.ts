@@ -15,7 +15,6 @@ export class Transaction {
     this.balance = 0
     this.totalBalance = 0
     this.memo = ''
-    this.firstTransaction = false
   }
 
   @Field(() => String)
@@ -26,6 +25,15 @@ export class Transaction {
 
   @Field(() => Number)
   totalBalance: number
+
+  @Field({ nullable: true })
+  decayStart?: string
+
+  @Field({ nullable: true })
+  decayEnd?: string
+
+  @Field({ nullable: true })
+  decayDuration?: number
 
   @Field(() => String)
   memo: string
@@ -44,7 +52,4 @@ export class Transaction {
 
   @Field({ nullable: true })
   decay?: Decay
-
-  @Field(() => Boolean)
-  firstTransaction: boolean
 }
