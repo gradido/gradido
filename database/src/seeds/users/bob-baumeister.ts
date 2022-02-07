@@ -3,7 +3,7 @@ export const bobBaumeister = {
   firstName: 'Bob',
   lastName: 'der Baumeister',
   username: 'bob',
-  description: 'Können wir das schaffen? Ja, wir schaffen das!',
+  // description: 'Können wir das schaffen? Ja, wir schaffen das!',
   password: BigInt('3296644341468822636'),
   pubKey: Buffer.from('a509d9a146374fc975e3677db801ae8a4a83bff9dea96da64053ff6de6b2dd7e', 'hex'),
   privKey: Buffer.from(
@@ -13,7 +13,6 @@ export const bobBaumeister = {
   emailHash: Buffer.from('4b8ce4e175587aaf33da19e272719da1a547daff557820191fab0c65c5a3b7f1', 'hex'),
   createdAt: new Date('2021-11-26T11:36:31'),
   emailChecked: true,
-  passphraseShown: false,
   language: 'de',
   disabled: false,
   groupId: 1,
