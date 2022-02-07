@@ -34,6 +34,14 @@ export default {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
   },
+  methods: {
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
+  },
+  created() {
+    this.updateTransactions(0)
+  },
 }
 </script>
 <style>

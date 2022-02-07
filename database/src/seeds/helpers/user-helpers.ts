@@ -42,15 +42,12 @@ const createUserContext = (context: UserInterface): UserContext => {
     email: context.email,
     firstName: context.firstName,
     lastName: context.lastName,
-    username: context.username,
     disabled: context.disabled,
-    description: context.description,
     password: context.password,
     privKey: context.privKey,
     emailHash: context.emailHash,
     createdAt: context.createdAt,
     emailChecked: context.emailChecked,
-    passphraseShown: context.passphraseShown,
     language: context.language,
     publisherId: context.publisherId,
   }
@@ -59,7 +56,6 @@ const createUserContext = (context: UserInterface): UserContext => {
 const createServerUserContext = (context: UserInterface): ServerUserContext => {
   return {
     role: context.role,
-    username: context.username,
     password: context.serverUserPassword,
     email: context.email,
     activated: context.activated,
