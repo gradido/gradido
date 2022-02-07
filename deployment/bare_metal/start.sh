@@ -26,9 +26,9 @@ fi
 
 # Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
+    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs -d '\n')
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
+    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs -d '\n')
 fi
 
 # lock start
