@@ -20,7 +20,6 @@ export_var(){
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
-CUR_APP_ENV=$(read_var "APP_ENV")
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var('DB_USERNAME')
     export_var('DB_PASSWORD')
