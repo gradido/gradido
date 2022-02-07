@@ -149,14 +149,14 @@ jobs:
       ##########################################################################
       # BUILD MARIADB DOCKER IMAGE #############################################
       ##########################################################################
-      - name: mariadb | Build `test` image
+      - name: mariadb | Build image
         run: |
-          docker build -t "gradido/mariadb:test" mariadb
-          docker save "gradido/mariadb:test" > /tmp/mariadb.tar
+          docker pull mariadb
+          docker save maraidb > /tmp/mariadb.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: docker-mariadb-test
+          name: docker-mariadb
           path: /tmp/mariadb.tar
 
   ##############################################################################
@@ -470,7 +470,7 @@ jobs:
       - name: Download Docker Image (Mariadb)
         uses: actions/download-artifact@v2
         with:
-          name: docker-mariadb-test
+          name: docker-mariadb
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/mariadb.tar
