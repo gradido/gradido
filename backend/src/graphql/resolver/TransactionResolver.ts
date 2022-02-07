@@ -103,9 +103,9 @@ async function calculateAndAddDecayTransactions(
             decayStartTransaction.received.getTime() / 1000
           ).toString()
         }
-      } else {
-        finalTransaction.firstTransaction = true
       }
+    } else {
+      finalTransaction.firstTransaction = true
     }
 
     // sender or receiver when user has sent money
