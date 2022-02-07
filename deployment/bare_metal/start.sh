@@ -81,7 +81,7 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
 # Regenerate .env files
-# cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
+cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
 cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
 cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
 cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
