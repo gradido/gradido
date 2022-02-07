@@ -42,7 +42,8 @@
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "toCommunity": "An die Gemeinschaft",
     "total": "Gesamt",
-    "year": "Jahre"
+    "year": "Jahre",
+    "first_transaction":"Die erste Transanktion binhaltet keinen Vergänglichkeit."
   },
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",

@@ -42,7 +42,8 @@
     "Starting_block_decay": "Starting Block Decay",
     "toCommunity": "To the community",
     "total": "Total",
-    "year": "Years"
+    "year": "Years",
+    "first_transaction":"The first transanction does not include transience."
   },
   "error": {
     "change-password": "Error while changing password",
