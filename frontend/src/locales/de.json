@@ -29,6 +29,7 @@
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "first_transaction": "Die erste Transanktion binhaltet keinen Vergänglichkeit.",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
     "minutes": "Minuten",
@@ -42,8 +43,7 @@
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "toCommunity": "An die Gemeinschaft",
     "total": "Gesamt",
-    "year": "Jahre",
-    "first_transaction":"Die erste Transanktion binhaltet keinen Vergänglichkeit."
+    "year": "Jahre"
   },
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",

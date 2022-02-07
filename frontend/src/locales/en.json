@@ -29,6 +29,7 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
+    "first_transaction": "The first transanction does not include decay.",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
@@ -42,8 +43,7 @@
     "Starting_block_decay": "Starting Block Decay",
     "toCommunity": "To the community",
     "total": "Total",
-    "year": "Years",
-    "first_transaction":"The first transanction does not include decay."
+    "year": "Years"
   },
   "error": {
     "change-password": "Error while changing password",
