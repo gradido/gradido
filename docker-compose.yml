@@ -60,9 +60,7 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    build:
-      context: ./mariadb
-      target: mariadb_server
+    image: mariadb
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
