@@ -10,9 +10,15 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
-# Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
+
+# We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+if [ -f "$PROJECT_ROOT/backend/.env" ]; then
+    export $(cat $PROJECT_ROOT/backend/.env | sed 's/#.*//g' | xargs)
+fi
+
+# Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
 else
@@ -63,6 +69,12 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
+
+# Regenerate .env files
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 # Install & build database
 echo 'Updating database<br>' >> $UPDATE_HTML
