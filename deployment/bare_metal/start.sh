@@ -21,9 +21,9 @@ export_var(){
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
-    export_var('DB_USERNAME')
-    export_var('DB_PASSWORD')
-    export_var('JWT_SECRET')
+    export_var 'DB_USERNAME'
+    export_var 'DB_PASSWORD'
+    export_var 'JWT_SECRET'
 fi
 
 # Load .env or .env.dist if not present
