@@ -26,9 +26,11 @@ fi
 
 # Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs -0)
+    # export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs -0)
+    export $(grep -v '^#' $SCRIPT_DIR/.env | xargs -0)
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs -0)
+    #export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs -0)
+    export $(grep -v '^#' $SCRIPT_DIR/.env.dist | xargs -0)
 fi
 
 echo $COMMUNITY_DESCRIPTION
