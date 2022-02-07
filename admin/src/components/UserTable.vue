@@ -27,15 +27,7 @@
         </b-button>
       </b-jumbotron>
     </div>
-    <b-table-lite
-      :items="itemsUser"
-      :fields="fieldsTable"
-      :filter="criteria"
-      caption-top
-      striped
-      hover
-      stacked="md"
-    >
+    <b-table-lite :items="itemsUser" :fields="fieldsTable" caption-top striped hover stacked="md">
       <template #cell(creation)="data">
         <div v-html="data.value"></div>
       </template>
@@ -125,7 +117,7 @@
         </row-details>
       </template>
       <template #cell(bookmark)="row">
-        <div v-show="type === 'UserListSearch'">
+        <div v-if="type === 'UserListSearch'">
           <b-button
             v-if="row.item.emailChecked"
             variant="warning"
@@ -141,7 +133,7 @@
           variant="danger"
           v-show="type === 'UserListMassCreation' || type === 'PageCreationConfirm'"
           size="md"
-          @click="overlayShow('remove', row.item)"
+          @click="bookmarkRemove(row.item)"
           class="mr-2"
         >
           <b-icon icon="x" variant="light"></b-icon>
@@ -186,15 +178,6 @@ export default {
     fieldsTable: {
       type: Array,
       required: true,
-    },
-    criteria: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    creation: {
-      type: Array,
-      required: false,
     },
   },
   components: {
@@ -259,13 +242,6 @@ export default {
       this.overlayBookmarkType = bookmarkType
       this.overlayItem = item
 
-      if (bookmarkType === 'remove') {
-        this.overlayText.header = this.$t('overlay.remove.title')
-        this.overlayText.text1 = this.$t('overlay.remove.text')
-        this.overlayText.text2 = this.$t('overlay.remove.question')
-        this.overlayText.button_ok = this.$t('overlay.remove.yes')
-        this.overlayText.button_cancel = this.$t('overlay.remove.no')
-      }
       if (bookmarkType === 'confirm') {
         this.overlayText.header = this.$t('overlay.confirm.title')
         this.overlayText.text1 = this.$t('overlay.confirm.text')
@@ -275,9 +251,6 @@ export default {
       }
     },
     overlayOK(bookmarkType, item) {
-      if (bookmarkType === 'remove') {
-        this.bookmarkRemove(item)
-      }
       if (bookmarkType === 'confirm') {
         this.$emit('confirm-creation', item)
       }
