@@ -103,6 +103,8 @@ async function calculateAndAddDecayTransactions(
             decayStartTransaction.received.getTime() / 1000
           ).toString()
         }
+      } else {
+        finalTransaction.firstTransaction = true
       }
     }
 
