@@ -19,6 +19,9 @@ export class UserAdmin {
 
   @Field(() => Boolean)
   emailChecked: boolean
+
+  @Field(() => Boolean)
+  hasElopage: boolean
 }
 
 @ObjectType()
