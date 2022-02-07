@@ -3,7 +3,7 @@ export const bibiBloxberg = {
   firstName: 'Bibi',
   lastName: 'Bloxberg',
   username: 'bibi',
-  description: 'Hex Hex',
+  // description: 'Hex Hex',
   password: BigInt('12825419584724616625'),
   pubKey: Buffer.from('42de7e4754625b730018c3b4ea745a4d043d9d867af352d0f08871793dfa6743', 'hex'),
   privKey: Buffer.from(
@@ -13,7 +13,6 @@ export const bibiBloxberg = {
   emailHash: Buffer.from('38a0d8c8658a5681cc1180c5d9e2b2a18e4f611db8ab3ca61de4aa91ae94219b', 'hex'),
   createdAt: new Date('2021-11-26T11:32:16'),
   emailChecked: true,
-  passphraseShown: false,
   language: 'de',
   disabled: false,
   groupId: 1,

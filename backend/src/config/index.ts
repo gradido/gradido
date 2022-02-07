@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0019-replace_login_user_id_with_state_user_id',
+  DB_VERSION: '0020-rename_and_clean_state_users',
 }
 
 const server = {
