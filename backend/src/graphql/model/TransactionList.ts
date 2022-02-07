@@ -11,7 +11,6 @@ export class TransactionList {
     this.balance = 0
     this.decay = 0
     this.decayDate = ''
-    this.firstTransaction = false
   }
 
   @Field(() => Number)
