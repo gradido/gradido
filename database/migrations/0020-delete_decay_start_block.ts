@@ -10,7 +10,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // When rolling back the database this entry is newly created. This should not hurt in any way tho.
+  // When rolling back an empty database this entry is newly created. This should not hurt in any way tho.
   await queryFn(`
     INSERT INTO transactions
     VALUES(1682,9,0xC27BE999D7B4704E5F294099E780C5D6A275B165AFABFD8BECCEA39059CBB7B600000000000000000000000000000000,'','2021-05-13 15:46:31',NULL,NULL)
