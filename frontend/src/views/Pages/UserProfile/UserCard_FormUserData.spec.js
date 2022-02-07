@@ -19,7 +19,6 @@ describe('UserCard_FormUserData', () => {
       state: {
         firstName: 'Peter',
         lastName: 'Lustig',
-        description: '',
       },
       commit: storeCommitMock,
     },
@@ -59,10 +58,6 @@ describe('UserCard_FormUserData', () => {
       expect(wrapper.findAll('div.col').at(4).text()).toBe('Lustig')
     })
 
-    it('renders the description', () => {
-      expect(wrapper.findAll('div.col').at(6).text()).toBe('')
-    })
-
     describe('edit user data', () => {
       beforeEach(async () => {
         await wrapper.find('svg.bi-pencil').trigger('click')
@@ -80,11 +75,9 @@ describe('UserCard_FormUserData', () => {
       it('does not change the userdate when cancel is clicked', async () => {
         await wrapper.findAll('input').at(0).setValue('Petra')
         await wrapper.findAll('input').at(1).setValue('Lustiger')
-        await wrapper.find('textarea').setValue('Keine Nickelbrille')
         await wrapper.find('svg.bi-x-circle').trigger('click')
         expect(wrapper.findAll('div.col').at(2).text()).toBe('Peter')
         expect(wrapper.findAll('div.col').at(4).text()).toBe('Lustig')
-        expect(wrapper.findAll('div.col').at(6).text()).toBe('')
       })
 
       it('has a submit button', () => {
@@ -108,7 +101,6 @@ describe('UserCard_FormUserData', () => {
           jest.clearAllMocks()
           await wrapper.findAll('input').at(0).setValue('Petra')
           await wrapper.findAll('input').at(1).setValue('Lustiger')
-          await wrapper.find('textarea').setValue('Keine Nickelbrille')
           await wrapper.find('form').trigger('keyup')
           await wrapper.find('button[type="submit"]').trigger('click')
           await flushPromises()
@@ -120,7 +112,6 @@ describe('UserCard_FormUserData', () => {
               variables: {
                 firstName: 'Petra',
                 lastName: 'Lustiger',
-                description: 'Keine Nickelbrille',
               },
             }),
           )
@@ -132,10 +123,6 @@ describe('UserCard_FormUserData', () => {
 
         it('commits lastname to store', () => {
           expect(storeCommitMock).toBeCalledWith('lastName', 'Lustiger')
-        })
-
-        it('commits description to store', () => {
-          expect(storeCommitMock).toBeCalledWith('description', 'Keine Nickelbrille')
         })
 
         it('toasts a success message', () => {
@@ -155,7 +142,6 @@ describe('UserCard_FormUserData', () => {
           jest.clearAllMocks()
           await wrapper.findAll('input').at(0).setValue('Petra')
           await wrapper.findAll('input').at(1).setValue('Lustiger')
-          await wrapper.find('textarea').setValue('Keine Nickelbrille')
           await wrapper.find('form').trigger('keyup')
           await wrapper.find('button[type="submit"]').trigger('click')
           await flushPromises()
@@ -167,7 +153,6 @@ describe('UserCard_FormUserData', () => {
               variables: {
                 firstName: 'Petra',
                 lastName: 'Lustiger',
-                description: 'Keine Nickelbrille',
               },
             }),
           )
