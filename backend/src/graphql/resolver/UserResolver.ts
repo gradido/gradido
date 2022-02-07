@@ -22,12 +22,12 @@ import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { LoginElopageBuysRepository } from '../../typeorm/repository/LoginElopageBuys'
 import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
 import { randomBytes } from 'crypto'
+import { hasElopageBuys } from '../../util/hasElopageBuys'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
 const EMAIL_OPT_IN_REGISTER = 1
@@ -812,8 +812,6 @@ export class UserResolver {
       return false
     }
 
-    const loginElopageBuysRepository = getCustomRepository(LoginElopageBuysRepository)
-    const elopageBuyCount = await loginElopageBuysRepository.count({ payerEmail: userEntity.email })
-    return elopageBuyCount > 0
+    return hasElopageBuys(userEntity.email)
   }
 }
