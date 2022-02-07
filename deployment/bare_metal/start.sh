@@ -24,10 +24,6 @@ if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'JWT_SECRET'
 fi
 
-echo $DB_USER
-echo $DB_PASSWORD
-echo $JWT_SECRET
-
 # Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
