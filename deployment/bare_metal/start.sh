@@ -31,6 +31,13 @@ else
     export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs -d '\n')
 fi
 
+echo $COMMUNITY_DESCRIPTION
+echo $COMMUNITY_NAME
+echo "$COMMUNITY_DESCRIPTION"
+echo "$COMMUNITY_NAME"
+echo "${COMMUNITY_DESCRIPTION}"
+echo "${COMMUNITY_NAME}"
+
 # lock start
 if [ -f $LOCK_FILE ] ; then
   echo "Already building!"
