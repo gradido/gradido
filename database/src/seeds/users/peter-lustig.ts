@@ -3,7 +3,7 @@ export const peterLustig = {
   firstName: 'Peter',
   lastName: 'Lustig',
   username: 'peter',
-  description: 'Latzhose und Nickelbrille',
+  // description: 'Latzhose und Nickelbrille',
   password: BigInt('3917921995996627700'),
   pubKey: Buffer.from('7281e0ee3258b08801f3ec73e431b4519677f65c03b0382c63a913b5784ee770', 'hex'),
   privKey: Buffer.from(
@@ -13,7 +13,6 @@ export const peterLustig = {
   emailHash: Buffer.from('9f700e6f6ec351a140b674c0edd4479509697b023bd8bee8826915ef6c2af036', 'hex'),
   createdAt: new Date('2020-11-25T10:48:43'),
   emailChecked: true,
-  passphraseShown: false,
   language: 'de',
   disabled: false,
   groupId: 1,
