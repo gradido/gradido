@@ -14,11 +14,8 @@ import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '../../middleware/klicktippMiddleware'
 import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
 import { Setting } from '../enum/Setting'
 import { UserRepository } from '../../typeorm/repository/User'
-import { LoginUser } from '@entity/LoginUser'
-import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
@@ -26,7 +23,6 @@ import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ServerUserRepository } from '../../typeorm/repository/ServerUser'
 import { ROLE_ADMIN } from '../../auth/ROLES'
-import { randomBytes } from 'crypto'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
@@ -186,10 +182,10 @@ const createEmailOptIn = async (
   return emailOptIn
 }
 
-const getOptInCode = async (loginUser: LoginUser): Promise<LoginEmailOptIn> => {
+const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
   let optInCode = await loginEmailOptInRepository.findOne({
-    userId: loginUser.id,
+    userId: loginUserId,
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
 
@@ -207,7 +203,7 @@ const getOptInCode = async (loginUser: LoginUser): Promise<LoginEmailOptIn> => {
   } else {
     optInCode = new LoginEmailOptIn()
     optInCode.verificationCode = random(64)
-    optInCode.userId = loginUser.id
+    optInCode.userId = loginUserId
     optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
   }
   await loginEmailOptInRepository.save(optInCode)
@@ -223,17 +219,15 @@ export class UserResolver {
     // TODO refactor and do not have duplicate code with login(see below)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findByEmail(userEntity.email)
     const user = new User()
     user.id = userEntity.id
     user.email = userEntity.email
     user.firstName = userEntity.firstName
     user.lastName = userEntity.lastName
     user.username = userEntity.username
-    user.description = loginUser.description
-    user.pubkey = userEntity.pubkey.toString('hex')
-    user.language = loginUser.language
+    user.description = userEntity.description
+    user.pubkey = userEntity.pubKey.toString('hex')
+    user.language = userEntity.language
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -259,76 +253,50 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findByEmail(email).catch(() => {
+    const dbUser = await DbUser.findOneOrFail({ email }).catch(() => {
       throw new Error('No user with this credentials')
     })
-    if (!loginUser.emailChecked) {
+    if (!dbUser.emailChecked) {
       throw new Error('User email not validated')
     }
-    if (loginUser.password === BigInt(0)) {
+    if (dbUser.password === BigInt(0)) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no password set yet')
     }
-    if (!loginUser.pubKey || !loginUser.privKey) {
+    if (!dbUser.pubKey || !dbUser.privKey) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no private or publicKey')
     }
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    const loginUserPassword = BigInt(loginUser.password.toString())
+    const loginUserPassword = BigInt(dbUser.password.toString())
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
       throw new Error('No user with this credentials')
     }
-    // TODO: If user has no pubKey Create it again and update user.
-
-    const userRepository = getCustomRepository(UserRepository)
-    let userEntity: void | DbUser
-    const loginUserPubKey = loginUser.pubKey
-    const loginUserPubKeyString = loginUserPubKey.toString('hex')
-    userEntity = await userRepository.findByPubkeyHex(loginUserPubKeyString).catch(() => {
-      // User not stored in state_users
-      // TODO: Check with production data - email is unique which can cause problems
-      userEntity = new DbUser()
-      userEntity.firstName = loginUser.firstName
-      userEntity.lastName = loginUser.lastName
-      userEntity.username = loginUser.username
-      userEntity.email = loginUser.email
-      userEntity.pubkey = loginUser.pubKey
-
-      userRepository.save(userEntity).catch(() => {
-        throw new Error('error by save userEntity')
-      })
-    })
-    if (!userEntity) {
-      throw new Error('error with cannot happen')
-    }
 
     const user = new User()
-    user.id = userEntity.id
+    user.id = dbUser.id
     user.email = email
-    user.firstName = loginUser.firstName
-    user.lastName = loginUser.lastName
-    user.username = loginUser.username
-    user.description = loginUser.description
-    user.pubkey = loginUserPubKeyString
-    user.language = loginUser.language
+    user.firstName = dbUser.firstName
+    user.lastName = dbUser.lastName
+    user.username = dbUser.username
+    user.description = dbUser.description
+    user.pubkey = dbUser.pubKey.toString('hex')
+    user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage({ pubKey: loginUserPubKeyString })
+    user.hasElopage = await this.hasElopage({ pubKey: dbUser.pubKey.toString('hex') })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       // TODO: Check if we can use updateUserInfos
       // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
-      const loginUserRepository = getCustomRepository(LoginUserRepository)
-      const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
-      loginUser.publisherId = publisherId
-      loginUserRepository.save(loginUser)
+      dbUser.publisherId = publisherId
+      DbUser.save(dbUser)
     }
 
     // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
-      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
+      .readBoolean(dbUser.id, Setting.COIN_ANIMATION)
       .catch((error) => {
         throw new Error(error)
       })
@@ -341,7 +309,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(loginUser.pubKey),
+      value: encode(dbUser.pubKey),
     })
 
     return user
@@ -393,18 +361,21 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
-    // Table: login_users
-    const loginUser = new LoginUser()
-    loginUser.email = email
-    loginUser.firstName = firstName
-    loginUser.lastName = lastName
-    loginUser.username = username
-    loginUser.description = ''
+    // Table: state_users
+    const dbUser = new DbUser()
+    dbUser.email = email
+    dbUser.firstName = firstName
+    dbUser.lastName = lastName
+    dbUser.username = username
+    dbUser.description = ''
+    dbUser.emailHash = emailHash
+    dbUser.language = language
+    dbUser.publisherId = publisherId
+    dbUser.passphrase = passphrase.join(' ')
+    // TODO this field has no null allowed unlike the loginServer table
+    // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
+    // dbUser.pubkey = keyPair[0]
     // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    loginUser.emailHash = emailHash
-    loginUser.language = language
-    loginUser.groupId = 1
-    loginUser.publisherId = publisherId
     // loginUser.pubKey = keyPair[0]
     // loginUser.privKey = encryptedPrivkey
 
@@ -412,43 +383,15 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
-      const { id: loginUserId } = await queryRunner.manager.save(loginUser).catch((error) => {
+      await queryRunner.manager.save(dbUser).catch((error) => {
         // eslint-disable-next-line no-console
-        console.log('insert LoginUser failed', error)
-        throw new Error('insert user failed')
-      })
-
-      // Table: login_user_backups
-      const loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = loginUserId
-      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-
-      await queryRunner.manager.save(loginUserBackup).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log('insert LoginUserBackup failed', error)
-        throw new Error('insert user backup failed')
-      })
-
-      // Table: state_users
-      const dbUser = new DbUser()
-      dbUser.email = email
-      dbUser.firstName = firstName
-      dbUser.lastName = lastName
-      dbUser.username = username
-      // TODO this field has no null allowed unlike the loginServer table
-      dbUser.pubkey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
-      // dbUser.pubkey = keyPair[0]
-
-      await queryRunner.manager.save(dbUser).catch((er) => {
-        // eslint-disable-next-line no-console
-        console.log('Error while saving dbUser', er)
+        console.log('Error while saving dbUser', error)
         throw new Error('error saving user')
       })
 
       // Store EmailOptIn in DB
       // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = await createEmailOptIn(loginUserId, queryRunner)
+      const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{code}/g,
@@ -480,15 +423,14 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findOneOrFail({ email: email })
+    const user = await DbUser.findOneOrFail({ email: email })
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      const emailOptIn = await createEmailOptIn(loginUser.id, queryRunner)
+      const emailOptIn = await createEmailOptIn(user.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{code}/g,
@@ -497,8 +439,8 @@ export class UserResolver {
 
       const emailSent = await sendAccountActivationEmail({
         link: activationLink,
-        firstName: loginUser.firstName,
-        lastName: loginUser.lastName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email,
       })
 
@@ -522,10 +464,9 @@ export class UserResolver {
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
 
-    const loginUserRepository = await getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findOneOrFail({ email })
+    const user = await DbUser.findOneOrFail({ email })
 
-    const optInCode = await getOptInCode(loginUser)
+    const optInCode = await getOptInCode(user.id)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /{code}/g,
@@ -534,8 +475,8 @@ export class UserResolver {
 
     const emailSent = await sendResetPasswordEmail({
       link,
-      firstName: loginUser.firstName,
-      lastName: loginUser.lastName,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email,
     })
 
@@ -575,34 +516,18 @@ export class UserResolver {
       throw new Error('Code is older than 10 minutes')
     }
 
-    // load loginUser
-    const loginUserRepository = await getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository
-      .findOneOrFail({ id: optInCode.userId })
-      .catch(() => {
-        throw new Error('Could not find corresponding Login User')
-      })
-
     // load user
-    const dbUserRepository = await getCustomRepository(UserRepository)
-    const dbUser = await dbUserRepository.findOneOrFail({ email: loginUser.email }).catch(() => {
-      throw new Error('Could not find corresponding User')
+    const user = await DbUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
+      throw new Error('Could not find corresponding Login User')
     })
 
-    const loginUserBackupRepository = await getRepository(LoginUserBackup)
-    let loginUserBackup = await loginUserBackupRepository.findOne({ userId: loginUser.id })
-
     // Generate Passphrase if needed
-    if (!loginUserBackup) {
+    if (!user.passphrase) {
       const passphrase = PassphraseGenerate()
-      loginUserBackup = new LoginUserBackup()
-      loginUserBackup.userId = loginUser.id
-      loginUserBackup.passphrase = passphrase.join(' ') // login server saves trailing space
-      loginUserBackup.mnemonicType = 2 // ServerConfig::MNEMONIC_BIP0039_SORTED_ORDER;
-      loginUserBackupRepository.save(loginUserBackup)
+      user.passphrase = passphrase.join(' ')
     }
 
-    const passphrase = loginUserBackup.passphrase.split(' ')
+    const passphrase = user.passphrase.split(' ')
     if (passphrase.length < PHRASE_WORD_COUNT) {
       // TODO if this can happen we cannot recover from that
       // this seem to be good on production data, if we dont
@@ -611,29 +536,23 @@ export class UserResolver {
     }
 
     // Activate EMail
-    loginUser.emailChecked = true
+    user.emailChecked = true
 
     // Update Password
-    const passwordHash = SecretKeyCryptographyCreateKey(loginUser.email, password) // return short and long hash
+    const passwordHash = SecretKeyCryptographyCreateKey(user.email, password) // return short and long hash
     const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    loginUser.pubKey = keyPair[0]
-    loginUser.privKey = encryptedPrivkey
-    dbUser.pubkey = keyPair[0]
+    user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    user.pubKey = keyPair[0]
+    user.privKey = encryptedPrivkey
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      // Save loginUser
-      await queryRunner.manager.save(loginUser).catch((error) => {
-        throw new Error('error saving loginUser: ' + error)
-      })
-
       // Save user
-      await queryRunner.manager.save(dbUser).catch((error) => {
+      await queryRunner.manager.save(user).catch((error) => {
         throw new Error('error saving user: ' + error)
       })
 
@@ -654,12 +573,7 @@ export class UserResolver {
     // TODO do we always signUp the user? How to handle things with old users?
     if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
       try {
-        await klicktippSignIn(
-          loginUser.email,
-          loginUser.language,
-          loginUser.firstName,
-          loginUser.lastName,
-        )
+        await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
       } catch {
         // TODO is this a problem?
         // eslint-disable-next-line no-console
@@ -689,8 +603,6 @@ export class UserResolver {
   ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const loginUserRepository = getCustomRepository(LoginUserRepository)
-    const loginUser = await loginUserRepository.findOneOrFail({ email: userEntity.email })
 
     if (username) {
       throw new Error('change username currently not supported!')
@@ -704,46 +616,44 @@ export class UserResolver {
     }
 
     if (firstName) {
-      loginUser.firstName = firstName
       userEntity.firstName = firstName
     }
 
     if (lastName) {
-      loginUser.lastName = lastName
       userEntity.lastName = lastName
     }
 
     if (description) {
-      loginUser.description = description
+      userEntity.description = description
     }
 
     if (language) {
       if (!isLanguage(language)) {
         throw new Error(`"${language}" isn't a valid language`)
       }
-      loginUser.language = language
+      userEntity.language = language
     }
 
     if (password && passwordNew) {
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
-      const oldPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, password)
-      if (BigInt(loginUser.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
+      const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
+      if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
         throw new Error(`Old password is invalid`)
       }
 
-      const privKey = SecretKeyCryptographyDecrypt(loginUser.privKey, oldPasswordHash[1])
+      const privKey = SecretKeyCryptographyDecrypt(userEntity.privKey, oldPasswordHash[1])
 
-      const newPasswordHash = SecretKeyCryptographyCreateKey(loginUser.email, passwordNew) // return short and long hash
+      const newPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, passwordNew) // return short and long hash
       const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
 
       // Save new password hash and newly encrypted private key
-      loginUser.password = newPasswordHash[0].readBigUInt64LE()
-      loginUser.privKey = encryptedPrivkey
+      userEntity.password = newPasswordHash[0].readBigUInt64LE()
+      userEntity.privKey = encryptedPrivkey
     }
 
     // Save publisherId only if Elopage is not yet registered
     if (publisherId && !(await this.hasElopage(context))) {
-      loginUser.publisherId = publisherId
+      userEntity.publisherId = publisherId
     }
 
     const queryRunner = getConnection().createQueryRunner()
@@ -759,10 +669,6 @@ export class UserResolver {
             throw new Error('error saving coinanimation: ' + error)
           })
       }
-
-      await queryRunner.manager.save(loginUser).catch((error) => {
-        throw new Error('error saving loginUser: ' + error)
-      })
 
       await queryRunner.manager.save(userEntity).catch((error) => {
         throw new Error('error saving user: ' + error)
@@ -793,7 +699,7 @@ export class UserResolver {
       throw new Error(`Username must be at minimum ${MIN_CHARACTERS_USERNAME} characters long.`)
     }
 
-    const usersFound = await LoginUser.count({ username })
+    const usersFound = await DbUser.count({ username })
 
     // Username already present?
     if (usersFound !== 0) {

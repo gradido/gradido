@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0016-transaction_signatures',
+  DB_VERSION: '0019-replace_login_user_id_with_state_user_id',
 }
 
 const server = {
