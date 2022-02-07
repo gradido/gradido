@@ -12,7 +12,16 @@
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
       <div
-        v-for="{ decay, transactionId, type, date, balance, name, memo } in transactions"
+        v-for="{
+          decay,
+          transactionId,
+          type,
+          date,
+          balance,
+          name,
+          memo,
+          firstTransaction,
+        } in transactions"
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
@@ -22,7 +31,7 @@
         >
           <!-- Collaps Button  -->
           <div
-            v-if="type != 'decay' && decay"
+            v-if="(type != 'decay' && decay) || firstTransaction"
             class="text-right"
             style="width: 95%; position: absolute"
           >
@@ -113,7 +122,11 @@
 
           <!-- Collaps Start -->
 
-          <b-collapse v-if="type != 'decay' && decay" class="pb-4" :id="'decay-' + transactionId">
+          <b-collapse
+            v-if="(type != 'decay' && decay) || firstTransaction"
+            class="pb-4"
+            :id="'decay-' + transactionId"
+          >
             <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
               <decay-information
                 v-if="decay"
@@ -122,6 +135,9 @@
                 :decay="decay"
                 :type="type"
               />
+              <div v-if="firstTransaction" class="mt-3 mb-3 text-center">
+                Die erste Transanktion binhaltet keinen Vergänglichkeit.
+              </div>
             </div>
           </b-collapse>
 
