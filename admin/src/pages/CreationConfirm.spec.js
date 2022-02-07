@@ -78,6 +78,7 @@ describe('CreationConfirm', () => {
       it('commits resetOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
       })
+
       it('commits setOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
       })
@@ -85,7 +86,7 @@ describe('CreationConfirm', () => {
 
     describe('remove creation with success', () => {
       beforeEach(async () => {
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('remove-creation', { id: 1 })
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
       it('calls the deletePendingCreation mutation', () => {
@@ -107,7 +108,7 @@ describe('CreationConfirm', () => {
     describe('remove creation with error', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('remove-creation', { id: 1 })
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
       it('toasts an error message', () => {
@@ -118,22 +119,52 @@ describe('CreationConfirm', () => {
     describe('confirm creation with success', () => {
       beforeEach(async () => {
         apolloMutateMock.mockResolvedValue({})
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('confirm-creation', { id: 2 })
+        await wrapper.findAll('tr').at(2).findAll('button').at(2).trigger('click')
       })
 
-      it('calls the confirmPendingCreation mutation', () => {
-        expect(apolloMutateMock).toBeCalledWith({
-          mutation: confirmPendingCreation,
-          variables: { id: 2 },
+      describe('overlay', () => {
+        it('opens the overlay', () => {
+          expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
-      })
 
-      it('commits openCreationsMinus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-      })
+        describe('cancel confirmation', () => {
+          beforeEach(async () => {
+            await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+          })
 
-      it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_created')
+          it('closes the overlay', () => {
+            expect(wrapper.find('#overlay').isVisible()).toBeFalsy()
+          })
+
+          it('still has 2 items in the table', () => {
+            expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+          })
+        })
+
+        describe('confirm creation', () => {
+          beforeEach(async () => {
+            await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+          })
+
+          it('calls the confirmPendingCreation mutation', () => {
+            expect(apolloMutateMock).toBeCalledWith({
+              mutation: confirmPendingCreation,
+              variables: { id: 2 },
+            })
+          })
+
+          it('commits openCreationsMinus to store', () => {
+            expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+          })
+
+          it('toasts a success message', () => {
+            expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_created')
+          })
+
+          it('has 1 item left in the table', () => {
+            expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+          })
+        })
       })
     })
 
