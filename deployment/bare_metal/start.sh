@@ -14,8 +14,17 @@ set +o allexport
 # the services and will therefore take precedence over the .env
 
 # We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+export_var(){
+  echo $1
+  echo $(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+  export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+}
+
+CUR_APP_ENV=$(read_var "APP_ENV")
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
-    export $(cat $PROJECT_ROOT/backend/.env | sed 's/#.*//g' | xargs)
+    export_var('DB_USERNAME')
+    export_var('DB_PASSWORD')
+    export_var('JWT_SECRET')
 fi
 
 # Load .env or .env.dist if not present
