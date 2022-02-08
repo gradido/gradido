@@ -21,6 +21,7 @@ import { UserTransactionRepository } from '../../typeorm/repository/UserTransact
 import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { User as dbUser } from '@entity/User'
 
 @Resolver()
@@ -41,6 +42,7 @@ export class AdminResolver {
         adminUser.email = user.email
         adminUser.creation = await getUserCreations(user.id)
         adminUser.emailChecked = await hasActivatedEmail(user.email)
+        adminUser.hasElopage = await hasElopageBuys(user.email)
         return adminUser
       }),
     )
