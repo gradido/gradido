@@ -65,11 +65,9 @@
       </template>
 
       <template #cell(has_elopage)="row">
-        <b-button :variant="row.item.hasElopage ? 'success' : 'danger'" size="md" class="mr-2">
-          <b-icon
-            :icon="row.item.hasElopage ? 'arrow-up-short' : 'exclamation-triangle-fill'"
-          ></b-icon>
-        </b-button>
+        <b-icon
+          :icon="row.item.hasElopage ? 'arrow-up-short' : 'exclamation-triangle-fill'"
+        ></b-icon>
       </template>
 
       <template #cell(transactions_list)="row">
