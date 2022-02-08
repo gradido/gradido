@@ -10,13 +10,29 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
-# Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
+
+# We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
+export_var(){
+  export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
+}
+
+if [ -f "$PROJECT_ROOT/backend/.env" ]; then
+    export_var 'DB_USER'
+    export_var 'DB_PASSWORD'
+    export_var 'JWT_SECRET'
+fi
+
+# Load .env or .env.dist if not present
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env
+    set +o allexport
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env.dist
+    set +o allexport
 fi
 
 # lock start
@@ -63,6 +79,16 @@ case "$NGINX_SSL" in
     *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
+
+# Regenerate .env files
+cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
+cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
+cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
+cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
+envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 # Install & build database
 echo 'Updating database<br>' >> $UPDATE_HTML
