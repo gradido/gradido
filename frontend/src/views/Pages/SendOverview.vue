@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-container>
-      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3">
+      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
