@@ -31,7 +31,7 @@
         >
           <!-- Collaps Button  -->
           <div
-            v-if="(type != 'decay' && decay) || firstTransaction"
+            v-if="(type !== 'decay' && decay) || firstTransaction"
             class="text-right"
             style="width: 95%; position: absolute"
           >
