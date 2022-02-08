@@ -34,7 +34,7 @@
             v-if="
               (type != 'decay' && decay) ||
               firstTransaction ||
-              (!firstTransaction && decay === null)
+              (type !== 'decay' && !firstTransaction && decay === null)
             "
             class="text-right"
             style="width: 95%; position: absolute"
@@ -147,7 +147,10 @@
                 <b>{{ $t('decay.first_transaction') }}</b>
               </div>
 
-              <div v-if="!firstTransaction && decay === null" class="mt-3 mb-3 text-center">
+              <div
+                v-if="type !== 'decay' && !firstTransaction && decay === null"
+                class="mt-3 mb-3 text-center"
+              >
                 <b>{{ $t('decay.befor_startblock_transaction') }}</b>
               </div>
             </div>
