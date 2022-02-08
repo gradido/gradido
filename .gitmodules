@@ -1,4 +1,1 @@
-[submodule "gn"]
-	path = gn
-	url = https://github.com/gradido/gn.git
-	branch = master
+

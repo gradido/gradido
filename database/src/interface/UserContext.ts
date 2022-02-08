@@ -3,15 +3,12 @@ export interface UserContext {
   email?: string
   firstName?: string
   lastName?: string
-  username?: string
   disabled?: boolean
-  description?: string
   password?: BigInt
   privKey?: Buffer
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
-  passphraseShown?: boolean
   language?: string
   publisherId?: number
   passphrase?: string

@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-container>
-      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3">
+      <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
@@ -97,6 +97,12 @@ export default {
     onReset() {
       this.currentTransactionStep = 0
     },
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
+  },
+  created() {
+    this.updateTransactions(0)
   },
 }
 </script>
