@@ -65,7 +65,8 @@
       </template>
 
       <template #cell(has_elopage)="row">
-        <b-icon :variant="row.item.hasElopage ? 'success' : 'danger'"
+        <b-icon
+          :variant="row.item.hasElopage ? 'success' : 'danger'"
           :icon="row.item.hasElopage ? 'check-circle' : 'x-circle'"
         ></b-icon>
       </template>
