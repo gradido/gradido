@@ -107,43 +107,6 @@ jobs:
           path: /tmp/database_up.tar
 
   ##############################################################################
-  # JOB: DOCKER BUILD PRODUCTION COMMUNITY SERVER ##############################
-  ##############################################################################
-  build_production_community_server:
-    name: Docker Build Production - Community Server
-    runs-on: ubuntu-latest
-    #needs: [nothing]
-    steps:
-      ##########################################################################
-      # CHECKOUT CODE ##########################################################
-      ##########################################################################
-      - name: Checkout code
-        uses: actions/checkout@v2
-      ##########################################################################
-      # SET ENVS ###############################################################
-      ##########################################################################
-      - name: ENV - VERSION
-        run: echo "VERSION=$(node -p -e "require('./package.json').version")" >> $GITHUB_ENV
-      - name: ENV - BUILD_DATE
-        run: echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-      - name: ENV - BUILD_VERSION
-        run: echo "BUILD_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-      - name: ENV - BUILD_COMMIT
-        run: echo "BUILD_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-      ##########################################################################
-      # COMMUNITY SERVER #######################################################
-      ##########################################################################
-      - name: Community Server | Build `production` image
-        run: |
-          docker build -t "gradido/community_server:latest" -t "gradido/community_server:production" -t "gradido/community_server:${VERSION}" -t "gradido/community_server:${BUILD_VERSION}" -f ./community_server/Dockerfile ./
-          docker save "gradido/community_server" > /tmp/community_server.tar
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker-community-server-production
-          path: /tmp/community_server.tar
-
-  ##############################################################################
   # JOB: DOCKER BUILD PRODUCTION MARIADB #######################################
   ##############################################################################
   build_production_mariadb:
@@ -223,7 +186,7 @@ jobs:
   upload_to_dockerhub:
     name: Upload to Dockerhub
     runs-on: ubuntu-latest
-    needs: [build_production_frontend, build_production_backend, build_production_database_up, build_production_community_server, build_production_mariadb, build_production_nginx]
+    needs: [build_production_frontend, build_production_backend, build_production_database_up, build_production_mariadb, build_production_nginx]
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -257,13 +220,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/database_up.tar
-      - name: Download Docker Image (Community Server)
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-community-server-production
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/community_server.tar
       - name: Download Docker Image (MariaDB)
         uses: actions/download-artifact@v2
         with:
@@ -289,8 +245,6 @@ jobs:
         run: docker push --all-tags gradido/backend
       - name: Push database
         run: docker push --all-tags gradido/database
-      - name: Push community_server
-        run: docker push --all-tags gradido/community_server
       - name: Push MariaDB
         run: docker push --all-tags gradido/mariadb
       - name: Push Nginx
