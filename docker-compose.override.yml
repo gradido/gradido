@@ -79,23 +79,6 @@ services:
       - ./database:/app
 
   #########################################################
-  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
-  #########################################################
-  community-server:
-    build: 
-      context: .
-      target: community_server
-      dockerfile: ./community_server/Dockerfile
-    depends_on: 
-      - mariadb
-    networks: 
-      - internal-net
-      - external-net
-    volumes:
-      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-      - ./community_server/src:/var/www/cakephp/src
-
-  #########################################################
   ## MARIADB ##############################################
   #########################################################
   mariadb:

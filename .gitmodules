@@ -1,3 +1,1 @@
-[submodule "community_server/src/protobuf"]
-	path = community_server/src/protobuf
-	url =  https://github.com/gradido/gradido_protocol.git
+
