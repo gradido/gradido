@@ -2,7 +2,8 @@ node_modules/
 dist/
 .cache/
 
-.env
+/.env
+/.env.bak
 
 # coverage folder
 coverage/
