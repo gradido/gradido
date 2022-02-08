@@ -21,6 +21,7 @@
     "switch-to-this-community": "Switch to this community"
   },
   "decay": {
+    "befor_startblock_transaction": "The transanction does not yet contain transience.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
     "created": "Created",
@@ -29,7 +30,6 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
-    "befor_startblock_transaction": "The transanction does not yet contain transience.",
     "first_transaction": "The first transanction does not include decay.",
     "hours": "Hours",
     "last_transaction": "Last transaction:",

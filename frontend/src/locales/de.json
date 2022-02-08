@@ -21,6 +21,7 @@
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "decay": {
+    "befor_startblock_transaction": "Die Transanktion binhaltet noch keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "calculation_total": "Berechnung der Gesamtsumme",
     "created": "Geschöpft",
@@ -29,7 +30,6 @@
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
-    "befor_startblock_transaction": "Die Transanktion binhaltet noch keine Vergänglichkeit.",
     "first_transaction": "Die erste Transanktion binhaltet keinen Vergänglichkeit.",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
