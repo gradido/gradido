@@ -123,7 +123,7 @@
           <!-- Collaps Start -->
 
           <b-collapse
-            v-if="(type != 'decay' && decay) || firstTransaction"
+            v-if="(type !== 'decay' && decay) || firstTransaction"
             class="pb-4"
             :id="'decay-' + transactionId"
           >
