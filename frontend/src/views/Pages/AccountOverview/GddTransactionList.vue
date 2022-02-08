@@ -148,7 +148,7 @@
               </div>
 
               <div v-if="!firstTransaction && decay === null" class="mt-3 mb-3 text-center">
-                <b>{{ $t('decay.first_transaction') }}</b>
+                <b>{{ $t('decay.befor_startblock_transaction') }}</b>
               </div>
             </div>
           </b-collapse>
