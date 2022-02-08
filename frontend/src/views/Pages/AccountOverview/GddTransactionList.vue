@@ -31,7 +31,11 @@
         >
           <!-- Collaps Button  -->
           <div
-            v-if="(type !== 'decay' && decay) || firstTransaction"
+            v-if="
+              (type != 'decay' && decay) ||
+              firstTransaction ||
+              (!firstTransaction && decay === null)
+            "
             class="text-right"
             style="width: 95%; position: absolute"
           >
@@ -123,7 +127,11 @@
           <!-- Collaps Start -->
 
           <b-collapse
-            v-if="(type !== 'decay' && decay) || firstTransaction"
+            v-if="
+              (type != 'decay' && decay) ||
+              firstTransaction ||
+              (!firstTransaction && decay === null)
+            "
             class="pb-4"
             :id="'decay-' + transactionId"
           >
@@ -136,6 +144,10 @@
                 :type="type"
               />
               <div v-if="firstTransaction" class="mt-3 mb-3 text-center">
+                <b>{{ $t('decay.first_transaction') }}</b>
+              </div>
+
+              <div v-if="!firstTransaction && decay === null" class="mt-3 mb-3 text-center">
                 <b>{{ $t('decay.first_transaction') }}</b>
               </div>
             </div>
