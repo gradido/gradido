@@ -21,7 +21,7 @@ import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEm
 import { klicktippSignIn } from '../../apis/KlicktippController'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { ROLE_ADMIN } from '../../auth/ROLES'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
+import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
@@ -661,7 +661,6 @@ export class UserResolver {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
-    return elopageBuyCount > 0
+    return hasElopageBuys(userEntity.email)
   }
 }

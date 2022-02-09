@@ -106,6 +106,7 @@ export default {
         },
         { key: 'show_details', label: this.$t('details') },
         { key: 'confirm_mail', label: this.$t('confirmed') },
+        { key: 'has_elopage', label: 'elopage' },
         { key: 'transactions_list', label: this.$t('transaction') },
       ]
     },
