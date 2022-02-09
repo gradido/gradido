@@ -1,17 +1,30 @@
 <template>
   <div class="creation-confirm">
-    <user-table
+    <div v-show="overlay" id="overlay" class="">
+      <b-jumbotron class="bg-light p-4">
+        <template #header>{{ $t('overlay.confirm.title') }}</template>
+        <template #lead>{{ $t('overlay.confirm.text') }}</template>
+        <hr class="my-4" />
+        <p>{{ $t('overlay.confirm.question') }}</p>
+        <b-button size="md" variant="danger" class="m-3" @click="overlay = false">
+          {{ $t('overlay.confirm.no') }}
+        </b-button>
+        <b-button size="md" variant="success" class="m-3 text-right" @click="confirmCreation">
+          {{ $t('overlay.confirm.yes') }}
+        </b-button>
+      </b-jumbotron>
+    </div>
+    <open-creations-table
       class="mt-4"
-      type="PageCreationConfirm"
-      :itemsUser="pendingCreations"
-      :fieldsTable="fields"
+      :items="pendingCreations"
+      :fields="fields"
       @remove-creation="removeCreation"
-      @confirm-creation="confirmCreation"
+      @show-overlay="showOverlay"
     />
   </div>
 </template>
 <script>
-import UserTable from '../components/UserTable.vue'
+import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
@@ -19,11 +32,13 @@ import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 export default {
   name: 'CreationConfirm',
   components: {
-    UserTable,
+    OpenCreationsTable,
   },
   data() {
     return {
       pendingCreations: [],
+      overlay: false,
+      item: [],
     }
   },
   methods: {
@@ -43,19 +58,21 @@ export default {
           this.$toasted.error(error.message)
         })
     },
-    confirmCreation(item) {
+    confirmCreation() {
       this.$apollo
         .mutate({
           mutation: confirmPendingCreation,
           variables: {
-            id: item.id,
+            id: this.item.id,
           },
         })
         .then((result) => {
-          this.updatePendingCreations(item.id)
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
           this.$toasted.success(this.$t('creation_form.toasted_created'))
         })
         .catch((error) => {
+          this.overlay = false
           this.$toasted.error(error.message)
         })
     },
@@ -78,22 +95,26 @@ export default {
       this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
+    showOverlay(item) {
+      this.overlay = true
+      this.item = item
+    },
   },
   computed: {
     fields() {
       return [
-        { key: 'bookmark', label: 'löschen' },
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Vorname' },
-        { key: 'lastName', label: 'Nachname' },
+        { key: 'bookmark', label: this.$t('delete') },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'amount',
-          label: 'Schöpfung',
+          label: this.$t('creation'),
           formatter: (value) => {
             return value + ' GDD'
           },
         },
-        { key: 'memo', label: 'Text' },
+        { key: 'memo', label: this.$t('text') },
         {
           key: 'date',
           label: this.$t('date'),
@@ -101,9 +122,9 @@ export default {
             return this.$d(new Date(value), 'short')
           },
         },
-        { key: 'moderator', label: 'Moderator' },
-        { key: 'edit_creation', label: 'ändern' },
-        { key: 'confirm', label: 'speichern' },
+        { key: 'moderator', label: this.$t('moderator') },
+        { key: 'edit_creation', label: this.$t('edit') },
+        { key: 'confirm', label: this.$t('save') },
       ]
     },
   },

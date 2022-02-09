@@ -3,6 +3,7 @@ export const toggleRowDetails = {
     return {
       slotIndex: 0,
       openRow: null,
+      creationUserData: {},
     }
   },
   methods: {
@@ -20,11 +21,13 @@ export const toggleRowDetails = {
           row.toggleDetails()
           this.slotIndex = index
           this.openRow = row
+          this.creationUserData = row.item
         }
       } else {
         row.toggleDetails()
         this.slotIndex = index
         this.openRow = row
+        this.creationUserData = row.item
       }
     },
   },
