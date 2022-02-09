@@ -34,7 +34,8 @@ Mit diesem Usecase soll es zukünftig möglich sein neben dem direkten *synchron
 
 **Neu**
 
-* **asynchrones Senden** : beim asynchronen Senden werden die Daten der Transaktion (Sender, Betrag und ggf. Verwendungszweck) in ein Ausgabe-Medium kodiert, das dann asynchron vom User über ein anderes Transportmedium ausserhalb der Gradido-Anwendung an den Empfänger übertragen wird. Der Empfänger wird nicht schon wie üblich beim Erfassen der Transaktionsdaten bestimmt, sondern dies erfolgt in einem nachgelagerten Schritt des Übertragungsprozesses zum Beispiel in einem Messenger o.ä. in Eigenverantwortung des Users.
+* **asynchrones Senden online**: Es wird im ersten Schritt "nur" ein asynchrones Senden mit Internet-Verbindung (online) unterstützt. Dadurch ist es möglich die zusendenden Daten auf einen einfachen Identifier zu reduzieren. Der Empfänger der Daten muss zur Überprüfung der erhaltenen Daten online sein, da mit dem einfachen Identifier dann erst die eigentlichen fachlichen Daten der Transaktion ausgelesen und angezeigt werden.
+* **asynchrones Senden offline**: Beim asynchronen Senden ohne Internet-Verbindung (offline) müssen die notwendigen fachlichen Daten der Transaktion (Sender, Betrag und ggf. Verwendungszweck) in das Ausgabe-Medium kodiert werden, das dann asynchron vom User über ein anderes Transportmedium ausserhalb der Gradido-Anwendung an den Empfänger übertragen wird. Somit kann der Empfänger auch offline den Inhalt des erhaltenen Mediums mit entsprechenden Tools (noch zu konzipieren) überprüfen. Der Empfänger wird nicht schon wie üblich beim Erfassen der Transaktionsdaten bestimmt, sondern dies erfolgt in einem nachgelagerten Schritt des Übertragungsprozesses zum Beispiel in einem Messenger o.ä. in Eigenverantwortung des Users.
   * **Ausgabe-Medium als Link** : die Kodierung der Transaktionsdaten in einen Link eröffnen dem User eine Vielzahl an möglichen Übertragungswege. Der Link kann in Emails, Messages und für ihn sonstige verfügbare Medien kopiert werden, wo er dann in Eigenverantwortung aus seinen persönlichen Kontakten den Empfänger bestimmt.
   * **Ausgabe-Medium als QR-Code** : die Kodierung der Transaktionsdaten in einen QR-Code ist lediglich die Formatierung in Bildformat statt wie der Link in Text-Format. Der User kann auch den QR-Code in Emails, Messages und für ihn sonstige verfügbare Medien kopieren und übertragen. Letztendlich muss der Empfänger ein optischen QR-Scan mit einem ihm verfügbarem Medium wie beispielsweise Handy-, Tablet- oder PC-Kamera durchführen, um den Inhalt des Codes lesen zu können und um daraus wieder den eigentlichen Prozess der Weiterverarbeitung zu starten.
 
@@ -94,32 +95,38 @@ Auch auf die Kontoverwaltung hat die Einführung einer asynchronen Transaktion g
 
 ![./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png](./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png)
 
-zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter. 
+zeigt für das Gradido-Konto des Users die Liste der getätigten Transaktionen für GDD im linken Reiter und für GDT im rechten Reiter.
 
-##### Dialog gebuchte Transaktionen
+##### Dialog Transaktionen
 
-Wie oben beschrieben wird mit Einführung von *asynchronen* Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich *vorgebuchten* Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Das folgende Bild zeigt einen Entwurf für den Transaktionsübersicht-Dialog:
+Wie oben beschrieben wird mit Einführung von *asynchronen* Transaktionen es notwendig, eine evtl. mögliche Liste von offenen, sprich *vorgebuchten* Transaktionen für den User übersichtlich anzuzeigen. Zudem kommt hinzu, dass der User die Information über seinen noch zur Verfügung stehenden Verfügungsrahmen aus dem aktuellen Kontostand abzüglich aller *vorgebuchten* Beträge benötigt. Dazu wird unterhalb des Listeneintrag der Vergänglichkeit ein neuer andersfarbiger Listeneintrag mit Link-Symbol sichtbar, der die Summe aller noch offenen *vorgebuchten* Transaktionen anzeigt. Das folgende Bild zeigt einen Entwurf für den Transaktionsübersicht-Dialog:
+
+![UC_Send_Users_Gradido_TxClosedDetaildFunds.png](./image/UC_Send_Users_Gradido_TxClosedDetaildFunds.png)
+
+Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. Unterhalb dem Listeneintrag der Vergänglichkeit ist der neue Listeneintrag mit Link-Symbol sichtbar, der die Summe aller noch offenen *vorgebuchten* Transaktionen anzeigt. Falls, wie in diesem Beispiel an der Summe 0,00 GDD sichtbar, keine noch offenen *vorgebuchten* Transaktionen vorhanden sind, so kann dieser Eintrag dennoch notwendig sein, um vorhandene aber abgelaufene *vorgebuchte* Transaktionen anzeigen zu können. Mehr dazu weiter unten.
+
+Wie im obigen Bild zu erkennen, ist in der Liste der *geschlossenen* Transaktionen ein Eintrag sichtbar, der durch eine Valutierung einer *vorgebuchten* Transaktion entstanden ist. Dies ist an dem Link-Symbol links und an den Details wie Generierungs- und Valutierungs-Datum erkennbar. Zusätzlich ist in dem Bild genau dieser Eintrag über den Info-Button aufgeklappt, um die weiteren Details dieser Transaktion einsehen zu können.
+
+Wenn, wie in dem folgenden Bild dargestellt, nun offene *vorgebuchte* Transaktionen vorliegen, dann zeigen der Kontostand und der verfügbare Betrag unterschiedliche Werte an. Die Differenz ergibt sich aus dem Kontostand minus dem Betrag aus dem neuen Listen-Eintrag für *vorgebuchte* Transaktionen mit einer Summe von -249,78 GDD.
 
 ![UC_Send_Users_Gradido_TxClosedFunds.png.png](./image/UC_Send_Users_Gradido_TxClosedFunds.png)
 
-Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. 
 
 ##### Dialog vorgebuchte Transaktionen
 
-Unterhalb der Anzeige von Kontostand und Verfügbarkeitsrahmen ist eine Combobox sichtbar, über die der User auswählen kann, ob die darunter liegende Transaktionsliste die schon *gebuchten* Transaktionen, die *vorgebuchten* und somit noch offenen Transaktionen oder die abgelaufenen und gar nicht valutierten Transaktionen anzeigen soll. Im nachfolgenden Bild ist die Liste der *vorgebuchten* Transaktionen zu sehen, die per Combo-Box ausgewählt wurde:
+Wird mit dem Info-Icon der Listen-Eintrag für vorgebuchte Transaktionen aufgeklappt, so erscheinen pro *vorgebuchter* Transaktion jeweils ein eigener Listeneintrag:
 
 ![UC_Send_Users_Gradido_TxReservedFunds.png](./image/UC_Send_Users_Gradido_TxReservedFunds.png)
 
-Die Liste der angezeigten Transaktionen ist nach ihrem Generierungszeitpunkt sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die *vorgebuchte* Vergänglichkeit, die bis zum Ablaufzeitpunkt anfallen würde. Über alle *vorgebuchten* Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen und als verfügbarer Betrag angezeigt wird.
+Die Listen-Einträge der *vorgebuchten* Transaktionen sind nach ihrem Generierungszeitpunkt absteigend sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die *vorgebuchte* Vergänglichkeit, die bis zum maximalen Ablaufzeitpunkt anfallen würde. Über alle *vorgebuchten* Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen zu dem als verfügbaren Betrag führt. Mit dem Info-Button kann zu jedem Eintrag noch weitere Details dieser Transaktion eingeblendet werden.
 
 ##### Dialog abgelaufene Transaktionen
 
-Für den Fall, dass evtl. ein gesendeter Link bzw. QR-Code nicht rechtzeitig eingelöst und valuliert wurde, hat der User die Möglichkeit über die Combobox die Auswahl "abgelaufene Transaktionen" zu treffen und diese dann für evtl. Rückfragen vom verspäteten Empfänger angezeigt zu bekommen:
+Für den Fall, dass evtl. ein gesendeter Link bzw. QR-Code nicht rechtzeitig eingelöst und valuliert wurde, erscheinen auch mit dem Öffnen der *vorgebuchten* Transaktionen darunter die schon *abgelaufenen* *vorgebuchten* Transaktionen in einer anderen Farbe:
 
-![UC_Send_Users_Gradido_TxPlusInvalidFunds.png](./image/UC_Send_Users_Gradido_TxPlusInvalidFunds.png)
+![UC_Send_Users_Gradido_TxClosedReservedInvalidFunds.png](./image/UC_Send_Users_Gradido_TxClosedReservedInvalidFunds.png)
 
-Die Liste der *abgelaufenen* Transaktionen ist absteigend nach dem Zeitpunkt der Generierung sortiert. Die Beträge und Vergänglichkeiten dieser *abgelaufenen* Transaktionen haben keine Auswirkungen auf den Verfügbarkeitsrahmen noch auf den Kontostand. Die betraglichen Reservierungen auf dem Konto wurden mit Überschreiten des Ablaufzeitpunktes beim verschieben aus der vergebuchten Transaktions-Liste in die abgelaufene Transaktions-Liste korriegiert. Der User soll in dieser Liste die Möglichkeit haben einzelne *abgelaufene* Transaktionen über das Lösch-Icon gänzlich zu löschen, da diese keinerlei buchhalterische Relevanz mehr haben.
-
+Die Einträge der *abgelaufenen* *vorgebuchten* Transaktionen sind absteigend nach dem Zeitpunkt der Generierung sortiert. Die Beträge und Vergänglichkeiten dieser *abgelaufenen* *vorgebuchten* Transaktionen haben keine Auswirkungen auf den Verfügbarkeitsrahmen noch auf den Kontostand und die Summe des übergeordneten Listen-EIntrags für *vorgebuchte* Transaktionen. Die betraglichen Reservierungen auf dem Konto wurden mit Überschreiten des Ablaufzeitpunktes durch ein Backendprozess korrigiert. Der User hat für eine *abgelaufene vorgebuchte* Transkation die Möglichkeit über das rechts angezeigte Doppel-Pfeil-Icon das erneute Generieren des Links bzw QR-Codes dieser Transaktion mit aktualisierten Gültigkeits- bzw Ablaufdatum zu starten. Dadurch wandert diese *abgelaufene vorgebuchte* Transkation wieder hoch in die Liste der *offenen vorgebuchten* Transaktionen und wird dort gemäß dem Generierungsdatum einsortiert angezeigt. Damit im Laufe der Zeit die Menge der anzuzeigenden *abgelaufenen vorgebuchten* Transaktionen nicht zu unübersichtlich wird, erfolgt eine Begrenzung über eine konfigurierbare Dauer. Sind beispielsweise 3 Monate für die Anzeige von *abgelaufenen vorgebuchten* Transaktionen konfiguriert, dann werden die *abgelaufenen vorgebuchten* Transaktionen aus der Datenbank mit einerm Generierungsdatum älter als 3 Monate nicht mehr in dieser Liste angezeigt. Der User selbst hat auf diese herausgefilterten *abgelaufenen vorgebuchten* Transaktionen keinerlei Zugriff mehr, aber in der Datenbank beliben diser vorerst einmal abgespeichert.
 
 #### ToDo:
 
@@ -127,7 +134,27 @@ Die weiteren technischen Anforderungen, die sich aus der beschriebenen Anzeige u
 
 ### Generierung des Links/QR-Codes
 
-#### **ToDo**:
+Wie anfangs schon erwähnt erfolgt die Umsetzung für diesen UseCase in zwei Schritten - 1. einfacher Link nur online verifizierbar, 2. erweiterter Link offline verifizierbar.
+
+#### online Link
+
+Für die Generierung des Links und des QR-Codes werden keine fachlichen Daten der *vorgebuchten* Transkation benötigt. Diese werden vor der Generierung in der Datenbank gespeichert und mit einer UUID als PrimaryKey zur Identifikation versehen. Für die Generierung des Links bzw. des QR-Codes wird somit lediglich:
+
+* der Community-Name auf der der Sender angemeldet ist: `<communityname>`
+* der PrimaryKey der zuvor gespeicherten *vorgebuchten* Transaktion z.B. als UUID: `74738ff5-5367-5958-9aee-98fffdcd1876`
+
+Daraus wird dann der eigentliche Link zusammengestellt nach dem Muster:
+
+https://`<communityname>`/send/`<UUID>`
+
+Beispiel:
+
+https://`<gdd.gradido.net>`/send/`74738ff5-5367-5958-9aee-98fffdcd1876`
+
+
+#### offline Link
+
+##### **ToDo**:
 
 PartnerID beachten?
 
@@ -142,6 +169,10 @@ Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
 Aus diesen Daten wird ein Link nach folgendem Pattern erzeugt:
 
 https://`<communityname>`/send/`<token>`
+
+Beispiel:
+
+https://`<gdd.gradido.net>`/send/`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`
 
 Das Token wird so generiert, dass es alle fachlich notwendigen Daten beinhaltet, um beim Empfänger evtl. Überprüfungen auf fachliche Korrektheit von Betrag, Nachricht oder Gültigkeitsablaufdatum durchführen zu können. Zusätzlich muss das Token die technischen und fachlichen Daten enthalten, dass die bei der Ausführung der Transaktion ablaufenden Prozesse korrekt initiiert und gesteuert werden können. Die Details für die Anforderungen beim Empfang des Tokens werden weiter unten im Kapitel *Perspektive des Empfängers* beschrieben.
 
@@ -227,7 +258,7 @@ Mit Start des Valutierungsprozesses werden im ersten Schritt die Eingangsparamet
 
 Sind diese Prüfungen erfolgreich absolviert, erfolgt die Valutierung der *vorgebuchten* Transaktion. Dabei wird aus den Daten der *vorgebuchten* Transaktion ein Datenobjekt *Abbuchungstransaktion* erzeugt. Es wird die Vergänglichkeit seit der letzten Transaktion auf dem aktuellen Kontostand ermittelt, dann der Betrag der *vorgebuchten* Transaktion und die ermittelte Vergänglichkeit vom Kontostand abgezogen. Alle weiteren Detaildaten, insbesonderen für die spätere Transaktionsdetailanzeige - Details siehe weiter unten, werden in das *Abbuchungstransaktion*-Objekt geschrieben und dieses dann in den schon existierenden Abbuchungsprozess gegeben. Der existierende Abbuchungsprozess vollzieht dann die Übertragung der Daten an das Empfängerkonto - auch Community übergreifend - und löst dort eine Eingangsbuchung aus. Da in einer *vorgebuchten* Transaktion neben dem eigentlichen zu transferierenden Betrag eine ausreichend große Summe für Vergänglichkeit auf dem Konto geblockt wurde, kann die Ablauflogik für eine ganz normale Abbuchung durchlaufen werden.
 
-Es kommt aber zusätzlich zur normalen Abbuchung noch die *Valutiert-Markierung* der *vorgebuchten* Transaktion und ggf. die *Abgelaufen-Markierung* von schon abgelaufenen *vorgebuchten* Transaktionen im Nachgang hinzu. Das bedeutet, dass mit erfolgreicher Valutierung einer *vorgebuchten* Transaktion diese als *valutiert* markiert wird, so dass diese nicht mehr in der Liste der *vorgebuchten* Transaktionen im Dialog erscheint. Der User kann über die Detailanzeige der valutierenden Abbuchungstransaktion die Details der *vorgebuchten* Transaktion im nachhinein noch einsehen, um die Ursprünge der Transaktion buchhalterisch vollständig nachzuvollziehen. 
+Es kommt aber zusätzlich zur normalen Abbuchung noch die *Valutiert-Markierung* der *vorgebuchten* Transaktion und ggf. die *Abgelaufen-Markierung* von schon abgelaufenen *vorgebuchten* Transaktionen im Nachgang hinzu. Das bedeutet, dass mit erfolgreicher Valutierung einer *vorgebuchten* Transaktion diese als *valutiert* markiert wird, so dass diese nicht mehr in der Liste der *vorgebuchten* Transaktionen im Dialog erscheint. Der User kann über die Detailanzeige der valutierenden Abbuchungstransaktion die Details der *vorgebuchten* Transaktion im nachhinein noch einsehen, um die Ursprünge der Transaktion buchhalterisch vollständig nachzuvollziehen.
 
 Das nachfolgende Bild zeigt den logische Ablauf des Valutierungsprozesses:
 
@@ -238,7 +269,6 @@ Das nachfolgende Bild zeigt den logische Ablauf des Valutierungsprozesses:
 Nachdem über den Valutierungsprozess die vorgebuchte Transaktion valutiert und damit abgeschlossen ist, kann der User diese Transaktion in seiner Liste der *gebuchten* Transaktionen sich anzeigen lassen. Dabei wird bei einer Transaktion, die aus einer *vorgebuchten* Transaktion resultiert, das Icon für ein Link oder ein QR-Code angezeigt, je nach dem welche Generierung dabei eingesetzt wurde. Über den "i"-Button können auch hier die Details der Transaktion aufgeblendet werden. Unterhalb der Transaktions-Nachricht sind bei dieser Transaktionsart der Generieungszeitpunkt und der Valutierungszeitpunkt angezeigt. Alle anderen Details bleiben unverändert.
 
 ![UC_Send_Users_Gradido_TxClosedDetaildFunds.png](./image/UC_Send_Users_Gradido_TxClosedDetaildFunds.png)
-
 
 ## Brainstorming
 
