@@ -1,6 +1,6 @@
 <template>
   <div class="user-search">
-    <div style="text-align: right">
+    <div id="user-search-style-1">
       <b-button block variant="danger" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="light"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
@@ -116,3 +116,8 @@ export default {
   },
 }
 </script>
+<style>
+#user-search-style-1 {
+  text-align: right;
+}
+</style>
