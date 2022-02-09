@@ -79,11 +79,13 @@ import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
 import RowDetails from '../RowDetails.vue'
 import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
+import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 
 const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
 
 export default {
   name: 'SearchUserTable',
+  mixins: [toggleRowDetails],
   components: {
     CreationFormular,
     ConfirmRegisterMailFormular,
@@ -102,33 +104,10 @@ export default {
   },
   data() {
     return {
-      slotIndex: 0,
-      openRow: null,
       creationUserData: {},
     }
   },
   methods: {
-    rowToogleDetails(row, index) {
-      if (this.openRow) {
-        if (this.openRow.index === row.index) {
-          if (index === this.slotIndex) {
-            row.toggleDetails()
-            this.openRow = null
-          } else {
-            this.slotIndex = index
-          }
-        } else {
-          this.openRow.toggleDetails()
-          row.toggleDetails()
-          this.slotIndex = index
-          this.openRow = row
-        }
-      } else {
-        row.toggleDetails()
-        this.slotIndex = index
-        this.openRow = row
-      }
-    },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
     },
