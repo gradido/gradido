@@ -17,11 +17,10 @@
             </b-input-group-text>
           </b-input-group-append>
         </b-input-group>
-        <user-table
+        <select-users-table
           v-if="itemsList.length > 0"
-          type="UserListSearch"
-          :itemsUser="itemsList"
-          :fieldsTable="Searchfields"
+          :items="itemsList"
+          :fields="Searchfields"
           @push-item="pushItem"
         />
         <b-pagination
@@ -66,6 +65,7 @@
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
 import UserTable from '../components/UserTable.vue'
+import SelectUsersTable from '../components/Tables/SelectUsersTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
 
@@ -75,6 +75,7 @@ export default {
   components: {
     CreationFormular,
     UserTable,
+    SelectUsersTable,
   },
   data() {
     return {
