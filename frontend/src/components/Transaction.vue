@@ -3,12 +3,12 @@
     <div class="list-group">
       <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
         <!-- icon  -->
-        <div class="text-right" style="position: absolute">
+        <div class="text-right transaction-style-1">
           <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
         </div>
 
         <!-- collaps Button  -->
-        <div class="text-right" style="width: 96%; position: absolute">
+        <div class="text-right transaction-style-2">
           <b-button class="btn-sm">
             <b>i</b>
           </b-button>
@@ -132,3 +132,12 @@ export default {
   },
 }
 </script>
+<style>
+.transaction-style-1 {
+  position: absolute;
+}
+.transaction-style-2 {
+  width: 96%;
+  position: absolute;
+}
+</style>

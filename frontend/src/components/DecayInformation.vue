@@ -6,7 +6,7 @@
 
     <div v-if="decaytyp === 'new'">
       <div class="d-flex" v-if="!decay.decayStartBlock">
-        <div style="width: 100%" class="text-center pb-3">
+        <div class="text-center pb-3 decay-information-style-1">
           <b-icon icon="droplet-half" height="12" class="mb-2" />
           <b>{{ $t('decay.calculation_decay') }}</b>
         </div>
@@ -139,3 +139,8 @@ export default {
   },
 }
 </script>
+<style>
+.decay-information-style-1 {
+  width: 100%;
+}
+</style>

@@ -1,7 +1,7 @@
 <template>
   <b-row class="transaction-form">
     <b-col xl="12" md="12" class="p-0">
-      <b-card class="p-0 m-0" style="background-color: #ebebeba3 !important">
+      <b-card class="p-0 m-0" id="trans-form-style-1">
         <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
@@ -39,7 +39,6 @@
                     @blur="normalizeEmail()"
                     type="email"
                     placeholder="E-Mail"
-                    style="font-size: large"
                     class="pl-3"
                     :disabled="isBalanceDisabled"
                   ></b-form-input>
@@ -75,7 +74,6 @@
                     @focus="amountFocused = true"
                     @blur="normalizeAmount(valid)"
                     :placeholder="$n(0.01)"
-                    style="font-size: large"
                     class="pl-3"
                     :disabled="isBalanceDisabled"
                   ></b-form-input>
@@ -106,7 +104,6 @@
                     rows="3"
                     v-model="form.memo"
                     class="pl-3"
-                    style="font-size: large"
                     :disabled="isBalanceDisabled"
                   ></b-form-textarea>
                 </b-input-group>
@@ -213,5 +210,13 @@ span.errors {
 #input-2:focus,
 #input-3:focus {
   font-weight: bold;
+}
+#input-1,
+#input-2,
+#input-3 {
+  font-size: large;
+}
+#trans-form-style-1 {
+  background-color: #ebebeba3 !important;
 }
 </style>

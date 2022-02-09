@@ -1,7 +1,7 @@
 <template>
   <b-row v-if="!error">
     <b-col>
-      <b-card class="p-0" style="background-color: #ebebeba3 !important">
+      <b-card class="p-0" id="trans-res-style-1">
         <div class="p-4">
           {{ $t('form.thx') }}
           <hr />
@@ -15,8 +15,8 @@
   </b-row>
   <b-row v-else>
     <b-col>
-      <b-card class="p-0" style="background-color: #ebebeba3 !important">
-        <div class="p-4" style="font-size: 1.5rem">
+      <b-card class="p-0" id="trans-res-style-2">
+        <div class="p-4" id="trans-res-style-3">
           <div>{{ $t('form.sorry') }}</div>
           <hr />
 
@@ -44,3 +44,14 @@ export default {
   },
 }
 </script>
+<style>
+#trans-res-style-1 {
+  background-color: #ebebeba3 !important;
+}
+#trans-res-style-2 {
+  background-color: #ebebeba3 !important;
+}
+#trans-res-style-2 {
+  font-size: 1.5rem;
+}
+</style>

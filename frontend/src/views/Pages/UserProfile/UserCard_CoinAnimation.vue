@@ -1,9 +1,5 @@
 <template>
-  <b-card
-    id="formusercoinanimation"
-    class="bg-transparent"
-    style="background-color: #ebebeba3 !important; border-radius: 0px"
-  >
+  <b-card id="formusercoinanimation" class="bg-transparent">
     <div>
       <b-row class="mb-3">
         <b-col class="mb-2 col-12">
@@ -64,3 +60,9 @@ export default {
   },
 }
 </script>
+<style>
+#formusercoinanimation {
+  background-color: #ebebeba3 !important;
+  border-radius: 0px;
+}
+</style>

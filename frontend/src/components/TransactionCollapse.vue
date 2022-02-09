@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="gdt-transaction-collapse p-2 pt-4 pb-4 mb-4"
-    style="border: 0px; background-color: #f1f1f1"
-  >
+  <div class="gdt-transaction-collapse p-2 pt-4 pb-4 mb-4">
     <b-row class="gdt-list-collapse-header-text text-center pb-3">
       <b-col class="collapse-headline">
         <b>{{ getLinesByType.headline }}</b>
@@ -86,3 +83,9 @@ export default {
   },
 }
 </script>
+<style>
+.gdt-transaction-collapse {
+  border: 0px;
+  background-color: #f1f1f1;
+}
+</style>

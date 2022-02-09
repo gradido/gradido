@@ -2,13 +2,13 @@
   <div class="gdd-transaction-list">
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
-        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <b-icon icon="exclamation-triangle" class="mr-2 red-icon"></b-icon>
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
       <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
-        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <b-icon icon="exclamation-triangle" class="mr-2 red-icon"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
       <div
@@ -21,11 +21,7 @@
           v-b-toggle="'decay-' + transactionId"
         >
           <!-- Collaps Button  -->
-          <div
-            v-if="type != 'decay' && decay"
-            class="text-right"
-            style="width: 95%; position: absolute"
-          >
+          <div v-if="type != 'decay' && decay" class="text-right collaps-button-style">
             <b-button class="btn-sm">
               <b>i</b>
             </b-button>
@@ -114,7 +110,7 @@
           <!-- Collaps Start -->
 
           <b-collapse v-if="type != 'decay' && decay" class="pb-4" :id="'decay-' + transactionId">
-            <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
+            <div class="p-2 pb-4 mb-4 collapse-div-style-1">
               <decay-information
                 v-if="decay"
                 decaytyp="new"
@@ -211,5 +207,19 @@ export default {
 
 .gdd-transaction-list-item {
   outline: none !important;
+}
+
+.red-icon {
+  color: red;
+}
+
+#collaps-button-style {
+  width: 95%;
+  position: absolute;
+}
+
+#collapse-div-style-1 {
+  border: 0px;
+  background-color: #f1f1f1;
 }
 </style>

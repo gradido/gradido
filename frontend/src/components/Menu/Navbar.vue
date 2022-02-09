@@ -1,5 +1,5 @@
 <template>
-  <div class="component-navbar" style="background-color: #fff">
+  <div class="component-navbar">
     <b-navbar toggleable="lg" type="light" variant="faded">
       <div class="navbar-brand">
         <b-navbar-nav @click="$emit('set-visible', false)">
@@ -116,5 +116,8 @@ export default {
 }
 .b-collaps-gradido li :hover {
   background-color: #e9e7e7f5;
+}
+.component-navbar {
+  background-color: #fff;
 }
 </style>

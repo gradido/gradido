@@ -19,7 +19,7 @@
     <b-container class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
-          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
+          <b-card no-body class="border-0" id="reset-pw-style-1">
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
                 <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
@@ -118,4 +118,8 @@ export default {
   },
 }
 </script>
-<style></style>
+<style>
+#reset-pw-style-1 {
+  background-color: #ebebeba3 !important;
+}
+</style>
