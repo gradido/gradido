@@ -40,11 +40,10 @@
               {{ $t('remove_all') }}
             </b-button>
           </div>
-          <user-table
+          <selected-users-table
             class="shadow p-3 mb-5 bg-white rounded"
-            type="UserListMassCreation"
-            :itemsUser="itemsMassCreation"
-            :fieldsTable="fields"
+            :items="itemsMassCreation"
+            :fields="fields"
             @remove-item="removeItem"
           />
         </div>
@@ -64,8 +63,8 @@
 </template>
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
-import UserTable from '../components/UserTable.vue'
 import SelectUsersTable from '../components/Tables/SelectUsersTable.vue'
+import SelectedUsersTable from '../components/Tables/SelectedUsersTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
 
@@ -74,8 +73,8 @@ export default {
   mixins: [creationMonths],
   components: {
     CreationFormular,
-    UserTable,
     SelectUsersTable,
+    SelectedUsersTable,
   },
   data() {
     return {
