@@ -218,7 +218,7 @@ export default {
   position: absolute;
 }
 
-#collapse-div-style-1 {
+.collapse-div-style-1 {
   border: 0px;
   background-color: #f1f1f1;
 }
