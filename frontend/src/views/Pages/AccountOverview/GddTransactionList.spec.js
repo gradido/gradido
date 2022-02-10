@@ -205,6 +205,25 @@ describe('GddTransactionList', () => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(1)
         })
 
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
+
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('bi-gift')
         })
@@ -245,6 +264,25 @@ describe('GddTransactionList', () => {
         beforeEach(() => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(2)
         })
+
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
 
         it('has a bi-arrow-right-circle icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
@@ -298,6 +336,25 @@ describe('GddTransactionList', () => {
         beforeEach(() => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(3)
         })
+
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
 
         it('has a bi-droplet-half icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('bi-droplet-half')
