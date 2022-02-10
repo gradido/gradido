@@ -4,7 +4,7 @@
       {{ decay ? ' - ' + $n(decay.balance, 'decimal') + ' ' + decayStartBlockTextShort : '' }}
     </span>
 
-    <div v-if="decaytyp === 'new'">
+    <div v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
       <div class="d-flex" v-if="!decay.decayStartBlock">
         <div style="width: 100%" class="text-center pb-3">
           <b-icon icon="droplet-half" height="12" class="mb-2" />
@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <b-row>
+      <b-row v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
         <b-col cols="6" class="text-right">
           <div v-if="!decay.decayStartBlock">{{ $t('decay.last_transaction') }}</div>
         </b-col>
@@ -32,7 +32,7 @@
           </div>
         </b-col>
       </b-row>
-      <b-row>
+      <b-row v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
         <b-col cols="6" class="text-right">
           <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
         </b-col>
@@ -54,7 +54,7 @@
       </b-row>
 
       <!-- Decay-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
@@ -63,13 +63,13 @@
         </b-col>
       </b-row>
       <hr class="mt-2 mb-2" />
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col class="text-center pt-3 pb-2">
           <b>{{ $t('decay.calculation_total') }}</b>
         </b-col>
       </b-row>
       <!-- Type-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
           <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
@@ -80,7 +80,7 @@
         </b-col>
       </b-row>
       <!-- Decay-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
@@ -89,7 +89,7 @@
         </b-col>
       </b-row>
       <!-- Total-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.total') }}</div>
         </b-col>

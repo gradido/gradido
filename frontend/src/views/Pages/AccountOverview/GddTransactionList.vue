@@ -21,6 +21,9 @@
           name,
           memo,
           firstTransaction,
+          decayDuration,
+          decayEnd,
+          decayStart,
         } in transactions"
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
@@ -141,6 +144,19 @@
                 class="mt-3 mb-3 text-center"
               >
                 <b>{{ $t('decay.befor_startblock_transaction') }}</b>
+              </div>
+              <div v-if="type === 'decay'" class="mt-3 mb-3">
+                <decay-information
+                  decaytyp="decayLastTransaction"
+                  :balance="balance"
+                  :decay="{
+                    balance: balance,
+                    decayStart: parseInt(decayStart),
+                    decayEnd: parseInt(decayEnd),
+                    decayDuration: parseInt(decayDuration),
+                  }"
+                  :type="type"
+                />
               </div>
             </div>
           </b-collapse>
