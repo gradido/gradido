@@ -29,10 +29,10 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    networks: 
+    networks:
       - internal-net
       - external-net
-    volumes: 
+    volumes:
       - db_test_vol:/var/lib/mysql
 
   #########################################################
@@ -48,10 +48,10 @@ services:
       - SYS_PTRACE
     depends_on:
       - mariadb
-    networks: 
+    networks:
       - internal-net
     volumes:
-      - ./logs:/var/log/grd_login 
+      - ./logs:/var/log/grd_login
       - ./login_server/src:/code/src
       - ./configs/login_server:/etc/grd_login
       - login_build_cov:/code/build_cov
@@ -61,20 +61,20 @@ services:
   ## COMMUNITY SERVER (cakephp with php-fpm) ##############
   #########################################################
   community-server:
-    build: 
+    build:
       context: .
       target: test
       dockerfile: ./community_server/Dockerfile
-    depends_on: 
+    depends_on:
       - mariadb
-    networks: 
+    networks:
       - internal-net
     volumes:
       - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
       - ./community_server/src:/var/www/cakephp/src
       - ./coverage/community:/var/www/cakephp/webroot/coverage
 
-        
+
   #########################################################
   ## PHPMYADMIN ###########################################
   #########################################################
@@ -85,17 +85,24 @@ services:
     #restart: always
     ports:
      - 8074:80
-    networks: 
+    networks:
      - internal-net
      - external-net
     volumes:
      - /sessions
 
-networks:
-  external-net:
-  internal-net:
+  networks:
+    external-net:
+    internal-net:
     internal: true
 
-volumes:
-  db_test_vol: 
-  login_build_cov:
+  volumes:
+    db_test_vol:
+    login_build_cov:
+
+
+  ###########################################################
+  ## End-to-end tests
+  ###########################################################
+  e2e-tests:
+    image: gradido-end-to-end-tests
