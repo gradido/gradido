@@ -22,6 +22,9 @@ import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+
+const EMAIL_OPT_IN_REGISTER = 1
 
 @Resolver()
 export class AdminResolver {
@@ -42,6 +45,13 @@ export class AdminResolver {
         adminUser.creation = await getUserCreations(user.id)
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
+        if (!user.emailChecked) {
+          const emailOptIn = await LoginEmailOptIn.findOne({
+            userId: user.id,
+            emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+          })
+          if (emailOptIn) adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+        }
         return adminUser
       }),
     )
