@@ -27,7 +27,7 @@
       >
         <div
           class="list-group-item gdd-transaction-list-item"
-          :class="getCollapseState(transactionId) ? 'bg-secondary' : ''"
+          :class="getCollapseState(transactionId) ? 'bg-secondary border border-light' : ''"
           v-b-toggle="'decay-' + transactionId"
         >
           <!-- Collaps Button  -->
@@ -124,7 +124,7 @@
               (!firstTransaction && decay === null)
             " -->
           <b-collapse class="pb-4" :id="'decay-' + transactionId">
-            <div class="pt-4 pb-4 bg-white">
+            <div class="pt-4 pb-4 bg-white border border-muted">
               <decay-information
                 v-if="decay"
                 decaytyp="new"
