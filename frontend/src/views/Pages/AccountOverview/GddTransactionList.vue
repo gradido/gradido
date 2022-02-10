@@ -2,13 +2,13 @@
   <div class="gdd-transaction-list">
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
-        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
       <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
-        <b-icon icon="exclamation-triangle" class="mr-2" style="color: red"></b-icon>
+        <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
       <div
@@ -27,23 +27,16 @@
       >
         <div
           class="list-group-item gdd-transaction-list-item"
+          :class="getCollapseState(transactionId) ? 'bg-secondary' : ''"
           v-b-toggle="'decay-' + transactionId"
         >
           <!-- Collaps Button  -->
-          <div
-            v-if="
-              (type != 'decay' && decay) ||
-              firstTransaction ||
-              (type !== 'decay' && !firstTransaction && decay === null)
-            "
-            class="text-right"
-            style="width: 95%; position: absolute"
-          >
-            <b-button class="btn-sm">
-              <b>i</b>
-            </b-button>
+          <div class="text-right" style="width: 95%; position: absolute">
+            <b-icon
+              :icon="getCollapseState(transactionId) ? 'caret-up-square' : 'caret-down-square'"
+              :class="getCollapseState(transactionId) ? 'text-black' : 'text-muted'"
+            />
           </div>
-
           <div>
             <b-row>
               <!-- ICON  -->
@@ -125,17 +118,13 @@
           </div>
 
           <!-- Collaps Start -->
-
-          <b-collapse
-            v-if="
+          <!-- v-if="
               (type != 'decay' && decay) ||
               firstTransaction ||
               (!firstTransaction && decay === null)
-            "
-            class="pb-4"
-            :id="'decay-' + transactionId"
-          >
-            <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
+            " -->
+          <b-collapse class="pb-4" :id="'decay-' + transactionId">
+            <div class="pt-4 pb-4 bg-white">
               <decay-information
                 v-if="decay"
                 decaytyp="new"
@@ -192,6 +181,7 @@ export default {
   data() {
     return {
       currentPage: 1,
+      collapseStatus: [],
     }
   },
   props: {
@@ -222,6 +212,18 @@ export default {
     throwError(msg) {
       throw new Error(msg)
     },
+    getCollapseState(transactionId) {
+      return this.collapseStatus.includes('decay-' + transactionId)
+    },
+  },
+  mounted() {
+    this.$root.$on('bv::collapse::state', (collapseId, isJustShown) => {
+      if (isJustShown) {
+        this.collapseStatus.push(collapseId)
+      } else {
+        this.collapseStatus = this.collapseStatus.filter((id) => id !== collapseId)
+      }
+    })
   },
   watch: {
     currentPage() {
