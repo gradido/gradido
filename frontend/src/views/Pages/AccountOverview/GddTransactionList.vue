@@ -1,6 +1,5 @@
 <template>
   <div class="gdd-transaction-list">
-    gddbalance {{ gddbalance }}
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
