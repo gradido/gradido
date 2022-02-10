@@ -1,7 +1,7 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div v-if="checked">{{ $t('unregister_mail.text_true', { date: dateLastSend }) }}</div>
+      <div v-if="checked">{{ $t('unregister_mail.text_true') }}</div>
       <div v-else>
         {{ $t('unregister_mail.text_false', { date: dateLastSend, mail: email }) }}
 
