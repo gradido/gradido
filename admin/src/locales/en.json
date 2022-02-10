@@ -70,8 +70,8 @@
     "error": "Error sending the confirmation link to the user: {message}",
     "info": "Confirm email, send repeatedly to:",
     "success": "Successfully send the confirmation link to the user's email! ({email})",
-    "text_false": "The last email was sent to the member ({mail}) on {date} clock.",
-    "text_true": "The email was confirmed on {date} clock."
+    "text_false": "The last email was sent to the member ({mail}) on {date}.",
+    "text_true": "The email was confirmed."
   },
   "user_search": "User search"
 }
