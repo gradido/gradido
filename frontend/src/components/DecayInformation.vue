@@ -59,7 +59,12 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div>- {{ $n(decay.balance, 'decimal') }}</div>
+          <div v-if="decaytyp === 'new'">{{ $n(decay.balance, 'decimal') }}</div>
+          <div v-if="decaytyp === 'decayLastTransaction'">
+            {{ $n(decay.balance, 'decimal') }} GDD -
+            {{ $n(decay.balance + gddbalance, 'decimal') }} =
+            <b>{{ $n(gddbalance, 'decimal') }}</b>
+          </div>
         </b-col>
       </b-row>
       <hr class="mt-2 mb-2" />
@@ -112,6 +117,7 @@
 export default {
   name: 'DecayInformation',
   props: {
+    gddbalance: { type: Number },
     balance: { type: Number },
     type: { type: String, default: '' },
     decay: {

@@ -1,5 +1,6 @@
 <template>
   <div class="gdd-transaction-list">
+    gddbalance {{ gddbalance }}
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
@@ -30,7 +31,7 @@
       >
         <div
           class="list-group-item gdd-transaction-list-item"
-          :class="getCollapseState(transactionId) ? 'bg-secondary border border-light' : ''"
+          :class="getCollapseState(transactionId) ? 'bg-secondary' : ''"
           v-b-toggle="'decay-' + transactionId"
         >
           <!-- Collaps Button  -->
@@ -148,6 +149,7 @@
               <div v-if="type === 'decay'" class="mt-3 mb-3">
                 <decay-information
                   decaytyp="decayLastTransaction"
+                  :gddbalance="gddbalance"
                   :balance="balance"
                   :decay="{
                     balance: balance,
@@ -201,6 +203,7 @@ export default {
     }
   },
   props: {
+    gddbalance: { type: Number },
     transactions: { default: () => [] },
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
