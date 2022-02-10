@@ -70,7 +70,7 @@ export class AdminResolver {
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-    if (user.emailChecked) {
+    if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
     const creations = await getUserCreations(user.id)
