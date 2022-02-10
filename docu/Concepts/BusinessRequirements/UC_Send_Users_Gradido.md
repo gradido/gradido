@@ -53,17 +53,19 @@ Wenn die Auswahl des Übertragungsweges im existierenden Senden-Dialog stattfind
 
 ![UC_Send_Users_Gradido_SendDialogPerLink](./image/UC_Send_Users_Gradido_SendDialogPerLink.png)
 
-Die Idee zeigt die Auswahl der Übertragungart als Radio-Buttons für "sofort online" - entspricht der bisherigen Art - "per Link" und "per QR-Code". Sobald eine der beiden neuen Arten ausgewählt ist, wird das Empfänger-Feld ausgeblendet und der Text des Sende-Buttons von "Jetzt senden" auf "Jetzt generieren" geändert.
+Die Idee zeigt die Auswahl der Übertragungart als Radio-Buttons für "sofort online" - entspricht der bisherigen Art - "per Link" und "per QR-Code". Sobald eine der beiden neuen Arten ausgewählt ist, wird das Empfänger-Feld ausgeblendet, das Feld "Anzahl akzeptierter Valutierungen" und der Text des Sende-Buttons von "Jetzt senden" auf "Jetzt generieren" geändert.
 
-Bei bzw. nach der Eingabe des Betrages für eine asynchrone Transaktion muss eine Validierung gegenüber dem Kontostand oder genauer gesagt gegenüber dem noch verfügbaren Betrag durchgeführt werden. Denn eine asynchrone Transaktion unterliegt finanzkalkulatorisch einem anderen Regelwerk als eine synchrone Tranaktion. Die Details des Regelwerks sind im nachfolgenden Kapitel beschrieben. Wenn die Validierung des Betrages für eine asynchrone Transaktion fehlschlägt, muss der "Jetzt generieren"-Button deaktiviert und eine aussagekräftige Fehlermeldung dem User angezeigt werden. Hier eine mögliche Formulierung als Vorschlag:
+Das neue Feld "Anzahl akzeptierter Valutierungen" unterstützt die Idee eine einmal eingegebene *vorgebuchte* Transaktion x-fach an beliebige Empfänger zu versenden. Diese Anzahl wird mit den Daten der *vorgebuchten* Transaktion gespeichert und muss im späteren Valutierungsprozess entsprechend verarbeitet werden. Details dazu siehe weiter unten im Kapitel "*Perspektive des Empfängers*".
+
+Während bzw. nach der Eingabe des Betrages und bei Veränderung der "Anzahl aktzeptierter Valutierungen" für eine asynchrone Transaktion muss eine Validierung gegenüber dem Kontostand oder genauer gesagt gegenüber dem noch verfügbaren Betrag durchgeführt werden. Denn eine *asynchrone* Transaktion unterliegt finanzkalkulatorisch einem anderen Regelwerk als eine *synchrone* Transaktion. Die Details des Regelwerks sind im nachfolgenden Kapitel beschrieben. Wenn die Validierung des Betrages für eine *asynchrone* Transaktion fehlschlägt, muss der "Jetzt generieren"-Button deaktiviert und eine aussagekräftige Fehlermeldung dem User angezeigt werden. Hier eine mögliche Formulierung als Vorschlag:
 
 ```
-"Der Betrag X für die Überweisung als Link, inklusive einer einkalkulierten Vergänglichkeitsreserve von Y, wird durch den aktuellen Verfügungsrahmen Z bei Kontostand N nicht gedeckt! "
+"Der Betrag X für die n-malige Überweisung als Link, inklusive einer einkalkulierten Vergänglichkeitsreserve von Y, wird durch den aktuellen Verfügungsrahmen Z bei Kontostand N nicht gedeckt! "
 ```
 
-Sobald der eingegebene Betrag für eine asynchrone Transaktion valide ist, wird der "Jetzt generieren"-Button wieder aktiviert.
+Sobald der eingegebene Betrag für eine *asynchrone* Transaktion valide ist, wird der "Jetzt generieren"-Button wieder aktiviert.
 
-Mit drücken des "Jetzt generieren"-Buttons erfolgt die Generierung des Links bzw des QR-Codes aus den erfassten Transaktionsdaten. Der fertig erzeugte Link bzw. QR-Code wird in einem Popup-Fenster zur Anzeige gebracht. Für eine Transaktion als Link kann ein vorkonfigurierter bzw. für den User administrierbarer Meldungstext zusammen mit dem Link angezeigt werden. Der Inhalt des Popup-Fensters - Meldungstext inkl. Link oder QR-Code - kann der User entweder manuell herauskopieren und für den Versand in ein anderes Übertragungsmedium wie Email, Messenger, etc. einfügen, für einen QR-Code-Scan vom Empfänger abfotographieren lassen oder für evtl. spätere Aktionen in einer Datei lokal speichern.
+Mit drücken des "Jetzt generieren"-Buttons erfolgt die Generierung des Links bzw des QR-Codes aus den erfassten Transaktionsdaten. Der fertig erzeugte Link bzw. QR-Code wird in einem Popup-Fenster zur Anzeige gebracht. Für eine Transaktion als Link kann ein vorkonfigurierter bzw. für den User administrierbarer Meldungstext zusammen mit dem Link angezeigt werden. Der Inhalt des Popup-Fensters - Meldungstext inkl. Link oder QR-Code - kann der User entweder manuell herauskopieren und für den Versand in ein anderes Übertragungsmedium wie Email, Messenger, etc. einfügen oder für einen QR-Code-Scan vom Empfänger abfotographieren lassen.
 
 ### Finanzkalkulatorische Logik
 
@@ -75,23 +77,30 @@ Bei der bisherigen Übertragungsart gibt es nur die Regel, dass der eingegebene 
 
 #### per Link / per QR-Code
 
-Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion beim Empfänger gebucht und somit beim Sender valutiert wird. Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit für die konfigurierte maximale Gültigkeitsdauer des Links/QR-Codes berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, der ihm noch für andere Transaktionen zur Verfügung steht, muss um den "vorgebuchten" Betrag reduziert und als Verfügbarkeits-Betrag zusätzlich unterhalb des Kontostandes korrigiert angezeigt werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
+Bei der neuen Übertragungsart kommt es aber zu einem ggf. längeren Zeitfenster von max 14 Tagen - per Konfiguration fest voreingestellt - bis die Transaktion bei dem Empfänger gebucht und somit beim Sender valutiert wird.
+
+Es wird in den nun folgenden Erklärungen angenommen, dass die Anzahl an akzeptierten Valutierungen auf dem Standard-Wert 1 steht und damit der Link/QR-Code einmalig an einen Empfänger übertragen und somit auch nur einmal valutiert werden wird.
+
+Das bedeutet mit der Generierung des Links/QR-Codes wird aus dem zu sendenden Betrag die Vergänglichkeit für die konfigurierte maximale Gültigkeitsdauer des Links/QR-Codes berechnet. Dieser Vergänglichkeitsbetrag wird zusammen mit dem zusendenden Betrag als Summe auf dem Konto des Senders als "vorgebucht" markiert. Damit bleibt der Kontostand des Senders erst einmal unverändert, aber sein Verfügungsrahmen, der ihm noch für andere Transaktionen zur Verfügung steht, muss um den "vorgebuchten" Betrag reduziert und als Verfügbarkeits-Betrag zusätzlich unterhalb des Kontostandes korrigiert angezeigt werden. Damit wird sichergestellt, dass wenn der Empfänger die Transaktion wirklich erst nach 14 Tagen verbucht, dass nach dieser Zeit auch noch genügend Gradidos auf dem Senderkonto zur Verfügung stehen. Das nachfolgende Bild verdeutlicht diesen Sachverhalt:
 
 ![VorgebuchterTransaktionsbetrag](./image/VorgebuchterTransaktionsbetrag.png)
 
-Diese Berücksichtigung der Vergänglichkeit muss also auch schon bei der Erfassung einer asynchronen Transaktion im Sende-Dialog mit einfließen und sollte bei der Eingabe des Betrages, aber spätestens vor dem Aktivieren des "Jetzt generieren"-Buttons durch eine Validierung sichergestellt werden.
+Diese Berücksichtigung der Vergänglichkeit muss also auch schon bei der Erfassung einer *asynchronen* Transaktion im Sende-Dialog mit einfließen und sollte bei der Eingabe des Betrages, aber spätestens vor dem Aktivieren des "Jetzt generieren"-Buttons durch eine Validierung sichergestellt werden.
 
 #### Regelwerk
 
 Folgendes Regelwerk gilt es bei der Validierung auszuführen und zu überprüfen:
 
-* Dx = Decay des eingegebenen Betrags X für den konfigurierten MaxAsyncExpiration t (default = 14 Tage)
-* Vo = offener Verfügungsrahmen aus Kontostand K minus Summe aller vorgebuchten Beträge Vb
-* Prüfung auf: Vo > X + Dx
+* Bg = *Betrag-gesamt* aus dem eingegebenen Transaktionsbetrag X mal der Anzahl akzeptierter Valutierungen
+* Dg = *Decay-gesamt* aus dem Gesamtbetrag Bg für den konfigurierten MaxAsyncExpiration t (default = 14 Tage)
+* Vo = *Verfügungsrahmen-offen* aus Kontostand K minus Summe aller schon existierenden *offenen vorgebuchten* Transaktionen
+* Prüfung auf: Vo > Bg + Dg
+
+Die *Anzahl der akzeptierten Valutierungen* wird somit immer - auch bei dem Default-Wert = 1 - mit einbezogen und verändert bzw. verkompliziert die finanzkalkulatorischen Regeln bei der Eingabe und Generierung der asynchronen Transaktion so gut wie gar nicht.
 
 #### Kontoverwaltung
 
-Auch auf die Kontoverwaltung hat die Einführung einer asynchronen Transaktion gewisse Auswirkungen. So muss für die Anzeige der Tranaktionsübersicht eine Möglichkeit für den User geschaffen werden seine *gebuchten* sowie seine *vorgebuchten* Transaktionen, aber auch die evtl. abgelaufenen Transaktionen auflisten zu können. Der existierende Dialog der Transaktionsübersicht
+Auch auf die Kontoverwaltung hat die Einführung einer *asynchronen* Transaktion gewisse Auswirkungen. So muss für die Anzeige der Tranaktionsübersicht eine Möglichkeit für den User geschaffen werden seine *gebuchten* sowie seine *vorgebuchten* Transaktionen, aber auch die evtl. *abgelaufenen vorgebuchten* Transaktionen auflisten zu können. Der existierende Dialog der Transaktionsübersicht
 
 ![./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png](./image/UC_Send_Users_Gradido_TxÜbersichtDialog.png)
 
@@ -103,14 +112,19 @@ Wie oben beschrieben wird mit Einführung von *asynchronen* Transaktionen es not
 
 ![UC_Send_Users_Gradido_TxClosedDetaildFunds.png](./image/UC_Send_Users_Gradido_TxClosedDetaildFunds.png)
 
-Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. Unterhalb dem Listeneintrag der Vergänglichkeit ist der neue Listeneintrag mit Link-Symbol sichtbar, der die Summe aller noch offenen *vorgebuchten* Transaktionen anzeigt. Falls, wie in diesem Beispiel an der Summe 0,00 GDD sichtbar, keine noch offenen *vorgebuchten* Transaktionen vorhanden sind, so kann dieser Eintrag dennoch notwendig sein, um vorhandene aber abgelaufene *vorgebuchte* Transaktionen anzeigen zu können. Mehr dazu weiter unten.
+Der aktuelle Kontostand wird dabei weiterhin ganz oben und direkt darunter der freie Verfügungsrahmen zusätzlich angezeigt. Dieser kann, wie in den vorherigen Kapiteln beschrieben, durch vorhandene *offene vorgebuchte* Transaktionen geringer sein als der eigentliche Kontostand. Unterhalb dem Listeneintrag der Vergänglichkeit ist der neue Listeneintrag mit Link-Symbol sichtbar, der die Summe aller noch *offenen vorgebuchten *Transaktionen anzeigt. Falls, wie in diesem Beispiel an der Summe 0,00 GDD sichtbar, keine noch *offenen vorgebuchten *Transaktionen vorhanden sind, so kann dieser Eintrag dennoch notwendig sein, um vorhandene aber *abgelaufene vorgebuchte* Transaktionen anzeigen zu können. Mehr dazu weiter unten.
 
 Wie im obigen Bild zu erkennen, ist in der Liste der *geschlossenen* Transaktionen ein Eintrag sichtbar, der durch eine Valutierung einer *vorgebuchten* Transaktion entstanden ist. Dies ist an dem Link-Symbol links und an den Details wie Generierungs- und Valutierungs-Datum erkennbar. Zusätzlich ist in dem Bild genau dieser Eintrag über den Info-Button aufgeklappt, um die weiteren Details dieser Transaktion einsehen zu können.
 
-Wenn, wie in dem folgenden Bild dargestellt, nun offene *vorgebuchte* Transaktionen vorliegen, dann zeigen der Kontostand und der verfügbare Betrag unterschiedliche Werte an. Die Differenz ergibt sich aus dem Kontostand minus dem Betrag aus dem neuen Listen-Eintrag für *vorgebuchte* Transaktionen mit einer Summe von -249,78 GDD.
+Wenn, wie in dem folgenden Bild dargestellt, nun *offene vorgebuchte *Transaktionen vorliegen, dann zeigen der Kontostand und der verfügbare Betrag unterschiedliche Werte an. Die Differenz ergibt sich aus dem Kontostand minus dem Betrag aus dem neuen Listen-Eintrag für *vorgebuchte* Transaktionen mit einer Summe von -249,78 GDD.
+
+##### ToDo:
+
+Müsste der verfügbare Betrag sich nicht folgendermaßen berechenen?
+
+`(verfügbarer Betrag) = (Kontostand) - (Vergänglichkeit seit der letzte Tx) - (Summe der vorgebuchten Transaktionen`)
 
 ![UC_Send_Users_Gradido_TxClosedFunds.png.png](./image/UC_Send_Users_Gradido_TxClosedFunds.png)
-
 
 ##### Dialog vorgebuchte Transaktionen
 
@@ -120,13 +134,19 @@ Wird mit dem Info-Icon der Listen-Eintrag für vorgebuchte Transaktionen aufgekl
 
 Die Listen-Einträge der *vorgebuchten* Transaktionen sind nach ihrem Generierungszeitpunkt absteigend sortiert. Das Icon links deutet an, ob die *vorgebuchte* Transaktion als *Link* oder als *QR-Code* generiert wurde. Dann erscheint der Betrag, die Transaktionsnachricht, der Generierungs- und der Ablaufzeitpunkt sowie die *vorgebuchte* Vergänglichkeit, die bis zum maximalen Ablaufzeitpunkt anfallen würde. Über alle *vorgebuchten* Transaktionen ergibt die jeweilige Summe von Betrag plus Vergänglichkeitsbetrag die Gesamtsumme, die vom Kontostand abgezogen zu dem als verfügbaren Betrag führt. Mit dem Info-Button kann zu jedem Eintrag noch weitere Details dieser Transaktion eingeblendet werden.
 
+Wurde bei der Erfassung einer *vorgebuchten* Transaktion die *Anzahl der akzeptierten Valutierungen* größer als 1 eingegeben - wie in dem obigen Bild im letzten der *vorgebuchten* Transaktions-Einträge zu sehen, dann wird in dieser Liste quasi eine Art Sammel-Eintrag für alle x aktzeptierten Valutierungen angezeigt. Der angezeigte Betrag und die angezeigte Vergänglichkeit dieses "Sammel-Eintrages" entspricht der Summe der noch *offenen Valutierungen* zu dieser *vorgebuchten* Transaktion. Das heißt wenn von den zum Beispiel ursprünglich 20 aktzeptierten Valutierungen schon 4 Valutierungen abgeschlossen und damit noch 16 weitere Valutierungen zu dieser Transaktion offen sind, dann sind der Betrag, die Vergänglichkeit und die Anzahl des Sammel-Eintrages entsprechend reduziert. Die schon 4 valutierten Transaktionen werden in der Liste der *geschlossenen* Transaktionen mit jeweils 4 Einzel-Einträgen mit den fachlichen Daten der *vorgebuchten* Transaktion und dem Empfänger angezeigt. Bleiben von den möglichen 20 Valutierungen bis zum Ablaufzeitpunkt noch mögliche Valutierungen offen, dann wird der Sammel-Eintrag aus der Lister der *offenen* in die Liste der *abgelaufenen vorgebuchten* Transaktionen verschoben und die Beträge vom Verfügbarkeitsrahmen und der Gesamtsumme aller *offenen vorgebuchten* Transaktionen korrigiert.
+
 ##### Dialog abgelaufene Transaktionen
 
 Für den Fall, dass evtl. ein gesendeter Link bzw. QR-Code nicht rechtzeitig eingelöst und valuliert wurde, erscheinen auch mit dem Öffnen der *vorgebuchten* Transaktionen darunter die schon *abgelaufenen* *vorgebuchten* Transaktionen in einer anderen Farbe:
 
 ![UC_Send_Users_Gradido_TxClosedReservedInvalidFunds.png](./image/UC_Send_Users_Gradido_TxClosedReservedInvalidFunds.png)
 
-Die Einträge der *abgelaufenen* *vorgebuchten* Transaktionen sind absteigend nach dem Zeitpunkt der Generierung sortiert. Die Beträge und Vergänglichkeiten dieser *abgelaufenen* *vorgebuchten* Transaktionen haben keine Auswirkungen auf den Verfügbarkeitsrahmen noch auf den Kontostand und die Summe des übergeordneten Listen-EIntrags für *vorgebuchte* Transaktionen. Die betraglichen Reservierungen auf dem Konto wurden mit Überschreiten des Ablaufzeitpunktes durch ein Backendprozess korrigiert. Der User hat für eine *abgelaufene vorgebuchte* Transkation die Möglichkeit über das rechts angezeigte Doppel-Pfeil-Icon das erneute Generieren des Links bzw QR-Codes dieser Transaktion mit aktualisierten Gültigkeits- bzw Ablaufdatum zu starten. Dadurch wandert diese *abgelaufene vorgebuchte* Transkation wieder hoch in die Liste der *offenen vorgebuchten* Transaktionen und wird dort gemäß dem Generierungsdatum einsortiert angezeigt. Damit im Laufe der Zeit die Menge der anzuzeigenden *abgelaufenen vorgebuchten* Transaktionen nicht zu unübersichtlich wird, erfolgt eine Begrenzung über eine konfigurierbare Dauer. Sind beispielsweise 3 Monate für die Anzeige von *abgelaufenen vorgebuchten* Transaktionen konfiguriert, dann werden die *abgelaufenen vorgebuchten* Transaktionen aus der Datenbank mit einerm Generierungsdatum älter als 3 Monate nicht mehr in dieser Liste angezeigt. Der User selbst hat auf diese herausgefilterten *abgelaufenen vorgebuchten* Transaktionen keinerlei Zugriff mehr, aber in der Datenbank beliben diser vorerst einmal abgespeichert.
+Die Einträge der *abgelaufenen* *vorgebuchten* Transaktionen sind absteigend nach dem Zeitpunkt der Generierung sortiert. Die Beträge und Vergänglichkeiten dieser *abgelaufenen* *vorgebuchten* Transaktionen haben keine Auswirkungen auf den Verfügbarkeitsrahmen noch auf den Kontostand und die Summe des übergeordneten Listen-Eintrags für *vorgebuchte* Transaktionen. Die betraglichen Reservierungen auf dem Konto wurden mit Überschreiten des Ablaufzeitpunktes durch ein Backendprozess korrigiert. Der User hat für eine *abgelaufene vorgebuchte* Transkation die Möglichkeit über das rechts angezeigte Doppel-Pfeil-Icon das erneute Generieren des Links bzw QR-Codes dieser Transaktion mit aktualisierten Gültigkeits- bzw Ablaufdatum zu starten. Dadurch wandert diese *abgelaufene vorgebuchte* Transkation wieder hoch in die Liste der *offenen vorgebuchten* Transaktionen und wird dort gemäß dem Generierungsdatum einsortiert angezeigt.
+
+Handelt es sich um ein Sammel-Eintrag einer *abgelaufenen vorgebuchten* Transaktion mit noch *offenen Valutierungen*, dann kann auch für diese Transaktion eine erneute Generierung über das Doppel-Pfeil-Icon gestartet werden. Bei der Eingabe der Daten für die erneute Generierung kann die Anzahl aktzeptierter Valutierungen wieder frei gesetzt werden.
+
+Damit im Laufe der Zeit die Menge der anzuzeigenden *abgelaufenen vorgebuchten* Transaktionen nicht zu unübersichtlich wird, erfolgt eine Begrenzung über eine konfigurierbare Dauer. Sind beispielsweise 3 Monate für die Anzeige von *abgelaufenen vorgebuchten* Transaktionen konfiguriert, dann werden die *abgelaufenen vorgebuchten* Transaktionen aus der Datenbank mit einerm Generierungsdatum älter als 3 Monate nicht mehr in dieser Liste angezeigt. Der User selbst hat auf diese herausgefilterten *abgelaufenen vorgebuchten* Transaktionen keinerlei Zugriff mehr, aber in der Datenbank bleiben diser vorerst einmal abgespeichert.
 
 #### ToDo:
 
@@ -134,14 +154,17 @@ Die weiteren technischen Anforderungen, die sich aus der beschriebenen Anzeige u
 
 ### Generierung des Links/QR-Codes
 
-Wie anfangs schon erwähnt erfolgt die Umsetzung für diesen UseCase in zwei Schritten - 1. einfacher Link nur online verifizierbar, 2. erweiterter Link offline verifizierbar.
+Wie anfangs schon erwähnt erfolgt die Umsetzung für diesen UseCase in zwei Schritten:
 
-#### online Link
+1. einfacher Link nur online verifizierbar
+2. erweiterter Link auch offline verifizierbar.
 
-Für die Generierung des Links und des QR-Codes werden keine fachlichen Daten der *vorgebuchten* Transkation benötigt. Diese werden vor der Generierung in der Datenbank gespeichert und mit einer UUID als PrimaryKey zur Identifikation versehen. Für die Generierung des Links bzw. des QR-Codes wird somit lediglich:
+#### online verifizierbarer Link
+
+Für die Generierung des Links bzw. QR-Codes werden keine fachlichen Daten der *vorgebuchten* Transkation benötigt. Diese werden vor der Generierung in der Datenbank gespeichert und mit einer UUID als PrimaryKey zur Identifikation versehen. Für die Generierung des Links bzw. des QR-Codes wird somit lediglich benötigt:
 
 * der Community-Name auf der der Sender angemeldet ist: `<communityname>`
-* der PrimaryKey der zuvor gespeicherten *vorgebuchten* Transaktion z.B. als UUID: `74738ff5-5367-5958-9aee-98fffdcd1876`
+* der PrimaryKey als UUID der zuvor gespeicherten *vorgebuchten* Transaktion z.B.: `74738ff5-5367-5958-9aee-98fffdcd1876`
 
 Daraus wird dann der eigentliche Link zusammengestellt nach dem Muster:
 
@@ -151,16 +174,15 @@ Beispiel:
 
 https://`<gdd.gradido.net>`/send/`74738ff5-5367-5958-9aee-98fffdcd1876`
 
+Die Details für die Verarbeitung beim Empfangen des Links werden weiter unten im Kapitel *Perspektive des Empfängers* beschrieben.
 
-#### offline Link
+Für die Übertragung per QR-Code wird der zuvor erzeugte Link in ein QR-Code konvertiert. Dabei sind ggf. weitere Konfigurationsdaten wie QR-Code Größe, Korrektur-Level für das QR-Code Scannen und Encoding o.ä. notwendig. Die Details werden im noch zu erstellenden *Technischen Konzept* zu diesem UseCase beschrieben.
 
-##### **ToDo**:
+#### offline verifizierbarer Link
 
-PartnerID beachten?
+Für die Generierung des offline verifzierbaren Links bzw. QR-Codes werden folgende Daten benötigt:
 
-Für die Generierung des Links und des QR-Codes werden folgende Daten benötigt:
-
-* Gradido-Id des Senders: diese definiert sich gemäß dem Pattern:  `<communityname>`/`<useralias>` und ist im Detail [hier](.\Benutzerverwaltung.md#Gradido-Id) beschrieben.
+* Gradido-Id des Senders: diese definiert sich gemäß dem Pattern:  `<communityname>`/`<user-key>` und ist im Detail Dokument [Benutzerverwaltung.md - Kapitel: Gradido-Id](.\Benutzerverwaltung.md#Gradido-Id) beschrieben.
 * Betrag : die Summe, die der Sender dem Empfänger übertragen möchte
 * Secret : ein Key, der zur Ausführung der asynchronen Transaktion die *ungebuchten* Transaktionsdaten beim Sender identifiziert und kryptographisch sicherstellt, dass die ursprünglich gesendeten Daten nicht verfälscht sind.
 * Verwendungszweck : Nachricht, die den Zweck der Transaktion beschreibt
@@ -178,13 +200,13 @@ Das Token wird so generiert, dass es alle fachlich notwendigen Daten beinhaltet,
 
 Für die Übertragung per QR-Code wird der zuvor erzeugte Link in ein QR-Code konvertiert. Dabei sind ggf. weitere Konfigurationsdaten wie QR-Code Größe, Korrektur-Level für das QR-Code Scannen und Encoding o.ä. notwendig.
 
-#### ToDo:
-
 Die technischen Details zum Linkformat bzw. QR-Code werden im noch zu erstellenden *Technischen Konzept* näher beschrieben.
 
 ### Ausgabe des Links/QR-Codes
 
-Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren, abfotographieren. Die folgenden Bilder zeigen wie eine Ausgabe des Übertragungslinks
+Nachdem der Link bzw. QR-Code generiert ist, muss eine Ausgabe für den User erfolgen. Damit der User den Link bzw. den QR-Code über ein beliebiges Medium wie Email, Messenger, etc. an einen Empfänger verschicken kann, wird dieser in einem Popup-Fenster zur Anzeige gebracht. Von dort aus kann er den Inhalt manuell kopieren oder abfotographieren lassen.
+
+Da im ersten Schritt keine fachlichen Daten im Link bzw. QR-Code enthalten sind werden in der Anzeige neben dem Link bzw. QR-Code zusätzlich die wichtigen fachlichen Attribute der vorgebuchten Transaktion ausgegeben. Somit kann der Sender diese Daten in der EMail, der Nachricht, etc. dem Empfänger mit senden, damit dieser die Transaktion schon vor der eigentlichen Valutierung oflfline verifzieren kann.  Die folgenden Bilder zeigen wie eine Ausgabe des Übertragungslinks
 
 ![UC_Send_Users_Gradido_TxPopupLink.png](./image/UC_Send_Users_Gradido_TxPopupLink.png)
 
@@ -194,9 +216,9 @@ bzw. des QR-Codes aussehen könnte.
 
 Für die Anzeige des QR-Codes soll auch die Möglichkeit der Vergrösserung auf Fenster bzw. Bildschirmgrösse geschaffen werden - z.B. durch ein DoppelKlick auf den Code - um ein direktes Abfotographieren ohne sichtbare andere Details zu ermöglichen.
 
-Der Button "in Zwischenablage kopieren" übernimmt den angezeigten Inhalt des Fensters (Nachricht mit Link bzw QR-Code) in die Zwischenablage, sodass dieser einfach in ein anderes Medium wie Email oder Messenger-Nachricht übertragen werden kann.
+Der Button "Alles kopieren" übernimmt den vollständig angezeigten Inhalt des Fensters (Link bzw QR-Code und die fachlichen Attribute) in die Zwischenablage, sodass dieser einfach in ein anderes Medium wie Email oder Messenger-Nachricht übertragen werden kann.
 
-Mit dem "speichern"-Button soll eine Möglichkeit geschaffen werden, den Fensterinhalt als Datei zu speichern, um die generierte Nachricht mit Link /QR-Code zeitlich versetzt in ein anderes Medium wie Email oder Messenger-Nachricht zu übertragen. Es stellt sich die Frage, ob für eine zeitlich versetzte Verarbeitung eines Links / QR-Codes statt dem Speichern die erneute Ausgabe aus der vorgebuchten Transaktionsliste besser wäre? Da beide Varianten eine gute Lösung darstellen, wird diese Entscheidung auf später verschoben.
+Der Button "nur Link/QR-Code kopieren" übernimmt nur den Link bzw QR-Code ohne die fachlichen Attribute in die Zwischenablage, sodass dieser einfach in ein anderes Medium wie Email oder Messenger-Nachricht übertragen werden kann.
 
 ## Perspektive des Empfängers
 
