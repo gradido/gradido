@@ -213,7 +213,7 @@ export default {
   color: red;
 }
 
-#collaps-button-style {
+.collaps-button-style {
   width: 95%;
   position: absolute;
 }
