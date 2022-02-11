@@ -47,7 +47,7 @@
               size="md"
               variant="success"
               class="m-3 text-right"
-              @click="$emit('overlay-ok', items)"
+              @click="$emit('confirm-creation', items)"
             >
               {{ $t('overlay.confirm.yes') }}
             </b-button>
