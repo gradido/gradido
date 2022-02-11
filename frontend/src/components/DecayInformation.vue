@@ -59,11 +59,11 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div v-if="decaytyp === 'new'">{{ $n(decay.balance, 'decimal') }}</div>
+          <div v-if="decaytyp === 'new'">- {{ $n(decay.balance, 'decimal') }}</div>
           <div v-if="decaytyp === 'decayLastTransaction'">
-            {{ $n(decay.balance, 'decimal') }} GDD -
-            {{ $n(decay.balance + gddbalance, 'decimal') }} =
-            <b>{{ $n(gddbalance, 'decimal') }}</b>
+            {{ $n(decay.balance + gddbalance, 'decimal') }} GDD -
+            {{ $n(decay.balance, 'decimal') }} GDD =
+            <b>{{ $n(gddbalance, 'decimal') }} GDD</b>
           </div>
         </b-col>
       </b-row>

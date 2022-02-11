@@ -117,7 +117,7 @@ describe('GddTransactionList', () => {
               decay: { balance: '1.5' },
             },
             {
-              balance: '1.07',
+              balance: 1.07,
               type: 'decay',
             },
           ],
