@@ -78,6 +78,7 @@ export default {
     },
     async sendTransaction() {
       this.loading = true
+      this.error = false
       this.$apollo
         .mutate({
           mutation: sendCoins,
