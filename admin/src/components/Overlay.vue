@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="component-overlay">
     <b-jumbotron class="bg-light p-4">
       <template #header>{{ items.firstName }}´s {{ $t('overlay.confirm.title') }}</template>
 
