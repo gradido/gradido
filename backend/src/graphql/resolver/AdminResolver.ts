@@ -50,7 +50,13 @@ export class AdminResolver {
             userId: user.id,
             emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
           })
-          if (emailOptIn) adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+          if (emailOptIn) {
+            if (emailOptIn.updatedAt) {
+              adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+            } else {
+              adminUser.emailConfirmationSend = emailOptIn.createdAt.toISOString()
+            }
+          }
         }
         return adminUser
       }),
