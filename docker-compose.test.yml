@@ -99,10 +99,3 @@ services:
   volumes:
     db_test_vol:
     login_build_cov:
-
-
-  ###########################################################
-  ## End-to-end tests
-  ###########################################################
-  e2e-tests:
-    image: gradido-end-to-end-tests

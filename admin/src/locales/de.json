@@ -2,8 +2,9 @@
   "all_emails": "Alle Nutzer",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
+  "creation": "Schöpfung",
   "creation_form": {
-    "creation_for": "Schöpfung für",
+    "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -18,12 +19,16 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "date": "Datum",
+  "delete": "Löschen",
   "details": "Details",
+  "edit": "Bearbeiten",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
   "hide_details": "Details verbergen von",
   "lastname": "Nachname",
+  "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "navbar": {
     "logout": "Abmelden",
@@ -39,7 +44,7 @@
   "overlay": {
     "confirm": {
       "no": "Nein, nicht speichern.",
-      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und entgültig speichern?",
+      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
       "yes": "Ja, Schöpfung bestätigen und speichern!"
@@ -53,6 +58,9 @@
     }
   },
   "remove": "Entfernen",
+  "remove_all": "alle Nutzer entfernen",
+  "save": "Speichern",
+  "text": "Text",
   "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",

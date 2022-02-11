@@ -1,11 +1,11 @@
-import { EntityRepository, Repository } from 'typeorm'
+import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { User } from '@entity/User'
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async findByPubkeyHex(pubkeyHex: string): Promise<User> {
     return this.createQueryBuilder('user')
-      .where('hex(user.pubkey) = :pubkeyHex', { pubkeyHex })
+      .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
   }
 

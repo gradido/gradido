@@ -2,8 +2,9 @@
   "all_emails": "All users",
   "bookmark": "Remember",
   "confirmed": "confirmed",
+  "creation": "Creation",
   "creation_form": {
-    "creation_for": "Creation for",
+    "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
@@ -18,12 +19,16 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "date": "Date",
+  "delete": "Delete",
   "details": "Details",
-  "e_mail": "E-Mail",
+  "edit": "Edit",
+  "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
   "hide_details": "Hide details from",
   "lastname": "Lastname",
+  "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "navbar": {
     "logout": "Logout",
@@ -53,6 +58,9 @@
     }
   },
   "remove": "Remove",
+  "remove_all": "Remove all users",
+  "save": "Speichern",
+  "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",

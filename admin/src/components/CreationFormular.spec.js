@@ -1,16 +1,10 @@
 import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
+import { createPendingCreation } from '../graphql/createPendingCreation'
+import { createPendingCreations } from '../graphql/createPendingCreations'
 
 const localVue = global.localVue
 
-const apolloMock = jest.fn().mockResolvedValue({
-  data: {
-    verifyLogin: {
-      name: 'success',
-      id: 0,
-    },
-  },
-})
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
     createPendingCreation: [0, 0, 0],
@@ -21,19 +15,12 @@ const toastedErrorMock = jest.fn()
 const toastedSuccessMock = jest.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
+  $t: jest.fn((t, options) => (options ? [t, options] : t)),
+  $d: jest.fn((d) => {
+    const date = new Date(d)
+    return date.toISOString().split('T')[0]
   }),
   $apollo: {
-    query: apolloMock,
     mutate: apolloMutateMock,
   },
   $store: {
@@ -54,7 +41,12 @@ const mocks = {
 const propsData = {
   type: '',
   creation: [],
-  itemsMassCreation: {},
+}
+
+const now = new Date(Date.now())
+const getCreationDate = (sub) => {
+  const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
+  return date.toISOString().split('T')[0]
 }
 
 describe('CreationFormular', () => {
@@ -73,21 +65,24 @@ describe('CreationFormular', () => {
       expect(wrapper.find('.component-creation-formular').exists()).toBeTruthy()
     })
 
-    describe('server sends back moderator data', () => {
-      it('called store commit with mocked data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { name: 'success', id: 0 })
+    describe('text and value form props', () => {
+      beforeEach(async () => {
+        wrapper = mount(CreationFormular, {
+          localVue,
+          mocks,
+          propsData: {
+            creationUserData: { memo: 'Memo from property', amount: 42 },
+            ...propsData,
+          },
+        })
       })
-    })
 
-    describe('server throws error for moderator data call', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        apolloMock.mockRejectedValueOnce({ message: 'Ouch!' })
-        wrapper = Wrapper()
+      it('has text taken from props', () => {
+        expect(wrapper.vm.text).toBe('Memo from property')
       })
 
-      it('has called store commit with fake data', () => {
-        expect(stateCommitMock).toBeCalledWith('moderator', { id: 0, name: 'Test Moderator' })
+      it('has value taken from props', () => {
+        expect(wrapper.vm.value).toBe(42)
       })
     })
 
@@ -96,68 +91,22 @@ describe('CreationFormular', () => {
         expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
       })
 
-      describe('with mass creation', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.setProps({ type: 'massCreation', creation: [200, 400, 600] })
-          await wrapper.setData({ rangeMin: 180 })
-          await wrapper.setData({ text: 'Test create coins' })
-          await wrapper.setData({ value: 90 })
-        })
-
-        describe('first radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-          })
-
-          it('emits update-radio-selected with index 0', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([0])],
-            ])
-          })
-        })
-
-        describe('second radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          })
-
-          it('emits update-radio-selected with index 1', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([1])],
-            ])
-          })
-        })
-
-        describe('third radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
-          })
-
-          it('emits update-radio-selected with index 2', () => {
-            expect(wrapper.emitted()['update-radio-selected']).toEqual([
-              [expect.arrayContaining([2])],
-            ])
-          })
-        })
-      })
-
       describe('with single creation', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-          await wrapper.setData({ rangeMin: 180 })
-          await wrapper.setData({ text: 'Test create coins' })
-          await wrapper.setData({ value: 90 })
+          await wrapper.setProps({
+            type: 'singleCreation',
+            creation: [200, 400, 600],
+            item: { email: 'benjamin@bluemchen.de' },
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('input[type="number"]').setValue(90)
         })
 
         describe('first radio button', () => {
           beforeEach(async () => {
             await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-          })
-
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
+            await wrapper.find('textarea').setValue('Test create coins')
           })
 
           it('sets rangeMax to 200', () => {
@@ -170,11 +119,43 @@ describe('CreationFormular', () => {
             })
 
             it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalled()
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  mutation: createPendingCreation,
+                  variables: {
+                    email: 'benjamin@bluemchen.de',
+                    creationDate: getCreationDate(2),
+                    amount: 90,
+                    memo: 'Test create coins',
+                    moderator: 0,
+                  },
+                }),
+              )
+            })
+
+            it('emits update-user-data', () => {
+              expect(wrapper.emitted('update-user-data')).toEqual([
+                [{ email: 'benjamin@bluemchen.de' }, [0, 0, 0]],
+              ])
+            })
+
+            it('toasts a success message', () => {
+              expect(toastedSuccessMock).toBeCalledWith([
+                'creation_form.toasted',
+                { email: 'benjamin@bluemchen.de', value: '90' },
+              ])
+            })
+
+            it('updates open creations in store', () => {
+              expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 1)
+            })
+
+            it('resets the form data', () => {
+              expect(wrapper.vm.value).toBe(0)
             })
           })
 
-          describe('sendForm', () => {
+          describe('sendForm with server error', () => {
             beforeEach(async () => {
               apolloMutateMock.mockRejectedValueOnce({ message: 'Ouch!' })
               await wrapper.find('.test-submit').trigger('click')
@@ -357,6 +338,123 @@ describe('CreationFormular', () => {
               expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
             })
           })
+        })
+      })
+
+      describe('mass creation with success', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloMutateMock.mockResolvedValue({
+            data: {
+              createPendingCreations: {
+                success: true,
+                successfulCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                failedCreation: [],
+              },
+            },
+          })
+          await wrapper.setProps({
+            type: 'massCreation',
+            creation: [200, 400, 600],
+            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('textarea').setValue('Test mass create coins')
+          await wrapper.find('input[type="number"]').setValue(200)
+          await wrapper.find('.test-submit').trigger('click')
+        })
+
+        it('calls the API', () => {
+          expect(apolloMutateMock).toBeCalledWith(
+            expect.objectContaining({
+              mutation: createPendingCreations,
+              variables: {
+                pendingCreations: [
+                  {
+                    email: 'bob@baumeister.de',
+                    creationDate: getCreationDate(1),
+                    amount: 200,
+                    memo: 'Test mass create coins',
+                    moderator: 0,
+                  },
+                  {
+                    email: 'bibi@bloxberg.de',
+                    creationDate: getCreationDate(1),
+                    amount: 200,
+                    memo: 'Test mass create coins',
+                    moderator: 0,
+                  },
+                ],
+              },
+            }),
+          )
+        })
+
+        it('updates open creations in store', () => {
+          expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 2)
+        })
+
+        it('emits remove-all-bookmark', () => {
+          expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
+        })
+      })
+
+      describe('mass creation with success but all failed', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloMutateMock.mockResolvedValue({
+            data: {
+              createPendingCreations: {
+                success: true,
+                successfulCreation: [],
+                failedCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+              },
+            },
+          })
+          await wrapper.setProps({
+            type: 'massCreation',
+            creation: [200, 400, 600],
+            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('textarea').setValue('Test mass create coins')
+          await wrapper.find('input[type="number"]').setValue(200)
+          await wrapper.find('.test-submit').trigger('click')
+        })
+
+        it('updates open creations in store', () => {
+          expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 0)
+        })
+
+        it('toasts two errors', () => {
+          expect(toastedErrorMock).toBeCalledWith(
+            'Could not created PendingCreation for bob@baumeister.de',
+          )
+          expect(toastedErrorMock).toBeCalledWith(
+            'Could not created PendingCreation for bibi@bloxberg.de',
+          )
+        })
+      })
+
+      describe('mass creation with error', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloMutateMock.mockRejectedValue({
+            message: 'Oh no!',
+          })
+          await wrapper.setProps({
+            type: 'massCreation',
+            creation: [200, 400, 600],
+            items: [{ email: 'bob@baumeister.de' }, { email: 'bibi@bloxberg.de' }],
+          })
+          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
+          await wrapper.find('textarea').setValue('Test mass create coins')
+          await wrapper.find('input[type="number"]').setValue(200)
+          await wrapper.find('.test-submit').trigger('click')
+        })
+
+        it('toasts an error message', () => {
+          expect(toastedErrorMock).toBeCalledWith('Oh no!')
         })
       })
     })

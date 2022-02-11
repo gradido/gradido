@@ -1,1 +1,1 @@
-export { User } from './0002-add_settings/User'
+export { User } from './0020-rename_and_clean_state_users/User'

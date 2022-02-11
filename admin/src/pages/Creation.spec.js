@@ -1,6 +1,5 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
-import Vue from 'vue'
 
 const localVue = global.localVue
 
@@ -15,6 +14,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
           creation: [200, 400, 600],
+          emailChecked: true,
         },
         {
           userId: 2,
@@ -22,6 +22,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           lastName: 'Blümchen',
           email: 'benjamin@bluemchen.de',
           creation: [800, 600, 400],
+          emailChecked: true,
         },
       ],
     },
@@ -29,36 +30,35 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 })
 
 const toastErrorMock = jest.fn()
+const storeCommitMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
   },
   $toasted: {
     error: toastErrorMock,
   },
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
-  }),
+  $store: {
+    commit: storeCommitMock,
+    state: {
+      userSelectedInMassCreation: [],
+    },
+  },
 }
 
 describe('Creation', () => {
   let wrapper
 
   const Wrapper = () => {
-    return shallowMount(Creation, { localVue, mocks })
+    return mount(Creation, { localVue, mocks })
   }
 
-  describe('shallowMount', () => {
+  describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
@@ -68,19 +68,81 @@ describe('Creation', () => {
 
     describe('apollo returns user array', () => {
       it('calls the searchUser query', () => {
-        expect(apolloQueryMock).toBeCalled()
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+            },
+          }),
+        )
       })
 
-      it('sets the data of itemsList', () => {
-        expect(wrapper.vm.itemsList).toEqual([
-          {
-            userId: 1,
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
-            creation: [200, 400, 600],
-            showDetails: false,
-          },
+      it('has two rows in the left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
+      })
+
+      it('has nwo rows in the right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
+      })
+
+      it('has correct data in first row ', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain('Bibi')
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'Bloxberg',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          '200 | 400 | 600',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'bibi@bloxberg.de',
+        )
+      })
+
+      it('has correct data in second row ', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'Benjamin',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'Blümchen',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          '800 | 600 | 400',
+        )
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).text()).toContain(
+          'benjamin@bluemchen.de',
+        )
+      })
+    })
+
+    describe('push item', () => {
+      beforeEach(() => {
+        wrapper.findAll('table').at(0).findAll('tbody > tr').at(1).find('button').trigger('click')
+      })
+
+      it('has one item in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has one item in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has the correct user in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+          'bibi@bloxberg.de',
+        )
+      })
+
+      it('has the correct user in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr').at(0).text()).toContain(
+          'benjamin@bluemchen.de',
+        )
+      })
+
+      it('updates userSelectedInMassCreation in store', () => {
+        expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [
           {
             userId: 2,
             firstName: 'Benjamin',
@@ -88,126 +150,64 @@ describe('Creation', () => {
             email: 'benjamin@bluemchen.de',
             creation: [800, 600, 400],
             showDetails: false,
+            emailChecked: true,
           },
         ])
       })
-    })
 
-    describe('update item', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-      })
+      describe('remove item', () => {
+        beforeEach(async () => {
+          await wrapper
+            .findAll('table')
+            .at(1)
+            .findAll('tbody > tr')
+            .at(0)
+            .find('button')
+            .trigger('click')
+        })
 
-      describe('push', () => {
-        beforeEach(() => {
-          wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-            'update-item',
-            {
-              userId: 2,
-              firstName: 'Benjamin',
-              lastName: 'Blümchen',
-              email: 'benjamin@bluemchen.de',
-              creation: [800, 600, 400],
-              showDetails: false,
-            },
-            'push',
+        it('has two items in left table', () => {
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(2)
+        })
+
+        it('has the removed user in first row', () => {
+          expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+            'benjamin@bluemchen.de',
           )
         })
 
-        it('removes the pushed item from itemsList', () => {
-          expect(wrapper.vm.itemsList).toEqual([
-            {
-              userId: 1,
-              firstName: 'Bibi',
-              lastName: 'Bloxberg',
-              email: 'bibi@bloxberg.de',
-              creation: [200, 400, 600],
-              showDetails: false,
-            },
-          ])
+        it('has no items in right table', () => {
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
         })
 
-        it('adds the pushed item to itemsMassCreation', () => {
-          expect(wrapper.vm.itemsMassCreation).toEqual([
-            {
-              userId: 2,
-              firstName: 'Benjamin',
-              lastName: 'Blümchen',
-              email: 'benjamin@bluemchen.de',
-              creation: [800, 600, 400],
-              showDetails: false,
-            },
-          ])
-        })
-
-        describe('remove', () => {
-          beforeEach(() => {
-            wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-              'update-item',
-              {
-                userId: 2,
-                firstName: 'Benjamin',
-                lastName: 'Blümchen',
-                email: 'benjamin@bluemchen.de',
-                creation: [800, 600, 400],
-                showDetails: false,
-              },
-              'remove',
-            )
-          })
-
-          it('removes the item from itemsMassCreation', () => {
-            expect(wrapper.vm.itemsMassCreation).toEqual([])
-          })
-
-          it('adds the item to itemsList', () => {
-            expect(wrapper.vm.itemsList).toEqual([
-              {
-                userId: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                creation: [200, 400, 600],
-                showDetails: false,
-              },
-              {
-                userId: 2,
-                firstName: 'Benjamin',
-                lastName: 'Blümchen',
-                email: 'benjamin@bluemchen.de',
-                creation: [800, 600, 400],
-                showDetails: false,
-              },
-            ])
-          })
+        it('commits empty array as userSelectedInMassCreation', () => {
+          expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
         })
       })
 
-      describe('error', () => {
-        const consoleErrorMock = jest.fn()
-        const warnHandler = Vue.config.warnHandler
-
-        beforeEach(() => {
-          Vue.config.warnHandler = (w) => {}
-          // eslint-disable-next-line no-console
-          console.error = consoleErrorMock
-          wrapper.findComponent({ name: 'UserTable' }).vm.$emit('update-item', {}, 'no-rule')
+      describe('remove all bookmarks', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('button.btn-light').trigger('click')
         })
 
-        afterEach(() => {
-          Vue.config.warnHandler = warnHandler
+        it('has no items in right table', () => {
+          expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(0)
         })
 
-        it('throws an error', () => {
-          expect(consoleErrorMock).toBeCalledWith(expect.objectContaining({ message: 'no-rule' }))
+        it('commits empty array to userSelectedInMassCreation', () => {
+          expect(storeCommitMock).toBeCalledWith('setUserSelectedInMassCreation', [])
+        })
+
+        it('calls searchUsers', () => {
+          expect(apolloQueryMock).toBeCalled()
         })
       })
     })
 
-    describe('remove all bookmarks', () => {
-      beforeEach(async () => {
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit(
-          'update-item',
+    describe('store has items in userSelectedInMassCreation', () => {
+      beforeEach(() => {
+        mocks.$store.state.userSelectedInMassCreation = [
           {
             userId: 2,
             firstName: 'Benjamin',
@@ -215,18 +215,24 @@ describe('Creation', () => {
             email: 'benjamin@bluemchen.de',
             creation: [800, 600, 400],
             showDetails: false,
+            emailChecked: true,
           },
-          'push',
+        ]
+        wrapper = Wrapper()
+      })
+
+      it('has one item in left table', () => {
+        expect(wrapper.findAll('table').at(0).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has one item in right table', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr')).toHaveLength(1)
+      })
+
+      it('has the stored user in second row', () => {
+        expect(wrapper.findAll('table').at(1).findAll('tbody > tr').at(0).text()).toContain(
+          'benjamin@bluemchen.de',
         )
-        wrapper.findComponent({ name: 'CreationFormular' }).vm.$emit('remove-all-bookmark')
-      })
-
-      it('removes all items from itemsMassCreation', () => {
-        expect(wrapper.vm.itemsMassCreation).toEqual([])
-      })
-
-      it('adds all items to itemsList', () => {
-        expect(wrapper.vm.itemsList).toHaveLength(2)
       })
     })
 
@@ -235,14 +241,51 @@ describe('Creation', () => {
         jest.clearAllMocks()
       })
 
-      it('calls API when criteria changes', async () => {
-        await wrapper.setData({ criteria: 'XX' })
-        expect(apolloQueryMock).toBeCalled()
+      describe('search criteria', () => {
+        beforeEach(async () => {
+          await wrapper.setData({ criteria: 'XX' })
+        })
+
+        it('calls API when criteria changes', async () => {
+          expect(apolloQueryMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                searchText: 'XX',
+                currentPage: 1,
+                pageSize: 25,
+              },
+            }),
+          )
+        })
+
+        describe('reset search criteria', () => {
+          it('calls the API', async () => {
+            jest.clearAllMocks()
+            await wrapper.find('.test-click-clear-criteria').trigger('click')
+            expect(apolloQueryMock).toBeCalledWith(
+              expect.objectContaining({
+                variables: {
+                  searchText: '',
+                  currentPage: 1,
+                  pageSize: 25,
+                },
+              }),
+            )
+          })
+        })
       })
 
       it('calls API when currentPage changes', async () => {
         await wrapper.setData({ currentPage: 2 })
-        expect(apolloQueryMock).toBeCalled()
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 2,
+              pageSize: 25,
+            },
+          }),
+        )
       })
     })
 

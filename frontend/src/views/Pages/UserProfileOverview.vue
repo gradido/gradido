@@ -1,5 +1,5 @@
 <template>
-  <div fluid="sm">
+  <div fluid="sm" class="mr-2">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
     <form-user-data />
     <hr />
@@ -33,6 +33,14 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+  },
+  methods: {
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
+  },
+  created() {
+    this.updateTransactions(0)
   },
 }
 </script>

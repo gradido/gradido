@@ -10,6 +10,7 @@ const {
   resetOpenCreations,
   setOpenCreations,
   moderator,
+  setUserSelectedInMassCreation,
 } = mutations
 const { logout } = actions
 
@@ -62,6 +63,14 @@ describe('Vuex store', () => {
         const state = { openCreations: 24 }
         setOpenCreations(state, 12)
         expect(state.openCreations).toEqual(12)
+      })
+    })
+
+    describe('setUserSelectedInMassCreation', () => {
+      it('sets userSelectedInMassCreation to given value', () => {
+        const state = { userSelectedInMassCreation: [] }
+        setUserSelectedInMassCreation(state, [0, 1, 2])
+        expect(state.userSelectedInMassCreation).toEqual([0, 1, 2])
       })
     })
   })

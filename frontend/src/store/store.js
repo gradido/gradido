@@ -15,17 +15,14 @@ export const mutations = {
   email: (state, email) => {
     state.email = email
   },
-  username: (state, username) => {
-    state.username = username
-  },
+  // username: (state, username) => {
+  //   state.username = username
+  // },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
   lastName: (state, lastName) => {
     state.lastName = lastName
-  },
-  description: (state, description) => {
-    state.description = description
   },
   token: (state, token) => {
     state.token = token
@@ -56,10 +53,9 @@ export const actions = {
   login: ({ dispatch, commit }, data) => {
     commit('email', data.email)
     commit('language', data.language)
-    commit('username', data.username)
+    // commit('username', data.username)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
-    commit('description', data.description)
     commit('coinanimation', data.coinanimation)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
@@ -69,10 +65,9 @@ export const actions = {
   logout: ({ commit, state }) => {
     commit('token', null)
     commit('email', null)
-    commit('username', '')
+    // commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
-    commit('description', '')
     commit('coinanimation', true)
     commit('newsletterState', null)
     commit('hasElopage', false)
@@ -96,8 +91,7 @@ try {
       language: null,
       firstName: '',
       lastName: '',
-      username: '',
-      description: '',
+      // username: '',
       token: null,
       isAdmin: false,
       coinanimation: true,

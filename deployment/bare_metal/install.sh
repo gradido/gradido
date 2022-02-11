@@ -14,9 +14,13 @@ set +o allexport
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(cat $SCRIPT_DIR/.env | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env
+    set +o allexport
 else
-    export $(cat $SCRIPT_DIR/.env.dist | sed 's/#.*//g' | xargs)
+    set -o allexport
+    source $SCRIPT_DIR/.env.dist
+    set +o allexport
 fi
 
 # Configure git
@@ -50,12 +54,12 @@ sudo nano /etc/sudoers.d/gradido
 sudo chmod a+rw /etc/nginx/sites-enabled
 
 # Install node 16.x
+sudo apt-get install -y curl
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo apt-get install -y build-essential
 
 # Install yarn
-sudo apt-get install -y curl
 sudo apt-get install -y gnupg
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -75,9 +79,11 @@ sudo certbot
 > Please read the Terms of Service at > Y
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
+# Note: this will throw an error regarding not beeing able to identify the nginx corresponding
+#       config but produce the required certificate - thats perfectly fine this way
 
 # Install logrotate
-# sudo apt-get install -y logrotate
+sudo apt-get install -y logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
 sudo mv $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 sudo chown root:root /etc/logrotate.d/gradido.conf
@@ -108,7 +114,6 @@ sudo mysql <<EOFMYSQL
 EOFMYSQL
 
 # Configure database
-# TODO - do this in the start.sh to regenerate configs on each deploy
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend

@@ -3,6 +3,10 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+const constants = {
+  DB_VERSION: '0020-rename_and_clean_state_users',
+}
+
 const server = {
   PORT: process.env.PORT || 4000,
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
@@ -43,6 +47,7 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
+// TODO: Hannes if I find you... this looks like blasphemy
 const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
@@ -66,6 +71,7 @@ const webhook = {
 process.env.APP_SECRET = server.JWT_SECRET
 
 const CONFIG = {
+  ...constants,
   ...server,
   ...database,
   ...klicktipp,

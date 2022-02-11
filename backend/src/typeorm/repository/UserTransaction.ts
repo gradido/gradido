@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm'
+import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { Order } from '../../graphql/enum/Order'
 import { UserTransaction } from '@entity/UserTransaction'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'

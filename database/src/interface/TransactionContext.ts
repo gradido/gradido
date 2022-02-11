@@ -9,6 +9,8 @@ export interface TransactionContext {
   memo?: string
   received?: Date
   blockchainTypeId?: number
+  signature?: Buffer
+  signaturePubkey?: Buffer
   transactionSendCoin?: TransactionSendCoin
   transactionCreation?: TransactionCreation
 }
@@ -43,10 +45,6 @@ export interface UserTransactionContext {
   transactionTypeId?: number
   balance?: number
   balanceDate?: Date
-}
-
-export interface TransactionSignatureContext {
   signature?: Buffer
   pubkey?: Buffer
-  transaction?: Transaction
 }

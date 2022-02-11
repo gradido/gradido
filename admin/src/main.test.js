@@ -6,7 +6,6 @@ import Vue from 'vue'
 import VueApollo from 'vue-apollo'
 import i18n from './i18n'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import moment from 'vue-moment'
 import store from './store/store'
 import router from './router/router'
 
@@ -14,7 +13,6 @@ jest.mock('vue')
 jest.mock('vue-apollo')
 jest.mock('vuex')
 jest.mock('vue-i18n')
-jest.mock('vue-moment')
 jest.mock('./store/store', () => {
   return {
     state: {
@@ -88,10 +86,6 @@ describe('main', () => {
 
   it('calls IconsPlugin', () => {
     expect(Vue.use).toBeCalledWith(IconsPlugin)
-  })
-
-  it('calls Moment', () => {
-    expect(Vue.use).toBeCalledWith(moment)
   })
 
   it('creates a store', () => {

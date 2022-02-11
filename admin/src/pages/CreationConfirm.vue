@@ -1,85 +1,80 @@
 <template>
   <div class="creation-confirm">
-    <user-table
+    <div v-show="overlay" id="overlay" class="">
+      <b-jumbotron class="bg-light p-4">
+        <template #header>{{ $t('overlay.confirm.title') }}</template>
+        <template #lead>{{ $t('overlay.confirm.text') }}</template>
+        <hr class="my-4" />
+        <p>{{ $t('overlay.confirm.question') }}</p>
+        <b-button size="md" variant="danger" class="m-3" @click="overlay = false">
+          {{ $t('overlay.confirm.no') }}
+        </b-button>
+        <b-button size="md" variant="success" class="m-3 text-right" @click="confirmCreation">
+          {{ $t('overlay.confirm.yes') }}
+        </b-button>
+      </b-jumbotron>
+    </div>
+    <open-creations-table
       class="mt-4"
-      type="PageCreationConfirm"
-      :itemsUser="confirmResult"
-      :fieldsTable="fields"
-      @remove-confirm-result="removeConfirmResult"
+      :items="pendingCreations"
+      :fields="fields"
+      @remove-creation="removeCreation"
+      @show-overlay="showOverlay"
     />
   </div>
 </template>
 <script>
-import UserTable from '../components/UserTable.vue'
+import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
   name: 'CreationConfirm',
   components: {
-    UserTable,
+    OpenCreationsTable,
   },
   data() {
     return {
-      showArrays: false,
-      fields: [
-        { key: 'bookmark', label: 'löschen' },
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Vorname' },
-        { key: 'lastName', label: 'Nachname' },
-        {
-          key: 'amount',
-          label: 'Schöpfung',
-          formatter: (value) => {
-            return value + ' GDD'
-          },
-        },
-        { key: 'memo', label: 'Text' },
-        {
-          key: 'date',
-          label: 'Datum',
-          formatter: (value) => {
-            return this.$moment(value).format('ll')
-          },
-        },
-        { key: 'moderator', label: 'Moderator' },
-        { key: 'edit_creation', label: 'ändern' },
-        { key: 'confirm', label: 'speichern' },
-      ],
-      confirmResult: [],
+      pendingCreations: [],
+      overlay: false,
+      item: [],
     }
   },
   methods: {
-    removeConfirmResult(e, event) {
-      let index = 0
-      const findArr = this.confirmResult.find((arr) => arr.id === e.id)
-      switch (event) {
-        case 'remove':
-          this.$apollo
-            .mutate({
-              mutation: deletePendingCreation,
-              variables: {
-                id: findArr.id,
-              },
-            })
-            .then((result) => {
-              index = this.confirmResult.indexOf(findArr)
-              this.confirmResult.splice(index, 1)
-              this.$store.commit('openCreationsMinus', 1)
-              this.$toasted.success(this.$t('creation_form.toasted_delete'))
-            })
-            .catch((error) => {
-              this.$toasted.error(error.message)
-            })
-          break
-        case 'confirmed':
-          this.confirmResult.splice(index, 1)
-          this.$store.commit('openCreationsMinus', 1)
+    removeCreation(item) {
+      this.$apollo
+        .mutate({
+          mutation: deletePendingCreation,
+          variables: {
+            id: item.id,
+          },
+        })
+        .then((result) => {
+          this.updatePendingCreations(item.id)
+          this.$toasted.success(this.$t('creation_form.toasted_delete'))
+        })
+        .catch((error) => {
+          this.$toasted.error(error.message)
+        })
+    },
+    confirmCreation() {
+      this.$apollo
+        .mutate({
+          mutation: confirmPendingCreation,
+          variables: {
+            id: this.item.id,
+          },
+        })
+        .then((result) => {
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
           this.$toasted.success(this.$t('creation_form.toasted_created'))
-          break
-        default:
-          this.$toasted.error(this.$t('creation_form.toasted_default', { event }))
-      }
+        })
+        .catch((error) => {
+          this.overlay = false
+          this.$toasted.error(error.message)
+        })
     },
     getPendingCreations() {
       this.$apollo
@@ -89,12 +84,48 @@ export default {
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.confirmResult = result.data.getPendingCreations
+          this.pendingCreations = result.data.getPendingCreations
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+    updatePendingCreations(id) {
+      this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
+      this.$store.commit('openCreationsMinus', 1)
+    },
+    showOverlay(item) {
+      this.overlay = true
+      this.item = item
+    },
+  },
+  computed: {
+    fields() {
+      return [
+        { key: 'bookmark', label: this.$t('delete') },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'amount',
+          label: this.$t('creation'),
+          formatter: (value) => {
+            return value + ' GDD'
+          },
+        },
+        { key: 'memo', label: this.$t('text') },
+        {
+          key: 'date',
+          label: this.$t('date'),
+          formatter: (value) => {
+            return this.$d(new Date(value), 'short')
+          },
+        },
+        { key: 'moderator', label: this.$t('moderator') },
+        { key: 'edit_creation', label: this.$t('edit') },
+        { key: 'confirm', label: this.$t('save') },
+      ]
     },
   },
   async created() {
@@ -102,3 +133,20 @@ export default {
   },
 }
 </script>
+<style>
+#overlay {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-left: 5%;
+  background-color: rgba(12, 11, 11, 0.781);
+  z-index: 1000000;
+  cursor: pointer;
+}
+</style>

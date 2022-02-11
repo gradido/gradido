@@ -43,23 +43,12 @@
             <b-input type="text" v-model="form.lastName"></b-input>
           </b-col>
         </b-row>
-        <b-row class="mb-3" v-show="false">
-          <b-col class="col-12">
-            <small>{{ $t('form.description') }}</small>
-          </b-col>
-          <b-col v-if="showUserData" class="col-12">
-            {{ form.description }}
-          </b-col>
-          <b-col v-else class="col-12">
-            <b-textarea rows="3" max-rows="6" v-model="form.description"></b-textarea>
-          </b-col>
-        </b-row>
 
         <b-row class="text-right" v-if="!showUserData">
           <b-col>
             <div class="text-right" ref="submitButton">
               <b-button
-                :variant="loading ? 'default' : 'success'"
+                :variant="loading ? 'light' : 'success'"
                 @click="onSubmit"
                 type="submit"
                 class="mt-4"
@@ -85,7 +74,6 @@ export default {
       form: {
         firstName: this.$store.state.firstName,
         lastName: this.$store.state.lastName,
-        description: this.$store.state.description,
       },
       loading: true,
     }
@@ -94,14 +82,12 @@ export default {
     cancelEdit() {
       this.form.firstName = this.$store.state.firstName
       this.form.lastName = this.$store.state.lastName
-      this.form.description = this.$store.state.description
       this.showUserData = true
     },
     loadSubmitButton() {
       if (
         this.form.firstName !== this.$store.state.firstName ||
-        this.form.lastName !== this.$store.state.lastName ||
-        this.form.description !== this.$store.state.description
+        this.form.lastName !== this.$store.state.lastName
       ) {
         this.loading = false
       } else {
@@ -116,13 +102,11 @@ export default {
           variables: {
             firstName: this.form.firstName,
             lastName: this.form.lastName,
-            description: this.form.description,
           },
         })
         .then(() => {
           this.$store.commit('firstName', this.form.firstName)
           this.$store.commit('lastName', this.form.lastName)
-          this.$store.commit('description', this.form.description)
           this.showUserData = true
           this.$toasted.success(this.$t('settings.name.change-success'))
         })
