@@ -32,7 +32,13 @@ export class AdminResolver {
     @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-    const users = await userRepository.findBySearchCriteria(searchText)
+    let users: dbUser[]
+    let count: number
+    if(notActivated) {
+        [users, count] = await userRepository.findBySearchCriteriaPagedNotActivated(searchText, currentPage, pageSize)
+    } else {
+        [users, count] = await userRepository.findBySearchCriteriaPaged(searchText, currentPage, pageSize)
+    }
     let adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
@@ -41,16 +47,14 @@ export class AdminResolver {
         adminUser.lastName = user.lastName
         adminUser.email = user.email
         adminUser.creation = await getUserCreations(user.id)
-        adminUser.emailChecked = await hasActivatedEmail(user.email)
+        adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
         return adminUser
       }),
     )
-    if (notActivated) adminUsers = adminUsers.filter((u) => !u.emailChecked)
-    const first = (currentPage - 1) * pageSize
     return {
-      userCount: adminUsers.length,
-      userList: adminUsers.slice(first, first + pageSize),
+      userCount: count,
+      userList: adminUsers,
     }
   }
 

@@ -1,5 +1,6 @@
 import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { User } from '@entity/User'
+import internal from 'stream'
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -42,5 +43,35 @@ export class UserRepository extends Repository<User> {
         },
       )
       .getMany()
+  }
+  async findBySearchCriteriaPaged(searchCriteria: string, currentPage: number, pageSize: number): Promise<[User[], number]> {
+    return await this.createQueryBuilder('user')
+      .where(
+        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+        {
+          name: `%${searchCriteria}%`,
+          lastName: `%${searchCriteria}%`,
+          email: `%${searchCriteria}%`,
+        },
+      )
+      .take(pageSize)
+      .skip((currentPage - 1 ) * pageSize)
+      .getManyAndCount()
+  }
+
+  async findBySearchCriteriaPagedNotActivated(searchCriteria: string, currentPage: number, pageSize: number): Promise<[User[], number]> {
+    return await this.createQueryBuilder('user')
+      .where(
+        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+        {
+          name: `%${searchCriteria}%`,
+          lastName: `%${searchCriteria}%`,
+          email: `%${searchCriteria}%`,
+          emailChecked: false
+        },
+      )
+      .take(pageSize)
+      .skip((currentPage - 1 ) * pageSize)
+      .getManyAndCount()
   }
 }
