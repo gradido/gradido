@@ -148,6 +148,14 @@ services:
     volumes:
      - /sessions
 
+  #########################################################
+  ## End-to-end tests #####################################
+  #########################################################
+  e2e-tests:
+    image: gradido/e2e-tests
+    build:
+      dockerfile: e2e-tests/Dockerfile
+
 volumes:
   frontend_node_modules:
   admin_node_modules:
