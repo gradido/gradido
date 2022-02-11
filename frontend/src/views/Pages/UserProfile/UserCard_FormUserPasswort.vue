@@ -99,7 +99,7 @@ export default {
   },
   computed: {
     disabled() {
-      return (
+      return !(
         this.form.newPassword.password !== '' &&
         this.form.newPassword.password === this.form.newPassword.passwordRepeat
       )
