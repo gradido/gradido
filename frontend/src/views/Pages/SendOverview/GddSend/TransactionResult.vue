@@ -1,19 +1,5 @@
 <template>
   <b-container>
-    <b-row v-if="!error">
-      <b-col>
-        <b-card class="p-0" style="background-color: #ebebeba3 !important">
-          <div class="p-4">
-            {{ $t('form.thx') }}
-            <hr />
-            {{ $t('form.send_transaction_success') }}
-          </div>
-          <p class="text-center mt-3">
-            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
     <b-row v-if="error">
       <b-col>
         <b-card class="p-0" style="background-color: #ebebeba3 !important">
@@ -35,13 +21,27 @@
         </b-card>
       </b-col>
     </b-row>
+    <b-row v-if="!error">
+      <b-col>
+        <b-card class="p-0" style="background-color: #ebebeba3 !important">
+          <div class="p-4">
+            {{ $t('form.thx') }}
+            <hr />
+            {{ $t('form.send_transaction_success') }}
+          </div>
+          <p class="text-center mt-3">
+            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
+      </b-col>
+    </b-row>
   </b-container>
 </template>
 <script>
 export default {
   name: 'TransactionResult',
   props: {
-    error: { type: Boolean, default: true },
+    error: { type: Boolean, default: false },
     errorResult: { type: String, default: '' },
   },
 }
