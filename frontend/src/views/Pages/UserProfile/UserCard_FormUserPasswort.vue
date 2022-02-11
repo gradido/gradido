@@ -99,7 +99,10 @@ export default {
   },
   computed: {
     disabled: function () {
-      return (this.form.newPassword.password !== '') && (this.form.newPassword.password === this.form.newPassword.passwordRepeat)
+      return (
+        this.form.newPassword.password !== '' &&
+        this.form.newPassword.password === this.form.newPassword.passwordRepeat
+      )
     },
   },
 }
