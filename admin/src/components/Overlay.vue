@@ -1,38 +1,38 @@
 <template>
   <div>
     <b-jumbotron class="bg-light p-4">
-      <template #header>{{ $t('overlay.confirm.title') }}</template>
+      <template #header>{{ items.firstName }}´s {{ $t('overlay.confirm.title') }}</template>
 
       <template #lead>
-        {{ $t('overlay.confirm.text') }}
-        <br />
-        <br />
-        <b-row>
-          <b-col class="col-2">{{ $t('name') }}</b-col>
-          <b-col class="h3">{{ items.firstName }} {{ items.lastName }}</b-col>
+        
+        <b-row class="mt-4">
+          <b-col class="col-3">{{ $t('transactionlist.amount') }}</b-col>
+          <b-col class="h3">
+            <b>{{ items.amount }} GDD</b>
+          </b-col>
         </b-row>
         <b-row>
-          <b-col class="col-2">{{ $t('e_mail') }}</b-col>
-          <b-col class="h3">{{ items.email }}</b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-2">{{ $t('transactionlist.amount') }}</b-col>
-          <b-col class="h3">{{ items.amount }} GDD</b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-2">{{ $t('transactionlist.memo') }}</b-col>
-          <b-col class="h3">{{ items.memo }}</b-col>
-        </b-row>
-        <b-row>
-          <b-col class="col-2">{{ $t('creation_for_month') }}</b-col>
+          <b-col class="col-3">{{ $t('creation_for_month') }}</b-col>
           <b-col class="h3">
             {{ $d(new Date(items.date), 'month') }} {{ $d(new Date(items.date), 'year') }}
           </b-col>
         </b-row>
+        <b-row>
+          <b-col class="col-3">{{ $t('transactionlist.memo') }}</b-col>
+          <b-col>{{ items.memo }}</b-col>
+        </b-row>
+        <b-row class="mt-3">
+          <b-col class="col-3">{{ $t('name') }}</b-col>
+          <b-col>{{ items.firstName }} {{ items.lastName }}</b-col>
+        </b-row>
+        <b-row>
+          <b-col class="col-3">{{ $t('e_mail') }}</b-col>
+          <b-col>{{ items.email }}</b-col>
+        </b-row>
       </template>
 
       <hr class="my-4" />
-
+<p>{{ $t('overlay.confirm.text') }}</p>
       <p>
         {{ $t('overlay.confirm.question') }}
       </p>
