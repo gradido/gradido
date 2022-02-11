@@ -18,8 +18,8 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "creation_for_month": "Creation for month",
   "date": "Date",
-  "creation_for_month":"Creation for month",
   "details": "Details",
   "e_mail": "E-mail",
   "firstname": "Firstname",
@@ -27,6 +27,7 @@
   "hide_details": "Hide details from",
   "lastname": "Lastname",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
+  "name": "Name",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
