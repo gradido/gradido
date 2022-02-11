@@ -35,7 +35,7 @@
                   type="submit"
                   :variant="disabled ? 'light' : 'success'"
                   class="mt-4"
-                  :disabled="!disabled"
+                  :disabled="disabled"
                 >
                   {{ $t('form.save') }}
                 </b-button>
