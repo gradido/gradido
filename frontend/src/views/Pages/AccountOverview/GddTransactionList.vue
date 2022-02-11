@@ -28,16 +28,6 @@
         :key="transactionId"
         :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <transaction
-          :amount="balance"
-          :date="date"
-          :comment="memo"
-          :gdtEntryType="type"
-          factor="--"
-          gdt="gdt"
-          :id="transactionId"
-        ></transaction>
-
         <div
           class="list-group-item gdd-transaction-list-item"
           :class="getCollapseState(transactionId) ? 'bg-secondary' : ''"
@@ -191,7 +181,6 @@
 <script>
 import PaginationButtons from '../../../components/PaginationButtons'
 import DecayInformation from '../../../components/DecayInformation'
-import Transaction from '../../../components/Transaction.vue'
 
 const iconsByType = {
   send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
@@ -205,7 +194,6 @@ export default {
   components: {
     PaginationButtons,
     DecayInformation,
-    Transaction,
   },
   data() {
     return {
