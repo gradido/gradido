@@ -373,7 +373,7 @@ export class TransactionResolver {
     // TODO: the detour over the public key is unnecessary
     const recipiantPublicKey = await getPublicKey(email)
     if (!recipiantPublicKey) {
-      throw new Error('recipiant not known')
+      throw new Error('recipient not known')
     }
     if (!isHexPublicKey(recipiantPublicKey)) {
       throw new Error('invalid recipiant public key')
