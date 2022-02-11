@@ -4,7 +4,6 @@
       <template #header>{{ items.firstName }}´s {{ $t('overlay.confirm.title') }}</template>
 
       <template #lead>
-        
         <b-row class="mt-4">
           <b-col class="col-3">{{ $t('transactionlist.amount') }}</b-col>
           <b-col class="h3">
@@ -32,7 +31,7 @@
       </template>
 
       <hr class="my-4" />
-<p>{{ $t('overlay.confirm.text') }}</p>
+      <p>{{ $t('overlay.confirm.text') }}</p>
       <p>
         {{ $t('overlay.confirm.question') }}
       </p>
