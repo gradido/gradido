@@ -1,38 +1,7 @@
 <template>
   <div class="component-user-table">
-    <div v-show="overlay" id="overlay" class="">
-      <b-jumbotron class="bg-light p-4">
-        <template #header>{{ overlayText.header }}</template>
-
-        <template #lead>
-          {{ overlayText.text1 }}
-        </template>
-
-        <hr class="my-4" />
-
-        <p>
-          {{ overlayText.text2 }}
-        </p>
-        <b-container>
-          <b-row>
-            <b-col>
-              <b-button size="md" variant="danger" class="m-3" @click="overlayCancel">
-                {{ overlayText.button_cancel }}
-              </b-button>
-            </b-col>
-            <b-col class="text-right">
-              <b-button
-                size="md"
-                variant="success"
-                class="m-3 text-right"
-                @click="overlayOK(overlayBookmarkType, overlayItem)"
-              >
-                {{ overlayText.button_ok }}
-              </b-button>
-            </b-col>
-          </b-row>
-        </b-container>
-      </b-jumbotron>
+    <div v-show="overlay" id="overlay" @dblclick="overlayCancel">
+      <overlay :items="overlayItem" @overlay-cancel="overlayCancel" @overlay-ok="overlayOK" />
     </div>
     <b-table-lite :items="itemsUser" :fields="fieldsTable" caption-top striped hover stacked="md">
       <template #cell(creation)="data">
@@ -159,7 +128,7 @@
           variant="success"
           v-show="type === 'PageCreationConfirm'"
           size="md"
-          @click="overlayShow('confirm', row.item)"
+          @click="overlayShow(row.item)"
           class="mr-2"
         >
           <b-icon icon="check" scale="2" variant=""></b-icon>
@@ -170,6 +139,7 @@
 </template>
 
 <script>
+import Overlay from '../components/Overlay.vue'
 import CreationFormular from '../components/CreationFormular.vue'
 import EditCreationFormular from '../components/EditCreationFormular.vue'
 import ConfirmRegisterMailFormular from '../components/ConfirmRegisterMailFormular.vue'
@@ -195,6 +165,7 @@ export default {
     },
   },
   components: {
+    Overlay,
     CreationFormular,
     EditCreationFormular,
     ConfirmRegisterMailFormular,
@@ -208,17 +179,7 @@ export default {
       showCreationTransactionListFormular: null,
       creationUserData: {},
       overlay: false,
-      overlayBookmarkType: '',
-      overlayItem: [],
-      overlayText: [
-        {
-          header: '-',
-          text1: '--',
-          text2: '---',
-          button_ok: 'OK',
-          button_cancel: 'Cancel',
-        },
-      ],
+      overlayItem: {},
       slotIndex: 0,
       openRow: null,
     }
@@ -251,23 +212,12 @@ export default {
         }
       }
     },
-    overlayShow(bookmarkType, item) {
+    overlayShow(item) {
       this.overlay = true
-      this.overlayBookmarkType = bookmarkType
       this.overlayItem = item
-
-      if (bookmarkType === 'confirm') {
-        this.overlayText.header = this.$t('overlay.confirm.title')
-        this.overlayText.text1 = this.$t('overlay.confirm.text')
-        this.overlayText.text2 = this.$t('overlay.confirm.question')
-        this.overlayText.button_ok = this.$t('overlay.confirm.yes')
-        this.overlayText.button_cancel = this.$t('overlay.confirm.no')
-      }
     },
-    overlayOK(bookmarkType, item) {
-      if (bookmarkType === 'confirm') {
-        this.$emit('confirm-creation', item)
-      }
+    overlayOK(item) {
+      this.$emit('confirm-creation', item)
       this.overlay = false
     },
     overlayCancel() {

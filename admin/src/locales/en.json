@@ -19,6 +19,7 @@
     "update_creation": "Creation update"
   },
   "date": "Date",
+  "creation_for_month":"Creation for month",
   "details": "Details",
   "e_mail": "E-mail",
   "firstname": "Firstname",
@@ -39,7 +40,7 @@
   "open_creations": "Open creations",
   "overlay": {
     "confirm": {
-      "no": "No, do not save.",
+      "cancel": "cancel",
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Confirm creation!",

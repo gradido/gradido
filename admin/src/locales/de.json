@@ -19,8 +19,10 @@
     "update_creation": "Schöpfung aktualisieren"
   },
   "date": "Datum",
+  "creation_for_month":"Schöpfung für Monat",
   "details": "Details",
   "e_mail": "E-Mail",
+  "name":"Name",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
   "hide_details": "Details verbergen von",
@@ -39,7 +41,7 @@
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "confirm": {
-      "no": "Nein, nicht speichern.",
+      "cancel": "abbrechen",
       "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
