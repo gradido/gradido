@@ -64,10 +64,10 @@
               :checked="row.item.emailChecked"
               :email="row.item.email"
               :dateLastSend="
-                        row.item.emailConfirmationSend
-                        ? $d(new Date(row.item.emailConfirmationSend), 'long')
-                        : ''
-                        "
+                row.item.emailConfirmationSend
+                  ? $d(new Date(row.item.emailConfirmationSend), 'long')
+                  : ''
+              "
             />
           </template>
           <template #show-transaction-list>
