@@ -25,7 +25,9 @@
         </b-row>
         <b-row>
           <b-col class="col-2">{{ $t('creation_for_month') }}</b-col>
-          <b-col class="h3">{{ items.date }}</b-col>
+          <b-col class="h3">
+            {{ $d(new Date(items.date), 'month') }} {{ $d(new Date(items.date), 'year') }}
+          </b-col>
         </b-row>
       </template>
 
