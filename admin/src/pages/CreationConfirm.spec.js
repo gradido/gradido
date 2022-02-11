@@ -165,17 +165,17 @@ describe('CreationConfirm', () => {
             expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
           })
         })
-      })
-    })
 
-    describe('confirm creation with error', () => {
-      beforeEach(async () => {
-        apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
-        await wrapper.findComponent({ name: 'UserTable' }).vm.$emit('confirm-creation', { id: 2 })
-      })
+        describe('confirm creation with error', () => {
+          beforeEach(async () => {
+            apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+            await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+          })
 
-      it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+          it('toasts an error message', () => {
+            expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+          })
+        })
       })
     })
 
