@@ -33,7 +33,7 @@
               <div class="text-right">
                 <b-button
                   type="submit"
-                  :variant="!disabled ? 'light' : 'success'"
+                  :variant="disabled ? 'light' : 'success'"
                   class="mt-4"
                   :disabled="!disabled"
                 >
