@@ -2,6 +2,7 @@
   "all_emails": "All users",
   "bookmark": "Remember",
   "confirmed": "confirmed",
+  "creation": "Creation",
   "creation_form": {
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
@@ -20,12 +21,15 @@
   },
   "creation_for_month": "Creation for month",
   "date": "Date",
+  "delete": "Delete",
   "details": "Details",
+  "edit": "Edit",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
   "hide_details": "Hide details from",
   "lastname": "Lastname",
+  "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
@@ -57,6 +61,8 @@
   },
   "remove": "Remove",
   "remove_all": "Remove all users",
+  "save": "Speichern",
+  "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",
