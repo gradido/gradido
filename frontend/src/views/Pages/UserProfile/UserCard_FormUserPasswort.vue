@@ -31,7 +31,12 @@
           <b-row class="text-right">
             <b-col>
               <div class="text-right">
-                <b-button type="submit" variant="primary" class="mt-4">
+                <b-button
+                  type="submit"
+                  :variant="!disabled ? 'light' : 'success'"
+                  class="mt-4"
+                  :disabled="!disabled"
+                >
                   {{ $t('form.save') }}
                 </b-button>
               </div>
@@ -90,6 +95,11 @@ export default {
         .catch((error) => {
           this.$toasted.global.error(error.message)
         })
+    },
+  },
+  computed: {
+    disabled: function () {
+      return this.form.newPassword.password === this.form.newPassword.passwordRepeat
     },
   },
 }
