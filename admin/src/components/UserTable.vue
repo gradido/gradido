@@ -13,18 +13,23 @@
         <p>
           {{ overlayText.text2 }}
         </p>
-
-        <b-button size="md" variant="danger" class="m-3" @click="overlayCancel">
+        <b-container>
+          <b-row>
+            <b-col> <b-button size="md" variant="danger" class="m-3" @click="overlayCancel">
           {{ overlayText.button_cancel }}
-        </b-button>
-        <b-button
+        </b-button></b-col>
+            <b-col class="text-right"> <b-button
           size="md"
           variant="success"
           class="m-3 text-right"
           @click="overlayOK(overlayBookmarkType, overlayItem)"
         >
           {{ overlayText.button_ok }}
-        </b-button>
+        </b-button></b-col>
+          </b-row>
+        </b-container>
+     
+       
       </b-jumbotron>
     </div>
     <b-table-lite :items="itemsUser" :fields="fieldsTable" caption-top striped hover stacked="md">
