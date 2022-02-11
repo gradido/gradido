@@ -9,9 +9,10 @@
 
         <!-- collaps Button  -->
         <div class="text-right" style="width: 96%; position: absolute">
-          <b-button class="btn-sm">
-            <b>i</b>
-          </b-button>
+          <b-icon
+            :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
+            :class="getCollapseState(id) ? 'text-black' : 'text-muted'"
+          />
         </div>
 
         <!-- type  -->
@@ -85,6 +86,16 @@ export default {
     gdt: { type: Number },
     id: { type: Number },
   },
+  data() {
+    return {
+      collapseStatus: [],
+    }
+  },
+  methods: {
+    getCollapseState(id) {
+      return this.collapseStatus.includes('gdt-collapse-' + id)
+    },
+  },
   computed: {
     collapseId() {
       return 'gdt-collapse-' + String(this.id)
@@ -129,6 +140,15 @@ export default {
           throw new Error('no lines for this type: ' + this.gdtEntryType)
       }
     },
+  },
+  mounted() {
+    this.$root.$on('bv::collapse::state', (collapseId, isJustShown) => {
+      if (isJustShown) {
+        this.collapseStatus.push(collapseId)
+      } else {
+        this.collapseStatus = this.collapseStatus.filter((id) => id !== collapseId)
+      }
+    })
   },
 }
 </script>
