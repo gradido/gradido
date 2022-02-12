@@ -51,9 +51,9 @@ services:
     volumes:
      - /sessions
 
-  networks:
-    external-net:
-    internal-net:
+networks:
+  external-net:
+  internal-net:
     internal: true
 
 volumes:
