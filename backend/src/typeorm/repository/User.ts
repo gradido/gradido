@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from '@dbTools/typeorm'
+import { Brackets, EntityRepository, Repository } from '@dbTools/typeorm'
 import { User } from '@entity/User'
 import internal from 'stream'
 
@@ -60,15 +60,22 @@ export class UserRepository extends Repository<User> {
   }
 
   async findBySearchCriteriaPagedNotActivated(searchCriteria: string, currentPage: number, pageSize: number): Promise<[User[], number]> {
+    
     return await this.createQueryBuilder('user')
       .where(
-        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
-        {
-          name: `%${searchCriteria}%`,
-          lastName: `%${searchCriteria}%`,
-          email: `%${searchCriteria}%`,
-          emailChecked: false
-        },
+        new Brackets(qb => {
+          qb.where(
+            'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+            {
+              name: `%${searchCriteria}%`,
+              lastName: `%${searchCriteria}%`,
+              email: `%${searchCriteria}%`,
+            },
+          )
+        })
+      )
+      .andWhere(
+        {emailChecked: false}
       )
       .take(pageSize)
       .skip((currentPage - 1 ) * pageSize)
