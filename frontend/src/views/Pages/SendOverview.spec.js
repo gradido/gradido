@@ -112,7 +112,7 @@ describe('SendOverview', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockRejectedValue({ message: 'recipiant not known' })
+          sendMock.mockRejectedValue({ message: 'recipient not known' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmation' })
             .vm.$emit('send-transaction')
