@@ -1,6 +1,5 @@
 import { Brackets, EntityRepository, Repository } from '@dbTools/typeorm'
 import { User } from '@entity/User'
-import internal from 'stream'
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
