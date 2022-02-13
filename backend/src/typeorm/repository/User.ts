@@ -44,7 +44,12 @@ export class UserRepository extends Repository<User> {
       )
       .getMany()
   }
-  async findBySearchCriteriaPaged(searchCriteria: string, currentPage: number, pageSize: number): Promise<[User[], number]> {
+
+  async findBySearchCriteriaPaged(
+    searchCriteria: string,
+    currentPage: number,
+    pageSize: number,
+  ): Promise<[User[], number]> {
     return await this.createQueryBuilder('user')
       .where(
         'user.firstName like :name or user.lastName like :lastName or user.email like :email',
@@ -55,15 +60,18 @@ export class UserRepository extends Repository<User> {
         },
       )
       .take(pageSize)
-      .skip((currentPage - 1 ) * pageSize)
+      .skip((currentPage - 1) * pageSize)
       .getManyAndCount()
   }
 
-  async findBySearchCriteriaPagedNotActivated(searchCriteria: string, currentPage: number, pageSize: number): Promise<[User[], number]> {
-    
+  async findBySearchCriteriaPagedNotActivated(
+    searchCriteria: string,
+    currentPage: number,
+    pageSize: number,
+  ): Promise<[User[], number]> {
     return await this.createQueryBuilder('user')
       .where(
-        new Brackets(qb => {
+        new Brackets((qb) => {
           qb.where(
             'user.firstName like :name or user.lastName like :lastName or user.email like :email',
             {
@@ -72,13 +80,11 @@ export class UserRepository extends Repository<User> {
               email: `%${searchCriteria}%`,
             },
           )
-        })
+        }),
       )
-      .andWhere(
-        {emailChecked: false}
-      )
+      .andWhere({ emailChecked: false })
       .take(pageSize)
-      .skip((currentPage - 1 ) * pageSize)
+      .skip((currentPage - 1) * pageSize)
       .getManyAndCount()
   }
 }

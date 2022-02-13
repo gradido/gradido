@@ -34,12 +34,20 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
     let users: dbUser[]
     let count: number
-    if(notActivated) {
-        [users, count] = await userRepository.findBySearchCriteriaPagedNotActivated(searchText, currentPage, pageSize)
+    if (notActivated) {
+      [users, count] = await userRepository.findBySearchCriteriaPagedNotActivated(
+        searchText,
+        currentPage,
+        pageSize,
+      )
     } else {
-        [users, count] = await userRepository.findBySearchCriteriaPaged(searchText, currentPage, pageSize)
+      [users, count] = await userRepository.findBySearchCriteriaPaged(
+        searchText,
+        currentPage,
+        pageSize,
+      )
     }
-    let adminUsers = await Promise.all(
+    const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
         adminUser.userId = user.id
