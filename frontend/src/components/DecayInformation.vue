@@ -32,7 +32,7 @@
           </div>
         </b-col>
       </b-row>
-      <b-row v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
+      <b-row>
         <b-col cols="6" class="text-right">
           <div v-if="!decay.decayStartBlock">{{ $t('decay.past_time') }}</div>
         </b-col>
