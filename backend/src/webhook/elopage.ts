@@ -65,6 +65,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     console.log('Elopage Hook: Not an event we can process')
     return
   }
+
   loginElopageBuy.affiliateProgramId = parseInt(product.affiliate_program_id) || null
   loginElopageBuy.publisherId = parseInt(publisher.id) || null
   loginElopageBuy.orderId = parseInt(order_id) || null
