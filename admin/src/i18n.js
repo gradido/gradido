@@ -54,9 +54,9 @@ const dateTimeFormats = {
     },
     long: {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
-      weekday: 'short',
+      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
@@ -78,9 +78,9 @@ const dateTimeFormats = {
     },
     long: {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
-      weekday: 'short',
+      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
