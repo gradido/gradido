@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
+    "@types/lodash.clonedeep": "^4.5.6",
     "apollo-log": "^1.1.0",
     "apollo-server-express": "^2.25.2",
     "apollo-server-testing": "^2.25.2",
@@ -29,6 +30,7 @@
     "graphql": "^15.5.1",
     "jest": "^27.2.4",
     "jsonwebtoken": "^8.5.1",
+    "lodash.clonedeep": "^4.5.0",
     "module-alias": "^2.2.2",
     "moment": "^2.29.1",
     "mysql2": "^2.3.0",
