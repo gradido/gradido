@@ -32,17 +32,17 @@ const plugins = [
   ApolloLogPlugin({
     mutate: (data: LogMutateData) => {
       // We need to deep clone the object in order to not modify the actual request
-      const data2 = copyInstance(data)
+      const dataCopy = copyInstance(data)
 
       // mask password if part of the query
-      if (data2.context.request.variables && data2.context.request.variables.password) {
-        data2.context.request.variables.password = '***'
+      if (dataCopy.context.request.variables && dataCopy.context.request.variables.password) {
+        dataCopy.context.request.variables.password = '***'
       }
 
       // mask token at all times
-      data2.context.context.token = '***'
+      dataCopy.context.context.token = '***'
 
-      return data2
+      return dataCopy
     },
   }),
 ]
