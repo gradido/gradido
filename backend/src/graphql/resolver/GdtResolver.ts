@@ -25,13 +25,17 @@ export class GdtResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    const resultGDT = await apiGet(
-      `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
-    )
-    if (!resultGDT.success) {
-      throw new Error(resultGDT.data)
+    try {
+      const resultGDT = await apiGet(
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
+      )
+      if (!resultGDT.success) {
+        throw new Error(resultGDT.data)
+      }
+      return new GdtEntryList(resultGDT.data)
+    } catch (err: any) {
+      throw new Error(err)
     }
-    return new GdtEntryList(resultGDT.data)
   }
 
   @Authorized([RIGHTS.EXIST_PID])

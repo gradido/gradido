@@ -331,11 +331,13 @@ export class TransactionResolver {
     )
 
     // get gdt sum
-    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-      email: userEntity.email,
-    })
-    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    transactions.gdtSum = 0
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: userEntity.email,
+      })
+      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {}
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
