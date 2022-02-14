@@ -54,7 +54,7 @@
       </b-row>
 
       <!-- Decay-->
-      <b-row v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
+      <b-row>
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
