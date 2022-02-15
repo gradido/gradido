@@ -18,7 +18,7 @@
         </b-row>
         <b-row>
           <b-col class="col-3">{{ $t('transactionlist.memo') }}</b-col>
-          <b-col>{{ items.memo }}</b-col>
+          <b-col>{{ item.memo }}</b-col>
         </b-row>
         <b-row class="mt-3">
           <b-col class="col-3">{{ $t('name') }}</b-col>
