@@ -1,7 +1,7 @@
 <template>
   <div class="component-overlay">
     <b-jumbotron class="bg-light p-4">
-      <template #header>{{ items.firstName }}´s {{ $t('overlay.confirm.title') }}</template>
+      <template #header>{{ $t('overlay.confirm.title') }}</template>
 
       <template #lead>
         <b-row class="mt-4">
