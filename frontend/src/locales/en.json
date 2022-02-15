@@ -208,6 +208,7 @@
       "title": "Thank you!"
     }
   },
+  "success": "Success",
   "transaction": {
     "gdd-text": "Gradido Transactions",
     "gdt-text": "GradidoTransform Transactions",
