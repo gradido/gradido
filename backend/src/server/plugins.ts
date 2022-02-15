@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { ApolloLogPlugin } from 'apollo-log'
+import { ApolloLogPlugin, LogMutateData } from 'apollo-log'
+import cloneDeep from 'lodash.clonedeep'
 
 const plugins = [
   {
@@ -21,7 +22,22 @@ const plugins = [
       }
     },
   },
-  ApolloLogPlugin(),
+  ApolloLogPlugin({
+    mutate: (data: LogMutateData) => {
+      // We need to deep clone the object in order to not modify the actual request
+      const dataCopy = cloneDeep(data)
+
+      // mask password if part of the query
+      if (dataCopy.context.request.variables && dataCopy.context.request.variables.password) {
+        dataCopy.context.request.variables.password = '***'
+      }
+
+      // mask token at all times
+      dataCopy.context.context.token = '***'
+
+      return dataCopy
+    },
+  }),
 ]
 
 export default plugins

@@ -22,6 +22,9 @@ export class UserAdmin {
 
   @Field(() => Boolean)
   hasElopage: boolean
+
+  @Field(() => String, { nullable: true })
+  emailConfirmationSend?: string
 }
 
 @ObjectType()
