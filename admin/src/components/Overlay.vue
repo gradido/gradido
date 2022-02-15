@@ -26,7 +26,7 @@
         </b-row>
         <b-row>
           <b-col class="col-3">{{ $t('e_mail') }}</b-col>
-          <b-col>{{ items.email }}</b-col>
+          <b-col>{{ item.email }}</b-col>
         </b-row>
       </template>
 
