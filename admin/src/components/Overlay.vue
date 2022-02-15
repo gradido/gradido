@@ -61,7 +61,7 @@
 export default {
   name: 'overlay',
   props: {
-    items: { type: Object, required: true },
+    item: { type: Object, required: true },
   },
 }
 </script>
