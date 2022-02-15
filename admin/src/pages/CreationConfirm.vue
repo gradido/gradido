@@ -1,6 +1,6 @@
 <template>
   <div class="creation-confirm">
-    <div v-show="overlay" id="overlay" @dblclick="overlay = false">
+    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <overlay
         :items="item"
         @overlay-cancel="overlay = false"
