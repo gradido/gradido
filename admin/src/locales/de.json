@@ -2,6 +2,7 @@
   "all_emails": "Alle Nutzer",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
+  "creation": "Schöpfung",
   "creation_form": {
     "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
@@ -19,12 +20,15 @@
     "update_creation": "Schöpfung aktualisieren"
   },
   "date": "Datum",
+  "delete": "Löschen",
   "details": "Details",
+  "edit": "Bearbeiten",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
   "hide_details": "Details verbergen von",
   "lastname": "Nachname",
+  "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "navbar": {
     "logout": "Abmelden",
@@ -55,6 +59,8 @@
   },
   "remove": "Entfernen",
   "remove_all": "alle Nutzer entfernen",
+  "save": "Speichern",
+  "text": "Text",
   "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",
@@ -71,7 +77,7 @@
     "info": "Email bestätigen, wiederholt senden an:",
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({mail}) gesendet.",
-    "text_true": " Die Email wurde am {date} Uhr bestätigt."
+    "text_true": " Die Email wurde bestätigt."
   },
   "user_search": "Nutzer-Suche"
 }

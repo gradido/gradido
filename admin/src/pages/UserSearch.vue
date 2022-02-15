@@ -22,7 +22,7 @@
         </b-input-group-append>
       </b-input-group>
     </div>
-    <user-table type="PageUserSearch" :itemsUser="searchResult" :fieldsTable="fields" />
+    <search-user-table type="PageUserSearch" :items="searchResult" :fields="fields" />
     <b-pagination
       pills
       size="lg"
@@ -35,7 +35,7 @@
   </div>
 </template>
 <script>
-import UserTable from '../components/UserTable.vue'
+import SearchUserTable from '../components/Tables/SearchUserTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
 
@@ -43,7 +43,7 @@ export default {
   name: 'UserSearch',
   mixins: [creationMonths],
   components: {
-    UserTable,
+    SearchUserTable,
   },
   data() {
     return {
@@ -106,6 +106,7 @@ export default {
         },
         { key: 'show_details', label: this.$t('details') },
         { key: 'confirm_mail', label: this.$t('confirmed') },
+        { key: 'has_elopage', label: 'elopage' },
         { key: 'transactions_list', label: this.$t('transaction') },
       ]
     },

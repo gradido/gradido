@@ -4,7 +4,7 @@ export const accountActivation = {
     text: (data: { link: string; firstName: string; lastName: string; email: string }): string =>
       `Hallo ${data.firstName} ${data.lastName},
 
-Deine EMail wurde soeben bei Gradido registriert.
+Deine E-Mail-Adresse wurde soeben bei Gradido registriert.
 
 Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
 ${data.link}

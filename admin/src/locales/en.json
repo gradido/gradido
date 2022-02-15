@@ -2,6 +2,7 @@
   "all_emails": "All users",
   "bookmark": "Remember",
   "confirmed": "confirmed",
+  "creation": "Creation",
   "creation_form": {
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
@@ -19,12 +20,15 @@
     "update_creation": "Creation update"
   },
   "date": "Date",
+  "delete": "Delete",
   "details": "Details",
+  "edit": "Edit",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
   "hide_details": "Hide details from",
   "lastname": "Lastname",
+  "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "navbar": {
     "logout": "Logout",
@@ -55,6 +59,8 @@
   },
   "remove": "Remove",
   "remove_all": "Remove all users",
+  "save": "Speichern",
+  "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",
@@ -70,8 +76,8 @@
     "error": "Error sending the confirmation link to the user: {message}",
     "info": "Confirm email, send repeatedly to:",
     "success": "Successfully send the confirmation link to the user's email! ({email})",
-    "text_false": "The last email was sent to the member ({mail}) on {date} clock.",
-    "text_true": "The email was confirmed on {date} clock."
+    "text_false": "The last email was sent to the member ({mail}) on {date}.",
+    "text_true": "The email was confirmed."
   },
   "user_search": "User search"
 }

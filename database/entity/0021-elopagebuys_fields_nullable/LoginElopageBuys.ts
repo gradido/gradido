@@ -8,17 +8,17 @@ export class LoginElopageBuys extends BaseEntity {
   @Column({ type: 'int', width: 11, name: 'elopage_user_id', nullable: true, default: null })
   elopageUserId: number | null
 
-  @Column({ name: 'affiliate_program_id', nullable: false })
-  affiliateProgramId: number
+  @Column({ type: 'int', width: 11, name: 'affiliate_program_id', nullable: true, default: null })
+  affiliateProgramId: number | null
 
-  @Column({ name: 'publisher_id', nullable: false })
-  publisherId: number
+  @Column({ type: 'int', width: 11, name: 'publisher_id', nullable: true, default: null })
+  publisherId: number | null
 
-  @Column({ name: 'order_id', nullable: false })
-  orderId: number
+  @Column({ type: 'int', width: 11, name: 'order_id', nullable: true, default: null })
+  orderId: number | null
 
-  @Column({ name: 'product_id', nullable: false })
-  productId: number
+  @Column({ type: 'int', width: 11, name: 'product_id', nullable: true, default: null })
+  productId: number | null
 
   @Column({ name: 'product_price', nullable: false })
   productPrice: number

@@ -145,25 +145,6 @@ services:
     ports:
       - 80:80
   
-  #########################################################
-  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
-  #########################################################
-  community-server:
-    build: 
-      context: .
-      target: community_server
-      dockerfile: ./community_server/Dockerfile
-    environment:
-      - DB_PASSWORD=''
-      - DB_USER='root'
-      - DB_DATABASE='gradido_community'
-    depends_on: 
-      - mariadb
-    networks: 
-      - internal-net
-    volumes:
-      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-      
 networks:
   external-net:
   internal-net:

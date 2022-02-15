@@ -1,6 +1,6 @@
 <template>
-  <footer class="footer px-4 bg-transparent">
-    <b-row align-v="center" class="justify-content-lg-between">
+  <footer class="footer m-4 p-4 bg-transparent">
+    <b-row align-v="center" class="mt-4 justify-content-lg-between">
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           © {{ year }}
