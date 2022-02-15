@@ -2,7 +2,7 @@
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <overlay
-        :items="item"
+        :item="item"
         @overlay-cancel="overlay = false"
         @confirm-creation="confirmCreation"
       />
