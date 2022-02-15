@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0020-rename_and_clean_state_users',
+  DB_VERSION: '0021-elopagebuys_fields_nullable',
 }
 
 const server = {

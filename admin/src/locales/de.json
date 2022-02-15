@@ -77,7 +77,7 @@
     "info": "Email bestätigen, wiederholt senden an:",
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({mail}) gesendet.",
-    "text_true": " Die Email wurde am {date} Uhr bestätigt."
+    "text_true": " Die Email wurde bestätigt."
   },
   "user_search": "Nutzer-Suche"
 }

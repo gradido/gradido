@@ -17,6 +17,7 @@ export const searchUsers = gql`
         creation
         emailChecked
         hasElopage
+        emailConfirmationSend
       }
     }
   }

@@ -22,7 +22,10 @@ import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
-import { User as dbUser } from '@entity/User'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+
+// const EMAIL_OPT_IN_REGISTER = 1
+// const EMAIL_OPT_UNKNOWN = 3 // elopage?
 
 @Resolver()
 export class AdminResolver {
@@ -57,6 +60,26 @@ export class AdminResolver {
         adminUser.creation = await getUserCreations(user.id)
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
+        if (!user.emailChecked) {
+          const emailOptIn = await LoginEmailOptIn.findOne(
+            {
+              userId: user.id,
+            },
+            {
+              order: {
+                updatedAt: 'DESC',
+                createdAt: 'DESC',
+              },
+            },
+          )
+          if (emailOptIn) {
+            if (emailOptIn.updatedAt) {
+              adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+            } else {
+              adminUser.emailConfirmationSend = emailOptIn.createdAt.toISOString()
+            }
+          }
+        }
         return adminUser
       }),
     )
@@ -73,8 +96,7 @@ export class AdminResolver {
   ): Promise<number[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByEmail(email)
-    const isActivated = await hasActivatedEmail(user.email)
-    if (!isActivated) {
+    if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
     const creations = await getUserCreations(user.id)
@@ -385,9 +407,4 @@ function isCreationValid(creations: number[], amount: number, creationDate: Date
     throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
   }
   return true
-}
-
-async function hasActivatedEmail(email: string): Promise<boolean> {
-  const user = await dbUser.findOne({ email })
-  return user ? user.emailChecked : false
 }
