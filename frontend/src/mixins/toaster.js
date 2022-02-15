@@ -3,20 +3,24 @@ export const toasters = {
     toastSuccess(message) {
       this.toast(message, {
         title: this.$t('success'),
-        variant: 'danger',
+        variant: 'success',
       })
     },
     toastError(message) {
       this.toast(message, {
         title: this.$t('error.error'),
-        variant: 'success',
+        variant: 'danger',
       })
     },
     toast(message, options) {
       this.$bvToast.toast(message, {
-        autoHideDelay: 5000,
+        autoHideDelay: 50000,
         appendToast: false,
         solid: true,
+        toaster: 'b-toaster-top-right',
+        headerClass: 'gdd-toaster-title',
+        bodyClass: 'gdd-toaster-body',
+        toastClass: 'gdd-toaster',
         ...options,
       })
     },
