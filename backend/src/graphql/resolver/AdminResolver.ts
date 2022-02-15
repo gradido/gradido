@@ -24,7 +24,8 @@ import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 
-const EMAIL_OPT_IN_REGISTER = 1
+// const EMAIL_OPT_IN_REGISTER = 1
+// const EMAIL_OPT_UNKNOWN = 3 // elopage?
 
 @Resolver()
 export class AdminResolver {
@@ -46,10 +47,17 @@ export class AdminResolver {
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
         if (!user.emailChecked) {
-          const emailOptIn = await LoginEmailOptIn.findOne({
-            userId: user.id,
-            emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
-          })
+          const emailOptIn = await LoginEmailOptIn.findOne(
+            {
+              userId: user.id,
+            },
+            {
+              order: {
+                updatedAt: 'DESC',
+                createdAt: 'DESC',
+              },
+            },
+          )
           if (emailOptIn) {
             if (emailOptIn.updatedAt) {
               adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
