@@ -44,7 +44,7 @@
             <b-col>
               <div class="text-right" ref="submitButton">
                 <b-button
-                  :variant="loading ? 'default' : 'success'"
+                  :variant="loading ? 'light' : 'success'"
                   type="submit"
                   class="mt-4"
                   :disabled="loading"
