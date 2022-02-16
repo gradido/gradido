@@ -2,13 +2,14 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import ResetPassword from './ResetPassword'
 import flushPromises from 'flush-promises'
 
+import { toastErrorSpy } from '../../../test/testSetup'
+
 // validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
 
 const localVue = global.localVue
 
 const apolloMutationMock = jest.fn()
 
-const toasterMock = jest.fn()
 const routerPushMock = jest.fn()
 
 const stubs = {
@@ -27,11 +28,6 @@ const mocks = {
     path: {
       mock: 'checkEmail',
       includes: jest.fn((t) => t === mocks.$route.path.mock),
-    },
-  },
-  $toasted: {
-    global: {
-      error: toasterMock,
     },
   },
   $router: {
@@ -65,7 +61,7 @@ describe('ResetPassword', () => {
       })
 
       it.skip('toasts an error when no valid optin is given', () => {
-        expect(toasterMock).toHaveBeenCalledWith('error')
+        expect(toastErrorSpy).toHaveBeenCalledWith('error')
       })
 
       it.skip('has a message suggesting to contact the support', () => {
@@ -157,7 +153,7 @@ describe('ResetPassword', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toasterMock).toHaveBeenCalledWith('...Code is older than 10 minutes')
+            expect(toastErrorSpy).toHaveBeenCalledWith('...Code is older than 10 minutes')
           })
 
           it('router pushes to /password/reset', () => {
@@ -174,7 +170,7 @@ describe('ResetPassword', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toasterMock).toHaveBeenCalledWith('Error')
+            expect(toastErrorSpy).toHaveBeenCalledWith('Error')
           })
         })
 

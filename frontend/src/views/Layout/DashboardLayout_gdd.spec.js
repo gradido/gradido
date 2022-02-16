@@ -2,6 +2,8 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import DashboardLayoutGdd from './DashboardLayout_gdd'
 
+import { toastErrorSpy } from '../../../test/testSetup'
+
 jest.useFakeTimers()
 
 jest.setTimeout(30000)
@@ -16,7 +18,6 @@ const apolloMock = jest.fn().mockResolvedValue({
     logout: 'success',
   },
 })
-const toasterMock = jest.fn()
 
 describe('DashboardLayoutGdd', () => {
   let wrapper
@@ -36,11 +37,6 @@ describe('DashboardLayoutGdd', () => {
       push: routerPushMock,
       currentRoute: {
         path: '/overview',
-      },
-    },
-    $toasted: {
-      global: {
-        error: toasterMock,
       },
     },
     $apollo: {
@@ -219,8 +215,8 @@ describe('DashboardLayoutGdd', () => {
           expect(wrapper.vm.pending).toBeTruthy()
         })
 
-        it('calls $toasted.global.error method', () => {
-          expect(toasterMock).toBeCalledWith('Ouch!')
+        it('toasts the error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('Ouch!')
         })
       })
 

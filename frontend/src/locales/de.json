@@ -109,6 +109,7 @@
     "funding": "Zu den Förderbeiträgen",
     "gdt-received": "GradidoTransform (GDT) erhalten",
     "no-transactions": "Du hast noch keine GradidoTransform (GDT).",
+    "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
@@ -208,6 +209,7 @@
       "title": "Danke!"
     }
   },
+  "success": "Erfolg",
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
     "gdt-text": "GradidoTransform Transaktionen",

@@ -2,25 +2,18 @@ import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
 import flushPromises from 'flush-promises'
 
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
 changePasswordProfileMock.mockReturnValue({ success: true })
-
-const toastSuccessMock = jest.fn()
-const toastErrorMock = jest.fn()
 
 describe('UserCard_FormUserPasswort', () => {
   let wrapper
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
-    },
     $apollo: {
       mutate: changePasswordProfileMock,
     },
@@ -196,7 +189,7 @@ describe('UserCard_FormUserPasswort', () => {
           })
 
           it('toasts a success message', () => {
-            expect(toastSuccessMock).toBeCalledWith('site.thx.reset')
+            expect(toastSuccessSpy).toBeCalledWith('site.thx.reset')
           })
 
           it('cancels the edit process', () => {
@@ -217,7 +210,7 @@ describe('UserCard_FormUserPasswort', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorMock).toBeCalledWith('error')
+            expect(toastErrorSpy).toBeCalledWith('error')
           })
         })
       })
