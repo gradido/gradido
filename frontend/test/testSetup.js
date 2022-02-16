@@ -18,6 +18,8 @@ import { focus } from 'vue-focus'
 import { loadAllRules } from '../src/validation-rules'
 
 import { toasters } from '../src/mixins/toaster'
+export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
+export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 Object.keys(rules).forEach((rule) => {
   extend(rule, {

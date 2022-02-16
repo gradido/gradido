@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import UserCardLanguage from './UserCard_Language'
 
-import { toasters } from '../../../mixins/toaster'
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -14,9 +14,6 @@ const mockAPIcall = jest.fn().mockResolvedValue({
 })
 
 const storeCommitMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
-const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_Language', () => {
   let wrapper

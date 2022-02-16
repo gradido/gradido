@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import ResetPassword from './ResetPassword'
 import flushPromises from 'flush-promises'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 // validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
 
@@ -11,8 +11,6 @@ const localVue = global.localVue
 const apolloMutationMock = jest.fn()
 
 const routerPushMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 const stubs = {
   RouterLink: RouterLinkStub,

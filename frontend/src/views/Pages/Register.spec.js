@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Register from './Register'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -20,8 +20,6 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('Register', () => {
   let wrapper

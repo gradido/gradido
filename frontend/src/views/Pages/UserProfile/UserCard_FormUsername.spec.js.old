@@ -3,7 +3,7 @@ import UserCardFormUsername from './UserCard_FormUsername'
 import flushPromises from 'flush-promises'
 import { extend } from 'vee-validate'
 
-import { toasters } from '../../../mixins/toaster'
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -17,9 +17,6 @@ extend('gddUsernameUnique', {
 })
 
 const storeCommitMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
-const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_FormUsername', () => {
   let wrapper

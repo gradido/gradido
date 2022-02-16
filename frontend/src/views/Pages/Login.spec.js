@@ -2,7 +2,7 @@ import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -26,8 +26,6 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('Login', () => {
   let wrapper

@@ -2,15 +2,12 @@ import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
 import flushPromises from 'flush-promises'
 
-import { toasters } from '../../../mixins/toaster'
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
 
 const localVue = global.localVue
 
 const changePasswordProfileMock = jest.fn()
 changePasswordProfileMock.mockReturnValue({ success: true })
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
-const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_FormUserPasswort', () => {
   let wrapper

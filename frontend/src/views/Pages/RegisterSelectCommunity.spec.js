@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import { communities, communityInfo } from '../../graphql/queries'
 import RegisterSelectCommunity from './RegisterSelectCommunity'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -13,8 +13,6 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 const apolloQueryMock = jest
   .fn()

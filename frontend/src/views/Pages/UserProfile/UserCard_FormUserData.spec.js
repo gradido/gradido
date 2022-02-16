@@ -2,16 +2,13 @@ import { mount } from '@vue/test-utils'
 import UserCardFormUserData from './UserCard_FormUserData'
 import flushPromises from 'flush-promises'
 
-import { toasters } from '../../../mixins/toaster'
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
 
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn()
 
 const storeCommitMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
-const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_FormUserData', () => {
   let wrapper

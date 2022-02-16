@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import DashboardLayoutGdd from './DashboardLayout_gdd'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 jest.useFakeTimers()
 
@@ -18,8 +18,6 @@ const apolloMock = jest.fn().mockResolvedValue({
     logout: 'success',
   },
 })
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('DashboardLayoutGdd', () => {
   let wrapper

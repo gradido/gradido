@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { GdtEntryType } from '../../../graphql/enums'
 import GdtTransactionList from './GdtTransactionList'
 
-import { toasters } from '../../../mixins/toaster'
+import { toastErrorSpy } from '../../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -16,8 +16,6 @@ const apolloMock = jest.fn().mockResolvedValue({
 })
 
 const windowScrollToMock = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 window.scrollTo = windowScrollToMock
 

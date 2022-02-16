@@ -1,7 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import RegisterCommunity from './RegisterCommunity'
 
-import { toasters } from '../../mixins/toaster'
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -17,8 +17,6 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 })
 
 const mockStoreCommit = jest.fn()
-
-const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('RegisterCommunity', () => {
   let wrapper
