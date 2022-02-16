@@ -17,19 +17,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title lang="de">Gradido – Dein Dankbarkeitskonto</title>
+  <title><%= htmlWebpackPlugin.options.title %></title>
+  <!-- <title lang="de">Gradido – Dein Dankbarkeitskonto</title>
   <title lang="en">Gradido - Your gratitude account</title>
-  <meta name="description" lang="de" content="Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.">
-  <meta name="description" lang="en" content="Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.">
-  <meta name="keywords" lang="de" content="Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem">
-  <meta name="keywords" lang="en" content="Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System">
-  <meta name="author" content="Bernd Hückstädt - Gradido-Akademie">
-  <meta name="url" content="https://gdd.gradido.net">
-  <meta name="identifier-URL" content="http://www.gradido.net">
+  -->
+  <meta name="description" lang="de" content="<%= htmlWebpackPlugin.options.description_de %>">
+  <meta name="description" lang="en" content="<%= htmlWebpackPlugin.options.description_en %>">
+  <meta name="keywords" lang="de" content="<%= htmlWebpackPlugin.options.keywords_de %>">
+  <meta name="keywords" lang="en" content="<%= htmlWebpackPlugin.options.keywords_en %>">
+  <meta name="author" content="<%= htmlWebpackPlugin.options.author %>">
+  <meta name="url" content="<%= htmlWebpackPlugin.options.url %>">
+  <meta name="identifier-URL" content="<%= htmlWebpackPlugin.options.identifier_URL %>">
   <meta charset="utf-8">
   <meta name="robots" content="index,follow">
 
-  <link rel="icon" type="image/png" sizes="96x96" href="<%= webpackConfig.output.publicPath %>favicon.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="./favicon.png">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 

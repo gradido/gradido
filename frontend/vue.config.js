@@ -2,6 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
+const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
 
 // vue.config.js
 module.exports = {
@@ -38,6 +39,23 @@ module.exports = {
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
+      new HtmlWebpackPlugin({
+        vue: true,
+        title: 'XGRADIDO',
+        template: 'public/index.html',
+        description_de:
+          'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
+        description_en:
+          'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
+        keywords_de:
+          'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
+        keywords_en:
+          'Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System',
+        author: 'Bernd Hückstädt - Gradido-Akademie',
+        url: 'http://localhost',
+        identifier_URL: 'http://localhost',
+        icon: './favicon.png',
+      }),
     ],
     infrastructureLogging: {
       level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
