@@ -34,7 +34,7 @@ export class GdtResolver {
       }
       return new GdtEntryList(resultGDT.data)
     } catch (err: any) {
-      throw new Error(err)
+      throw new Error('GDT Server is not reachable.')
     }
   }
 
