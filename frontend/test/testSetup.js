@@ -54,6 +54,7 @@ global.localVue.directive('focus', focus)
 global.localVue.mixin(toasters)
 
 // Filter the warnings for portal vue
+// https://github.com/BeniRupp/bug_portal-vue-target-already-exists
 const consoleWarn = global.console.warn
 // eslint-disable-next-line no-console
 delete console.warn
