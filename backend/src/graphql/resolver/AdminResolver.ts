@@ -237,11 +237,11 @@ export class AdminResolver {
     if (!lastUserTransaction) {
       newBalance = 0
     } else {
-      newBalance = await calculateDecay(
+      newBalance = calculateDecay(
         lastUserTransaction.balance,
         lastUserTransaction.balanceDate,
         receivedCallDate,
-      )
+      ).balance
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 

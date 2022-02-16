@@ -8,7 +8,6 @@ import { CreateRaeuberHotzenplotzSeed } from './seeds/users/raeuber-hotzenplotz.
 import { CreateBobBaumeisterSeed } from './seeds/users/bob-baumeister.seed'
 import { CreateGarrickOllivanderSeed } from './seeds/users/garrick-ollivander.seed'
 import { CreateUserSeed } from './seeds/create-user.seed'
-import { DecayStartBlockSeed } from './seeds/decay-start-block.seed'
 import { resetDB, pool, migration } from './helpers'
 
 const run = async (command: string) => {
@@ -41,7 +40,6 @@ const run = async (command: string) => {
         root: process.cwd(),
         configName: 'ormconfig.js',
       })
-      await runSeeder(DecayStartBlockSeed)
       await runSeeder(CreatePeterLustigSeed)
       await runSeeder(CreateBibiBloxbergSeed)
       await runSeeder(CreateRaeuberHotzenplotzSeed)
