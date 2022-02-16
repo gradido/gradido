@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import UserCardLanguage from './UserCard_Language'
 
+import { toasters } from '../../../mixins/toaster'
+
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn().mockResolvedValue({
@@ -11,9 +13,10 @@ const mockAPIcall = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
-const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
+const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_Language', () => {
   let wrapper
@@ -25,12 +28,6 @@ describe('UserCard_Language', () => {
         language: 'de',
       },
       commit: storeCommitMock,
-    },
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       mutate: mockAPIcall,
@@ -143,7 +140,7 @@ describe('UserCard_Language', () => {
             })
 
             it('toasts a success message', () => {
-              expect(toastSuccessMock).toBeCalledWith('settings.language.success')
+              expect(toastSuccessSpy).toBeCalledWith('settings.language.success')
             })
           })
 
@@ -159,7 +156,7 @@ describe('UserCard_Language', () => {
             })
 
             it('toasts an error message', () => {
-              expect(toastErrorMock).toBeCalledWith('Ouch!')
+              expect(toastErrorSpy).toBeCalledWith('Ouch!')
             })
           })
         })
