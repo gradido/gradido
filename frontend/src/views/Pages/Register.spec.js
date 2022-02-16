@@ -1,7 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-
 import Register from './Register'
+
+import { toasters } from '../../mixins/toaster'
 
 const localVue = global.localVue
 
@@ -16,10 +17,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('Register', () => {
   let wrapper
@@ -46,11 +48,6 @@ describe('Register', () => {
           description: '',
         },
         publisherId: 12345,
-      },
-    },
-    $toasted: {
-      global: {
-        error: toastErrorMock,
       },
     },
   }
@@ -96,7 +93,7 @@ describe('Register', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
       })
     })
 
