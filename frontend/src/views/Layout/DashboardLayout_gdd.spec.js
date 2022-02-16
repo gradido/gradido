@@ -217,7 +217,7 @@ describe('DashboardLayoutGdd', () => {
           expect(wrapper.vm.pending).toBeTruthy()
         })
 
-        it('calls $toasted.global.error method', () => {
+        it('toasts the error message', () => {
           expect(toastErrorSpy).toBeCalledWith('Ouch!')
         })
       })

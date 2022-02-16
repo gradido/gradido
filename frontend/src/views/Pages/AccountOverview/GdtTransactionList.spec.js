@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils'
 import { GdtEntryType } from '../../../graphql/enums'
 import GdtTransactionList from './GdtTransactionList'
 
+import { toasters } from '../../../mixins/toaster'
+
 const localVue = global.localVue
 
 const apolloMock = jest.fn().mockResolvedValue({
@@ -13,8 +15,9 @@ const apolloMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const windowScrollToMock = jest.fn()
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 window.scrollTo = windowScrollToMock
 
@@ -36,11 +39,6 @@ describe('GdtTransactionList ', () => {
     $t: jest.fn((t) => t),
     $n: jest.fn((n) => n),
     $d: jest.fn((d) => d),
-    $toasted: {
-      global: {
-        error: toastErrorMock,
-      },
-    },
     $apollo: {
       query: apolloMock,
     },
@@ -152,7 +150,7 @@ describe('GdtTransactionList ', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch!')
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
     })
 
