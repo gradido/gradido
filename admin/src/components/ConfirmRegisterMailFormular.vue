@@ -6,7 +6,7 @@
         {{
           dateLastSend === ''
             ? $t('unregister_mail.never_sent', { email })
-            : $t('unregister_mail.text_false', { date: dateLastSend, mail: email })
+            : $t('unregister_mail.text_false', { date: dateLastSend, email })
         }}
 
         <!-- Using components -->
