@@ -8,6 +8,9 @@
           {{ $t('gdt.funding') }}
         </b-button>
       </div>
+      <div v-else-if="typeof transactionGdtCount === 'object'" class="text-center">
+        {{ $t('gdt.not-reachable') }}
+      </div>
       <div
         v-else
         v-for="{ id, amount, date, comment, gdtEntryType, factor, gdt } in transactionsGdt"
