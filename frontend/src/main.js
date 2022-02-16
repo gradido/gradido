@@ -21,16 +21,6 @@ Vue.config.productionTip = false
 
 Vue.mixin(toasters)
 
-Vue.toasted.register(
-  'error',
-  (payload) => {
-    return payload.replace(/^GraphQL error: /, '')
-  },
-  {
-    type: 'error',
-  },
-)
-
 loadAllRules(i18n)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
