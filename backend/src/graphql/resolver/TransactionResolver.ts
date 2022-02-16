@@ -331,7 +331,7 @@ export class TransactionResolver {
     )
 
     // get gdt sum
-    transactions.gdtSum = 0
+    transactions.gdtSum = null
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
         email: userEntity.email,
