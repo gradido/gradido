@@ -3,7 +3,11 @@
     <div class="shadow p-3 mb-5 bg-white rounded">
       <div v-if="checked">{{ $t('unregister_mail.text_true') }}</div>
       <div v-else>
-        {{ $t('unregister_mail.text_false', { date: dateLastSend, mail: email }) }}
+        {{
+          dateLastSend === ''
+            ? $t('unregister_mail.never_sent', { email })
+            : $t('unregister_mail.text_false', { date: dateLastSend, mail: email })
+        }}
 
         <!-- Using components -->
         <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
