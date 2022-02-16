@@ -1,6 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import RegisterCommunity from './RegisterCommunity'
 
+import { toasters } from '../../mixins/toaster'
+
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
@@ -13,8 +15,10 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
     },
   },
 })
-const toastErrorMock = jest.fn()
+
 const mockStoreCommit = jest.fn()
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('RegisterCommunity', () => {
   let wrapper
@@ -34,11 +38,6 @@ describe('RegisterCommunity', () => {
           name: '',
           description: '',
         },
-      },
-    },
-    $toasted: {
-      global: {
-        error: toastErrorMock,
       },
     },
   }
@@ -78,7 +77,7 @@ describe('RegisterCommunity', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
       })
     })
 
