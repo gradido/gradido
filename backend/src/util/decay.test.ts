@@ -1,3 +1,4 @@
+import 'reflect-metadata' // This might be wise to load in a test setup file
 import { decayFormula, calculateDecay } from './decay'
 
 describe('utils/decay', () => {
@@ -35,6 +36,6 @@ describe('utils/decay', () => {
 
   it('returns input amount when from and to is the same', async () => {
     const now = new Date()
-    expect(await calculateDecay(100.0, now, now)).toBe(100.0)
+    expect((await calculateDecay(100.0, now, now)).balance).toBe(100.0)
   })
 })
