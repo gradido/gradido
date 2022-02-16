@@ -92,7 +92,7 @@ export default {
           const {
             data: { transactionList },
           } = result
-          this.GdtBalance = Number(transactionList.gdtSum)
+          this.GdtBalance = transactionList.gdtSum === null ? null : Number(transactionList.gdtSum)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.decay)
           this.bookedBalance = Number(transactionList.balance)
