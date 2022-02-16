@@ -223,7 +223,7 @@ async function updateStateBalance(
     balance.amount = centAmount
     balance.modified = received
   } else {
-    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received)
+    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
     balance.amount = Number(decayedBalance) + centAmount
     balance.modified = new Date()
   }
@@ -252,7 +252,7 @@ async function addUserTransaction(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         transaction.received,
-      ),
+      ).balance,
     )
   }
 
