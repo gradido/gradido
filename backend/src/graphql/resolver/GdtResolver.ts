@@ -33,7 +33,9 @@ export class GdtResolver {
         throw new Error(resultGDT.data)
       }
       return new GdtEntryList(resultGDT.data)
-    } catch (err: any) {}
+    } catch (err: any) {
+      throw new Error('GDT Server is not reachable.')
+    }
   }
 
   @Authorized([RIGHTS.EXIST_PID])
