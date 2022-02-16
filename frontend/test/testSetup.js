@@ -17,6 +17,8 @@ import { focus } from 'vue-focus'
 
 import { loadAllRules } from '../src/validation-rules'
 
+import { toasters } from '../src/mixins/toaster'
+
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
     ...rules[rule], // copies rule configuration
@@ -46,6 +48,17 @@ global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)
 global.localVue.directive('focus', focus)
+
+global.localVue.mixin(toasters)
+
+// Filter the warnings for portal vue
+const consoleWarn = global.console.warn
+// eslint-disable-next-line no-console
+delete console.warn
+// eslint-disable-next-line no-console
+console.warn = (m) => {
+  if (!m.match(/^\[portal-vue\]: Target .+ already exists$/)) consoleWarn(m)
+}
 
 // throw errors for vue warnings to force the programmers to take care about warnings
 Vue.config.warnHandler = (w) => {

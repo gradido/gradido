@@ -2,6 +2,8 @@ import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Login from './Login'
 
+import { toasters } from '../../mixins/toaster'
+
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
@@ -15,7 +17,6 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const mockStoreDispach = jest.fn()
 const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
@@ -25,6 +26,8 @@ const spinnerMock = jest.fn(() => {
     hide: spinnerHideMock,
   }
 })
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 
 describe('Login', () => {
   let wrapper
@@ -50,11 +53,6 @@ describe('Login', () => {
     },
     $router: {
       push: mockRouterPush,
-    },
-    $toasted: {
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       query: apolloQueryMock,
@@ -96,7 +94,7 @@ describe('Login', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
       })
     })
 
@@ -249,7 +247,7 @@ describe('Login', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorMock).toBeCalledWith('error.no-account')
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
 
           describe('login fails with "User email not validated"', () => {

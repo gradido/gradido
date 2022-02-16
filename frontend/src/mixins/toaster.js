@@ -14,7 +14,7 @@ export const toasters = {
     },
     toast(message, options) {
       this.$bvToast.toast(message, {
-        autoHideDelay: 50000,
+        autoHideDelay: 5000,
         appendToast: false,
         solid: true,
         toaster: 'b-toaster-top-right',
