@@ -2,13 +2,16 @@ import { mount } from '@vue/test-utils'
 import UserCardNewsletter from './UserCard_Newsletter'
 import { unsubscribeNewsletter, subscribeNewsletter } from '../../../graphql/mutations'
 
+import { toasters } from '../../../mixins/toaster'
+
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn()
 
-const toastErrorMock = jest.fn()
-const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
+
+const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
+const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
 describe('UserCard_Newsletter', () => {
   let wrapper
@@ -22,12 +25,6 @@ describe('UserCard_Newsletter', () => {
         newsletterState: true,
       },
       commit: storeCommitMock,
-    },
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       mutate: mockAPIcall,
@@ -77,7 +74,7 @@ describe('UserCard_Newsletter', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterFalse')
+        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterFalse')
       })
     })
 
@@ -107,7 +104,7 @@ describe('UserCard_Newsletter', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('settings.newsletter.newsletterTrue')
+        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterTrue')
       })
     })
 
@@ -124,7 +121,7 @@ describe('UserCard_Newsletter', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch')
+        expect(toastErrorSpy).toBeCalledWith('Ouch')
       })
     })
   })
