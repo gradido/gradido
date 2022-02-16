@@ -3,6 +3,8 @@ import UserCardFormUsername from './UserCard_FormUsername'
 import flushPromises from 'flush-promises'
 import { extend } from 'vee-validate'
 
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn()
@@ -14,8 +16,6 @@ extend('gddUsernameUnique', {
   },
 })
 
-const toastErrorMock = jest.fn()
-const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
 
 describe('UserCard_FormUsername', () => {
@@ -28,12 +28,6 @@ describe('UserCard_FormUsername', () => {
         username: '',
       },
       commit: storeCommitMock,
-    },
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       mutate: mockAPIcall,
@@ -125,7 +119,7 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('toasts an success message', () => {
-            expect(toastSuccessMock).toBeCalledWith('settings.name.change-success')
+            expect(toastSuccessSpy).toBeCalledWith('settings.name.change-success')
           })
 
           it('has no edit button anymore', () => {
@@ -155,7 +149,7 @@ describe('UserCard_FormUsername', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorMock).toBeCalledWith('Ouch!')
+            expect(toastErrorSpy).toBeCalledWith('Ouch!')
           })
 
           it('renders an empty username', () => {

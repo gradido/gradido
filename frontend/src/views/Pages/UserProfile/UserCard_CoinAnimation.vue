@@ -50,7 +50,7 @@ export default {
         })
         .then(() => {
           this.$store.commit('coinanimation', this.CoinAnimationStatus)
-          this.$toasted.success(
+          this.toastSuccess(
             this.CoinAnimationStatus
               ? this.$t('settings.coinanimation.True')
               : this.$t('settings.coinanimation.False'),
@@ -58,7 +58,7 @@ export default {
         })
         .catch((error) => {
           this.CoinAnimationStatus = this.$store.state.coinanimation
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
     },
   },
