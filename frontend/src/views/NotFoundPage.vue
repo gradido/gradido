@@ -1185,9 +1185,9 @@
         </div>
       </b-container>
     </div>
-  <div class="text-center">
-    <b-button variant="light" @click="$router.go(-1)">zurück</b-button>
-  </div>
+    <div class="text-center">
+      <b-button variant="light" @click="$router.go(-1)">zurück</b-button>
+    </div>
   </div>
 </template>
 
