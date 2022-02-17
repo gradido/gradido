@@ -38,6 +38,11 @@ beforeAll(async () => {
   await resetDB()
 })
 
+afterAll(async () => {
+  await resetDB(true)
+  await con.close()
+})
+
 describe('UserResolver', () => {
   describe('createUser', () => {
     const variables = {
@@ -345,9 +350,4 @@ describe('UserResolver', () => {
       })
     })
   })
-})
-
-afterAll(async () => {
-  await resetDB(true)
-  await con.close()
 })
