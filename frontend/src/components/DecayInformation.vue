@@ -19,9 +19,7 @@
         <b-col cols="6">
           <div v-if="decay.decayStartBlock > 0">
             <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
-            <div>
-              {{ $t('decay.decay_introduced') }} :
-            </div>
+            <div>{{ $t('decay.decay_introduced') }} :</div>
           </div>
           <div>
             <span v-if="decay.decayStart">
@@ -108,26 +106,26 @@
   </div>
 </template>
 <script>
- import { duration } from 'moment'
- 
- export default {
-   name: 'DecayInformation',
-   props: {
-     balance: { type: Number },
-     type: { type: String, default: '' },
-     decay: {
-       balance: '',
-       decayDuration: '',
-       decayStart: 0,
-       decayEnd: 0,
-       decayStartBlock: 0,
-     },
-     decaytyp: { type: String, default: '' },
-   },
-   computed: {
-     duration() {
-       return duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
-     },
-   },
- }
+import { duration } from 'moment'
+
+export default {
+  name: 'DecayInformation',
+  props: {
+    balance: { type: Number },
+    type: { type: String, default: '' },
+    decay: {
+      balance: '',
+      decayDuration: '',
+      decayStart: 0,
+      decayEnd: 0,
+      decayStartBlock: 0,
+    },
+    decaytyp: { type: String, default: '' },
+  },
+  computed: {
+    duration() {
+      return duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
+    },
+  },
+}
 </script>
