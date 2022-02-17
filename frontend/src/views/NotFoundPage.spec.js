@@ -20,7 +20,7 @@ describe('NotFoundPage', () => {
     })
 
     it('has a svg', () => {
-      expect(wrapper.find('svg.test-404').exists()).toBeTruthy()
+      expect(wrapper.find('svg').exists()).toBeTruthy()
     })
 
     it('has a back button', () => {
