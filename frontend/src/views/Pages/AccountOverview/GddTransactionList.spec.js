@@ -145,7 +145,7 @@ describe('GddTransactionList', () => {
 
         it('has a minus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '-',
+            '−',
           )
         })
 
@@ -175,7 +175,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '- 0.5',
+            '− 0.5',
           )
         })
       })
@@ -265,7 +265,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '- 1.5',
+            '− 1.5',
           )
         })
       })
@@ -286,7 +286,7 @@ describe('GddTransactionList', () => {
 
         it('has a minus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '-',
+            '−',
           )
         })
 
