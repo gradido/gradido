@@ -1,9 +1,13 @@
 <template>
   <div class="user-search">
     <div style="text-align: right">
-      <b-button block variant="danger" @click="unconfirmedRegisterMails">
-        <b-icon icon="envelope" variant="light"></b-icon>
+      <b-button variant="light" @click="unconfirmedRegisterMails">
+        <b-icon icon="envelope" variant="danger"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
+      </b-button>
+      <b-button variant="light" @click="disabledUserSearch">
+        <b-icon icon="x-circle" variant="danger"></b-icon>
+        {{ filterDisabledUser ? $t('enabled_user') : $t('disabled_user') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -52,6 +56,7 @@ export default {
       massCreation: [],
       criteria: '',
       filterCheckedEmails: false,
+      filterDisabledUser: false,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -63,6 +68,11 @@ export default {
       this.filterCheckedEmails = !this.filterCheckedEmails
       this.getUsers()
     },
+    disabledUserSearch() {
+      this.filterDisabledUser = !this.filterDisabledUser
+      this.getUsers()
+      alert('TODO: disabled user filter in search und im backend prüfen')
+    },
     getUsers() {
       this.$apollo
         .query({
@@ -72,6 +82,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             notActivated: this.filterCheckedEmails,
+            disabledUser: this.filterDisabledUser,
           },
         })
         .then((result) => {
@@ -108,6 +119,7 @@ export default {
         { key: 'confirm_mail', label: this.$t('confirmed') },
         { key: 'has_elopage', label: 'elopage' },
         { key: 'transactions_list', label: this.$t('transaction') },
+        { key: 'enabled', label: this.$t('enabled') },
       ]
     },
   },
