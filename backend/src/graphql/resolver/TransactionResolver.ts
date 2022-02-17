@@ -29,7 +29,7 @@ import { Balance as dbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
-import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
+import { calculateDecay } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
@@ -67,8 +67,6 @@ async function calculateAndAddDecayTransactions(
   const userRepository = getCustomRepository(UserRepository)
   const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
 
-  const decayStartTransaction = await transactionRepository.findDecayStartBlock()
-
   for (let i = 0; i < userTransactions.length; i++) {
     const userTransaction = userTransactions[i]
     const transaction = transactionIndiced[userTransaction.transactionId]
@@ -81,26 +79,22 @@ async function calculateAndAddDecayTransactions(
 
     if (previousTransaction) {
       const currentTransaction = userTransaction
-      const decay = await calculateDecayWithInterval(
+      const decay = calculateDecay(
         previousTransaction.balance,
         previousTransaction.balanceDate,
         currentTransaction.balanceDate,
       )
       const balance = previousTransaction.balance - decay.balance
 
-      if (
-        decayStartTransaction &&
-        decayStartTransaction.received < currentTransaction.balanceDate
-      ) {
+      if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
-          decayStartTransaction &&
-          previousTransaction.transactionId < decayStartTransaction.id &&
-          currentTransaction.transactionId > decayStartTransaction.id
+          previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
+          currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
         ) {
           finalTransaction.decay.decayStartBlock = (
-            decayStartTransaction.received.getTime() / 1000
+            CONFIG.DECAY_START_TIME.getTime() / 1000
           ).toString()
         }
       }
@@ -147,11 +141,7 @@ async function calculateAndAddDecayTransactions(
 
     if (i === userTransactions.length - 1 && decay) {
       const now = new Date()
-      const decay = await calculateDecayWithInterval(
-        userTransaction.balance,
-        userTransaction.balanceDate,
-        now.getTime(),
-      )
+      const decay = calculateDecay(userTransaction.balance, userTransaction.balanceDate, now)
       const balance = userTransaction.balance - decay.balance
 
       const decayTransaction = new Transaction()
@@ -233,12 +223,8 @@ async function updateStateBalance(
     balance.amount = centAmount
     balance.modified = received
   } else {
-    const decaiedBalance = await calculateDecay(balance.amount, balance.recordDate, received).catch(
-      () => {
-        throw new Error('error by calculating decay')
-      },
-    )
-    balance.amount = Number(decaiedBalance) + centAmount
+    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
+    balance.amount = Number(decayedBalance) + centAmount
     balance.modified = new Date()
   }
   if (balance.amount <= 0) {
@@ -262,13 +248,11 @@ async function addUserTransaction(
   const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
   if (lastUserTransaction) {
     newBalance += Number(
-      await calculateDecay(
+      calculateDecay(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         transaction.received,
-      ).catch(() => {
-        throw new Error('error by calculating decay')
-      }),
+      ).balance,
     )
   }
 
@@ -331,11 +315,13 @@ export class TransactionResolver {
     )
 
     // get gdt sum
-    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-      email: userEntity.email,
-    })
-    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    transactions.gdtSum = null
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: userEntity.email,
+      })
+      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {}
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
@@ -344,7 +330,7 @@ export class TransactionResolver {
       const now = new Date()
       transactions.balance = roundFloorFrom4(balanceEntity.amount)
       transactions.decay = roundFloorFrom4(
-        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+        calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
       )
       transactions.decayDate = now.toString()
     }

@@ -1,5 +1,6 @@
 {
   "all_emails": "Alle Nutzer",
+  "back": "zurück",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
   "creation": "Schöpfung",
@@ -77,8 +78,9 @@
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
     "info": "Email bestätigen, wiederholt senden an:",
+    "never_sent": "Es scheint so, als ob wir nie eine E-Mail an {email} geschickt haben",
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
-    "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({mail}) gesendet.",
+    "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
   "user_search": "Nutzer-Suche"

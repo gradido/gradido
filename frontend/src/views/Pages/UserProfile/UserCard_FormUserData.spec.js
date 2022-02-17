@@ -2,12 +2,12 @@ import { mount } from '@vue/test-utils'
 import UserCardFormUserData from './UserCard_FormUserData'
 import flushPromises from 'flush-promises'
 
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn()
 
-const toastErrorMock = jest.fn()
-const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
 
 describe('UserCard_FormUserData', () => {
@@ -21,12 +21,6 @@ describe('UserCard_FormUserData', () => {
         lastName: 'Lustig',
       },
       commit: storeCommitMock,
-    },
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       mutate: mockAPIcall,
@@ -126,7 +120,7 @@ describe('UserCard_FormUserData', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessMock).toBeCalledWith('settings.name.change-success')
+          expect(toastSuccessSpy).toBeCalledWith('settings.name.change-success')
         })
 
         it('has an edit button again', () => {
@@ -159,7 +153,7 @@ describe('UserCard_FormUserData', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastErrorMock).toBeCalledWith('Error')
+          expect(toastErrorSpy).toBeCalledWith('Error')
         })
       })
     })

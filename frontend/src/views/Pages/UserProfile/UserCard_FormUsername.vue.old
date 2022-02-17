@@ -97,10 +97,10 @@ export default {
           this.$store.commit('username', this.form.username)
           this.username = this.form.username
           this.showUsername = true
-          this.$toasted.success(this.$t('settings.name.change-success'))
+          this.toastSuccess(this.$t('settings.name.change-success'))
         })
         .catch((error) => {
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
           this.showUsername = true
           this.username = this.$store.state.username
           this.form.username = this.$store.state.username

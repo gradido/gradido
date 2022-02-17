@@ -21,7 +21,7 @@ async function hasUserAmount(user: dbUser, amount: number): Promise<boolean> {
   const balance = await balanceRepository.findOne({ userId: user.id })
   if (!balance) return false
 
-  const decay = await calculateDecay(balance.amount, balance.recordDate, new Date())
+  const decay = calculateDecay(balance.amount, balance.recordDate, new Date()).balance
   return decay > amount
 }
 

@@ -92,7 +92,7 @@ export default {
           const {
             data: { transactionList },
           } = result
-          this.GdtBalance = Number(transactionList.gdtSum)
+          this.GdtBalance = transactionList.gdtSum === null ? null : Number(transactionList.gdtSum)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.decay)
           this.bookedBalance = Number(transactionList.balance)
@@ -102,7 +102,7 @@ export default {
         .catch((error) => {
           this.pending = true
           this.transactionCount = -1
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
           // what to do when loading balance fails?
         })
     },
