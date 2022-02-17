@@ -4,7 +4,7 @@ import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class Decay {
-  constructor(json: any) {
+  constructor(json?: any) {
     if (json) {
       this.balance = Number(json.balance)
       this.decayStart = json.decay_start
