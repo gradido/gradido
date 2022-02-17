@@ -41,7 +41,7 @@ export class User extends BaseEntity {
   lastName: string
 
   @DeleteDateColumn()
-  deletedAt: Date
+  deletedAt: Date | null
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
   password: BigInt
