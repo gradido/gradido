@@ -9,6 +9,7 @@
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">
                   <svg
+                    class="test-404"
                     width="100%"
                     height="auto"
                     viewBox="0 0 636 324"
@@ -1186,7 +1187,9 @@
       </b-container>
     </div>
     <div class="text-center">
-      <b-button variant="light" @click="$router.go(-1)">{{ $t('back') }}</b-button>
+      <b-button class="test-back" variant="light" @click="$router.go(-1)">
+        {{ $t('back') }}
+      </b-button>
     </div>
   </div>
 </template>
