@@ -106,8 +106,6 @@
   </div>
 </template>
 <script>
-import { duration } from 'moment'
-
 export default {
   name: 'DecayInformation',
   props: {
@@ -124,7 +122,7 @@ export default {
   },
   computed: {
     duration() {
-      return duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
+      return this.$moment.duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
     },
   },
 }

@@ -10,6 +10,8 @@ import { messages } from 'vee-validate/dist/locale/en.json'
 import RegeneratorRuntime from 'regenerator-runtime'
 import VueQrcode from 'vue-qrcode'
 
+import VueMoment from 'vue-moment'
+
 // import clickOutside from '@/directives/click-ouside.js'
 import { focus } from 'vue-focus'
 
@@ -43,6 +45,7 @@ global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
 global.localVue.use(VueQrcode)
+global.localVue.use(VueMoment)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)
