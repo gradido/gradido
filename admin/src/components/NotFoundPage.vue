@@ -1186,7 +1186,7 @@
       </b-container>
     </div>
     <div class="text-center">
-      <b-button variant="light" @click="$router.go(-1)">zurück</b-button>
+      <b-button variant="light" @click="$router.go(-1)">{{ $t('back') }}</b-button>
     </div>
   </div>
 </template>
