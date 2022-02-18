@@ -6,12 +6,14 @@
     </div>
     <div class="mt-3">GDD Stand: 20 GDD</div>
     <div class="mt-3 mb-5">
-      <b-button v-if="checked" variant="success" @click="deleteAdd">User now deleted</b-button>
+      <b-button v-if="checked" variant="danger" @click="deleteUser">Delete User</b-button>
+      <b-button v-if="checked" variant="success" @click="unDeleteUser">Undelete User</b-button>
     </div>
   </div>
 </template>
 <script>
-// import { sendActivationEmail } from '../graphql/sendActivationEmail'
+import { deleteUser } from '../graphql/deleteUser'
+import { unDeleteUser } from '../graphql/unDeleteUser'
 
 export default {
   name: 'DeletedUser',
@@ -26,8 +28,35 @@ export default {
     }
   },
   methods: {
-    deleteAdd() {
-      alert('TODO: Apollo query deleteAdd')
+    deleteUser() {
+      this.$apollo
+        .mutate({
+          mutation: deleteUser,
+          variables: {
+            userId: this.item.userId,
+          },
+        })
+        .then(() => {
+          this.$toasted.success('user is deleted')
+        })
+        .catch((error) => {
+          this.$toasted.error('user deleted error', error)
+        })
+    },
+    unDeleteUser() {
+      this.$apollo
+        .mutate({
+          mutation: unDeleteUser,
+          variables: {
+            userId: this.item.userId,
+          },
+        })
+        .then(() => {
+          this.$toasted.success('user is undeleted')
+        })
+        .catch((error) => {
+          this.$toasted.error('user undeleted error', error)
+        })
     },
   },
 }
