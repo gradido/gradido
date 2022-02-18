@@ -83,9 +83,12 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error('This user was deleted. Cannot make a creation.')
     }
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
