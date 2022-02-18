@@ -95,6 +95,25 @@ export class AdminResolver {
     }
   }
 
+  @Authorized([RIGHTS.DELETE_USER])
+  @Mutation(() => Boolean)
+  async deleteUser(@Arg('userId') userId: number, @Ctx() context: any): Promise<boolean> {
+    const user = await User.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // moderator user disabled own account?
+    const userRepository = getCustomRepository(UserRepository)
+    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    if (moderatorUser.id === userId) {
+      throw new Error('Moderator can not delete his own account!')
+    }
+    // soft-delete user
+    await user.softRemove()
+    return true
+  }
+
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
