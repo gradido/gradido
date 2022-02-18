@@ -7,12 +7,6 @@
       <template #cell(enabled)="row">
         <b-icon
           @click="rowToogleDetails(row, 3)"
-          :variant="row.item.enabled ? 'success' : 'danger'"
-          :icon="row.item.enabled ? 'check-circle' : 'x-circle'"
-          :title="row.item.enabled ? $t('enabled') : $t('disabled')"
-        ></b-icon>
-        <b-icon
-          @click="rowToogleDetails(row, 3)"
           :variant="row.item.enabled ? 'dark' : 'dark'"
           :icon="row.item.enabled ? 'gear' : 'gear'"
           :title="row.item.enabled ? $t('enabled') : $t('disabled')"

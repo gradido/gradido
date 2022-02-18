@@ -7,7 +7,7 @@
       </b-button>
       <b-button variant="light" @click="disabledUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ filterDisabledUser ? $t('enabled_user') : $t('disabled_user') }}
+        {{ filterDisabledUser ? $t('all_emails') : $t('disabled_user') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
