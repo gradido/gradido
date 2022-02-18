@@ -77,7 +77,7 @@
                   </b-col>
                   <b-col cols="7">
                     <div class="gdd-transaction-list-item-date">
-                      {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+                      {{ $d(new Date(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                     </div>
                   </b-col>
                 </b-row>
@@ -146,10 +146,10 @@ import PaginationButtons from '../../../components/PaginationButtons'
 import DecayInformation from '../../../components/DecayInformation'
 
 const iconsByType = {
-  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '-' },
+  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '−' },
   receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
   creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
-  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '-' },
+  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '−' },
 }
 
 export default {
