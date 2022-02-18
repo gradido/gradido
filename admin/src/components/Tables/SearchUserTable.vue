@@ -9,7 +9,7 @@
           @click="rowToogleDetails(row, 3)"
           :variant="row.item.enabled ? 'dark' : 'dark'"
           :icon="row.item.enabled ? 'gear' : 'gear'"
-          :title="row.item.enabled ? $t('enabled') : $t('disabled')"
+          :title="row.item.enabled ? $t('enabled') : $t('deleted')"
         ></b-icon>
       </template>
       <template #cell(show_details)="row">

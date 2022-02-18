@@ -5,9 +5,9 @@
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
       </b-button>
-      <b-button variant="light" @click="disabledUserSearch">
+      <b-button variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ filterDisabledUser ? $t('all_emails') : $t('disabled_user') }}
+        {{ filterDeletedUser ? $t('all_emails') : $t('deleted_user') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -56,7 +56,7 @@ export default {
       massCreation: [],
       criteria: '',
       filterCheckedEmails: false,
-      filterDisabledUser: false,
+      filterDeletedUser: false,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -68,10 +68,10 @@ export default {
       this.filterCheckedEmails = !this.filterCheckedEmails
       this.getUsers()
     },
-    disabledUserSearch() {
-      this.filterDisabledUser = !this.filterDisabledUser
+    deletedUserSearch() {
+      this.filterDeletedUser = !this.filterDeletedUser
       this.getUsers()
-      alert('TODO: disabled user filter in search und im backend prüfen')
+      alert('TODO: deleted user filter in search and check in backend ')
     },
     getUsers() {
       this.$apollo
@@ -82,7 +82,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             notActivated: this.filterCheckedEmails,
-            disabledUser: this.filterDisabledUser,
+            deletedUser: this.filterDeletedUser,
           },
         })
         .then((result) => {
