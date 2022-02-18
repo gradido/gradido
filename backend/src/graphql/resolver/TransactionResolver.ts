@@ -272,16 +272,6 @@ async function addUserTransaction(
   })
 }
 
-async function getPublicKey(email: string): Promise<string | null> {
-  const user = await dbUser.findOne({ email: email })
-  // User not found
-  if (!user) {
-    return null
-  }
-
-  return user.pubKey.toString('hex')
-}
-
 @Resolver()
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
@@ -301,7 +291,7 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: dbUser | undefined
     if (userId) {
-      userEntity = await userRepository.findOneOrFail({ id: userId })
+      userEntity = await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
     } else {
       userEntity = await userRepository.findByPubkeyHex(context.pubKey)
     }
@@ -357,18 +347,15 @@ export class TransactionResolver {
 
     // validate recipient user
     // TODO: the detour over the public key is unnecessary
-    const recipiantPublicKey = await getPublicKey(email)
-    if (!recipiantPublicKey) {
+    const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
+    if (!recipientUser) {
       throw new Error('recipient not known')
     }
-    if (!isHexPublicKey(recipiantPublicKey)) {
-      throw new Error('invalid recipiant public key')
+    if (recipientUser.deletedAt) {
+      throw new Error('The recipient account was deleted')
     }
-    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
-    if (!recipiantUser) {
-      throw new Error('Cannot find recipiant user by local send coins transaction')
-    } else if (recipiantUser.deletedAt) {
-      throw new Error('recipiant user account is disabled')
+    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
+      throw new Error('invalid recipient public key')
     }
 
     // validate amount
@@ -405,7 +392,7 @@ export class TransactionResolver {
 
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
-        recipiantUser,
+        recipientUser,
         transaction,
         centAmount,
         queryRunner,
@@ -421,7 +408,7 @@ export class TransactionResolver {
 
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
-        recipiantUser,
+        recipientUser,
         centAmount,
         transaction.received,
         queryRunner,
@@ -439,8 +426,8 @@ export class TransactionResolver {
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
       transactionSendCoin.senderPublic = senderUser.pubKey
-      transactionSendCoin.recipiantUserId = recipiantUser.id
-      transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
+      transactionSendCoin.recipiantUserId = recipientUser.id
+      transactionSendCoin.recipiantPublic = recipientUser.pubKey
       transactionSendCoin.amount = centAmount
       transactionSendCoin.senderFinalBalance = senderStateBalance.amount
       await queryRunner.manager.save(transactionSendCoin).catch((error) => {
@@ -474,9 +461,9 @@ export class TransactionResolver {
     await sendTransactionReceivedEmail({
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      recipientFirstName: recipiantUser.firstName,
-      recipientLastName: recipiantUser.lastName,
-      email: recipiantUser.email,
+      recipientFirstName: recipientUser.firstName,
+      recipientLastName: recipientUser.lastName,
+      email: recipientUser.email,
       amount,
       memo,
     })
