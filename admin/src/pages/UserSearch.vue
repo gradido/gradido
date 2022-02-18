@@ -1,11 +1,11 @@
 <template>
   <div class="user-search">
     <div style="text-align: right">
-      <b-button variant="light" @click="unconfirmedRegisterMails">
+      <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
       </b-button>
-      <b-button variant="light" @click="deletedUserSearch">
+      <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
         {{ filterDeletedUser ? $t('all_emails') : $t('deleted_user') }}
       </b-button>

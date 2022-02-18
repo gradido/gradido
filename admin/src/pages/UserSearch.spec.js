@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch.vue'
 
 const localVue = global.localVue
+jest.spyOn(window, 'alert').mockImplementation(() => {})
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
@@ -83,6 +84,7 @@ describe('UserSearch', () => {
             currentPage: 1,
             pageSize: 25,
             notActivated: false,
+            deletedUser: false,
           },
         }),
       )
@@ -90,7 +92,7 @@ describe('UserSearch', () => {
 
     describe('unconfirmed emails', () => {
       beforeEach(async () => {
-        await wrapper.find('button.btn-block').trigger('click')
+        await wrapper.find('button.unconfirmedRegisterMails').trigger('click')
       })
 
       it('calls API with filter', () => {
@@ -101,6 +103,27 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: true,
+              deletedUser: false,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('deleted Users', () => {
+      beforeEach(async () => {
+        await wrapper.find('button.deletedUserSearch').trigger('click')
+      })
+
+      it('calls API with filter', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+              notActivated: false,
+              deletedUser: true,
             },
           }),
         )
@@ -120,6 +143,7 @@ describe('UserSearch', () => {
               currentPage: 2,
               pageSize: 25,
               notActivated: false,
+              deletedUser: false,
             },
           }),
         )
@@ -139,6 +163,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: false,
+              deletedUser: false,
             },
           }),
         )
@@ -155,6 +180,7 @@ describe('UserSearch', () => {
                 currentPage: 1,
                 pageSize: 25,
                 notActivated: false,
+                deletedUser: false,
               },
             }),
           )
