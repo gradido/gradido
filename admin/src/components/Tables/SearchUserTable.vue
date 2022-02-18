@@ -4,6 +4,14 @@
       <template #cell(creation)="data">
         <div v-html="data.value"></div>
       </template>
+      <template #cell(enabled)="row">
+        <b-icon
+          @click="rowToogleDetails(row, 3)"
+          :variant="row.item.enabled ? 'dark' : 'dark'"
+          :icon="row.item.enabled ? 'gear' : 'gear'"
+          :title="row.item.enabled ? $t('enabled') : $t('deleted')"
+        ></b-icon>
+      </template>
       <template #cell(show_details)="row">
         <b-button
           variant="info"
@@ -73,6 +81,9 @@
           <template #show-transaction-list>
             <creation-transaction-list-formular :userId="row.item.userId" />
           </template>
+          <template #show-deleted-user>
+            <deleted-user-formular :item="row.item" />
+          </template>
         </row-details>
       </template>
     </b-table-lite>
@@ -83,9 +94,15 @@ import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
 import RowDetails from '../RowDetails.vue'
 import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
+import DeletedUserFormular from '../DeletedUserFormular.vue'
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 
-const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
+const slotNames = [
+  'show-creation',
+  'show-register-mail',
+  'show-transaction-list',
+  'show-deleted-user',
+]
 
 export default {
   name: 'SearchUserTable',
@@ -94,6 +111,7 @@ export default {
     CreationFormular,
     ConfirmRegisterMailFormular,
     CreationTransactionListFormular,
+    DeletedUserFormular,
     RowDetails,
   },
   props: {
