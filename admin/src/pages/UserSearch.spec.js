@@ -83,6 +83,7 @@ describe('UserSearch', () => {
             currentPage: 1,
             pageSize: 25,
             notActivated: false,
+            isDeleted: false,
           },
         }),
       )
@@ -90,7 +91,7 @@ describe('UserSearch', () => {
 
     describe('unconfirmed emails', () => {
       beforeEach(async () => {
-        await wrapper.find('button.btn-block').trigger('click')
+        await wrapper.find('button.unconfirmedRegisterMails').trigger('click')
       })
 
       it('calls API with filter', () => {
@@ -101,6 +102,27 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: true,
+              isDeleted: false,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('deleted Users', () => {
+      beforeEach(async () => {
+        await wrapper.find('button.deletedUserSearch').trigger('click')
+      })
+
+      it('calls API with filter', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+              notActivated: false,
+              isDeleted: true,
             },
           }),
         )
@@ -120,6 +142,7 @@ describe('UserSearch', () => {
               currentPage: 2,
               pageSize: 25,
               notActivated: false,
+              isDeleted: false,
             },
           }),
         )
@@ -139,6 +162,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: false,
+              isDeleted: false,
             },
           }),
         )
@@ -155,6 +179,7 @@ describe('UserSearch', () => {
                 currentPage: 1,
                 pageSize: 25,
                 notActivated: false,
+                isDeleted: false,
               },
             }),
           )

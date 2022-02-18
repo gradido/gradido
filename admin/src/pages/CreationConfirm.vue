@@ -1,18 +1,7 @@
 <template>
   <div class="creation-confirm">
-    <div v-show="overlay" id="overlay" class="">
-      <b-jumbotron class="bg-light p-4">
-        <template #header>{{ $t('overlay.confirm.title') }}</template>
-        <template #lead>{{ $t('overlay.confirm.text') }}</template>
-        <hr class="my-4" />
-        <p>{{ $t('overlay.confirm.question') }}</p>
-        <b-button size="md" variant="danger" class="m-3" @click="overlay = false">
-          {{ $t('overlay.confirm.no') }}
-        </b-button>
-        <b-button size="md" variant="success" class="m-3 text-right" @click="confirmCreation">
-          {{ $t('overlay.confirm.yes') }}
-        </b-button>
-      </b-jumbotron>
+    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
+      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
     </div>
     <open-creations-table
       class="mt-4"
@@ -24,6 +13,7 @@
   </div>
 </template>
 <script>
+import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
@@ -33,12 +23,13 @@ export default {
   name: 'CreationConfirm',
   components: {
     OpenCreationsTable,
+    Overlay,
   },
   data() {
     return {
       pendingCreations: [],
       overlay: false,
-      item: [],
+      item: {},
     }
   },
   methods: {

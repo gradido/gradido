@@ -1,9 +1,10 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection, QueryRunner } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection, QueryRunner, In } from '@dbTools/typeorm'
 
 import CONFIG from '../../config'
 import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
@@ -16,15 +17,12 @@ import Paginated from '../arg/Paginated'
 
 import { Order } from '../enum/Order'
 
-import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
 import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionSendCoin as dbTransactionSendCoin } from '@entity/TransactionSendCoin'
 import { Balance as dbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
@@ -50,15 +48,14 @@ async function calculateAndAddDecayTransactions(
     transactionIds.push(userTransaction.transactionId)
   })
 
-  const transactionRepository = getCustomRepository(TransactionRepository)
-  const transactions = await transactionRepository.joinFullTransactionsByIds(transactionIds)
-
+  const transactions = await dbTransaction.find({ where: { id: In(transactionIds) } })
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
+    involvedUserIds.push(transaction.userId)
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
-      involvedUserIds.push(transaction.transactionSendCoin.userId)
-      involvedUserIds.push(transaction.transactionSendCoin.recipiantUserId)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
     }
   })
   // remove duplicates
@@ -108,24 +105,21 @@ async function calculateAndAddDecayTransactions(
     // balance
     if (userTransaction.transactionTypeId === TransactionTypeId.CREATION) {
       // creation
-      const creation = transaction.transactionCreation
-
       finalTransaction.name = 'Gradido Akademie'
       finalTransaction.type = TransactionType.CREATION
       // finalTransaction.targetDate = creation.targetDate
-      finalTransaction.balance = roundFloorFrom4(creation.amount)
+      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
     } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
       // send coin
-      const sendCoin = transaction.transactionSendCoin
       let otherUser: dbUser | undefined
-      finalTransaction.balance = roundFloorFrom4(sendCoin.amount)
-      if (sendCoin.userId === user.id) {
+      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+      if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced[sendCoin.recipiantUserId]
+        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId)
         // finalTransaction.pubkey = sendCoin.recipiantPublic
-      } else if (sendCoin.recipiantUserId === user.id) {
+      } else if (transaction.sendReceiverUserId === user.id) {
         finalTransaction.type = TransactionType.RECIEVE
-        otherUser = userIndiced[sendCoin.userId]
+        otherUser = userIndiced.find((u) => u.id === transaction.userId)
         // finalTransaction.pubkey = sendCoin.senderPublic
       } else {
         throw new Error('invalid transaction')
@@ -153,59 +147,7 @@ async function calculateAndAddDecayTransactions(
       finalTransactions.push(decayTransaction)
     }
   }
-
   return finalTransactions
-}
-
-// Helper function
-async function listTransactions(
-  currentPage: number,
-  pageSize: number,
-  order: Order,
-  user: dbUser,
-  onlyCreations: boolean,
-): Promise<TransactionList> {
-  let limit = pageSize
-  let offset = 0
-  let skipFirstTransaction = false
-  if (currentPage > 1) {
-    offset = (currentPage - 1) * pageSize - 1
-    limit++
-  }
-
-  if (offset && order === Order.ASC) {
-    offset--
-  }
-  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-  let [userTransactions, userTransactionsCount] = await userTransactionRepository.findByUserPaged(
-    user.id,
-    limit,
-    offset,
-    order,
-    onlyCreations,
-  )
-  skipFirstTransaction = userTransactionsCount > offset + limit
-  const decay = !(currentPage > 1)
-  let transactions: Transaction[] = []
-  if (userTransactions.length) {
-    if (order === Order.DESC) {
-      userTransactions = userTransactions.reverse()
-    }
-    transactions = await calculateAndAddDecayTransactions(
-      userTransactions,
-      user,
-      decay,
-      skipFirstTransaction,
-    )
-    if (order === Order.DESC) {
-      transactions = transactions.reverse()
-    }
-  }
-
-  const transactionList = new TransactionList()
-  transactionList.count = userTransactionsCount
-  transactionList.transactions = transactions
-  return transactionList
 }
 
 // helper helper function
@@ -215,8 +157,7 @@ async function updateStateBalance(
   received: Date,
   queryRunner: QueryRunner,
 ): Promise<dbBalance> {
-  const balanceRepository = getCustomRepository(BalanceRepository)
-  let balance = await balanceRepository.findByUser(user.id)
+  let balance = await dbBalance.findOne({ userId: user.id })
   if (!balance) {
     balance = new dbBalance()
     balance.userId = user.id
@@ -272,16 +213,6 @@ async function addUserTransaction(
   })
 }
 
-async function getPublicKey(email: string): Promise<string | null> {
-  const user = await dbUser.findOne({ email: email })
-  // User not found
-  if (!user) {
-    return null
-  }
-
-  return user.pubKey.toString('hex')
-}
-
 @Resolver()
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
@@ -299,43 +230,66 @@ export class TransactionResolver {
   ): Promise<TransactionList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    let userEntity: dbUser | undefined
-    if (userId) {
-      userEntity = await userRepository.findOneOrFail({ id: userId })
-    } else {
-      userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const user = userId
+      ? await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
+      : await userRepository.findByPubkeyHex(context.pubKey)
+    let limit = pageSize
+    let offset = 0
+    let skipFirstTransaction = false
+    if (currentPage > 1) {
+      offset = (currentPage - 1) * pageSize - 1
+      limit++
+    }
+    if (offset && order === Order.ASC) {
+      offset--
+    }
+    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+    const [userTransactions, userTransactionsCount] =
+      await userTransactionRepository.findByUserPaged(user.id, limit, offset, order, onlyCreations)
+    skipFirstTransaction = userTransactionsCount > offset + limit
+    const decay = !(currentPage > 1)
+    let transactions: Transaction[] = []
+    if (userTransactions.length) {
+      if (order === Order.DESC) {
+        userTransactions.reverse()
+      }
+      transactions = await calculateAndAddDecayTransactions(
+        userTransactions,
+        user,
+        decay,
+        skipFirstTransaction,
+      )
+      if (order === Order.DESC) {
+        transactions.reverse()
+      }
     }
 
-    const transactions = await listTransactions(
-      currentPage,
-      pageSize,
-      order,
-      userEntity,
-      onlyCreations,
-    )
+    const transactionList = new TransactionList()
+    transactionList.count = userTransactionsCount
+    transactionList.transactions = transactions
 
     // get gdt sum
-    transactions.gdtSum = null
+    transactionList.gdtSum = null
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: userEntity.email,
+        email: user.email,
       })
-      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+      if (resultGDTSum.success) transactionList.gdtSum = Number(resultGDTSum.data.sum) || 0
     } catch (err: any) {}
 
     // get balance
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
+    const balanceEntity = await dbBalance.findOne({ userId: user.id })
     if (balanceEntity) {
       const now = new Date()
-      transactions.balance = roundFloorFrom4(balanceEntity.amount)
-      transactions.decay = roundFloorFrom4(
+      transactionList.balance = roundFloorFrom4(balanceEntity.amount)
+      // TODO: Add a decay object here instead of static data representing the decay.
+      transactionList.decay = roundFloorFrom4(
         calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
       )
-      transactions.decayDate = now.toString()
+      transactionList.decayDate = now.toString()
     }
 
-    return transactions
+    return transactionList
   }
 
   @Authorized([RIGHTS.SEND_COINS])
@@ -343,37 +297,28 @@ export class TransactionResolver {
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: any,
-  ): Promise<string> {
+  ): Promise<boolean> {
     // TODO this is subject to replay attacks
-    // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
     const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
+    // validate amount
     if (!hasUserAmount(senderUser, amount)) {
-      throw new Error("user hasn't enough GDD")
+      throw new Error("user hasn't enough GDD or amount is < 0")
     }
 
     // validate recipient user
-    // TODO: the detour over the public key is unnecessary
-    const recipiantPublicKey = await getPublicKey(email)
-    if (!recipiantPublicKey) {
+    const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
+    if (!recipientUser) {
       throw new Error('recipient not known')
     }
-    if (!isHexPublicKey(recipiantPublicKey)) {
-      throw new Error('invalid recipiant public key')
+    if (recipientUser.deletedAt) {
+      throw new Error('The recipient account was deleted')
     }
-    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
-    if (!recipiantUser) {
-      throw new Error('Cannot find recipiant user by local send coins transaction')
-    } else if (recipiantUser.disabled) {
-      throw new Error('recipiant user account is disabled')
-    }
-
-    // validate amount
-    if (amount <= 0) {
-      throw new Error('invalid amount')
+    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
+      throw new Error('invalid recipient public key')
     }
 
     const centAmount = Math.trunc(amount * 10000)
@@ -383,17 +328,16 @@ export class TransactionResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
       // transaction
-      let transaction = new dbTransaction()
+      const transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
+      transaction.userId = senderUser.id
+      transaction.pubkey = senderUser.pubKey
+      transaction.sendReceiverUserId = recipientUser.id
+      transaction.sendReceiverPublicKey = recipientUser.pubKey
+      transaction.amount = BigInt(centAmount)
 
-      // TODO: NO! this is problematic in its construction
-      const insertResult = await queryRunner.manager.insert(dbTransaction, transaction)
-      transaction = await queryRunner.manager
-        .findOneOrFail(dbTransaction, insertResult.generatedMaps[0].id)
-        .catch((error) => {
-          throw new Error('error loading saved transaction: ' + error)
-        })
+      await queryRunner.manager.insert(dbTransaction, transaction)
 
       // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
@@ -405,7 +349,7 @@ export class TransactionResolver {
 
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
-        recipiantUser,
+        recipientUser,
         transaction,
         centAmount,
         queryRunner,
@@ -421,7 +365,7 @@ export class TransactionResolver {
 
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
-        recipiantUser,
+        recipientUser,
         centAmount,
         transaction.received,
         queryRunner,
@@ -434,18 +378,10 @@ export class TransactionResolver {
         throw new Error('db data corrupted, recipiant')
       }
 
-      // transactionSendCoin
-      const transactionSendCoin = new dbTransactionSendCoin()
-      transactionSendCoin.transactionId = transaction.id
-      transactionSendCoin.userId = senderUser.id
-      transactionSendCoin.senderPublic = senderUser.pubKey
-      transactionSendCoin.recipiantUserId = recipiantUser.id
-      transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
-      transactionSendCoin.amount = centAmount
-      transactionSendCoin.senderFinalBalance = senderStateBalance.amount
-      await queryRunner.manager.save(transactionSendCoin).catch((error) => {
-        throw new Error('error saving transaction send coin: ' + error)
-      })
+      // TODO: WTF?
+      // I just assume that due to implicit type conversion the decimal places were cut.
+      // Using `Math.trunc` to simulate this behaviour
+      transaction.sendSenderFinalBalance = BigInt(Math.trunc(senderStateBalance.amount))
 
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
@@ -474,13 +410,13 @@ export class TransactionResolver {
     await sendTransactionReceivedEmail({
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      recipientFirstName: recipiantUser.firstName,
-      recipientLastName: recipiantUser.lastName,
-      email: recipiantUser.email,
+      recipientFirstName: recipientUser.firstName,
+      recipientLastName: recipientUser.lastName,
+      email: recipientUser.email,
       amount,
       memo,
     })
 
-    return 'success'
+    return true
   }
 }

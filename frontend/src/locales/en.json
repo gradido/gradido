@@ -215,6 +215,7 @@
     "gdt-text": "GradidoTransform Transactions",
     "more": "more",
     "nullTransactions": "You don't have any transactions on your account yet.",
+    "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },
