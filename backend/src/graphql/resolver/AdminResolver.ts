@@ -114,6 +114,19 @@ export class AdminResolver {
     return true
   }
 
+  @Authorized([RIGHTS.UNDELETE_USER])
+  @Mutation(() => Boolean)
+  async unDeleteUser(@Arg('userId') userId: number): Promise<boolean> {
+    const user = await User.findOne({ id: userId }, { withDeleted: true })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // recover user account
+    await user.recover()
+    return true
+  }
+
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(

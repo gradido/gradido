@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export const unDeleteUser = gql`
-  mutation ($userId: Int!) {
+  mutation ($userId: Float!) {
     unDeleteUser(userId: $userId)
   }
 `
