@@ -367,7 +367,7 @@ export class TransactionResolver {
     const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
     if (!recipiantUser) {
       throw new Error('Cannot find recipiant user by local send coins transaction')
-    } else if (recipiantUser.disabled) {
+    } else if (recipiantUser.deletedAt) {
       throw new Error('recipiant user account is disabled')
     }
 

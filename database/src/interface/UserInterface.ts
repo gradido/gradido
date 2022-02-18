@@ -10,7 +10,7 @@ export interface UserInterface {
   createdAt?: Date
   emailChecked?: boolean
   language?: string
-  disabled?: boolean
+  deletedAt?: Date
   groupId?: number
   publisherId?: number
   passphrase?: string

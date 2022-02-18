@@ -3,7 +3,7 @@ export interface UserContext {
   email?: string
   firstName?: string
   lastName?: string
-  disabled?: boolean
+  deletedAt?: Date
   password?: BigInt
   privKey?: Buffer
   emailHash?: Buffer
