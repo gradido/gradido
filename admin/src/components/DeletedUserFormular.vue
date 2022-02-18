@@ -17,7 +17,7 @@ export default {
   name: 'DeletedUser',
   props: {
     item: {
-      type: Array,
+      type: Object,
     },
   },
   data() {

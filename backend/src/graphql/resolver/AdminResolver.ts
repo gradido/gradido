@@ -46,6 +46,7 @@ export class AdminResolver {
         adminUser.creation = await getUserCreations(user.id)
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
+        adminUser.deletedAt = user.deletedAt
         if (!user.emailChecked) {
           const emailOptIn = await LoginEmailOptIn.findOne(
             {

@@ -23,6 +23,9 @@ export class UserAdmin {
   @Field(() => Boolean)
   hasElopage: boolean
 
+  @Field(() => Date, { nullable: true })
+  deletedAt?: Date | null
+
   @Field(() => String, { nullable: true })
   emailConfirmationSend?: string
 }

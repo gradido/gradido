@@ -18,6 +18,7 @@ export const searchUsers = gql`
         emailChecked
         hasElopage
         emailConfirmationSend
+        deletedAt
       }
     }
   }
