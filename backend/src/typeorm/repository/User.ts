@@ -9,11 +9,6 @@ export class UserRepository extends Repository<User> {
       .getOneOrFail()
   }
 
-  async findByPubkeyHexBuffer(pubkeyHexBuffer: Buffer): Promise<User> {
-    const pubKeyString = pubkeyHexBuffer.toString('hex')
-    return await this.findByPubkeyHex(pubKeyString)
-  }
-
   async getUsersIndiced(userIds: number[]): Promise<User[]> {
     if (!userIds.length) return []
     const users = await this.createQueryBuilder('user')
