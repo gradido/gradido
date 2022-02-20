@@ -114,6 +114,7 @@ async function calculateAndAddDecayTransactions(
     } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
       // send coin
       let otherUser: dbUser | undefined
+      console.log('converting', transaction.amount)
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
       if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
@@ -422,7 +423,10 @@ export class TransactionResolver {
         throw new Error('db data corrupted, recipiant')
       }
 
-      transaction.sendSenderFinalBalance = BigInt(senderStateBalance.amount)
+      // TODO: WTF?
+      // I just assume that due to implicit type conversion the decimal places were cut.
+      // Using `Math.trunc` to simulate this behaviour
+      transaction.sendSenderFinalBalance = BigInt(Math.trunc(senderStateBalance.amount))
 
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
