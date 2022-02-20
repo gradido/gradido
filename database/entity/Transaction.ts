@@ -1,1 +1,1 @@
-export { Transaction } from './0016-transaction_signatures/Transaction'
+export { Transaction } from './0024-combine_transaction_tables/Transaction'
