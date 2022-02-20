@@ -49,7 +49,7 @@ export class Transaction extends BaseEntity {
     nullable: true,
     default: null,
   })
-  sendReceiverPublicKey: Buffer
+  sendReceiverPublicKey: Buffer | null
 
   @Column({
     name: 'send_receiver_user_id',
@@ -58,8 +58,8 @@ export class Transaction extends BaseEntity {
     nullable: true,
     default: null,
   })
-  sendReceiverUserId: number
+  sendReceiverUserId: number | null
 
   @Column({ name: 'send_sender_final_balance', length: 20, nullable: true, default: null })
-  sendSenderFinalBalance: BigInt
+  sendSenderFinalBalance: BigInt | null
 }

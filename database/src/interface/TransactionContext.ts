@@ -1,18 +1,20 @@
 import { Transaction } from '../../entity/Transaction'
-import { TransactionSendCoin } from '../../entity/TransactionSendCoin'
-import { TransactionCreation } from '../../entity/TransactionCreation'
 import { User } from '../../entity/User'
 
 export interface TransactionContext {
-  transactionTypeId?: number
+  transactionTypeId: number
+  userId: number
+  amount: BigInt
   txHash?: Buffer
-  memo?: string
+  memo: string
   received?: Date
-  blockchainTypeId?: number
   signature?: Buffer
-  signaturePubkey?: Buffer
-  transactionSendCoin?: TransactionSendCoin
-  transactionCreation?: TransactionCreation
+  pubkey?: Buffer
+  creationIdentHash?: Buffer
+  creationDate?: Date
+  sendReceiverPublicKey?: Buffer
+  sendReceiverUserId?: number
+  sendSenderFinalBalance?: BigInt
 }
 
 export interface BalanceContext {
@@ -29,13 +31,6 @@ export interface TransactionSendCoinContext {
   recipiantUserId?: number
   amount?: number
   senderFinalBalance?: number
-  transaction?: Transaction
-}
-
-export interface TransactionCreationContext {
-  userId?: number
-  amount?: number
-  targetDate?: Date
   transaction?: Transaction
 }
 
