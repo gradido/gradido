@@ -6,13 +6,13 @@ export class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'transaction_type_id', unsigned: true, length: 10, nullable: false })
+  @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
   transactionTypeId: number
 
-  @Column({ name: 'user_id', unsigned: true, length: 10, nullable: false })
+  @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
-  @Column({ type: 'bigint', length: 20, nullable: false })
+  @Column({ type: 'bigint', nullable: false })
   amount: BigInt
 
   @Column({ name: 'tx_hash', type: 'binary', length: 48, default: null, nullable: true })
@@ -53,13 +53,18 @@ export class Transaction extends BaseEntity {
 
   @Column({
     name: 'send_receiver_user_id',
+    type: 'int',
     unsigned: true,
-    length: 10,
     nullable: true,
     default: null,
   })
-  sendReceiverUserId: number | null
+  sendReceiverUserId?: number | null
 
-  @Column({ name: 'send_sender_final_balance', length: 20, nullable: true, default: null })
+  @Column({
+    name: 'send_sender_final_balance',
+    type: 'bigint',
+    nullable: true,
+    default: null,
+  })
   sendSenderFinalBalance: BigInt | null
 }
