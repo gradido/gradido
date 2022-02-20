@@ -8,7 +8,6 @@ import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
@@ -17,13 +16,13 @@ import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
-import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
+import { Balance } from '@entity/Balance'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -223,7 +222,6 @@ export class AdminResolver {
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
-    const transactionRepository = getCustomRepository(TransactionRepository)
     const receivedCallDate = new Date()
     let transaction = new Transaction()
     transaction.transactionTypeId = 1
@@ -232,7 +230,7 @@ export class AdminResolver {
     transaction.userId = pendingCreation.userId
     transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
     transaction.creationDate = pendingCreation.date
-    transaction = await transactionRepository.save(transaction)
+    transaction = await transaction.save()
     if (!transaction) throw new Error('Could not create transaction')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
@@ -262,15 +260,14 @@ export class AdminResolver {
       throw new Error('Error saving user transaction: ' + error)
     })
 
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    let userBalance = await balanceRepository.findByUser(pendingCreation.userId)
+    let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
 
-    if (!userBalance) userBalance = balanceRepository.create()
+    if (!userBalance) userBalance = new Balance()
     userBalance.userId = pendingCreation.userId
     userBalance.amount = Number(newBalance)
     userBalance.modified = receivedCallDate
     userBalance.recordDate = receivedCallDate
-    await balanceRepository.save(userBalance)
+    await userBalance.save()
     await AdminPendingCreation.delete(pendingCreation)
 
     return true

@@ -16,10 +16,8 @@ import Paginated from '../arg/Paginated'
 
 import { Order } from '../enum/Order'
 
-import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
 import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
@@ -49,8 +47,7 @@ async function calculateAndAddDecayTransactions(
     transactionIds.push(userTransaction.transactionId)
   })
 
-  const transactionRepository = getCustomRepository(TransactionRepository)
-  const transactions = await transactionRepository.joinFullTransactionsByIds(transactionIds)
+  const transactions = await dbTransaction.find({ where: { id: transactionIds } })
 
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
@@ -114,7 +111,6 @@ async function calculateAndAddDecayTransactions(
     } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
       // send coin
       let otherUser: dbUser | undefined
-      console.log('converting', transaction.amount)
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
       if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
@@ -212,8 +208,7 @@ async function updateStateBalance(
   received: Date,
   queryRunner: QueryRunner,
 ): Promise<dbBalance> {
-  const balanceRepository = getCustomRepository(BalanceRepository)
-  let balance = await balanceRepository.findByUser(user.id)
+  let balance = await dbBalance.findOne({ userId: user.id })
   if (!balance) {
     balance = new dbBalance()
     balance.userId = user.id
@@ -311,8 +306,7 @@ export class TransactionResolver {
     } catch (err: any) {}
 
     // get balance
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
+    const balanceEntity = await dbBalance.findOne({ userId: userEntity.id })
     if (balanceEntity) {
       const now = new Date()
       transactions.balance = roundFloorFrom4(balanceEntity.amount)
