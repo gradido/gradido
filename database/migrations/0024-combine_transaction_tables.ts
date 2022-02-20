@@ -68,6 +68,53 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  await queryFn(`
+    CREATE TABLE \`transaction_send_coins\` (
+      \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
+      \`transaction_id\` int(10) unsigned NOT NULL,
+      \`sender_public_key\` binary(32) NOT NULL,
+      \`state_user_id\` int(10) unsigned DEFAULT 0,
+      \`receiver_public_key\` binary(32) NOT NULL,
+      \`receiver_user_id\` int(10) unsigned DEFAULT 0,
+      \`amount\` bigint(20) NOT NULL,
+      \`sender_final_balance\` bigint(20) NOT NULL,
+      PRIMARY KEY (\`id\`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=659 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `)
+  await queryFn(`
+    CREATE TABLE \`transaction_creations\` (
+      \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
+      \`transaction_id\` int(10) unsigned NOT NULL,
+      \`state_user_id\` int(10) unsigned NOT NULL,
+      \`amount\` bigint(20) NOT NULL,
+      \`ident_hash\` binary(32) DEFAULT NULL,
+      \`target_date\` timestamp NULL DEFAULT NULL,
+      PRIMARY KEY (\`id\`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=2769 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `)
+
+  await queryFn(`
+    INSERT INTO transaction_send_coins
+      ( transaction_id, sender_public_key, state_user_id,
+        receiver_public_key, receiver_user_id,
+        amount, sender_final_balance )
+      ( SELECT  id AS transaction_id, IF(pubkey, pubkey, 0x00000000000000000000000000000000) AS sender_public_key, user_id AS state_user_id,
+                send_receiver_public_key AS receiver_public_key, send_receiver_user_id AS receiver_user_id,
+                amount, send_sender_final_balance AS sender_final_balance
+        FROM transactions
+        WHERE transaction_type_id = 2 );
+  `)
+
+  await queryFn(`
+    INSERT INTO transaction_creations
+      ( transaction_id, state_user_id,
+        amount, ident_hash, target_date )
+      ( SELECT  id AS transaction_id, user_id AS state_user_id,
+                amount, creation_ident_hash AS ident_hash, creation_date AS target_date
+        FROM transactions
+        WHERE transaction_type_id = 1 );
+  `)
+
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `send_sender_final_balance`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `send_receiver_user_id`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `send_receiver_public_key`;')
