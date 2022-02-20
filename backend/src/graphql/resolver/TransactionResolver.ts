@@ -117,11 +117,11 @@ async function calculateAndAddDecayTransactions(
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
       if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced[transaction.sendReceiverUserId!] // TODO properly enforce null
+        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId) // TODO properly enforce null
         // finalTransaction.pubkey = sendCoin.recipiantPublic
       } else if (transaction.sendReceiverUserId === user.id) {
         finalTransaction.type = TransactionType.RECIEVE
-        otherUser = userIndiced[transaction.userId]
+        otherUser = userIndiced.find((u) => u.id === transaction.userId)
         // finalTransaction.pubkey = sendCoin.senderPublic
       } else {
         throw new Error('invalid transaction')
