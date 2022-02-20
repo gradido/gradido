@@ -123,38 +123,3 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `amount`;')
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `user_id`;')
 }
-
-/*
-CREATE TABLE `transactions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `transaction_type_id` int(10) unsigned NOT NULL,
-  `tx_hash` binary(48) DEFAULT NULL,
-  `memo` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `received` timestamp NOT NULL DEFAULT current_timestamp(),
-  `signature` binary(64) DEFAULT NULL,
-  `pubkey` binary(32) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3421 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-*/
-
-// CREATE TABLE `transaction_creations` (
-//   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-//   `transaction_id` int(10) unsigned NOT NULL,
-//   `state_user_id` int(10) unsigned NOT NULL,
-//   `amount` bigint(20) NOT NULL,
-//   `ident_hash` binary(32) DEFAULT NULL,
-//   `target_date` timestamp NULL DEFAULT NULL,
-//   PRIMARY KEY (`id`)
-// ) ENGINE=InnoDB AUTO_INCREMENT=2769 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-
-// CREATE TABLE `transaction_send_coins` (
-//   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-//   `transaction_id` int(10) unsigned NOT NULL,
-//   `sender_public_key` binary(32) NOT NULL,
-//   `state_user_id` int(10) unsigned DEFAULT 0,
-//   `receiver_public_key` binary(32) NOT NULL,
-//   `receiver_user_id` int(10) unsigned DEFAULT 0,
-//   `amount` bigint(20) NOT NULL,
-//   `sender_final_balance` bigint(20) NOT NULL,
-//   PRIMARY KEY (`id`)
-// ) ENGINE=InnoDB AUTO_INCREMENT=659 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
