@@ -15,7 +15,6 @@ import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '../arg/SearchUsersArgs'
 import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
-import { TransactionCreation } from '@entity/TransactionCreation'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
 import { BalanceRepository } from '../../typeorm/repository/Balance'
@@ -24,6 +23,7 @@ import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -229,16 +229,11 @@ export class AdminResolver {
     transaction.transactionTypeId = 1
     transaction.memo = pendingCreation.memo
     transaction.received = receivedCallDate
+    transaction.userId = pendingCreation.userId
+    transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
+    transaction.creationDate = pendingCreation.date
     transaction = await transactionRepository.save(transaction)
     if (!transaction) throw new Error('Could not create transaction')
-
-    let transactionCreation = new TransactionCreation()
-    transactionCreation.transactionId = transaction.id
-    transactionCreation.userId = pendingCreation.userId
-    transactionCreation.amount = parseInt(pendingCreation.amount.toString())
-    transactionCreation.targetDate = pendingCreation.date
-    transactionCreation = await TransactionCreation.save(transactionCreation)
-    if (!transactionCreation) throw new Error('Could not create transactionCreation')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
     const lastUserTransaction = await userTransactionRepository.findLastForUser(
@@ -289,10 +284,11 @@ async function getUserCreations(id: number): Promise<number[]> {
   const lastMonthNumber = moment().subtract(1, 'month').format('M')
   const currentMonthNumber = moment().format('M')
 
-  const createdAmountsQuery = await TransactionCreation.createQueryBuilder('transaction_creations')
-    .select('MONTH(transaction_creations.target_date)', 'target_month')
-    .addSelect('SUM(transaction_creations.amount)', 'sum')
-    .where('transaction_creations.state_user_id = :id', { id })
+  const createdAmountsQuery = await Transaction.createQueryBuilder('transactions')
+    .select('MONTH(transactions.creation_date)', 'target_month')
+    .addSelect('SUM(transactions.amount)', 'sum')
+    .where('transactions.user_id = :id', { id })
+    .andWhere('transactions.transaction_type_id = :type', { type: TransactionTypeId.CREATION })
     .andWhere({
       targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
         date: dateBeforeLastMonth,

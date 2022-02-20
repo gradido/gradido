@@ -24,7 +24,6 @@ import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { User as dbUser } from '@entity/User'
 import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionSendCoin as dbTransactionSendCoin } from '@entity/TransactionSendCoin'
 import { Balance as dbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
@@ -57,8 +56,8 @@ async function calculateAndAddDecayTransactions(
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
-      involvedUserIds.push(transaction.transactionSendCoin.userId)
-      involvedUserIds.push(transaction.transactionSendCoin.recipiantUserId)
+      involvedUserIds.push(transaction.userId)
+      involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
     }
   })
   // remove duplicates
@@ -108,24 +107,21 @@ async function calculateAndAddDecayTransactions(
     // balance
     if (userTransaction.transactionTypeId === TransactionTypeId.CREATION) {
       // creation
-      const creation = transaction.transactionCreation
-
       finalTransaction.name = 'Gradido Akademie'
       finalTransaction.type = TransactionType.CREATION
       // finalTransaction.targetDate = creation.targetDate
-      finalTransaction.balance = roundFloorFrom4(creation.amount)
+      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
     } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
       // send coin
-      const sendCoin = transaction.transactionSendCoin
       let otherUser: dbUser | undefined
-      finalTransaction.balance = roundFloorFrom4(sendCoin.amount)
-      if (sendCoin.userId === user.id) {
+      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+      if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced[sendCoin.recipiantUserId]
+        otherUser = userIndiced[transaction.sendReceiverUserId!] // TODO properly enforce null
         // finalTransaction.pubkey = sendCoin.recipiantPublic
-      } else if (sendCoin.recipiantUserId === user.id) {
+      } else if (transaction.sendReceiverUserId === user.id) {
         finalTransaction.type = TransactionType.RECIEVE
-        otherUser = userIndiced[sendCoin.userId]
+        otherUser = userIndiced[transaction.userId]
         // finalTransaction.pubkey = sendCoin.senderPublic
       } else {
         throw new Error('invalid transaction')
@@ -373,6 +369,11 @@ export class TransactionResolver {
       let transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
+      transaction.userId = senderUser.id
+      transaction.pubkey = senderUser.pubKey
+      transaction.sendReceiverUserId = recipientUser.id
+      transaction.sendReceiverPublicKey = recipientUser.pubKey
+      transaction.amount = BigInt(centAmount)
 
       // TODO: NO! this is problematic in its construction
       const insertResult = await queryRunner.manager.insert(dbTransaction, transaction)
@@ -421,18 +422,7 @@ export class TransactionResolver {
         throw new Error('db data corrupted, recipiant')
       }
 
-      // transactionSendCoin
-      const transactionSendCoin = new dbTransactionSendCoin()
-      transactionSendCoin.transactionId = transaction.id
-      transactionSendCoin.userId = senderUser.id
-      transactionSendCoin.senderPublic = senderUser.pubKey
-      transactionSendCoin.recipiantUserId = recipientUser.id
-      transactionSendCoin.recipiantPublic = recipientUser.pubKey
-      transactionSendCoin.amount = centAmount
-      transactionSendCoin.senderFinalBalance = senderStateBalance.amount
-      await queryRunner.manager.save(transactionSendCoin).catch((error) => {
-        throw new Error('error saving transaction send coin: ' + error)
-      })
+      transaction.sendSenderFinalBalance = BigInt(senderStateBalance.amount)
 
       await queryRunner.manager.save(transaction).catch((error) => {
         throw new Error('error saving transaction with tx hash: ' + error)
