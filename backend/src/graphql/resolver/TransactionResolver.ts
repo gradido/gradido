@@ -242,13 +242,8 @@ export class TransactionResolver {
       offset--
     }
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-    let [userTransactions, userTransactionsCount] = await userTransactionRepository.findByUserPaged(
-      user.id,
-      limit,
-      offset,
-      order,
-      onlyCreations,
-    )
+    const [userTransactions, userTransactionsCount] =
+      await userTransactionRepository.findByUserPaged(user.id, limit, offset, order, onlyCreations)
     skipFirstTransaction = userTransactionsCount > offset + limit
     const decay = !(currentPage > 1)
     let transactions: Transaction[] = []
