@@ -254,7 +254,7 @@ export class TransactionResolver {
     let transactions: Transaction[] = []
     if (userTransactions.length) {
       if (order === Order.DESC) {
-        userTransactions = userTransactions.reverse()
+        userTransactions.reverse()
       }
       transactions = await calculateAndAddDecayTransactions(
         userTransactions,
@@ -263,7 +263,7 @@ export class TransactionResolver {
         skipFirstTransaction,
       )
       if (order === Order.DESC) {
-        transactions = transactions.reverse()
+        transactions.reverse()
       }
     }
 
