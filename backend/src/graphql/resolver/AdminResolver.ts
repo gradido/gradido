@@ -261,9 +261,10 @@ export class AdminResolver {
     })
 
     let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
-
-    if (!userBalance) userBalance = new Balance()
-    userBalance.userId = pendingCreation.userId
+    if (!userBalance) {
+      userBalance = new Balance()
+      userBalance.userId = pendingCreation.userId
+    }
     userBalance.amount = Number(newBalance)
     userBalance.modified = receivedCallDate
     userBalance.recordDate = receivedCallDate
