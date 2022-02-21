@@ -1,6 +1,6 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
-import { TransactionCreation } from '../TransactionCreation'
-import { TransactionSendCoin } from '../TransactionSendCoin'
+import { TransactionCreation } from './TransactionCreation'
+import { TransactionSendCoin } from './TransactionSendCoin'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {

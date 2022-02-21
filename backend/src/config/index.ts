@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0023-users_disabled_soft_delete',
+  DB_VERSION: '0024-combine_transaction_tables',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 
