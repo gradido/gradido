@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection, QueryRunner } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection, QueryRunner, In } from '@dbTools/typeorm'
 
 import CONFIG from '../../config'
 import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
@@ -47,7 +47,7 @@ async function calculateAndAddDecayTransactions(
     transactionIds.push(userTransaction.transactionId)
   })
 
-  const transactions = await dbTransaction.find({ where: { id: transactionIds } })
+  const transactions = await dbTransaction.find({ where: { id: In(transactionIds) } })
 
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
@@ -114,7 +114,7 @@ async function calculateAndAddDecayTransactions(
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
       if (transaction.userId === user.id) {
         finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId) // TODO properly enforce null
+        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId)
         // finalTransaction.pubkey = sendCoin.recipiantPublic
       } else if (transaction.sendReceiverUserId === user.id) {
         finalTransaction.type = TransactionType.RECIEVE
@@ -304,7 +304,6 @@ export class TransactionResolver {
     @Ctx() context: any,
   ): Promise<boolean> {
     // TODO this is subject to replay attacks
-    // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
     const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (senderUser.pubKey.length !== 32) {
@@ -316,7 +315,6 @@ export class TransactionResolver {
     }
 
     // validate recipient user
-    // TODO: the detour over the public key is unnecessary
     const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
     if (!recipientUser) {
       throw new Error('recipient not known')
@@ -335,7 +333,7 @@ export class TransactionResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
       // transaction
-      let transaction = new dbTransaction()
+      const transaction = new dbTransaction()
       transaction.transactionTypeId = TransactionTypeId.SEND
       transaction.memo = memo
       transaction.userId = senderUser.id
@@ -344,13 +342,7 @@ export class TransactionResolver {
       transaction.sendReceiverPublicKey = recipientUser.pubKey
       transaction.amount = BigInt(centAmount)
 
-      // TODO: NO! this is problematic in its construction
-      const insertResult = await queryRunner.manager.insert(dbTransaction, transaction)
-      transaction = await queryRunner.manager
-        .findOneOrFail(dbTransaction, insertResult.generatedMaps[0].id)
-        .catch((error) => {
-          throw new Error('error loading saved transaction: ' + error)
-        })
+      await queryRunner.manager.insert(dbTransaction, transaction)
 
       // Insert Transaction: sender - amount
       const senderUserTransactionBalance = await addUserTransaction(
