@@ -28,13 +28,6 @@ import { User } from '@entity/User'
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 
-/*
-parent:any,
-args:any,
-context:any,
-info:any
-*/
-
 @Resolver()
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
