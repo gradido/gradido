@@ -285,6 +285,7 @@ export class TransactionResolver {
     if (balanceEntity) {
       const now = new Date()
       transactionList.balance = roundFloorFrom4(balanceEntity.amount)
+      // TODO: Add a decay object here instead of static data representing the decay.
       transactionList.decay = roundFloorFrom4(
         calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
       )
