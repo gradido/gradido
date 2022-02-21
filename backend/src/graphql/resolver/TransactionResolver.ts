@@ -150,57 +150,6 @@ async function calculateAndAddDecayTransactions(
   return finalTransactions
 }
 
-// Helper function
-async function listTransactions(
-  currentPage: number,
-  pageSize: number,
-  order: Order,
-  user: dbUser,
-  onlyCreations: boolean,
-): Promise<TransactionList> {
-  let limit = pageSize
-  let offset = 0
-  let skipFirstTransaction = false
-  if (currentPage > 1) {
-    offset = (currentPage - 1) * pageSize - 1
-    limit++
-  }
-
-  if (offset && order === Order.ASC) {
-    offset--
-  }
-  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-  let [userTransactions, userTransactionsCount] = await userTransactionRepository.findByUserPaged(
-    user.id,
-    limit,
-    offset,
-    order,
-    onlyCreations,
-  )
-  skipFirstTransaction = userTransactionsCount > offset + limit
-  const decay = !(currentPage > 1)
-  let transactions: Transaction[] = []
-  if (userTransactions.length) {
-    if (order === Order.DESC) {
-      userTransactions = userTransactions.reverse()
-    }
-    transactions = await calculateAndAddDecayTransactions(
-      userTransactions,
-      user,
-      decay,
-      skipFirstTransaction,
-    )
-    if (order === Order.DESC) {
-      transactions = transactions.reverse()
-    }
-  }
-
-  const transactionList = new TransactionList()
-  transactionList.count = userTransactionsCount
-  transactionList.transactions = transactions
-  return transactionList
-}
-
 // helper helper function
 async function updateStateBalance(
   user: dbUser,
@@ -281,42 +230,71 @@ export class TransactionResolver {
   ): Promise<TransactionList> {
     // load user
     const userRepository = getCustomRepository(UserRepository)
-    let userEntity: dbUser | undefined
-    if (userId) {
-      userEntity = await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
-    } else {
-      userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    }
+    const user = userId
+      ? await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
+      : await userRepository.findByPubkeyHex(context.pubKey)
 
-    const transactions = await listTransactions(
-      currentPage,
-      pageSize,
+    let limit = pageSize
+    let offset = 0
+    let skipFirstTransaction = false
+    if (currentPage > 1) {
+      offset = (currentPage - 1) * pageSize - 1
+      limit++
+    }
+    if (offset && order === Order.ASC) {
+      offset--
+    }
+    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
+    let [userTransactions, userTransactionsCount] = await userTransactionRepository.findByUserPaged(
+      user.id,
+      limit,
+      offset,
       order,
-      userEntity,
       onlyCreations,
     )
+    skipFirstTransaction = userTransactionsCount > offset + limit
+    const decay = !(currentPage > 1)
+    let transactions: Transaction[] = []
+    if (userTransactions.length) {
+      if (order === Order.DESC) {
+        userTransactions = userTransactions.reverse()
+      }
+      transactions = await calculateAndAddDecayTransactions(
+        userTransactions,
+        user,
+        decay,
+        skipFirstTransaction,
+      )
+      if (order === Order.DESC) {
+        transactions = transactions.reverse()
+      }
+    }
+
+    const transactionList = new TransactionList()
+    transactionList.count = userTransactionsCount
+    transactionList.transactions = transactions
 
     // get gdt sum
-    transactions.gdtSum = null
+    transactionList.gdtSum = null
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: userEntity.email,
+        email: user.email,
       })
-      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+      if (resultGDTSum.success) transactionList.gdtSum = Number(resultGDTSum.data.sum) || 0
     } catch (err: any) {}
 
     // get balance
-    const balanceEntity = await dbBalance.findOne({ userId: userEntity.id })
+    const balanceEntity = await dbBalance.findOne({ userId: user.id })
     if (balanceEntity) {
       const now = new Date()
-      transactions.balance = roundFloorFrom4(balanceEntity.amount)
-      transactions.decay = roundFloorFrom4(
+      transactionList.balance = roundFloorFrom4(balanceEntity.amount)
+      transactionList.decay = roundFloorFrom4(
         calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
       )
-      transactions.decayDate = now.toString()
+      transactionList.decayDate = now.toString()
     }
 
-    return transactions
+    return transactionList
   }
 
   @Authorized([RIGHTS.SEND_COINS])
@@ -324,7 +302,7 @@ export class TransactionResolver {
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
     @Ctx() context: any,
-  ): Promise<string> {
+  ): Promise<boolean> {
     // TODO this is subject to replay attacks
     // validate sender user (logged in)
     const userRepository = getCustomRepository(UserRepository)
@@ -332,8 +310,9 @@ export class TransactionResolver {
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
+    // validate amount
     if (!hasUserAmount(senderUser, amount)) {
-      throw new Error("user hasn't enough GDD")
+      throw new Error("user hasn't enough GDD or amount is < 0")
     }
 
     // validate recipient user
@@ -347,11 +326,6 @@ export class TransactionResolver {
     }
     if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
       throw new Error('invalid recipient public key')
-    }
-
-    // validate amount
-    if (amount <= 0) {
-      throw new Error('invalid amount')
     }
 
     const centAmount = Math.trunc(amount * 10000)
@@ -456,6 +430,6 @@ export class TransactionResolver {
       memo,
     })
 
-    return 'success'
+    return true
   }
 }
