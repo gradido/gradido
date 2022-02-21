@@ -48,12 +48,11 @@ async function calculateAndAddDecayTransactions(
   })
 
   const transactions = await dbTransaction.find({ where: { id: In(transactionIds) } })
-
   const transactionIndiced: dbTransaction[] = []
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
+    involvedUserIds.push(transaction.userId)
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
-      involvedUserIds.push(transaction.userId)
       involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
     }
   })
@@ -146,7 +145,6 @@ async function calculateAndAddDecayTransactions(
       finalTransactions.push(decayTransaction)
     }
   }
-
   return finalTransactions
 }
 
@@ -233,7 +231,6 @@ export class TransactionResolver {
     const user = userId
       ? await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
       : await userRepository.findByPubkeyHex(context.pubKey)
-
     let limit = pageSize
     let offset = 0
     let skipFirstTransaction = false
