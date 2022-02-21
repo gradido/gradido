@@ -431,7 +431,7 @@ jobs:
   unit_test_backend:
     name: Unit tests - Backend
     runs-on: ubuntu-latest
-    needs: [build_test_backend,build_test_mariadb]
+    needs: [build_test_mariadb]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -448,13 +448,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/mariadb.tar
-      - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-backend-test
-          path: /tmp
-      - name: Load Docker Image
-        run: docker load < /tmp/backend.tar
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
