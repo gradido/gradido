@@ -39,8 +39,7 @@
     "reflect-metadata": "^0.1.13",
     "sodium-native": "^3.3.0",
     "ts-jest": "^27.0.5",
-    "type-graphql": "^1.1.1",
-    "typeorm": "^0.2.41"
+    "type-graphql": "^1.1.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.12",
