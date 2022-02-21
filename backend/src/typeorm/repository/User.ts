@@ -1,4 +1,4 @@
-import { Brackets, EntityRepository, Repository } from '@dbTools/typeorm'
+import { Brackets, EntityRepository, ObjectLiteral, Repository } from '@dbTools/typeorm'
 import { User } from '@entity/User'
 
 @EntityRepository(User)
@@ -31,44 +31,15 @@ export class UserRepository extends Repository<User> {
     return usersIndiced
   }
 
-  async findBySearchCriteria(searchCriteria: string): Promise<User[]> {
-    return await this.createQueryBuilder('user')
-      .where(
-        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
-        {
-          name: `%${searchCriteria}%`,
-          lastName: `%${searchCriteria}%`,
-          email: `%${searchCriteria}%`,
-        },
-      )
-      .getMany()
-  }
-
-  async findBySearchCriteriaPaged(
+  async findBySearchCriteriaPagedFiltered(
+    select: string[],
     searchCriteria: string,
+    filterCriteria: ObjectLiteral[],
     currentPage: number,
     pageSize: number,
   ): Promise<[User[], number]> {
     return await this.createQueryBuilder('user')
-      .where(
-        'user.firstName like :name or user.lastName like :lastName or user.email like :email',
-        {
-          name: `%${searchCriteria}%`,
-          lastName: `%${searchCriteria}%`,
-          email: `%${searchCriteria}%`,
-        },
-      )
-      .take(pageSize)
-      .skip((currentPage - 1) * pageSize)
-      .getManyAndCount()
-  }
-
-  async findBySearchCriteriaPagedNotActivated(
-    searchCriteria: string,
-    currentPage: number,
-    pageSize: number,
-  ): Promise<[User[], number]> {
-    return await this.createQueryBuilder('user')
+      .select(select)
       .where(
         new Brackets((qb) => {
           qb.where(
@@ -81,7 +52,7 @@ export class UserRepository extends Repository<User> {
           )
         }),
       )
-      .andWhere({ emailChecked: false })
+      .andWhere(filterCriteria)
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
       .getManyAndCount()

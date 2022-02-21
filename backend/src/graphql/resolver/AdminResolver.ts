@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, Raw } from '@dbTools/typeorm'
+import { getCustomRepository, ObjectLiteral, Raw } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -27,6 +27,13 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 
+/*
+parent:any,
+args:any,
+context:any,
+info:any
+*/
+
 @Resolver()
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
@@ -35,21 +42,25 @@ export class AdminResolver {
     @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-    let users: dbUser[]
-    let count: number
+
+    const filterCriteria: ObjectLiteral[] = []
     if (notActivated) {
-      [users, count] = await userRepository.findBySearchCriteriaPagedNotActivated(
-        searchText,
-        currentPage,
-        pageSize,
-      )
-    } else {
-      [users, count] = await userRepository.findBySearchCriteriaPaged(
-        searchText,
-        currentPage,
-        pageSize,
-      )
+      filterCriteria.push({ emailChecked: false })
     }
+    // prevent overfetching data from db, select only needed columns
+    // prevent reading and transmitting data from db at least 300 Bytes
+    // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
+    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
+    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+      userFields.map((fieldName) => {
+        return 'user.' + fieldName
+      }),
+      searchText,
+      filterCriteria,
+      currentPage,
+      pageSize,
+    )
+
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
@@ -70,6 +81,7 @@ export class AdminResolver {
                 updatedAt: 'DESC',
                 createdAt: 'DESC',
               },
+              select: ['updatedAt', 'createdAt'],
             },
           )
           if (emailOptIn) {
