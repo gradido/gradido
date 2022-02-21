@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, Raw } from '@dbTools/typeorm'
+import { getCustomRepository, ObjectLiteral, Raw } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -35,8 +35,26 @@ export class AdminResolver {
     @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-    const users = await userRepository.findBySearchCriteria(searchText)
-    let adminUsers = await Promise.all(
+
+    const filterCriteria: ObjectLiteral[] = []
+    if (notActivated) {
+      filterCriteria.push({ emailChecked: false })
+    }
+    // prevent overfetching data from db, select only needed columns
+    // prevent reading and transmitting data from db at least 300 Bytes
+    // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
+    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
+    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+      userFields.map((fieldName) => {
+        return 'user.' + fieldName
+      }),
+      searchText,
+      filterCriteria,
+      currentPage,
+      pageSize,
+    )
+
+    const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
         adminUser.userId = user.id
@@ -56,6 +74,7 @@ export class AdminResolver {
                 updatedAt: 'DESC',
                 createdAt: 'DESC',
               },
+              select: ['updatedAt', 'createdAt'],
             },
           )
           if (emailOptIn) {
@@ -69,11 +88,9 @@ export class AdminResolver {
         return adminUser
       }),
     )
-    if (notActivated) adminUsers = adminUsers.filter((u) => !u.emailChecked)
-    const first = (currentPage - 1) * pageSize
     return {
-      userCount: adminUsers.length,
-      userList: adminUsers.slice(first, first + pageSize),
+      userCount: count,
+      userList: adminUsers,
     }
   }
 
