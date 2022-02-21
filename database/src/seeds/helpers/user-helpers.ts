@@ -42,7 +42,7 @@ const createUserContext = (context: UserInterface): UserContext => {
     email: context.email,
     firstName: context.firstName,
     lastName: context.lastName,
-    disabled: context.disabled,
+    deletedAt: context.deletedAt,
     password: context.password,
     privKey: context.privKey,
     emailHash: context.emailHash,

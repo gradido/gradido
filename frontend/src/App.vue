@@ -41,6 +41,15 @@ export default {
 }
 </script>
 <style>
+.gdd-toaster-title {
+  color: #ffffff !important;
+}
+.gdd-toaster-body {
+  color: #ffffff !important;
+}
+.gdd-toaster {
+  color: #ffffff;
+}
 .btn-primary pim {
   background-color: #5a7b02;
   border-color: #5e72e4;

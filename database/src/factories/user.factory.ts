@@ -12,7 +12,7 @@ define(User, (faker: typeof Faker, context?: UserContext) => {
   user.email = context.email ? context.email : faker.internet.email()
   user.firstName = context.firstName ? context.firstName : faker.name.firstName()
   user.lastName = context.lastName ? context.lastName : faker.name.lastName()
-  user.disabled = context.disabled ? context.disabled : false
+  user.deletedAt = context.deletedAt ? context.deletedAt : null
   // TODO Create real password and keys/hash
   user.password = context.password ? context.password : BigInt(0)
   user.privKey = context.privKey ? context.privKey : randomBytes(80)

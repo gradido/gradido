@@ -23,6 +23,7 @@ import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { User } from '@entity/User'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -106,8 +107,13 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
+    const user = await User.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error('This user was deleted. Cannot make a creation.')
+    }
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
@@ -158,8 +164,13 @@ export class AdminResolver {
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
   ): Promise<UpdatePendingCreation> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
+    const user = await User.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error(`User was deleted (${email})`)
+    }
 
     const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
@@ -261,11 +272,11 @@ export class AdminResolver {
     if (!lastUserTransaction) {
       newBalance = 0
     } else {
-      newBalance = await calculateDecay(
+      newBalance = calculateDecay(
         lastUserTransaction.balance,
         lastUserTransaction.balanceDate,
         receivedCallDate,
-      )
+      ).balance
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 

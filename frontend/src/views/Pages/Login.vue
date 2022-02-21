@@ -105,7 +105,7 @@ export default {
           loader.hide()
         })
         .catch((error) => {
-          this.$toasted.global.error(this.$t('error.no-account'))
+          this.toastError(this.$t('error.no-account'))
           if (error.message.includes('User email not validated')) {
             this.$router.push('/thx/login')
           } else if (error.message.includes('User has no password set yet')) {

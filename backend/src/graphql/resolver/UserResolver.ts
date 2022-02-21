@@ -152,8 +152,7 @@ const createEmailOptIn = async (
   loginUserId: number,
   queryRunner: QueryRunner,
 ): Promise<LoginEmailOptIn> => {
-  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-  let emailOptIn = await loginEmailOptInRepository.findOne({
+  let emailOptIn = await LoginEmailOptIn.findOne({
     userId: loginUserId,
     emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
   })
@@ -182,8 +181,7 @@ const createEmailOptIn = async (
 }
 
 const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
-  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-  let optInCode = await loginEmailOptInRepository.findOne({
+  let optInCode = await LoginEmailOptIn.findOne({
     userId: loginUserId,
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
@@ -205,7 +203,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     optInCode.userId = loginUserId
     optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
   }
-  await loginEmailOptInRepository.save(optInCode)
+  await LoginEmailOptIn.save(optInCode)
   return optInCode
 }
 
@@ -250,9 +248,12 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const dbUser = await DbUser.findOneOrFail({ email }).catch(() => {
+    const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
       throw new Error('No user with this credentials')
     })
+    if (dbUser.deletedAt) {
+      throw new Error('This user was permanently disabled. Contact support for questions.')
+    }
     if (!dbUser.emailChecked) {
       throw new Error('User email not validated')
     }
@@ -335,9 +336,9 @@ export class UserResolver {
 
     // Validate email unique
     // TODO: i can register an email in upper/lower case twice
-    const userRepository = getCustomRepository(UserRepository)
-    const usersFound = await userRepository.count({ email })
-    if (usersFound !== 0) {
+    // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
+    const userFound = await DbUser.findOne({ email }, { withDeleted: true })
+    if (userFound) {
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
       throw new Error(`User already exists.`)
     }
@@ -487,12 +488,9 @@ export class UserResolver {
     }
 
     // Load code
-    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-    const optInCode = await loginEmailOptInRepository
-      .findOneOrFail({ verificationCode: code })
-      .catch(() => {
-        throw new Error('Could not login with emailVerificationCode')
-      })
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
+      throw new Error('Could not login with emailVerificationCode')
+    })
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()

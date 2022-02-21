@@ -1,7 +1,6 @@
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 
-import Toasted from 'vue-toasted'
 import PortalVue from 'portal-vue'
 
 // vue-bootstrap
@@ -30,16 +29,5 @@ export default {
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
-    Vue.use(Toasted, {
-      position: 'top-center',
-      duration: 5000,
-      fullWidth: true,
-      action: {
-        text: 'x',
-        onClick: (e, toastObject) => {
-          toastObject.goAway(0)
-        },
-      },
-    })
   },
 }

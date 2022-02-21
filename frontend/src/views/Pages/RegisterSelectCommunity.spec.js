@@ -2,6 +2,8 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import { communities, communityInfo } from '../../graphql/queries'
 import RegisterSelectCommunity from './RegisterSelectCommunity'
 
+import { toastErrorSpy } from '../../../test/testSetup'
+
 const localVue = global.localVue
 
 const spinnerHideMock = jest.fn()
@@ -52,7 +54,6 @@ const apolloQueryMock = jest
     },
   })
 
-const toasterMock = jest.fn()
 const mockStoreCommit = jest.fn()
 
 describe('RegisterSelectCommunity', () => {
@@ -77,11 +78,6 @@ describe('RegisterSelectCommunity', () => {
     },
     $loading: {
       show: spinnerMock,
-    },
-    $toasted: {
-      global: {
-        error: toasterMock,
-      },
     },
   }
 
@@ -129,7 +125,7 @@ describe('RegisterSelectCommunity', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toasterMock).toBeCalledWith('Failed to get communities')
+        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
       })
     })
 
@@ -208,7 +204,7 @@ describe('RegisterSelectCommunity', () => {
         })
 
         it('toast an error', () => {
-          expect(toasterMock).toBeCalledWith('Wrong thing')
+          expect(toastErrorSpy).toBeCalledWith('Wrong thing')
         })
 
         it('hides the spinner', () => {

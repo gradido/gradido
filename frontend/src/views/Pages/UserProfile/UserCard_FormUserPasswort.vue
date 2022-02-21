@@ -89,11 +89,11 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.success(this.$t('site.thx.reset'))
+          this.toastSuccess(this.$t('site.thx.reset'))
           this.cancelEdit()
         })
         .catch((error) => {
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
     },
   },

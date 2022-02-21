@@ -29,7 +29,7 @@ import { Balance as dbBalance } from '@entity/Balance'
 
 import { apiPost } from '../../apis/HttpRequest'
 import { roundFloorFrom4, roundCeilFrom4 } from '../../util/round'
-import { calculateDecay, calculateDecayWithInterval } from '../../util/decay'
+import { calculateDecay } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
@@ -67,8 +67,6 @@ async function calculateAndAddDecayTransactions(
   const userRepository = getCustomRepository(UserRepository)
   const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
 
-  const decayStartTransaction = await transactionRepository.findDecayStartBlock()
-
   for (let i = 0; i < userTransactions.length; i++) {
     const userTransaction = userTransactions[i]
     const transaction = transactionIndiced[userTransaction.transactionId]
@@ -81,26 +79,22 @@ async function calculateAndAddDecayTransactions(
 
     if (previousTransaction) {
       const currentTransaction = userTransaction
-      const decay = await calculateDecayWithInterval(
+      const decay = calculateDecay(
         previousTransaction.balance,
         previousTransaction.balanceDate,
         currentTransaction.balanceDate,
       )
       const balance = previousTransaction.balance - decay.balance
 
-      if (
-        decayStartTransaction &&
-        decayStartTransaction.received < currentTransaction.balanceDate
-      ) {
+      if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
         finalTransaction.decay = decay
         finalTransaction.decay.balance = roundFloorFrom4(balance)
         if (
-          decayStartTransaction &&
-          previousTransaction.transactionId < decayStartTransaction.id &&
-          currentTransaction.transactionId > decayStartTransaction.id
+          previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
+          currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
         ) {
           finalTransaction.decay.decayStartBlock = (
-            decayStartTransaction.received.getTime() / 1000
+            CONFIG.DECAY_START_TIME.getTime() / 1000
           ).toString()
         }
       }
@@ -147,11 +141,7 @@ async function calculateAndAddDecayTransactions(
 
     if (i === userTransactions.length - 1 && decay) {
       const now = new Date()
-      const decay = await calculateDecayWithInterval(
-        userTransaction.balance,
-        userTransaction.balanceDate,
-        now.getTime(),
-      )
+      const decay = calculateDecay(userTransaction.balance, userTransaction.balanceDate, now)
       const balance = userTransaction.balance - decay.balance
 
       const decayTransaction = new Transaction()
@@ -233,12 +223,8 @@ async function updateStateBalance(
     balance.amount = centAmount
     balance.modified = received
   } else {
-    const decaiedBalance = await calculateDecay(balance.amount, balance.recordDate, received).catch(
-      () => {
-        throw new Error('error by calculating decay')
-      },
-    )
-    balance.amount = Number(decaiedBalance) + centAmount
+    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
+    balance.amount = Number(decayedBalance) + centAmount
     balance.modified = new Date()
   }
   if (balance.amount <= 0) {
@@ -262,13 +248,11 @@ async function addUserTransaction(
   const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
   if (lastUserTransaction) {
     newBalance += Number(
-      await calculateDecay(
+      calculateDecay(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         transaction.received,
-      ).catch(() => {
-        throw new Error('error by calculating decay')
-      }),
+      ).balance,
     )
   }
 
@@ -286,16 +270,6 @@ async function addUserTransaction(
   return queryRunner.manager.save(newUserTransaction).catch((error) => {
     throw new Error('Error saving user transaction: ' + error)
   })
-}
-
-async function getPublicKey(email: string): Promise<string | null> {
-  const user = await dbUser.findOne({ email: email })
-  // User not found
-  if (!user) {
-    return null
-  }
-
-  return user.pubKey.toString('hex')
 }
 
 @Resolver()
@@ -317,7 +291,7 @@ export class TransactionResolver {
     const userRepository = getCustomRepository(UserRepository)
     let userEntity: dbUser | undefined
     if (userId) {
-      userEntity = await userRepository.findOneOrFail({ id: userId })
+      userEntity = await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
     } else {
       userEntity = await userRepository.findByPubkeyHex(context.pubKey)
     }
@@ -331,11 +305,13 @@ export class TransactionResolver {
     )
 
     // get gdt sum
-    const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-      email: userEntity.email,
-    })
-    if (!resultGDTSum.success) throw new Error(resultGDTSum.data)
-    transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    transactions.gdtSum = null
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: userEntity.email,
+      })
+      if (resultGDTSum.success) transactions.gdtSum = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {}
 
     // get balance
     const balanceRepository = getCustomRepository(BalanceRepository)
@@ -344,7 +320,7 @@ export class TransactionResolver {
       const now = new Date()
       transactions.balance = roundFloorFrom4(balanceEntity.amount)
       transactions.decay = roundFloorFrom4(
-        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
+        calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
       )
       transactions.decayDate = now.toString()
     }
@@ -371,18 +347,15 @@ export class TransactionResolver {
 
     // validate recipient user
     // TODO: the detour over the public key is unnecessary
-    const recipiantPublicKey = await getPublicKey(email)
-    if (!recipiantPublicKey) {
+    const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
+    if (!recipientUser) {
       throw new Error('recipient not known')
     }
-    if (!isHexPublicKey(recipiantPublicKey)) {
-      throw new Error('invalid recipiant public key')
+    if (recipientUser.deletedAt) {
+      throw new Error('The recipient account was deleted')
     }
-    const recipiantUser = await userRepository.findByPubkeyHex(recipiantPublicKey)
-    if (!recipiantUser) {
-      throw new Error('Cannot find recipiant user by local send coins transaction')
-    } else if (recipiantUser.disabled) {
-      throw new Error('recipiant user account is disabled')
+    if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
+      throw new Error('invalid recipient public key')
     }
 
     // validate amount
@@ -419,7 +392,7 @@ export class TransactionResolver {
 
       // Insert Transaction: recipient + amount
       const recipiantUserTransactionBalance = await addUserTransaction(
-        recipiantUser,
+        recipientUser,
         transaction,
         centAmount,
         queryRunner,
@@ -435,7 +408,7 @@ export class TransactionResolver {
 
       // Update Balance: recipiant + amount
       const recipiantStateBalance = await updateStateBalance(
-        recipiantUser,
+        recipientUser,
         centAmount,
         transaction.received,
         queryRunner,
@@ -453,8 +426,8 @@ export class TransactionResolver {
       transactionSendCoin.transactionId = transaction.id
       transactionSendCoin.userId = senderUser.id
       transactionSendCoin.senderPublic = senderUser.pubKey
-      transactionSendCoin.recipiantUserId = recipiantUser.id
-      transactionSendCoin.recipiantPublic = Buffer.from(recipiantPublicKey, 'hex')
+      transactionSendCoin.recipiantUserId = recipientUser.id
+      transactionSendCoin.recipiantPublic = recipientUser.pubKey
       transactionSendCoin.amount = centAmount
       transactionSendCoin.senderFinalBalance = senderStateBalance.amount
       await queryRunner.manager.save(transactionSendCoin).catch((error) => {
@@ -488,9 +461,9 @@ export class TransactionResolver {
     await sendTransactionReceivedEmail({
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      recipientFirstName: recipiantUser.firstName,
-      recipientLastName: recipiantUser.lastName,
-      email: recipiantUser.email,
+      recipientFirstName: recipientUser.firstName,
+      recipientLastName: recipientUser.lastName,
+      email: recipientUser.email,
       amount,
       memo,
     })

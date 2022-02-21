@@ -53,6 +53,19 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     membership,
   } = req.body
 
+  // Do not process certain events
+  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(event)) {
+    // eslint-disable-next-line no-console
+    console.log('User viewed, completed or commented - not saving hook')
+    return
+  }
+
+  if (!product || !publisher || !membership || !payer) {
+    // eslint-disable-next-line no-console
+    console.log('Elopage Hook: Not an event we can process')
+    return
+  }
+
   loginElopageBuy.affiliateProgramId = parseInt(product.affiliate_program_id) || null
   loginElopageBuy.publisherId = parseInt(publisher.id) || null
   loginElopageBuy.orderId = parseInt(order_id) || null
@@ -71,13 +84,6 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
 
   const firstName = payer.first_name
   const lastName = payer.last_name
-
-  // Do not process certain events
-  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(loginElopageBuy.event)) {
-    // eslint-disable-next-line no-console
-    console.log('User viewed, completed or commented - not saving hook')
-    return
-  }
 
   // Save the hook data
   try {
