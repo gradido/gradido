@@ -1,13 +1,24 @@
 <template>
   <div>
     {{ item }}
-    <div class="mt-5">
-      <b-form-checkbox switch size="lg" v-model="checked">deleted User</b-form-checkbox>
+    <div v-if="item.userId === $store.state.moderator.id" class="mt-5 mb-5">
+      Als Admin / Moderator kannst du dich nicht selber löschen.
     </div>
-    <div class="mt-3">GDD Stand: 20 GDD</div>
-    <div class="mt-3 mb-5">
-      <b-button v-if="checked" variant="danger" @click="deleteUser">Delete User</b-button>
-      <b-button v-if="checked" variant="success" @click="unDeleteUser">Undelete User</b-button>
+    <div v-else class="mt-5">
+      <b-form-checkbox switch size="lg" v-model="checked" value="xxsxsx">
+        <div v-if="item.deletedAt === null">delete user</div>
+        <div v-if="item.deletedAt !== null">unDelete user</div>
+      </b-form-checkbox>
+
+      <div class="mt-3">GDD Stand: 20 GDD</div>
+      <div class="mt-3 mb-5">
+        <b-button v-if="checked && item.deletedAt === null" variant="danger" @click="deleteUser">
+          Delete User
+        </b-button>
+        <b-button v-if="checked && item.deletedAt !== null" variant="success" @click="unDeleteUser">
+          Undelete User
+        </b-button>
+      </div>
     </div>
   </div>
 </template>

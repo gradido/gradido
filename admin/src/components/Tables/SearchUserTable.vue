@@ -2,51 +2,35 @@
   <div class="search-user-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
       <template #cell(creation)="data">
-        <div v-html="data.value"></div>
+        <div v-html="data.value" @click="rowToogleDetails(row, 0)"></div>
       </template>
-      <template #cell(enabled)="row">
-        <b-icon
-          @click="rowToogleDetails(row, 3)"
-          :variant="row.item.enabled ? 'dark' : 'dark'"
-          :icon="row.item.enabled ? 'gear' : 'gear'"
-          :title="row.item.enabled ? $t('enabled') : $t('deleted')"
-        ></b-icon>
+
+      <template #cell(status)="row">
+        <div @click="rowToogleDetails(row, 0)" class="text-right">
+          <b-table-simple fixed-width small>
+            <b-tr>
+              <b-td>
+                <b-badge v-if="!row.item.emailChecked" variant="danger" class="mr-2">
+                  <b-icon class="h4" icon="envelope" aria-label="Help"></b-icon>
+                </b-badge>
+              </b-td>
+              <b-td>
+                <b-badge v-if="!row.item.hasElopage" variant="danger" class="mr-2">
+                  <b-icon class="h4" icon="x-circle"></b-icon>
+                </b-badge>
+              </b-td>
+              <b-td>
+                <b-icon
+                  variant="dark"
+                  :icon="row.detailsShowing ? 'caret-up-fill' : 'caret-down'"
+                  :title="row.item.enabled ? $t('enabled') : $t('deleted')"
+                ></b-icon>
+              </b-td>
+            </b-tr>
+          </b-table-simple>
+        </div>
       </template>
-      <template #cell(show_details)="row">
-        <b-button
-          variant="info"
-          size="md"
-          v-if="row.item.emailChecked"
-          @click="rowToogleDetails(row, 0)"
-          class="mr-2"
-        >
-          <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
-        </b-button>
-      </template>
-      <template #cell(confirm_mail)="row">
-        <b-button
-          :variant="row.item.emailChecked ? 'success' : 'danger'"
-          size="md"
-          @click="rowToogleDetails(row, 1)"
-          class="mr-2"
-        >
-          <b-icon
-            :icon="row.item.emailChecked ? 'envelope-open' : 'envelope'"
-            aria-label="Help"
-          ></b-icon>
-        </b-button>
-      </template>
-      <template #cell(has_elopage)="row">
-        <b-icon
-          :variant="row.item.hasElopage ? 'success' : 'danger'"
-          :icon="row.item.hasElopage ? 'check-circle' : 'x-circle'"
-        ></b-icon>
-      </template>
-      <template #cell(transactions_list)="row">
-        <b-button variant="warning" size="md" @click="rowToogleDetails(row, 2)" class="mr-2">
-          <b-icon icon="list"></b-icon>
-        </b-button>
-      </template>
+
       <template #row-details="row">
         <row-details
           :row="row"
@@ -55,19 +39,15 @@
           :index="slotIndex"
           @row-toogle-details="rowToogleDetails"
         >
-          <template #show-creation>
-            <div>
-              <creation-formular
-                type="singleCreation"
-                pagetype="singleCreation"
-                :creation="row.item.creation"
-                :item="row.item"
-                :creationUserData="creationUserData"
-                @update-user-data="updateUserData"
-              />
-            </div>
-          </template>
-          <template #show-register-mail>
+          <template #show-collaps>
+            <creation-formular
+              type="singleCreation"
+              pagetype="singleCreation"
+              :creation="row.item.creation"
+              :item="row.item"
+              :creationUserData="creationUserData"
+              @update-user-data="updateUserData"
+            />
             <confirm-register-mail-formular
               :checked="row.item.emailChecked"
               :email="row.item.email"
@@ -77,11 +57,7 @@
                   : ''
               "
             />
-          </template>
-          <template #show-transaction-list>
             <creation-transaction-list-formular :userId="row.item.userId" />
-          </template>
-          <template #show-deleted-user>
             <deleted-user-formular :item="row.item" />
           </template>
         </row-details>
@@ -97,12 +73,7 @@ import CreationTransactionListFormular from '../CreationTransactionListFormular.
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 
-const slotNames = [
-  'show-creation',
-  'show-register-mail',
-  'show-transaction-list',
-  'show-deleted-user',
-]
+const slotNames = ['show-collaps']
 
 export default {
   name: 'SearchUserTable',
