@@ -13,8 +13,7 @@
     "start": "node build/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts",
-    "CI_workflow_test": "jest --runInBand --coverage ",
-    "test": "NODE_ENV=development jest --runInBand --coverage "
+    "test": "TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",

@@ -11,7 +11,6 @@ export interface UserInterface {
   emailChecked?: boolean
   language?: string
   deletedAt?: Date
-  groupId?: number
   publisherId?: number
   passphrase?: string
   // from server user
@@ -27,9 +26,8 @@ export interface UserInterface {
   // balance
   balanceModified?: Date
   recordDate?: Date
-  targetDate?: Date
+  creationDate?: Date
   amount?: number
   creationTxHash?: Buffer
   signature?: Buffer
-  signaturePubkey?: Buffer
 }

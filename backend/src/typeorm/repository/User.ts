@@ -10,16 +10,11 @@ export class UserRepository extends Repository<User> {
   }
 
   async getUsersIndiced(userIds: number[]): Promise<User[]> {
-    if (!userIds.length) return []
-    const users = await this.createQueryBuilder('user')
+    return this.createQueryBuilder('user')
+      .withDeleted() // We need to show the name for deleted users for old transactions
       .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .where('user.id IN (:...users)', { users: userIds })
+      .where('user.id IN (:...userIds)', { userIds })
       .getMany()
-    const usersIndiced: User[] = []
-    users.forEach((value) => {
-      usersIndiced[value.id] = value
-    })
-    return usersIndiced
   }
 
   async findBySearchCriteriaPagedFiltered(

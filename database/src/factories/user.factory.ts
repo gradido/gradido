@@ -1,7 +1,7 @@
 import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { User } from '../../entity/User'
-import { randomBytes, randomInt } from 'crypto'
+import { randomBytes } from 'crypto'
 import { UserContext } from '../interface/UserContext'
 
 define(User, (faker: typeof Faker, context?: UserContext) => {
