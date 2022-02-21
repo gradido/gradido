@@ -71,7 +71,7 @@ const dateTimeFormats = {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      weekday: 'short',
+      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
     },
