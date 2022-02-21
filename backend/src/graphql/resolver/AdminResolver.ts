@@ -224,7 +224,7 @@ export class AdminResolver {
 
     const receivedCallDate = new Date()
     let transaction = new Transaction()
-    transaction.transactionTypeId = 1
+    transaction.transactionTypeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.received = receivedCallDate
     transaction.userId = pendingCreation.userId
