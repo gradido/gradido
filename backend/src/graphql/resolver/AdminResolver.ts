@@ -287,7 +287,7 @@ async function getUserCreations(id: number): Promise<number[]> {
     .where('transactions.user_id = :id', { id })
     .andWhere('transactions.transaction_type_id = :type', { type: TransactionTypeId.CREATION })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
+      creationDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
         date: dateBeforeLastMonth,
         endDate: dateNextMonth,
       }),
