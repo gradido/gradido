@@ -4,7 +4,7 @@
     <div class="header py-1 py-lg-1 pt-lg-3">
       <b-container>
         <div class="header-body text-center mb-3">
-          <a href="login" to="login">
+          <a href="#!" @click="goback">
             <div class="container">
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">
@@ -1185,6 +1185,11 @@
         </div>
       </b-container>
     </div>
+    <div class="text-center">
+      <b-button class="test-back" variant="light" @click="goback">
+        {{ $t('back') }}
+      </b-button>
+    </div>
   </div>
 </template>
 
@@ -1212,6 +1217,11 @@ export default {
         rotateY: { value: '+=180', delay: 200 },
       },
     }
+  },
+  methods: {
+    goback() {
+      this.$router.go(-1)
+    },
   },
 }
 </script>

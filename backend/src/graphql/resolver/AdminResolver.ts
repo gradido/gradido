@@ -8,21 +8,21 @@ import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
 import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
 import { RIGHTS } from '../../auth/RIGHTS'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '../arg/SearchUsersArgs'
 import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
-import { TransactionCreation } from '@entity/TransactionCreation'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
-import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { User } from '@entity/User'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
+import { Balance } from '@entity/Balance'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -82,8 +82,13 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
+    const user = await User.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error('This user was deleted. Cannot make a creation.')
+    }
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
@@ -134,8 +139,13 @@ export class AdminResolver {
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
   ): Promise<UpdatePendingCreation> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
+    const user = await User.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error(`User was deleted (${email})`)
+    }
 
     const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
@@ -212,22 +222,16 @@ export class AdminResolver {
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
-    const transactionRepository = getCustomRepository(TransactionRepository)
     const receivedCallDate = new Date()
     let transaction = new Transaction()
-    transaction.transactionTypeId = 1
+    transaction.transactionTypeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.received = receivedCallDate
-    transaction = await transactionRepository.save(transaction)
+    transaction.userId = pendingCreation.userId
+    transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
+    transaction.creationDate = pendingCreation.date
+    transaction = await transaction.save()
     if (!transaction) throw new Error('Could not create transaction')
-
-    let transactionCreation = new TransactionCreation()
-    transactionCreation.transactionId = transaction.id
-    transactionCreation.userId = pendingCreation.userId
-    transactionCreation.amount = parseInt(pendingCreation.amount.toString())
-    transactionCreation.targetDate = pendingCreation.date
-    transactionCreation = await TransactionCreation.save(transactionCreation)
-    if (!transactionCreation) throw new Error('Could not create transactionCreation')
 
     const userTransactionRepository = getCustomRepository(UserTransactionRepository)
     const lastUserTransaction = await userTransactionRepository.findLastForUser(
@@ -256,15 +260,15 @@ export class AdminResolver {
       throw new Error('Error saving user transaction: ' + error)
     })
 
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    let userBalance = await balanceRepository.findByUser(pendingCreation.userId)
-
-    if (!userBalance) userBalance = balanceRepository.create()
-    userBalance.userId = pendingCreation.userId
+    let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
+    if (!userBalance) {
+      userBalance = new Balance()
+      userBalance.userId = pendingCreation.userId
+    }
     userBalance.amount = Number(newBalance)
     userBalance.modified = receivedCallDate
     userBalance.recordDate = receivedCallDate
-    await balanceRepository.save(userBalance)
+    await userBalance.save()
     await AdminPendingCreation.delete(pendingCreation)
 
     return true
@@ -278,12 +282,13 @@ async function getUserCreations(id: number): Promise<number[]> {
   const lastMonthNumber = moment().subtract(1, 'month').format('M')
   const currentMonthNumber = moment().format('M')
 
-  const createdAmountsQuery = await TransactionCreation.createQueryBuilder('transaction_creations')
-    .select('MONTH(transaction_creations.target_date)', 'target_month')
-    .addSelect('SUM(transaction_creations.amount)', 'sum')
-    .where('transaction_creations.state_user_id = :id', { id })
+  const createdAmountsQuery = await Transaction.createQueryBuilder('transactions')
+    .select('MONTH(transactions.creation_date)', 'target_month')
+    .addSelect('SUM(transactions.amount)', 'sum')
+    .where('transactions.user_id = :id', { id })
+    .andWhere('transactions.transaction_type_id = :type', { type: TransactionTypeId.CREATION })
     .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
+      creationDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
         date: dateBeforeLastMonth,
         endDate: dateNextMonth,
       }),

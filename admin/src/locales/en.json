@@ -1,5 +1,6 @@
 {
   "all_emails": "All users",
+  "back": "back",
   "bookmark": "Remember",
   "confirmed": "confirmed",
   "creation": "Creation",
@@ -75,8 +76,9 @@
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",
     "info": "Confirm email, send repeatedly to:",
+    "never_sent": "It seems we did never send an email to the member {email}",
     "success": "Successfully send the confirmation link to the user's email! ({email})",
-    "text_false": "The last email was sent to the member ({mail}) on {date}.",
+    "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
   },
   "user_search": "User search"

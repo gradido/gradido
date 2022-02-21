@@ -1,1 +1,1 @@
-export { User } from './0020-rename_and_clean_state_users/User'
+export { User } from './0023-users_disabled_soft_delete/User'

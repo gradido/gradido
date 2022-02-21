@@ -50,7 +50,7 @@
             {{ $t('form.date') }}
           </b-col>
           <b-col cols="6">
-            {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            {{ $d(new Date(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </b-col>
         </b-row>
 
