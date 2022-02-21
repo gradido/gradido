@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, getRepository, QueryRunner } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
 import CONFIG from '../../config'
 import { User } from '../model/User'
 import { User as DbUser } from '@entity/User'
