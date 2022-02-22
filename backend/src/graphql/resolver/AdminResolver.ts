@@ -335,7 +335,8 @@ async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
       id,
       creations: months.map((month) => {
         const creation = unionQuery.find(
-          (raw: any) => parseInt(raw.month) === month && parseInt(raw.id) === id,
+          (raw: { month: string; id: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.id) === id,
         )
         return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
       }),
