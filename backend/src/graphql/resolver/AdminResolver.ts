@@ -200,6 +200,10 @@ export class AdminResolver {
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const pendingCreations = await AdminPendingCreation.find()
+    if (pendingCreations.length === 0) {
+      return []
+    }
+
     const userIds = pendingCreations.map((p) => p.userId)
     const userCreations = await getUserCreations(userIds)
     const users = await User.find({ id: In(userIds) })
