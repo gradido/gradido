@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, ObjectLiteral, getConnection } from '@dbTools/typeorm'
+import { getCustomRepository, ObjectLiteral, getConnection, In } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -201,27 +201,23 @@ export class AdminResolver {
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const pendingCreations = await AdminPendingCreation.find()
+    const userIds = pendingCreations.map((p) => p.userId)
+    const userCreations = await getUserCreations(userIds)
+    const users = await User.find({ id: In(userIds) })
 
-    const pendingCreationsPromise = await Promise.all(
-      pendingCreations.map(async (pendingCreation) => {
-        const userRepository = getCustomRepository(UserRepository)
-        const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
+    return pendingCreations.map((pendingCreation) => {
+      const user = users.find((u) => u.id === pendingCreation.userId)
+      const creation = userCreations.find((c) => c.id === pendingCreation.id)
 
-        const parsedAmount = Number(parseInt(pendingCreation.amount.toString()) / 10000)
-        // pendingCreation.amount = parsedAmount
-        const newPendingCreation = {
-          ...pendingCreation,
-          amount: parsedAmount,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          creation: await getUserCreation(user.id),
-        }
-
-        return newPendingCreation
-      }),
-    )
-    return pendingCreationsPromise.reverse()
+      return {
+        ...pendingCreation,
+        amount: Number(parseInt(pendingCreation.amount.toString()) / 10000),
+        firstName: user ? user.firstName : '',
+        lastName: user ? user.lastName : '',
+        email: user ? user.email : '',
+        creation: creation ? creation.creations : [1000, 1000, 1000],
+      }
+    })
   }
 
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
