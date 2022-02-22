@@ -40,9 +40,7 @@ export class AdminResolver {
     if (notActivated) {
       filterCriteria.push({ emailChecked: false })
     }
-    // prevent overfetching data from db, select only needed columns
-    // prevent reading and transmitting data from db at least 300 Bytes
-    // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
+
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
@@ -54,6 +52,8 @@ export class AdminResolver {
       pageSize,
     )
 
+    const creations = await getUserCreations(users.map((u) => u.id))
+
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
@@ -61,7 +61,8 @@ export class AdminResolver {
         adminUser.firstName = user.firstName
         adminUser.lastName = user.lastName
         adminUser.email = user.email
-        adminUser.creation = await getUserCreations(user.id)
+        const userCreations = creations.find((c) => c.id === user.id)
+        adminUser.creation = userCreations ? userCreations.creations : [1000, 1000, 1000]
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
         if (!user.emailChecked) {
@@ -109,7 +110,7 @@ export class AdminResolver {
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
-    const creations = await getUserCreations(user.id)
+    const creations = await getUserCreation(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
@@ -122,7 +123,7 @@ export class AdminResolver {
 
       await AdminPendingCreation.save(adminPendingCreation)
     }
-    return getUserCreations(user.id)
+    return getUserCreation(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
@@ -171,7 +172,7 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreations(user.id)
+    let creations = await getUserCreation(user.id)
     if (pendingCreationToUpdate.date.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, pendingCreationToUpdate)
     }
@@ -190,7 +191,8 @@ export class AdminResolver {
     result.memo = pendingCreationToUpdate.memo
     result.date = pendingCreationToUpdate.date
     result.moderator = pendingCreationToUpdate.moderator
-    result.creation = await getUserCreations(user.id)
+
+    result.creation = await getUserCreation(user.id)
 
     return result
   }
@@ -213,7 +215,7 @@ export class AdminResolver {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          creation: await getUserCreations(user.id),
+          creation: await getUserCreation(user.id),
         }
 
         return newPendingCreation
@@ -292,7 +294,17 @@ export class AdminResolver {
   }
 }
 
-async function getUserCreations(id: number): Promise<number[]> {
+interface CreationMap {
+  id: number
+  creations: number[]
+}
+
+async function getUserCreation(id: number): Promise<number[]> {
+  const creations = await getUserCreations([id])
+  return creations[0] ? creations[0].creations : [1000, 1000, 1000]
+}
+
+async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
   const now = new Date(Date.now())
   const months = [
     now.getMonth() + 1,
@@ -304,23 +316,30 @@ async function getUserCreations(id: number): Promise<number[]> {
   await queryRunner.connect()
 
   const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum FROM
-      (SELECT creation_date AS date, amount AS amount FROM transactions
-        WHERE user_id = ${id} AND transaction_type_id = 1
+    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
+      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
+        WHERE user_id IN (${ids.toString()}) AND transaction_type_id = 1
         AND creation_date >= last_day(curdate() - interval 3 month) + interval 1 day
     UNION
-      SELECT date AS date, amount AS amount FROM admin_pending_creations
-      WHERE userId = ${id}
+      SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
+      WHERE userId IN (${ids.toString()})
       AND date >= last_day(curdate() - interval 3 month) + interval 1 day) AS result
-    GROUP BY month
+    GROUP BY month, userId
     ORDER BY date DESC
   `)
 
   await queryRunner.release()
 
-  return months.map((month) => {
-    const creation = unionQuery.find((raw: any) => parseInt(raw.month) === month)
-    return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
+  return ids.map((id) => {
+    return {
+      id,
+      creations: months.map((month) => {
+        const creation = unionQuery.find(
+          (raw: any) => parseInt(raw.month) === month && parseInt(raw.id) === id,
+        )
+        return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
+      }),
+    }
   })
 }
 
