@@ -24,9 +24,9 @@
   "delete": "Löschen",
   "deleted": "gelöscht",
   "deleted_user": "alle gelöschten Nutzer",
+  "delete_user": "Nutzer löschen",
   "details": "Details",
   "edit": "Bearbeiten",
-  "status": "Status",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
@@ -62,12 +62,10 @@
     }
   },
   "remove": "Entfernen",
+  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
-  "removeNotSelf":"Als Admin / Moderator kannst du dich nicht selber löschen.",
-  "delete_user":"Nutzer löschen",
-  "undelete_user":"Nutzer wiederherstellen",
-  "userIsDeleted":"Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "save": "Speichern",
+  "status": "Status",
   "text": "Text",
   "transaction": "Transaktion",
   "transactionlist": {
@@ -78,6 +76,7 @@
     "memo": "Nachricht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
+  "undelete_user": "Nutzer wiederherstellen",
   "unregistered_emails": "Nur unregistrierte Nutzer",
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
@@ -88,5 +87,6 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
+  "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "user_search": "Nutzer-Suche"
 }

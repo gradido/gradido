@@ -24,9 +24,9 @@
   "delete": "Delete",
   "deleted": "deleted",
   "deleted_user": "all deleted user",
+  "delete_user": "Delete user",
   "details": "Details",
   "edit": "Edit",
-  "status": "Status",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
@@ -62,12 +62,10 @@
     }
   },
   "remove": "Remove",
+  "removeNotSelf": "As an admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
-  "removeNotSelf":"As an admin / moderator you cannot delete yourself.",
-  "delete_user":"Delete user",
-  "undelete_user":"Undelete User",
-  "userIsDeleted":"The user is deleted. No more GDD can be created.",
   "save": "Speichern",
+  "status": "Status",
   "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
@@ -78,6 +76,7 @@
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
+  "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
@@ -88,5 +87,6 @@
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
   },
+  "userIsDeleted": "The user is deleted. No more GDD can be created.",
   "user_search": "User search"
 }
