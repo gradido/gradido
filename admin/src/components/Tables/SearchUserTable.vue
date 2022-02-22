@@ -7,21 +7,28 @@
 
       <template #cell(status)="row">
         <div @click="rowToogleDetails(row, 0)" class="text-right">
-          <b-avatar
-            v-if="!row.item.emailChecked"
-            href="#baz"
-            icon="envelope"
-            class="align-center mr-3"
-            variant="danger"
-          ></b-avatar>
+          <b-avatar v-if="row.item.deletedAt" class="mr-3" variant="light">
+            <b-iconstack font-scale="2">
+              <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
+              <b-icon stacked icon="slash-circle" variant="danger"></b-icon>
+            </b-iconstack>
+          </b-avatar>
+          <span v-if="!row.item.deletedAt">
+            <b-avatar
+              v-if="!row.item.emailChecked"
+              href="#baz"
+              icon="envelope"
+              class="align-center mr-3"
+              variant="danger"
+            ></b-avatar>
 
-          <b-avatar
-            v-if="!row.item.hasElopage"
-            variant="danger"
-            class="mr-3"
-            src="img/elopage_favicon.png"
-          ></b-avatar>
-
+            <b-avatar
+              v-if="!row.item.hasElopage"
+              variant="danger"
+              class="mr-3"
+              src="img/elopage_favicon.png"
+            ></b-avatar>
+          </span>
           <b-icon
             variant="dark"
             :icon="row.detailsShowing ? 'caret-up-fill' : 'caret-down'"

@@ -1,6 +1,5 @@
 <template>
   <div>
-    {{ item }}
     <div v-if="item.userId === $store.state.moderator.id" class="mt-5 mb-5">
       Als Admin / Moderator kannst du dich nicht selber löschen.
     </div>
