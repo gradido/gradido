@@ -23,6 +23,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { Balance } from '@entity/Balance'
+// import { isNullableType } from 'graphql'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -66,15 +67,7 @@ export class AdminResolver {
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
-        const adminUser = new UserAdmin()
-        adminUser.userId = user.id
-        adminUser.firstName = user.firstName
-        adminUser.lastName = user.lastName
-        adminUser.email = user.email
-        adminUser.creation = await getUserCreations(user.id)
-        adminUser.emailChecked = user.emailChecked
-        adminUser.hasElopage = await hasElopageBuys(user.email)
-        adminUser.deletedAt = user.deletedAt
+        let emailConfirmationSend = ''
         if (!user.emailChecked) {
           const emailOptIn = await LoginEmailOptIn.findOne(
             {
@@ -90,12 +83,18 @@ export class AdminResolver {
           )
           if (emailOptIn) {
             if (emailOptIn.updatedAt) {
-              adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+              emailConfirmationSend = emailOptIn.updatedAt.toISOString()
             } else {
-              adminUser.emailConfirmationSend = emailOptIn.createdAt.toISOString()
+              emailConfirmationSend = emailOptIn.createdAt.toISOString()
             }
           }
         }
+        const adminUser = new UserAdmin(
+          user,
+          await getUserCreations(user.id),
+          await hasElopageBuys(user.email),
+          emailConfirmationSend,
+        )
         return adminUser
       }),
     )
@@ -106,8 +105,8 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.DELETE_USER])
-  @Mutation(() => Boolean)
-  async deleteUser(@Arg('userId') userId: number, @Ctx() context: any): Promise<boolean> {
+  @Mutation(() => Date, { nullable: true })
+  async deleteUser(@Arg('userId') userId: number, @Ctx() context: any): Promise<Date | null> {
     const user = await User.findOne({ id: userId })
     // user exists ?
     if (!user) {
@@ -121,12 +120,13 @@ export class AdminResolver {
     }
     // soft-delete user
     await user.softRemove()
-    return true
+    const newUser = await User.findOne({ id: userId }, { withDeleted: true })
+    return newUser ? newUser.deletedAt : null
   }
 
   @Authorized([RIGHTS.UNDELETE_USER])
-  @Mutation(() => Boolean)
-  async unDeleteUser(@Arg('userId') userId: number): Promise<boolean> {
+  @Mutation(() => Date, { nullable: true })
+  async unDeleteUser(@Arg('userId') userId: number): Promise<Date | null> {
     const user = await User.findOne({ id: userId }, { withDeleted: true })
     // user exists ?
     if (!user) {
@@ -134,7 +134,8 @@ export class AdminResolver {
     }
     // recover user account
     await user.recover()
-    return true
+    return null
+
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
