@@ -12,7 +12,6 @@ import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '../arg/SearchUsersArgs'
-import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
@@ -301,12 +300,7 @@ async function getUserCreation(id: number): Promise<number[]> {
 }
 
 async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
-  const now = new Date(Date.now())
-  const months = [
-    now.getMonth() + 1,
-    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
-    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
-  ].reverse()
+  const months = getCreationMonths()
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
@@ -344,50 +338,38 @@ async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
 }
 
 function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
-  const dateMonth = moment().format('YYYY-MM')
-  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  const creationDateMonth = moment(pendingCreation.date).format('YYYY-MM')
+  const index = getCreationIndex(pendingCreation.date.getMonth())
 
-  switch (creationDateMonth) {
-    case dateMonth:
-      creations[2] += parseInt(pendingCreation.amount.toString())
-      break
-    case dateLastMonth:
-      creations[1] += parseInt(pendingCreation.amount.toString())
-      break
-    case dateBeforeLastMonth:
-      creations[0] += parseInt(pendingCreation.amount.toString())
-      break
-    default:
-      throw new Error('UpdatedCreationDate is not in the last three months')
+  if (index > -1) {
+    creations[index] += parseInt(pendingCreation.amount.toString())
+  } else {
+    throw new Error('UpdatedCreationDate is not in the last three months')
   }
+
   return creations
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
-  const dateMonth = moment().format('YYYY-MM')
-  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  const creationDateMonth = moment(creationDate).format('YYYY-MM')
+  const index = getCreationIndex(creationDate.getMonth())
 
-  let openCreation
-  switch (creationDateMonth) {
-    case dateMonth:
-      openCreation = creations[2]
-      break
-    case dateLastMonth:
-      openCreation = creations[1]
-      break
-    case dateBeforeLastMonth:
-      openCreation = creations[0]
-      break
-    default:
-      throw new Error('CreationDate is not in last three months')
+  if (index > -1) {
+    if (creations[index] < amount) {
+      throw new Error(`Open creation (${creations[index]}) is less than amount (${amount})`)
+    } else {
+      return true
+    }
   }
+}
 
-  if (openCreation < amount) {
-    throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
-  }
-  return true
+const getCreationMonths = (): number[] => {
+  const now = new Date(Date.now())
+  return [
+    now.getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
+  ].reverse()
+}
+
+const getCreationIndex = (month: number): number => {
+  return getCreationMonths().findIndex((el) => el === month + 1)
 }
