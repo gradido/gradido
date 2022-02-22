@@ -206,7 +206,7 @@ export class AdminResolver {
 
     return pendingCreations.map((pendingCreation) => {
       const user = users.find((u) => u.id === pendingCreation.userId)
-      const creation = userCreations.find((c) => c.id === pendingCreation.id)
+      const creation = userCreations.find((c) => c.id === pendingCreation.userId)
 
       return {
         ...pendingCreation,
