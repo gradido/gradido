@@ -236,6 +236,11 @@ export class AdminResolver {
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
+    const creations = await getUserCreation(pendingCreation.userId, false)
+    if (!isCreationValid(creations, Number(pendingCreation.amount) / 10000, pendingCreation.date)) {
+      throw new Error('Creation is not valid!!')
+    }
+
     const receivedCallDate = new Date()
     let transaction = new Transaction()
     transaction.transactionTypeId = TransactionTypeId.CREATION
@@ -294,12 +299,12 @@ interface CreationMap {
   creations: number[]
 }
 
-async function getUserCreation(id: number): Promise<number[]> {
-  const creations = await getUserCreations([id])
+async function getUserCreation(id: number, includePending = true): Promise<number[]> {
+  const creations = await getUserCreations([id], includePending)
   return creations[0] ? creations[0].creations : [1000, 1000, 1000]
 }
 
-async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
+async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
   const months = getCreationMonths()
 
   const queryRunner = getConnection().createQueryRunner()
@@ -307,16 +312,21 @@ async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
 
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
 
+  const unionString = includePending
+    ? `
+    UNION
+      SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
+        WHERE userId IN (${ids.toString()})
+        AND date >= ${dateFilter}`
+    : ''
+
   const unionQuery = await queryRunner.manager.query(`
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
         WHERE user_id IN (${ids.toString()})
         AND transaction_type_id = ${TransactionTypeId.CREATION}
         AND creation_date >= ${dateFilter}
-      UNION
-        SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
-          WHERE userId IN (${ids.toString()})
-          AND date >= ${dateFilter}) AS result
+      ${unionString}) AS result
     GROUP BY month, userId
     ORDER BY date DESC
   `)
@@ -340,25 +350,27 @@ async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
 function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
   const index = getCreationIndex(pendingCreation.date.getMonth())
 
-  if (index > -1) {
-    creations[index] += parseInt(pendingCreation.amount.toString())
-  } else {
-    throw new Error('UpdatedCreationDate is not in the last three months')
+  if (index < 0) {
+    throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-
+  creations[index] += parseInt(pendingCreation.amount.toString())
   return creations
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
   const index = getCreationIndex(creationDate.getMonth())
 
-  if (index > -1) {
-    if (creations[index] < amount) {
-      throw new Error(`Open creation (${creations[index]}) is less than amount (${amount})`)
-    } else {
-      return true
-    }
+  if (index < 0) {
+    throw new Error(`No Creation found!`)
   }
+
+  if (amount > creations[index]) {
+    throw new Error(
+      `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
+    )
+  }
+
+  return true
 }
 
 const getCreationMonths = (): number[] => {
