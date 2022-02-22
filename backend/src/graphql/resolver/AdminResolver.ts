@@ -43,7 +43,7 @@ export class AdminResolver {
     // prevent overfetching data from db, select only needed columns
     // prevent reading and transmitting data from db at least 300 Bytes
     // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
-    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
+    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
