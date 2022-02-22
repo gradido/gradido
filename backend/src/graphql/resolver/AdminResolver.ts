@@ -135,7 +135,6 @@ export class AdminResolver {
     // recover user account
     await user.recover()
     return null
-
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
