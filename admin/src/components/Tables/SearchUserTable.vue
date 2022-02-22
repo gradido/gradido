@@ -7,7 +7,28 @@
 
       <template #cell(status)="row">
         <div @click="rowToogleDetails(row, 0)" class="text-right">
-          <b-table-simple fixed-width small>
+          <b-avatar
+            v-if="!row.item.emailChecked"
+            href="#baz"
+            icon="envelope"
+            class="align-center mr-3"
+            variant="danger"
+          ></b-avatar>
+
+          <b-avatar
+            v-if="!row.item.hasElopage"
+            variant="danger"
+            class="mr-3"
+            src="img/elopage_favicon_w.png"
+          ></b-avatar>
+
+          <b-icon
+            variant="dark"
+            :icon="row.detailsShowing ? 'caret-up-fill' : 'caret-down'"
+            :title="row.item.enabled ? $t('enabled') : $t('deleted')"
+          ></b-icon>
+
+          <!--<b-table-simple fixed-width small>
             <b-tr>
               <b-td>
                 <b-badge v-if="!row.item.emailChecked" variant="danger" class="mr-2">
@@ -28,6 +49,7 @@
               </b-td>
             </b-tr>
           </b-table-simple>
+          -->
         </div>
       </template>
 
