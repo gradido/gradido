@@ -26,7 +26,12 @@
         </b-input-group-append>
       </b-input-group>
     </div>
-    <search-user-table type="PageUserSearch" :items="searchResult" :fields="fields" />
+    <search-user-table
+      type="PageUserSearch"
+      :items="searchResult"
+      :fields="fields"
+      @updateDeletedAt="updateDeletedAt"
+    />
     <b-pagination
       pills
       size="lg"
@@ -91,6 +96,9 @@ export default {
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+    updateDeletedAt(userId, deletedAt) {
+      this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
     },
   },
   watch: {

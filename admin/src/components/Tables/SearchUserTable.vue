@@ -55,7 +55,7 @@
               :creationUserData="creationUserData"
               @update-user-data="updateUserData"
             />
-            <div v-else>Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.</div>
+            <div v-else>{{ $t('userIsDeleted') }}</div>
 
             <confirm-register-mail-formular
               v-if="!row.item.deletedAt"
@@ -71,7 +71,7 @@
               v-if="!row.item.deletedAt"
               :userId="row.item.userId"
             />
-            <deleted-user-formular :item="row.item" />
+            <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
           </template>
         </row-details>
       </template>
@@ -116,6 +116,9 @@ export default {
   methods: {
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+    updateDeletedAt({ userId, deletedAt }) {
+      this.$emit('updateDeletedAt', userId, deletedAt)
     },
   },
   computed: {

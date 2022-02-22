@@ -1,20 +1,20 @@
 <template>
   <div>
     <div v-if="item.userId === $store.state.moderator.id" class="mt-5 mb-5">
-      Als Admin / Moderator kannst du dich nicht selber löschen.
+      {{ $t('removeNotSelf') }}
     </div>
     <div v-else class="mt-5">
       <b-form-checkbox switch size="lg" v-model="checked">
-        <div v-if="item.deletedAt === null">Delete user</div>
-        <div v-if="item.deletedAt !== null">Undelete user</div>
+        <div v-if="item.deletedAt === null">{{ $t('delete_user') }}</div>
+        <div v-if="item.deletedAt !== null">{{ $t('undelete_user') }}</div>
       </b-form-checkbox>
 
       <div class="mt-3 mb-5">
         <b-button v-if="checked && item.deletedAt === null" variant="danger" @click="deleteUser">
-          Delete User
+          {{ $t('delete_user') }}
         </b-button>
         <b-button v-if="checked && item.deletedAt !== null" variant="success" @click="unDeleteUser">
-          Undelete User
+          {{ $t('undelete_user') }}
         </b-button>
       </div>
     </div>
@@ -45,9 +45,12 @@ export default {
             userId: this.item.userId,
           },
         })
-        .then(() => {
+        .then((result) => {
           this.$toasted.success('user is deleted')
-          this.item.deletedAt = Date.now()
+          this.$emit('updateDeletedAt', {
+            userId: this.item.userId,
+            deletedAt: result.data.deleteUser,
+          })
           this.checked = false
         })
         .catch((error) => {
@@ -62,9 +65,13 @@ export default {
             userId: this.item.userId,
           },
         })
-        .then(() => {
+        .then((result) => {
           this.$toasted.success('user is undeleted')
-          this.item.deletedAt = null
+          this.$emit('updateDeletedAt', {
+            userId: this.item.userId,
+            deletedAt: result.data.unDeleteUser,
+          })
+          // this.item.deletedAt = null
           this.checked = false
         })
         .catch((error) => {
