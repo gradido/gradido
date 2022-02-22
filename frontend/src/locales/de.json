@@ -216,6 +216,7 @@
     "more": "mehr",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
     "receiverNotFound": "Empfänger nicht gefunden",
+    "receiverDeleted":"Das Empfängerkonto wurde gelöscht",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },
   "transactions": "Transaktionen",
