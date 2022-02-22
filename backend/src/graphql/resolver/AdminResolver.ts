@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, ObjectLiteral, Raw } from '@dbTools/typeorm'
+import { getCustomRepository, ObjectLiteral, getConnection } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -293,81 +293,35 @@ export class AdminResolver {
 }
 
 async function getUserCreations(id: number): Promise<number[]> {
-  const dateNextMonth = moment().add(1, 'month').format('YYYY-MM') + '-01'
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-  const beforeLastMonthNumber = moment().subtract(2, 'month').format('M')
-  const lastMonthNumber = moment().subtract(1, 'month').format('M')
-  const currentMonthNumber = moment().format('M')
+  const now = new Date(Date.now())
+  const months = [
+    now.getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
+  ].reverse()
 
-  const createdAmountsQuery = await Transaction.createQueryBuilder('transactions')
-    .select('MONTH(transactions.creation_date)', 'target_month')
-    .addSelect('SUM(transactions.amount)', 'sum')
-    .where('transactions.user_id = :id', { id })
-    .andWhere('transactions.transaction_type_id = :type', { type: TransactionTypeId.CREATION })
-    .andWhere({
-      creationDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
-      }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
+  const queryRunner = getConnection().createQueryRunner()
+  await queryRunner.connect()
 
-  const pendingAmountsQuery = await AdminPendingCreation.createQueryBuilder(
-    'admin_pending_creations',
-  )
-    .select('MONTH(admin_pending_creations.date)', 'target_month')
-    .addSelect('SUM(admin_pending_creations.amount)', 'sum')
-    .where('admin_pending_creations.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
-      }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
+  const unionQuery = await queryRunner.manager.query(`
+    SELECT MONTH(date) AS month, sum(amount) AS sum FROM
+      (SELECT creation_date AS date, amount AS amount FROM transactions
+        WHERE user_id = ${id} AND transaction_type_id = 1
+        AND creation_date >= last_day(curdate() - interval 3 month) + interval 1 day
+    UNION
+      SELECT date AS date, amount AS amount FROM admin_pending_creations
+      WHERE userId = ${id}
+      AND date >= last_day(curdate() - interval 3 month) + interval 1 day) AS result
+    GROUP BY month
+    ORDER BY date DESC
+  `)
 
-  const map = new Map()
-  if (Array.isArray(createdAmountsQuery) && createdAmountsQuery.length > 0) {
-    createdAmountsQuery.forEach((createdAmount) => {
-      if (!map.has(createdAmount.target_month)) {
-        map.set(createdAmount.target_month, createdAmount.sum)
-      } else {
-        const store = map.get(createdAmount.target_month)
-        map.set(createdAmount.target_month, Number(store) + Number(createdAmount.sum))
-      }
-    })
-  }
+  await queryRunner.release()
 
-  if (Array.isArray(pendingAmountsQuery) && pendingAmountsQuery.length > 0) {
-    pendingAmountsQuery.forEach((pendingAmount) => {
-      if (!map.has(pendingAmount.target_month)) {
-        map.set(pendingAmount.target_month, pendingAmount.sum)
-      } else {
-        const store = map.get(pendingAmount.target_month)
-        map.set(pendingAmount.target_month, Number(store) + Number(pendingAmount.sum))
-      }
-    })
-  }
-  const usedCreationBeforeLastMonth = map.get(Number(beforeLastMonthNumber))
-    ? Number(map.get(Number(beforeLastMonthNumber))) / 10000
-    : 0
-  const usedCreationLastMonth = map.get(Number(lastMonthNumber))
-    ? Number(map.get(Number(lastMonthNumber))) / 10000
-    : 0
-
-  const usedCreationCurrentMonth = map.get(Number(currentMonthNumber))
-    ? Number(map.get(Number(currentMonthNumber))) / 10000
-    : 0
-
-  return [
-    1000 - usedCreationBeforeLastMonth,
-    1000 - usedCreationLastMonth,
-    1000 - usedCreationCurrentMonth,
-  ]
+  return months.map((month) => {
+    const creation = unionQuery.find((raw: any) => parseInt(raw.month) === month)
+    return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
+  })
 }
 
 function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
