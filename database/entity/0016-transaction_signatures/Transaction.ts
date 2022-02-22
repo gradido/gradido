@@ -4,6 +4,12 @@ import { TransactionSendCoin } from '../0001-init_db/TransactionSendCoin'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
+  userId(userId: any) {
+    throw new Error('Method not implemented.')
+  }
+  amount(amount: any): number {
+    throw new Error('Method not implemented.')
+  }
   // TODO the id is defined as bigint(20) - there might be problems with that: https://github.com/typeorm/typeorm/issues/2400
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
@@ -31,4 +37,7 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => TransactionCreation, (transactionCreation) => transactionCreation.transaction)
   transactionCreation: TransactionCreation
+  sendReceiverUserId: number
+  sendReceiverPublicKey: Buffer
+  sendSenderFinalBalance: bigint
 }
