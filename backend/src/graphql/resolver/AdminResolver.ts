@@ -311,15 +311,18 @@ async function getUserCreations(ids: number[]): Promise<CreationMap[]> {
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
 
+  const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
+
   const unionQuery = await queryRunner.manager.query(`
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()}) AND transaction_type_id = 1
-        AND creation_date >= last_day(curdate() - interval 3 month) + interval 1 day
-    UNION
-      SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
-      WHERE userId IN (${ids.toString()})
-      AND date >= last_day(curdate() - interval 3 month) + interval 1 day) AS result
+        WHERE user_id IN (${ids.toString()})
+        AND transaction_type_id = ${TransactionTypeId.CREATION}
+        AND creation_date >= ${dateFilter}
+      UNION
+        SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
+          WHERE userId IN (${ids.toString()})
+          AND date >= ${dateFilter}) AS result
     GROUP BY month, userId
     ORDER BY date DESC
   `)
