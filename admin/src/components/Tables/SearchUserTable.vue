@@ -46,7 +46,8 @@
           @row-toogle-details="rowToogleDetails"
         >
           <template #show-collaps>
-            <creation-formular v-if="!row.item.deletedAt"
+            <creation-formular
+              v-if="!row.item.deletedAt"
               type="singleCreation"
               pagetype="singleCreation"
               :creation="row.item.creation"
@@ -54,9 +55,10 @@
               :creationUserData="creationUserData"
               @update-user-data="updateUserData"
             />
-            <div v-else>Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden. </div>
+            <div v-else>Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.</div>
 
-            <confirm-register-mail-formular v-if="!row.item.deletedAt"
+            <confirm-register-mail-formular
+              v-if="!row.item.deletedAt"
               :checked="row.item.emailChecked"
               :email="row.item.email"
               :dateLastSend="
@@ -65,7 +67,10 @@
                   : ''
               "
             />
-            <creation-transaction-list-formular v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            <creation-transaction-list-formular
+              v-if="!row.item.deletedAt"
+              :userId="row.item.userId"
+            />
             <deleted-user-formular :item="row.item" />
           </template>
         </row-details>
