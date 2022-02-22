@@ -47,6 +47,8 @@ export default {
         })
         .then(() => {
           this.$toasted.success('user is deleted')
+          this.item.deletedAt = Date.now()
+          this.checked = false
         })
         .catch((error) => {
           this.$toasted.error('user deleted error', error)
@@ -62,6 +64,8 @@ export default {
         })
         .then(() => {
           this.$toasted.success('user is undeleted')
+          this.item.deletedAt = null
+          this.checked = false
         })
         .catch((error) => {
           this.$toasted.error('user undeleted error', error)

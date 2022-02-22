@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, ObjectLiteral, Raw } from '@dbTools/typeorm'
+import { getCustomRepository, IsNull, Not, ObjectLiteral, Raw } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -32,13 +32,23 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
-    @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
+    @Args()
+    {
+      searchText,
+      currentPage = 1,
+      pageSize = 25,
+      notActivated = false,
+      isDeleted = false,
+    }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
     if (notActivated) {
       filterCriteria.push({ emailChecked: false })
+    }
+    if (isDeleted) {
+      filterCriteria.push({ deletedAt: Not(IsNull()) })
     }
     // prevent overfetching data from db, select only needed columns
     // prevent reading and transmitting data from db at least 300 Bytes

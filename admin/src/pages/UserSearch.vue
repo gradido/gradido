@@ -71,7 +71,6 @@ export default {
     deletedUserSearch() {
       this.filterDeletedUser = !this.filterDeletedUser
       this.getUsers()
-      alert('TODO: deleted user filter in search and check in backend ')
     },
     getUsers() {
       this.$apollo
@@ -82,7 +81,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             notActivated: this.filterCheckedEmails,
-            deletedUser: this.filterDeletedUser,
+            isDeleted: this.filterDeletedUser,
           },
         })
         .then((result) => {
