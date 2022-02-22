@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, ObjectLiteral, Raw } from '@dbTools/typeorm'
+import { getCustomRepository, ObjectLiteral, getConnection, In } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -12,7 +12,6 @@ import { UserRepository } from '../../typeorm/repository/User'
 import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '../arg/SearchUsersArgs'
-import moment from 'moment'
 import { Transaction } from '@entity/Transaction'
 import { UserTransaction } from '@entity/UserTransaction'
 import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
@@ -40,9 +39,7 @@ export class AdminResolver {
     if (notActivated) {
       filterCriteria.push({ emailChecked: false })
     }
-    // prevent overfetching data from db, select only needed columns
-    // prevent reading and transmitting data from db at least 300 Bytes
-    // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
+
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
@@ -54,6 +51,8 @@ export class AdminResolver {
       pageSize,
     )
 
+    const creations = await getUserCreations(users.map((u) => u.id))
+
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         const adminUser = new UserAdmin()
@@ -61,7 +60,8 @@ export class AdminResolver {
         adminUser.firstName = user.firstName
         adminUser.lastName = user.lastName
         adminUser.email = user.email
-        adminUser.creation = await getUserCreations(user.id)
+        const userCreations = creations.find((c) => c.id === user.id)
+        adminUser.creation = userCreations ? userCreations.creations : [1000, 1000, 1000]
         adminUser.emailChecked = user.emailChecked
         adminUser.hasElopage = await hasElopageBuys(user.email)
         if (!user.emailChecked) {
@@ -109,7 +109,7 @@ export class AdminResolver {
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
-    const creations = await getUserCreations(user.id)
+    const creations = await getUserCreation(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
@@ -122,7 +122,7 @@ export class AdminResolver {
 
       await AdminPendingCreation.save(adminPendingCreation)
     }
-    return getUserCreations(user.id)
+    return getUserCreation(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
@@ -171,7 +171,7 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreations(user.id)
+    let creations = await getUserCreation(user.id)
     if (pendingCreationToUpdate.date.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, pendingCreationToUpdate)
     }
@@ -190,7 +190,8 @@ export class AdminResolver {
     result.memo = pendingCreationToUpdate.memo
     result.date = pendingCreationToUpdate.date
     result.moderator = pendingCreationToUpdate.moderator
-    result.creation = await getUserCreations(user.id)
+
+    result.creation = await getUserCreation(user.id)
 
     return result
   }
@@ -199,27 +200,23 @@ export class AdminResolver {
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
     const pendingCreations = await AdminPendingCreation.find()
+    const userIds = pendingCreations.map((p) => p.userId)
+    const userCreations = await getUserCreations(userIds)
+    const users = await User.find({ id: In(userIds) })
 
-    const pendingCreationsPromise = await Promise.all(
-      pendingCreations.map(async (pendingCreation) => {
-        const userRepository = getCustomRepository(UserRepository)
-        const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
+    return pendingCreations.map((pendingCreation) => {
+      const user = users.find((u) => u.id === pendingCreation.userId)
+      const creation = userCreations.find((c) => c.id === pendingCreation.userId)
 
-        const parsedAmount = Number(parseInt(pendingCreation.amount.toString()) / 10000)
-        // pendingCreation.amount = parsedAmount
-        const newPendingCreation = {
-          ...pendingCreation,
-          amount: parsedAmount,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          creation: await getUserCreations(user.id),
-        }
-
-        return newPendingCreation
-      }),
-    )
-    return pendingCreationsPromise.reverse()
+      return {
+        ...pendingCreation,
+        amount: Number(parseInt(pendingCreation.amount.toString()) / 10000),
+        firstName: user ? user.firstName : '',
+        lastName: user ? user.lastName : '',
+        email: user ? user.email : '',
+        creation: creation ? creation.creations : [1000, 1000, 1000],
+      }
+    })
   }
 
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
@@ -238,6 +235,11 @@ export class AdminResolver {
     const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
+
+    const creations = await getUserCreation(pendingCreation.userId, false)
+    if (!isCreationValid(creations, Number(pendingCreation.amount) / 10000, pendingCreation.date)) {
+      throw new Error('Creation is not valid!!')
+    }
 
     const receivedCallDate = new Date()
     let transaction = new Transaction()
@@ -292,129 +294,94 @@ export class AdminResolver {
   }
 }
 
-async function getUserCreations(id: number): Promise<number[]> {
-  const dateNextMonth = moment().add(1, 'month').format('YYYY-MM') + '-01'
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-  const beforeLastMonthNumber = moment().subtract(2, 'month').format('M')
-  const lastMonthNumber = moment().subtract(1, 'month').format('M')
-  const currentMonthNumber = moment().format('M')
+interface CreationMap {
+  id: number
+  creations: number[]
+}
 
-  const createdAmountsQuery = await Transaction.createQueryBuilder('transactions')
-    .select('MONTH(transactions.creation_date)', 'target_month')
-    .addSelect('SUM(transactions.amount)', 'sum')
-    .where('transactions.user_id = :id', { id })
-    .andWhere('transactions.transaction_type_id = :type', { type: TransactionTypeId.CREATION })
-    .andWhere({
-      creationDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
+async function getUserCreation(id: number, includePending = true): Promise<number[]> {
+  const creations = await getUserCreations([id], includePending)
+  return creations[0] ? creations[0].creations : [1000, 1000, 1000]
+}
+
+async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
+  const months = getCreationMonths()
+
+  const queryRunner = getConnection().createQueryRunner()
+  await queryRunner.connect()
+
+  const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
+
+  const unionString = includePending
+    ? `
+    UNION
+      SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
+        WHERE userId IN (${ids.toString()})
+        AND date >= ${dateFilter}`
+    : ''
+
+  const unionQuery = await queryRunner.manager.query(`
+    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
+      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
+        WHERE user_id IN (${ids.toString()})
+        AND transaction_type_id = ${TransactionTypeId.CREATION}
+        AND creation_date >= ${dateFilter}
+      ${unionString}) AS result
+    GROUP BY month, userId
+    ORDER BY date DESC
+  `)
+
+  await queryRunner.release()
+
+  return ids.map((id) => {
+    return {
+      id,
+      creations: months.map((month) => {
+        const creation = unionQuery.find(
+          (raw: { month: string; id: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.id) === id,
+        )
+        return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
       }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
-
-  const pendingAmountsQuery = await AdminPendingCreation.createQueryBuilder(
-    'admin_pending_creations',
-  )
-    .select('MONTH(admin_pending_creations.date)', 'target_month')
-    .addSelect('SUM(admin_pending_creations.amount)', 'sum')
-    .where('admin_pending_creations.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
-      }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
-
-  const map = new Map()
-  if (Array.isArray(createdAmountsQuery) && createdAmountsQuery.length > 0) {
-    createdAmountsQuery.forEach((createdAmount) => {
-      if (!map.has(createdAmount.target_month)) {
-        map.set(createdAmount.target_month, createdAmount.sum)
-      } else {
-        const store = map.get(createdAmount.target_month)
-        map.set(createdAmount.target_month, Number(store) + Number(createdAmount.sum))
-      }
-    })
-  }
-
-  if (Array.isArray(pendingAmountsQuery) && pendingAmountsQuery.length > 0) {
-    pendingAmountsQuery.forEach((pendingAmount) => {
-      if (!map.has(pendingAmount.target_month)) {
-        map.set(pendingAmount.target_month, pendingAmount.sum)
-      } else {
-        const store = map.get(pendingAmount.target_month)
-        map.set(pendingAmount.target_month, Number(store) + Number(pendingAmount.sum))
-      }
-    })
-  }
-  const usedCreationBeforeLastMonth = map.get(Number(beforeLastMonthNumber))
-    ? Number(map.get(Number(beforeLastMonthNumber))) / 10000
-    : 0
-  const usedCreationLastMonth = map.get(Number(lastMonthNumber))
-    ? Number(map.get(Number(lastMonthNumber))) / 10000
-    : 0
-
-  const usedCreationCurrentMonth = map.get(Number(currentMonthNumber))
-    ? Number(map.get(Number(currentMonthNumber))) / 10000
-    : 0
-
-  return [
-    1000 - usedCreationBeforeLastMonth,
-    1000 - usedCreationLastMonth,
-    1000 - usedCreationCurrentMonth,
-  ]
+    }
+  })
 }
 
 function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
-  const dateMonth = moment().format('YYYY-MM')
-  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  const creationDateMonth = moment(pendingCreation.date).format('YYYY-MM')
+  const index = getCreationIndex(pendingCreation.date.getMonth())
 
-  switch (creationDateMonth) {
-    case dateMonth:
-      creations[2] += parseInt(pendingCreation.amount.toString())
-      break
-    case dateLastMonth:
-      creations[1] += parseInt(pendingCreation.amount.toString())
-      break
-    case dateBeforeLastMonth:
-      creations[0] += parseInt(pendingCreation.amount.toString())
-      break
-    default:
-      throw new Error('UpdatedCreationDate is not in the last three months')
+  if (index < 0) {
+    throw new Error('You cannot create GDD for a month older than the last three months.')
   }
+  creations[index] += parseInt(pendingCreation.amount.toString())
   return creations
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
-  const dateMonth = moment().format('YYYY-MM')
-  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  const creationDateMonth = moment(creationDate).format('YYYY-MM')
+  const index = getCreationIndex(creationDate.getMonth())
 
-  let openCreation
-  switch (creationDateMonth) {
-    case dateMonth:
-      openCreation = creations[2]
-      break
-    case dateLastMonth:
-      openCreation = creations[1]
-      break
-    case dateBeforeLastMonth:
-      openCreation = creations[0]
-      break
-    default:
-      throw new Error('CreationDate is not in last three months')
+  if (index < 0) {
+    throw new Error(`No Creation found!`)
   }
 
-  if (openCreation < amount) {
-    throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
+  if (amount > creations[index]) {
+    throw new Error(
+      `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
+    )
   }
+
   return true
+}
+
+const getCreationMonths = (): number[] => {
+  const now = new Date(Date.now())
+  return [
+    now.getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
+  ].reverse()
+}
+
+const getCreationIndex = (month: number): number => {
+  return getCreationMonths().findIndex((el) => el === month + 1)
 }
