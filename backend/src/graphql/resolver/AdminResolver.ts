@@ -29,7 +29,6 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { Balance } from '@entity/Balance'
-// import { isNullableType } from 'graphql'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
