@@ -48,7 +48,7 @@ async function updateStateBalance(
     balance.modified = received
   } else {
     const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
-    balance.amount = Number(decayedBalance) + centAmount
+    balance.amount = decayedBalance + centAmount
     balance.modified = new Date()
   }
   if (balance.amount <= 0) {
@@ -64,7 +64,7 @@ async function calculateNewBalance(
   userId: number,
   transactionDate: Date,
   centAmount: number,
-): Promise<BigInt> {
+): Promise<number> {
   let newBalance = centAmount
   const transactionRepository = getCustomRepository(TransactionRepository)
   const lastUserTransaction = await transactionRepository.findLastForUser(userId)
@@ -82,7 +82,7 @@ async function calculateNewBalance(
     throw new Error('error new balance <= 0')
   }
 
-  return BigInt(newBalance)
+  return newBalance
 }
 
 @Resolver()
@@ -309,11 +309,8 @@ export class TransactionResolver {
       transactionSend.amount = BigInt(centAmount)
       transactionSend.received = receivedCallDate
       transactionSend.transactionId = randomInt(99999)
-      transactionSend.balance = await calculateNewBalance(
-        senderUser.id,
-        receivedCallDate,
-        -centAmount,
-      )
+      const sendBalance = await calculateNewBalance(senderUser.id, receivedCallDate, -centAmount)
+      transactionSend.balance = BigInt(Math.trunc(sendBalance))
       transactionSend.balanceDate = receivedCallDate
       transactionSend.sendSenderFinalBalance = transactionSend.balance
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -327,11 +324,12 @@ export class TransactionResolver {
       transactionReceive.amount = BigInt(centAmount)
       transactionReceive.received = receivedCallDate
       transactionReceive.transactionId = randomInt(99999)
-      transactionReceive.balance = await calculateNewBalance(
-        senderUser.id,
+      const receiveBalance = await calculateNewBalance(
+        recipientUser.id,
         receivedCallDate,
         centAmount,
       )
+      transactionReceive.balance = BigInt(Math.trunc(receiveBalance))
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.sendSenderFinalBalance = transactionSend.balance
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
@@ -345,23 +343,28 @@ export class TransactionResolver {
       )
 
       // Update Balance: recipiant + amount
-      const recipiantStateBalance = await updateStateBalance(
+      const recipientStateBalance = await updateStateBalance(
         recipientUser,
         centAmount,
         receivedCallDate,
         queryRunner,
       )
 
-      if (senderStateBalance.amount !== Number(transactionSend.balance)) {
+      if (senderStateBalance.amount !== sendBalance) {
+        // eslint-disable-next-line no-console
+        console.log('db data corrupted, sender', senderStateBalance.amount, sendBalance)
         throw new Error('db data corrupted, sender')
       }
-      if (recipiantStateBalance.amount !== Number(transactionReceive.balance)) {
-        throw new Error('db data corrupted, recipiant')
+      if (recipientStateBalance.amount !== receiveBalance) {
+        // eslint-disable-next-line no-console
+        console.log('db data corrupted, sender', recipientStateBalance.amount, receiveBalance)
+        throw new Error('db data corrupted, recipient')
       }
 
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
+      throw new Error(`Transaction was not successful: ${e}`)
     } finally {
       await queryRunner.release()
     }
