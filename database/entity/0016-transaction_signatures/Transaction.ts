@@ -31,8 +31,4 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => TransactionCreation, (transactionCreation) => transactionCreation.transaction)
   transactionCreation: TransactionCreation
-
-  sendReceiverUserId: number
-  sendReceiverPublicKey: Buffer
-  sendSenderFinalBalance: bigint
 }
