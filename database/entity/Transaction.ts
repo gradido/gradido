@@ -1,1 +1,1 @@
-export { Transaction } from './0024-combine_transaction_tables/Transaction'
+export { Transaction } from './0025-combine_transaction_tables2/Transaction'

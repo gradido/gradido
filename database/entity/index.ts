@@ -6,7 +6,6 @@ import { ServerUser } from './ServerUser'
 import { Transaction } from './Transaction'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
-import { UserTransaction } from './UserTransaction'
 import { AdminPendingCreation } from './AdminPendingCreation'
 
 export const entities = [
@@ -19,5 +18,4 @@ export const entities = [
   Transaction,
   User,
   UserSetting,
-  UserTransaction,
 ]
