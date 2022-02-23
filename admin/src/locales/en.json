@@ -62,7 +62,7 @@
     }
   },
   "remove": "Remove",
-  "removeNotSelf": "As an admin / moderator you cannot delete yourself.",
+  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
   "status": "Status",
