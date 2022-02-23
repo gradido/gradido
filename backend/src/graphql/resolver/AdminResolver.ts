@@ -69,6 +69,13 @@ export class AdminResolver {
       pageSize,
     )
 
+    if (users.length === 0) {
+      return {
+        userCount: 0,
+        userList: [],
+      }
+    }
+
     const creations = await getUserCreations(users.map((u) => u.id))
 
     const adminUsers = await Promise.all(
