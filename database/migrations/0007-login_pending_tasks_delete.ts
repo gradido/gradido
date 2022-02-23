@@ -6,10 +6,13 @@
  * and dead entries
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('DELETE FROM `login_pending_tasks`;')
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  return [] // cannot undelete things
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // cannot undelete things
 }
