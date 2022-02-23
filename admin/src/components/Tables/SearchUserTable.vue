@@ -86,7 +86,7 @@ import CreationTransactionListFormular from '../CreationTransactionListFormular.
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 
-const slotNames = ['show-collaps']
+const slotNames = ['show-collapse']
 
 export default {
   name: 'SearchUserTable',
