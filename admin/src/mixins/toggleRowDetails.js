@@ -7,7 +7,7 @@ export const toggleRowDetails = {
     }
   },
   methods: {
-    rowToogleDetails(row, index) {
+    rowToggleDetails(row, index) {
       if (this.openRow) {
         if (this.openRow.index === row.index) {
           if (index === this.slotIndex) {

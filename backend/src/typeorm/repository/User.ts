@@ -24,7 +24,7 @@ export class UserRepository extends Repository<User> {
     currentPage: number,
     pageSize: number,
   ): Promise<[User[], number]> {
-    return await this.createQueryBuilder('user')
+    const query = await this.createQueryBuilder('user')
       .select(select)
       .withDeleted()
       .where(
@@ -39,7 +39,10 @@ export class UserRepository extends Repository<User> {
           )
         }),
       )
-      .andWhere(filterCriteria)
+    filterCriteria.forEach((filter) => {
+      query.andWhere(filter)
+    })
+    return query
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
       .getManyAndCount()

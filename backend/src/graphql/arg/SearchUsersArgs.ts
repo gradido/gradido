@@ -13,4 +13,7 @@ export default class SearchUsersArgs {
 
   @Field(() => Boolean, { nullable: true })
   notActivated?: boolean
+
+  @Field(() => Boolean, { nullable: true })
+  isDeleted?: boolean
 }

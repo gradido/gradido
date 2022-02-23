@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, ObjectLiteral, getConnection, In } from '@dbTools/typeorm'
+import {
+  getCustomRepository,
+  IsNull,
+  Not,
+  ObjectLiteral,
+  getConnection,
+  In,
+} from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -31,7 +38,14 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
   @Query(() => SearchUsersResult)
   async searchUsers(
-    @Args() { searchText, currentPage = 1, pageSize = 25, notActivated = false }: SearchUsersArgs,
+    @Args()
+    {
+      searchText,
+      currentPage = 1,
+      pageSize = 25,
+      notActivated = false,
+      isDeleted = false,
+    }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
@@ -40,7 +54,11 @@ export class AdminResolver {
       filterCriteria.push({ emailChecked: false })
     }
 
-    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked']
+    if (isDeleted) {
+      filterCriteria.push({ deletedAt: Not(IsNull()) })
+    }
+
+    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
@@ -62,15 +80,7 @@ export class AdminResolver {
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
-        const adminUser = new UserAdmin()
-        adminUser.userId = user.id
-        adminUser.firstName = user.firstName
-        adminUser.lastName = user.lastName
-        adminUser.email = user.email
-        const userCreations = creations.find((c) => c.id === user.id)
-        adminUser.creation = userCreations ? userCreations.creations : [1000, 1000, 1000]
-        adminUser.emailChecked = user.emailChecked
-        adminUser.hasElopage = await hasElopageBuys(user.email)
+        let emailConfirmationSend = ''
         if (!user.emailChecked) {
           const emailOptIn = await LoginEmailOptIn.findOne(
             {
@@ -86,12 +96,19 @@ export class AdminResolver {
           )
           if (emailOptIn) {
             if (emailOptIn.updatedAt) {
-              adminUser.emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+              emailConfirmationSend = emailOptIn.updatedAt.toISOString()
             } else {
-              adminUser.emailConfirmationSend = emailOptIn.createdAt.toISOString()
+              emailConfirmationSend = emailOptIn.createdAt.toISOString()
             }
           }
         }
+        const userCreations = creations.find((c) => c.id === user.id)
+        const adminUser = new UserAdmin(
+          user,
+          userCreations ? userCreations.creations : [1000, 1000, 1000],
+          await hasElopageBuys(user.email),
+          emailConfirmationSend,
+        )
         return adminUser
       }),
     )
@@ -99,6 +116,39 @@ export class AdminResolver {
       userCount: count,
       userList: adminUsers,
     }
+  }
+
+  @Authorized([RIGHTS.DELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async deleteUser(@Arg('userId') userId: number, @Ctx() context: any): Promise<Date | null> {
+    const user = await User.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // moderator user disabled own account?
+    const userRepository = getCustomRepository(UserRepository)
+    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    if (moderatorUser.id === userId) {
+      throw new Error('Moderator can not delete his own account!')
+    }
+    // soft-delete user
+    await user.softRemove()
+    const newUser = await User.findOne({ id: userId }, { withDeleted: true })
+    return newUser ? newUser.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UNDELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async unDeleteUser(@Arg('userId') userId: number): Promise<Date | null> {
+    const user = await User.findOne({ id: userId }, { withDeleted: true })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // recover user account
+    await user.recover()
+    return null
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
