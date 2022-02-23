@@ -133,9 +133,7 @@ export class TransactionResolver {
       const finalTransactions: Transaction[] = []
       const involvedUserIds: number[] = []
 
-      const transactionIndiced: dbTransaction[] = []
       userTransactions.forEach((transaction: dbTransaction) => {
-        transactionIndiced[transaction.id] = transaction
         involvedUserIds.push(transaction.userId)
         if (
           transaction.transactionTypeId === TransactionTypeId.SEND ||
@@ -153,11 +151,10 @@ export class TransactionResolver {
 
       for (let i = 0; i < userTransactions.length; i++) {
         const userTransaction = userTransactions[i]
-        const transaction = transactionIndiced[userTransaction.transactionId]
         const finalTransaction = new Transaction()
-        finalTransaction.transactionId = transaction.id
-        finalTransaction.date = transaction.received.toISOString()
-        finalTransaction.memo = transaction.memo
+        finalTransaction.transactionId = userTransaction.id
+        finalTransaction.date = userTransaction.received.toISOString()
+        finalTransaction.memo = userTransaction.memo
         finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
         const previousTransaction = i > 0 ? userTransactions[i - 1] : null
 
@@ -184,18 +181,15 @@ export class TransactionResolver {
           }
         }
 
-        const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
+        finalTransaction.balance = roundFloorFrom4(Number(userTransaction.amount)) // Todo unsafe conversion
+
+        const otherUser = userIndiced.find((u) => u.id === userTransaction.linkedUserId)
         switch (userTransaction.transactionTypeId) {
           case TransactionTypeId.CREATION:
-            // creation
             finalTransaction.name = 'Gradido Akademie'
             finalTransaction.type = TransactionType.CREATION
-            // finalTransaction.targetDate = creation.targetDate
-            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
             break
           case TransactionTypeId.SEND:
-            // send coin
-            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
             finalTransaction.type = TransactionType.SEND
             if (otherUser) {
               finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
@@ -203,7 +197,6 @@ export class TransactionResolver {
             }
             break
           case TransactionTypeId.RECEIVE:
-            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
             finalTransaction.type = TransactionType.RECIEVE
             if (otherUser) {
               finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
