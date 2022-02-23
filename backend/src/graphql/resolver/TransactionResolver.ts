@@ -135,8 +135,8 @@ export class TransactionResolver {
       userTransactions.forEach((transaction: dbTransaction) => {
         involvedUserIds.push(transaction.userId)
         if (
-          transaction.transactionTypeId === TransactionTypeId.SEND ||
-          transaction.transactionTypeId === TransactionTypeId.RECEIVE
+          transaction.typeId === TransactionTypeId.SEND ||
+          transaction.typeId === TransactionTypeId.RECEIVE
         ) {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           involvedUserIds.push(transaction.linkedUserId!) // TODO ensure not null properly
@@ -152,7 +152,7 @@ export class TransactionResolver {
         const userTransaction = userTransactions[i]
         const finalTransaction = new Transaction()
         finalTransaction.transactionId = userTransaction.id
-        finalTransaction.date = userTransaction.received.toISOString()
+        finalTransaction.date = userTransaction.balanceDate.toISOString()
         finalTransaction.memo = userTransaction.memo
         finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
         const previousTransaction = i > 0 ? userTransactions[i - 1] : null
@@ -183,7 +183,7 @@ export class TransactionResolver {
         finalTransaction.balance = roundFloorFrom4(Number(userTransaction.amount)) // Todo unsafe conversion
 
         const otherUser = userIndiced.find((u) => u.id === userTransaction.linkedUserId)
-        switch (userTransaction.transactionTypeId) {
+        switch (userTransaction.typeId) {
           case TransactionTypeId.CREATION:
             finalTransaction.name = 'Gradido Akademie'
             finalTransaction.type = TransactionType.CREATION
@@ -300,14 +300,11 @@ export class TransactionResolver {
       const receivedCallDate = new Date()
       // transaction
       const transactionSend = new dbTransaction()
-      transactionSend.transactionTypeId = TransactionTypeId.SEND
+      transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = senderUser.id
-      transactionSend.pubkey = senderUser.pubKey
       transactionSend.linkedUserId = recipientUser.id
       transactionSend.amount = BigInt(centAmount)
-      transactionSend.received = receivedCallDate
-      transactionSend.transactionId = randomInt(99999)
       const sendBalance = await calculateNewBalance(senderUser.id, receivedCallDate, -centAmount)
       transactionSend.balance = BigInt(Math.trunc(sendBalance))
       transactionSend.balanceDate = receivedCallDate
@@ -315,14 +312,11 @@ export class TransactionResolver {
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       const transactionReceive = new dbTransaction()
-      transactionReceive.transactionTypeId = TransactionTypeId.RECEIVE
+      transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipientUser.id
-      transactionReceive.pubkey = recipientUser.pubKey
       transactionReceive.linkedUserId = senderUser.id
       transactionReceive.amount = BigInt(centAmount)
-      transactionReceive.received = receivedCallDate
-      transactionReceive.transactionId = randomInt(99999)
       const receiveBalance = await calculateNewBalance(
         recipientUser.id,
         receivedCallDate,
@@ -331,7 +325,12 @@ export class TransactionResolver {
       transactionReceive.balance = BigInt(Math.trunc(receiveBalance))
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.sendSenderFinalBalance = transactionSend.balance
+      transactionReceive.linkedTransactionId = transactionSend.id
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
+
+      // Save linked transaction id for send
+      transactionSend.linkedTransactionId = transactionReceive.id
+      await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
 
       // Update Balance: sender - amount
       const senderStateBalance = await updateStateBalance(

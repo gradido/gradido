@@ -318,13 +318,11 @@ export class AdminResolver {
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
     let transaction = new Transaction()
-    transaction.transactionTypeId = TransactionTypeId.CREATION
+    transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
-    transaction.received = receivedCallDate
     transaction.userId = pendingCreation.userId
     transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
     transaction.creationDate = pendingCreation.date
-    transaction.transactionId = randomInt(99999)
     transaction.balance = BigInt(newBalance)
     transaction.balanceDate = receivedCallDate
     transaction = await transaction.save()
