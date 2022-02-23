@@ -10,15 +10,10 @@ define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
   }
 
   const transaction = new Transaction()
-  transaction.transactionTypeId = context.transactionTypeId // || 2
+  transaction.typeId = context.typeId // || 2
   transaction.userId = context.userId
   transaction.amount = context.amount
-  transaction.txHash = context.txHash || randomBytes(48)
   transaction.memo = context.memo
-  transaction.received = context.received || new Date()
-  transaction.signature = context.signature || randomBytes(64)
-  transaction.pubkey = context.pubkey || randomBytes(32)
-  transaction.creationIdentHash = context.creationIdentHash || randomBytes(32)
   transaction.creationDate = context.creationDate || new Date()
   // transaction.sendReceiverPublicKey = context.sendReceiverPublicKey || null
   transaction.linkedUserId = context.sendReceiverUserId || null

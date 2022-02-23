@@ -69,17 +69,12 @@ const createTransactionContext = (
   memo: string,
 ): TransactionContext => {
   return {
-    transactionId: randomInt(999999),
-    transactionTypeId: type,
+    typeId: type,
     userId: user.id,
     amount: BigInt(context.amount || 100000),
     balance: BigInt(context.amount || 100000),
     balanceDate: new Date(context.recordDate || Date.now()),
-    txHash: context.creationTxHash,
     memo,
-    received: context.recordDate,
     creationDate: context.creationDate,
-    signature: context.signature,
-    pubkey: context.pubKey,
   }
 }
