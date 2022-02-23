@@ -13,6 +13,12 @@
             <div class="test-receiver-not-found" v-if="errorResult === 'recipient not known'">
               {{ $t('transaction.receiverNotFound') }}
             </div>
+            <div
+              class="test-receiver-not-found"
+              v-if="errorResult === 'GraphQL error: The recipient account was deleted'"
+            >
+              {{ $t('transaction.receiverDeleted') }}
+            </div>
             <div v-else>({{ errorResult }})</div>
           </div>
           <p class="text-center mt-3">

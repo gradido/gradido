@@ -108,7 +108,7 @@
                     v-if="showError"
                     show
                     dismissible
-                    variant="warning"
+                    variant="danger"
                     @dismissed="closeAlert"
                   >
                     <span class="alert-icon"><i class="ni ni-point"></i></span>

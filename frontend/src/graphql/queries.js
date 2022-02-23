@@ -78,6 +78,7 @@ export const transactionsQuery = gql`
           decayDuration
           decayStartBlock
         }
+        firstTransaction
       }
     }
   }

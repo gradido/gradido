@@ -16,7 +16,7 @@ export const toasters = {
       message = message.replace(/^GraphQL error: /, '')
       this.$bvToast.toast(message, {
         autoHideDelay: 5000,
-        appendToast: false,
+        appendToast: true,
         solid: true,
         toaster: 'b-toaster-top-right',
         headerClass: 'gdd-toaster-title',

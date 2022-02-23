@@ -21,6 +21,7 @@
     "switch-to-this-community": "Switch to this community"
   },
   "decay": {
+    "befor_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
     "created": "Created",
@@ -29,6 +30,7 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
+    "first_transaction": "The first transaction does not include decay.",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
@@ -215,6 +217,7 @@
     "gdt-text": "GradidoTransform Transactions",
     "more": "more",
     "nullTransactions": "You don't have any transactions on your account yet.",
+    "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },

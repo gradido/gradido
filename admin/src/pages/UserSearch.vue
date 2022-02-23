@@ -1,9 +1,13 @@
 <template>
   <div class="user-search">
     <div style="text-align: right">
-      <b-button block variant="danger" @click="unconfirmedRegisterMails">
-        <b-icon icon="envelope" variant="light"></b-icon>
+      <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
+        <b-icon icon="envelope" variant="danger"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
+      </b-button>
+      <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
+        <b-icon icon="x-circle" variant="danger"></b-icon>
+        {{ filterDeletedUser ? $t('all_emails') : $t('deleted_user') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -22,7 +26,12 @@
         </b-input-group-append>
       </b-input-group>
     </div>
-    <search-user-table type="PageUserSearch" :items="searchResult" :fields="fields" />
+    <search-user-table
+      type="PageUserSearch"
+      :items="searchResult"
+      :fields="fields"
+      @updateDeletedAt="updateDeletedAt"
+    />
     <b-pagination
       pills
       size="lg"
@@ -52,6 +61,7 @@ export default {
       massCreation: [],
       criteria: '',
       filterCheckedEmails: false,
+      filterDeletedUser: false,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -63,6 +73,10 @@ export default {
       this.filterCheckedEmails = !this.filterCheckedEmails
       this.getUsers()
     },
+    deletedUserSearch() {
+      this.filterDeletedUser = !this.filterDeletedUser
+      this.getUsers()
+    },
     getUsers() {
       this.$apollo
         .query({
@@ -72,6 +86,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             notActivated: this.filterCheckedEmails,
+            isDeleted: this.filterDeletedUser,
           },
         })
         .then((result) => {
@@ -81,6 +96,9 @@ export default {
         .catch((error) => {
           this.$toasted.error(error.message)
         })
+    },
+    updateDeletedAt(userId, deletedAt) {
+      this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
     },
   },
   watch: {
@@ -104,10 +122,11 @@ export default {
             return value.join(' | ')
           },
         },
-        { key: 'show_details', label: this.$t('details') },
-        { key: 'confirm_mail', label: this.$t('confirmed') },
-        { key: 'has_elopage', label: 'elopage' },
-        { key: 'transactions_list', label: this.$t('transaction') },
+        // { key: 'show_details', label: this.$t('details') },
+        // { key: 'confirm_mail', label: this.$t('confirmed') },
+        // { key: 'has_elopage', label: 'elopage' },
+        // { key: 'transactions_list', label: this.$t('transaction') },
+        { key: 'status', label: this.$t('status') },
       ]
     },
   },

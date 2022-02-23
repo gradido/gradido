@@ -12,7 +12,7 @@
         </b-button>
       </template>
       <template #cell(edit_creation)="row">
-        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+        <b-button variant="info" size="md" @click="rowToggleDetails(row, 0)" class="mr-2">
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
       </template>
@@ -27,7 +27,7 @@
           type="show-creation"
           slotName="show-creation"
           :index="0"
-          @row-toogle-details="rowToogleDetails"
+          @row-toggle-details="rowToggleDetails"
         >
           <template #show-creation>
             <div>
