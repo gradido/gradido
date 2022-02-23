@@ -84,7 +84,7 @@ describe('UserSearch', () => {
             currentPage: 1,
             pageSize: 25,
             notActivated: false,
-            deletedUser: false,
+            isDeleted: false,
           },
         }),
       )
@@ -103,7 +103,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: true,
-              deletedUser: false,
+              isDeleted: false,
             },
           }),
         )
@@ -123,7 +123,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: false,
-              deletedUser: true,
+              isDeleted: true,
             },
           }),
         )
@@ -143,7 +143,7 @@ describe('UserSearch', () => {
               currentPage: 2,
               pageSize: 25,
               notActivated: false,
-              deletedUser: false,
+              isDeleted: false,
             },
           }),
         )
@@ -163,7 +163,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: false,
-              deletedUser: false,
+              isDeleted: false,
             },
           }),
         )
@@ -180,7 +180,7 @@ describe('UserSearch', () => {
                 currentPage: 1,
                 pageSize: 25,
                 notActivated: false,
-                deletedUser: false,
+                isDeleted: false,
               },
             }),
           )
