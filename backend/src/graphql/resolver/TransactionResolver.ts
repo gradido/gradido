@@ -35,21 +35,14 @@ import { randomInt } from 'crypto'
 // Helper function
 async function calculateAndAddDecayTransactions(
   userTransactions: dbTransaction[],
-  user: dbUser,
   decay: boolean,
   skipFirstTransaction: boolean,
 ): Promise<Transaction[]> {
   const finalTransactions: Transaction[] = []
-  const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
-  userTransactions.forEach((userTransaction: dbTransaction) => {
-    transactionIds.push(userTransaction.transactionId)
-  })
-
-  const transactions = await dbTransaction.find({ where: { id: In(transactionIds) } })
   const transactionIndiced: dbTransaction[] = []
-  transactions.forEach((transaction: dbTransaction) => {
+  userTransactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
     involvedUserIds.push(transaction.userId)
     if (
@@ -252,7 +245,6 @@ export class TransactionResolver {
       }
       transactions = await calculateAndAddDecayTransactions(
         userTransactions,
-        user,
         decay,
         skipFirstTransaction,
       )
