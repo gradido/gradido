@@ -2,7 +2,6 @@ import { UserContext, ServerUserContext } from '../../interface/UserContext'
 import {
   BalanceContext,
   TransactionContext,
-  TransactionCreationContext,
   UserTransactionContext,
 } from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
@@ -11,7 +10,6 @@ import { ServerUser } from '../../../entity/ServerUser'
 import { Balance } from '../../../entity/Balance'
 import { Transaction } from '../../../entity/Transaction'
 import { UserTransaction } from '../../../entity/UserTransaction'
-import { TransactionCreation } from '../../../entity/TransactionCreation'
 import { Factory } from 'typeorm-seeding'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
@@ -25,10 +23,7 @@ export const userSeeder = async (factory: Factory, userData: UserInterface): Pro
     // create some GDD for the user
     await factory(Balance)(createBalanceContext(userData, user)).create()
     const transaction = await factory(Transaction)(
-      createTransactionContext(userData, 1, 'Herzlich Willkommen bei Gradido!'),
-    ).create()
-    await factory(TransactionCreation)(
-      createTransactionCreationContext(userData, user, transaction),
+      createTransactionContext(userData, user, 1, 'Herzlich Willkommen bei Gradido!'),
     ).create()
     await factory(UserTransaction)(
       createUserTransactionContext(userData, user, transaction),
@@ -42,7 +37,7 @@ const createUserContext = (context: UserInterface): UserContext => {
     email: context.email,
     firstName: context.firstName,
     lastName: context.lastName,
-    disabled: context.disabled,
+    deletedAt: context.deletedAt,
     password: context.password,
     privKey: context.privKey,
     emailHash: context.emailHash,
@@ -76,27 +71,18 @@ const createBalanceContext = (context: UserInterface, user: User): BalanceContex
 
 const createTransactionContext = (
   context: UserInterface,
+  user: User,
   type: number,
   memo: string,
 ): TransactionContext => {
   return {
     transactionTypeId: type,
+    userId: user.id,
+    amount: BigInt(context.amount || 100000),
     txHash: context.creationTxHash,
     memo,
     received: context.recordDate,
-  }
-}
-
-const createTransactionCreationContext = (
-  context: UserInterface,
-  user: User,
-  transaction: Transaction,
-): TransactionCreationContext => {
-  return {
-    userId: user.id,
-    amount: context.amount,
-    targetDate: context.targetDate,
-    transaction,
+    creationDate: context.creationDate,
   }
 }
 
@@ -112,6 +98,6 @@ const createUserTransactionContext = (
     balance: context.amount,
     balanceDate: context.recordDate,
     signature: context.signature,
-    pubkey: context.signaturePubkey,
+    pubkey: context.pubKey,
   }
 }

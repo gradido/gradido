@@ -132,8 +132,8 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
           })
 
-          it('closes the overlay', () => {
-            expect(wrapper.find('#overlay').isVisible()).toBeFalsy()
+          it('closes the overlay', async () => {
+            expect(wrapper.find('#overlay').exists()).toBeFalsy()
           })
 
           it('still has 2 items in the table', () => {

@@ -1,7 +1,7 @@
 <template>
   <div class="decayinformation">
     <span v-if="decaytyp === 'short'">
-      {{ decay ? ' - ' + $n(decay.balance, 'decimal') + ' ' + decayStartBlockTextShort : '' }}
+      {{ decay ? ' − ' + $n(decay.balance, 'decimal') : '' }}
     </span>
 
     <div v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
@@ -19,14 +19,11 @@
         <b-col cols="6">
           <div v-if="decay.decayStartBlock > 0">
             <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
-            <div>
-              {{ $t('decay.decay_introduced') }} :
-              {{ $d($moment.unix(decay.decayStart), 'long') }}
-            </div>
+            <div>{{ $t('decay.decay_introduced') }} :</div>
           </div>
           <div>
             <span v-if="decay.decayStart">
-              {{ $d($moment.unix(decay.decayStart), 'long') }}
+              {{ $d(new Date(decay.decayStart * 1000), 'long') }}
               {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
             </span>
           </div>
@@ -80,7 +77,7 @@
           <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
         </b-col>
         <b-col cols="6">
-          <div v-if="type === 'send'">- {{ $n(balance, 'decimal') }}</div>
+          <div v-if="type === 'send'">− {{ $n(balance, 'decimal') }}</div>
           <div v-if="type === 'receive'">+ {{ $n(balance, 'decimal') }}</div>
         </b-col>
       </b-row>
@@ -90,7 +87,7 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div>- {{ $n(decay.balance, 'decimal') }}</div>
+          <div>− {{ $n(decay.balance, 'decimal') }}</div>
         </b-col>
       </b-row>
       <!-- Total-->
@@ -100,13 +97,13 @@
         </b-col>
         <b-col cols="6">
           <div v-if="type === 'send'">
-            <b>- {{ $n(balance + decay.balance, 'decimal') }}</b>
+            <b>− {{ $n(balance + decay.balance, 'decimal') }}</b>
           </div>
           <div v-if="type === 'receive'">
             <b>{{ $n(balance - decay.balance, 'decimal') }}</b>
           </div>
           <div v-if="type === 'creation'">
-            <b>- {{ $n(balance - decay.balance, 'decimal') }}</b>
+            <b>− {{ $n(balance - decay.balance, 'decimal') }}</b>
           </div>
         </b-col>
       </b-row>
@@ -130,17 +127,8 @@ export default {
     decaytyp: { type: String, default: '' },
   },
   computed: {
-    decayStartBlockTextShort() {
-      return this.decay.decayStartBlock
-        ? this.$t('decay.decayStart') + this.$d(this.$moment.unix(this.decay.decayStartBlock))
-        : ''
-    },
     duration() {
-      return this.$moment.duration(
-        this.$moment
-          .unix(new Date(this.decay.decayEnd))
-          .diff(this.$moment.unix(new Date(this.decay.decayStart))),
-      )._data
+      return this.$moment.duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
     },
   },
 }

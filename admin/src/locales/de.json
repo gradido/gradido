@@ -1,5 +1,6 @@
 {
   "all_emails": "Alle Nutzer",
+  "back": "zurück",
   "bookmark": "bookmark",
   "confirmed": "bestätigt",
   "creation": "Schöpfung",
@@ -19,6 +20,7 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "creation_for_month": "Schöpfung für Monat",
   "date": "Datum",
   "delete": "Löschen",
   "details": "Details",
@@ -30,6 +32,7 @@
   "lastname": "Nachname",
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
+  "name": "Name",
   "navbar": {
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
@@ -43,7 +46,7 @@
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "confirm": {
-      "no": "Nein, nicht speichern.",
+      "cancel": "Abbrechen",
       "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
@@ -75,8 +78,9 @@
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
     "info": "Email bestätigen, wiederholt senden an:",
+    "never_sent": "Es scheint so, als ob wir nie eine E-Mail an {email} geschickt haben",
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
-    "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({mail}) gesendet.",
+    "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
   "user_search": "Nutzer-Suche"

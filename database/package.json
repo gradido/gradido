@@ -1,6 +1,6 @@
 {
   "name": "gradido-database",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc --build",
+    "build": "mkdir -p build/src/config/ && cp src/config/*.txt build/src/config/ && tsc --build",
     "clean": "tsc --build --clean",
     "up": "node build/src/index.js up",
     "down": "node build/src/index.js down",

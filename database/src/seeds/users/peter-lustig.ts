@@ -1,8 +1,9 @@
-export const peterLustig = {
+import { UserInterface } from '../../interface/UserInterface'
+
+export const peterLustig: UserInterface = {
   email: 'peter@lustig.de',
   firstName: 'Peter',
   lastName: 'Lustig',
-  username: 'peter',
   // description: 'Latzhose und Nickelbrille',
   password: BigInt('3917921995996627700'),
   pubKey: Buffer.from('7281e0ee3258b08801f3ec73e431b4519677f65c03b0382c63a913b5784ee770', 'hex'),
@@ -14,11 +15,8 @@ export const peterLustig = {
   createdAt: new Date('2020-11-25T10:48:43'),
   emailChecked: true,
   language: 'de',
-  disabled: false,
-  groupId: 1,
   passphrase:
     'okay property choice naive calm present weird increase stuff royal vibrant frame attend wood one else tribe pull hedgehog woman kitchen hawk snack smart ',
-  mnemonicType: 2,
   role: 'admin',
   serverUserPassword: '$2y$10$TzIWLeZoKs251gwrhSQmHeKhKI/EQ4EV5ClfAT8Ufnb4lcUXPa5X.',
   activated: 1,
