@@ -53,7 +53,7 @@ export default {
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error('error', error)
+          this.$toasted.error(error.message)
         })
     },
     unDeleteUser() {
@@ -73,7 +73,7 @@ export default {
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error('error', error)
+          this.$toasted.error(error.message)
         })
     },
   },
