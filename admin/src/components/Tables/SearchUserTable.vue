@@ -1,6 +1,7 @@
 <template>
   <div class="search-user-table">
     <b-table
+      tbody-tr-class="pointer"
       :items="myItems"
       :fields="fields"
       caption-top
@@ -47,7 +48,7 @@
       </template>
 
       <template #row-details="row">
-        <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+        <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
           <creation-formular
             v-if="!row.item.deletedAt"
             type="singleCreation"
@@ -114,7 +115,7 @@ export default {
     updateDeletedAt({ userId, deletedAt }) {
       this.$emit('updateDeletedAt', userId, deletedAt)
     },
-    onRowClicked(item) {
+    async onRowClicked(item) {
       const status = this.myItems.find((obj) => obj === item)._showDetails
       this.myItems.forEach((obj) => {
         if (obj === item) {
@@ -123,6 +124,10 @@ export default {
           obj._showDetails = false
         }
       })
+      await this.$nextTick()
+      if (!status && this.$refs.rowDetails) {
+        this.$refs.rowDetails.focus()
+      }
     },
   },
   computed: {
