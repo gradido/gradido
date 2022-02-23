@@ -8,9 +8,6 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
-  @Column({ name: 'transaction_id', unsigned: true, nullable: false })
-  transactionId: number
-
   @Column({ name: 'type_id', unsigned: true, nullable: false })
   typeId: number
 
