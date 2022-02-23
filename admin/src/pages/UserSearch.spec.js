@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch.vue'
 
 const localVue = global.localVue
-jest.spyOn(window, 'alert').mockImplementation(() => {})
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {

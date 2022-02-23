@@ -31,7 +31,7 @@
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
-  "hide_details": "Hide details from",
+  "hide_details": "Hide details",
   "lastname": "Lastname",
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
@@ -90,5 +90,7 @@
     "text_true": "The email was confirmed."
   },
   "userIsDeleted": "The user is deleted. No more GDD can be created.",
+  "user_deleted": "User is deleted.",
+  "user_recovered.": "User is recovered.",
   "user_search": "User search"
 }

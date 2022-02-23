@@ -2,7 +2,7 @@
   <div class="search-user-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
       <template #cell(creation)="data">
-        <div v-html="data.value" @click="rowToogleDetails(row, 0)"></div>
+        <div v-html="data.value"></div>
       </template>
 
       <template #cell(status)="row">

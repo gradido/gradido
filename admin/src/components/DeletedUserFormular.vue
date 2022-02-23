@@ -6,7 +6,7 @@
     <div v-else class="mt-5">
       <b-form-checkbox switch size="lg" v-model="checked">
         <div v-if="item.deletedAt === null">{{ $t('delete_user') }}</div>
-        <div>{{ item.deletedAt ? $t('undelete_user') :  $t('delete_user') }}</div>
+        <div>{{ item.deletedAt ? $t('undelete_user') : $t('delete_user') }}</div>
       </b-form-checkbox>
 
       <div class="mt-3 mb-5">
@@ -46,7 +46,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$toasted.success('user is deleted')
+          this.$toasted.success(this.$t('user_deleted'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
@@ -54,7 +54,7 @@ export default {
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error('user deleted error', error)
+          this.$toasted.error('error', error)
         })
     },
     unDeleteUser() {
@@ -66,16 +66,15 @@ export default {
           },
         })
         .then((result) => {
-          this.$toasted.success('user is undeleted')
+          this.$toasted.success(this.$t('user_recovered'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,
           })
-          // this.item.deletedAt = null
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error('user undeleted error', error)
+          this.$toasted.error('error', error)
         })
     },
   },
