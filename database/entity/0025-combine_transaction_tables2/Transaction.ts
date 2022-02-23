@@ -29,7 +29,7 @@ export class Transaction extends BaseEntity {
   sendSenderFinalBalance: BigInt | null
 
   @Column({ name: 'balance', type: 'bigint', default: 0 })
-  balance: number
+  balance: BigInt
 
   @Column({
     name: 'balance_date',
