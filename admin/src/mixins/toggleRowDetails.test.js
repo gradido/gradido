@@ -35,7 +35,7 @@ describe('toggleRowDetails', () => {
 
   describe('no open row', () => {
     beforeEach(() => {
-      wrapper.vm.rowToogleDetails(row, 2)
+      wrapper.vm.rowToggleDetails(row, 2)
     })
 
     it('calls toggleDetails', () => {
@@ -70,7 +70,7 @@ describe('toggleRowDetails', () => {
     describe('row index is open row index', () => {
       describe('index is slot index', () => {
         beforeEach(() => {
-          wrapper.vm.rowToogleDetails(row, 0)
+          wrapper.vm.rowToggleDetails(row, 0)
         })
 
         it('calls toggleDetails', () => {
@@ -84,7 +84,7 @@ describe('toggleRowDetails', () => {
 
       describe('index is not slot index', () => {
         beforeEach(() => {
-          wrapper.vm.rowToogleDetails(row, 2)
+          wrapper.vm.rowToggleDetails(row, 2)
         })
 
         it('does not call toggleDetails', () => {
@@ -99,7 +99,7 @@ describe('toggleRowDetails', () => {
 
     describe('row index is not open row index', () => {
       beforeEach(() => {
-        wrapper.vm.rowToogleDetails(
+        wrapper.vm.rowToggleDetails(
           {
             toggleDetails: secondToggleDetailsMock,
             index: 2,

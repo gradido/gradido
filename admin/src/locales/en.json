@@ -23,12 +23,15 @@
   "creation_for_month": "Creation for month",
   "date": "Date",
   "delete": "Delete",
+  "deleted": "deleted",
+  "deleted_user": "All deleted user",
+  "delete_user": "Delete user",
   "details": "Details",
   "edit": "Edit",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
-  "hide_details": "Hide details from",
+  "hide_details": "Hide details",
   "lastname": "Lastname",
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
@@ -61,8 +64,10 @@
     }
   },
   "remove": "Remove",
+  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
+  "status": "Status",
   "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
@@ -73,6 +78,7 @@
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
+  "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
@@ -83,5 +89,8 @@
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
   },
+  "userIsDeleted": "The user is deleted. No more GDD can be created.",
+  "user_deleted": "User is deleted.",
+  "user_recovered.": "User is recovered.",
   "user_search": "User search"
 }
