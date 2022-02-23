@@ -84,7 +84,6 @@ async function calculateNewBalance(
 
   return newBalance
 }
-
 @Resolver()
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
@@ -342,7 +341,7 @@ export class TransactionResolver {
         queryRunner,
       )
 
-      // Update Balance: recipiant + amount
+      // Update Balance: recipient + amount
       const recipientStateBalance = await updateStateBalance(
         recipientUser,
         centAmount,
