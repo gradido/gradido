@@ -1,8 +1,9 @@
-export const garrickOllivander = {
+import { UserInterface } from '../../interface/UserInterface'
+
+export const garrickOllivander: UserInterface = {
   email: 'garrick@ollivander.com',
   firstName: 'Garrick',
   lastName: 'Ollivander',
-  username: 'garrick',
   // description: `Curious ... curious ...
   // Renowned wandmaker Mr Ollivander owns the wand shop Ollivanders: Makers of Fine Wands Since 382 BC in Diagon Alley. His shop is widely considered the best place to purchase a wand.`,
   password: BigInt('0'),
@@ -10,11 +11,8 @@ export const garrickOllivander = {
   createdAt: new Date('2022-01-10T10:23:17'),
   emailChecked: false,
   language: 'en',
-  disabled: false,
-  groupId: 1,
   passphrase:
     'human glide theory clump wish history other duty door fringe neck industry ostrich equal plate diesel tornado neck people antenna door category moon hen ',
-  mnemonicType: 2,
   isAdmin: false,
   addBalance: false,
 }
