@@ -54,6 +54,7 @@ async function calculateAndAddDecayTransactions(
     transactionIndiced[transaction.id] = transaction
     involvedUserIds.push(transaction.userId)
     if (transaction.transactionTypeId === TransactionTypeId.SEND) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
     }
   })
