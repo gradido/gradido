@@ -32,120 +32,6 @@ import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { randomInt } from 'crypto'
 
-// Helper function
-async function calculateAndAddDecayTransactions(
-  userTransactions: dbTransaction[],
-  decay: boolean,
-  skipFirstTransaction: boolean,
-): Promise<Transaction[]> {
-  const finalTransactions: Transaction[] = []
-  const involvedUserIds: number[] = []
-
-  const transactionIndiced: dbTransaction[] = []
-  userTransactions.forEach((transaction: dbTransaction) => {
-    transactionIndiced[transaction.id] = transaction
-    involvedUserIds.push(transaction.userId)
-    if (
-      transaction.transactionTypeId === TransactionTypeId.SEND ||
-      transaction.transactionTypeId === TransactionTypeId.RECEIVE
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      involvedUserIds.push(transaction.linkedUserId!) // TODO ensure not null properly
-    }
-  })
-  // remove duplicates
-  // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-  const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
-  const userRepository = getCustomRepository(UserRepository)
-  const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
-
-  for (let i = 0; i < userTransactions.length; i++) {
-    const userTransaction = userTransactions[i]
-    const transaction = transactionIndiced[userTransaction.transactionId]
-    const finalTransaction = new Transaction()
-    finalTransaction.transactionId = transaction.id
-    finalTransaction.date = transaction.received.toISOString()
-    finalTransaction.memo = transaction.memo
-    finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
-    const previousTransaction = i > 0 ? userTransactions[i - 1] : null
-
-    if (previousTransaction) {
-      const currentTransaction = userTransaction
-      const decay = calculateDecay(
-        Number(previousTransaction.balance),
-        previousTransaction.balanceDate,
-        currentTransaction.balanceDate,
-      )
-      const balance = Number(previousTransaction.balance) - decay.balance
-
-      if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
-        finalTransaction.decay = decay
-        finalTransaction.decay.balance = roundFloorFrom4(balance)
-        if (
-          previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
-          currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
-        ) {
-          finalTransaction.decay.decayStartBlock = (
-            CONFIG.DECAY_START_TIME.getTime() / 1000
-          ).toString()
-        }
-      }
-    }
-
-    const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
-    switch (userTransaction.transactionTypeId) {
-      case TransactionTypeId.CREATION:
-        // creation
-        finalTransaction.name = 'Gradido Akademie'
-        finalTransaction.type = TransactionType.CREATION
-        // finalTransaction.targetDate = creation.targetDate
-        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-        break
-      case TransactionTypeId.SEND:
-        // send coin
-        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-        finalTransaction.type = TransactionType.SEND
-        if (otherUser) {
-          finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-          finalTransaction.email = otherUser.email
-        }
-        break
-      case TransactionTypeId.RECEIVE:
-        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-        finalTransaction.type = TransactionType.RECIEVE
-        if (otherUser) {
-          finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-          finalTransaction.email = otherUser.email
-        }
-        break
-      default:
-        throw new Error('invalid transaction')
-    }
-    if (i > 0 || !skipFirstTransaction) {
-      finalTransactions.push(finalTransaction)
-    }
-
-    if (i === userTransactions.length - 1 && decay) {
-      const now = new Date()
-      const decay = calculateDecay(
-        Number(userTransaction.balance),
-        userTransaction.balanceDate,
-        now,
-      )
-      const balance = Number(userTransaction.balance) - decay.balance
-
-      const decayTransaction = new Transaction()
-      decayTransaction.type = 'decay'
-      decayTransaction.balance = roundCeilFrom4(balance)
-      decayTransaction.decayDuration = decay.decayDuration
-      decayTransaction.decayStart = decay.decayStart
-      decayTransaction.decayEnd = decay.decayEnd
-      finalTransactions.push(decayTransaction)
-    }
-  }
-  return finalTransactions
-}
-
 // helper helper function
 async function updateStateBalance(
   user: dbUser,
@@ -243,11 +129,113 @@ export class TransactionResolver {
       if (order === Order.DESC) {
         userTransactions.reverse()
       }
-      transactions = await calculateAndAddDecayTransactions(
-        userTransactions,
-        decay,
-        skipFirstTransaction,
-      )
+      const finalTransactions: Transaction[] = []
+      const involvedUserIds: number[] = []
+
+      const transactionIndiced: dbTransaction[] = []
+      userTransactions.forEach((transaction: dbTransaction) => {
+        transactionIndiced[transaction.id] = transaction
+        involvedUserIds.push(transaction.userId)
+        if (
+          transaction.transactionTypeId === TransactionTypeId.SEND ||
+          transaction.transactionTypeId === TransactionTypeId.RECEIVE
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          involvedUserIds.push(transaction.linkedUserId!) // TODO ensure not null properly
+        }
+      })
+      // remove duplicates
+      // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+      const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
+      const userRepository = getCustomRepository(UserRepository)
+      const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
+
+      for (let i = 0; i < userTransactions.length; i++) {
+        const userTransaction = userTransactions[i]
+        const transaction = transactionIndiced[userTransaction.transactionId]
+        const finalTransaction = new Transaction()
+        finalTransaction.transactionId = transaction.id
+        finalTransaction.date = transaction.received.toISOString()
+        finalTransaction.memo = transaction.memo
+        finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
+        const previousTransaction = i > 0 ? userTransactions[i - 1] : null
+
+        if (previousTransaction) {
+          const currentTransaction = userTransaction
+          const decay = calculateDecay(
+            Number(previousTransaction.balance),
+            previousTransaction.balanceDate,
+            currentTransaction.balanceDate,
+          )
+          const balance = Number(previousTransaction.balance) - decay.balance
+
+          if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
+            finalTransaction.decay = decay
+            finalTransaction.decay.balance = roundFloorFrom4(balance)
+            if (
+              previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
+              currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
+            ) {
+              finalTransaction.decay.decayStartBlock = (
+                CONFIG.DECAY_START_TIME.getTime() / 1000
+              ).toString()
+            }
+          }
+        }
+
+        const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
+        switch (userTransaction.transactionTypeId) {
+          case TransactionTypeId.CREATION:
+            // creation
+            finalTransaction.name = 'Gradido Akademie'
+            finalTransaction.type = TransactionType.CREATION
+            // finalTransaction.targetDate = creation.targetDate
+            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+            break
+          case TransactionTypeId.SEND:
+            // send coin
+            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+            finalTransaction.type = TransactionType.SEND
+            if (otherUser) {
+              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+              finalTransaction.email = otherUser.email
+            }
+            break
+          case TransactionTypeId.RECEIVE:
+            finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+            finalTransaction.type = TransactionType.RECIEVE
+            if (otherUser) {
+              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+              finalTransaction.email = otherUser.email
+            }
+            break
+          default:
+            throw new Error('invalid transaction')
+        }
+        if (i > 0 || !skipFirstTransaction) {
+          finalTransactions.push(finalTransaction)
+        }
+
+        if (i === userTransactions.length - 1 && decay) {
+          const now = new Date()
+          const decay = calculateDecay(
+            Number(userTransaction.balance),
+            userTransaction.balanceDate,
+            now,
+          )
+          const balance = Number(userTransaction.balance) - decay.balance
+
+          const decayTransaction = new Transaction()
+          decayTransaction.type = 'decay'
+          decayTransaction.balance = roundCeilFrom4(balance)
+          decayTransaction.decayDuration = decay.decayDuration
+          decayTransaction.decayStart = decay.decayStart
+          decayTransaction.decayEnd = decay.decayEnd
+          finalTransactions.push(decayTransaction)
+        }
+      }
+      transactions = finalTransactions
+
       if (order === Order.DESC) {
         transactions.reverse()
       }
