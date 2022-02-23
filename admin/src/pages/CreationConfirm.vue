@@ -1,11 +1,7 @@
 <template>
   <div class="creation-confirm">
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
-      <overlay
-        :item="item"
-        @overlay-cancel="overlay = false"
-        @confirm-creation="confirmCreation"
-      />
+      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
     </div>
     <open-creations-table
       class="mt-4"
