@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, IsNull, Not, ObjectLiteral, Raw } from '@dbTools/typeorm'
+import {
+  getCustomRepository,
+  IsNull,
+  Not,
+  ObjectLiteral,
+  getConnection,
+  In,
+} from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
 import { CreatePendingCreations } from '../model/CreatePendingCreations'
@@ -51,9 +58,7 @@ export class AdminResolver {
     if (isDeleted) {
       filterCriteria.push({ deletedAt: Not(IsNull()) })
     }
-    // prevent overfetching data from db, select only needed columns
-    // prevent reading and transmitting data from db at least 300 Bytes
-    // one of my example dataset shrink down from 342 Bytes to 42 Bytes, that's ~88% saved db bandwith
+
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
@@ -91,9 +96,10 @@ export class AdminResolver {
             }
           }
         }
+        const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
-          await getUserCreations(user.id),
+          userCreations ? userCreations.creations : [1000, 1000, 1000],
           await hasElopageBuys(user.email),
           emailConfirmationSend,
         )
