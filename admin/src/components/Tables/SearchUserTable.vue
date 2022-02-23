@@ -45,7 +45,7 @@
           :index="slotIndex"
           @row-toogle-details="rowToogleDetails"
         >
-          <template #show-collaps>
+          <template #show-collapse>
             <creation-formular
               v-if="!row.item.deletedAt"
               type="singleCreation"
