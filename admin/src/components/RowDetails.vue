@@ -1,8 +1,5 @@
 <template>
   <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-    <b-row class="mb-2">
-      <b-col></b-col>
-    </b-row>
     <slot :name="slotName" />
     <b-button size="sm" @click="$emit('row-toggle-details', row, index)">
       <b-icon

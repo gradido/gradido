@@ -20,6 +20,7 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "creation_for_month": "Schöpfung für Monat",
   "date": "Datum",
   "delete": "Löschen",
   "deleted": "gelöscht",
@@ -30,10 +31,11 @@
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
-  "hide_details": "Details verbergen von",
+  "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
+  "name": "Name",
   "navbar": {
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
@@ -47,7 +49,7 @@
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "confirm": {
-      "no": "Nein, nicht speichern.",
+      "cancel": "Abbrechen",
       "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
@@ -88,5 +90,7 @@
     "text_true": " Die Email wurde bestätigt."
   },
   "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
+  "user_deleted": "Nutzer ist gelöscht.",
+  "user_recovered.": "Nutzer ist wiederhergestellt.",
   "user_search": "Nutzer-Suche"
 }

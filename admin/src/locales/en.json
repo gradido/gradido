@@ -20,6 +20,7 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "creation_for_month": "Creation for month",
   "date": "Date",
   "delete": "Delete",
   "deleted": "deleted",
@@ -30,10 +31,11 @@
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
-  "hide_details": "Hide details from",
+  "hide_details": "Hide details",
   "lastname": "Lastname",
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
+  "name": "Name",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
@@ -47,7 +49,7 @@
   "open_creations": "Open creations",
   "overlay": {
     "confirm": {
-      "no": "No, do not save.",
+      "cancel": "Cancel",
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Confirm creation!",
@@ -88,5 +90,7 @@
     "text_true": "The email was confirmed."
   },
   "userIsDeleted": "The user is deleted. No more GDD can be created.",
+  "user_deleted": "User is deleted.",
+  "user_recovered.": "User is recovered.",
   "user_search": "User search"
 }
