@@ -17,10 +17,9 @@ import Paginated from '../arg/Paginated'
 import { Order } from '../enum/Order'
 
 import { UserRepository } from '../../typeorm/repository/User'
-import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
-import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Balance as dbBalance } from '@entity/Balance'
 
@@ -31,10 +30,11 @@ import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { randomInt } from 'crypto'
 
 // Helper function
 async function calculateAndAddDecayTransactions(
-  userTransactions: dbUserTransaction[],
+  userTransactions: dbTransaction[],
   user: dbUser,
   decay: boolean,
   skipFirstTransaction: boolean,
@@ -43,7 +43,7 @@ async function calculateAndAddDecayTransactions(
   const transactionIds: number[] = []
   const involvedUserIds: number[] = []
 
-  userTransactions.forEach((userTransaction: dbUserTransaction) => {
+  userTransactions.forEach((userTransaction: dbTransaction) => {
     transactionIds.push(userTransaction.transactionId)
   })
 
@@ -52,9 +52,12 @@ async function calculateAndAddDecayTransactions(
   transactions.forEach((transaction: dbTransaction) => {
     transactionIndiced[transaction.id] = transaction
     involvedUserIds.push(transaction.userId)
-    if (transaction.transactionTypeId === TransactionTypeId.SEND) {
+    if (
+      transaction.transactionTypeId === TransactionTypeId.SEND ||
+      transaction.transactionTypeId === TransactionTypeId.RECEIVE
+    ) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
+      involvedUserIds.push(transaction.linkedUserId!) // TODO ensure not null properly
     }
   })
   // remove duplicates
@@ -70,17 +73,17 @@ async function calculateAndAddDecayTransactions(
     finalTransaction.transactionId = transaction.id
     finalTransaction.date = transaction.received.toISOString()
     finalTransaction.memo = transaction.memo
-    finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
+    finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
     const previousTransaction = i > 0 ? userTransactions[i - 1] : null
 
     if (previousTransaction) {
       const currentTransaction = userTransaction
       const decay = calculateDecay(
-        previousTransaction.balance,
+        Number(previousTransaction.balance),
         previousTransaction.balanceDate,
         currentTransaction.balanceDate,
       )
-      const balance = previousTransaction.balance - decay.balance
+      const balance = Number(previousTransaction.balance) - decay.balance
 
       if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
         finalTransaction.decay = decay
@@ -110,23 +113,23 @@ async function calculateAndAddDecayTransactions(
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
     } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
       // send coin
-      let otherUser: dbUser | undefined
+      const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
       finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-      if (transaction.userId === user.id) {
-        finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId)
-        // finalTransaction.pubkey = sendCoin.recipiantPublic
-      } else if (transaction.sendReceiverUserId === user.id) {
-        finalTransaction.type = TransactionType.RECIEVE
-        otherUser = userIndiced.find((u) => u.id === transaction.userId)
-        // finalTransaction.pubkey = sendCoin.senderPublic
-      } else {
-        throw new Error('invalid transaction')
-      }
+      finalTransaction.type = TransactionType.SEND
       if (otherUser) {
         finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
         finalTransaction.email = otherUser.email
       }
+    } else if (userTransaction.transactionTypeId === TransactionTypeId.RECEIVE) {
+      const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
+      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+      finalTransaction.type = TransactionType.RECIEVE
+      if (otherUser) {
+        finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+        finalTransaction.email = otherUser.email
+      }
+    } else {
+      throw new Error('invalid transaction')
     }
     if (i > 0 || !skipFirstTransaction) {
       finalTransactions.push(finalTransaction)
@@ -134,8 +137,12 @@ async function calculateAndAddDecayTransactions(
 
     if (i === userTransactions.length - 1 && decay) {
       const now = new Date()
-      const decay = calculateDecay(userTransaction.balance, userTransaction.balanceDate, now)
-      const balance = userTransaction.balance - decay.balance
+      const decay = calculateDecay(
+        Number(userTransaction.balance),
+        userTransaction.balanceDate,
+        now,
+      )
+      const balance = Number(userTransaction.balance) - decay.balance
 
       const decayTransaction = new Transaction()
       decayTransaction.type = 'decay'
@@ -176,22 +183,20 @@ async function updateStateBalance(
   })
 }
 
-// helper helper function
-async function addUserTransaction(
-  user: dbUser,
-  transaction: dbTransaction,
+async function calculateNewBalance(
+  userId: number,
+  transactionDate: Date,
   centAmount: number,
-  queryRunner: QueryRunner,
-): Promise<dbUserTransaction> {
+): Promise<BigInt> {
   let newBalance = centAmount
-  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-  const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
+  const transactionRepository = getCustomRepository(TransactionRepository)
+  const lastUserTransaction = await transactionRepository.findLastForUser(userId)
   if (lastUserTransaction) {
     newBalance += Number(
       calculateDecay(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
-        transaction.received,
+        transactionDate,
       ).balance,
     )
   }
@@ -200,16 +205,7 @@ async function addUserTransaction(
     throw new Error('error new balance <= 0')
   }
 
-  const newUserTransaction = new dbUserTransaction()
-  newUserTransaction.userId = user.id
-  newUserTransaction.transactionId = transaction.id
-  newUserTransaction.transactionTypeId = transaction.transactionTypeId
-  newUserTransaction.balance = newBalance
-  newUserTransaction.balanceDate = transaction.received
-
-  return queryRunner.manager.save(newUserTransaction).catch((error) => {
-    throw new Error('Error saving user transaction: ' + error)
-  })
+  return BigInt(newBalance)
 }
 
 @Resolver()
@@ -242,9 +238,14 @@ export class TransactionResolver {
     if (offset && order === Order.ASC) {
       offset--
     }
-    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-    const [userTransactions, userTransactionsCount] =
-      await userTransactionRepository.findByUserPaged(user.id, limit, offset, order, onlyCreations)
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
+      user.id,
+      limit,
+      offset,
+      order,
+      onlyCreations,
+    )
     skipFirstTransaction = userTransactionsCount > offset + limit
     const decay = !(currentPage > 1)
     let transactions: Transaction[] = []
@@ -326,39 +327,49 @@ export class TransactionResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
+      const receivedCallDate = new Date()
       // transaction
-      const transaction = new dbTransaction()
-      transaction.transactionTypeId = TransactionTypeId.SEND
-      transaction.memo = memo
-      transaction.userId = senderUser.id
-      transaction.pubkey = senderUser.pubKey
-      transaction.sendReceiverUserId = recipientUser.id
-      transaction.sendReceiverPublicKey = recipientUser.pubKey
-      transaction.amount = BigInt(centAmount)
-
-      await queryRunner.manager.insert(dbTransaction, transaction)
-
-      // Insert Transaction: sender - amount
-      const senderUserTransactionBalance = await addUserTransaction(
-        senderUser,
-        transaction,
+      const transactionSend = new dbTransaction()
+      transactionSend.transactionTypeId = TransactionTypeId.SEND
+      transactionSend.memo = memo
+      transactionSend.userId = senderUser.id
+      transactionSend.pubkey = senderUser.pubKey
+      transactionSend.linkedUserId = recipientUser.id
+      transactionSend.amount = BigInt(centAmount)
+      transactionSend.received = receivedCallDate
+      transactionSend.transactionId = randomInt(99999)
+      transactionSend.balance = await calculateNewBalance(
+        senderUser.id,
+        receivedCallDate,
         -centAmount,
-        queryRunner,
       )
+      transactionSend.balanceDate = receivedCallDate
+      transactionSend.sendSenderFinalBalance = transactionSend.balance
+      await queryRunner.manager.insert(dbTransaction, transactionSend)
 
-      // Insert Transaction: recipient + amount
-      const recipiantUserTransactionBalance = await addUserTransaction(
-        recipientUser,
-        transaction,
+      const transactionReceive = new dbTransaction()
+      transactionReceive.transactionTypeId = TransactionTypeId.RECEIVE
+      transactionReceive.memo = memo
+      transactionReceive.userId = recipientUser.id
+      transactionReceive.pubkey = recipientUser.pubKey
+      transactionReceive.linkedUserId = senderUser.id
+      transactionReceive.amount = BigInt(centAmount)
+      transactionReceive.received = receivedCallDate
+      transactionReceive.transactionId = randomInt(99999)
+      transactionReceive.balance = await calculateNewBalance(
+        senderUser.id,
+        receivedCallDate,
         centAmount,
-        queryRunner,
       )
+      transactionReceive.balanceDate = receivedCallDate
+      transactionReceive.sendSenderFinalBalance = transactionSend.balance
+      await queryRunner.manager.insert(dbTransaction, transactionReceive)
 
       // Update Balance: sender - amount
       const senderStateBalance = await updateStateBalance(
         senderUser,
         -centAmount,
-        transaction.received,
+        receivedCallDate,
         queryRunner,
       )
 
@@ -366,41 +377,20 @@ export class TransactionResolver {
       const recipiantStateBalance = await updateStateBalance(
         recipientUser,
         centAmount,
-        transaction.received,
+        receivedCallDate,
         queryRunner,
       )
 
-      if (senderStateBalance.amount !== senderUserTransactionBalance.balance) {
+      if (senderStateBalance.amount !== Number(transactionSend.balance)) {
         throw new Error('db data corrupted, sender')
       }
-      if (recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance) {
+      if (recipiantStateBalance.amount !== Number(transactionReceive.balance)) {
         throw new Error('db data corrupted, recipiant')
       }
-
-      // TODO: WTF?
-      // I just assume that due to implicit type conversion the decimal places were cut.
-      // Using `Math.trunc` to simulate this behaviour
-      transaction.sendSenderFinalBalance = BigInt(Math.trunc(senderStateBalance.amount))
-
-      await queryRunner.manager.save(transaction).catch((error) => {
-        throw new Error('error saving transaction with tx hash: ' + error)
-      })
 
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      // TODO: This is broken code - we should never correct an autoincrement index in production
-      // according to dario it is required tho to properly work. The index of the table is used as
-      // index for the transaction which requires a chain without gaps
-      const count = await queryRunner.manager.count(dbTransaction)
-      // fix autoincrement value which seems not effected from rollback
-      await queryRunner
-        .query('ALTER TABLE `transactions` auto_increment = ?', [count])
-        .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log('problems with reset auto increment: %o', error)
-        })
-      throw e
     } finally {
       await queryRunner.release()
     }
