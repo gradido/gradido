@@ -1,12 +1,22 @@
 <template>
   <div class="search-user-table">
-    <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+    <b-table
+      :items="myItems"
+      :fields="fields"
+      caption-top
+      striped
+      hover
+      stacked="md"
+      select-mode="single"
+      selectableonRowSelected
+      @row-clicked="onRowClicked"
+    >
       <template #cell(creation)="data">
-        <div v-html="data.value" @click="rowToogleDetails(row, 0)"></div>
+        <div v-html="data.value"></div>
       </template>
 
       <template #cell(status)="row">
-        <div @click="rowToogleDetails(row, 0)" class="text-right">
+        <div class="text-right">
           <b-avatar v-if="row.item.deletedAt" class="mr-3" variant="light">
             <b-iconstack font-scale="2">
               <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
@@ -16,7 +26,6 @@
           <span v-if="!row.item.deletedAt">
             <b-avatar
               v-if="!row.item.emailChecked"
-              href="#baz"
               icon="envelope"
               class="align-center mr-3"
               variant="danger"
@@ -38,65 +47,50 @@
       </template>
 
       <template #row-details="row">
-        <row-details
-          :row="row"
-          type="singleCreation"
-          :slotName="slotName"
-          :index="slotIndex"
-          @row-toogle-details="rowToogleDetails"
-        >
-          <template #show-collapse>
-            <creation-formular
-              v-if="!row.item.deletedAt"
-              type="singleCreation"
-              pagetype="singleCreation"
-              :creation="row.item.creation"
-              :item="row.item"
-              :creationUserData="creationUserData"
-              @update-user-data="updateUserData"
-            />
-            <div v-else>{{ $t('userIsDeleted') }}</div>
-
-            <confirm-register-mail-formular
-              v-if="!row.item.deletedAt"
-              :checked="row.item.emailChecked"
-              :email="row.item.email"
-              :dateLastSend="
-                row.item.emailConfirmationSend
-                  ? $d(new Date(row.item.emailConfirmationSend), 'long')
-                  : ''
-              "
-            />
-            <creation-transaction-list-formular
-              v-if="!row.item.deletedAt"
-              :userId="row.item.userId"
-            />
-            <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
-          </template>
-        </row-details>
+        <b-card class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+          <creation-formular
+            v-if="!row.item.deletedAt"
+            type="singleCreation"
+            pagetype="singleCreation"
+            :creation="row.item.creation"
+            :item="row.item"
+            :creationUserData="creationUserData"
+            @update-user-data="updateUserData"
+          />
+          <div v-else>{{ $t('userIsDeleted') }}</div>
+          <confirm-register-mail-formular
+            v-if="!row.item.deletedAt"
+            :checked="row.item.emailChecked"
+            :email="row.item.email"
+            :dateLastSend="
+              row.item.emailConfirmationSend
+                ? $d(new Date(row.item.emailConfirmationSend), 'long')
+                : ''
+            "
+          />
+          <creation-transaction-list-formular
+            v-if="!row.item.deletedAt"
+            :userId="row.item.userId"
+          />
+          <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+        </b-card>
       </template>
-    </b-table-lite>
+    </b-table>
   </div>
 </template>
 <script>
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import RowDetails from '../RowDetails.vue'
 import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
-import { toggleRowDetails } from '../../mixins/toggleRowDetails'
-
-const slotNames = ['show-collapse']
 
 export default {
   name: 'SearchUserTable',
-  mixins: [toggleRowDetails],
   components: {
     CreationFormular,
     ConfirmRegisterMailFormular,
     CreationTransactionListFormular,
     DeletedUserFormular,
-    RowDetails,
   },
   props: {
     items: {
@@ -120,10 +114,22 @@ export default {
     updateDeletedAt({ userId, deletedAt }) {
       this.$emit('updateDeletedAt', userId, deletedAt)
     },
+    onRowClicked(item) {
+      const status = this.myItems.find((obj) => obj === item)._showDetails
+      this.myItems.forEach((obj) => {
+        if (obj === item) {
+          obj._showDetails = !status
+        } else {
+          obj._showDetails = false
+        }
+      })
+    },
   },
   computed: {
-    slotName() {
-      return slotNames[this.slotIndex]
+    myItems() {
+      return this.items.map((item) => {
+        return { ...item, _showDetails: false }
+      })
     },
   },
 }
