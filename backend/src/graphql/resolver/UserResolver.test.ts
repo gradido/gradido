@@ -6,14 +6,13 @@ import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
 import createServer from '../../server/createServer'
 import { resetDB, initialize } from '@dbTools/helpers'
-import { getRepository } from 'typeorm'
-import { LoginUser } from '@entity/LoginUser'
-import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
 import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { klicktippSignIn } from '../../apis/KlicktippController'
+// import { klicktippSignIn } from '../../apis/KlicktippController'
+
+jest.setTimeout(10000)
 
 jest.mock('../../mailer/sendAccountActivationEmail', () => {
   return {
@@ -22,12 +21,14 @@ jest.mock('../../mailer/sendAccountActivationEmail', () => {
   }
 })
 
+/*
 jest.mock('../../apis/KlicktippController', () => {
   return {
     __esModule: true,
     klicktippSignIn: jest.fn(),
   }
 })
+*/
 
 let mutate: any
 let con: any
@@ -38,6 +39,11 @@ beforeAll(async () => {
   mutate = createTestClient(server.apollo).mutate
   await initialize()
   await resetDB()
+})
+
+afterAll(async () => {
+  await resetDB(true)
+  await con.close()
 })
 
 describe('UserResolver', () => {
@@ -84,70 +90,32 @@ describe('UserResolver', () => {
     })
 
     describe('valid input data', () => {
-      let loginUser: LoginUser[]
       let user: User[]
-      let loginUserBackup: LoginUserBackup[]
       let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        loginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
-        user = await getRepository(User).createQueryBuilder('state_user').getMany()
-        loginUserBackup = await getRepository(LoginUserBackup)
-          .createQueryBuilder('login_user_backup')
-          .getMany()
-        loginEmailOptIn = await getRepository(LoginEmailOptIn)
-          .createQueryBuilder('login_email_optin')
-          .getMany()
+        user = await User.find()
+        loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
       })
 
       describe('filling all tables', () => {
         it('saves the user in login_user table', () => {
-          expect(loginUser).toEqual([
+          expect(user).toEqual([
             {
               id: expect.any(Number),
               email: 'peter@lustig.de',
               firstName: 'Peter',
               lastName: 'Lustig',
-              username: '',
-              description: '',
               password: '0',
               pubKey: null,
               privKey: null,
               emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
               emailChecked: false,
-              passphraseShown: false,
-              language: 'de',
-              disabled: false,
-              groupId: 1,
-              publisherId: 1234,
-            },
-          ])
-        })
-
-        it('saves the user in state_user table', () => {
-          expect(user).toEqual([
-            {
-              id: expect.any(Number),
-              indexId: 0,
-              groupId: 0,
-              pubkey: expect.any(Buffer),
-              email: 'peter@lustig.de',
-              firstName: 'Peter',
-              lastName: 'Lustig',
-              username: '',
-              disabled: false,
-            },
-          ])
-        })
-
-        it('saves the user in login_user_backup table', () => {
-          expect(loginUserBackup).toEqual([
-            {
-              id: expect.any(Number),
               passphrase: expect.any(String),
-              userId: loginUser[0].id,
-              mnemonicType: 2,
+              language: 'de',
+              deletedAt: null,
+              publisherId: 1234,
             },
           ])
         })
@@ -156,7 +124,7 @@ describe('UserResolver', () => {
           expect(loginEmailOptIn).toEqual([
             {
               id: expect.any(Number),
-              userId: loginUser[0].id,
+              userId: user[0].id,
               verificationCode: expect.any(String),
               emailOptInTypeId: 1,
               createdAt: expect.any(Date),
@@ -196,9 +164,7 @@ describe('UserResolver', () => {
           mutation,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
         })
-        await expect(
-          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
-        ).resolves.toEqual(
+        await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               email: 'bibi@bloxberg.de',
@@ -215,9 +181,7 @@ describe('UserResolver', () => {
           mutation,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(
-          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
-        ).resolves.toEqual(
+        await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               email: 'raeuber@hotzenplotz.de',
@@ -265,23 +229,17 @@ describe('UserResolver', () => {
     let emailOptIn: string
 
     describe('valid optin code and valid password', () => {
-      let loginUser: any
-      let newLoginUser: any
       let newUser: any
 
       beforeAll(async () => {
         await mutate({ mutation: createUserMutation, variables: createUserVariables })
-        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
-          .createQueryBuilder('login_email_optin')
-          .getMany()
-        loginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
+        const loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
         result = await mutate({
           mutation: setPasswordMutation,
           variables: { code: emailOptIn, password: 'Aa12345_' },
         })
-        newLoginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
-        newUser = await getRepository(User).createQueryBuilder('state_user').getMany()
+        newUser = await User.find()
       })
 
       afterAll(async () => {
@@ -289,38 +247,27 @@ describe('UserResolver', () => {
       })
 
       it('sets email checked to true', () => {
-        expect(newLoginUser[0].emailChecked).toBeTruthy()
+        expect(newUser[0].emailChecked).toBeTruthy()
       })
 
       it('updates the password', () => {
-        expect(newLoginUser[0].password).toEqual('3917921995996627700')
-      })
-
-      it('updates the public Key on both user tables', () => {
-        expect(newLoginUser[0].pubKey).toEqual(expect.any(Buffer))
-        expect(newLoginUser[0].pubKey).not.toEqual(loginUser[0].pubKey)
-        expect(newLoginUser[0].pubKey).toEqual(newUser[0].pubkey)
-      })
-
-      it('updates the private Key', () => {
-        expect(newLoginUser[0].privKey).toEqual(expect.any(Buffer))
-        expect(newLoginUser[0].privKey).not.toEqual(loginUser[0].privKey)
+        expect(newUser[0].password).toEqual('3917921995996627700')
       })
 
       it('removes the optin', async () => {
-        await expect(
-          getRepository(LoginEmailOptIn).createQueryBuilder('login_email_optin').getMany(),
-        ).resolves.toHaveLength(0)
+        await expect(LoginEmailOptIn.find()).resolves.toHaveLength(0)
       })
 
+      /*
       it('calls the klicktipp API', () => {
         expect(klicktippSignIn).toBeCalledWith(
-          loginUser[0].email,
-          loginUser[0].language,
-          loginUser[0].firstName,
-          loginUser[0].lastName,
+          user[0].email,
+          user[0].language,
+          user[0].firstName,
+          user[0].lastName,
         )
       })
+      */
 
       it('returns true', () => {
         expect(result).toBeTruthy()
@@ -330,9 +277,7 @@ describe('UserResolver', () => {
     describe('no valid password', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUserMutation, variables: createUserVariables })
-        const loginEmailOptIn = await getRepository(LoginEmailOptIn)
-          .createQueryBuilder('login_email_optin')
-          .getMany()
+        const loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
         result = await mutate({
           mutation: setPasswordMutation,
@@ -379,9 +324,4 @@ describe('UserResolver', () => {
       })
     })
   })
-})
-
-afterAll(async () => {
-  await resetDB(true)
-  await con.close()
 })

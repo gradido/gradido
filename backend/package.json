@@ -10,11 +10,10 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "start": "node build/index.js",
+    "start": "node build/src/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint . --ext .js,.ts",
-    "CI_workflow_test": "jest --runInBand --coverage ",
-    "test": "NODE_ENV=development jest --runInBand --coverage "
+    "test": "TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
@@ -32,7 +31,6 @@
     "jsonwebtoken": "^8.5.1",
     "lodash.clonedeep": "^4.5.0",
     "module-alias": "^2.2.2",
-    "moment": "^2.29.1",
     "mysql2": "^2.3.0",
     "nodemailer": "^6.6.5",
     "random-bigint": "^0.0.1",

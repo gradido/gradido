@@ -4,11 +4,11 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { Balance } from '../model/Balance'
-import { BalanceRepository } from '../../typeorm/repository/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { calculateDecay } from '../../util/decay'
 import { roundFloorFrom4 } from '../../util/round'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { Balance as dbBalance } from '@entity/Balance'
 
 @Resolver()
 export class BalanceResolver {
@@ -16,11 +16,10 @@ export class BalanceResolver {
   @Query(() => Balance)
   async balance(@Ctx() context: any): Promise<Balance> {
     // load user and balance
-    const balanceRepository = getCustomRepository(BalanceRepository)
     const userRepository = getCustomRepository(UserRepository)
 
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
+    const balanceEntity = await dbBalance.findOne({ userId: userEntity.id })
     const now = new Date()
 
     // No balance found
