@@ -20,8 +20,8 @@ define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
   transaction.pubkey = context.pubkey || randomBytes(32)
   transaction.creationIdentHash = context.creationIdentHash || randomBytes(32)
   transaction.creationDate = context.creationDate || new Date()
-  transaction.sendReceiverPublicKey = context.sendReceiverPublicKey || null
-  transaction.sendReceiverUserId = context.sendReceiverUserId || null
+  // transaction.sendReceiverPublicKey = context.sendReceiverPublicKey || null
+  transaction.linkedUserId = context.sendReceiverUserId || null
   transaction.sendSenderFinalBalance = context.sendSenderFinalBalance || null
 
   return transaction

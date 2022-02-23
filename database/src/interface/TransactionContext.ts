@@ -2,8 +2,11 @@ import { Transaction } from '../../entity/Transaction'
 import { User } from '../../entity/User'
 
 export interface TransactionContext {
+  transactionId: number
   transactionTypeId: number
   userId: number
+  balance: BigInt
+  balanceDate: Date
   amount: BigInt
   txHash?: Buffer
   memo: string
@@ -32,14 +35,4 @@ export interface TransactionSendCoinContext {
   amount?: number
   senderFinalBalance?: number
   transaction?: Transaction
-}
-
-export interface UserTransactionContext {
-  userId?: number
-  transactionId?: number
-  transactionTypeId?: number
-  balance?: number
-  balanceDate?: Date
-  signature?: Buffer
-  pubkey?: Buffer
 }
