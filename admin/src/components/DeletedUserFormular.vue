@@ -6,7 +6,7 @@
     <div v-else class="mt-5">
       <b-form-checkbox switch size="lg" v-model="checked">
         <div v-if="item.deletedAt === null">{{ $t('delete_user') }}</div>
-        <div v-if="item.deletedAt !== null">{{ $t('undelete_user') }}</div>
+        <div>{{ item.deletedAt ? $t('undelete_user') :  $t('delete_user') }}</div>
       </b-form-checkbox>
 
       <div class="mt-3 mb-5">
