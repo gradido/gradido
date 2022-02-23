@@ -31,7 +31,6 @@ import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
-import { randomInt } from 'crypto'
 
 // helper helper function
 async function updateStateBalance(
