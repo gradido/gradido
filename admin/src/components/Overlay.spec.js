@@ -4,7 +4,7 @@ import Overlay from './Overlay.vue'
 const localVue = global.localVue
 
 const propsData = {
-  items: {},
+  item: {},
 }
 
 const mocks = {
