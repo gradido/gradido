@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0024-combine_transaction_tables',
+  DB_VERSION: '0025-combine_transaction_tables2',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 
