@@ -99,37 +99,34 @@ async function calculateAndAddDecayTransactions(
       }
     }
 
-    // sender or receiver when user has sent money
-    // group name if creation
-    // type: gesendet / empfangen / geschöpft
-    // transaktion nr / id
-    // date
-    // balance
-    if (userTransaction.transactionTypeId === TransactionTypeId.CREATION) {
-      // creation
-      finalTransaction.name = 'Gradido Akademie'
-      finalTransaction.type = TransactionType.CREATION
-      // finalTransaction.targetDate = creation.targetDate
-      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-    } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
-      // send coin
-      const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
-      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-      finalTransaction.type = TransactionType.SEND
-      if (otherUser) {
-        finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-        finalTransaction.email = otherUser.email
-      }
-    } else if (userTransaction.transactionTypeId === TransactionTypeId.RECEIVE) {
-      const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
-      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-      finalTransaction.type = TransactionType.RECIEVE
-      if (otherUser) {
-        finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-        finalTransaction.email = otherUser.email
-      }
-    } else {
-      throw new Error('invalid transaction')
+    const otherUser = userIndiced.find((u) => u.id === transaction.linkedUserId)
+    switch (userTransaction.transactionTypeId) {
+      case TransactionTypeId.CREATION:
+        // creation
+        finalTransaction.name = 'Gradido Akademie'
+        finalTransaction.type = TransactionType.CREATION
+        // finalTransaction.targetDate = creation.targetDate
+        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+        break
+      case TransactionTypeId.SEND:
+        // send coin
+        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+        finalTransaction.type = TransactionType.SEND
+        if (otherUser) {
+          finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+          finalTransaction.email = otherUser.email
+        }
+        break
+      case TransactionTypeId.RECEIVE:
+        finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
+        finalTransaction.type = TransactionType.RECIEVE
+        if (otherUser) {
+          finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+          finalTransaction.email = otherUser.email
+        }
+        break
+      default:
+        throw new Error('invalid transaction')
     }
     if (i > 0 || !skipFirstTransaction) {
       finalTransactions.push(finalTransaction)
