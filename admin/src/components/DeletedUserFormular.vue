@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="deleted-user-formular">
     <div v-if="item.userId === $store.state.moderator.id" class="mt-5 mb-5">
       {{ $t('removeNotSelf') }}
     </div>
