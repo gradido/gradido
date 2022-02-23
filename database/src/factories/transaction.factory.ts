@@ -2,7 +2,6 @@ import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { Transaction } from '../../entity/Transaction'
 import { TransactionContext } from '../interface/TransactionContext'
-import { randomBytes } from 'crypto'
 
 define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
   if (!context) {

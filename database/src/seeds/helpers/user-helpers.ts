@@ -6,7 +6,6 @@ import { ServerUser } from '../../../entity/ServerUser'
 import { Balance } from '../../../entity/Balance'
 import { Transaction } from '../../../entity/Transaction'
 import { Factory } from 'typeorm-seeding'
-import { randomInt } from 'crypto'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
   const user = await factory(User)(createUserContext(userData)).create()
