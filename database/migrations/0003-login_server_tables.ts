@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* MIGRATION TO CREATE THE LOGIN_SERVER TABLES
  *
  * This migration creates the `login_server` tables in the `community_server` database (`gradido_community`).
  * This is done to keep all data in the same place and is to be understood in conjunction with the next migration
  * `0004-login_server_data` which will fill the tables with the existing data
  */
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`

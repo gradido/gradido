@@ -16,7 +16,7 @@
     "dev_up": "ts-node src/index.ts up",
     "dev_down": "ts-node src/index.ts down",
     "dev_reset": "ts-node src/index.ts reset",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
     "seed": "ts-node src/index.ts seed"
   },
