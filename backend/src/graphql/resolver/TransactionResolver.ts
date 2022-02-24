@@ -287,7 +287,7 @@ export class TransactionResolver {
       throw new Error('invalid recipient public key')
     }
 
-    const centAmount = Math.trunc(amount * 10000)
+    const centAmount = Math.round(amount * 10000)
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
