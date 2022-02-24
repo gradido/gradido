@@ -332,7 +332,12 @@ export class TransactionResolver {
       await updateStateBalance(senderUser, Math.trunc(sendBalance), receivedCallDate, queryRunner)
 
       // Update Balance recipient
-      await updateStateBalance(recipientUser, Math.trunc(receiveBalance), receivedCallDate, queryRunner)
+      await updateStateBalance(
+        recipientUser,
+        Math.trunc(receiveBalance),
+        receivedCallDate,
+        queryRunner,
+      )
 
       await queryRunner.commitTransaction()
     } catch (e) {
