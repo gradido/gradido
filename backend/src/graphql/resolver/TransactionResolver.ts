@@ -123,12 +123,11 @@ export class TransactionResolver {
     )
     skipFirstTransaction = userTransactionsCount > offset + limit
     const decay = !(currentPage > 1)
-    let transactions: Transaction[] = []
+    const transactions: Transaction[] = []
     if (userTransactions.length) {
       if (order === Order.DESC) {
         userTransactions.reverse()
       }
-      const finalTransactions: Transaction[] = []
       const involvedUserIds: number[] = []
 
       userTransactions.forEach((transaction: dbTransaction) => {
@@ -205,7 +204,7 @@ export class TransactionResolver {
             throw new Error('invalid transaction')
         }
         if (i > 0 || !skipFirstTransaction) {
-          finalTransactions.push(finalTransaction)
+          transactions.push(finalTransaction)
         }
 
         if (i === userTransactions.length - 1 && decay) {
@@ -223,10 +222,9 @@ export class TransactionResolver {
           decayTransaction.decayDuration = decay.decayDuration
           decayTransaction.decayStart = decay.decayStart
           decayTransaction.decayEnd = decay.decayEnd
-          finalTransactions.push(decayTransaction)
+          transactions.push(decayTransaction)
         }
       }
-      transactions = finalTransactions
 
       if (order === Order.DESC) {
         transactions.reverse()
