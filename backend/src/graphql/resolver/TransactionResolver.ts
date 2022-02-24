@@ -329,10 +329,10 @@ export class TransactionResolver {
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
 
       // Update Balance sender
-      await updateStateBalance(senderUser, sendBalance, receivedCallDate, queryRunner)
+      await updateStateBalance(senderUser, Math.trunc(sendBalance), receivedCallDate, queryRunner)
 
       // Update Balance recipient
-      await updateStateBalance(recipientUser, receiveBalance, receivedCallDate, queryRunner)
+      await updateStateBalance(recipientUser, Math.trunc(receiveBalance), receivedCallDate, queryRunner)
 
       await queryRunner.commitTransaction()
     } catch (e) {
