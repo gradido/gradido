@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createTestClient } from 'apollo-server-testing'
+import { testEnvironment, resetEntities, createUser } from '../../../test/helpers'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
-import createServer from '../../server/createServer'
-import { resetDB, initialize } from '@dbTools/helpers'
+import { resetDB } from '@dbTools/helpers'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '../../config'
@@ -30,15 +29,25 @@ jest.mock('../../apis/KlicktippController', () => {
 })
 */
 
-let mutate: any
-let con: any
+let token: string
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const headerPushMock = jest.fn((t) => (token = t.value))
+
+const context = {
+  setHeaders: {
+    push: headerPushMock,
+    forEach: jest.fn(),
+  },
+}
+
+let mutate: any, query: any, con: any
 
 beforeAll(async () => {
-  const server = await createServer({})
-  con = server.con
-  mutate = createTestClient(server.apollo).mutate
-  await initialize()
-  await resetDB()
+  const testEnv = await testEnvironment(context)
+  mutate = testEnv.mutate
+  query = testEnv.query
+  con = testEnv.con
 })
 
 afterAll(async () => {
@@ -78,11 +87,12 @@ describe('UserResolver', () => {
     let emailOptIn: string
 
     beforeAll(async () => {
+      jest.clearAllMocks()
       result = await mutate({ mutation, variables })
     })
 
     afterAll(async () => {
-      await resetDB()
+      await resetEntities([User, LoginEmailOptIn])
     })
 
     it('returns success', () => {
@@ -225,6 +235,7 @@ describe('UserResolver', () => {
         setPassword(code: $code, password: $password)
       }
     `
+
     let result: any
     let emailOptIn: string
 
@@ -243,7 +254,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetDB()
+        await resetEntities([User, LoginEmailOptIn])
       })
 
       it('sets email checked to true', () => {
@@ -286,7 +297,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetDB()
+        await resetEntities([User, LoginEmailOptIn])
       })
 
       it('throws an error', () => {
@@ -312,7 +323,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetDB()
+        await resetEntities([User, LoginEmailOptIn])
       })
 
       it('throws an error', () => {
@@ -321,6 +332,95 @@ describe('UserResolver', () => {
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
         )
+      })
+    })
+  })
+
+  describe('login', () => {
+    const loginQuery = gql`
+      query ($email: String!, $password: String!, $publisherId: Int) {
+        login(email: $email, password: $password, publisherId: $publisherId) {
+          email
+          firstName
+          lastName
+          language
+          coinanimation
+          klickTipp {
+            newsletterState
+          }
+          hasElopage
+          publisherId
+          isAdmin
+        }
+      }
+    `
+
+    const variables = {
+      email: 'peter@lustig.de',
+      password: 'Aa12345_',
+      publisherId: 1234,
+    }
+
+    let result: User
+
+    afterAll(async () => {
+      await resetEntities([User, LoginEmailOptIn])
+    })
+
+    describe('no users in database', () => {
+      beforeAll(async () => {
+        result = await query({ query: loginQuery, variables })
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('No user with this credentials')],
+          }),
+        )
+      })
+    })
+
+    describe('user is in database', () => {
+      beforeAll(async () => {
+        await createUser(mutate, {
+          email: 'peter@lustig.de',
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          language: 'de',
+          publisherId: 1234,
+        })
+        result = await query({ query: loginQuery, variables })
+      })
+
+      afterAll(async () => {
+        await resetEntities([User, LoginEmailOptIn])
+      })
+
+      it('returns the user object', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            data: {
+              login: {
+                coinanimation: true,
+                email: 'peter@lustig.de',
+                firstName: 'Peter',
+                hasElopage: false,
+                isAdmin: false,
+                klickTipp: {
+                  newsletterState: false,
+                },
+                language: 'de',
+                lastName: 'Lustig',
+                publisherId: 1234,
+              },
+            },
+          }),
+        )
+      })
+
+      it('sets the token in the header', () => {
+        expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
       })
     })
   })
