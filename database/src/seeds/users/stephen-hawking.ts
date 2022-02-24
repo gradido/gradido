@@ -1,6 +1,6 @@
 import { UserInterface } from '../../interface/UserInterface'
 
-export const bobBaumeister: UserInterface = {
+export const stephenHawking: UserInterface = {
   email: 'stephen@hawking.uk',
   firstName: 'Stephen',
   lastName: 'Hawking',
