@@ -35,26 +35,25 @@ import { RIGHTS } from '../../auth/RIGHTS'
 // helper helper function
 async function updateStateBalance(
   user: dbUser,
-  centAmount: number,
+  balance: number,
   received: Date,
   queryRunner: QueryRunner,
 ): Promise<dbBalance> {
-  let balance = await dbBalance.findOne({ userId: user.id })
-  if (!balance) {
-    balance = new dbBalance()
-    balance.userId = user.id
-    balance.amount = centAmount
-    balance.modified = received
+  let userBalance = await dbBalance.findOne({ userId: user.id })
+  if (!userBalance) {
+    userBalance = new dbBalance()
+    userBalance.userId = user.id
+    userBalance.amount = balance
+    userBalance.modified = received
   } else {
-    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
-    balance.amount = decayedBalance + centAmount
-    balance.modified = new Date()
+    userBalance.amount = balance
+    userBalance.modified = new Date()
   }
-  if (balance.amount <= 0) {
+  if (userBalance.amount <= 0) {
     throw new Error('error new balance <= 0')
   }
-  balance.recordDate = received
-  return queryRunner.manager.save(balance).catch((error) => {
+  userBalance.recordDate = received
+  return queryRunner.manager.save(userBalance).catch((error) => {
     throw new Error('error saving balance:' + error)
   })
 }
@@ -329,32 +328,11 @@ export class TransactionResolver {
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
 
-      // Update Balance: sender - amount
-      const senderStateBalance = await updateStateBalance(
-        senderUser,
-        -centAmount,
-        receivedCallDate,
-        queryRunner,
-      )
+      // Update Balance sender
+      await updateStateBalance(senderUser, sendBalance, receivedCallDate, queryRunner)
 
-      // Update Balance: recipient + amount
-      const recipientStateBalance = await updateStateBalance(
-        recipientUser,
-        centAmount,
-        receivedCallDate,
-        queryRunner,
-      )
-
-      if (senderStateBalance.amount !== sendBalance) {
-        // eslint-disable-next-line no-console
-        console.log('db data corrupted, sender', senderStateBalance.amount, sendBalance)
-        throw new Error('db data corrupted, sender')
-      }
-      if (recipientStateBalance.amount !== receiveBalance) {
-        // eslint-disable-next-line no-console
-        console.log('db data corrupted, sender', recipientStateBalance.amount, receiveBalance)
-        throw new Error('db data corrupted, recipient')
-      }
+      // Update Balance recipient
+      await updateStateBalance(recipientUser, receiveBalance, receivedCallDate, queryRunner)
 
       await queryRunner.commitTransaction()
     } catch (e) {
