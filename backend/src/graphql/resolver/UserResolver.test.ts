@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { testEnvironment, resetEntities, createUser } from '../../../test/helpers'
+import { createUserMutation, setPasswordMutation } from '../../../test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
 import { resetDB } from '@dbTools/helpers'
@@ -65,30 +66,12 @@ describe('UserResolver', () => {
       publisherId: 1234,
     }
 
-    const mutation = gql`
-      mutation (
-        $email: String!
-        $firstName: String!
-        $lastName: String!
-        $language: String!
-        $publisherId: Int
-      ) {
-        createUser(
-          email: $email
-          firstName: $firstName
-          lastName: $lastName
-          language: $language
-          publisherId: $publisherId
-        )
-      }
-    `
-
     let result: any
     let emailOptIn: string
 
     beforeAll(async () => {
       jest.clearAllMocks()
-      result = await mutate({ mutation, variables })
+      result = await mutate({ mutation: createUserMutation, variables })
     })
 
     afterAll(async () => {
@@ -160,7 +143,7 @@ describe('UserResolver', () => {
 
     describe('email already exists', () => {
       it('throws an error', async () => {
-        await expect(mutate({ mutation, variables })).resolves.toEqual(
+        await expect(mutate({ mutation: createUserMutation, variables })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
@@ -171,7 +154,7 @@ describe('UserResolver', () => {
     describe('unknown language', () => {
       it('sets "de" as default language', async () => {
         await mutate({
-          mutation,
+          mutation: createUserMutation,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
         })
         await expect(User.find()).resolves.toEqual(
@@ -188,7 +171,7 @@ describe('UserResolver', () => {
     describe('no publisher id', () => {
       it('sets publisher id to null', async () => {
         await mutate({
-          mutation,
+          mutation: createUserMutation,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
         await expect(User.find()).resolves.toEqual(
@@ -204,24 +187,6 @@ describe('UserResolver', () => {
   })
 
   describe('setPassword', () => {
-    const createUserMutation = gql`
-      mutation (
-        $email: String!
-        $firstName: String!
-        $lastName: String!
-        $language: String!
-        $publisherId: Int
-      ) {
-        createUser(
-          email: $email
-          firstName: $firstName
-          lastName: $lastName
-          language: $language
-          publisherId: $publisherId
-        )
-      }
-    `
-
     const createUserVariables = {
       email: 'peter@lustig.de',
       firstName: 'Peter',
@@ -229,12 +194,6 @@ describe('UserResolver', () => {
       language: 'de',
       publisherId: 1234,
     }
-
-    const setPasswordMutation = gql`
-      mutation ($code: String!, $password: String!) {
-        setPassword(code: $code, password: $password)
-      }
-    `
 
     let result: any
     let emailOptIn: string
