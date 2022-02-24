@@ -319,7 +319,7 @@ export class AdminResolver {
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
-    let transaction = new Transaction()
+    const transaction = new Transaction()
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
@@ -327,8 +327,7 @@ export class AdminResolver {
     transaction.creationDate = pendingCreation.date
     transaction.balance = BigInt(newBalance)
     transaction.balanceDate = receivedCallDate
-    transaction = await transaction.save()
-    // if (!transaction) throw new Error('Could not create transaction')
+    await transaction.save()
 
     let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
     if (!userBalance) {
