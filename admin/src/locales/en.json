@@ -91,6 +91,6 @@
   },
   "userIsDeleted": "The user is deleted. No more GDD can be created.",
   "user_deleted": "User is deleted.",
-  "user_recovered.": "User is recovered.",
+  "user_recovered": "User is recovered.",
   "user_search": "User search"
 }
