@@ -168,9 +168,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       const decayStartDate = previous ? previous.balance_date : transaction.balance_date
       const decay = calculateDecay(balance, decayStartDate, transaction.balance_date)
       // WARNING: `toISOString()` needs UTC Timezone to work properly!
-      const decayStart = decay.start
-        ? '"' + decay.start.toISOString().slice(0, 19).replace('T', ' ') + '"'
-        : null
+      const decayStart =
+        previous && decay.start
+          ? '"' + decay.start.toISOString().slice(0, 19).replace('T', ' ') + '"'
+          : null
       balance = decay.balance.add(decAmount)
       const tempDecSendSenderFinalBalance = transaction.send_sender_final_balance
         ? new Decimal(transaction.send_sender_final_balance).dividedBy(10000)
