@@ -17,24 +17,22 @@ export class Transaction extends BaseEntity {
   typeId: number
 
   @Column({
-    name: 'dec_amount',
     type: 'decimal',
     precision: 40,
     scale: 20,
     nullable: false,
     transformer: DecimalTransformer,
   })
-  decAmount: Decimal
+  amount: Decimal
 
   @Column({
-    name: 'dec_balance',
     type: 'decimal',
     precision: 40,
     scale: 20,
     nullable: false,
     transformer: DecimalTransformer,
   })
-  decBalance: Decimal
+  balance: Decimal
 
   @Column({
     name: 'balance_date',
@@ -45,14 +43,13 @@ export class Transaction extends BaseEntity {
   balanceDate: Date
 
   @Column({
-    name: 'dec_decay',
     type: 'decimal',
     precision: 40,
     scale: 20,
     nullable: false,
     transformer: DecimalTransformer,
   })
-  decDecay: Decimal
+  decay: Decimal
 
   @Column({
     name: 'decay_start',
@@ -62,22 +59,8 @@ export class Transaction extends BaseEntity {
   })
   decayStart: Date | null
 
-  @Column({ type: 'bigint', nullable: false })
-  amount: BigInt
-
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
-
-  @Column({
-    name: 'send_sender_final_balance',
-    type: 'bigint',
-    nullable: true,
-    default: null,
-  })
-  sendSenderFinalBalance: BigInt | null
-
-  @Column({ name: 'balance', type: 'bigint', default: 0 })
-  balance: BigInt
 
   @Column({ name: 'creation_date', type: 'datetime', nullable: true, default: null })
   creationDate: Date
@@ -99,48 +82,4 @@ export class Transaction extends BaseEntity {
     default: null,
   })
   linkedTransactionId?: number | null
-
-  @Column({
-    name: 'temp_dec_send_sender_final_balance',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
-    nullable: true,
-    default: null,
-    transformer: DecimalTransformer,
-  })
-  tempDecSendSenderFinalBalance: Decimal
-
-  @Column({
-    name: 'temp_dec_diff_send_sender_final_balance',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
-    nullable: true,
-    default: null,
-    transformer: DecimalTransformer,
-  })
-  tempDecDiffSendSenderFinalBalance: Decimal
-
-  @Column({
-    name: 'temp_dec_old_balance',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
-    nullable: true,
-    default: null,
-    transformer: DecimalTransformer,
-  })
-  tempDecOldBalance: Decimal
-
-  @Column({
-    name: 'temp_dec_diff_balance',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
-    nullable: true,
-    default: null,
-    transformer: DecimalTransformer,
-  })
-  tempDecDiffBalance: Decimal
 }
