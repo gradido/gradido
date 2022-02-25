@@ -14,6 +14,8 @@
  *
  * And it will convert all timestamps to
  * datetime.
+ *
+ * WARNING: This Migration must be run in TZ=UTC
  */
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -165,13 +167,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       }
       const decayStartDate = previous ? previous.balance_date : transaction.balance_date
       const decay = calculateDecay(balance, decayStartDate, transaction.balance_date)
+      // WARNING: `toISOString()` needs UTC Timezone to work properly!
       const decayStart = decay.start
-        ? '"' +
-          new Date(decay.start.getTime() - 2 * new Date().getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 19)
-            .replace('T', ' ') +
-          '"'
+        ? '"' + decay.start.toISOString().slice(0, 19).replace('T', ' ') + '"'
         : null
       balance = decay.balance.add(decAmount)
       const tempDecSendSenderFinalBalance = transaction.send_sender_final_balance

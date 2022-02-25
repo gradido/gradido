@@ -10,15 +10,15 @@
   "scripts": {
     "build": "mkdir -p build/src/config/ && cp src/config/*.txt build/src/config/ && tsc --build",
     "clean": "tsc --build --clean",
-    "up": "node build/src/index.js up",
-    "down": "node build/src/index.js down",
-    "reset": "node build/src/index.js reset",
-    "dev_up": "ts-node src/index.ts up",
-    "dev_down": "ts-node src/index.ts down",
-    "dev_reset": "ts-node src/index.ts reset",
+    "up": "TZ=UTC node build/src/index.js up",
+    "down": "TZ=UTC node build/src/index.js down",
+    "reset": "TZ=UTC node build/src/index.js reset",
+    "dev_up": "TZ=UTC ts-node src/index.ts up",
+    "dev_down": "TZ=UTC ts-node src/index.ts down",
+    "dev_reset": "TZ=UTC ts-node src/index.ts reset",
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
-    "seed": "ts-node src/index.ts seed"
+    "seed": "TZ=UTC ts-node src/index.ts seed"
   },
   "devDependencies": {
     "@types/faker": "^5.5.9",
