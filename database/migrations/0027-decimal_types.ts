@@ -29,13 +29,13 @@ Decimal.set({
 
 const DECAY_START_TIME = new Date('2021-05-13 17:46:31') // GMT+0
 
+// TODO: externalize all those definitions and functions into an external decay library
 interface Decay {
   balance: Decimal
   decay: Decimal | null
   start: Date | null
   end: Date | null
   duration: number | null
-  startBlock: Date
 }
 
 export enum TransactionTypeId {
@@ -50,10 +50,15 @@ function decayFormula(amount: Decimal, seconds: number): Decimal {
   )
 }
 
-function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
+function calculateDecay(
+  amount: Decimal,
+  from: Date,
+  to: Date,
+  startBlock: Date = DECAY_START_TIME,
+): Decay {
   const fromMs = from.getTime()
   const toMs = to.getTime()
-  const decayStartBlockMs = DECAY_START_TIME.getTime()
+  const startBlockMs = startBlock.getTime()
 
   if (toMs < fromMs) {
     throw new Error('to < from, reverse decay calculation is invalid')
@@ -66,22 +71,21 @@ function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
     start: null,
     end: null,
     duration: null,
-    startBlock: DECAY_START_TIME,
   }
 
   // decay started after end date; no decay
-  if (decayStartBlockMs > toMs) {
+  if (startBlockMs > toMs) {
     return decay
   }
   // decay started before start date; decay for full duration
-  if (decayStartBlockMs < fromMs) {
+  if (startBlockMs < fromMs) {
     decay.start = from
     decay.duration = (toMs - fromMs) / 1000
   }
   // decay started between start and end date; decay from decay start till end date
   else {
     decay.start = DECAY_START_TIME
-    decay.duration = (toMs - decayStartBlockMs) / 1000
+    decay.duration = (toMs - startBlockMs) / 1000
   }
 
   decay.end = to
@@ -165,7 +169,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       if (transaction.type_id === TransactionTypeId.SEND) {
         decAmount = decAmount.mul(-1)
       }
-      // dec_decay
       const decayStart = previous ? previous.balance_date : transaction.balance_date
       const decay = calculateDecay(balance, decayStart, transaction.balance_date)
       balance = decay.balance.add(decAmount)
@@ -178,11 +181,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       const tempDecOldBalance = new Decimal(transaction.balance).dividedBy(10000)
       const tempDecDiffBalance = balance.minus(tempDecOldBalance)
 
-      /*
-      if(transaction.user_id === 943){
-        console.log(previous ? 'p' : 'n', transaction.user_id, decayStart, decay.start, decay.end, decay.duration, transaction.balance_date)
-      }
-      */
       // Update
       await queryFn(`
         UPDATE transactions SET
