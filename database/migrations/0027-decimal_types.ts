@@ -23,7 +23,7 @@ import Decimal from 'decimal.js-light'
 
 // Set precision value
 Decimal.set({
-  precision: 20,
+  precision: 25,
   rounding: Decimal.ROUND_HALF_UP,
 })
 
@@ -44,10 +44,8 @@ export enum TransactionTypeId {
   RECEIVE = 3,
 }
 
-function decayFormula(amount: Decimal, seconds: number): Decimal {
-  return amount.mul(
-    new Decimal('0.9999999780350404897320120231676707941346052083737611936473').pow(seconds),
-  )
+function decayFormula(value: Decimal, seconds: number): Decimal {
+  return value.mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
 }
 
 function calculateDecay(
@@ -103,15 +101,15 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
   // add column `dec_amount` with temporary NULL and DEFAULT NULL definition
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `dec_amount` DECIMAL(36,20) NULL DEFAULT NULL AFTER `type_id`;',
+    'ALTER TABLE `transactions` ADD COLUMN `dec_amount` DECIMAL(40,20) NULL DEFAULT NULL AFTER `type_id`;',
   )
   // add column `dec_balance` with temporary NULL and DEFAULT NULL definition
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `dec_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `dec_amount`;',
+    'ALTER TABLE `transactions` ADD COLUMN `dec_balance` DECIMAL(40,20) NULL DEFAULT NULL AFTER `dec_amount`;',
   )
   // add new column `dec_decay` with temporary NULL and DEFAULT NULL definition
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `dec_decay` DECIMAL(36,20) NULL DEFAULT NULL AFTER `dec_balance`;',
+    'ALTER TABLE `transactions` ADD COLUMN `dec_decay` DECIMAL(40,20) NULL DEFAULT NULL AFTER `dec_balance`;',
   )
   // add new column `decay_start`
   await queryFn(
@@ -126,26 +124,26 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
   // modify date type of `creation_date` to datetime
   await queryFn(
-    'ALTER TABLE `transactions` MODIFY COLUMN `creation_date` datetime NULL DEFAULT NULL AFTER `balance`;',
+    'ALTER TABLE `transactions` MODIFY COLUMN `creation_date` datetime DEFAULT NULL AFTER `balance`;',
   )
 
   // Temporary columns
 
   // temporary decimal column `temp_dec_send_sender_final_balance`
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_send_sender_final_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `linked_transaction_id`;',
+    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_send_sender_final_balance` DECIMAL(40,20) NULL DEFAULT NULL AFTER `linked_transaction_id`;',
   )
   // temporary decimal column `temp_dec_diff_send_sender_final_balance`
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_diff_send_sender_final_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `temp_dec_send_sender_final_balance`;',
+    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_diff_send_sender_final_balance` DECIMAL(40,20) NULL DEFAULT NULL AFTER `temp_dec_send_sender_final_balance`;',
   )
   // temporary decimal column `temp_dec_old_balance`
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_old_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `temp_dec_diff_send_sender_final_balance`;',
+    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_old_balance` DECIMAL(40,20) NULL DEFAULT NULL AFTER `temp_dec_diff_send_sender_final_balance`;',
   )
   // temporary decimal column `temp_dec_diff_balance`
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_diff_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `temp_dec_old_balance`;',
+    'ALTER TABLE `transactions` ADD COLUMN `temp_dec_diff_balance` DECIMAL(40,20) NULL DEFAULT NULL AFTER `temp_dec_old_balance`;',
   )
 
   // Find all users & loop over them
@@ -168,10 +166,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       const decayStartDate = previous ? previous.balance_date : transaction.balance_date
       const decay = calculateDecay(balance, decayStartDate, transaction.balance_date)
       const decayStart = decay.start
-        ? new Date(decay.start.getTime() - new Date().getTimezoneOffset() * 60000)
+        ? '"' +
+          new Date(decay.start.getTime() - 2 * new Date().getTimezoneOffset() * 60000)
             .toISOString()
             .slice(0, 19)
-            .replace('T', ' ')
+            .replace('T', ' ') +
+          '"'
         : null
       balance = decay.balance.add(decAmount)
       const tempDecSendSenderFinalBalance = transaction.send_sender_final_balance
@@ -190,7 +190,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           dec_amount = ${decAmount.toString()},
           dec_balance = ${balance.toString()},
           dec_decay = ${decay.decay ? decay.decay.toString() : '0'},
-          decay_start = "${decayStart}",
+          decay_start = ${decayStart},
           temp_dec_send_sender_final_balance = ${
             tempDecSendSenderFinalBalance ? tempDecSendSenderFinalBalance.toString() : null
           },
@@ -208,9 +208,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   }
 
   // Remove null as value & default value from `dec_amount`, `dec_balance` and `dec_decay`
-  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_amount` DECIMAL(36,20) NOT NULL;')
-  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_balance` DECIMAL(36,20) NOT NULL;')
-  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_decay` DECIMAL(36,20) NOT NULL;')
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_amount` DECIMAL(40,20) NOT NULL;')
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_balance` DECIMAL(40,20) NOT NULL;')
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_decay` DECIMAL(40,20) NOT NULL;')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
