@@ -4,16 +4,12 @@ export const toasters = {
       this.toast(message, {
         title: this.$t('success'),
         variant: 'success',
-        headerClass: 'gdd-toaster-text-success',
-        bodyClass: 'gdd-toaster-text-success',
       })
     },
     toastError(message) {
       this.toast(message, {
         title: this.$t('error.error'),
         variant: 'danger',
-        headerClass: 'gdd-toaster-text-danger',
-        bodyClass: 'gdd-toaster-text-danger',
       })
     },
     toast(message, options) {

@@ -115,8 +115,5 @@ export default {
         })
     },
   },
-  created() {
-    this.toastSuccess(this.$t('error.no-account'))
-  },
 }
 </script>
