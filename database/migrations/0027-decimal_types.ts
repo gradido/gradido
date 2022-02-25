@@ -178,6 +178,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       const tempDecOldBalance = new Decimal(transaction.balance).dividedBy(10000)
       const tempDecDiffBalance = balance.minus(tempDecOldBalance)
 
+      /*
+      if(transaction.user_id === 943){
+        console.log(previous ? 'p' : 'n', transaction.user_id, decayStart, decay.start, decay.end, decay.duration, transaction.balance_date)
+      }
+      */
       // Update
       await queryFn(`
         UPDATE transactions SET
@@ -185,7 +190,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           dec_amount = ${decAmount.toString()},
           dec_balance = ${balance.toString()},
           dec_decay = ${decay.decay ? decay.decay.toString() : '0'},
-          decay_start = "${decayStart.toISOString().slice(0, 19).replace('T', ' ')}",
+          decay_start = "${new Date(decayStart - new Date().getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ')}",
           temp_dec_send_sender_final_balance = ${
             tempDecSendSenderFinalBalance ? tempDecSendSenderFinalBalance.toString() : null
           },
