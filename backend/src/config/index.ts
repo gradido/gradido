@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0026-clean_transaction_table',
+  DB_VERSION: '0027-decimal_types',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 
