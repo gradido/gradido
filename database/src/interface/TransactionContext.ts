@@ -1,20 +1,12 @@
-import { User } from '../../entity/User'
+import Decimal from "decimal.js-light";
 
 export interface TransactionContext {
   typeId: number
   userId: number
-  balance: BigInt
+  balance: Decimal
   balanceDate: Date
-  amount: BigInt
+  amount: Decimal
   memo: string
   creationDate?: Date
   sendReceiverUserId?: number
-  sendSenderFinalBalance?: BigInt
-}
-
-export interface BalanceContext {
-  modified?: Date
-  recordDate?: Date
-  amount?: number
-  user?: User
 }

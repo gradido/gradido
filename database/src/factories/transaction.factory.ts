@@ -16,7 +16,6 @@ define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
   transaction.creationDate = context.creationDate || new Date()
   // transaction.sendReceiverPublicKey = context.sendReceiverPublicKey || null
   transaction.linkedUserId = context.sendReceiverUserId || null
-  transaction.sendSenderFinalBalance = context.sendSenderFinalBalance || null
 
   return transaction
 })
