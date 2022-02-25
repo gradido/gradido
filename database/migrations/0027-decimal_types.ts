@@ -102,22 +102,18 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'ALTER TABLE `transactions` ADD COLUMN `previous` int(10) unsigned DEFAULT NULL AFTER `user_id`;',
   )
   // add column `dec_amount` with temporary NULL and DEFAULT NULL definition
-  // TODO default
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `dec_amount` DECIMAL(36,20) NULL DEFAULT NULL AFTER `type_id`;',
   )
   // add column `dec_balance` with temporary NULL and DEFAULT NULL definition
-  // TODO default
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `dec_balance` DECIMAL(36,20) NULL DEFAULT NULL AFTER `dec_amount`;',
   )
   // add new column `dec_decay` with temporary NULL and DEFAULT NULL definition
-  // TODO default
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `dec_decay` DECIMAL(36,20) NULL DEFAULT NULL AFTER `dec_balance`;',
   )
-  // add new column `decay_start` with temporary NULL and DEFAULT NULL definition
-  // TODO default
+  // add new column `decay_start`
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `decay_start` datetime DEFAULT NULL AFTER `dec_decay`;',
   )
@@ -169,8 +165,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       if (transaction.type_id === TransactionTypeId.SEND) {
         decAmount = decAmount.mul(-1)
       }
-      const decayStart = previous ? previous.balance_date : transaction.balance_date
-      const decay = calculateDecay(balance, decayStart, transaction.balance_date)
+      const decayStartDate = previous ? previous.balance_date : transaction.balance_date
+      const decay = calculateDecay(balance, decayStartDate, transaction.balance_date)
+      const decayStart = decay.start
+        ? new Date(decay.start.getTime() - new Date().getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ')
+        : null
       balance = decay.balance.add(decAmount)
       const tempDecSendSenderFinalBalance = transaction.send_sender_final_balance
         ? new Decimal(transaction.send_sender_final_balance).dividedBy(10000)
@@ -188,10 +190,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           dec_amount = ${decAmount.toString()},
           dec_balance = ${balance.toString()},
           dec_decay = ${decay.decay ? decay.decay.toString() : '0'},
-          decay_start = "${new Date(decayStart - new Date().getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 19)
-            .replace('T', ' ')}",
+          decay_start = "${decayStart}",
           temp_dec_send_sender_final_balance = ${
             tempDecSendSenderFinalBalance ? tempDecSendSenderFinalBalance.toString() : null
           },
@@ -207,6 +206,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       previous = transaction
     }
   }
+
+  // Remove null as value & default value from `dec_amount`, `dec_balance` and `dec_decay`
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_amount` DECIMAL(36,20) NOT NULL;')
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_balance` DECIMAL(36,20) NOT NULL;')
+  await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `dec_decay` DECIMAL(36,20) NOT NULL;')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
