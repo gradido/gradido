@@ -263,7 +263,7 @@ export class AdminResolver {
 
     const userIds = pendingCreations.map((p) => p.userId)
     const userCreations = await getUserCreations(userIds)
-    const users = await User.find({ id: In(userIds) })
+    const users = await User.find({ where: { id: In(userIds) }, withDeleted: true })
 
     return pendingCreations.map((pendingCreation) => {
       const user = users.find((u) => u.id === pendingCreation.userId)
@@ -296,6 +296,9 @@ export class AdminResolver {
     const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
+
+    const user = await User.findOneOrFail({ id: pendingCreation.userId }, { withDeleted: true })
+    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
     const creations = await getUserCreation(pendingCreation.userId, false)
     if (!isCreationValid(creations, Number(pendingCreation.amount) / 10000, pendingCreation.date)) {
