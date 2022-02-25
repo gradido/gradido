@@ -252,7 +252,7 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     })
     if (dbUser.deletedAt) {
-      throw new Error('This user was permanently disabled. Contact support for questions.')
+      throw new Error('This user was permanently deleted. Contact support for questions.')
     }
     if (!dbUser.emailChecked) {
       throw new Error('User email not validated')

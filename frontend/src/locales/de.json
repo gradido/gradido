@@ -217,6 +217,7 @@
     "gdt-text": "GradidoTransform Transaktionen",
     "more": "mehr",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },
