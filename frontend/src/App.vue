@@ -44,6 +44,12 @@ export default {
 .gdd-toaster-title {
   color: #ffffff !important;
 }
+.gdd-toaster-text-success {
+  color: #155724 !important;
+}
+.gdd-toaster-text-danger {
+  color: #721c24 !important;
+}
 .gdd-toaster-body {
   color: #ffffff !important;
 }
