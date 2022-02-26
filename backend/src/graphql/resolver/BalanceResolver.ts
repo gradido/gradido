@@ -6,9 +6,9 @@ import { getCustomRepository } from '@dbTools/typeorm'
 import { Balance } from '../model/Balance'
 import { UserRepository } from '../../typeorm/repository/User'
 import { calculateDecay } from '../../util/decay'
-import { roundFloorFrom4 } from '../../util/round'
 import { RIGHTS } from '../../auth/RIGHTS'
-import { Balance as dbBalance } from '@entity/Balance'
+import { Transaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 
 @Resolver()
 export class BalanceResolver {
@@ -18,24 +18,26 @@ export class BalanceResolver {
     // load user and balance
     const userRepository = getCustomRepository(UserRepository)
 
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const balanceEntity = await dbBalance.findOne({ userId: userEntity.id })
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
     const now = new Date()
 
+    const lastTransaction = await Transaction.findOne(
+      { userId: user.id },
+      { order: { balanceDate: 'DESC' } },
+    )
+
     // No balance found
-    if (!balanceEntity) {
+    if (!lastTransaction) {
       return new Balance({
-        balance: 0,
-        decay: 0,
+        balance: new Decimal(0),
+        decay: new Decimal(0),
         decay_date: now.toString(),
       })
     }
 
     return new Balance({
-      balance: roundFloorFrom4(balanceEntity.amount),
-      decay: roundFloorFrom4(
-        calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now).balance,
-      ),
+      balance: lastTransaction.balance,
+      decay: calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
       decay_date: now.toString(),
     })
   }

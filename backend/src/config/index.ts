@@ -1,7 +1,15 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
 import dotenv from 'dotenv'
+import Decimal from 'decimal.js-light'
 dotenv.config()
+
+// Set precision value
+// TODO test if this works here
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
 
 const constants = {
   DB_VERSION: '0027-decimal_types',

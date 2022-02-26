@@ -9,14 +9,6 @@ export class UserRepository extends Repository<User> {
       .getOneOrFail()
   }
 
-  async getUsersIndiced(userIds: number[]): Promise<User[]> {
-    return this.createQueryBuilder('user')
-      .withDeleted() // We need to show the name for deleted users for old transactions
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .where('user.id IN (:...userIds)', { userIds })
-      .getMany()
-  }
-
   async findBySearchCriteriaPagedFiltered(
     select: string[],
     searchCriteria: string,

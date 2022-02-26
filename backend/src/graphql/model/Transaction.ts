@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import Decimal from 'decimal.js-light'
 import { ObjectType, Field } from 'type-graphql'
 import { Decay } from './Decay'
 
@@ -12,19 +13,19 @@ import { Decay } from './Decay'
 export class Transaction {
   constructor() {
     this.type = ''
-    this.balance = 0
-    this.totalBalance = 0
+    this.balance = new Decimal(0)
+    this.totalBalance = new Decimal(0)
     this.memo = ''
   }
 
   @Field(() => String)
   type: string
 
-  @Field(() => Number)
-  balance: number
+  @Field(() => Decimal)
+  balance: Decimal
 
-  @Field(() => Number)
-  totalBalance: number
+  @Field(() => Decimal)
+  totalBalance: Decimal
 
   @Field({ nullable: true })
   decayStart?: string

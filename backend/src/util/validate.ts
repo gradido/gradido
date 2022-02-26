@@ -1,7 +1,6 @@
-import { User as dbUser } from '@entity/User'
-import { Balance as dbBalance } from '@entity/Balance'
-import { getRepository } from '@dbTools/typeorm'
 import { calculateDecay } from './decay'
+import Decimal from 'decimal.js-light'
+import { Transaction } from '@entity/Transaction'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -15,14 +14,22 @@ function isHexPublicKey(publicKey: string): boolean {
   return /^[0-9A-Fa-f]{64}$/i.test(publicKey)
 }
 
-async function hasUserAmount(user: dbUser, amount: number): Promise<boolean> {
-  if (amount < 0) return false
-  const balanceRepository = getRepository(dbBalance)
-  const balance = await balanceRepository.findOne({ userId: user.id })
-  if (!balance) return false
+async function calculateBalance(
+  userId: number,
+  amount: Decimal,
+  time: Date,
+): Promise<Decimal | null> {
+  if (amount.lessThan(0)) return null
 
-  const decay = calculateDecay(balance.amount, balance.recordDate, new Date()).balance
-  return decay > amount
+  const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
+  if (!lastTransaction) return null
+
+  const accountBalance = calculateDecay(
+    lastTransaction.balance,
+    lastTransaction.balanceDate,
+    time,
+  ).balance.add(amount)
+  return accountBalance.greaterThan(0) ? accountBalance : null
 }
 
-export { isHexPublicKey, hasUserAmount, isStringBoolean }
+export { isHexPublicKey, calculateBalance, isStringBoolean }

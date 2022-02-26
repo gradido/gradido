@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js-light'
 import { sendEMail } from './sendEMail'
 import { transactionReceived } from './text/transactionReceived'
 
@@ -7,7 +8,7 @@ export const sendTransactionReceivedEmail = (data: {
   recipientFirstName: string
   recipientLastName: string
   email: string
-  amount: number
+  amount: Decimal
   memo: string
 }): Promise<boolean> => {
   return sendEMail({

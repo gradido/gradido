@@ -27,7 +27,7 @@ import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { Balance } from '@entity/Balance'
+import Decimal from 'decimal.js-light'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -306,35 +306,28 @@ export class AdminResolver {
     const transactionRepository = getCustomRepository(TransactionRepository)
     const lastUserTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
 
-    let newBalance = 0
+    let newBalance = new Decimal(0)
     if (lastUserTransaction) {
       newBalance = calculateDecay(
-        Number(lastUserTransaction.balance),
+        lastUserTransaction.balance,
         lastUserTransaction.balanceDate,
         receivedCallDate,
       ).balance
     }
-    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
+    // TODO pending creations decimal
+    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)))
 
     const transaction = new Transaction()
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
-    transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
+    // TODO pending creations decimal
+    transaction.amount = new Decimal(Number(pendingCreation.amount))
     transaction.creationDate = pendingCreation.date
-    transaction.balance = BigInt(newBalance)
+    transaction.balance = newBalance
     transaction.balanceDate = receivedCallDate
     await transaction.save()
 
-    let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
-    if (!userBalance) {
-      userBalance = new Balance()
-      userBalance.userId = pendingCreation.userId
-    }
-    userBalance.amount = Number(newBalance)
-    userBalance.modified = receivedCallDate
-    userBalance.recordDate = receivedCallDate
-    await userBalance.save()
     await AdminPendingCreation.delete(pendingCreation)
 
     return true
