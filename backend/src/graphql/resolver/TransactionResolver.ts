@@ -20,15 +20,17 @@ import { Order } from '../enum/Order'
 import { UserRepository } from '../../typeorm/repository/User'
 import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
-import { User as dbUser, User } from '@entity/User'
+import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '../../apis/HttpRequest'
 import { calculateDecay } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { TransactionType } from '../enum/TransactionType'
 import { calculateBalance, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
+import { User } from '../model/User'
+import { communityUser } from '../../util/communityUser'
+import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
 
 @Resolver()
 export class TransactionResolver {
@@ -87,88 +89,57 @@ export class TransactionResolver {
     // remove duplicates
     involvedUserIds = involvedUserIds.filter((value, index, self) => self.indexOf(value) === index)
     // We need to show the name for deleted users for old transactions
-    const involvedUsers = await User.createQueryBuilder()
+    const involvedDbUsers = await dbUser
+      .createQueryBuilder()
       .withDeleted()
       .where('user.id IN (:...userIds)', { involvedUserIds })
       .getMany()
+    const involvedUsers = involvedDbUsers.map((u) => new User(u))
 
+    const self = new User(user)
     const transactions: Transaction[] = []
 
     // decay transaction
     if (currentPage === 1 && order === Order.DESC) {
       const now = new Date()
-      const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
-      const balance = decay.balance.minus(lastTransaction.balance)
-
-      const decayTransaction = new Transaction()
-      decayTransaction.type = 'decay'
-      decayTransaction.balance = balance
-      // TODO
-      // decayTransaction.decayDuration = decay.duration
-      // decayTransaction.decayStart = decay.start
-      // decayTransaction.decayEnd = decay.end
-      transactions.push(decayTransaction)
+      transactions.push(
+        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
+      )
     }
 
-    if (userTransactions.length) {
-      for (let i = 0; i < userTransactions.length; i++) {
-        const userTransaction = userTransactions[i]
-        const finalTransaction = new Transaction()
-        finalTransaction.transactionId = userTransaction.id
-        finalTransaction.date = userTransaction.balanceDate.toISOString()
-        finalTransaction.memo = userTransaction.memo
-        finalTransaction.totalBalance = userTransaction.balance
-        finalTransaction.balance = userTransaction.amount
-
-        const otherUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-        switch (userTransaction.typeId) {
-          case TransactionTypeId.CREATION:
-            finalTransaction.name = 'Gradido Akademie'
-            finalTransaction.type = TransactionType.CREATION
-            break
-          case TransactionTypeId.SEND:
-            finalTransaction.type = TransactionType.SEND
-            if (otherUser) {
-              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-              finalTransaction.email = otherUser.email
-            }
-            break
-          case TransactionTypeId.RECEIVE:
-            finalTransaction.type = TransactionType.RECIEVE
-            if (otherUser) {
-              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-              finalTransaction.email = otherUser.email
-            }
-            break
-          default:
-            throw new Error('invalid transaction')
-        }
-        transactions.push(finalTransaction)
+    for (let i = 0; i < userTransactions.length; i++) {
+      const userTransaction = userTransactions[i]
+      let linkedUser = null
+      if (userTransaction.typeId === TransactionTypeId.CREATION) {
+        linkedUser = communityUser
+      } else {
+        linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       }
+      transactions.push(new Transaction(userTransaction, self, linkedUser))
     }
 
-    const transactionList = new TransactionList()
-    transactionList.count = userTransactionsCount
-    transactionList.transactions = transactions
-
-    // get gdt sum
-    transactionList.gdtSum = null
+    // get GDT
+    let balanceGDT = null
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
         email: user.email,
       })
-      if (resultGDTSum.success) transactionList.gdtSum = Number(resultGDTSum.data.sum) || 0
-    } catch (err: any) {}
+      if (!resultGDTSum.success) {
+        throw new Error('Call not successful')
+      }
+      balanceGDT = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.log('Could not query GDT Server', err)
+    }
 
-    // get balance
-    transactionList.balance = lastTransaction.balance
-    transactionList.decayStartBlock = CONFIG.DECAY_START_TIME
-    // const now = new Date()
-    // TODO this seems duplicated
-    // transactionList.decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
-    // transactionList.decayDate = now.toString()
-
-    return transactionList
+    // Construct Result
+    return new TransactionList(
+      lastTransaction.balance,
+      transactions,
+      userTransactionsCount,
+      balanceGDT,
+    )
   }
 
   @Authorized([RIGHTS.SEND_COINS])

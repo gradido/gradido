@@ -1,75 +1,76 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field, Int } from 'type-graphql'
+import { ObjectType, Field } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
+import { User as dbUser } from '@entity/User'
 
 @ObjectType()
 export class User {
-  /*
-  @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id: number
-  */
-  constructor(json?: any) {
-    if (json) {
-      this.id = json.id
-      this.email = json.email
-      this.firstName = json.first_name
-      this.lastName = json.last_name
-      this.pubkey = json.public_hex
-      this.language = json.language
-      this.publisherId = json.publisher_id
-      this.isAdmin = json.isAdmin
-    }
+  constructor(user: dbUser) {
+    this.id = user.id
+    this.email = user.email
+    this.firstName = user.firstName
+    this.lastName = user.lastName
+    this.deletedAt = user.deletedAt
+    this.createdAt = user.createdAt
+    this.emailChecked = user.emailChecked
+    this.language = user.language
+    this.publisherId = user.publisherId
+    // TODO
+    this.isAdmin = null
+    this.coinanimation = null
+    this.klickTipp = null
+    this.hasElopage = null
   }
 
   @Field(() => Number)
   id: number
 
+  // `public_key` binary(32) DEFAULT NULL,
+  // `privkey` binary(80) DEFAULT NULL,
+
+  // TODO privacy issue here
   @Field(() => String)
   email: string
 
-  @Field(() => String)
-  firstName: string
+  @Field(() => String, { nullable: true })
+  firstName: string | null
 
-  @Field(() => String)
-  lastName: string
+  @Field(() => String, { nullable: true })
+  lastName: string | null
 
-  @Field(() => String)
-  pubkey: string
-  /*
-  @Field(() => String)
-  pubkey: string
+  @Field(() => Date, { nullable: true })
+  deletedAt: Date | null
 
-  // not sure about the type here. Maybe better to have a string
-  @Field(() => number)
-  created: number
+  // `password` bigint(20) unsigned DEFAULT 0,
+  // `email_hash` binary(32) DEFAULT NULL,
 
-  @Field(() =>>> Boolean)
+  @Field(() => Date)
+  createdAt: Date
+
+  @Field(() => Boolean)
   emailChecked: boolean
-  */
 
   @Field(() => String)
   language: string
 
-  /*
-  @Field(() => Boolean)
-  disabled: boolean
-  */
+  // This is not the users publisherId, but the one of the users who recommend him
+  @Field(() => Number, { nullable: true })
+  publisherId: number | null
 
-  // what is publisherId?
-  @Field(() => Int, { nullable: true })
-  publisherId?: number
+  // `passphrase` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 
-  @Field(() => Boolean)
-  isAdmin: boolean
-
-  @Field(() => Boolean)
-  coinanimation: boolean
-
-  @Field(() => KlickTipp)
-  klickTipp: KlickTipp
+  // TODO this is a bit inconsistent with what we query from the database
+  // therefore all those fields are now nullable with default value null
+  @Field(() => Boolean, { nullable: true })
+  isAdmin: boolean | null
 
   @Field(() => Boolean, { nullable: true })
-  hasElopage?: boolean
+  coinanimation: boolean | null
+
+  @Field(() => KlickTipp, { nullable: true })
+  klickTipp: KlickTipp | null
+
+  @Field(() => Boolean, { nullable: true })
+  hasElopage: boolean | null
 }

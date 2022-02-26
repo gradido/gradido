@@ -1,14 +1,8 @@
 import Decimal from 'decimal.js-light'
 import CONFIG from '../config'
+import { Decay } from '../graphql/model/Decay'
 
 // TODO: externalize all those definitions and functions into an external decay library
-interface Decay {
-  balance: Decimal
-  decay: Decimal | null
-  start: Date | null
-  end: Date | null
-  duration: number | null
-}
 
 function decayFormula(value: Decimal, seconds: number): Decimal {
   return value.mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))

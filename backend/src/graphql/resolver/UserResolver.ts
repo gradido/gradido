@@ -216,14 +216,8 @@ export class UserResolver {
     // TODO refactor and do not have duplicate code with login(see below)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const user = new User()
-    user.id = userEntity.id
-    user.email = userEntity.email
-    user.firstName = userEntity.firstName
-    user.lastName = userEntity.lastName
-    user.pubkey = userEntity.pubKey.toString('hex')
-    user.language = userEntity.language
-
+    const user = new User(userEntity)
+    // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -271,12 +265,9 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     }
 
-    const user = new User()
-    user.id = dbUser.id
-    user.email = email
-    user.firstName = dbUser.firstName
-    user.lastName = dbUser.lastName
-    user.pubkey = dbUser.pubKey.toString('hex')
+    const user = new User(dbUser)
+    // user.email = email
+    // user.pubkey = dbUser.pubKey.toString('hex')
     user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId

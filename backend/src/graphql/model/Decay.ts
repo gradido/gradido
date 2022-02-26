@@ -1,33 +1,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ObjectType, Field, Int } from 'type-graphql'
+import Decimal from 'decimal.js-light'
+import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
 export class Decay {
-  constructor(json?: any) {
-    if (json) {
-      this.balance = Number(json.balance)
-      this.decayStart = json.decay_start
-      this.decayEnd = json.decay_end
-      this.decayDuration = json.decay_duration
-      this.decayStartBlock = json.decay_start_block
-    }
+  constructor(
+    balance: Decimal,
+    decay: Decimal | null,
+    start: Date | null,
+    end: Date | null,
+    duration: number | null,
+  ) {
+    this.balance = balance
+    this.decay = decay
+    this.start = start
+    this.end = end
+    this.duration = duration
   }
 
-  @Field(() => Number)
-  balance: number
+  @Field(() => Decimal)
+  balance: Decimal
 
-  // timestamp in seconds
-  @Field(() => Int, { nullable: true })
-  decayStart: string
+  @Field(() => Decimal, { nullable: true })
+  decay: Decimal | null
 
-  // timestamp in seconds
-  @Field(() => Int, { nullable: true })
-  decayEnd: string
+  @Field(() => Date, { nullable: true })
+  start: Date | null
 
-  @Field(() => String, { nullable: true })
-  decayDuration?: number
+  @Field(() => Date, { nullable: true })
+  end: Date | null
 
-  @Field(() => Int, { nullable: true })
-  decayStartBlock?: string
+  @Field(() => Number, { nullable: true })
+  duration: number | null
 }
