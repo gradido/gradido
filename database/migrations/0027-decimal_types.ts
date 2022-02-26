@@ -84,7 +84,7 @@ function calculateDecay(
   }
   // decay started between start and end date; decay from decay start till end date
   else {
-    decay.start = DECAY_START_TIME
+    decay.start = startBlock
     decay.duration = (toMs - startBlockMs) / 1000
   }
 

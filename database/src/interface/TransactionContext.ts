@@ -1,4 +1,4 @@
-import Decimal from "decimal.js-light";
+import Decimal from 'decimal.js-light'
 
 export interface TransactionContext {
   typeId: number
