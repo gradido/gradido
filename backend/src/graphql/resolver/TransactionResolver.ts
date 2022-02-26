@@ -106,6 +106,7 @@ export class TransactionResolver {
       )
     }
 
+    // transactions
     for (let i = 0; i < userTransactions.length; i++) {
       const userTransaction = userTransactions[i]
       let linkedUser = null
