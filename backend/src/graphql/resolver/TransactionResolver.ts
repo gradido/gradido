@@ -24,7 +24,6 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '../../apis/HttpRequest'
-import { calculateDecay } from '../../util/decay'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { calculateBalance, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
