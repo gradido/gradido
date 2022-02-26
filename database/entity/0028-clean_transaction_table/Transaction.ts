@@ -63,7 +63,7 @@ export class Transaction extends BaseEntity {
   memo: string
 
   @Column({ name: 'creation_date', type: 'datetime', nullable: true, default: null })
-  creationDate: Date
+  creationDate: Date | null
 
   @Column({
     name: 'linked_user_id',
