@@ -41,6 +41,7 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    decayStartBlock: { type: Date, default: null },
   },
   data() {
     return {

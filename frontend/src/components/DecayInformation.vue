@@ -109,6 +109,7 @@
 export default {
   name: 'DecayInformation',
   props: {
+    decayStartBlock: { type: Date, default: null },
     type: { type: String, default: '' },
     decay: {
       decay: '',
