@@ -1,7 +1,7 @@
 <template>
   <div class="decayinformation">
     <span v-if="decaytyp === 'short'">
-      {{ decay ? ' − ' + $n(decay.balance, 'decimal') : '' }}
+      {{ decay ? ' − ' + $n(Math.abs(Number(decay.decay)), 'decimal') : '' }}
     </span>
 
     <div v-if="decaytyp === 'new'">
@@ -56,7 +56,7 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div>− {{ $n(decay.balance, 'decimal') }}</div>
+          <div>− {{ $n(Math.abs(Number(decay.decay)), 'decimal') }}</div>
         </b-col>
       </b-row>
       <hr class="mt-2 mb-2" />
@@ -72,8 +72,8 @@
           <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
         </b-col>
         <b-col cols="6">
-          <div v-if="type === 'send'">− {{ $n(balance, 'decimal') }}</div>
-          <div v-if="type === 'receive'">+ {{ $n(balance, 'decimal') }}</div>
+          <div v-if="type === 'send'">− {{ $n(Number(balance), 'decimal') }}</div>
+          <div v-if="type === 'receive'">+ {{ $n(Number(balance), 'decimal') }}</div>
         </b-col>
       </b-row>
       <!-- Decay-->
@@ -82,7 +82,7 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div>− {{ $n(decay.balance, 'decimal') }}</div>
+          <div>− {{ $n(Math.abs(Number(decay.decay)), 'decimal') }}</div>
         </b-col>
       </b-row>
       <!-- Total-->
@@ -92,13 +92,13 @@
         </b-col>
         <b-col cols="6">
           <div v-if="type === 'send'">
-            <b>− {{ $n(balance + decay.balance, 'decimal') }}</b>
+            <b>− {{ $n(Number(balance) + Math.abs(Number(decay.decay)), 'decimal') }}</b>
           </div>
           <div v-if="type === 'receive'">
-            <b>{{ $n(balance - decay.balance, 'decimal') }}</b>
+            <b>{{ $n(Number(balance) - Math.abs(Number(decay.decay)), 'decimal') }}</b>
           </div>
           <div v-if="type === 'creation'">
-            <b>− {{ $n(balance - decay.balance, 'decimal') }}</b>
+            <b>− {{ $n(Number(balance) - Math.abs(Number(decay.decay)), 'decimal') }}</b>
           </div>
         </b-col>
       </b-row>
@@ -111,7 +111,7 @@ export default {
   props: {
     type: { type: String, default: '' },
     decay: {
-      balance: '',
+      decay: '',
       duration: '',
       start: 0,
       end: 0,
