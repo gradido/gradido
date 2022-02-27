@@ -91,7 +91,7 @@ export class TransactionResolver {
     const involvedDbUsers = await dbUser
       .createQueryBuilder()
       .withDeleted()
-      .where('user.id IN (:...userIds)', { involvedUserIds })
+      .where('id IN (:...userIds)', { userIds: involvedUserIds })
       .getMany()
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
 
