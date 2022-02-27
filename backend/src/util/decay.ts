@@ -1,11 +1,14 @@
-import Decimal from 'decimal.js-light'
+import Decimal from './decimal'
 import CONFIG from '../config'
 import { Decay } from '../graphql/model/Decay'
 
 // TODO: externalize all those definitions and functions into an external decay library
 
 function decayFormula(value: Decimal, seconds: number): Decimal {
-  return value.mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
+  // TODO why do we need to convert this here to a stting to work properly?
+  return value.mul(
+    new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
+  )
 }
 
 function calculateDecay(
