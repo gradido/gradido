@@ -8,7 +8,7 @@ import { UserRepository } from '../../typeorm/repository/User'
 import { calculateDecay } from '../../util/decay'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { Transaction } from '@entity/Transaction'
-import Decimal from '../../util/decimal'
+import Decimal from 'decimal.js-light'
 
 @Resolver()
 export class BalanceResolver {

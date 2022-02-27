@@ -1,4 +1,4 @@
-import Decimal from '../util/decimal'
+import Decimal from 'decimal.js-light'
 import { sendEMail } from './sendEMail'
 import { transactionReceived } from './text/transactionReceived'
 

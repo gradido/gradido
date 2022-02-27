@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 import CONFIG from '../../config'
-import Decimal from '../../util/decimal'
+import Decimal from 'decimal.js-light'
 import { Transaction } from './Transaction'
 
 @ObjectType()

@@ -1,4 +1,4 @@
-import Decimal from './decimal'
+import Decimal from 'decimal.js-light'
 import CONFIG from '../config'
 import { Decay } from '../graphql/model/Decay'
 

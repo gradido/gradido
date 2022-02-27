@@ -1,4 +1,4 @@
-import Decimal from '../../util/decimal'
+import Decimal from 'decimal.js-light'
 
 export const transactionReceived = {
   de: {
