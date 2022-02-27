@@ -1,6 +1,11 @@
 import Decimal from 'decimal.js-light'
 import { ValueTransformer } from 'typeorm'
 
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
+
 export const DecimalTransformer: ValueTransformer = {
   /**
    * Used to marshal Decimal when writing to the database.
