@@ -20,7 +20,7 @@ const virtualDecayTransaction = (
     userId: -1,
     previous: -1,
     typeId: TransactionTypeId.DECAY,
-    amount: new Decimal(0),
+    amount: decay.decay ? decay.decay : new Decimal(0), // new Decimal(0), // this kinda is wrong, but helps with the frontend query
     balance: decay.balance,
     balanceDate: time,
     decay: decay.decay ? decay.decay : new Decimal(0),
