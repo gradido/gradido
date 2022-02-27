@@ -1,14 +1,11 @@
 import { GraphQLScalarType, Kind } from 'graphql'
-import Decimal from 'decimal.js-light'
+import Decimal from '../../util/decimal'
 
 export default new GraphQLScalarType({
   name: 'Decimal',
   description: 'The `Decimal` scalar type to represent currency values',
 
-  serialize(value: unknown) {
-    if (!(value instanceof Decimal)) {
-      throw new Error('DecimalScalar can only serialize Decimal values')
-    }
+  serialize(value: Decimal) {
     return value.toString()
   },
 
