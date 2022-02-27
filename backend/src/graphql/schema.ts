@@ -1,10 +1,10 @@
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
-import Decimal from 'decimal.js-light'
 import path from 'path'
 
 import isAuthorized from './directive/isAuthorized'
 import DecimalScalar from './scalar/Decimal'
+import Decimal from '../util/decimal'
 
 const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({

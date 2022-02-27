@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import Decimal from 'decimal.js-light'
 import { ObjectType, Field } from 'type-graphql'
 import CONFIG from '../../config'
+import Decimal from '../../util/decimal'
 import { Transaction } from './Transaction'
 
 @ObjectType()

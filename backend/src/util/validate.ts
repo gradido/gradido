@@ -1,5 +1,5 @@
 import { calculateDecay } from './decay'
-import Decimal from 'decimal.js-light'
+import Decimal from './decimal'
 import { Transaction } from '@entity/Transaction'
 
 function isStringBoolean(value: string): boolean {

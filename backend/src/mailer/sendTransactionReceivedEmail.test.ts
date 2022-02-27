@@ -1,6 +1,6 @@
 import { sendTransactionReceivedEmail } from './sendTransactionReceivedEmail'
 import { sendEMail } from './sendEMail'
-import Decimal from 'decimal.js-light'
+import Decimal from '../util/decimal'
 
 jest.mock('./sendEMail', () => {
   return {

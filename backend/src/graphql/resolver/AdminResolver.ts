@@ -27,7 +27,7 @@ import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import Decimal from 'decimal.js-light'
+import Decimal from '../../util/decimal'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
