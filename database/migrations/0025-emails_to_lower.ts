@@ -11,6 +11,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn('UPDATE `users` SET `email` = LOWER(`email`);')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // This migration cannot be revered
 }
