@@ -7,7 +7,7 @@ import Decimal from 'decimal.js-light'
 export class Decay {
   constructor(
     balance: Decimal,
-    decay: Decimal | null,
+    decay: Decimal,
     start: Date | null,
     end: Date | null,
     duration: number | null,
@@ -22,8 +22,8 @@ export class Decay {
   @Field(() => Decimal)
   balance: Decimal
 
-  @Field(() => Decimal, { nullable: true })
-  decay: Decimal | null
+  @Field(() => Decimal)
+  decay: Decimal
 
   @Field(() => Date, { nullable: true })
   start: Date | null

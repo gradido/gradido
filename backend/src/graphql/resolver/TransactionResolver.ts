@@ -30,6 +30,7 @@ import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
 import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
+import Decimal from '../scalar/Decimal'
 
 @Resolver()
 export class TransactionResolver {
@@ -184,8 +185,11 @@ export class TransactionResolver {
       transactionSend.userId = senderUser.id
       transactionSend.linkedUserId = recipientUser.id
       transactionSend.amount = amount
-      transactionSend.balance = sendBalance
+      transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
+      transactionSend.decay = sendBalance.decay.decay
+      transactionSend.decayStart = sendBalance.decay.start
+      transactionSend.previous = sendBalance.lastTransactionId
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       const transactionReceive = new dbTransaction()
@@ -198,8 +202,11 @@ export class TransactionResolver {
       if (!receiveBalance) {
         throw new Error('Sender user account corrupted')
       }
-      transactionReceive.balance = receiveBalance
+      transactionReceive.balance = receiveBalance.balance
       transactionReceive.balanceDate = receivedCallDate
+      transactionReceive.decay = receiveBalance.decay.decay
+      transactionReceive.decayStart = receiveBalance.decay.start
+      transactionReceive.previous = receiveBalance.lastTransactionId
       transactionReceive.linkedTransactionId = transactionSend.id
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
 
@@ -214,6 +221,7 @@ export class TransactionResolver {
     } finally {
       await queryRunner.release()
     }
+
     // send notification email
     // TODO: translate
     await sendTransactionReceivedEmail({

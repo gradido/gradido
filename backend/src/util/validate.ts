@@ -1,6 +1,7 @@
 import { calculateDecay } from './decay'
 import Decimal from 'decimal.js-light'
 import { Transaction } from '@entity/Transaction'
+import { Decay } from '../graphql/model/Decay'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -18,18 +19,17 @@ async function calculateBalance(
   userId: number,
   amount: Decimal,
   time: Date,
-): Promise<Decimal | null> {
-  if (amount.lessThan(0)) return null
-
+): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
   const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
   if (!lastTransaction) return null
 
-  const accountBalance = calculateDecay(
-    lastTransaction.balance,
-    lastTransaction.balanceDate,
-    time,
-  ).balance.add(amount)
-  return accountBalance.greaterThan(0) ? accountBalance : null
+  const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
+  // TODO why we have to use toString() here?
+  const balance = decay.balance.add(amount.toString())
+  if (balance.lessThan(0)) {
+    return null
+  }
+  return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
 export { isHexPublicKey, calculateBalance, isStringBoolean }

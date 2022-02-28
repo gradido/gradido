@@ -28,7 +28,7 @@ function calculateDecay(
   // Initialize with no decay
   const decay: Decay = {
     balance: amount,
-    decay: null,
+    decay: new Decimal(0),
     start: null,
     end: null,
     duration: null,

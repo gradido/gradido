@@ -18,7 +18,7 @@ export class Transaction {
     this.balance = transaction.balance
     this.balanceDate = transaction.balanceDate
     if (!transaction.decayStart) {
-      this.decay = new Decay(transaction.balance, null, null, null, null)
+      this.decay = new Decay(transaction.balance, new Decimal(0), null, null, null)
     } else {
       this.decay = new Decay(
         transaction.balance,
