@@ -12,7 +12,15 @@
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
       <div
-        v-for="{ decay, id, typeId, balanceDate, amount, linkedUser, memo } in transactions"
+        v-for="{
+          decay,
+          id,
+          typeId,
+          balanceDate,
+          amount,
+          linkedUser,
+          memo,
+        } in transactions"
         :key="id"
         :style="typeId === 'DECAY' ? 'background-color:#f1e0ae3d' : ''"
       >
@@ -52,11 +60,7 @@
                   </b-col>
                   <b-col cols="7">
                     <div class="gdd-transaction-list-item-name">
-                      {{
-                        typeId !== 'DECAY'
-                          ? `${linkedUser.firstName} ${linkedUser.lastName}`
-                          : $t('decay.decay_since_last_transaction')
-                      }}
+                      {{ typeId !== 'DECAY' ? `${linkedUser.firstName} ${linkedUser.lastName}` : $t('decay.decay_since_last_transaction') }}
                     </div>
                   </b-col>
                 </b-row>
@@ -78,8 +82,7 @@
                   </b-col>
                   <b-col cols="7">
                     <div class="gdd-transaction-list-item-date">
-                      {{ $d(new Date(balanceDate), 'long') }}
-                      {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+                      {{ $d(new Date(balanceDate), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
                     </div>
                   </b-col>
                 </b-row>
@@ -88,12 +91,7 @@
                 <b-row v-if="decay && !decay.decayStartBlock">
                   <b-col cols="5">
                     <div class="text-right">
-                      <b-icon
-                        v-if="typeId != 'DECAY'"
-                        icon="droplet-half"
-                        height="15"
-                        class="mb-1"
-                      />
+                      <b-icon v-if="typeId != 'DECAY'" icon="droplet-half" height="15" class="mb-1" />
                     </div>
                   </b-col>
                   <b-col cols="7">
@@ -105,12 +103,7 @@
                 <b-row v-if="decay && decay.decayStartBlock">
                   <b-col cols="5">
                     <div class="text-right">
-                      <b-icon
-                        v-if="typeId != 'DECAY'"
-                        icon="droplet-half"
-                        height="15"
-                        class="mb-1"
-                      />
+                      <b-icon v-if="typeId != 'DECAY'" icon="droplet-half" height="15" class="mb-1" />
                     </div>
                   </b-col>
                   <b-col cols="7">
@@ -127,7 +120,12 @@
 
           <b-collapse v-if="typeId != 'DECAY' && decay" class="pb-4" :id="'decay-' + id">
             <div style="border: 0px; background-color: #f1f1f1" class="p-2 pb-4 mb-4">
-              <decay-information v-if="decay" decaytyp="new" :decay="decay" :type="typeId" />
+              <decay-information
+                v-if="decay"
+                decaytyp="new"
+                :decay="decay"
+                :type="typeId"
+              />
             </div>
           </b-collapse>
 
