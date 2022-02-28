@@ -5,7 +5,6 @@
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
-          :gddbalance="balance"
           :timestamp="timestamp"
           :transactionCount="transactionCount"
           :transactions="transactions"

@@ -25,6 +25,7 @@
               :transactions="transactions"
               :transactionCount="transactionCount"
               :pending="pending"
+              :decayStartBlock="decayStartBlock"
               @update-balance="updateBalance"
               @update-transactions="updateTransactions"
             ></router-view>
@@ -60,6 +61,7 @@ export default {
       transactionCount: 0,
       pending: true,
       visible: false,
+      decayStartBlock: new Date(),
     }
   },
   methods: {
@@ -92,11 +94,13 @@ export default {
           const {
             data: { transactionList },
           } = result
-          this.GdtBalance = transactionList.gdtSum === null ? null : Number(transactionList.gdtSum)
+          this.GdtBalance =
+            transactionList.balanceGDT === null ? null : Number(transactionList.balanceGDT)
           this.transactions = transactionList.transactions
-          this.balance = Number(transactionList.decay)
-          this.bookedBalance = Number(transactionList.balance)
+          this.balance = Number(transactionList.balance)
+          // this.bookedBalance = Number(transactionList.balance)
           this.transactionCount = transactionList.count
+          this.decayStartBlock = new Date(transactionList.decayStartBlock)
           this.pending = false
         })
         .catch((error) => {
