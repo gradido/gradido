@@ -19,7 +19,6 @@
         :pageSize="5"
         :timestamp="timestamp"
         :transaction-count="transactionCount"
-        :decayStartBlock="decayStartBlock"
         @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
@@ -54,7 +53,6 @@ export default {
       type: Boolean,
       default: true,
     },
-    decayStartBlock: { type: Date, default: null },
   },
   methods: {
     updateTransactions(pagination) {

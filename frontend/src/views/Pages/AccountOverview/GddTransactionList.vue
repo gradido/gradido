@@ -85,7 +85,7 @@
                 </b-row>
 
                 <!-- Decay -->
-                <b-row v-if="decay && !decayStartBlock">
+                <b-row v-if="decay && !decay.decayStartBlock">
                   <b-col cols="5">
                     <div class="text-right">
                       <b-icon
@@ -98,16 +98,11 @@
                   </b-col>
                   <b-col cols="7">
                     <div class="gdd-transaction-list-item-decay">
-                      <decay-information
-                        v-if="decay"
-                        decaytyp="short"
-                        :decay="decay"
-                        :decayStartBlock="decayStartBlock"
-                      />
+                      <decay-information v-if="decay" decaytyp="short" :decay="decay" />
                     </div>
                   </b-col>
                 </b-row>
-                <b-row v-if="decay && decayStartBlock">
+                <b-row v-if="decay && decay.decayStartBlock">
                   <b-col cols="5">
                     <div class="text-right">
                       <b-icon
@@ -180,7 +175,6 @@ export default {
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
-    decayStartBlock: { type: Date, default: null },
   },
   methods: {
     updateTransactions() {
