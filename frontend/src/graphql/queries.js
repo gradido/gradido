@@ -75,6 +75,7 @@ export const transactionsQuery = gql`
           end
           duration
         }
+        firstTransaction
       }
     }
   }

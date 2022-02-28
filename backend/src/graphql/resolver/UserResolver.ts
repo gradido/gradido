@@ -326,7 +326,7 @@ export class UserResolver {
     }
 
     // Validate email unique
-    // TODO: i can register an email in upper/lower case twice
+    email = email.trim().toLowerCase()
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     if (userFound) {
@@ -399,6 +399,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email: email })
 
     const queryRunner = getConnection().createQueryRunner()
@@ -439,7 +440,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
-
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email })
 
     const optInCode = await getOptInCode(user.id)
