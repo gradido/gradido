@@ -335,7 +335,7 @@ export class UserResolver {
     }
 
     // Validate email unique
-    // TODO: i can register an email in upper/lower case twice
+    email = email.trim().toLowerCase()
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     if (userFound) {
