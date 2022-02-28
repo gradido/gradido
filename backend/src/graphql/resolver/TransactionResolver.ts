@@ -95,6 +95,8 @@ async function calculateAndAddDecayTransactions(
           ).toString()
         }
       }
+    } else {
+      finalTransaction.firstTransaction = true
     }
 
     // sender or receiver when user has sent money

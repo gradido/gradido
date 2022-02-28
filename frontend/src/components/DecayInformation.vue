@@ -4,7 +4,7 @@
       {{ decay ? ' − ' + $n(decay.balance, 'decimal') : '' }}
     </span>
 
-    <div v-if="decaytyp === 'new'">
+    <div v-if="decaytyp === 'new' || decaytyp === 'decayLastTransaction'">
       <div class="d-flex" v-if="!decay.decayStartBlock">
         <div style="width: 100%" class="text-center pb-3">
           <b-icon icon="droplet-half" height="12" class="mb-2" />
@@ -56,17 +56,22 @@
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
         <b-col cols="6">
-          <div>− {{ $n(decay.balance, 'decimal') }}</div>
+          <div v-if="decaytyp === 'new'">- {{ $n(decay.balance, 'decimal') }}</div>
+          <div v-if="decaytyp === 'decayLastTransaction'">
+            {{ $n(decay.balance + gddbalance, 'decimal') }} GDD -
+            {{ $n(decay.balance, 'decimal') }} GDD =
+            <b>{{ $n(gddbalance, 'decimal') }} GDD</b>
+          </div>
         </b-col>
       </b-row>
       <hr class="mt-2 mb-2" />
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col class="text-center pt-3 pb-2">
           <b>{{ $t('decay.calculation_total') }}</b>
         </b-col>
       </b-row>
       <!-- Type-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div v-if="type === 'send'">{{ $t('decay.sent') }}</div>
           <div v-if="type === 'receive'">{{ $t('decay.received') }}</div>
@@ -77,7 +82,7 @@
         </b-col>
       </b-row>
       <!-- Decay-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.decay') }}</div>
         </b-col>
@@ -86,7 +91,7 @@
         </b-col>
       </b-row>
       <!-- Total-->
-      <b-row>
+      <b-row v-if="decaytyp === 'new'">
         <b-col cols="6" class="text-right">
           <div>{{ $t('decay.total') }}</div>
         </b-col>
@@ -109,6 +114,7 @@
 export default {
   name: 'DecayInformation',
   props: {
+    gddbalance: { type: Number },
     balance: { type: Number },
     type: { type: String, default: '' },
     decay: {
