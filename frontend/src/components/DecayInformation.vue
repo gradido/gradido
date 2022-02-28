@@ -22,8 +22,8 @@
             <div>{{ $t('decay.decay_introduced') }} :</div>
           </div>
           <div>
-            <span v-if="decay.start">
-              {{ $d(new Date(decay.start), 'long') }}
+            <span v-if="decay.decayStart">
+              {{ $d(new Date(decay.decayStart * 1000), 'long') }}
               {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
             </span>
           </div>
@@ -109,18 +109,20 @@
 export default {
   name: 'DecayInformation',
   props: {
+    balance: { type: Number },
     type: { type: String, default: '' },
     decay: {
       balance: '',
-      duration: '',
-      start: 0,
-      end: 0,
+      decayDuration: '',
+      decayStart: 0,
+      decayEnd: 0,
+      decayStartBlock: 0,
     },
     decaytyp: { type: String, default: '' },
   },
   computed: {
     duration() {
-      return this.$moment.duration(new Date(this.decay.end) - new Date(this.decay.start))._data
+      return this.$moment.duration((this.decay.decayEnd - this.decay.decayStart) * 1000)._data
     },
   },
 }
