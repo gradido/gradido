@@ -22,13 +22,14 @@
           :class="getCollapseState(id) ? 'bg-secondary' : ''"
           v-b-toggle="'decay-' + id"
         >
-          <!-- Collaps Button  -->
+          <!-- Collaps Icon  -->
           <div class="text-right" style="width: 95%; position: absolute">
             <b-icon
               :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
               :class="getCollapseState(id) ? 'text-black' : 'text-muted'"
             />
           </div>
+          <!-- TransactionList Row-->
           <div>
             <b-row>
               <!-- ICON  -->
@@ -62,7 +63,7 @@
                   </b-col>
                 </b-row>
 
-                <!-- Nachricht -->
+                <!-- Nachricht Memo -->
                 <b-row v-if="typeId !== 'DECAY'">
                   <b-col cols="5">
                     <div class="text-right">{{ $t('form.memo') }}</div>
