@@ -30,7 +30,6 @@ import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
 import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
-import Decimal from '../scalar/Decimal'
 
 @Resolver()
 export class TransactionResolver {
