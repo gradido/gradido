@@ -126,7 +126,7 @@ CREATE TABLE `state_created` (
 CREATE TABLE `state_errors` (
   `id` int(11) NOT NULL,
   `state_user_id` int(11) NOT NULL,
-  `transaction_type_id` int(11) NOT NULL,
+  `type_id` int(11) NOT NULL,
   `created` datetime NOT NULL,
   `message_json` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -194,7 +194,7 @@ CREATE TABLE `state_users` (
 CREATE TABLE `transactions` (
   `id` bigint(20) NOT NULL,
   `group_id` int(11) NOT NULL,
-  `transaction_type_id` int(11) NOT NULL,
+  `type_id` int(11) NOT NULL,
   `tx_hash` binary(32) NOT NULL,
   `memo` varchar(255) COLLATE utf8_bin NOT NULL,
   `received` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

@@ -9,7 +9,7 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Create new `user_id` column (former `state_user_id`), with a temporary default of null
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `user_id` int(10) unsigned DEFAULT NULL AFTER `transaction_type_id`;',
+    'ALTER TABLE `transactions` ADD COLUMN `user_id` int(10) unsigned DEFAULT NULL AFTER `type_id`;',
   )
   // Create new `amount` column, with a temporary default of null
   await queryFn(
@@ -105,7 +105,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
                 send_receiver_public_key AS receiver_public_key, send_receiver_user_id AS receiver_user_id,
                 amount, send_sender_final_balance AS sender_final_balance
         FROM transactions
-        WHERE transaction_type_id = 2 );
+        WHERE type_id = 2 );
   `)
 
   await queryFn(`
@@ -115,7 +115,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       ( SELECT  id AS transaction_id, user_id AS state_user_id,
                 amount, creation_ident_hash AS ident_hash, creation_date AS target_date
         FROM transactions
-        WHERE transaction_type_id = 1 );
+        WHERE type_id = 1 );
   `)
 
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `send_sender_final_balance`;')

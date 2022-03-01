@@ -26,7 +26,7 @@ import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
+import { TypeId } from '../enum/TypeId'
 import Decimal from 'decimal.js-light'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -170,7 +170,7 @@ export class AdminResolver {
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
       adminPendingCreation.userId = user.id
-      adminPendingCreation.amount = BigInt(amount * 10000)
+      adminPendingCreation.amount = BigInt(amount)
       adminPendingCreation.created = new Date()
       adminPendingCreation.date = creationDateObj
       adminPendingCreation.memo = memo
@@ -235,7 +235,7 @@ export class AdminResolver {
     if (!isCreationValid(creations, amount, creationDateObj)) {
       throw new Error('Creation is not valid')
     }
-    pendingCreationToUpdate.amount = BigInt(amount * 10000)
+    pendingCreationToUpdate.amount = BigInt(amount)
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
     pendingCreationToUpdate.moderator = moderator
@@ -321,7 +321,7 @@ export class AdminResolver {
     newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)))
 
     const transaction = new Transaction()
-    transaction.typeId = TransactionTypeId.CREATION
+    transaction.typeId = TypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
     // TODO pending creations decimal
@@ -367,7 +367,7 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
         WHERE user_id IN (${ids.toString()})
-        AND transaction_type_id = ${TransactionTypeId.CREATION}
+        AND type_id = ${TypeId.CREATION}
         AND creation_date >= ${dateFilter}
       ${unionString}) AS result
     GROUP BY month, userId

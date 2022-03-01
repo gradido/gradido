@@ -6,8 +6,8 @@ export class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
-  transactionTypeId: number
+  @Column({ name: 'type_id', unsigned: true, nullable: false })
+  typeId: number
 
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number

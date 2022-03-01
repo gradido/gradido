@@ -122,7 +122,7 @@ export default {
   },
   computed: {
     duration() {
-      return this.$moment.duration((this.decay.end - this.decay.start) * 1000)._data
+      return this.$moment.duration(this.decay.end - this.decay.start)._data
     },
   },
 }

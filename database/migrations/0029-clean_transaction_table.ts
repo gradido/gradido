@@ -61,7 +61,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`
     INSERT INTO \`state_balances\`
     (state_user_id, modified, record_date, amount)
-    SELECT user_id as state_user_id, balance_date as modified, balance_date as record_date, amount * 10000 as amount FROM
+    SELECT user_id as state_user_id, balance_date as modified, balance_date as record_date, amount as amount FROM
       (SELECT user_id as uid, MAX(balance_date) AS date FROM transactions GROUP BY uid) AS t
     LEFT JOIN transactions ON t.uid = transactions.user_id AND t.date = transactions.balance_date;
   `)
@@ -96,9 +96,9 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       temp_dec_old_balance = dec_balance,
       temp_dec_diff_send_sender_final_balance = 0,
       temp_dec_send_sender_final_balance = dec_balance,
-      balance = dec_balance * 10000,
-      send_sender_final_balance = dec_balance * 10000,
-      amount = dec_amount * 10000;
+      balance = dec_balance,
+      send_sender_final_balance = dec_balance,
+      amount = dec_amount;
   `)
 
   await queryFn('ALTER TABLE `transactions` MODIFY COLUMN `amount` bigint(20) NOT NULL;')

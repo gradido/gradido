@@ -40,7 +40,7 @@ interface Decay {
   duration: number | null
 }
 
-export enum TransactionTypeId {
+export enum TypeId {
   CREATION = 1,
   SEND = 2,
   RECEIVE = 3,
@@ -162,7 +162,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
       // This should also fix the rounding error on amount
       let decAmount = new Decimal(transaction.amount).dividedBy(10000).toDecimalPlaces(2)
-      if (transaction.type_id === TransactionTypeId.SEND) {
+      if (transaction.type_id === TypeId.SEND) {
         decAmount = decAmount.mul(-1)
       }
       const decayStartDate = previous ? previous.balance_date : transaction.balance_date

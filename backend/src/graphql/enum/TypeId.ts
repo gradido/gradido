@@ -1,6 +1,6 @@
 import { registerEnumType } from 'type-graphql'
 
-export enum TransactionTypeId {
+export enum TypeId {
   CREATION = 1,
   SEND = 2,
   RECEIVE = 3,
@@ -8,7 +8,7 @@ export enum TransactionTypeId {
   DECAY = 4,
 }
 
-registerEnumType(TransactionTypeId, {
-  name: 'TransactionTypeId', // this one is mandatory
+registerEnumType(TypeId, {
+  name: 'TypeId', // this one is mandatory
   description: 'Type of the transaction', // this one is optional
 })

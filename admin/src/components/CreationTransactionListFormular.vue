@@ -59,6 +59,7 @@ export default {
           },
         })
         .then((result) => {
+          console.log('getTransactions', result.data)
           this.items = result.data.transactionList.transactions.filter((t) => t.type === 'creation')
         })
         .catch((error) => {

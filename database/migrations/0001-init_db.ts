@@ -140,7 +140,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE IF NOT EXISTS \`state_errors\` (
       \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
       \`state_user_id\` int(10) unsigned NOT NULL,
-      \`transaction_type_id\` int(10) unsigned NOT NULL,
+      \`type_id\` int(10) unsigned NOT NULL,
       \`created\` datetime NOT NULL,
       \`message_json\` text COLLATE utf8mb4_unicode_ci NOT NULL,
       PRIMARY KEY (\`id\`)
@@ -196,7 +196,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`id\` int UNSIGNED NOT NULL AUTO_INCREMENT,
       \`state_user_id\` int UNSIGNED NOT NULL,
       \`transaction_id\` int UNSIGNED NOT NULL,
-      \`transaction_type_id\` int UNSIGNED NOT NULL,
+      \`type_id\` int UNSIGNED NOT NULL,
       \`balance\` bigint(20) DEFAULT 0,
       \`balance_date\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (\`id\`)
@@ -304,7 +304,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE IF NOT EXISTS \`transactions\` (
       \`id\` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
       \`state_group_id\` int(10) unsigned DEFAULT NULL,
-      \`transaction_type_id\` int(10) unsigned NOT NULL,
+      \`type_id\` int(10) unsigned NOT NULL,
       \`tx_hash\` binary(48) DEFAULT NULL,
       \`memo\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
       \`received\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

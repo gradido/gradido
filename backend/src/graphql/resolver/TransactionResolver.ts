@@ -24,7 +24,7 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '../../apis/HttpRequest'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
+import { TypeId } from '../enum/TypeId'
 import { calculateBalance, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
@@ -111,7 +111,7 @@ export class TransactionResolver {
     for (let i = 0; i < userTransactions.length; i++) {
       const userTransaction = userTransactions[i]
       let linkedUser = null
-      if (userTransaction.typeId === TransactionTypeId.CREATION) {
+      if (userTransaction.typeId === TypeId.CREATION) {
         linkedUser = communityUser
       } else {
         linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
@@ -180,7 +180,7 @@ export class TransactionResolver {
     try {
       // transaction
       const transactionSend = new dbTransaction()
-      transactionSend.typeId = TransactionTypeId.SEND
+      transactionSend.typeId = TypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = senderUser.id
       transactionSend.linkedUserId = recipientUser.id
@@ -193,7 +193,7 @@ export class TransactionResolver {
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       const transactionReceive = new dbTransaction()
-      transactionReceive.typeId = TransactionTypeId.RECEIVE
+      transactionReceive.typeId = TypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipientUser.id
       transactionReceive.linkedUserId = senderUser.id

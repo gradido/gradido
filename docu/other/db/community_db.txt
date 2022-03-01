@@ -27,7 +27,7 @@ state_users
 id index group_id public_key email first_name last_name
 
 state_errors
-id state_user_id transaction_type_id created message_json
+id state_user_id type_id created message_json
 
 state_balances
 id state_user_id modified amount
@@ -48,7 +48,7 @@ id transaction_id signature     pubkey
 
 transactions
 int64                                    
-id state_group_id transaction_type_id tx_hash received
+id state_group_id type_id tx_hash received
 
 transaction_send_coins
 id transaction_id state_user_id receiver_public receiver_user_id amount sender_final_balance
