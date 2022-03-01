@@ -53,7 +53,11 @@
                   </b-col>
                   <b-col cols="7">
                     <div class="gdd-transaction-list-item-name">
-                      {{ typeId !== 'DECAY' ? (linkedUser.firstName + linkedUser.lastName ) : $t('decay.decay_since_last_transaction') }}
+                      {{
+                        typeId !== 'DECAY'
+                          ? linkedUser.firstName + ' ' + linkedUser.lastName
+                          : $t('decay.decay_since_last_transaction')
+                      }}
                     </div>
                   </b-col>
                 </b-row>
