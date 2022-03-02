@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="visible ? 'bg-secondary' : ''">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -74,7 +74,7 @@
               </b-col>
               <b-col cols="7">
                 <div class="gdd-transaction-list-item-decay">
-                  <decay-information v-if="decay" decaytyp="short" :decay="decay" />
+                  <decay-information-short decaytyp="short" :decay="decay" />
                 </div>
               </b-col>
             </b-row>
@@ -82,28 +82,23 @@
         </b-row>
       </div>
 
-      <b-collapse class="pb-4" v-model="visible">
-        <decay-information
-          decaytyp="new"
-          :amount="amount"
-          :decay="decay"
-          :typeId="typeId"
-          :balanceDate="balanceDate"
-        />
-        <hr />
-        {{ amount }}, {{ balance }}, {{ balanceDate }}, {{ decay }}, {{ id }}, {{ linkedUser }},
-        {{ memo }}, {{ properties }}
+      <b-collapse class="pb-4 pt-5" v-model="visible">
+        <decay-information-first-transaction v-if="decay.start === null" :decay="decay" />
+        <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
-import DecayInformation from '../DecayInformation'
-
+import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
+import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
+import DecayInformationFirstTransaction from '../DecayInformations/DecayInformation-FirstTransaction'
 export default {
-  name: 'slot-receive',
+  name: 'slot-send',
   components: {
-    DecayInformation,
+    DecayInformationShort,
+    DecayInformationLong,
+    DecayInformationFirstTransaction,
   },
   props: {
     amount: {

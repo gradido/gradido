@@ -17,34 +17,42 @@
         :key="id"
         :style="typeId === 'DECAY' ? 'background-color:#f1e0ae3d' : ''"
       >
-        <transaction-decay
-          class="list-group-item gdd-transaction-list-item"
-          v-if="typeId === 'DECAY'"
-          v-bind="transactions[index]"
-          :properties="getProperties(typeId)"
-        />
+        <transaction-list-item :typeId="typeId">
+          <template #DECAY>
+            <transaction-decay
+              class="list-group-item gdd-transaction-list-item"
+              v-bind="transactions[index]"
+              :properties="getProperties(typeId)"
+            />
+          </template>
 
-        <transaction-send
-          class="list-group-item gdd-transaction-list-item"
-          v-if="typeId === 'SEND'"
-          v-bind="transactions[index]"
-          :decayStartBlock="decayStartBlock"
-          :properties="getProperties(typeId)"
-        />
-        <transaction-receive
-          class="list-group-item gdd-transaction-list-item"
-          v-if="typeId === 'RECEIVE'"
-          v-bind="transactions[index]"
-          :decayStartBlock="decayStartBlock"
-          :properties="getProperties(typeId)"
-        />
-        <transaction-creation
-          class="list-group-item gdd-transaction-list-item"
-          v-if="typeId === 'CREATION'"
-          v-bind="transactions[index]"
-          :decayStartBlock="decayStartBlock"
-          :properties="getProperties(typeId)"
-        />
+          <template #SEND>
+            <transaction-send
+              class="list-group-item gdd-transaction-list-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
+              :properties="getProperties(typeId)"
+            />
+          </template>
+
+          <template #RECEIVE>
+            <transaction-receive
+              class="list-group-item gdd-transaction-list-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
+              :properties="getProperties(typeId)"
+            />
+          </template>
+
+          <template #CREATION>
+            <transaction-creation
+              class="list-group-item gdd-transaction-list-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
+              :properties="getProperties(typeId)"
+            />
+          </template>
+        </transaction-list-item>
       </div>
     </div>
     <pagination-buttons
@@ -60,11 +68,12 @@
 </template>
 
 <script>
+import TransactionListItem from '../../../components/TransactionListItem'
 import PaginationButtons from '../../../components/PaginationButtons'
-import TransactionDecay from '../../../components/transaction-slots/TransactionDecay'
-import TransactionSend from '../../../components/transaction-slots/TransactionSend'
-import TransactionReceive from '../../../components/transaction-slots/TransactionReceive'
-import TransactionCreation from '../../../components/transaction-slots/TransactionCreation'
+import TransactionDecay from '../../../components/Transactions/TransactionDecay'
+import TransactionSend from '../../../components/Transactions/TransactionSend'
+import TransactionReceive from '../../../components/Transactions/TransactionReceive'
+import TransactionCreation from '../../../components/Transactions/TransactionCreation'
 
 const iconsByType = {
   SEND: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '−' },
@@ -76,6 +85,7 @@ const iconsByType = {
 export default {
   name: 'gdd-transaction-list',
   components: {
+    TransactionListItem,
     PaginationButtons,
     TransactionDecay,
     TransactionSend,

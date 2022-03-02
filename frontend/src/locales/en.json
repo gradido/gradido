@@ -21,7 +21,7 @@
     "switch-to-this-community": "Switch to this community"
   },
   "decay": {
-    "befor_startblock_transaction": "This transaction does not include decay.",
+    "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
     "created": "Created",

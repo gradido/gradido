@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="visible ? 'bg-secondary' : ''">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -43,40 +43,18 @@
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <div class="d-flex">
-          <div style="width: 100%" class="text-center pb-3">
-            <b-icon icon="droplet-half" height="12" class="mb-2" />
-            <b>{{ $t('decay.calculation_decay') }}</b>
-          </div>
-        </div>
-
-        <b-row>
-          <b-col cols="6" class="text-right">
-            <div>{{ $t('decay.decay') }}</div>
-          </b-col>
-          <b-col cols="6">
-            <div>
-              {{ Number(balance) + Number(decay.decay) * -1 }} :::: {{ Number(decay.decay) }} :::::
-              {{ $n(Number(balance) + Number(decay.decay) * -1, 'decimal') }}
-              GDD - {{ $n(Number(decay.decay) * -1, 'decimal') }} GDD =
-              <b>{{ $n(Number(balance), 'decimal') }} GDD</b>
-            </div>
-          </b-col>
-        </b-row>
-        <hr />
-        {{ amount }}, {{ balance }}, {{ balanceDate }}, {{ decay }}, {{ id }}, {{ linkedUser }},
-        {{ memo }}, {{ properties }},, {{ visible }}
+        <decay-information-decay :balance="balance" :decay="decay" />
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
-// import DecayInformation from '../DecayInformation'
+import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
   name: 'slot-decay',
   components: {
-    // DecayInformation,
+    DecayInformationDecay,
   },
   props: {
     amount: {

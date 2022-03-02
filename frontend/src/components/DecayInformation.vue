@@ -15,7 +15,7 @@
         v-else-if="new Date(balanceDate).getTime() < new Date(decayStartBlock).getTime()"
         class="mt-3 mb-3 text-center"
       >
-        <b>{{ $t('decay.befor_startblock_transaction') }}</b>
+        <b>{{ $t('decay.before_startblock_transaction') }}</b>
       </div>
 
       <div v-else>
