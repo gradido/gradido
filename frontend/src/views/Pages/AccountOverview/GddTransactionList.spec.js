@@ -52,7 +52,7 @@ describe('GddTransactionList', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
-          transactionCount: 0,
+          count: 0,
         })
       })
       it('Transactions Array is empty, 0 transactions', () => {
@@ -64,7 +64,7 @@ describe('GddTransactionList', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
-          transactionCount: -1,
+          count: -1,
         })
       })
       it('renders text saying that there are error.empty-transactionlist ', () => {
@@ -91,34 +91,34 @@ describe('GddTransactionList', () => {
         await wrapper.setProps({
           transactions: [
             {
-              balance: 19.93,
-              date: '2021-05-25T17:38:13+00:00',
+              amount: 19.93,
+              balanceDate: '2021-05-25T17:38:13+00:00',
               memo: 'Alles Gute zum Geburtstag',
-              name: 'Bob der Baumeister',
-              transaction_id: 29,
-              type: 'send',
-              decay: { balance: '0.5' },
+              linkedUser: { firstName: 'Bob', lastName: 'der Baumeister' },
+              id: 29,
+              typeId: 'SEND',
+              decay: { decay: '0.5' },
             },
             {
-              balance: 1000,
-              date: '2021-04-29T15:34:49+00:00',
+              amount: 1000,
+              balanceDate: '2021-04-29T15:34:49+00:00',
               memo: 'Gut das du da bist!',
-              name: 'Gradido Akademie',
-              transaction_id: 3,
-              type: 'creation',
+              linkedUser: { firstName: 'Gradido', lastName: 'Akademie' },
+              id: 3,
+              typeId: 'CREATION',
             },
             {
-              balance: 314.98,
-              date: '2021-04-29T17:26:40+00:00',
+              amount: 314.98,
+              balanceDate: '2021-04-29T17:26:40+00:00',
               memo: 'Für das Fahrrad!',
-              name: 'Jan Ulrich',
-              transaction_id: 8,
-              type: 'receive',
-              decay: { balance: '1.5' },
+              linkedUser: { firstName: 'Jan', lastName: 'Ulrich' },
+              id: 8,
+              typeId: 'RECEIVE',
+              decay: { decay: '1.5' },
             },
             {
-              balance: 1.07,
-              type: 'decay',
+              amount: 1.07,
+              typeId: 'DECAY',
             },
           ],
           transactionCount: 12,
