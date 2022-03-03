@@ -45,7 +45,6 @@ export default {
           },
         })
         .then((result) => {
-          this.toastSuccess(this.$t('user_deleted'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
