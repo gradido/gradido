@@ -45,7 +45,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$toasted.success(this.$t('user_deleted'))
+          this.toastSuccess(this.$t('user_deleted'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.deleteUser,
@@ -53,7 +53,7 @@ export default {
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     unDeleteUser() {
@@ -65,7 +65,7 @@ export default {
           },
         })
         .then((result) => {
-          this.$toasted.success(this.$t('user_recovered'))
+          this.toastSuccess(this.$t('user_recovered'))
           this.$emit('updateDeletedAt', {
             userId: this.item.userId,
             deletedAt: result.data.unDeleteUser,
@@ -73,7 +73,7 @@ export default {
           this.checked = false
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
   },
