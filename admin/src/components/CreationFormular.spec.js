@@ -425,7 +425,7 @@ describe('CreationFormular', () => {
           expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
         })
 
-        it('emits toast dailed creations with two emails', () => {
+        it('emits toast failed creations with two emails', () => {
           expect(wrapper.emitted('toast-failed-creations')).toEqual([
             [['bob@baumeister.de', 'bibi@bloxberg.de']],
           ])
