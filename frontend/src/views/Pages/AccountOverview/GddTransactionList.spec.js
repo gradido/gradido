@@ -392,45 +392,41 @@ describe('GddTransactionList', () => {
           )
         })
       })
-
-      /*
-
     })
 
-    describe('with invalid transaction type', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          transactions: [
-            {
-              id: 9,
-              typeId: 'invalid',
-              amount: '1',
-              balance: '31.76099091058520945292',
-              balanceDate: '2022-02-28T13:55:47.000Z',
-              memo: 'adasd adada',
-              linkedUser: {
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                __typename: 'User',
-              },
-              decay: {
-                decay: '-0.2038314055482643084',
-                start: '2022-02-25T07:29:26.000Z',
-                end: '2022-02-28T13:55:47.000Z',
-                duration: 282381,
-                __typename: 'Decay',
-              },
-              __typename: 'Transaction',
-            },
-          ],
-        })
-      })
+    // describe('with invalid transaction type', () => {
+    //   beforeEach(async () => {
+    //     await wrapper.setProps({
+    //       transactions: [
+    //         {
+    //           id: 9,
+    //           typeId: 'invalid',
+    //           amount: '1',
+    //           balance: '31.76099091058520945292',
+    //           balanceDate: '2022-02-28T13:55:47.000Z',
+    //           memo: 'adasd adada',
+    //           linkedUser: {
+    //             firstName: 'Bibi',
+    //             lastName: 'Bloxberg',
+    //             __typename: 'User',
+    //           },
+    //           decay: {
+    //             decay: '-0.2038314055482643084',
+    //             start: '2022-02-25T07:29:26.000Z',
+    //             end: '2022-02-28T13:55:47.000Z',
+    //             duration: 282381,
+    //             __typename: 'Decay',
+    //           },
+    //           __typename: 'Transaction',
+    //         },
+    //       ],
+    //     })
+    //   })
 
-      it('throws an error', () => {
-        expect(errorHandler).toHaveBeenCalled()
-      })
-    })
-    
+    //   it('throws an error', () => {
+    //     expect(errorHandler).toHaveBeenCalled(0)
+    //   })
+    // })
 
     describe('pagination buttons', () => {
       const transactions = Array.from({ length: 42 }, (_, idx) => {
@@ -503,7 +499,6 @@ describe('GddTransactionList', () => {
         ])
         expect(scrollToMock).toBeCalled()
       })
-      */
     })
   })
 })
