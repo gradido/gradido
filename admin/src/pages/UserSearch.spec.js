@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -45,16 +46,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
-
 const mocks = {
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => String(d)),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastErrorMock,
   },
 }
 
@@ -196,7 +192,7 @@ describe('UserSearch', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch')
+        expect(toastErrorSpy).toBeCalledWith('Ouch')
       })
     })
   })

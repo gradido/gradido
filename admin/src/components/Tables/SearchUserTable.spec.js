@@ -73,10 +73,6 @@ const mocks = {
       },
     },
   },
-  $toasted: {
-    error: jest.fn(),
-    success: jest.fn(),
-  },
 }
 
 describe('SearchUserTable', () => {

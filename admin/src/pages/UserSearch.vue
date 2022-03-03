@@ -94,7 +94,7 @@ export default {
           this.searchResult = result.data.searchUsers.userList
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     updateDeletedAt(userId, deletedAt) {
