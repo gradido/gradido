@@ -118,7 +118,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     pushItem(selectedItem) {

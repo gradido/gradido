@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -29,7 +30,6 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const storeCommitMock = jest.fn()
 
 const mocks = {
@@ -37,9 +37,6 @@ const mocks = {
   $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastErrorMock,
   },
   $store: {
     commit: storeCommitMock,
@@ -298,7 +295,7 @@ describe('Creation', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch')
+        expect(toastErrorSpy).toBeCalledWith('Ouch')
       })
     })
   })
