@@ -307,13 +307,13 @@ export class AdminResolver {
     const receivedCallDate = new Date()
 
     const transactionRepository = getCustomRepository(TransactionRepository)
-    const lastUserTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
+    const lastTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
 
     let newBalance = new Decimal(0)
-    if (lastUserTransaction) {
+    if (lastTransaction) {
       newBalance = calculateDecay(
-        lastUserTransaction.balance,
-        lastUserTransaction.balanceDate,
+        lastTransaction.balance,
+        lastTransaction.balanceDate,
         receivedCallDate,
       ).balance
     }
@@ -367,7 +367,7 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
         WHERE user_id IN (${ids.toString()})
-        AND transaction_type_id = ${TransactionTypeId.CREATION}
+        AND type_id = ${TransactionTypeId.CREATION}
         AND creation_date >= ${dateFilter}
       ${unionString}) AS result
     GROUP BY month, userId

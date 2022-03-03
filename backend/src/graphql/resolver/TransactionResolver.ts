@@ -30,7 +30,8 @@ import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
 import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
-// import Decimal from '../scalar/Decimal'
+import Decimal from 'decimal.js-light'
+import { calculateDecay } from '../../util/decay'
 
 @Resolver()
 export class TransactionResolver {
@@ -47,6 +48,7 @@ export class TransactionResolver {
     }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
+    const now = new Date()
     // find user
     const userRepository = getCustomRepository(UserRepository)
     // TODO: separate those usecases - this is a security issue
@@ -59,65 +61,6 @@ export class TransactionResolver {
       { userId: user.id },
       { order: { balanceDate: 'DESC' } },
     )
-
-    if (!lastTransaction) {
-      // TODO Have proper return type here
-      throw new Error('User has no transactions')
-    }
-
-    // find transactions
-    const limit = currentPage === 1 && order === Order.DESC ? pageSize - 1 : pageSize
-    const offset =
-      currentPage === 1 ? 0 : (currentPage - 1) * pageSize - (order === Order.DESC ? 1 : 0)
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
-      user.id,
-      limit,
-      offset,
-      order,
-      onlyCreations,
-    )
-
-    // find involved users
-    let involvedUserIds: number[] = []
-    userTransactions.forEach((transaction: dbTransaction) => {
-      involvedUserIds.push(transaction.userId)
-      if (transaction.linkedUserId) {
-        involvedUserIds.push(transaction.linkedUserId)
-      }
-    })
-    // remove duplicates
-    involvedUserIds = involvedUserIds.filter((value, index, self) => self.indexOf(value) === index)
-    // We need to show the name for deleted users for old transactions
-    const involvedDbUsers = await dbUser
-      .createQueryBuilder()
-      .withDeleted()
-      .where('id IN (:...userIds)', { userIds: involvedUserIds })
-      .getMany()
-    const involvedUsers = involvedDbUsers.map((u) => new User(u))
-
-    const self = new User(user)
-    const transactions: Transaction[] = []
-
-    // decay transaction
-    if (currentPage === 1 && order === Order.DESC) {
-      const now = new Date()
-      transactions.push(
-        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
-      )
-    }
-
-    // transactions
-    for (let i = 0; i < userTransactions.length; i++) {
-      const userTransaction = userTransactions[i]
-      let linkedUser = null
-      if (userTransaction.typeId === TransactionTypeId.CREATION) {
-        linkedUser = communityUser
-      } else {
-        linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-      }
-      transactions.push(new Transaction(userTransaction, self, linkedUser))
-    }
 
     // get GDT
     let balanceGDT = null
@@ -134,9 +77,59 @@ export class TransactionResolver {
       console.log('Could not query GDT Server', err)
     }
 
+    if (!lastTransaction) {
+      return new TransactionList(new Decimal(0), [], 0, balanceGDT)
+    }
+
+    // find transactions
+    // first page can contain 26 due to virtual decay transaction
+    const offset = (currentPage - 1) * pageSize
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
+      user.id,
+      pageSize,
+      offset,
+      order,
+      onlyCreations,
+    )
+
+    // find involved users; I am involved
+    const involvedUserIds: number[] = [user.id]
+    userTransactions.forEach((transaction: dbTransaction) => {
+      if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
+        involvedUserIds.push(transaction.linkedUserId)
+      }
+    })
+    // We need to show the name for deleted users for old transactions
+    const involvedDbUsers = await dbUser
+      .createQueryBuilder()
+      .withDeleted()
+      .where('id IN (:...userIds)', { userIds: involvedUserIds })
+      .getMany()
+    const involvedUsers = involvedDbUsers.map((u) => new User(u))
+
+    const self = new User(user)
+    const transactions: Transaction[] = []
+
+    // decay transaction
+    if (currentPage === 1 && order === Order.DESC) {
+      transactions.push(
+        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
+      )
+    }
+
+    // transactions
+    userTransactions.forEach((userTransaction) => {
+      const linkedUser =
+        userTransaction.typeId === TransactionTypeId.CREATION
+          ? communityUser
+          : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
+      transactions.push(new Transaction(userTransaction, self, linkedUser))
+    })
+
     // Construct Result
     return new TransactionList(
-      lastTransaction.balance,
+      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
       transactions,
       userTransactionsCount,
       balanceGDT,
@@ -184,7 +177,7 @@ export class TransactionResolver {
       transactionSend.memo = memo
       transactionSend.userId = senderUser.id
       transactionSend.linkedUserId = recipientUser.id
-      transactionSend.amount = amount
+      transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay

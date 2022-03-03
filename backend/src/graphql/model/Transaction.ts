@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 import { Decay } from './Decay'
 import { Transaction as dbTransaction } from '@entity/Transaction'
@@ -25,7 +23,7 @@ export class Transaction {
         transaction.decay,
         transaction.decayStart,
         transaction.balanceDate,
-        (transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000,
+        Math.round((transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000),
       )
     }
     this.memo = transaction.memo

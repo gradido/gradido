@@ -17,6 +17,6 @@ export class Balance {
   @Field(() => Decimal)
   decay: Decimal
 
-  @Field(() => String)
-  decayDate: string
+  @Field(() => Date)
+  decayDate: Date
 }
