@@ -1,8 +1,8 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''">
+  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-creation">
     <div @click="visible = !visible">
       {{ amount }}, {{ balance }}, {{ balanceDate }}, {{ decay }}, {{ id }}, {{ linkedUser }},
-      {{ memo }}, {{ properties }}
+      {{ memo }}
 
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -17,7 +17,7 @@
           <!-- ICON  -->
           <b-col cols="1">
             <div class="gdd-transaction-list-item-icon">
-              <b-icon :icon="properties.icon" :class="properties.class" />
+              <b-icon icon="gift" class="gradido-global-color-accent m-mb-1 font2em" />
             </div>
           </b-col>
 
@@ -26,9 +26,7 @@
             <b-row>
               <b-col cols="5">
                 <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator">
-                    {{ properties.operator }}
-                  </span>
+                  <span class="gdd-transaction-list-item-operator">+</span>
                   <span class="gdd-transaction-list-item-amount">
                     {{ $n(amount, 'decimal') }}
                   </span>
@@ -131,9 +129,6 @@ export default {
     },
     properties: {
       type: Object,
-    },
-    getCollapseState: {
-      type: Boolean,
     },
     decayStartBlock: { type: Date },
   },

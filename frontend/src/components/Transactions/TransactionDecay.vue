@@ -1,5 +1,5 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''">
+  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-decay">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -14,7 +14,7 @@
           <!-- ICON  -->
           <b-col cols="1">
             <div class="gdd-transaction-list-item-icon">
-              <b-icon :icon="properties.icon" :class="properties.class" />
+              <b-icon icon="droplet-half" class="gradido-global-color-gray m-mb-1 font2em" />
             </div>
           </b-col>
 
@@ -80,9 +80,6 @@ export default {
     },
     typeId: {
       type: String,
-    },
-    properties: {
-      type: Object,
     },
   },
   data() {
