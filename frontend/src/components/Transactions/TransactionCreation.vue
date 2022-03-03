@@ -1,9 +1,6 @@
 <template>
   <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-creation">
     <div @click="visible = !visible">
-      {{ amount }}, {{ balance }}, {{ balanceDate }}, {{ decay }}, {{ id }}, {{ linkedUser }},
-      {{ memo }}
-
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
         <b-icon

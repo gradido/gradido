@@ -14,7 +14,10 @@
           <!-- ICON  -->
           <b-col cols="1">
             <div class="gdd-transaction-list-item-icon">
-              <b-icon icon="arrow-right-circle" class="text-success m-mb-1 font2em" />
+              <b-icon
+                icon="arrow-right-circle"
+                class="gradido-global-color-accent m-mb-1 font2em"
+              />
             </div>
           </b-col>
 

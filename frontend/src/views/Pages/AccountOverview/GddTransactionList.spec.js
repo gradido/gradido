@@ -238,11 +238,11 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('text-danger')
         })
 
-        it('has a minus operator', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '-',
-          )
-        })
+        // it('has a minus operator', () => {
+        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+        //     '-',
+        //   )
+        // })
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
@@ -345,10 +345,10 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
         })
 
-        it('has text-success color', () => {
+        it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-arrow-right-circle',
-            'text-success',
+            'gradido-global-color-accent',
             'm-mb-1',
             'font2em',
             'b-icon',
