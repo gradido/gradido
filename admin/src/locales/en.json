@@ -28,6 +28,7 @@
   "delete_user": "Delete user",
   "details": "Details",
   "edit": "Edit",
+  "error": "Error",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
@@ -68,6 +69,7 @@
   "remove_all": "Remove all users",
   "save": "Speichern",
   "status": "Status",
+  "success": "Success",
   "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {
@@ -92,7 +94,5 @@
   "userIsDeleted": "The user is deleted. No more GDD can be created.",
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",
-  "user_search": "User search",
-  "error": "Error",
-  "success": "Success"
+  "user_search": "User search"
 }

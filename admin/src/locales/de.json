@@ -28,6 +28,7 @@
   "delete_user": "Nutzer löschen",
   "details": "Details",
   "edit": "Bearbeiten",
+  "error": "Fehler",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
@@ -68,6 +69,7 @@
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "status": "Status",
+  "success": "Erfolg",
   "text": "Text",
   "transaction": "Transaktion",
   "transactionlist": {
@@ -92,7 +94,5 @@
   "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
-  "user_search": "Nutzer-Suche",
-  "error": "Fehler",
-  "success": "Erfolg"
+  "user_search": "Nutzer-Suche"
 }
