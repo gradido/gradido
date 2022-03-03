@@ -1,17 +1,17 @@
 import { EntityRepository, Repository } from '@dbTools/typeorm'
+import { Transaction } from '@entity/Transaction'
 import { Order } from '../../graphql/enum/Order'
-import { UserTransaction } from '@entity/UserTransaction'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 
-@EntityRepository(UserTransaction)
-export class UserTransactionRepository extends Repository<UserTransaction> {
+@EntityRepository(Transaction)
+export class TransactionRepository extends Repository<Transaction> {
   findByUserPaged(
     userId: number,
     limit: number,
     offset: number,
     order: Order,
     onlyCreation?: boolean,
-  ): Promise<[UserTransaction[], number]> {
+  ): Promise<[Transaction[], number]> {
     if (onlyCreation) {
       return this.createQueryBuilder('userTransaction')
         .where('userTransaction.userId = :userId', { userId })
@@ -31,10 +31,10 @@ export class UserTransactionRepository extends Repository<UserTransaction> {
       .getManyAndCount()
   }
 
-  findLastForUser(userId: number): Promise<UserTransaction | undefined> {
+  findLastForUser(userId: number): Promise<Transaction | undefined> {
     return this.createQueryBuilder('userTransaction')
       .where('userTransaction.userId = :userId', { userId })
-      .orderBy('userTransaction.transactionId', 'DESC')
+      .orderBy('userTransaction.balanceDate', 'DESC')
       .getOne()
   }
 }

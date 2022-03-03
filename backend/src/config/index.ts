@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0025-emails_to_lower',
+  DB_VERSION: '0027-clean_transaction_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 

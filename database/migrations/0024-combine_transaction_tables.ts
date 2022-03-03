@@ -1,6 +1,6 @@
-/* MIGRATION TO COMBINE ALL TRANSACTION TABLES
+/* MIGRATION TO COMBINE SEVERAL TRANSACTION TABLES
  *
- * Combine all transaction tables into one table with all data
+ * Combine several transaction tables into one table with all data
  */
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */

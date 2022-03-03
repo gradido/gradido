@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection, QueryRunner, In } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection, QueryRunner } from '@dbTools/typeorm'
 
 import CONFIG from '../../config'
 import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
@@ -18,10 +18,9 @@ import Paginated from '../arg/Paginated'
 import { Order } from '../enum/Order'
 
 import { UserRepository } from '../../typeorm/repository/User'
-import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
-import { UserTransaction as dbUserTransaction } from '@entity/UserTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Balance as dbBalance } from '@entity/Balance'
 
@@ -33,168 +32,46 @@ import { TransactionType } from '../enum/TransactionType'
 import { hasUserAmount, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
 
-// Helper function
-async function calculateAndAddDecayTransactions(
-  userTransactions: dbUserTransaction[],
-  user: dbUser,
-  decay: boolean,
-  skipFirstTransaction: boolean,
-): Promise<Transaction[]> {
-  const finalTransactions: Transaction[] = []
-  const transactionIds: number[] = []
-  const involvedUserIds: number[] = []
-
-  userTransactions.forEach((userTransaction: dbUserTransaction) => {
-    transactionIds.push(userTransaction.transactionId)
-  })
-
-  const transactions = await dbTransaction.find({ where: { id: In(transactionIds) } })
-  const transactionIndiced: dbTransaction[] = []
-  transactions.forEach((transaction: dbTransaction) => {
-    transactionIndiced[transaction.id] = transaction
-    involvedUserIds.push(transaction.userId)
-    if (transaction.transactionTypeId === TransactionTypeId.SEND) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      involvedUserIds.push(transaction.sendReceiverUserId!) // TODO ensure not null properly
-    }
-  })
-  // remove duplicates
-  // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-  const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
-  const userRepository = getCustomRepository(UserRepository)
-  const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
-
-  for (let i = 0; i < userTransactions.length; i++) {
-    const userTransaction = userTransactions[i]
-    const transaction = transactionIndiced[userTransaction.transactionId]
-    const finalTransaction = new Transaction()
-    finalTransaction.transactionId = transaction.id
-    finalTransaction.date = transaction.received.toISOString()
-    finalTransaction.memo = transaction.memo
-    finalTransaction.totalBalance = roundFloorFrom4(userTransaction.balance)
-    const previousTransaction = i > 0 ? userTransactions[i - 1] : null
-
-    if (previousTransaction) {
-      const currentTransaction = userTransaction
-      const decay = calculateDecay(
-        previousTransaction.balance,
-        previousTransaction.balanceDate,
-        currentTransaction.balanceDate,
-      )
-      const balance = previousTransaction.balance - decay.balance
-
-      if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
-        finalTransaction.decay = decay
-        finalTransaction.decay.balance = roundFloorFrom4(balance)
-        if (
-          previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
-          currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
-        ) {
-          finalTransaction.decay.decayStartBlock = (
-            CONFIG.DECAY_START_TIME.getTime() / 1000
-          ).toString()
-        }
-      }
-    } else {
-      finalTransaction.firstTransaction = true
-    }
-
-    // sender or receiver when user has sent money
-    // group name if creation
-    // type: gesendet / empfangen / geschöpft
-    // transaktion nr / id
-    // date
-    // balance
-    if (userTransaction.transactionTypeId === TransactionTypeId.CREATION) {
-      // creation
-      finalTransaction.name = 'Gradido Akademie'
-      finalTransaction.type = TransactionType.CREATION
-      // finalTransaction.targetDate = creation.targetDate
-      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-    } else if (userTransaction.transactionTypeId === TransactionTypeId.SEND) {
-      // send coin
-      let otherUser: dbUser | undefined
-      finalTransaction.balance = roundFloorFrom4(Number(transaction.amount)) // Todo unsafe conversion
-      if (transaction.userId === user.id) {
-        finalTransaction.type = TransactionType.SEND
-        otherUser = userIndiced.find((u) => u.id === transaction.sendReceiverUserId)
-        // finalTransaction.pubkey = sendCoin.recipiantPublic
-      } else if (transaction.sendReceiverUserId === user.id) {
-        finalTransaction.type = TransactionType.RECIEVE
-        otherUser = userIndiced.find((u) => u.id === transaction.userId)
-        // finalTransaction.pubkey = sendCoin.senderPublic
-      } else {
-        throw new Error('invalid transaction')
-      }
-      if (otherUser) {
-        finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
-        finalTransaction.email = otherUser.email
-      }
-    }
-    if (i > 0 || !skipFirstTransaction) {
-      finalTransactions.push(finalTransaction)
-    }
-
-    if (i === userTransactions.length - 1 && decay) {
-      const now = new Date()
-      const decay = calculateDecay(userTransaction.balance, userTransaction.balanceDate, now)
-      const balance = userTransaction.balance - decay.balance
-
-      const decayTransaction = new Transaction()
-      decayTransaction.type = 'decay'
-      decayTransaction.balance = roundCeilFrom4(balance)
-      decayTransaction.decayDuration = decay.decayDuration
-      decayTransaction.decayStart = decay.decayStart
-      decayTransaction.decayEnd = decay.decayEnd
-      finalTransactions.push(decayTransaction)
-    }
-  }
-  return finalTransactions
-}
-
 // helper helper function
 async function updateStateBalance(
   user: dbUser,
-  centAmount: number,
+  balance: number,
   received: Date,
   queryRunner: QueryRunner,
 ): Promise<dbBalance> {
-  let balance = await dbBalance.findOne({ userId: user.id })
-  if (!balance) {
-    balance = new dbBalance()
-    balance.userId = user.id
-    balance.amount = centAmount
-    balance.modified = received
+  let userBalance = await dbBalance.findOne({ userId: user.id })
+  if (!userBalance) {
+    userBalance = new dbBalance()
+    userBalance.userId = user.id
+    userBalance.amount = balance
+    userBalance.modified = received
   } else {
-    const decayedBalance = calculateDecay(balance.amount, balance.recordDate, received).balance
-    balance.amount = Number(decayedBalance) + centAmount
-    balance.modified = new Date()
+    userBalance.amount = balance
+    userBalance.modified = new Date()
   }
-  if (balance.amount <= 0) {
+  if (userBalance.amount <= 0) {
     throw new Error('error new balance <= 0')
   }
-  balance.recordDate = received
-  return queryRunner.manager.save(balance).catch((error) => {
+  userBalance.recordDate = received
+  return queryRunner.manager.save(userBalance).catch((error) => {
     throw new Error('error saving balance:' + error)
   })
 }
 
-// helper helper function
-async function addUserTransaction(
-  user: dbUser,
-  transaction: dbTransaction,
+async function calculateNewBalance(
+  userId: number,
+  transactionDate: Date,
   centAmount: number,
-  queryRunner: QueryRunner,
-): Promise<dbUserTransaction> {
+): Promise<number> {
   let newBalance = centAmount
-  const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-  const lastUserTransaction = await userTransactionRepository.findLastForUser(user.id)
+  const transactionRepository = getCustomRepository(TransactionRepository)
+  const lastUserTransaction = await transactionRepository.findLastForUser(userId)
   if (lastUserTransaction) {
     newBalance += Number(
       calculateDecay(
         Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
-        transaction.received,
+        transactionDate,
       ).balance,
     )
   }
@@ -203,18 +80,8 @@ async function addUserTransaction(
     throw new Error('error new balance <= 0')
   }
 
-  const newUserTransaction = new dbUserTransaction()
-  newUserTransaction.userId = user.id
-  newUserTransaction.transactionId = transaction.id
-  newUserTransaction.transactionTypeId = transaction.transactionTypeId
-  newUserTransaction.balance = newBalance
-  newUserTransaction.balanceDate = transaction.received
-
-  return queryRunner.manager.save(newUserTransaction).catch((error) => {
-    throw new Error('Error saving user transaction: ' + error)
-  })
+  return newBalance
 }
-
 @Resolver()
 export class TransactionResolver {
   @Authorized([RIGHTS.TRANSACTION_LIST])
@@ -245,22 +112,119 @@ export class TransactionResolver {
     if (offset && order === Order.ASC) {
       offset--
     }
-    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-    const [userTransactions, userTransactionsCount] =
-      await userTransactionRepository.findByUserPaged(user.id, limit, offset, order, onlyCreations)
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
+      user.id,
+      limit,
+      offset,
+      order,
+      onlyCreations,
+    )
     skipFirstTransaction = userTransactionsCount > offset + limit
     const decay = !(currentPage > 1)
-    let transactions: Transaction[] = []
+    const transactions: Transaction[] = []
     if (userTransactions.length) {
       if (order === Order.DESC) {
         userTransactions.reverse()
       }
-      transactions = await calculateAndAddDecayTransactions(
-        userTransactions,
-        user,
-        decay,
-        skipFirstTransaction,
-      )
+      const involvedUserIds: number[] = []
+
+      userTransactions.forEach((transaction: dbTransaction) => {
+        involvedUserIds.push(transaction.userId)
+        if (
+          transaction.typeId === TransactionTypeId.SEND ||
+          transaction.typeId === TransactionTypeId.RECEIVE
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          involvedUserIds.push(transaction.linkedUserId!) // TODO ensure not null properly
+        }
+      })
+      // remove duplicates
+      // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+      const involvedUsersUnique = involvedUserIds.filter((v, i, a) => a.indexOf(v) === i)
+      const userRepository = getCustomRepository(UserRepository)
+      const userIndiced = await userRepository.getUsersIndiced(involvedUsersUnique)
+
+      for (let i = 0; i < userTransactions.length; i++) {
+        const userTransaction = userTransactions[i]
+        const finalTransaction = new Transaction()
+        finalTransaction.transactionId = userTransaction.id
+        finalTransaction.date = userTransaction.balanceDate.toISOString()
+        finalTransaction.memo = userTransaction.memo
+        finalTransaction.totalBalance = roundFloorFrom4(Number(userTransaction.balance))
+        const previousTransaction = i > 0 ? userTransactions[i - 1] : null
+
+        if (previousTransaction) {
+          const currentTransaction = userTransaction
+          const decay = calculateDecay(
+            Number(previousTransaction.balance),
+            previousTransaction.balanceDate,
+            currentTransaction.balanceDate,
+          )
+          const balance = Number(previousTransaction.balance) - decay.balance
+
+          if (CONFIG.DECAY_START_TIME < currentTransaction.balanceDate) {
+            finalTransaction.decay = decay
+            finalTransaction.decay.balance = roundFloorFrom4(balance)
+            if (
+              previousTransaction.balanceDate < CONFIG.DECAY_START_TIME &&
+              currentTransaction.balanceDate > CONFIG.DECAY_START_TIME
+            ) {
+              finalTransaction.decay.decayStartBlock = (
+                CONFIG.DECAY_START_TIME.getTime() / 1000
+              ).toString()
+            }
+          }
+        }
+
+        finalTransaction.balance = roundFloorFrom4(Number(userTransaction.amount)) // Todo unsafe conversion
+
+        const otherUser = userIndiced.find((u) => u.id === userTransaction.linkedUserId)
+        switch (userTransaction.typeId) {
+          case TransactionTypeId.CREATION:
+            finalTransaction.name = 'Gradido Akademie'
+            finalTransaction.type = TransactionType.CREATION
+            break
+          case TransactionTypeId.SEND:
+            finalTransaction.type = TransactionType.SEND
+            if (otherUser) {
+              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+              finalTransaction.email = otherUser.email
+            }
+            break
+          case TransactionTypeId.RECEIVE:
+            finalTransaction.type = TransactionType.RECIEVE
+            if (otherUser) {
+              finalTransaction.name = otherUser.firstName + ' ' + otherUser.lastName
+              finalTransaction.email = otherUser.email
+            }
+            break
+          default:
+            throw new Error('invalid transaction')
+        }
+        if (i > 0 || !skipFirstTransaction) {
+          transactions.push(finalTransaction)
+        }
+
+        if (i === userTransactions.length - 1 && decay) {
+          const now = new Date()
+          const decay = calculateDecay(
+            Number(userTransaction.balance),
+            userTransaction.balanceDate,
+            now,
+          )
+          const balance = Number(userTransaction.balance) - decay.balance
+
+          const decayTransaction = new Transaction()
+          decayTransaction.type = 'decay'
+          decayTransaction.balance = roundCeilFrom4(balance)
+          decayTransaction.decayDuration = decay.decayDuration
+          decayTransaction.decayStart = decay.decayStart
+          decayTransaction.decayEnd = decay.decayEnd
+          transactions.push(decayTransaction)
+        }
+      }
+
       if (order === Order.DESC) {
         transactions.reverse()
       }
@@ -323,87 +287,62 @@ export class TransactionResolver {
       throw new Error('invalid recipient public key')
     }
 
-    const centAmount = Math.trunc(amount * 10000)
+    const centAmount = Math.round(amount * 10000)
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
+      const receivedCallDate = new Date()
       // transaction
-      const transaction = new dbTransaction()
-      transaction.transactionTypeId = TransactionTypeId.SEND
-      transaction.memo = memo
-      transaction.userId = senderUser.id
-      transaction.pubkey = senderUser.pubKey
-      transaction.sendReceiverUserId = recipientUser.id
-      transaction.sendReceiverPublicKey = recipientUser.pubKey
-      transaction.amount = BigInt(centAmount)
+      const transactionSend = new dbTransaction()
+      transactionSend.typeId = TransactionTypeId.SEND
+      transactionSend.memo = memo
+      transactionSend.userId = senderUser.id
+      transactionSend.linkedUserId = recipientUser.id
+      transactionSend.amount = BigInt(centAmount)
+      const sendBalance = await calculateNewBalance(senderUser.id, receivedCallDate, -centAmount)
+      transactionSend.balance = BigInt(Math.trunc(sendBalance))
+      transactionSend.balanceDate = receivedCallDate
+      transactionSend.sendSenderFinalBalance = transactionSend.balance
+      await queryRunner.manager.insert(dbTransaction, transactionSend)
 
-      await queryRunner.manager.insert(dbTransaction, transaction)
-
-      // Insert Transaction: sender - amount
-      const senderUserTransactionBalance = await addUserTransaction(
-        senderUser,
-        transaction,
-        -centAmount,
-        queryRunner,
-      )
-
-      // Insert Transaction: recipient + amount
-      const recipiantUserTransactionBalance = await addUserTransaction(
-        recipientUser,
-        transaction,
+      const transactionReceive = new dbTransaction()
+      transactionReceive.typeId = TransactionTypeId.RECEIVE
+      transactionReceive.memo = memo
+      transactionReceive.userId = recipientUser.id
+      transactionReceive.linkedUserId = senderUser.id
+      transactionReceive.amount = BigInt(centAmount)
+      const receiveBalance = await calculateNewBalance(
+        recipientUser.id,
+        receivedCallDate,
         centAmount,
-        queryRunner,
       )
+      transactionReceive.balance = BigInt(Math.trunc(receiveBalance))
+      transactionReceive.balanceDate = receivedCallDate
+      transactionReceive.sendSenderFinalBalance = transactionSend.balance
+      transactionReceive.linkedTransactionId = transactionSend.id
+      await queryRunner.manager.insert(dbTransaction, transactionReceive)
 
-      // Update Balance: sender - amount
-      const senderStateBalance = await updateStateBalance(
-        senderUser,
-        -centAmount,
-        transaction.received,
-        queryRunner,
-      )
+      // Save linked transaction id for send
+      transactionSend.linkedTransactionId = transactionReceive.id
+      await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
 
-      // Update Balance: recipiant + amount
-      const recipiantStateBalance = await updateStateBalance(
+      // Update Balance sender
+      await updateStateBalance(senderUser, Math.trunc(sendBalance), receivedCallDate, queryRunner)
+
+      // Update Balance recipient
+      await updateStateBalance(
         recipientUser,
-        centAmount,
-        transaction.received,
+        Math.trunc(receiveBalance),
+        receivedCallDate,
         queryRunner,
       )
-
-      if (senderStateBalance.amount !== senderUserTransactionBalance.balance) {
-        throw new Error('db data corrupted, sender')
-      }
-      if (recipiantStateBalance.amount !== recipiantUserTransactionBalance.balance) {
-        throw new Error('db data corrupted, recipiant')
-      }
-
-      // TODO: WTF?
-      // I just assume that due to implicit type conversion the decimal places were cut.
-      // Using `Math.trunc` to simulate this behaviour
-      transaction.sendSenderFinalBalance = BigInt(Math.trunc(senderStateBalance.amount))
-
-      await queryRunner.manager.save(transaction).catch((error) => {
-        throw new Error('error saving transaction with tx hash: ' + error)
-      })
 
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      // TODO: This is broken code - we should never correct an autoincrement index in production
-      // according to dario it is required tho to properly work. The index of the table is used as
-      // index for the transaction which requires a chain without gaps
-      const count = await queryRunner.manager.count(dbTransaction)
-      // fix autoincrement value which seems not effected from rollback
-      await queryRunner
-        .query('ALTER TABLE `transactions` auto_increment = ?', [count])
-        .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.log('problems with reset auto increment: %o', error)
-        })
-      throw e
+      throw new Error(`Transaction was not successful: ${e}`)
     } finally {
       await queryRunner.release()
     }
