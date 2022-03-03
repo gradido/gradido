@@ -92,5 +92,7 @@
   "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
-  "user_search": "Nutzer-Suche"
+  "user_search": "Nutzer-Suche",
+  "error": "Fehler",
+  "success": "Erfolg"
 }

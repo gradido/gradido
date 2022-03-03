@@ -17,7 +17,7 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-import Toasted from 'vue-toasted'
+import { toasters } from './mixins/toaster'
 
 import { apolloProvider } from './plugins/apolloProvider'
 
@@ -27,17 +27,7 @@ Vue.use(IconsPlugin)
 
 Vue.use(VueApollo)
 
-Vue.use(Toasted, {
-  position: 'top-center',
-  duration: 5000,
-  fullWidth: true,
-  action: {
-    text: 'x',
-    onClick: (e, toastObject) => {
-      toastObject.goAway(0)
-    },
-  },
-})
+Vue.mixin(toasters)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
 
