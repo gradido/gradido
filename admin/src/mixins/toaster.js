@@ -13,7 +13,8 @@ export const toasters = {
       })
     },
     toast(message, options) {
-      message = message.replace(/^GraphQL error: /, '')
+      // for unit tests, check that replace is present
+      if (message.replace) message = message.replace(/^GraphQL error: /, '')
       this.$bvToast.toast(message, {
         autoHideDelay: 5000,
         appendToast: true,

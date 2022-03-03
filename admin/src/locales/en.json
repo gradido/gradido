@@ -5,6 +5,7 @@
   "confirmed": "confirmed",
   "creation": "Creation",
   "creation_form": {
+    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",

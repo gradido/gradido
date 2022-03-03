@@ -171,9 +171,8 @@ export default {
               result.data.createPendingCreations.successfulCreation.length,
             )
             if (result.data.createPendingCreations.failedCreation.length > 0) {
-              result.data.createPendingCreations.failedCreation.forEach((failed) => {
-                // TODO: Please localize this error message
-                this.toastError('Could not created PendingCreation for ' + failed)
+              result.data.createPendingCreations.failedCreation.forEach((email) => {
+                this.toastError(this.$t('creation_form.creation_failed', { email }))
               })
             }
             this.$emit('remove-all-bookmark')

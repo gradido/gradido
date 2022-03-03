@@ -422,12 +422,14 @@ describe('CreationFormular', () => {
         })
 
         it('toasts two errors', () => {
-          expect(toastErrorSpy).toBeCalledWith(
-            'Could not created PendingCreation for bob@baumeister.de',
-          )
-          expect(toastErrorSpy).toBeCalledWith(
-            'Could not created PendingCreation for bibi@bloxberg.de',
-          )
+          expect(toastErrorSpy).toBeCalledWith([
+            'creation_form.creation_failed',
+            { email: 'bob@baumeister.de' },
+          ])
+          expect(toastErrorSpy).toBeCalledWith([
+            'creation_form.creation_failed',
+            { email: 'bibi@bloxberg.de' },
+          ])
         })
       })
 
