@@ -179,7 +179,7 @@ describe('DashboardLayoutGdd', () => {
         })
 
         it('updates balance', () => {
-          expect(wrapper.vm.balance).toBe(1250)
+          expect(wrapper.vm.balance).toBe(1450)
         })
 
         it('updates transactions', () => {
