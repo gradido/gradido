@@ -2,12 +2,11 @@ import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const storeCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     getPendingCreations: [
@@ -46,10 +45,6 @@ const mocks = {
   $apollo: {
     query: apolloQueryMock,
     mutate: apolloMutateMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -101,7 +96,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_delete')
+        expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
       })
     })
 
@@ -112,7 +107,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
       })
     })
 
@@ -158,7 +153,7 @@ describe('CreationConfirm', () => {
           })
 
           it('toasts a success message', () => {
-            expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_created')
+            expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_created')
           })
 
           it('has 1 item left in the table', () => {
@@ -173,7 +168,7 @@ describe('CreationConfirm', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+            expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
       })
@@ -189,7 +184,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toast an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouch!')
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
     })
   })
