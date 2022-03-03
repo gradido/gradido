@@ -421,14 +421,13 @@ describe('CreationFormular', () => {
           expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 0)
         })
 
-        it('toasts two errors', () => {
-          expect(toastErrorSpy).toBeCalledWith([
-            'creation_form.creation_failed',
-            { email: 'bob@baumeister.de' },
-          ])
-          expect(toastErrorSpy).toBeCalledWith([
-            'creation_form.creation_failed',
-            { email: 'bibi@bloxberg.de' },
+        it('emits remove all bookmarks', () => {
+          expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
+        })
+
+        it('emits toast dailed creations with two emails', () => {
+          expect(wrapper.emitted('toast-failed-creations')).toEqual([
+            [['bob@baumeister.de', 'bibi@bloxberg.de']],
           ])
         })
       })

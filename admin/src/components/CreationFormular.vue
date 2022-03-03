@@ -166,16 +166,18 @@ export default {
             fetchPolicy: 'no-cache',
           })
           .then((result) => {
+            const failedCreations = []
             this.$store.commit(
               'openCreationsPlus',
               result.data.createPendingCreations.successfulCreation.length,
             )
             if (result.data.createPendingCreations.failedCreation.length > 0) {
               result.data.createPendingCreations.failedCreation.forEach((email) => {
-                this.toastError(this.$t('creation_form.creation_failed', { email }))
+                failedCreations.push(email)
               })
             }
             this.$emit('remove-all-bookmark')
+            this.$emit('toast-failed-creations', failedCreations)
           })
           .catch((error) => {
             this.toastError(error.message)

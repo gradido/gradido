@@ -33,7 +33,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
 const storeCommitMock = jest.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: jest.fn((t, options) => (options ? [t, options] : t)),
   $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
@@ -230,6 +230,25 @@ describe('Creation', () => {
         expect(wrapper.findAll('table').at(1).findAll('tbody > tr').at(0).text()).toContain(
           'benjamin@bluemchen.de',
         )
+      })
+    })
+
+    describe('failed creations', () => {
+      beforeEach(async () => {
+        await wrapper
+          .findComponent({ name: 'CreationFormular' })
+          .vm.$emit('toast-failed-creations', ['bibi@bloxberg.de', 'benjamin@bluemchen.de'])
+      })
+
+      it('toasts two error messages', () => {
+        expect(toastErrorSpy).toBeCalledWith([
+          'creation_form.creation_failed',
+          { email: 'bibi@bloxberg.de' },
+        ])
+        expect(toastErrorSpy).toBeCalledWith([
+          'creation_form.creation_failed',
+          { email: 'benjamin@bluemchen.de' },
+        ])
       })
     })
 
