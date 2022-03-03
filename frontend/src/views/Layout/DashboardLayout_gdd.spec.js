@@ -153,7 +153,7 @@ describe('DashboardLayoutGdd', () => {
           apolloMock.mockResolvedValue({
             data: {
               transactionList: {
-                gdtSum: 100,
+                balanceGDT: 100,
                 count: 4,
                 balance: 1450,
                 decay: 1250,
