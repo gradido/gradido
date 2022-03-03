@@ -20,8 +20,7 @@ import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '../arg/SearchUsersArgs'
 import { Transaction } from '@entity/Transaction'
-import { UserTransaction } from '@entity/UserTransaction'
-import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
+import { TransactionRepository } from '../../typeorm/repository/Transaction'
 import { calculateDecay } from '../../util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
@@ -306,42 +305,29 @@ export class AdminResolver {
     }
 
     const receivedCallDate = new Date()
-    let transaction = new Transaction()
-    transaction.transactionTypeId = TransactionTypeId.CREATION
-    transaction.memo = pendingCreation.memo
-    transaction.received = receivedCallDate
-    transaction.userId = pendingCreation.userId
-    transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
-    transaction.creationDate = pendingCreation.date
-    transaction = await transaction.save()
-    if (!transaction) throw new Error('Could not create transaction')
 
-    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-    const lastUserTransaction = await userTransactionRepository.findLastForUser(
-      pendingCreation.userId,
-    )
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const lastUserTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
+
     let newBalance = 0
-    if (!lastUserTransaction) {
-      newBalance = 0
-    } else {
+    if (lastUserTransaction) {
       newBalance = calculateDecay(
-        lastUserTransaction.balance,
+        Number(lastUserTransaction.balance),
         lastUserTransaction.balanceDate,
         receivedCallDate,
       ).balance
     }
     newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
-    const newUserTransaction = new UserTransaction()
-    newUserTransaction.userId = pendingCreation.userId
-    newUserTransaction.transactionId = transaction.id
-    newUserTransaction.transactionTypeId = transaction.transactionTypeId
-    newUserTransaction.balance = Number(newBalance)
-    newUserTransaction.balanceDate = transaction.received
-
-    await userTransactionRepository.save(newUserTransaction).catch((error) => {
-      throw new Error('Error saving user transaction: ' + error)
-    })
+    const transaction = new Transaction()
+    transaction.typeId = TransactionTypeId.CREATION
+    transaction.memo = pendingCreation.memo
+    transaction.userId = pendingCreation.userId
+    transaction.amount = BigInt(parseInt(pendingCreation.amount.toString()))
+    transaction.creationDate = pendingCreation.date
+    transaction.balance = BigInt(newBalance)
+    transaction.balanceDate = receivedCallDate
+    await transaction.save()
 
     let userBalance = await Balance.findOne({ userId: pendingCreation.userId })
     if (!userBalance) {
@@ -388,7 +374,7 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
         WHERE user_id IN (${ids.toString()})
-        AND transaction_type_id = ${TransactionTypeId.CREATION}
+        AND type_id = ${TransactionTypeId.CREATION}
         AND creation_date >= ${dateFilter}
       ${unionString}) AS result
     GROUP BY month, userId
