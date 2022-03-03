@@ -173,13 +173,13 @@ export default {
             if (result.data.createPendingCreations.failedCreation.length > 0) {
               result.data.createPendingCreations.failedCreation.forEach((failed) => {
                 // TODO: Please localize this error message
-                this.$toasted.error('Could not created PendingCreation for ' + failed)
+                this.toastError('Could not created PendingCreation for ' + failed)
               })
             }
             this.$emit('remove-all-bookmark')
           })
           .catch((error) => {
-            this.$toasted.error(error.message)
+            this.toastError(error.message)
           })
       } else if (this.type === 'singleCreation') {
         submitObj = {
@@ -196,19 +196,19 @@ export default {
           })
           .then((result) => {
             this.$emit('update-user-data', this.item, result.data.createPendingCreation)
-            this.$toasted.success(
+            this.$store.commit('openCreationsPlus', 1)
+            this.toastSuccess(
               this.$t('creation_form.toasted', {
                 value: this.value,
                 email: this.item.email,
               }),
             )
-            this.$store.commit('openCreationsPlus', 1)
             // what is this? Tests says that this.text is not reseted
             this.$refs.creationForm.reset()
             this.value = 0
           })
           .catch((error) => {
-            this.$toasted.error(error.message)
+            this.toastError(error.message)
             this.$refs.creationForm.reset()
             this.value = 0
           })

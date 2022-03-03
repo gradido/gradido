@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
 import { createPendingCreation } from '../graphql/createPendingCreation'
 import { createPendingCreations } from '../graphql/createPendingCreations'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -11,8 +12,6 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
   },
 })
 const stateCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t, options) => (options ? [t, options] : t)),
@@ -31,10 +30,6 @@ const mocks = {
         name: 'test moderator',
       },
     },
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -140,7 +135,7 @@ describe('CreationFormular', () => {
             })
 
             it('toasts a success message', () => {
-              expect(toastedSuccessMock).toBeCalledWith([
+              expect(toastSuccessSpy).toBeCalledWith([
                 'creation_form.toasted',
                 { email: 'benjamin@bluemchen.de', value: '90' },
               ])
@@ -162,7 +157,7 @@ describe('CreationFormular', () => {
             })
 
             it('toasts an error message', () => {
-              expect(toastedErrorMock).toBeCalledWith('Ouch!')
+              expect(toastErrorSpy).toBeCalledWith('Ouch!')
             })
           })
 
@@ -292,7 +287,7 @@ describe('CreationFormular', () => {
             })
 
             it('toast success message', () => {
-              expect(toastedSuccessMock).toBeCalled()
+              expect(toastSuccessSpy).toBeCalled()
             })
 
             it('store commit openCreationPlus', () => {
@@ -427,10 +422,10 @@ describe('CreationFormular', () => {
         })
 
         it('toasts two errors', () => {
-          expect(toastedErrorMock).toBeCalledWith(
+          expect(toastErrorSpy).toBeCalledWith(
             'Could not created PendingCreation for bob@baumeister.de',
           )
-          expect(toastedErrorMock).toBeCalledWith(
+          expect(toastErrorSpy).toBeCalledWith(
             'Could not created PendingCreation for bibi@bloxberg.de',
           )
         })
@@ -454,7 +449,7 @@ describe('CreationFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })
