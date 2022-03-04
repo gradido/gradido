@@ -56,6 +56,7 @@
           :creation="creation"
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmarks"
+          @toast-failed-creations="toastFailedCreations"
         />
       </b-col>
     </b-row>
@@ -118,7 +119,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     pushItem(selectedItem) {
@@ -143,6 +144,11 @@ export default {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
+    },
+    toastFailedCreations(failedCreations) {
+      failedCreations.forEach((email) =>
+        this.toastError(this.$t('creation_form.creation_failed', { email })),
+      )
     },
   },
   computed: {

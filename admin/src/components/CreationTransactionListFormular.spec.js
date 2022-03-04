@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import CreationTransactionListFormular from './CreationTransactionListFormular.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -50,16 +51,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastedErrorMock = jest.fn()
-
 const mocks = {
   $d: jest.fn((t) => t),
   $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
   },
 }
 
@@ -109,7 +105,7 @@ describe('CreationTransactionListFormular', () => {
       })
 
       it('toast error', () => {
-        expect(toastedErrorMock).toBeCalledWith('OUCH!')
+        expect(toastErrorSpy).toBeCalledWith('OUCH!')
       })
     })
   })

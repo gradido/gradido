@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js-light'
+
 export interface UserInterface {
   // from user
   email?: string
@@ -24,10 +26,7 @@ export interface UserInterface {
   // flag for balance (creation of 1000 GDD)
   addBalance?: boolean
   // balance
-  balanceModified?: Date
   recordDate?: Date
   creationDate?: Date
-  amount?: number
-  creationTxHash?: Buffer
-  signature?: Buffer
+  amount?: Decimal
 }

@@ -1,32 +1,35 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
+import CONFIG from '../../config'
+import Decimal from 'decimal.js-light'
 import { Transaction } from './Transaction'
 
 @ObjectType()
 export class TransactionList {
-  constructor() {
-    this.gdtSum = 0
-    this.count = 0
-    this.balance = 0
-    this.decay = 0
-    this.decayDate = ''
+  constructor(
+    balance: Decimal,
+    transactions: Transaction[],
+    count: number,
+    balanceGDT?: number | null,
+    decayStartBlock: Date = CONFIG.DECAY_START_TIME,
+  ) {
+    this.balance = balance
+    this.transactions = transactions
+    this.count = count
+    this.balanceGDT = balanceGDT || null
+    this.decayStartBlock = decayStartBlock
   }
 
   @Field(() => Number, { nullable: true })
-  gdtSum: number | null
+  balanceGDT: number | null
 
   @Field(() => Number)
   count: number
 
   @Field(() => Number)
-  balance: number
+  balance: Decimal
 
-  @Field(() => Number)
-  decay: number
-
-  @Field(() => String)
-  decayDate: string
+  @Field(() => Date)
+  decayStartBlock: Date
 
   @Field(() => [Transaction])
   transactions: Transaction[]

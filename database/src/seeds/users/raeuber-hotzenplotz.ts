@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js-light'
 import { UserInterface } from '../../interface/UserInterface'
 
 export const raeuberHotzenplotz: UserInterface = {
@@ -19,16 +20,7 @@ export const raeuberHotzenplotz: UserInterface = {
     'gospel trip tenant mouse spider skill auto curious man video chief response same little over expire drum display fancy clinic keen throw urge basket ',
   isAdmin: false,
   addBalance: true,
-  balanceModified: new Date('2021-11-30T10:37:13'),
   recordDate: new Date('2021-11-30T10:37:13'),
   creationDate: new Date('2021-08-01 00:00:00'),
-  amount: 10000000,
-  creationTxHash: Buffer.from(
-    '23ba44fd84deb59b9f32969ad0cb18bfa4588be1bdb99c396888506474c16c1900000000000000000000000000000000',
-    'hex',
-  ),
-  signature: Buffer.from(
-    '756d3da061687c575d1dbc5073908f646aa5f498b0927b217c83b48af471450e571dfe8421fb8e1f1ebd1104526b7e7c6fa78684e2da59c8f7f5a8dc3d9e5b0b',
-    'hex',
-  ),
+  amount: new Decimal(1000),
 }

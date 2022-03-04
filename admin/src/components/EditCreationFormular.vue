@@ -132,7 +132,7 @@ export default {
             moderator: Number(result.data.updatePendingCreation.moderator),
             row: this.row,
           })
-          this.$toasted.success(
+          this.toastSuccess(
             this.$t('creation_form.toasted_update', {
               value: this.value,
               email: this.item.email,
@@ -144,7 +144,7 @@ export default {
           this.value = 0
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
           // das creation Formular reseten
           this.$refs.updateCreationForm.reset()
           // Den geschöpften Wert auf o setzen

@@ -1,7 +1,7 @@
-import { User as dbUser } from '@entity/User'
-import { Balance as dbBalance } from '@entity/Balance'
-import { getRepository } from '@dbTools/typeorm'
 import { calculateDecay } from './decay'
+import Decimal from 'decimal.js-light'
+import { Transaction } from '@entity/Transaction'
+import { Decay } from '../graphql/model/Decay'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -15,14 +15,21 @@ function isHexPublicKey(publicKey: string): boolean {
   return /^[0-9A-Fa-f]{64}$/i.test(publicKey)
 }
 
-async function hasUserAmount(user: dbUser, amount: number): Promise<boolean> {
-  if (amount < 0) return false
-  const balanceRepository = getRepository(dbBalance)
-  const balance = await balanceRepository.findOne({ userId: user.id })
-  if (!balance) return false
+async function calculateBalance(
+  userId: number,
+  amount: Decimal,
+  time: Date,
+): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
+  const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
+  if (!lastTransaction) return null
 
-  const decay = calculateDecay(balance.amount, balance.recordDate, new Date()).balance
-  return decay > amount
+  const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
+  // TODO why we have to use toString() here?
+  const balance = decay.balance.add(amount.toString())
+  if (balance.lessThan(0)) {
+    return null
+  }
+  return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { isHexPublicKey, hasUserAmount, isStringBoolean }
+export { isHexPublicKey, calculateBalance, isStringBoolean }
