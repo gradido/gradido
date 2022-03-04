@@ -31,6 +31,7 @@ import { User } from '../model/User'
 import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
 import Decimal from 'decimal.js-light'
+import { calculateDecay } from '../../util/decay'
 
 @Resolver()
 export class TransactionResolver {
@@ -47,6 +48,7 @@ export class TransactionResolver {
     }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
+    const now = new Date()
     // find user
     const userRepository = getCustomRepository(UserRepository)
     // TODO: separate those usecases - this is a security issue
@@ -111,7 +113,6 @@ export class TransactionResolver {
 
     // decay transaction
     if (currentPage === 1 && order === Order.DESC) {
-      const now = new Date()
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
@@ -131,7 +132,7 @@ export class TransactionResolver {
 
     // Construct Result
     return new TransactionList(
-      lastTransaction.balance,
+      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
       transactions,
       userTransactionsCount,
       balanceGDT,
