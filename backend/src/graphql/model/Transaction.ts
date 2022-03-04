@@ -23,7 +23,7 @@ export class Transaction {
         transaction.decay,
         transaction.decayStart,
         transaction.balanceDate,
-        (transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000,
+        Math.round((transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000),
       )
     }
     this.memo = transaction.memo
