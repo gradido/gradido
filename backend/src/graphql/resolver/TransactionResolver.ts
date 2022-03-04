@@ -24,7 +24,7 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '../../apis/HttpRequest'
-import { TypeId } from '../enum/TypeId'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { calculateBalance, isHexPublicKey } from '../../util/validate'
 import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
@@ -173,7 +173,7 @@ export class TransactionResolver {
     try {
       // transaction
       const transactionSend = new dbTransaction()
-      transactionSend.typeId = TypeId.SEND
+      transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = senderUser.id
       transactionSend.linkedUserId = recipientUser.id
@@ -186,7 +186,7 @@ export class TransactionResolver {
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       const transactionReceive = new dbTransaction()
-      transactionReceive.typeId = TypeId.RECEIVE
+      transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipientUser.id
       transactionReceive.linkedUserId = senderUser.id

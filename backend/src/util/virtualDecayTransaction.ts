@@ -3,7 +3,7 @@ import Decimal from 'decimal.js-light'
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { calculateDecay } from './decay'
-import { TypeId } from '../graphql/enum/TypeId'
+import { TransactionTypeId } from '../graphql/enum/TransactionTypeId'
 import { Transaction } from '../graphql/model/Transaction'
 import { User } from '../graphql/model/User'
 
@@ -19,7 +19,7 @@ const virtualDecayTransaction = (
     id: -1,
     userId: -1,
     previous: -1,
-    typeId: TypeId.DECAY,
+    typeId: TransactionTypeId.DECAY,
     amount: decay.decay ? decay.decay : new Decimal(0), // new Decimal(0), // this kinda is wrong, but helps with the frontend query
     balance: decay.balance,
     balanceDate: time,

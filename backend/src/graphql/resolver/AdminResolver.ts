@@ -26,7 +26,7 @@ import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '../../util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
-import { TypeId } from '../enum/TypeId'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -321,7 +321,7 @@ export class AdminResolver {
     newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)))
 
     const transaction = new Transaction()
-    transaction.typeId = TypeId.CREATION
+    transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
     // TODO pending creations decimal

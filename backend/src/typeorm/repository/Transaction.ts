@@ -1,7 +1,7 @@
 import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { Transaction } from '@entity/Transaction'
 import { Order } from '../../graphql/enum/Order'
-import { TypeId } from '../../graphql/enum/TypeId'
+import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 
 @EntityRepository(Transaction)
 export class TransactionRepository extends Repository<Transaction> {
@@ -16,7 +16,7 @@ export class TransactionRepository extends Repository<Transaction> {
       return this.createQueryBuilder('userTransaction')
         .where('userTransaction.userId = :userId', { userId })
         .andWhere('userTransaction.typeId = :typeId', {
-          typeId: TypeId.CREATION,
+          typeId: TransactionTypeId.CREATION,
         })
         .orderBy('userTransaction.balanceDate', order)
         .limit(limit)

@@ -2,7 +2,7 @@ import { ObjectType, Field } from 'type-graphql'
 import { Decay } from './Decay'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
-import { TypeId } from '../enum/TypeId'
+import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { User } from './User'
 
 @ObjectType()
@@ -41,8 +41,8 @@ export class Transaction {
   @Field(() => Number, { nullable: true })
   previous: number | null
 
-  @Field(() => TypeId)
-  typeId: TypeId
+  @Field(() => TransactionTypeId)
+  typeId: TransactionTypeId
 
   @Field(() => Decimal)
   amount: Decimal
