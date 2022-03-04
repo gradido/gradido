@@ -5,6 +5,7 @@
   "confirmed": "bestätigt",
   "creation": "Schöpfung",
   "creation_form": {
+    "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
@@ -28,6 +29,7 @@
   "delete_user": "Nutzer löschen",
   "details": "Details",
   "edit": "Bearbeiten",
+  "error": "Fehler",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "gradido_admin_footer": "Gradido Akademie Adminkonsole",
@@ -68,6 +70,7 @@
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "status": "Status",
+  "success": "Erfolg",
   "text": "Text",
   "transaction": "Transaktion",
   "transactionlist": {

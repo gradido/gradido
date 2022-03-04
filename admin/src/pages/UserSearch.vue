@@ -94,11 +94,12 @@ export default {
           this.searchResult = result.data.searchUsers.userList
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
+      this.toastSuccess(this.$t('user_deleted'))
     },
   },
   watch: {
