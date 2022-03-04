@@ -81,7 +81,13 @@
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information-first-transaction v-if="decay.start === null" :decay="decay" />
+        <decay-information-no-decay-transaction v-if="decay.start === null" :decay="decay" />
+        <decay-information-decay-startblock
+          v-else-if="isStartBlock"
+          :amount="amount"
+          :decay="decay"
+          :typeId="typeId"
+        />
         <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
@@ -90,14 +96,14 @@
 <script>
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
-import DecayInformationFirstTransaction from '../DecayInformations/DecayInformation-FirstTransaction'
+import DecayInformationNoDecayTransaction from '../DecayInformations/DecayInformation-NoDecayTransaction'
 
 export default {
   name: 'slot-creation',
   components: {
     DecayInformationShort,
     DecayInformationLong,
-    DecayInformationFirstTransaction,
+    DecayInformationNoDecayTransaction,
   },
   props: {
     amount: {
@@ -133,6 +139,11 @@ export default {
     return {
       visible: false,
     }
+  },
+  computed: {
+    isStartBlock() {
+      return new Date(this.decay.start).getTime() === this.decayStartBlock.getTime()
+    },
   },
 }
 </script>

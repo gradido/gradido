@@ -23,9 +23,9 @@
             <b-row>
               <b-col cols="5">
                 <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator"></span>
+                  <span class="gdd-transaction-list-item-operator">−</span>
                   <span class="gdd-transaction-list-item-amount">
-                    {{ $n(amount, 'decimal') }}
+                    {{ $n(Number(amount) * -1, 'decimal') }}
                   </span>
                 </div>
               </b-col>
@@ -81,7 +81,13 @@
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information-first-transaction v-if="decay.start === null" :decay="decay" />
+        <decay-information-no-decay-transaction v-if="decay.start === null" :decay="decay" />
+        <decay-information-decay-startblock
+          v-else-if="isStartBlock"
+          :amount="amount"
+          :decay="decay"
+          :typeId="typeId"
+        />
         <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
@@ -90,13 +96,15 @@
 <script>
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
-import DecayInformationFirstTransaction from '../DecayInformations/DecayInformation-FirstTransaction'
+import DecayInformationNoDecayTransaction from '../DecayInformations/DecayInformation-NoDecayTransaction'
+import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
 export default {
   name: 'slot-send',
   components: {
     DecayInformationShort,
     DecayInformationLong,
-    DecayInformationFirstTransaction,
+    DecayInformationNoDecayTransaction,
+    DecayInformationDecayStartblock,
   },
   props: {
     amount: {
@@ -129,6 +137,11 @@ export default {
     return {
       visible: false,
     }
+  },
+  computed: {
+    isStartBlock() {
+      return new Date(this.decay.start).getTime() === this.decayStartBlock.getTime()
+    },
   },
 }
 </script>
