@@ -48,10 +48,10 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.success(this.$t('unregister_mail.success', { email: this.email }))
+          this.toastSuccess(this.$t('unregister_mail.success', { email: this.email }))
         })
         .catch((error) => {
-          this.$toasted.error(this.$t('unregister_mail.error', { message: error.message }))
+          this.toastError(this.$t('unregister_mail.error', { message: error.message }))
         })
     },
   },
