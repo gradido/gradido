@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import DeletedUserFormular from './DeletedUserFormular.vue'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -12,9 +13,6 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
     deleteUser: date,
   },
 })
-
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -28,10 +26,6 @@ const mocks = {
         name: 'test moderator',
       },
     },
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -118,10 +112,6 @@ describe('DeletedUserFormular', () => {
           )
         })
 
-        it('toasts a success message', () => {
-          expect(toastedSuccessMock).toBeCalledWith('user_deleted')
-        })
-
         it('emits update deleted At', () => {
           expect(wrapper.emitted('updateDeletedAt')).toEqual(
             expect.arrayContaining([
@@ -147,7 +137,7 @@ describe('DeletedUserFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
 
@@ -215,10 +205,6 @@ describe('DeletedUserFormular', () => {
           )
         })
 
-        it('toasts a success message', () => {
-          expect(toastedSuccessMock).toBeCalledWith('user_recovered')
-        })
-
         it('emits update deleted At', () => {
           expect(wrapper.emitted('updateDeletedAt')).toEqual(
             expect.arrayContaining([
@@ -244,7 +230,7 @@ describe('DeletedUserFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
 
