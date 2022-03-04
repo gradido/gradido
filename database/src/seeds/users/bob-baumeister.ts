@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js-light'
 import { UserInterface } from '../../interface/UserInterface'
 
 export const bobBaumeister: UserInterface = {
@@ -19,16 +20,7 @@ export const bobBaumeister: UserInterface = {
     'detail master source effort unable waste tilt flush domain orchard art truck hint barrel response gate impose peanut secret merry three uncle wink resource ',
   isAdmin: false,
   addBalance: true,
-  balanceModified: new Date('2021-11-30T10:37:14'),
   recordDate: new Date('2021-11-30T10:37:14'),
   creationDate: new Date('2021-08-01 00:00:00'),
-  amount: 10000000,
-  creationTxHash: Buffer.from(
-    'be095dc87acb94987e71168fee8ecbf50ecb43a180b1006e75d573b35725c69c00000000000000000000000000000000',
-    'hex',
-  ),
-  signature: Buffer.from(
-    '1fbd6b9a3d359923b2501557f3bc79fa7e428127c8090fb16bc490b4d87870ab142b3817ddd902d22f0b26472a483233784a0e460c0622661752a13978903905',
-    'hex',
-  ),
+  amount: new Decimal(1000),
 }

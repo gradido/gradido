@@ -1,5 +1,6 @@
 import { sendTransactionReceivedEmail } from './sendTransactionReceivedEmail'
 import { sendEMail } from './sendEMail'
+import Decimal from 'decimal.js-light'
 
 jest.mock('./sendEMail', () => {
   return {
@@ -16,7 +17,7 @@ describe('sendTransactionReceivedEmail', () => {
       recipientFirstName: 'Peter',
       recipientLastName: 'Lustig',
       email: 'peter@lustig.de',
-      amount: 42.0,
+      amount: new Decimal(42.0),
       memo: 'Vielen herzlichen Dank für den neuen Hexenbesen!',
     })
   })

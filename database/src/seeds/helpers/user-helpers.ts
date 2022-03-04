@@ -1,11 +1,11 @@
 import { UserContext, ServerUserContext } from '../../interface/UserContext'
-import { BalanceContext, TransactionContext } from '../../interface/TransactionContext'
+import { TransactionContext } from '../../interface/TransactionContext'
 import { UserInterface } from '../../interface/UserInterface'
 import { User } from '../../../entity/User'
 import { ServerUser } from '../../../entity/ServerUser'
-import { Balance } from '../../../entity/Balance'
 import { Transaction } from '../../../entity/Transaction'
 import { Factory } from 'typeorm-seeding'
+import Decimal from 'decimal.js-light'
 
 export const userSeeder = async (factory: Factory, userData: UserInterface): Promise<void> => {
   const user = await factory(User)(createUserContext(userData)).create()
@@ -16,7 +16,6 @@ export const userSeeder = async (factory: Factory, userData: UserInterface): Pro
 
   if (userData.addBalance) {
     // create some GDD for the user
-    await factory(Balance)(createBalanceContext(userData, user)).create()
     await factory(Transaction)(
       createTransactionContext(userData, user, 1, 'Herzlich Willkommen bei Gradido!'),
     ).create()
@@ -52,15 +51,6 @@ const createServerUserContext = (context: UserInterface): ServerUserContext => {
   }
 }
 
-const createBalanceContext = (context: UserInterface, user: User): BalanceContext => {
-  return {
-    modified: context.balanceModified,
-    recordDate: context.recordDate,
-    amount: context.amount,
-    user,
-  }
-}
-
 const createTransactionContext = (
   context: UserInterface,
   user: User,
@@ -70,8 +60,8 @@ const createTransactionContext = (
   return {
     typeId: type,
     userId: user.id,
-    amount: BigInt(context.amount || 100000),
-    balance: BigInt(context.amount || 100000),
+    amount: context.amount || new Decimal(1000),
+    balance: context.amount || new Decimal(1000),
     balanceDate: new Date(context.recordDate || Date.now()),
     memo,
     creationDate: context.creationDate,

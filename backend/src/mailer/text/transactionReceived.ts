@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js-light'
+
 export const transactionReceived = {
   de: {
     subject: 'Gradido Überweisung',
@@ -7,7 +9,7 @@ export const transactionReceived = {
       recipientFirstName: string
       recipientLastName: string
       email: string
-      amount: number
+      amount: Decimal
       memo: string
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName}
