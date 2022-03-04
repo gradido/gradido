@@ -119,16 +119,13 @@ export class TransactionResolver {
     }
 
     // transactions
-    for (let i = 0; i < userTransactions.length; i++) {
-      const userTransaction = userTransactions[i]
-      let linkedUser = null
-      if (userTransaction.typeId === TransactionTypeId.CREATION) {
-        linkedUser = communityUser
-      } else {
-        linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-      }
+    userTransactions.forEach((userTransaction) => {
+      const linkedUser =
+        userTransaction.typeId === TransactionTypeId.CREATION
+          ? communityUser
+          : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       transactions.push(new Transaction(userTransaction, self, linkedUser))
-    }
+    })
 
     // Construct Result
     return new TransactionList(
