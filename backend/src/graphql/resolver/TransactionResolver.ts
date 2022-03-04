@@ -80,13 +80,12 @@ export class TransactionResolver {
     }
 
     // find transactions
-    const limit = currentPage === 1 && order === Order.DESC ? pageSize - 1 : pageSize
-    const offset =
-      currentPage === 1 ? 0 : (currentPage - 1) * pageSize - (order === Order.DESC ? 1 : 0)
+    // first page can contain 26 due to virtual decay transaction
+    const offset = (currentPage - 1) * pageSize
     const transactionRepository = getCustomRepository(TransactionRepository)
     const [userTransactions, userTransactionsCount] = await transactionRepository.findByUserPaged(
       user.id,
-      limit,
+      pageSize,
       offset,
       order,
       onlyCreations,
