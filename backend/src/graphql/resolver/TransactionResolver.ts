@@ -177,7 +177,7 @@ export class TransactionResolver {
       transactionSend.memo = memo
       transactionSend.userId = senderUser.id
       transactionSend.linkedUserId = recipientUser.id
-      transactionSend.amount = amount
+      transactionSend.amount = amount.mul(-1)
       transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay
