@@ -307,13 +307,13 @@ export class AdminResolver {
     const receivedCallDate = new Date()
 
     const transactionRepository = getCustomRepository(TransactionRepository)
-    const lastUserTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
+    const lastTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
 
     let newBalance = new Decimal(0)
-    if (lastUserTransaction) {
+    if (lastTransaction) {
       newBalance = calculateDecay(
-        lastUserTransaction.balance,
-        lastUserTransaction.balanceDate,
+        lastTransaction.balance,
+        lastTransaction.balanceDate,
         receivedCallDate,
       ).balance
     }

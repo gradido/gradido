@@ -43,10 +43,10 @@ export default {
         })
         .then((result) => {
           this.updatePendingCreations(item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_delete'))
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     confirmCreation() {
@@ -60,11 +60,11 @@ export default {
         .then((result) => {
           this.overlay = false
           this.updatePendingCreations(this.item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_created'))
+          this.toastSuccess(this.$t('creation_form.toasted_created'))
         })
         .catch((error) => {
           this.overlay = false
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     getPendingCreations() {
@@ -79,7 +79,7 @@ export default {
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     updatePendingCreations(id) {

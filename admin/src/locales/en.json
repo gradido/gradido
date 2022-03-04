@@ -5,6 +5,7 @@
   "confirmed": "confirmed",
   "creation": "Creation",
   "creation_form": {
+    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",
@@ -28,6 +29,7 @@
   "delete_user": "Delete user",
   "details": "Details",
   "edit": "Edit",
+  "error": "Error",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "gradido_admin_footer": "Gradido Academy Admin Console",
@@ -68,6 +70,7 @@
   "remove_all": "Remove all users",
   "save": "Speichern",
   "status": "Status",
+  "success": "Success",
   "text": "Text",
   "transaction": "Transaction",
   "transactionlist": {

@@ -63,7 +63,7 @@ export default {
           this.items = result.data.transactionList.transactions.filter((t) => t.type === 'creation')
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
   },

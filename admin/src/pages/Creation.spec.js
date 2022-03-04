@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Creation from './Creation.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -29,17 +30,13 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const storeCommitMock = jest.fn()
 
 const mocks = {
-  $t: jest.fn((t) => t),
+  $t: jest.fn((t, options) => (options ? [t, options] : t)),
   $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastErrorMock,
   },
   $store: {
     commit: storeCommitMock,
@@ -236,6 +233,25 @@ describe('Creation', () => {
       })
     })
 
+    describe('failed creations', () => {
+      beforeEach(async () => {
+        await wrapper
+          .findComponent({ name: 'CreationFormular' })
+          .vm.$emit('toast-failed-creations', ['bibi@bloxberg.de', 'benjamin@bluemchen.de'])
+      })
+
+      it('toasts two error messages', () => {
+        expect(toastErrorSpy).toBeCalledWith([
+          'creation_form.creation_failed',
+          { email: 'bibi@bloxberg.de' },
+        ])
+        expect(toastErrorSpy).toBeCalledWith([
+          'creation_form.creation_failed',
+          { email: 'benjamin@bluemchen.de' },
+        ])
+      })
+    })
+
     describe('watchers', () => {
       beforeEach(() => {
         jest.clearAllMocks()
@@ -298,7 +314,7 @@ describe('Creation', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch')
+        expect(toastErrorSpy).toBeCalledWith('Ouch')
       })
     })
   })
