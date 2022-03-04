@@ -15,7 +15,7 @@
         </div>
         <div>
           <span v-if="decay.start">
-            {{ $d(new Date(decay.start * 1000), 'long') }}
+            {{ $d(new Date(decay.start), 'long') }}
             {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </span>
         </div>
@@ -69,13 +69,13 @@
       </b-col>
       <b-col cols="6">
         <div v-if="typeId === 'SEND'">
-          <b>{{ $n(Number(amount) - Number(decay.decay), 'decimal') }}</b>
+          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
         </div>
         <div v-if="typeId === 'RECEIVE'">
-          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
+          <b>{{ $n(Number(amount) - Number(decay.decay), 'decimal') }}</b>
         </div>
         <div v-if="typeId === 'CREATION'">
-          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
+          <b>{{ $n(Number(amount) - Number(decay.decay), 'decimal') }}</b>
         </div>
       </b-col>
     </b-row>
@@ -86,7 +86,16 @@ export default {
   name: 'DecayInformation-StartBlock',
   props: {
     balanceDate: { type: String },
-    decayStartBlock: { type: String },
+    decayStartBlock: { type: Date },
+    amount: {
+      type: String,
+    },
+    decay: {
+      type: Object,
+    },
+    typeId: {
+      type: String,
+    },
   },
 }
 </script>
