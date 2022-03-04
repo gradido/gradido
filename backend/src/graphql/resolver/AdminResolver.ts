@@ -367,7 +367,7 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
       (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
         WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TypeId.CREATION}
+        AND type_id = ${TransactionTypeId.CREATION}
         AND creation_date >= ${dateFilter}
       ${unionString}) AS result
     GROUP BY month, userId
