@@ -91,16 +91,13 @@ export class TransactionResolver {
       onlyCreations,
     )
 
-    // find involved users
-    let involvedUserIds: number[] = []
+    // find involved users; I am involved
+    const involvedUserIds: number[] = [user.id]
     userTransactions.forEach((transaction: dbTransaction) => {
-      involvedUserIds.push(transaction.userId)
-      if (transaction.linkedUserId) {
+      if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
         involvedUserIds.push(transaction.linkedUserId)
       }
     })
-    // remove duplicates
-    involvedUserIds = involvedUserIds.filter((value, index, self) => self.indexOf(value) === index)
     // We need to show the name for deleted users for old transactions
     const involvedDbUsers = await dbUser
       .createQueryBuilder()
