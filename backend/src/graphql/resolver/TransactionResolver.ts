@@ -30,6 +30,7 @@ import { RIGHTS } from '../../auth/RIGHTS'
 import { User } from '../model/User'
 import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
+import Decimal from 'decimal.js-light'
 
 @Resolver()
 export class TransactionResolver {
@@ -59,9 +60,23 @@ export class TransactionResolver {
       { order: { balanceDate: 'DESC' } },
     )
 
+    // get GDT
+    let balanceGDT = null
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: user.email,
+      })
+      if (!resultGDTSum.success) {
+        throw new Error('Call not successful')
+      }
+      balanceGDT = Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.log('Could not query GDT Server', err)
+    }
+
     if (!lastTransaction) {
-      // TODO Have proper return type here
-      throw new Error('User has no transactions')
+      return new TransactionList(new Decimal(0), [], 0, balanceGDT)
     }
 
     // find transactions
@@ -116,21 +131,6 @@ export class TransactionResolver {
         linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       }
       transactions.push(new Transaction(userTransaction, self, linkedUser))
-    }
-
-    // get GDT
-    let balanceGDT = null
-    try {
-      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.email,
-      })
-      if (!resultGDTSum.success) {
-        throw new Error('Call not successful')
-      }
-      balanceGDT = Number(resultGDTSum.data.sum) || 0
-    } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.log('Could not query GDT Server', err)
     }
 
     // Construct Result
