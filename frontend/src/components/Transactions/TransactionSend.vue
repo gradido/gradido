@@ -23,9 +23,9 @@
             <b-row>
               <b-col cols="5">
                 <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator"></span>
+                  <span class="gdd-transaction-list-item-operator">−</span>
                   <span class="gdd-transaction-list-item-amount">
-                    {{ $n(amount, 'decimal') }}
+                    {{ $n(Number(amount) * -1, 'decimal') }}
                   </span>
                 </div>
               </b-col>
@@ -78,6 +78,12 @@
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
         <decay-information-before-startblock v-if="decay.start === null" />
+        <decay-information-decay-startblock
+          v-else-if="isStartBlock"
+          :amount="amount"
+          :decay="decay"
+          :typeId="typeId"
+        />
         <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
@@ -87,12 +93,14 @@
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
+import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
 export default {
   name: 'slot-send',
   components: {
     DecayInformationShort,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
+    DecayInformationDecayStartblock,
   },
   props: {
     amount: {
@@ -125,6 +133,11 @@ export default {
     return {
       visible: false,
     }
+  },
+  computed: {
+    isStartBlock() {
+      return new Date(this.decay.start).getTime() === this.decayStartBlock.getTime()
+    },
   },
 }
 </script>
