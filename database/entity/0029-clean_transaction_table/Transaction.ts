@@ -11,7 +11,7 @@ export class Transaction extends BaseEntity {
   userId: number
 
   @Column({ unsigned: true, nullable: true, default: null })
-  previous: number
+  previous: number | null
 
   @Column({ name: 'type_id', unsigned: true, nullable: false })
   typeId: number
