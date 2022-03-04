@@ -10,8 +10,8 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'state_group_id', unsigned: true, default: null })
   stateGroupId: number
 
-  @Column({ name: 'type_id', unsigned: true, nullable: false })
-  typeId: number
+  @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
+  transactionTypeId: number
 
   @Column({ name: 'tx_hash', type: 'binary', length: 48, default: null })
   txHash: Buffer

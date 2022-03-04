@@ -31,7 +31,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn('ALTER TABLE `state_user_transactions` RENAME COLUMN state_user_id TO user_id;')
   // Create new `amount` column, with a temporary default of null
   await queryFn(
-    'ALTER TABLE `state_user_transactions` ADD COLUMN `amount` bigint(20) DEFAULT NULL AFTER `type_id`;',
+    'ALTER TABLE `state_user_transactions` ADD COLUMN `amount` bigint(20) DEFAULT NULL AFTER `transaction_type_id`;',
   )
   // Create new `send_sender_final_balance`
   await queryFn(
@@ -89,7 +89,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         state_user_transactions.signature = transactions.signature,
         state_user_transactions.pubkey = transactions.pubkey,
         state_user_transactions.creation_ident_hash = transactions.creation_ident_hash
-    WHERE state_user_transactions.type_id = 1;
+    WHERE state_user_transactions.transaction_type_id = 1;
   `)
 
   // Insert Data from `transactions` for sendCoin sender
@@ -104,7 +104,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         state_user_transactions.linked_user_id = transactions.send_receiver_user_id,
         state_user_transactions.linked_state_user_transaction_id = (
           SELECT id FROM state_user_transactions AS sut
-          WHERE sut.type_id = 2
+          WHERE sut.transaction_type_id = 2
           AND sut.transaction_id = state_user_transactions.transaction_id
           AND sut.user_id = transactions.send_receiver_user_id
         ),
@@ -112,7 +112,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         state_user_transactions.signature = transactions.signature,
         state_user_transactions.pubkey = transactions.pubkey,
         state_user_transactions.creation_ident_hash = transactions.creation_ident_hash
-    WHERE state_user_transactions.type_id = 2
+    WHERE state_user_transactions.transaction_type_id = 2
     AND state_user_transactions.user_id = transactions.user_id;
   `)
 
@@ -128,7 +128,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         state_user_transactions.linked_user_id = transactions.user_id,
         state_user_transactions.linked_state_user_transaction_id = (
           SELECT id FROM state_user_transactions AS sut
-          WHERE sut.type_id = 2
+          WHERE sut.transaction_type_id = 2
           AND sut.transaction_id = state_user_transactions.transaction_id
           AND sut.user_id = transactions.user_id
         ),
@@ -136,8 +136,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         state_user_transactions.signature = transactions.signature,
         state_user_transactions.pubkey = transactions.send_receiver_public_key,
         state_user_transactions.creation_ident_hash = transactions.creation_ident_hash,
-        state_user_transactions.type_id = 3
-    WHERE state_user_transactions.type_id = 2
+        state_user_transactions.transaction_type_id = 3
+    WHERE state_user_transactions.transaction_type_id = 2
     AND state_user_transactions.user_id = transactions.send_receiver_user_id;
   `)
 
@@ -161,7 +161,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn('RENAME TABLE `transactions` TO `state_user_transactions`;')
   await queryFn(`CREATE TABLE \`transactions\` (
       \`id\` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-      \`type_id\` int(10) unsigned NOT NULL,
+      \`transaction_type_id\` int(10) unsigned NOT NULL,
       \`user_id\` int(10) unsigned NOT NULL,
       \`amount\` bigint(20) NOT NULL,
       \`tx_hash\` binary(48) DEFAULT NULL,
@@ -179,13 +179,13 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   `)
   await queryFn(`
     INSERT INTO transactions (
-      id, type_id, user_id, amount,
+      id, transaction_type_id, user_id, amount,
       tx_hash, memo, received, signature, pubkey,
       creation_ident_hash, creation_date,
       send_receiver_public_key, send_receiver_user_id,
       send_sender_final_balance
     )
-    SELECT  transaction_id AS id, type_id,
+    SELECT  transaction_id AS id, transaction_type_id,
             user_id, amount, tx_hash, memo, received,
             signature, pubkey, creation_ident_hash,
             creation_date, send_receiver_public_key,
@@ -194,12 +194,12 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     FROM state_user_transactions LEFT JOIN (
       SELECT id, pubkey AS send_receiver_public_key
       FROM state_user_transactions AS sut
-      WHERE sut.type_id = 3
+      WHERE sut.transaction_type_id = 3
     ) AS sutj ON sutj.id = state_user_transactions.id 
-    WHERE type_id IN (1,2)
+    WHERE transaction_type_id IN (1,2)
   `)
   await queryFn(
-    'UPDATE state_user_transactions SET type_id = 2 WHERE type_id = 3;',
+    'UPDATE state_user_transactions SET transaction_type_id = 2 WHERE transaction_type_id = 3;',
   )
   await queryFn('ALTER TABLE `state_user_transactions` DROP COLUMN `creation_ident_hash`;')
   await queryFn('ALTER TABLE `state_user_transactions` DROP COLUMN `pubkey`;')

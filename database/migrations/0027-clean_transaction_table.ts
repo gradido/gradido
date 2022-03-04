@@ -23,8 +23,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // drop column `creation_ident_hash`, it is not needed
   await queryFn('ALTER TABLE `transactions` DROP COLUMN `creation_ident_hash`;')
 
-  // rename `type_id` to `type_id`
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN type_id TO type_id;')
+  // rename `transaction_type_id` to `type_id`
+  await queryFn('ALTER TABLE `transactions` RENAME COLUMN transaction_type_id TO type_id;')
   // rename `linked_state_user_transaction_id` to `linked_transaction_id`
   await queryFn(
     'ALTER TABLE `transactions` RENAME COLUMN linked_state_user_transaction_id TO linked_transaction_id;',
@@ -43,7 +43,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     'ALTER TABLE `transactions` RENAME COLUMN linked_transaction_id TO linked_state_user_transaction_id;',
   )
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN type_id TO type_id;')
+  await queryFn('ALTER TABLE `transactions` RENAME COLUMN type_id TO transaction_type_id;')
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `creation_ident_hash` binary(32) DEFAULT NULL AFTER `linked_state_user_transaction_id`;',
   )

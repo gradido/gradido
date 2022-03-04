@@ -11,8 +11,8 @@ export class UserTransaction extends BaseEntity {
   @Column({ name: 'transaction_id' })
   transactionId: number
 
-  @Column({ name: 'type_id' })
-  typeId: number
+  @Column({ name: 'transaction_type_id' })
+  transactionTypeId: number
 
   @Column({ name: 'balance', type: 'bigint' })
   balance: number

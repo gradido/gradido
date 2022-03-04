@@ -11,8 +11,8 @@ export class Transaction extends BaseEntity {
   @Column({ name: 'transaction_id', unsigned: true, nullable: false })
   transactionId: number
 
-  @Column({ name: 'type_id', unsigned: true, nullable: false })
-  typeId: number
+  @Column({ name: 'transaction_type_id', unsigned: true, nullable: false })
+  transactionTypeId: number
 
   @Column({ type: 'bigint', nullable: false })
   amount: BigInt
