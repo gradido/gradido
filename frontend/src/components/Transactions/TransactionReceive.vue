@@ -96,7 +96,7 @@
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
-import DecayInformationNoDecayTransaction from '../DecayInformations/DecayInformation-NoDecayTransaction'
+import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
 
 export default {
   name: 'slot-receive',
@@ -104,7 +104,7 @@ export default {
     DecayInformationShort,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
-    DecayInformationNoDecayTransaction,)
+    DecayInformationDecayStartblock,
   },
   props: {
     amount: {
