@@ -98,7 +98,6 @@ export default {
             transactionList.balanceGDT === null ? null : Number(transactionList.balanceGDT)
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.balance)
-          // this.bookedBalance = Number(transactionList.balance)
           this.transactionCount = transactionList.count
           this.decayStartBlock = new Date(transactionList.decayStartBlock)
           this.pending = false

@@ -50,7 +50,7 @@
       :per-page="pageSize"
       :total-rows="transactionCount"
     ></pagination-buttons>
-    <div v-if="transactionCount < 0" class="mt-4 text-center">
+    <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <span>{{ $t('transaction.nullTransactions') }}</span>
     </div>
   </div>

@@ -34,11 +34,7 @@
               </b-col>
               <b-col cols="7">
                 <div class="gdd-transaction-list-item-name">
-                  {{
-                    typeId !== 'DECAY'
-                      ? linkedUser.firstName + ' ' + linkedUser.lastName
-                      : $t('decay.decay_since_last_transaction')
-                  }}
+                  {{ linkedUser.firstName + ' ' + linkedUser.lastName }}
                 </div>
               </b-col>
             </b-row>
@@ -54,7 +50,7 @@
             </b-row>
 
             <!-- Datum -->
-            <b-row v-if="typeId !== 'DECAY'">
+            <b-row>
               <b-col cols="5">
                 <div class="text-right">{{ $t('form.date') }}</div>
               </b-col>
@@ -70,7 +66,7 @@
             <b-row v-if="decay">
               <b-col cols="5">
                 <div class="text-right">
-                  <b-icon v-if="typeId != 'DECAY'" icon="droplet-half" height="15" class="mb-1" />
+                  <b-icon icon="droplet-half" height="15" class="mb-1" />
                 </div>
               </b-col>
               <b-col cols="7">

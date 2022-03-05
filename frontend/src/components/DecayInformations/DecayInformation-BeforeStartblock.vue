@@ -8,9 +8,5 @@
 <script>
 export default {
   name: 'DecayInformation-StartBlock',
-  props: {
-    balanceDate: { type: String },
-    decayStartBlock: { type: String },
-  },
 }
 </script>
