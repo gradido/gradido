@@ -15,8 +15,8 @@ export class TransactionRepository extends Repository<Transaction> {
     if (onlyCreation) {
       return this.createQueryBuilder('userTransaction')
         .where('userTransaction.userId = :userId', { userId })
-        .andWhere('userTransaction.transactionTypeId = :transactionTypeId', {
-          transactionTypeId: TransactionTypeId.CREATION,
+        .andWhere('userTransaction.typeId = :typeId', {
+          typeId: TransactionTypeId.CREATION,
         })
         .orderBy('userTransaction.balanceDate', order)
         .limit(limit)
