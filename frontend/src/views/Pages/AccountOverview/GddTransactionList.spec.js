@@ -176,7 +176,7 @@ describe('GddTransactionList', () => {
       })
 
       it('renders 4 transactions', () => {
-        expect(wrapper.findAll('div.list-group-item')).toHaveLength(4)
+        expect(wrapper.findAll('div.list-group-item')).toHaveLength(3)
       })
 
       describe('decay transactions', () => {
@@ -204,7 +204,7 @@ describe('GddTransactionList', () => {
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '-0.16778637075575395772595',
+            '0.16778637075575395',
           )
         })
 
@@ -264,13 +264,13 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Mon Feb 28 2022 14:55:47 GMT+0100 (Mitteleuropäische Normalzeit)',
+            'Mon Feb 28 2022 13:55:47 GMT+0000 (Koordinierte Weltzeit)',
           )
         })
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '-0.2038314055482643084',
+            '− 0.20383140554826432',
           )
         })
       })
@@ -292,7 +292,14 @@ describe('GddTransactionList', () => {
         })
 
         it('has a bi-gift icon', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-gift')
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-right-circle',
+            'gradido-global-color-accent',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
+          ])
         })
 
         it('has gradido-global-color-accent color', () => {
@@ -309,19 +316,19 @@ describe('GddTransactionList', () => {
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '1000',
+            '10',
           )
         })
 
         it('shows the name of the receiver', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Gradido Akademie',
+            'Bibi Bloxberg',
           )
         })
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Fri Feb 25 2022 08:29:26 GMT+0100 (Mitteleuropäische Normalzeit)',
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Koordinierte Weltzeit)',
           )
         })
       })
@@ -329,7 +336,7 @@ describe('GddTransactionList', () => {
       describe('receive transactions', () => {
         let transaction
         beforeEach(() => {
-          transaction = wrapper.findAll('div.list-group-item').at(3)
+          transaction = wrapper.findAll('div.list-group-item').at(2)
         })
 
         it('has a bi-caret-down-square icon', () => {
@@ -382,7 +389,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 11:55:30 GMT+0100 (Mitteleuropäische Normalzeit)',
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Koordinierte Weltzeit)',
           )
         })
 
