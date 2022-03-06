@@ -75,12 +75,12 @@
   "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",
+    "balanceDate": "Schöpfungsdatum",
     "community": "Gemeinschaft",
     "date": "Datum",
     "decay": "Vergänglichkeit",
     "memo": "Nachricht",
-    "title": "Alle geschöpften Transaktionen für den Nutzer",
-    "balanceDate": "Schöpfungsdatum"
+    "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",
   "unregistered_emails": "Nur unregistrierte Nutzer",
