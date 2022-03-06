@@ -79,7 +79,8 @@
     "date": "Date",
     "decay": "Decay",
     "memo": "Message",
-    "title": "All creation-transactions for the user"
+    "title": "All creation-transactions for the user",
+    "balanceDate": "Creation date"
   },
   "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",

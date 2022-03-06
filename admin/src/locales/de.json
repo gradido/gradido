@@ -79,7 +79,8 @@
     "date": "Datum",
     "decay": "Vergänglichkeit",
     "memo": "Nachricht",
-    "title": "Alle geschöpften Transaktionen für den Nutzer"
+    "title": "Alle geschöpften Transaktionen für den Nutzer",
+    "balanceDate": "Schöpfungsdatum"
   },
   "undelete_user": "Nutzer wiederherstellen",
   "unregistered_emails": "Nur unregistrierte Nutzer",
