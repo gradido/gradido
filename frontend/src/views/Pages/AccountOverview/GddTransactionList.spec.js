@@ -264,7 +264,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Mon Feb 28 2022 13:55:47 GMT+0000 (Koordinierte Weltzeit)',
+            'Mon Feb 28 2022 13:55:47 GMT+0000 (Coordinated Universal Time)',
           )
         })
 
@@ -328,7 +328,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30 GMT+0000 (Koordinierte Weltzeit)',
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
           )
         })
       })
@@ -389,7 +389,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30 GMT+0000 (Koordinierte Weltzeit)',
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
           )
         })
 
