@@ -57,7 +57,7 @@
       </b-col>
       <b-col cols="6">
         <div v-if="typeId === 'SEND'">
-          <b>− {{ $n(Number(amount * -1) + Number(decay.decay * -1), 'decimal') }}</b>
+          <b>− {{ $n((Number(amount) + Number(decay.decay)) * -1, 'decimal') }}</b>
         </div>
         <div v-if="typeId === 'RECEIVE'">
           <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
