@@ -42,7 +42,7 @@
         <div>{{ $t('decay.decay') }}</div>
       </b-col>
       <b-col cols="6">
-        <div>{{ $n(decay.decay, 'decimal') }}</div>
+        <div>− {{ $n(decay.decay * -1, 'decimal') }}</div>
       </b-col>
     </b-row>
     <hr class="mt-2 mb-2" />
@@ -58,7 +58,7 @@
         <div v-if="typeId === 'RECEIVE'">{{ $t('decay.received') }}</div>
       </b-col>
       <b-col cols="6">
-        <div v-if="typeId === 'SEND'">{{ $n(amount, 'decimal') }}</div>
+        <div v-if="typeId === 'SEND'">− {{ $n(amount * -1, 'decimal') }}</div>
         <div v-if="typeId === 'RECEIVE'">{{ $n(amount, 'decimal') }}</div>
       </b-col>
     </b-row>
@@ -68,7 +68,7 @@
         <div>{{ $t('decay.decay') }}</div>
       </b-col>
       <b-col cols="6">
-        <div>{{ $n(decay.decay, 'decimal') }}</div>
+        <div>− {{ $n(decay.decay * -1, 'decimal') }}</div>
       </b-col>
     </b-row>
     <!-- Total-->
@@ -78,7 +78,7 @@
       </b-col>
       <b-col cols="6">
         <div v-if="typeId === 'SEND'">
-          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
+          <b>− {{ $n(Number(amount * -1) + Number(decay.decay * -1), 'decimal') }}</b>
         </div>
         <div v-if="typeId === 'RECEIVE'">
           <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>

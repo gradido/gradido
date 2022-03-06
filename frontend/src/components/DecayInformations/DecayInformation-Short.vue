@@ -1,8 +1,6 @@
 <template>
   <div class="decayinformation-short">
-    <span>
-      {{ decay ? $n(decay.decay, 'decimal') : '' }}
-    </span>
+    <span>− {{ decay ? $n(decay.decay * -1, 'decimal') : '' }}</span>
   </div>
 </template>
 <script>

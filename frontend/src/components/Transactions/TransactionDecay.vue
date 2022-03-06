@@ -44,21 +44,19 @@
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <!--<decay-information-decay :balance="balance" :decay="decay" />-->
+        <decay-information-decay :balance="balance" :decay="decay" />
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
-// import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
+import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
   name: 'slot-decay',
-  /*
   components: {
     DecayInformationDecay,
   },
-  */
   props: {
     amount: {
       type: String,
