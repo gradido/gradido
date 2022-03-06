@@ -79,7 +79,7 @@
       <b-collapse class="pb-4 pt-5" v-model="visible">
         <decay-information-before-startblock v-if="decay.start === null" />
         <decay-information-decay-startblock
-          v-else-if="isStartBlock"
+          v-else-if="true"
           :amount="amount"
           :decay="decay"
           :typeId="typeId"
