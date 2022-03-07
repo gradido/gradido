@@ -4,12 +4,12 @@
 import { createTestClient } from 'apollo-server-testing'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
-import createServer from '../../server/createServer'
+import createServer from '@/server/createServer'
 import { resetDB, initialize } from '@dbTools/helpers'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
-import CONFIG from '../../config'
-import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
+import CONFIG from '@/config'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 // import { klicktippSignIn } from '../../apis/KlicktippController'
 
 jest.setTimeout(10000)
