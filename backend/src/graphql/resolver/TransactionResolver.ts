@@ -112,7 +112,7 @@ export class TransactionResolver {
     const transactions: Transaction[] = []
 
     // decay transaction
-    if (currentPage === 1 && order === Order.DESC) {
+    if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
