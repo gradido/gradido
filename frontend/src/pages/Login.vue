@@ -109,7 +109,7 @@ export default {
           if (error.message.includes('User email not validated')) {
             this.$router.push('/thx/login')
           } else if (error.message.includes('User has no password set yet')) {
-            this.$router.push('/reset/login')
+            this.$router.push('/reset-password/login')
           }
           loader.hide()
         })

@@ -166,9 +166,11 @@ describe('router', () => {
         })
       })
 
-      describe('reset', () => {
+      describe('reset password', () => {
         it('loads the "ResetPassword" component', async () => {
-          const component = await routes.find((r) => r.path === '/reset/:optin').component()
+          const component = await routes
+            .find((r) => r.path === '/reset-password/:optin')
+            .component()
           expect(component.default.name).toBe('ResetPassword')
         })
       })

@@ -24,7 +24,7 @@ const textFields = {
     button: 'login',
     linkTo: '/login',
   },
-  reset: {
+  resetPassword: {
     headline: 'site.thx.title',
     subtitle: 'site.thx.reset',
     button: 'login',

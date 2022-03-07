@@ -95,20 +95,20 @@ export default {
           if (this.$route.path.includes('checkEmail')) {
             this.$router.push('/thx/checkEmail')
           } else {
-            this.$router.push('/thx/reset')
+            this.$router.push('/thx/resetPassword')
           }
         })
         .catch((error) => {
           this.toastError(error.message)
           if (error.message.includes('Code is older than 10 minutes'))
-            this.$router.push('/forgot-password/reset')
+            this.$router.push('/forgot-password/resetPassword')
         })
     },
     setDisplaySetup() {
       if (this.$route.path.includes('checkEmail')) {
         this.displaySetup = textFields.checkEmail
       }
-      if (this.$route.path.includes('reset')) {
+      if (this.$route.path.includes('reset-password')) {
         this.displaySetup = textFields.reset
       }
     },

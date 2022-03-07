@@ -158,7 +158,7 @@ describe('ForgotPassword', () => {
 
     describe('comingFrom login', () => {
       beforeEach(() => {
-        wrapper = Wrapper(createMockObject('reset'))
+        wrapper = Wrapper(createMockObject('resetPassword'))
       })
 
       it('has another subtitle', () => {

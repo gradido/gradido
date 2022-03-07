@@ -78,7 +78,7 @@ describe('ResetPassword', () => {
       describe('Register header', () => {
         describe('from reset', () => {
           beforeEach(() => {
-            mocks.$route.path.mock = 'reset'
+            mocks.$route.path.mock = 'reset-password'
             wrapper = Wrapper()
           })
 
@@ -156,8 +156,8 @@ describe('ResetPassword', () => {
             expect(toastErrorSpy).toHaveBeenCalledWith('...Code is older than 10 minutes')
           })
 
-          it('router pushes to /forgot-password/reset', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/reset')
+          it('router pushes to /forgot-password/resetPassword', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
         })
 
@@ -204,9 +204,9 @@ describe('ResetPassword', () => {
           })
         })
 
-        describe('server response with success on /reset', () => {
+        describe('server response with success on /reset-password', () => {
           beforeEach(async () => {
-            mocks.$route.path.mock = 'reset'
+            mocks.$route.path.mock = 'reset-password'
             wrapper = Wrapper()
             apolloMutationMock.mockResolvedValue({
               data: {
@@ -219,8 +219,8 @@ describe('ResetPassword', () => {
             await flushPromises()
           })
 
-          it('redirects to "/thx/reset"', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/thx/reset')
+          it('redirects to "/thx/resetPassword"', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/thx/resetPassword')
           })
         })
       })

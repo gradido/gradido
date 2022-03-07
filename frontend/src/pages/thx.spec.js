@@ -53,9 +53,9 @@ describe('Thx', () => {
     })
   })
 
-  describe('coming from /reset', () => {
+  describe('coming from /reset-password', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject('reset'))
+      wrapper = Wrapper(createMockObject('resetPassword'))
     })
 
     it('renders the thanks text', () => {

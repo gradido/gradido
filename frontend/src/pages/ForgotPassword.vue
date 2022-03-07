@@ -42,7 +42,7 @@ import { sendResetPasswordEmail } from '@/graphql/queries'
 import InputEmail from '@/components/Inputs/InputEmail'
 
 const textFields = {
-  reset: {
+  resetPassword: {
     headline: 'settings.password.reset',
     subtitle: 'settings.password.resend_subtitle',
     button: 'settings.password.send_now',

@@ -281,8 +281,8 @@ describe('Login', () => {
               await flushPromises()
             })
 
-            it('redirects to /reset/login', () => {
-              expect(mockRouterPush).toBeCalledWith('/reset/login')
+            it('redirects to /reset-password/login', () => {
+              expect(mockRouterPush).toBeCalledWith('/reset-password/login')
             })
           })
         })

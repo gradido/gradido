@@ -75,7 +75,7 @@ const routes = [
     component: () => import('@/pages/SelectCommunity.vue'),
   },
   {
-    path: '/reset/:optin',
+    path: '/reset-password/:optin',
     component: () => import('@/pages/ResetPassword.vue'),
   },
   {
