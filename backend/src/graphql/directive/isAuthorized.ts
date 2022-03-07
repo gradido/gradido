@@ -2,12 +2,12 @@
 
 import { AuthChecker } from 'type-graphql'
 
-import { decode, encode } from '../../auth/JWT'
-import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '../../auth/ROLES'
-import { RIGHTS } from '../../auth/RIGHTS'
+import { decode, encode } from '@/auth/JWT'
+import { ROLE_UNAUTHORIZED, ROLE_USER, ROLE_ADMIN } from '@/auth/ROLES'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { getCustomRepository } from '@dbTools/typeorm'
-import { UserRepository } from '../../typeorm/repository/User'
-import { INALIENABLE_RIGHTS } from '../../auth/INALIENABLE_RIGHTS'
+import { UserRepository } from '@repository/User'
+import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { ServerUser } from '@entity/ServerUser'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
