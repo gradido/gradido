@@ -25,7 +25,7 @@ export class TransactionList {
   @Field(() => Number)
   count: number
 
-  @Field(() => Number)
+  @Field(() => Decimal)
   balance: Decimal
 
   @Field(() => Date)
