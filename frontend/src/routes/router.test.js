@@ -130,23 +130,25 @@ describe('router', () => {
 
           it('enters the page when coming from a valid page', () => {
             jest.resetAllMocks()
-            beforeEnter({}, { path: '/password' }, next)
+            beforeEnter({}, { path: '/forgot-password' }, next)
             expect(next).toBeCalledWith()
           })
         })
       })
 
-      describe('password', () => {
-        it('loads the "Password" component', async () => {
-          const component = await routes.find((r) => r.path === '/password').component()
-          expect(component.default.name).toBe('password')
+      describe('forgot password', () => {
+        it('loads the "ForgotPassword" component', async () => {
+          const component = await routes.find((r) => r.path === '/forgot-password').component()
+          expect(component.default.name).toBe('ForgotPassword')
         })
       })
 
       describe('password with param comingFrom', () => {
-        it('loads the "Password" component', async () => {
-          const component = await routes.find((r) => r.path === '/password/:comingFrom').component()
-          expect(component.default.name).toBe('password')
+        it('loads the "ForgotPassword" component', async () => {
+          const component = await routes
+            .find((r) => r.path === '/forgot-password/:comingFrom')
+            .component()
+          expect(component.default.name).toBe('ForgotPassword')
         })
       })
 

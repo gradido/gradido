@@ -116,7 +116,7 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/password"', () => {
+            it('pushes to "/thx/forgotPassword"', () => {
               expect(mockAPIcall).toBeCalledWith(
                 expect.objectContaining({
                   variables: {
@@ -124,7 +124,7 @@ describe('ForgotPassword', () => {
                   },
                 }),
               )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
             })
           })
 
@@ -141,7 +141,7 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/password"', () => {
+            it('pushes to "/thx/forgotPassword"', () => {
               expect(mockAPIcall).toBeCalledWith(
                 expect.objectContaining({
                   variables: {
@@ -149,7 +149,7 @@ describe('ForgotPassword', () => {
                   },
                 }),
               )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/password')
+              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
             })
           })
         })

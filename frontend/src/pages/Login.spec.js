@@ -136,8 +136,8 @@ describe('Login', () => {
         )
       })
 
-      it('links to /password when clicking "Forgot Password"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/password')
+      it('links to /forgot-password when clicking "Forgot Password"', () => {
+        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/forgot-password')
       })
 
       it('has a link "Create new account"', () => {

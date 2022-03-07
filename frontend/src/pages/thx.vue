@@ -18,7 +18,7 @@
 </template>
 <script>
 const textFields = {
-  password: {
+  forgotPassword: {
     headline: 'site.thx.title',
     subtitle: 'site.thx.email',
     button: 'login',

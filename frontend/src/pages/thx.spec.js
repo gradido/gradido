@@ -23,7 +23,7 @@ describe('Thx', () => {
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject('password'))
+      wrapper = Wrapper(createMockObject('forgotPassword'))
     })
 
     it('renders the thx page', () => {
@@ -35,9 +35,9 @@ describe('Thx', () => {
     })
   })
 
-  describe('coming from /password', () => {
+  describe('coming from /forgot-password', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject('password'))
+      wrapper = Wrapper(createMockObject('forgotPassword'))
     })
 
     it('renders the thanks text', () => {

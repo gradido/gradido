@@ -57,7 +57,7 @@ const textFields = {
 }
 
 export default {
-  name: 'password',
+  name: 'ForgotPassword',
   components: {
     InputEmail,
   },
@@ -80,10 +80,10 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/password')
+          this.$router.push('/thx/forgotPassword')
         })
         .catch(() => {
-          this.$router.push('/thx/password')
+          this.$router.push('/thx/forgotPassword')
         })
     },
   },
