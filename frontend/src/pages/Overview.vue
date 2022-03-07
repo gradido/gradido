@@ -28,8 +28,8 @@
 </template>
 <script>
 import Status from '@/components/Status.vue'
-import GddTransactionList from './AccountOverview/GddTransactionList.vue'
-import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
+import GddTransactionList from '@/components/GddTransactionList.vue'
+import GddTransactionListFooter from '@/components/GddTransactionListFooter.vue'
 
 export default {
   name: 'Overview',

@@ -26,8 +26,8 @@
   </div>
 </template>
 <script>
-import GddTransactionList from './AccountOverview/GddTransactionList.vue'
-import GdtTransactionList from './AccountOverview/GdtTransactionList.vue'
+import GddTransactionList from '@/components/GddTransactionList.vue'
+import GdtTransactionList from '@/components/GdtTransactionList.vue'
 
 export default {
   name: 'UserProfileTransactionList',
