@@ -1,5 +1,5 @@
 import { ArgsType, Field, Int } from 'type-graphql'
-import { Order } from '../enum/Order'
+import { Order } from '@enum/Order'
 
 @ArgsType()
 export default class Paginated {
