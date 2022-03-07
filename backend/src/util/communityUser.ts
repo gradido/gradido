@@ -2,7 +2,7 @@
 
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
-import { User } from '../graphql/model/User'
+import { User } from '@model/User'
 
 const communityDbUser: dbUser = {
   id: -1,

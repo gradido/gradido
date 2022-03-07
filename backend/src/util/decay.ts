@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js-light'
-import CONFIG from '../config'
-import { Decay } from '../graphql/model/Decay'
+import CONFIG from '@/config'
+import { Decay } from '@model/Decay'
 
 // TODO: externalize all those definitions and functions into an external decay library
 
