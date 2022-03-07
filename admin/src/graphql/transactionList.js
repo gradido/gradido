@@ -15,25 +15,15 @@ export const transactionList = gql`
       onlyCreations: $onlyCreations
       userId: $userId
     ) {
-      balanceGDT
-      count
-      balance
-      decayStartBlock
       transactions {
         id
-        typeId
         amount
         balanceDate
+        creationDate
         memo
         linkedUser {
           firstName
           lastName
-        }
-        decay {
-          decay
-          start
-          end
-          duration
         }
       }
     }
