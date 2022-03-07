@@ -5,11 +5,11 @@
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
-          :gddbalance="balance"
           :timestamp="timestamp"
           :transactionCount="transactionCount"
           :transactions="transactions"
           :show-pagination="true"
+          :decayStartBlock="decayStartBlock"
           @update-transactions="updateTransactions"
         />
       </b-tab>
@@ -42,6 +42,7 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    decayStartBlock: { type: Date },
   },
   data() {
     return {

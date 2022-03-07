@@ -52,7 +52,7 @@ describe('GddTransactionList', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
-          transactionCount: 0,
+          count: 0,
         })
       })
       it('Transactions Array is empty, 0 transactions', () => {
@@ -64,7 +64,7 @@ describe('GddTransactionList', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           transactions: [],
-          transactionCount: -1,
+          count: -1,
         })
       })
       it('renders text saying that there are error.empty-transactionlist ', () => {
@@ -91,250 +91,98 @@ describe('GddTransactionList', () => {
         await wrapper.setProps({
           transactions: [
             {
-              balance: 19.93,
-              date: '2021-05-25T17:38:13+00:00',
-              memo: 'Alles Gute zum Geburtstag',
-              name: 'Bob der Baumeister',
-              transaction_id: 29,
-              type: 'send',
-              decay: { balance: '0.5' },
+              id: -1,
+              typeId: 'DECAY',
+              amount: '-0.16778637075575395772595',
+              balance: '31.59320453982945549519405',
+              balanceDate: '2022-03-03T08:54:54.020Z',
+              memo: '',
+              linkedUser: null,
+              decay: {
+                decay: '-0.16778637075575395772595',
+                start: '2022-02-28T13:55:47.000Z',
+                end: '2022-03-03T08:54:54.020Z',
+                duration: 241147.02,
+                __typename: 'Decay',
+              },
+              __typename: 'Transaction',
             },
             {
-              balance: 1000,
-              date: '2021-04-29T15:34:49+00:00',
-              memo: 'Gut das du da bist!',
-              name: 'Gradido Akademie',
-              transaction_id: 3,
-              type: 'creation',
+              id: 9,
+              typeId: 'SEND',
+              amount: '1',
+              balance: '31.76099091058520945292',
+              balanceDate: '2022-02-28T13:55:47.000Z',
+              memo: 'adasd adada',
+              linkedUser: {
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                __typename: 'User',
+              },
+              decay: {
+                decay: '-0.2038314055482643084',
+                start: '2022-02-25T07:29:26.000Z',
+                end: '2022-02-28T13:55:47.000Z',
+                duration: 282381,
+                __typename: 'Decay',
+              },
+              __typename: 'Transaction',
             },
             {
-              balance: 314.98,
-              date: '2021-04-29T17:26:40+00:00',
-              memo: 'Für das Fahrrad!',
-              name: 'Jan Ulrich',
-              transaction_id: 8,
-              type: 'receive',
-              decay: { balance: '1.5' },
+              id: 8,
+              typeId: 'CREATION',
+              amount: '1000',
+              balance: '32.96482231613347376132',
+              balanceDate: '2022-02-25T07:29:26.000Z',
+              memo: 'asd adada dad',
+              linkedUser: {
+                firstName: 'Gradido',
+                lastName: 'Akademie',
+                __typename: 'User',
+              },
+              decay: {
+                decay: '-0.03517768386652623868',
+                start: '2022-02-23T10:55:30.000Z',
+                end: '2022-02-25T07:29:26.000Z',
+                duration: 160436,
+                __typename: 'Decay',
+              },
+              __typename: 'Transaction',
             },
             {
-              balance: 1.07,
-              type: 'decay',
+              id: 6,
+              typeId: 'RECEIVE',
+              amount: '10',
+              balance: '10',
+              balanceDate: '2022-02-23T10:55:30.000Z',
+              memo: 'asd adaaad adad addad ',
+              linkedUser: {
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                __typename: 'User',
+              },
+              decay: {
+                decay: '0',
+                start: null,
+                end: null,
+                duration: null,
+                __typename: 'Decay',
+              },
+              __typename: 'Transaction',
             },
           ],
-          transactionCount: 12,
+          count: 12,
         })
       })
 
       it('renders 4 transactions', () => {
-        expect(wrapper.findAll('div.gdd-transaction-list-item')).toHaveLength(4)
-      })
-
-      describe('send transactions', () => {
-        let transaction
-        beforeEach(() => {
-          transaction = wrapper.findAll('div.gdd-transaction-list-item').at(0)
-        })
-
-        it('has a bi-caret-down-square icon', () => {
-          expect(transaction.findAll('svg').at(0).classes()).toEqual([
-            'bi-caret-down-square',
-            'b-icon',
-            'bi',
-            'text-muted',
-          ])
-        })
-
-        // it('transaction is clicked', async () => {
-        //   await transaction.trigger('click')
-        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
-        //     'bi-caret-up-square',
-        //     'b-icon',
-        //     'bi',
-        //     'text-muted',
-        //   ])
-        // })
-
-        it('has a bi-arrow-left-circle icon', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-left-circle')
-        })
-
-        it('has text-danger color', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('text-danger')
-        })
-
-        it('has a minus operator', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '−',
-          )
-        })
-
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '19.93',
-          )
-        })
-
-        it('shows the name of the receiver', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Bob der Baumeister',
-          )
-        })
-
-        it('shows the message of the transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-            'Alles Gute zum Geburtstag',
-          )
-        })
-
-        it('shows the date of the transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Tue May 25 2021',
-          )
-        })
-
-        it('shows the decay calculation', () => {
-          expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '− 0.5',
-          )
-        })
-      })
-
-      describe('creation transactions', () => {
-        let transaction
-        beforeEach(() => {
-          transaction = wrapper.findAll('div.gdd-transaction-list-item').at(1)
-        })
-
-        it('has a bi-caret-down-square icon', () => {
-          expect(transaction.findAll('svg').at(0).classes()).toEqual([
-            'bi-caret-down-square',
-            'b-icon',
-            'bi',
-            'text-muted',
-          ])
-        })
-
-        // it('transaction is clicked', async () => {
-        //   await transaction.trigger('click')
-        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
-        //     'bi-caret-up-square',
-        //     'b-icon',
-        //     'bi',
-        //     'text-muted',
-        //   ])
-        // })
-
-        it('has a bi-gift icon', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-gift')
-        })
-
-        it('has gradido-global-color-accent color', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain(
-            'gradido-global-color-accent',
-          )
-        })
-
-        it('has a plus operator', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '+',
-          )
-        })
-
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '1000',
-          )
-        })
-
-        it('shows the name of the receiver', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Gradido Akademie',
-          )
-        })
-
-        it('shows the date of the transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Thu Apr 29 2021',
-          )
-        })
-      })
-
-      describe('receive transactions', () => {
-        let transaction
-        beforeEach(() => {
-          transaction = wrapper.findAll('div.gdd-transaction-list-item').at(2)
-        })
-
-        it('has a bi-caret-down-square icon', () => {
-          expect(transaction.findAll('svg').at(0).classes()).toEqual([
-            'bi-caret-down-square',
-            'b-icon',
-            'bi',
-            'text-muted',
-          ])
-        })
-
-        // it('transaction is clicked', async () => {
-        //   await transaction.trigger('click')
-        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
-        //     'bi-caret-up-square',
-        //     'b-icon',
-        //     'bi',
-        //     'text-muted',
-        //   ])
-        // })
-
-        it('has a bi-arrow-right-circle icon', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
-        })
-
-        it('has gradido-global-color-accent color', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain(
-            'gradido-global-color-accent',
-          )
-        })
-
-        it('has a plus operator', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '+',
-          )
-        })
-
-        it('shows the amount of transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '314.98',
-          )
-        })
-
-        it('shows the name of the recipient', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Jan Ulrich',
-          )
-        })
-
-        it('shows the message of the transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-            'Für das Fahrrad!',
-          )
-        })
-
-        it('shows the date of the transaction', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Thu Apr 29 2021',
-          )
-        })
-
-        it('shows the decay calculation', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '− 1.5',
-          )
-        })
+        expect(wrapper.findAll('div.list-group-item')).toHaveLength(3)
       })
 
       describe('decay transactions', () => {
         let transaction
         beforeEach(() => {
-          transaction = wrapper.findAll('div.gdd-transaction-list-item').at(3)
+          transaction = wrapper.findAll('div.list-group-item').at(0)
         })
 
         it('has a bi-caret-down-square icon', () => {
@@ -345,16 +193,6 @@ describe('GddTransactionList', () => {
             'text-muted',
           ])
         })
-
-        // it('transaction is clicked', async () => {
-        //   await transaction.trigger('click')
-        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
-        //     'bi-caret-up-square',
-        //     'b-icon',
-        //     'bi',
-        //     'text-muted',
-        //   ])
-        // })
 
         it('has a bi-droplet-half icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('bi-droplet-half')
@@ -364,15 +202,9 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('gradido-global-color-gray')
         })
 
-        it('has a minus operator', () => {
-          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '−',
-          )
-        })
-
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '1.07',
+            '0.16778637075575395',
           )
         })
 
@@ -382,38 +214,206 @@ describe('GddTransactionList', () => {
           )
         })
       })
-    })
 
-    describe('with invalid transaction type', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          transactions: [
-            {
-              balance: '19.93',
-              date: '2021-05-25T17:38:13+00:00',
-              memo: 'Alles Gute zum Geburtstag',
-              name: 'Bob der Baumeister',
-              transaction_id: 29,
-              type: 'invalid',
-            },
-          ],
+      describe('send transactions', () => {
+        let transaction
+        beforeEach(() => {
+          transaction = wrapper.findAll('div.list-group-item').at(1)
+        })
+
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        it('has a bi-arrow-left-circle icon', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-left-circle')
+        })
+
+        it('has text-danger color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toContain('text-danger')
+        })
+
+        // it('has a minus operator', () => {
+        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+        //     '-',
+        //   )
+        // })
+
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '1',
+          )
+        })
+
+        it('shows the name of the receiver', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bibi Bloxberg',
+          )
+        })
+
+        it('shows the message of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'adasd adada',
+          )
+        })
+
+        it('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Mon Feb 28 2022 13:55:47 GMT+0000 (Coordinated Universal Time)',
+          )
+        })
+
+        it('shows the decay calculation', () => {
+          expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '− 0.20383140554826432',
+          )
         })
       })
 
-      it('throws an error', () => {
-        expect(errorHandler).toHaveBeenCalled()
+      describe('creation transactions', () => {
+        let transaction
+
+        beforeEach(() => {
+          transaction = wrapper.findAll('div.list-group-item').at(2)
+        })
+
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        it('has a bi-gift icon', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-right-circle',
+            'gradido-global-color-accent',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
+          ])
+        })
+
+        it('has gradido-global-color-accent color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toContain(
+            'gradido-global-color-accent',
+          )
+        })
+
+        it('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
+        })
+
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '10',
+          )
+        })
+
+        it('shows the name of the receiver', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bibi Bloxberg',
+          )
+        })
+
+        it('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
+          )
+        })
+      })
+
+      describe('receive transactions', () => {
+        let transaction
+        beforeEach(() => {
+          transaction = wrapper.findAll('div.list-group-item').at(2)
+        })
+
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        it('has a bi-arrow-right-circle icon', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
+        })
+
+        it('has gradido-global-color-accent color', () => {
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-right-circle',
+            'gradido-global-color-accent',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
+          ])
+        })
+
+        it('has a plus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '+',
+          )
+        })
+
+        it('shows the amount of transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
+            '10',
+          )
+        })
+
+        it('shows the name of the recipient', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
+            'Bibi Bloxberg',
+          )
+        })
+
+        it('shows the message of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
+            'asd adaaad adad addad',
+          )
+        })
+
+        it('shows the date of the transaction', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
+          )
+        })
+
+        it('shows the decay calculation', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
+            '0',
+          )
+        })
       })
     })
 
     describe('pagination buttons', () => {
       const transactions = Array.from({ length: 42 }, (_, idx) => {
         return {
-          balance: '3.14',
-          date: '2021-04-29T17:26:40+00:00',
+          amount: '3.14',
+          balanceDate: '2021-04-29T17:26:40+00:00',
           memo: 'Kreiszahl PI',
-          name: 'Euklid',
-          transaction_id: idx + 1,
-          type: 'receive',
+          linkedUser: {
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            __typename: 'User',
+          },
+          id: idx + 1,
+          typeId: 'RECEIVE',
         }
       })
 

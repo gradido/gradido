@@ -11,198 +11,76 @@
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
-      <div
-        v-for="{
-          decay,
-          transactionId,
-          type,
-          date,
-          balance,
-          name,
-          memo,
-          firstTransaction,
-          decayDuration,
-          decayEnd,
-          decayStart,
-        } in transactions"
-        :key="transactionId"
-        :style="type === 'decay' ? 'background-color:#f1e0ae3d' : ''"
-      >
-        <div
-          class="list-group-item gdd-transaction-list-item"
-          :class="getCollapseState(transactionId) ? 'bg-secondary' : ''"
-          v-b-toggle="'decay-' + transactionId"
-        >
-          <!-- Collaps Button  -->
-          <div class="text-right" style="width: 95%; position: absolute">
-            <b-icon
-              :icon="getCollapseState(transactionId) ? 'caret-up-square' : 'caret-down-square'"
-              :class="getCollapseState(transactionId) ? 'text-black' : 'text-muted'"
+
+      <div v-for="({ id, typeId }, index) in transactions" :key="id">
+        <transaction-list-item :typeId="typeId">
+          <template #DECAY>
+            <transaction-decay class="list-group-item" v-bind="transactions[index]" />
+          </template>
+
+          <template #SEND>
+            <transaction-send
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
             />
-          </div>
-          <div>
-            <b-row>
-              <!-- ICON  -->
-              <b-col cols="1">
-                <div class="gdd-transaction-list-item-icon">
-                  <b-icon :icon="getProperties(type).icon" :class="getProperties(type).class" />
-                </div>
-              </b-col>
+          </template>
 
-              <b-col cols="11">
-                <!-- Betrag / Name Email -->
-                <b-row>
-                  <b-col cols="5">
-                    <div class="text-right">
-                      <span class="gdd-transaction-list-item-operator">
-                        {{ getProperties(type).operator }}
-                      </span>
-                      <span class="gdd-transaction-list-item-amount">
-                        {{ $n(balance, 'decimal') }}
-                      </span>
-                    </div>
-                  </b-col>
-                  <b-col cols="7">
-                    <div class="gdd-transaction-list-item-name">
-                      {{ type !== 'decay' ? name : $t('decay.decay_since_last_transaction') }}
-                    </div>
-                  </b-col>
-                </b-row>
+          <template #RECEIVE>
+            <transaction-receive
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
+            />
+          </template>
 
-                <!-- Nachricht -->
-                <b-row v-if="type !== 'decay'">
-                  <b-col cols="5">
-                    <div class="text-right">{{ $t('form.memo') }}</div>
-                  </b-col>
-                  <b-col cols="7">
-                    <div class="gdd-transaction-list-message">{{ memo }}</div>
-                  </b-col>
-                </b-row>
-
-                <!-- Datum -->
-                <b-row v-if="type !== 'decay'">
-                  <b-col cols="5">
-                    <div class="text-right">{{ $t('form.date') }}</div>
-                  </b-col>
-                  <b-col cols="7">
-                    <div class="gdd-transaction-list-item-date">
-                      {{ $d(new Date(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-                    </div>
-                  </b-col>
-                </b-row>
-
-                <!-- Decay -->
-                <b-row v-if="decay && !decay.decayStartBlock">
-                  <b-col cols="5">
-                    <div class="text-right">
-                      <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
-                    </div>
-                  </b-col>
-                  <b-col cols="7">
-                    <div class="gdd-transaction-list-item-decay">
-                      <decay-information v-if="decay" decaytyp="short" :decay="decay" />
-                    </div>
-                  </b-col>
-                </b-row>
-                <b-row v-if="decay && decay.decayStartBlock">
-                  <b-col cols="5">
-                    <div class="text-right">
-                      <b-icon v-if="type != 'decay'" icon="droplet-half" height="15" class="mb-1" />
-                    </div>
-                  </b-col>
-                  <b-col cols="7">
-                    <div class="gdd-transaction-list-item-decay">
-                      <b>{{ $t('decay.Starting_block_decay') }}</b>
-                    </div>
-                  </b-col>
-                </b-row>
-              </b-col>
-            </b-row>
-          </div>
-
-          <!-- Collaps Start -->
-          <!-- v-if="
-              (type != 'decay' && decay) ||
-              firstTransaction ||
-              (!firstTransaction && decay === null)
-            " -->
-          <b-collapse class="pb-4" :id="'decay-' + transactionId">
-            <div class="pt-4 pb-4 bg-white border border-muted">
-              <decay-information
-                v-if="decay"
-                decaytyp="new"
-                :balance="balance"
-                :decay="decay"
-                :type="type"
-              />
-              <div v-if="firstTransaction" class="mt-3 mb-3 text-center">
-                <b>{{ $t('decay.first_transaction') }}</b>
-              </div>
-
-              <div
-                v-if="type !== 'decay' && !firstTransaction && decay === null"
-                class="mt-3 mb-3 text-center"
-              >
-                <b>{{ $t('decay.befor_startblock_transaction') }}</b>
-              </div>
-              <div v-if="type === 'decay'" class="mt-3 mb-3">
-                <decay-information
-                  decaytyp="decayLastTransaction"
-                  :gddbalance="gddbalance"
-                  :balance="balance"
-                  :decay="{
-                    balance: balance,
-                    decayStart: parseInt(decayStart),
-                    decayEnd: parseInt(decayEnd),
-                    decayDuration: parseInt(decayDuration),
-                  }"
-                  :type="type"
-                />
-              </div>
-            </div>
-          </b-collapse>
-
-          <!-- Collaps End -->
-        </div>
+          <template #CREATION>
+            <transaction-creation
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :decayStartBlock="decayStartBlock"
+            />
+          </template>
+        </transaction-list-item>
       </div>
-      <pagination-buttons
-        v-if="showPagination"
-        v-model="currentPage"
-        :per-page="pageSize"
-        :total-rows="transactionCount"
-      ></pagination-buttons>
-      <div v-if="transactionCount < 0" class="mt-4 text-center">
-        <span>{{ $t('transaction.nullTransactions') }}</span>
-      </div>
+    </div>
+    <pagination-buttons
+      v-if="showPagination"
+      v-model="currentPage"
+      :per-page="pageSize"
+      :total-rows="transactionCount"
+    ></pagination-buttons>
+    <div v-if="transactionCount <= 0" class="mt-4 text-center">
+      <span>{{ $t('transaction.nullTransactions') }}</span>
     </div>
   </div>
 </template>
 
 <script>
+import TransactionListItem from '../../../components/TransactionListItem'
 import PaginationButtons from '../../../components/PaginationButtons'
-import DecayInformation from '../../../components/DecayInformation'
-
-const iconsByType = {
-  send: { icon: 'arrow-left-circle', classes: 'text-danger', operator: '−' },
-  receive: { icon: 'arrow-right-circle', classes: 'gradido-global-color-accent', operator: '+' },
-  creation: { icon: 'gift', classes: 'gradido-global-color-accent', operator: '+' },
-  decay: { icon: 'droplet-half', classes: 'gradido-global-color-gray', operator: '−' },
-}
+import TransactionDecay from '../../../components/Transactions/TransactionDecay'
+import TransactionSend from '../../../components/Transactions/TransactionSend'
+import TransactionReceive from '../../../components/Transactions/TransactionReceive'
+import TransactionCreation from '../../../components/Transactions/TransactionCreation'
 
 export default {
   name: 'gdd-transaction-list',
   components: {
+    TransactionListItem,
     PaginationButtons,
-    DecayInformation,
+    TransactionDecay,
+    TransactionSend,
+    TransactionReceive,
+    TransactionCreation,
   },
   data() {
     return {
       currentPage: 1,
-      collapseStatus: [],
     }
   },
   props: {
-    gddbalance: { type: Number },
+    decayStartBlock: { type: Date },
     transactions: { default: () => [] },
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
@@ -217,31 +95,6 @@ export default {
       })
       window.scrollTo(0, 0)
     },
-    getProperties(givenType) {
-      const type = iconsByType[givenType]
-      if (type)
-        return {
-          icon: type.icon,
-          class: type.classes + ' m-mb-1 font2em',
-          operator: type.operator,
-        }
-      this.throwError('no icon to given type')
-    },
-    throwError(msg) {
-      throw new Error(msg)
-    },
-    getCollapseState(transactionId) {
-      return this.collapseStatus.includes('decay-' + transactionId)
-    },
-  },
-  mounted() {
-    this.$root.$on('bv::collapse::state', (collapseId, isJustShown) => {
-      if (isJustShown) {
-        this.collapseStatus.push(collapseId)
-      } else {
-        this.collapseStatus = this.collapseStatus.filter((id) => id !== collapseId)
-      }
-    })
   },
   watch: {
     currentPage() {
@@ -258,9 +111,5 @@ export default {
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
-}
-
-.gdd-transaction-list-item {
-  outline: none !important;
 }
 </style>

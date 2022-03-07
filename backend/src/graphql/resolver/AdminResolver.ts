@@ -28,9 +28,12 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
+import { Decay } from '../model/Decay'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
+const MAX_CREATION_AMOUNT = 1000
+const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
 
 @Resolver()
 export class AdminResolver {
@@ -104,7 +107,7 @@ export class AdminResolver {
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
-          userCreations ? userCreations.creations : [1000, 1000, 1000],
+          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
           await hasElopageBuys(user.email),
           emailConfirmationSend,
         )
@@ -170,7 +173,7 @@ export class AdminResolver {
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
       adminPendingCreation.userId = user.id
-      adminPendingCreation.amount = BigInt(amount * 10000)
+      adminPendingCreation.amount = BigInt(amount)
       adminPendingCreation.created = new Date()
       adminPendingCreation.date = creationDateObj
       adminPendingCreation.memo = memo
@@ -235,7 +238,7 @@ export class AdminResolver {
     if (!isCreationValid(creations, amount, creationDateObj)) {
       throw new Error('Creation is not valid')
     }
-    pendingCreationToUpdate.amount = BigInt(amount * 10000)
+    pendingCreationToUpdate.amount = BigInt(amount)
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
     pendingCreationToUpdate.moderator = moderator
@@ -270,11 +273,11 @@ export class AdminResolver {
 
       return {
         ...pendingCreation,
-        amount: Number(parseInt(pendingCreation.amount.toString()) / 10000),
+        amount: Number(pendingCreation.amount.toString()),
         firstName: user ? user.firstName : '',
         lastName: user ? user.lastName : '',
         email: user ? user.email : '',
-        creation: creation ? creation.creations : [1000, 1000, 1000],
+        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
       }
     })
   }
@@ -300,7 +303,7 @@ export class AdminResolver {
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
     const creations = await getUserCreation(pendingCreation.userId, false)
-    if (!isCreationValid(creations, Number(pendingCreation.amount) / 10000, pendingCreation.date)) {
+    if (!isCreationValid(creations, Number(pendingCreation.amount), pendingCreation.date)) {
       throw new Error('Creation is not valid!!')
     }
 
@@ -310,25 +313,26 @@ export class AdminResolver {
     const lastTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
 
     let newBalance = new Decimal(0)
+    let decay: Decay | null = null
     if (lastTransaction) {
-      newBalance = calculateDecay(
-        lastTransaction.balance,
-        lastTransaction.balanceDate,
-        receivedCallDate,
-      ).balance
+      decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, receivedCallDate)
+      newBalance = decay.balance
     }
     // TODO pending creations decimal
-    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)))
+    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
 
     const transaction = new Transaction()
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
+    transaction.previous = lastTransaction ? lastTransaction.id : null
     // TODO pending creations decimal
     transaction.amount = new Decimal(Number(pendingCreation.amount))
     transaction.creationDate = pendingCreation.date
     transaction.balance = newBalance
     transaction.balanceDate = receivedCallDate
+    transaction.decay = decay ? decay.decay : new Decimal(0)
+    transaction.decayStart = decay ? decay.start : null
     await transaction.save()
 
     await AdminPendingCreation.delete(pendingCreation)
@@ -344,7 +348,7 @@ interface CreationMap {
 
 async function getUserCreation(id: number, includePending = true): Promise<number[]> {
   const creations = await getUserCreations([id], includePending)
-  return creations[0] ? creations[0].creations : [1000, 1000, 1000]
+  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 
 async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
@@ -384,7 +388,7 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
           (raw: { month: string; id: string; creation: number[] }) =>
             parseInt(raw.month) === month && parseInt(raw.id) === id,
         )
-        return 1000 - (creation ? Number(creation.sum) / 10000 : 0)
+        return MAX_CREATION_AMOUNT - (creation ? Number(creation.sum) : 0)
       }),
     }
   })
