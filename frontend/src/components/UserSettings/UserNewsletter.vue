@@ -30,7 +30,7 @@
 import { subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
 
 export default {
-  name: 'FormUserNewsletter',
+  name: 'UserNewsletter',
   data() {
     return {
       newsletterState: this.$store.state.newsletterState,

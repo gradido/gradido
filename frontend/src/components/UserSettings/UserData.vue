@@ -67,7 +67,7 @@
 import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
-  name: 'FormUserData',
+  name: 'UserData',
   data() {
     return {
       showUserData: true,

@@ -53,7 +53,7 @@ import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirma
 import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
-  name: 'FormUserPasswort',
+  name: 'UserPassword',
   components: {
     InputPassword,
     InputPasswordConfirmation,

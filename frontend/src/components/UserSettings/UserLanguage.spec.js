@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserCardLanguage from './UserCard_Language'
+import UserLanguage from './UserLanguage'
 
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
@@ -35,7 +35,7 @@ describe('UserCard_Language', () => {
   }
 
   const Wrapper = () => {
-    return mount(UserCardLanguage, { localVue, mocks })
+    return mount(UserLanguage, { localVue, mocks })
   }
 
   describe('mount', () => {

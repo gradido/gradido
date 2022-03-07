@@ -1,34 +1,34 @@
 <template>
   <div fluid="sm" class="mr-2">
     <user-card :balance="balance" :transactionCount="transactionCount"></user-card>
-    <form-user-data />
+    <user-data />
     <hr />
-    <form-user-passwort />
+    <user-password />
     <hr />
-    <form-user-language />
+    <user-language />
     <hr />
-    <form-user-newsletter />
+    <user-newsletter />
     <hr />
-    <form-user-coin-animation />
+    <user-coin-animation />
   </div>
 </template>
 <script>
 import UserCard from '@/components/UserCard.vue'
-import FormUserData from '@/components/UserCard_FormUserData.vue'
-import FormUserPasswort from '@/components/UserCard_FormUserPasswort.vue'
-import FormUserLanguage from '@/components/UserCard_Language.vue'
-import FormUserNewsletter from '@/components/UserCard_Newsletter.vue'
-import FormUserCoinAnimation from '@/components/UserCard_CoinAnimation.vue'
+import UserData from '@/components/UserSettings/UserData.vue'
+import UserPassword from '@/components/UserSettings/UserPassword.vue'
+import UserLanguage from '@/components/UserSettings/UserLanguage.vue'
+import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserCoinAnimation from '@/components/UserSettings/UserCoinAnimation.vue'
 
 export default {
   name: 'Profile',
   components: {
     UserCard,
-    FormUserData,
-    FormUserPasswort,
-    FormUserLanguage,
-    FormUserNewsletter,
-    FormUserCoinAnimation,
+    UserData,
+    UserPassword,
+    UserLanguage,
+    UserNewsletter,
+    UserCoinAnimation,
   },
   props: {
     balance: { type: Number, default: 0 },

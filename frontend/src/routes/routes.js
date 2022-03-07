@@ -50,7 +50,7 @@ const routes = [
     path: '/thx/:comingFrom',
     component: () => import('@/pages/thx.vue'),
     beforeEnter: (to, from, next) => {
-      const validFrom = ['forgot-password', 'reset', 'register', 'login', 'checkEmail']
+      const validFrom = ['forgot-password', 'reset-password', 'register', 'login', 'checkEmail']
       if (!validFrom.includes(from.path.split('/')[1])) {
         next({ path: '/login' })
       } else {

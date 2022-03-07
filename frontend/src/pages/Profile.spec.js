@@ -24,15 +24,23 @@ describe('Profile', () => {
     })
 
     it('has a user first and last name form', () => {
-      expect(wrapper.findComponent({ name: 'FormUserData' }).exists()).toBeTruthy()
-    })
-
-    it('has a user change password form', () => {
-      expect(wrapper.findComponent({ name: 'FormUserPasswort' }).exists()).toBeTruthy()
+      expect(wrapper.findComponent({ name: 'UserData' }).exists()).toBeTruthy()
     })
 
     it('has a user change language form', () => {
-      expect(wrapper.findComponent({ name: 'FormUserLanguage' }).exists()).toBeTruthy()
+      expect(wrapper.findComponent({ name: 'UserLanguage' }).exists()).toBeTruthy()
+    })
+
+    it('has a user change password form', () => {
+      expect(wrapper.findComponent({ name: 'UserPassword' }).exists()).toBeTruthy()
+    })
+
+    it('has a user change newsletter form', () => {
+      expect(wrapper.findComponent({ name: 'UserNewsletter' }).exists()).toBeTruthy()
+    })
+
+    it('has a user change coin animation form', () => {
+      expect(wrapper.findComponent({ name: 'UserCoinAnimation' }).exists()).toBeTruthy()
     })
   })
 })

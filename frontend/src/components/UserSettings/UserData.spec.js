@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserCardFormUserData from './UserCard_FormUserData'
+import UserData from './UserData'
 import flushPromises from 'flush-promises'
 
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
@@ -28,7 +28,7 @@ describe('UserCard_FormUserData', () => {
   }
 
   const Wrapper = () => {
-    return mount(UserCardFormUserData, { localVue, mocks })
+    return mount(UserData, { localVue, mocks })
   }
 
   describe('mount', () => {

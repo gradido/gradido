@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import UserCardNewsletter from './UserCard_Newsletter'
-import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
+import UserCoinAnimation from './UserCoinAnimation'
+import { updateUserInfos } from '@/graphql/mutations'
 
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
@@ -10,7 +10,7 @@ const mockAPIcall = jest.fn()
 
 const storeCommitMock = jest.fn()
 
-describe('UserCard_Newsletter', () => {
+describe('UserCard_CoinAnimation', () => {
   let wrapper
 
   const mocks = {
@@ -18,8 +18,7 @@ describe('UserCard_Newsletter', () => {
     $store: {
       state: {
         language: 'de',
-        email: 'peter@lustig.de',
-        newsletterState: true,
+        coinanimation: true,
       },
       commit: storeCommitMock,
     },
@@ -29,7 +28,7 @@ describe('UserCard_Newsletter', () => {
   }
 
   const Wrapper = () => {
-    return mount(UserCardNewsletter, { localVue, mocks })
+    return mount(UserCoinAnimation, { localVue, mocks })
   }
 
   describe('mount', () => {
@@ -39,73 +38,76 @@ describe('UserCard_Newsletter', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div#formusernewsletter').exists()).toBeTruthy()
+      expect(wrapper.find('div#formusercoinanimation').exists()).toBeTruthy()
     })
 
     it('has an edit BFormCheckbox switch', () => {
       expect(wrapper.find('.Test-BFormCheckbox').exists()).toBeTruthy()
     })
 
-    describe('unsubscribe with success', () => {
+    describe('enable with success', () => {
       beforeEach(async () => {
-        await wrapper.setData({ newsletterState: true })
+        await wrapper.setData({ CoinAnimationStatus: false })
         mockAPIcall.mockResolvedValue({
           data: {
-            unsubscribeNewsletter: true,
-          },
-        })
-        await wrapper.find('input').setChecked(false)
-      })
-
-      it('calls the unsubscribe mutation', () => {
-        expect(mockAPIcall).toBeCalledWith({
-          mutation: unsubscribeNewsletter,
-          variables: {
-            email: 'peter@lustig.de',
-          },
-        })
-      })
-
-      it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('newsletterState', false)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterFalse')
-      })
-    })
-
-    describe('subscribe with success', () => {
-      beforeEach(async () => {
-        await wrapper.setData({ newsletterState: false })
-        mockAPIcall.mockResolvedValue({
-          data: {
-            subscribeNewsletter: true,
+            updateUserInfos: {
+              validValues: 1,
+            },
           },
         })
         await wrapper.find('input').setChecked()
       })
 
-      it('calls the subscribe mutation', () => {
+      it('calls the updateUserInfos mutation', () => {
         expect(mockAPIcall).toBeCalledWith({
-          mutation: subscribeNewsletter,
+          mutation: updateUserInfos,
           variables: {
-            email: 'peter@lustig.de',
-            language: 'de',
+            coinanimation: true,
           },
         })
       })
 
       it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('newsletterState', true)
+        expect(storeCommitMock).toBeCalledWith('coinanimation', true)
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterTrue')
+        expect(toastSuccessSpy).toBeCalledWith('settings.coinanimation.True')
       })
     })
 
-    describe('unsubscribe with server error', () => {
+    describe('disable with success', () => {
+      beforeEach(async () => {
+        await wrapper.setData({ CoinAnimationStatus: true })
+        mockAPIcall.mockResolvedValue({
+          data: {
+            updateUserInfos: {
+              validValues: 1,
+            },
+          },
+        })
+        await wrapper.find('input').setChecked(false)
+      })
+
+      it('calls the subscribe mutation', () => {
+        expect(mockAPIcall).toBeCalledWith({
+          mutation: updateUserInfos,
+          variables: {
+            coinanimation: false,
+          },
+        })
+      })
+
+      it('updates the store', () => {
+        expect(storeCommitMock).toBeCalledWith('coinanimation', false)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('settings.coinanimation.False')
+      })
+    })
+
+    describe('disable with server error', () => {
       beforeEach(() => {
         mockAPIcall.mockRejectedValue({
           message: 'Ouch',
@@ -113,8 +115,8 @@ describe('UserCard_Newsletter', () => {
         wrapper.find('input').trigger('change')
       })
 
-      it('resets the newsletterState', () => {
-        expect(wrapper.vm.newsletterState).toBeTruthy()
+      it('resets the CoinAnimationStatus', () => {
+        expect(wrapper.vm.CoinAnimationStatus).toBeTruthy()
       })
 
       it('toasts an error message', () => {

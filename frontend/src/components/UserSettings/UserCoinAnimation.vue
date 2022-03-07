@@ -33,7 +33,7 @@
 <script>
 import { updateUserInfos } from '@/graphql/mutations'
 export default {
-  name: 'FormUserCoinAnimation',
+  name: 'UserCoinAnimation',
   data() {
     return {
       CoinAnimationStatus: this.$store.state.coinanimation,

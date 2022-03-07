@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import UserCardFormPasswort from './UserCard_FormUserPasswort'
+import UserPassword from './UserPassword'
 import flushPromises from 'flush-promises'
 
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
@@ -20,7 +20,7 @@ describe('UserCard_FormUserPasswort', () => {
   }
 
   const Wrapper = () => {
-    return mount(UserCardFormPasswort, { localVue, mocks })
+    return mount(UserPassword, { localVue, mocks })
   }
 
   describe('mount', () => {
