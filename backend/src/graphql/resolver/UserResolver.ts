@@ -592,6 +592,13 @@ export class UserResolver {
     }
 
     if (password && passwordNew) {
+      // Validate Password
+      if (!isPassword(passwordNew)) {
+        throw new Error(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
+      }
+
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
       const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
       if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {

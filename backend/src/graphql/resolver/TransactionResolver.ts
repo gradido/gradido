@@ -112,7 +112,7 @@ export class TransactionResolver {
     const transactions: Transaction[] = []
 
     // decay transaction
-    if (currentPage === 1 && order === Order.DESC) {
+    if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
@@ -192,14 +192,11 @@ export class TransactionResolver {
       transactionReceive.linkedUserId = senderUser.id
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipientUser.id, amount, receivedCallDate)
-      if (!receiveBalance) {
-        throw new Error('Sender user account corrupted')
-      }
-      transactionReceive.balance = receiveBalance.balance
+      transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
       transactionReceive.balanceDate = receivedCallDate
-      transactionReceive.decay = receiveBalance.decay.decay
-      transactionReceive.decayStart = receiveBalance.decay.start
-      transactionReceive.previous = receiveBalance.lastTransactionId
+      transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+      transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
 
