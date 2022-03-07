@@ -4,11 +4,9 @@ export const login = gql`
   query($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -24,11 +22,9 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -59,28 +55,25 @@ export const transactionsQuery = gql`
       order: $order
       onlyCreations: $onlyCreations
     ) {
-      gdtSum
+      balanceGDT
       count
       balance
-      decay
-      decayDate
+      decayStartBlock
       transactions {
-        type
-        balance
-        decayStart
-        decayEnd
-        decayDuration
+        id
+        typeId
+        amount
+        balanceDate
         memo
-        transactionId
-        name
-        email
-        date
+        linkedUser {
+          firstName
+          lastName
+        }
         decay {
-          balance
-          decayStart
-          decayEnd
-          decayDuration
-          decayStartBlock
+          decay
+          start
+          end
+          duration
         }
       }
     }
@@ -90,12 +83,6 @@ export const transactionsQuery = gql`
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
     sendResetPasswordEmail(email: $email)
-  }
-`
-
-export const checkUsername = gql`
-  query($username: String!) {
-    checkUsername(username: $username)
   }
 `
 

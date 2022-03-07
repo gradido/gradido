@@ -1,5 +1,6 @@
 {
   "admin_area": "Admin Area",
+  "advanced-calculation": "Advanced calculation",
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -20,6 +21,7 @@
     "switch-to-this-community": "Switch to this community"
   },
   "decay": {
+    "befor_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
     "created": "Created",
@@ -28,6 +30,7 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
+    "first_transaction": "The first transaction does not include decay.",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
@@ -68,6 +71,7 @@
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
+    "no_gdd_available": "You do not have GDD to send.",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -107,6 +111,7 @@
     "funding": "To the funding contributions",
     "gdt-received": "GradidoTransform (GDT) received",
     "no-transactions": "You do not have GradidoTransform (GDT) yet.",
+    "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
@@ -197,7 +202,7 @@
     },
     "thx": {
       "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
-      "checkEmail": "Your email has been successfully verified.",
+      "checkEmail": "Your email has been successfully verified. You can sign in now.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
       "errorTitle": "Attention!",
@@ -206,11 +211,13 @@
       "title": "Thank you!"
     }
   },
+  "success": "Success",
   "transaction": {
     "gdd-text": "Gradido Transactions",
     "gdt-text": "GradidoTransform Transactions",
     "more": "more",
     "nullTransactions": "You don't have any transactions on your account yet.",
+    "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },

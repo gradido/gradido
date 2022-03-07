@@ -1,17 +1,12 @@
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 
-import Toasted from 'vue-toasted'
+import PortalVue from 'portal-vue'
 
 // vue-bootstrap
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
-// asset imports
-import '@/assets/scss/argon.scss'
-import '@/assets/vendor/nucleo/css/nucleo.css'
-
-import VueQrcodeReader from 'vue-qrcode-reader'
-import VueQrcode from 'vue-qrcode'
+import '@/assets/scss/gradido.scss'
 
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
@@ -30,21 +25,9 @@ export default {
     Vue.use(BootstrapVue)
     Vue.use(IconsPlugin)
     Vue.use(VueMoment)
-    Vue.use(VueQrcodeReader)
-    Vue.use(VueQrcode)
+    Vue.use(PortalVue)
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
-    Vue.use(Toasted, {
-      position: 'top-center',
-      duration: 5000,
-      fullWidth: true,
-      action: {
-        text: 'x',
-        onClick: (e, toastObject) => {
-          toastObject.goAway(0)
-        },
-      },
-    })
   },
 }

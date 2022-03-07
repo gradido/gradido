@@ -1,1 +1,1 @@
-export { Transaction } from './0001-init_db/Transaction'
+export { Transaction } from './0029-clean_transaction_table/Transaction'

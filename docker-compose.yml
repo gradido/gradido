@@ -108,7 +108,7 @@ services:
   # DATABASE #############################################
   ########################################################
   database:
-    image: gradido/database:production_up
+    #image: gradido/database:production_up
     build:
       context: ./database
       target: production_up
@@ -130,25 +130,8 @@ services:
     #  - ./frontend/.env
     
   #########################################################
-  ## LOGIN SERVER #########################################
-  #########################################################
-  login-server:
-    build: 
-      context: ./login_server/
-    depends_on:
-      - mariadb
-    networks: 
-      - internal-net
-    ports:
-      - 1200:1200
-      - 1201:1201
-    volumes:
-      - ./configs/login_server:/etc/grd_login
-      
-  #########################################################
   ## NGINX ################################################
   #########################################################
-  ## nginx, connect login-server and community-server together (and php-fpm to community-server)
   nginx:
     build: 
       context: ./nginx/
@@ -162,25 +145,6 @@ services:
     ports:
       - 80:80
   
-  #########################################################
-  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
-  #########################################################
-  community-server:
-    build: 
-      context: .
-      target: community_server
-      dockerfile: ./community_server/Dockerfile
-    environment:
-      - DB_PASSWORD=''
-      - DB_USER='root'
-      - DB_DATABASE='gradido_community'
-    depends_on: 
-      - mariadb
-    networks: 
-      - internal-net
-    volumes:
-      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-      
 networks:
   external-net:
   internal-net:

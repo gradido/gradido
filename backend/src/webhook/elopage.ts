@@ -28,86 +28,71 @@
 */
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { getCustomRepository } from 'typeorm'
 import { UserResolver } from '../graphql/resolver/UserResolver'
-import { LoginElopageBuysRepository } from '../typeorm/repository/LoginElopageBuys'
-import { LoginUserRepository } from '../typeorm/repository/LoginUser'
+import { User as dbUser } from '@entity/User'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
   console.log('Elopage Hook received', req.body)
   res.status(200).end() // Responding is important
-  const loginElopgaeBuyRepository = await getCustomRepository(LoginElopageBuysRepository)
-  const loginElopgaeBuy = new LoginElopageBuys()
-  let firstName = ''
-  let lastName = ''
-  const entries = req.body.split('&')
-  entries.forEach((entry: string) => {
-    const keyVal = entry.split('=')
-    if (keyVal.length > 2) {
-      throw new Error(`Error parsing entry '${entry}'`)
-    }
-    const key = keyVal[0]
-    const val = decodeURIComponent(keyVal[1]).replace('+', ' ').trim()
-    switch (key) {
-      case 'product[affiliate_program_id]':
-        loginElopgaeBuy.affiliateProgramId = parseInt(val)
-        break
-      case 'publisher[id]':
-        loginElopgaeBuy.publisherId = parseInt(val)
-        break
-      case 'order_id':
-        loginElopgaeBuy.orderId = parseInt(val)
-        break
-      case 'product_id':
-        loginElopgaeBuy.productId = parseInt(val)
-        break
-      case 'product[price]':
-        // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
-        loginElopgaeBuy.productPrice = Math.trunc(parseFloat(val) * 100)
-        break
-      case 'payer[email]':
-        loginElopgaeBuy.payerEmail = val
-        break
-      case 'publisher[email]':
-        loginElopgaeBuy.publisherEmail = val
-        break
-      case 'payment_state':
-        loginElopgaeBuy.payed = val === 'paid'
-        break
-      case 'success_date':
-        loginElopgaeBuy.successDate = new Date(val)
-        break
-      case 'event':
-        loginElopgaeBuy.event = val
-        break
-      case 'membership[id]':
-        // TODO this was never set on login_server - its unclear if this is the correct value
-        loginElopgaeBuy.elopageUserId = parseInt(val)
-        break
-      case 'payer[first_name]':
-        firstName = val
-        break
-      case 'payer[last_name]':
-        lastName = val
-        break
-      default:
-        // this is too spammy
-        // eslint-disable-next-line no-console
-        // console.log(`Unknown Elopage Value '${entry}'`)
-        break
-    }
-  })
+  const loginElopageBuy = new LoginElopageBuys()
+
+  const {
+    payer,
+    product,
+    publisher,
+    // eslint-disable-next-line camelcase
+    order_id,
+    // eslint-disable-next-line camelcase
+    product_id,
+    // eslint-disable-next-line camelcase
+    payment_state,
+    // eslint-disable-next-line camelcase
+    success_date,
+    event,
+    membership,
+  } = req.body
 
   // Do not process certain events
-  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(loginElopgaeBuy.event)) {
+  if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(event)) {
     // eslint-disable-next-line no-console
     console.log('User viewed, completed or commented - not saving hook')
     return
   }
 
+  if (!product || !publisher || !membership || !payer) {
+    // eslint-disable-next-line no-console
+    console.log('Elopage Hook: Not an event we can process')
+    return
+  }
+
+  loginElopageBuy.affiliateProgramId = parseInt(product.affiliate_program_id) || null
+  loginElopageBuy.publisherId = parseInt(publisher.id) || null
+  loginElopageBuy.orderId = parseInt(order_id) || null
+  loginElopageBuy.productId = parseInt(product_id) || null
+  // TODO: WHAT THE ACTUAL FUK? Please save this as float in the future directly in the database
+  const productPrice = parseFloat(product.price)
+  loginElopageBuy.productPrice = productPrice ? Math.trunc(productPrice * 100) : 0
+  loginElopageBuy.payerEmail = payer.email
+  loginElopageBuy.publisherEmail = publisher.email
+  // eslint-disable-next-line camelcase
+  loginElopageBuy.payed = payment_state === 'paid'
+  loginElopageBuy.successDate = new Date(success_date)
+  loginElopageBuy.event = event
+  // TODO this was never set on login_server - its unclear if this is the correct value
+  loginElopageBuy.elopageUserId = parseInt(membership.id) || null
+
+  const firstName = payer.first_name
+  const lastName = payer.last_name
+
   // Save the hook data
-  await loginElopgaeBuyRepository.save(loginElopgaeBuy)
+  try {
+    await LoginElopageBuys.save(loginElopageBuy)
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Error saving LoginElopageBuy', error)
+    return
+  }
 
   // create user for certain products
   /*
@@ -118,8 +103,11 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     Business-Mitgliedschaft,          43960
     Förderbeitrag:                    49106
   */
-  if ([36001, 43741, 43870, 43944, 43960, 49106].includes(loginElopgaeBuy.productId)) {
-    const email = loginElopgaeBuy.payerEmail
+  if (
+    loginElopageBuy.productId &&
+    [36001, 43741, 43870, 43944, 43960, 49106].includes(loginElopageBuy.productId)
+  ) {
+    const email = loginElopageBuy.payerEmail
 
     const VALIDATE_EMAIL = /^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
     const VALIDATE_NAME = /^<>&;]{2,}$/
@@ -139,8 +127,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     }
 
     // Do we already have such a user?
-    const loginUserRepository = await getCustomRepository(LoginUserRepository)
-    if ((await loginUserRepository.count({ email })) !== 0) {
+    if ((await dbUser.count({ email })) !== 0) {
       // eslint-disable-next-line no-console
       console.log(`Did not create User - already exists with email: ${email}`)
       return
@@ -152,7 +139,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         email,
         firstName,
         lastName,
-        publisherId: loginElopgaeBuy.publisherId,
+        publisherId: loginElopageBuy.publisherId || 0, // This seemed to be the default value if not set
       })
     } catch (error) {
       // eslint-disable-next-line no-console

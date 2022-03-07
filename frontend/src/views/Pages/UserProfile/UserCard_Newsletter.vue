@@ -48,7 +48,7 @@ export default {
         })
         .then(() => {
           this.$store.commit('newsletterState', this.newsletterState)
-          this.$toasted.success(
+          this.toastSuccess(
             this.newsletterState
               ? this.$t('settings.newsletter.newsletterTrue')
               : this.$t('settings.newsletter.newsletterFalse'),
@@ -56,7 +56,7 @@ export default {
         })
         .catch((error) => {
           this.newsletterState = this.$store.state.newsletterState
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
     },
   },

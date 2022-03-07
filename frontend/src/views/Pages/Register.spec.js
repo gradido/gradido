@@ -1,7 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-
 import Register from './Register'
+
+import { toastErrorSpy } from '../../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -16,7 +17,6 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
 const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
 const routerPushMock = jest.fn()
@@ -46,11 +46,6 @@ describe('Register', () => {
           description: '',
         },
         publisherId: 12345,
-      },
-    },
-    $toasted: {
-      global: {
-        error: toastErrorMock,
       },
     },
   }
@@ -96,7 +91,7 @@ describe('Register', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Failed to get communities')
+        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
       })
     })
 
@@ -214,21 +209,55 @@ describe('Register', () => {
     })
     */
 
-    describe('API calls', () => {
+    describe('API calls when form is missing input', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#publisherid').setValue('12345')
+      })
+      it('has disabled submit button when missing input checked box', () => {
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+      })
+
+      it('has disabled submit button when missing email input', () => {
+        wrapper.find('#registerCheckbox').setChecked()
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+      })
+    })
+
+    describe('API calls when completely filled and missing publisherid', () => {
+      beforeEach(() => {
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#registerCheckbox').setChecked()
+      })
+      it('has enabled submit button when completely filled', async () => {
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
+      })
+    })
+
+    describe('API calls when completely filled', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('#publisherid').setValue('12345')
+        wrapper.find('#registerCheckbox').setChecked()
       })
 
       it('commits publisherId to store', () => {
         expect(mockStoreCommit).toBeCalledWith('publisherId', 12345)
       })
 
-      it('has enabled submit button when completely filled', () => {
-        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+      it('has enabled submit button when completely filled', async () => {
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
       })
 
       describe('server sends back error', () => {

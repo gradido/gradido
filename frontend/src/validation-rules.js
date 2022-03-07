@@ -1,7 +1,6 @@
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
-import { checkUsername } from './graphql/queries'
 
 export const loadAllRules = (i18nCallback) => {
   configure({
@@ -47,32 +46,6 @@ export const loadAllRules = (i18nCallback) => {
       values.max = i18nCallback.n(values.max, 'ungroupedDecimal')
       return i18nCallback.t('form.validation.gddSendAmount', values)
     },
-  })
-
-  extend('gddUsernameUnique', {
-    async validate(value) {
-      this.$apollo
-        .query({
-          query: checkUsername,
-          variables: {
-            username: value,
-          },
-        })
-        .then((result) => {
-          return result.data.checkUsername
-        })
-        .catch(() => {
-          return false
-        })
-    },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-unique', values),
-  })
-
-  extend('gddUsernameRgex', {
-    validate(value) {
-      return !!value.match(/^[a-zA-Z][-_a-zA-Z0-9]{2,}$/)
-    },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-regex', values),
   })
 
   // eslint-disable-next-line camelcase

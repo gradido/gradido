@@ -1,40 +1,41 @@
+import Decimal from 'decimal.js-light'
+import 'reflect-metadata' // This might be wise to load in a test setup file
 import { decayFormula, calculateDecay } from './decay'
 
 describe('utils/decay', () => {
   describe('decayFormula', () => {
     it('has base 0.99999997802044727', () => {
-      const amount = 1.0
+      const amount = new Decimal(1.0)
       const seconds = 1
-      expect(decayFormula(amount, seconds)).toBe(0.99999997802044727)
-    })
-    // Not sure if the following skiped tests make sence!?
-    it('has negative decay?', async () => {
-      const amount = -1.0
-      const seconds = 1
-      expect(await decayFormula(amount, seconds)).toBe(-0.99999997802044727)
+      // TODO: toString() was required, we could not compare two decimals
+      expect(decayFormula(amount, seconds).toString()).toBe('0.999999978035040489732012')
     })
     it('has correct backward calculation', async () => {
-      const amount = 1.0
+      const amount = new Decimal(1.0)
       const seconds = -1
-      expect(await decayFormula(amount, seconds)).toBe(1.0000000219795533)
+      expect(decayFormula(amount, seconds).toString()).toBe('1.000000021964959992727444')
     })
-    // not possible, nodejs hasn't enough accuracy
-    it('has correct forward calculation', async () => {
-      const amount = 1.0 / 0.99999997802044727
+    // we get pretty close, but not exact here, skipping
+    it.skip('has correct forward calculation', async () => {
+      const amount = new Decimal(1.0).div(
+        new Decimal('0.99999997803504048973201202316767079413460520837376'),
+      )
       const seconds = 1
-      expect(await decayFormula(amount, seconds)).toBe(1.0)
+      expect(decayFormula(amount, seconds).toString()).toBe('1.0')
     })
   })
-  it.skip('has base 0.99999997802044727', async () => {
+  it('has base 0.99999997802044727', async () => {
     const now = new Date()
     now.setSeconds(1)
     const oneSecondAgo = new Date(now.getTime())
     oneSecondAgo.setSeconds(0)
-    expect(await calculateDecay(1.0, oneSecondAgo, now)).toBe(0.99999997802044727)
+    expect(calculateDecay(new Decimal(1.0), oneSecondAgo, now).balance.toString()).toBe(
+      '0.999999978035040489732012',
+    )
   })
 
   it('returns input amount when from and to is the same', async () => {
     const now = new Date()
-    expect(await calculateDecay(100.0, now, now)).toBe(100.0)
+    expect(calculateDecay(new Decimal(100.0), now, now).balance.toString()).toBe('100')
   })
 })

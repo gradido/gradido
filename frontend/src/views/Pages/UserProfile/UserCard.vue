@@ -9,22 +9,30 @@
         ></vue-qrcode>
       </div>
 
-      <div class="card-profile-stats d-flex justify-content-center mt-md-5">
-        <div>
-          <span class="heading">
-            {{ $n(balance, 'decimal') }}
-          </span>
-          <span class="description">GDD</span>
-        </div>
-        <div>
-          <span class="heading">{{ transactionCount }}</span>
-          <span class="description">{{ $t('transactions') }}</span>
-        </div>
-        <div>
-          <span class="heading">--</span>
-          <span class="description">{{ $t('community.community') }}</span>
-        </div>
-      </div>
+      <b-container class="d-flex justify-content-center mt-md-5">
+        <b-row>
+          <b-col>
+            <div class="text-center font-weight-bold">
+              {{ $n(balance, 'decimal') }}
+            </div>
+            <div class="text-center">GDD</div>
+          </b-col>
+          <b-col>
+            <div class="text-center font-weight-bold">
+              {{ transactionCount }}
+            </div>
+            <div class="text-center">
+              {{ $t('transactions') }}
+            </div>
+          </b-col>
+          <b-col>
+            <div class="text-center font-weight-bold">--</div>
+            <div class="text-center">
+              {{ $t('community.community') }}
+            </div>
+          </b-col>
+        </b-row>
+      </b-container>
     </b-card>
   </div>
 </template>

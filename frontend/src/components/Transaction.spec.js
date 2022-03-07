@@ -31,8 +31,13 @@ describe('Transaction', () => {
       expect(wrapper.find('div.gdt-transaction-list-item').exists()).toBeTruthy()
     })
 
-    it('has a collapse button', () => {
-      expect(wrapper.find('button[type="button"].btn-secondary').text()).toBe('i')
+    it('has a collapse icon bi-caret-down-square', () => {
+      expect(wrapper.find('div.gdt-transaction-list-item').findAll('svg').at(1).classes()).toEqual([
+        'bi-caret-down-square',
+        'b-icon',
+        'bi',
+        'text-muted',
+      ])
     })
 
     describe('no valid GDT entry type', () => {

@@ -15,6 +15,7 @@
         </b-col>
       </b-row>
       <gdd-transaction-list
+        :gddbalance="balance"
         :transactions="transactions"
         :pageSize="5"
         :timestamp="timestamp"

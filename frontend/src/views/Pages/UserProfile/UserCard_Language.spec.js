@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import UserCardLanguage from './UserCard_Language'
 
+import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+
 const localVue = global.localVue
 
 const mockAPIcall = jest.fn().mockResolvedValue({
@@ -11,8 +13,6 @@ const mockAPIcall = jest.fn().mockResolvedValue({
   },
 })
 
-const toastErrorMock = jest.fn()
-const toastSuccessMock = jest.fn()
 const storeCommitMock = jest.fn()
 
 describe('UserCard_Language', () => {
@@ -25,12 +25,6 @@ describe('UserCard_Language', () => {
         language: 'de',
       },
       commit: storeCommitMock,
-    },
-    $toasted: {
-      success: toastSuccessMock,
-      global: {
-        error: toastErrorMock,
-      },
     },
     $apollo: {
       mutate: mockAPIcall,
@@ -138,16 +132,12 @@ describe('UserCard_Language', () => {
               expect(storeCommitMock).toBeCalledWith('language', 'en')
             })
 
-            it('changes the i18n locale', () => {
-              expect(mocks.$i18n.locale).toBe('en')
-            })
-
             it('has no select field anymore', () => {
               expect(wrapper.find('select').exists()).toBeFalsy()
             })
 
             it('toasts a success message', () => {
-              expect(toastSuccessMock).toBeCalledWith('settings.language.success')
+              expect(toastSuccessSpy).toBeCalledWith('settings.language.success')
             })
           })
 
@@ -163,7 +153,7 @@ describe('UserCard_Language', () => {
             })
 
             it('toasts an error message', () => {
-              expect(toastErrorMock).toBeCalledWith('Ouch!')
+              expect(toastErrorSpy).toBeCalledWith('Ouch!')
             })
           })
         })

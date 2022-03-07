@@ -1,70 +1,58 @@
-import { getCustomRepository } from 'typeorm'
+import Decimal from 'decimal.js-light'
+import CONFIG from '../config'
 import { Decay } from '../graphql/model/Decay'
-import { TransactionRepository } from '../typeorm/repository/Transaction'
 
-function decayFormula(amount: number, seconds: number): number {
-  return amount * Math.pow(0.99999997802044727, seconds) // This number represents 50% decay a year
+// TODO: externalize all those definitions and functions into an external decay library
+
+function decayFormula(value: Decimal, seconds: number): Decimal {
+  // TODO why do we need to convert this here to a stting to work properly?
+  return value.mul(
+    new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
+  )
 }
 
-async function calculateDecay(amount: number, from: Date, to: Date): Promise<number> {
-  if (amount === undefined || !from || !to) {
-    throw new Error('at least one parameter is undefined')
+function calculateDecay(
+  amount: Decimal,
+  from: Date,
+  to: Date,
+  startBlock: Date = CONFIG.DECAY_START_TIME,
+): Decay {
+  const fromMs = from.getTime()
+  const toMs = to.getTime()
+  const startBlockMs = startBlock.getTime()
+
+  if (toMs < fromMs) {
+    throw new Error('to < from, reverse decay calculation is invalid')
   }
-  if (from === to) {
-    return amount
+
+  // Initialize with no decay
+  const decay: Decay = {
+    balance: amount,
+    decay: new Decimal(0),
+    start: null,
+    end: null,
+    duration: null,
   }
-  if (to < from) {
-    throw new Error('to < from, so the target date is in the past?')
+
+  // decay started after end date; no decay
+  if (startBlockMs > toMs) {
+    return decay
   }
-  // load decay start block
-  const transactionRepository = getCustomRepository(TransactionRepository)
-  const decayStartBlock = await transactionRepository.findDecayStartBlock()
-
-  // if decay hasn't started yet we return input amount
-  if (!decayStartBlock) return amount
-
-  // what happens when from > to
-  // Do we want to have negative decay?
-  const decayDuration = (to.getTime() - from.getTime()) / 1000
-  return decayFormula(amount, decayDuration)
-}
-
-async function calculateDecayWithInterval(
-  amount: number,
-  from: number | Date,
-  to: number | Date,
-): Promise<Decay> {
-  const transactionRepository = getCustomRepository(TransactionRepository)
-  const decayStartBlock = await transactionRepository.findDecayStartBlock()
-
-  const result = new Decay(undefined)
-  result.balance = amount
-  const fromMillis = typeof from === 'number' ? from : from.getTime()
-  const toMillis = typeof to === 'number' ? to : to.getTime()
-  result.decayStart = (fromMillis / 1000).toString()
-  result.decayEnd = (toMillis / 1000).toString()
-
-  // (amount, from.getTime(), to.getTime())
-
-  // if no decay start block exist or decay startet after end date
-  if (!decayStartBlock || decayStartBlock.received.getTime() > toMillis) {
-    return result
+  // decay started before start date; decay for full duration
+  if (startBlockMs < fromMs) {
+    decay.start = from
+    decay.duration = (toMs - fromMs) / 1000
   }
-  const decayStartBlockMillis = decayStartBlock.received.getTime()
-
-  // if decay start date is before start date we calculate decay for full duration
-  if (decayStartBlockMillis < fromMillis) {
-    result.decayDuration = toMillis - fromMillis
-  }
-  // if decay start in between start date and end date we caculcate decay from decay start time to end date
+  // decay started between start and end date; decay from decay start till end date
   else {
-    result.decayDuration = toMillis - decayStartBlockMillis
-    result.decayStart = (decayStartBlockMillis / 1000).toString()
+    decay.start = startBlock
+    decay.duration = (toMs - startBlockMs) / 1000
   }
-  // js use timestamp in milliseconds but we calculate with seconds
-  result.decayDuration /= 1000
-  result.balance = decayFormula(amount, result.decayDuration)
-  return result
+
+  decay.end = to
+  decay.balance = decayFormula(amount, decay.duration)
+  decay.decay = decay.balance.minus(amount)
+  return decay
 }
 
-export { decayFormula, calculateDecay, calculateDecayWithInterval }
+export { decayFormula, calculateDecay }

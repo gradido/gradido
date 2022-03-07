@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '../../config'
 import { GdtEntryList } from '../model/GdtEntryList'
 import Paginated from '../arg/Paginated'
@@ -25,13 +25,17 @@ export class GdtResolver {
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    const resultGDT = await apiGet(
-      `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
-    )
-    if (!resultGDT.success) {
-      throw new Error(resultGDT.data)
+    try {
+      const resultGDT = await apiGet(
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
+      )
+      if (!resultGDT.success) {
+        throw new Error(resultGDT.data)
+      }
+      return new GdtEntryList(resultGDT.data)
+    } catch (err: any) {
+      throw new Error('GDT Server is not reachable.')
     }
-    return new GdtEntryList(resultGDT.data)
   }
 
   @Authorized([RIGHTS.EXIST_PID])

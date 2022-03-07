@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
-import { LoginUserBackup } from '../LoginUserBackup'
+import { LoginUserBackup } from '../0003-login_server_tables/LoginUserBackup'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('login_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -19,7 +19,7 @@ export class LoginUser extends BaseEntity {
   @Column({ length: 255, default: '', collation: 'utf8mb4_unicode_ci' })
   username: string
 
-  @Column({ default: '', collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'mediumtext', default: '', collation: 'utf8mb4_unicode_ci', nullable: true })
   description: string
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
@@ -34,19 +34,19 @@ export class LoginUser extends BaseEntity {
   @Column({ name: 'email_hash', type: 'binary', length: 32, default: null, nullable: true })
   emailHash: Buffer
 
-  @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
 
-  @Column({ name: 'email_checked', default: 0 })
+  @Column({ name: 'email_checked', type: 'bool', nullable: false, default: false })
   emailChecked: boolean
 
-  @Column({ name: 'passphrase_shown', default: 0 })
+  @Column({ name: 'passphrase_shown', type: 'bool', nullable: false, default: false })
   passphraseShown: boolean
 
-  @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci' })
+  @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci', nullable: false })
   language: string
 
-  @Column({ default: 0 })
+  @Column({ type: 'bool', default: false })
   disabled: boolean
 
   @Column({ name: 'group_id', default: 0, unsigned: true })

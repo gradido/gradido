@@ -1,7 +1,18 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
 import dotenv from 'dotenv'
+import Decimal from 'decimal.js-light'
 dotenv.config()
+
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
+
+const constants = {
+  DB_VERSION: '0029-clean_transaction_table',
+  DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+}
 
 const server = {
   PORT: process.env.PORT || 4000,
@@ -43,6 +54,7 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
+// TODO: Hannes if I find you... this looks like blasphemy
 const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
@@ -66,6 +78,7 @@ const webhook = {
 process.env.APP_SECRET = server.JWT_SECRET
 
 const CONFIG = {
+  ...constants,
   ...server,
   ...database,
   ...klicktipp,

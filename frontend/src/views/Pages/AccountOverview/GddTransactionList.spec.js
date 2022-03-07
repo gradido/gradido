@@ -117,7 +117,7 @@ describe('GddTransactionList', () => {
               decay: { balance: '1.5' },
             },
             {
-              balance: '1.07',
+              balance: 1.07,
               type: 'decay',
             },
           ],
@@ -135,17 +135,36 @@ describe('GddTransactionList', () => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(0)
         })
 
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
+
         it('has a bi-arrow-left-circle icon', () => {
-          expect(transaction.find('svg').classes()).toContain('bi-arrow-left-circle')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-left-circle')
         })
 
         it('has text-danger color', () => {
-          expect(transaction.find('svg').classes()).toContain('text-danger')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('text-danger')
         })
 
         it('has a minus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '-',
+            '−',
           )
         })
 
@@ -175,7 +194,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '- 0.5',
+            '− 0.5',
           )
         })
       })
@@ -186,12 +205,33 @@ describe('GddTransactionList', () => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(1)
         })
 
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
+
         it('has a bi-gift icon', () => {
-          expect(transaction.find('svg').classes()).toContain('bi-gift')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-gift')
         })
 
         it('has gradido-global-color-accent color', () => {
-          expect(transaction.find('svg').classes()).toContain('gradido-global-color-accent')
+          expect(transaction.findAll('svg').at(1).classes()).toContain(
+            'gradido-global-color-accent',
+          )
         })
 
         it('has a plus operator', () => {
@@ -225,12 +265,33 @@ describe('GddTransactionList', () => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(2)
         })
 
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
+
         it('has a bi-arrow-right-circle icon', () => {
-          expect(transaction.find('svg').classes()).toContain('bi-arrow-right-circle')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
         })
 
         it('has gradido-global-color-accent color', () => {
-          expect(transaction.find('svg').classes()).toContain('gradido-global-color-accent')
+          expect(transaction.findAll('svg').at(1).classes()).toContain(
+            'gradido-global-color-accent',
+          )
         })
 
         it('has a plus operator', () => {
@@ -265,7 +326,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '- 1.5',
+            '− 1.5',
           )
         })
       })
@@ -276,17 +337,36 @@ describe('GddTransactionList', () => {
           transaction = wrapper.findAll('div.gdd-transaction-list-item').at(3)
         })
 
+        it('has a bi-caret-down-square icon', () => {
+          expect(transaction.findAll('svg').at(0).classes()).toEqual([
+            'bi-caret-down-square',
+            'b-icon',
+            'bi',
+            'text-muted',
+          ])
+        })
+
+        // it('transaction is clicked', async () => {
+        //   await transaction.trigger('click')
+        //   expect(transaction.findAll('svg').at(0).classes()).toEqual([
+        //     'bi-caret-up-square',
+        //     'b-icon',
+        //     'bi',
+        //     'text-muted',
+        //   ])
+        // })
+
         it('has a bi-droplet-half icon', () => {
-          expect(transaction.find('svg').classes()).toContain('bi-droplet-half')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-droplet-half')
         })
 
         it('has gradido-global-color-gray color', () => {
-          expect(transaction.find('svg').classes()).toContain('gradido-global-color-gray')
+          expect(transaction.findAll('svg').at(1).classes()).toContain('gradido-global-color-gray')
         })
 
         it('has a minus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-            '-',
+            '−',
           )
         })
 

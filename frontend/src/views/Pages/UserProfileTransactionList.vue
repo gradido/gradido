@@ -1,10 +1,11 @@
 <template>
   <div class="pb-4">
-    <b-tabs content-class="mt-3 pt-4 pb-4" justified>
-      <b-tab :title="'Gradido  (' + $n(balance, 'decimal') + ' GDD)'" class="px-4">
+    <b-tabs content-class="" justified>
+      <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
+          :gddbalance="balance"
           :timestamp="timestamp"
           :transactionCount="transactionCount"
           :transactions="transactions"
@@ -13,7 +14,10 @@
         />
       </b-tab>
 
-      <b-tab :title="'Gradido Transform  (' + $n(GdtBalance, 'decimal') + ' GDT)'" class="px-4">
+      <b-tab
+        :title="`Gradido Transform  (${GdtBalance === null ? '—' : $n(GdtBalance, 'decimal')} GDT)`"
+        class="px-4"
+      >
         <p class="">{{ $t('transaction.gdt-text') }}</p>
 
         <gdt-transaction-list />
@@ -53,17 +57,20 @@ export default {
 </script>
 <style>
 .nav-tabs > li > a {
-  /* adjust padding for height*/
   padding-top: 14px;
-  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
 
-.nav-tabs > li.active {
-  background-color: aquamarine;
-  font-size: larger;
+.nav-tabs .nav-link {
+  background-color: rgba(204, 204, 204, 0.185);
+}
+.nav-tabs .nav-link.active {
+  background-color: rgb(248 249 254);
 }
 
-.nav-tabs > li > a {
-  outline: none !important;
+.tab-content {
+  padding-top: 25px;
+  border-left: 1px inset rgba(28, 110, 164, 0.1);
+  border-right: 1px inset rgba(28, 110, 164, 0.1);
 }
 </style>

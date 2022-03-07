@@ -6,9 +6,9 @@ import { CreatePeterLustigSeed } from './seeds/users/peter-lustig.admin.seed'
 import { CreateBibiBloxbergSeed } from './seeds/users/bibi-bloxberg.seed'
 import { CreateRaeuberHotzenplotzSeed } from './seeds/users/raeuber-hotzenplotz.seed'
 import { CreateBobBaumeisterSeed } from './seeds/users/bob-baumeister.seed'
+import { CreateStephenHawkingSeed } from './seeds/users/stephen-hawking.seed'
 import { CreateGarrickOllivanderSeed } from './seeds/users/garrick-ollivander.seed'
 import { CreateUserSeed } from './seeds/create-user.seed'
-import { DecayStartBlockSeed } from './seeds/decay-start-block.seed'
 import { resetDB, pool, migration } from './helpers'
 
 const run = async (command: string) => {
@@ -41,11 +41,11 @@ const run = async (command: string) => {
         root: process.cwd(),
         configName: 'ormconfig.js',
       })
-      await runSeeder(DecayStartBlockSeed)
       await runSeeder(CreatePeterLustigSeed)
       await runSeeder(CreateBibiBloxbergSeed)
       await runSeeder(CreateRaeuberHotzenplotzSeed)
       await runSeeder(CreateBobBaumeisterSeed)
+      await runSeeder(CreateStephenHawkingSeed)
       // eslint-disable-next-line prefer-spread
       Array.apply(null, Array(96)).forEach(async () => {
         await runSeeder(CreateUserSeed)
