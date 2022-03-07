@@ -5,7 +5,7 @@ import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
 import CONFIG from '@/config'
 
-jest.mock('../../config')
+jest.mock('@/config')
 
 let query: any
 

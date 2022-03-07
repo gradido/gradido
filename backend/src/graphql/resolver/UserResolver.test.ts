@@ -10,11 +10,11 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-// import { klicktippSignIn } from '../../apis/KlicktippController'
+// import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.setTimeout(10000)
 
-jest.mock('../../mailer/sendAccountActivationEmail', () => {
+jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock('../../mailer/sendAccountActivationEmail', () => {
 })
 
 /*
-jest.mock('../../apis/KlicktippController', () => {
+jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
     klicktippSignIn: jest.fn(),
