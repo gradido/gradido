@@ -27,7 +27,7 @@
   </div>
 </template>
 <script>
-import Status from '../../components/Status.vue'
+import Status from '@/components/Status.vue'
 import GddTransactionList from './AccountOverview/GddTransactionList.vue'
 import GddTransactionListFooter from './AccountOverview/GddTransactionListFooter.vue'
 

@@ -38,8 +38,8 @@
   </div>
 </template>
 <script>
-import { sendResetPasswordEmail } from '../../graphql/queries'
-import InputEmail from '../../components/Inputs/InputEmail'
+import { sendResetPasswordEmail } from '@/graphql/queries'
+import InputEmail from '@/components/Inputs/InputEmail'
 
 const textFields = {
   reset: {

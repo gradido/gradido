@@ -1,8 +1,8 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import { communities, communityInfo } from '../../graphql/queries'
-import RegisterSelectCommunity from './RegisterSelectCommunity'
+import { communities, communityInfo } from '@/graphql/queries'
+import SelectCommunity from './SelectCommunity'
 
-import { toastErrorSpy } from '../../../test/testSetup'
+import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
@@ -56,7 +56,7 @@ const apolloQueryMock = jest
 
 const mockStoreCommit = jest.fn()
 
-describe('RegisterSelectCommunity', () => {
+describe('SelectCommunity', () => {
   let wrapper
 
   const mocks = {
@@ -86,7 +86,7 @@ describe('RegisterSelectCommunity', () => {
   }
 
   const Wrapper = () => {
-    return mount(RegisterSelectCommunity, { localVue, mocks, stubs })
+    return mount(SelectCommunity, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

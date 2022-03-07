@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import UserCardCoinAnimation from './UserCard_CoinAnimation'
-import { updateUserInfos } from '../../../graphql/mutations'
+import { updateUserInfos } from '@/graphql/mutations'
 
-import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

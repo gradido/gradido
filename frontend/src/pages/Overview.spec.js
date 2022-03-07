@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
-import AccountOverview from './AccountOverview'
+import Overview from './Overview'
 
 const localVue = global.localVue
 
 window.scrollTo = jest.fn()
 
-describe('AccountOverview', () => {
+describe('Overview', () => {
   let wrapper
 
   const mocks = {
@@ -14,7 +14,7 @@ describe('AccountOverview', () => {
   }
 
   const Wrapper = () => {
-    return mount(AccountOverview, {
+    return mount(Overview, {
       localVue,
       mocks,
     })

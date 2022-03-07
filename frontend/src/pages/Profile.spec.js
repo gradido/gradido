@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils'
-import UserProfileOverview from './UserProfileOverview'
+import Profile from './Profile'
 
 const localVue = global.localVue
 
-describe('UserProfileOverview', () => {
+describe('Profile', () => {
   let wrapper
 
   const mocks = {
@@ -11,7 +11,7 @@ describe('UserProfileOverview', () => {
   }
 
   const Wrapper = () => {
-    return shallowMount(UserProfileOverview, { localVue, mocks })
+    return shallowMount(Profile, { localVue, mocks })
   }
 
   describe('shallow Mount', () => {

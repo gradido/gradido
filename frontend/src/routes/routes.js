@@ -1,4 +1,4 @@
-import NotFound from '@/views/NotFoundPage.vue'
+import NotFound from '@/components/NotFoundPage.vue'
 
 const routes = [
   {
@@ -12,43 +12,43 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('../views/Pages/AccountOverview.vue'),
+    component: () => import('@/pages/Overview.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/send',
-    component: () => import('../views/Pages/SendOverview.vue'),
+    component: () => import('@/pages/Send.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/profile',
-    component: () => import('../views/Pages/UserProfileOverview.vue'),
+    component: () => import('@/pages/Profile.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/transactions',
-    component: () => import('../views/Pages/UserProfileTransactionList.vue'),
+    component: () => import('@/pages/Transactions.vue'),
     meta: {
       requiresAuth: true,
     },
   },
   {
     path: '/login',
-    component: () => import('../views/Pages/Login.vue'),
+    component: () => import('@/pages/Login.vue'),
   },
   {
     path: '/register',
-    component: () => import('../views/Pages/Register.vue'),
+    component: () => import('@/pages/Register.vue'),
   },
   {
     path: '/thx/:comingFrom',
-    component: () => import('../views/Pages/thx.vue'),
+    component: () => import('@/pages/thx.vue'),
     beforeEnter: (to, from, next) => {
       const validFrom = ['password', 'reset', 'register', 'login', 'checkEmail']
       if (!validFrom.includes(from.path.split('/')[1])) {
@@ -60,27 +60,27 @@ const routes = [
   },
   {
     path: '/password',
-    component: () => import('../views/Pages/ForgotPassword.vue'),
+    component: () => import('@/pages/ForgotPassword.vue'),
   },
   {
     path: '/password/:comingFrom',
-    component: () => import('../views/Pages/ForgotPassword.vue'),
+    component: () => import('@/pages/ForgotPassword.vue'),
   },
   {
     path: '/register-community',
-    component: () => import('../views/Pages/RegisterCommunity.vue'),
+    component: () => import('@/pages/RegisterCommunity.vue'),
   },
   {
     path: '/select-community',
-    component: () => import('../views/Pages/RegisterSelectCommunity.vue'),
+    component: () => import('@/pages/SelectCommunity.vue'),
   },
   {
     path: '/reset/:optin',
-    component: () => import('../views/Pages/ResetPassword.vue'),
+    component: () => import('@/pages/ResetPassword.vue'),
   },
   {
     path: '/checkEmail/:optin',
-    component: () => import('../views/Pages/ResetPassword.vue'),
+    component: () => import('@/pages/ResetPassword.vue'),
   },
   { path: '*', component: NotFound },
 ]

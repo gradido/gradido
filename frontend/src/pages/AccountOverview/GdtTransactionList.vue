@@ -36,9 +36,9 @@
 </template>
 
 <script>
-import { listGDTEntriesQuery } from '../../../graphql/queries'
-import PaginationButtons from '../../../components/PaginationButtons'
-import Transaction from '../../../components/Transaction.vue'
+import { listGDTEntriesQuery } from '@/graphql/queries'
+import PaginationButtons from '@/components/PaginationButtons'
+import Transaction from '@/components/Transaction.vue'
 
 export default {
   name: 'gdt-transaction-list',

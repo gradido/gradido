@@ -1,7 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import RegisterCommunity from './RegisterCommunity'
 
-import { toastErrorSpy } from '../../../test/testSetup'
+import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

@@ -48,9 +48,9 @@
   </b-card>
 </template>
 <script>
-import InputPassword from '../../../components/Inputs/InputPassword'
-import InputPasswordConfirmation from '../../../components/Inputs/InputPasswordConfirmation'
-import { updateUserInfos } from '../../../graphql/mutations'
+import InputPassword from '@/components/Inputs/InputPassword'
+import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
+import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
   name: 'FormUserPasswort',

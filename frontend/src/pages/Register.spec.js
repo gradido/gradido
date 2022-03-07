@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Register from './Register'
 
-import { toastErrorSpy } from '../../../test/testSetup'
+import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

@@ -57,12 +57,12 @@
 </template>
 
 <script>
-import TransactionListItem from '../../../components/TransactionListItem'
-import PaginationButtons from '../../../components/PaginationButtons'
-import TransactionDecay from '../../../components/Transactions/TransactionDecay'
-import TransactionSend from '../../../components/Transactions/TransactionSend'
-import TransactionReceive from '../../../components/Transactions/TransactionReceive'
-import TransactionCreation from '../../../components/Transactions/TransactionCreation'
+import TransactionListItem from '@/components/TransactionListItem'
+import PaginationButtons from '@/components/PaginationButtons'
+import TransactionDecay from '@/components/Transactions/TransactionDecay'
+import TransactionSend from '@/components/Transactions/TransactionSend'
+import TransactionReceive from '@/components/Transactions/TransactionReceive'
+import TransactionCreation from '@/components/Transactions/TransactionCreation'
 
 export default {
   name: 'gdd-transaction-list',

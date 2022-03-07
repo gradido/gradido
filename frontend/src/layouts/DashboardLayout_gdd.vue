@@ -37,12 +37,12 @@
   </div>
 </template>
 <script>
-import Navbar from '../../components/Menu/Navbar.vue'
-import Sidebar from '../../components/Menu/Sidebar.vue'
-import { logout, transactionsQuery } from '../../graphql/queries'
+import Navbar from '@/components/Menu/Navbar.vue'
+import Sidebar from '@/components/Menu/Sidebar.vue'
+import { logout, transactionsQuery } from '@/graphql/queries'
 import ContentFooter from './ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
-import CONFIG from '../../config'
+import CONFIG from '@/config'
 
 export default {
   components: {

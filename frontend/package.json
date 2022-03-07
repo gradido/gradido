@@ -82,9 +82,6 @@
     "vue-template-compiler": "^2.6.11",
     "webpack-bundle-analyzer": "^4.5.0"
   },
-  "_moduleAliases": {
-    "@components": "./components"
-  },
   "postcss": {
     "plugins": {
       "autoprefixer": {}

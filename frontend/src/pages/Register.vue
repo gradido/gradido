@@ -188,10 +188,10 @@
   </div>
 </template>
 <script>
-import InputEmail from '../../components/Inputs/InputEmail.vue'
-import LanguageSwitchSelect from '../../components/LanguageSwitchSelect.vue'
-import { createUser } from '../../graphql/mutations'
-import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
+import InputEmail from '@/components/Inputs/InputEmail.vue'
+import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
+import { createUser } from '@/graphql/mutations'
+import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
   components: { InputEmail, LanguageSwitchSelect },

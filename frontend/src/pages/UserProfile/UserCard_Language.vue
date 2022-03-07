@@ -60,8 +60,8 @@
   </b-card>
 </template>
 <script>
-import LanguageSwitchSelect from '../../../components/LanguageSwitchSelect.vue'
-import { updateUserInfos } from '../../../graphql/mutations'
+import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
+import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
   name: 'FormUserLanguage',

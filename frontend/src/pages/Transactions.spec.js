@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
-import UserProfileTransactionList from './UserProfileTransactionList'
+import Transactions from './Transactions'
 
 const localVue = global.localVue
 
 window.scrollTo = jest.fn()
 
-describe('UserProfileTransactionList', () => {
+describe('Transactions', () => {
   let wrapper
 
   const mocks = {
@@ -22,7 +22,7 @@ describe('UserProfileTransactionList', () => {
   }
 
   const Wrapper = () => {
-    return mount(UserProfileTransactionList, { localVue, mocks, stubs })
+    return mount(Transactions, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

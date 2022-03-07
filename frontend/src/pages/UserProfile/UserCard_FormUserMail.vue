@@ -32,7 +32,7 @@
   </b-card>
 </template>
 <script>
-import { updateUserInfos } from '../../../graphql/mutations'
+import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
   name: 'FormUserMail',

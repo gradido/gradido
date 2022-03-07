@@ -2,7 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import ResetPassword from './ResetPassword'
 import flushPromises from 'flush-promises'
 
-import { toastErrorSpy } from '../../../test/testSetup'
+import { toastErrorSpy } from '@test/testSetup'
 
 // validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
 

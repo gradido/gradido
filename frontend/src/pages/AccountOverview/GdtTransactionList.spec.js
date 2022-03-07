@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { GdtEntryType } from '../../../graphql/enums'
+import { GdtEntryType } from '@/graphql/enums'
 import GdtTransactionList from './GdtTransactionList'
 
-import { toastErrorSpy } from '../../../../test/testSetup'
+import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

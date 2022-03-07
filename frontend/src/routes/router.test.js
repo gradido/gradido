@@ -1,5 +1,5 @@
 import router from './router'
-import NotFound from '@/views/NotFoundPage.vue'
+import NotFound from '@/components/NotFoundPage.vue'
 
 describe('router', () => {
   describe('options', () => {

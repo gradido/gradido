@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import UserCardLanguage from './UserCard_Language'
 
-import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

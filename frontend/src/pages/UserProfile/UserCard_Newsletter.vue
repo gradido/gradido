@@ -27,7 +27,7 @@
   </b-card>
 </template>
 <script>
-import { subscribeNewsletter, unsubscribeNewsletter } from '../../../graphql/mutations'
+import { subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
 
 export default {
   name: 'FormUserNewsletter',

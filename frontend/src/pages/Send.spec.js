@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import SendOverview from './SendOverview'
+import Send from './Send'
 
 const sendMock = jest.fn()
 sendMock.mockResolvedValue('success')
@@ -8,7 +8,7 @@ const localVue = global.localVue
 
 // window.scrollTo = jest.fn()
 
-describe('SendOverview', () => {
+describe('Send', () => {
   let wrapper
 
   const propsData = {
@@ -32,7 +32,7 @@ describe('SendOverview', () => {
   }
 
   const Wrapper = () => {
-    return mount(SendOverview, { localVue, mocks, propsData })
+    return mount(Send, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

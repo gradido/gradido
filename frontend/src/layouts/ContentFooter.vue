@@ -59,7 +59,7 @@
   </footer>
 </template>
 <script>
-import CONFIG from '../../config'
+import CONFIG from '@/config'
 
 export default {
   data() {

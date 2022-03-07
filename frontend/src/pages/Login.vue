@@ -60,10 +60,10 @@
   </div>
 </template>
 <script>
-import InputPassword from '../../components/Inputs/InputPassword'
-import InputEmail from '../../components/Inputs/InputEmail'
-import { login } from '../../graphql/queries'
-import { getCommunityInfoMixin } from '../../mixins/getCommunityInfo'
+import InputPassword from '@/components/Inputs/InputPassword'
+import InputEmail from '@/components/Inputs/InputEmail'
+import { login } from '@/graphql/queries'
+import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
   name: 'login',

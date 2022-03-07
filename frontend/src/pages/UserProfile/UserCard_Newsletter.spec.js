@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import UserCardNewsletter from './UserCard_Newsletter'
-import { unsubscribeNewsletter, subscribeNewsletter } from '../../../graphql/mutations'
+import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
 
-import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 

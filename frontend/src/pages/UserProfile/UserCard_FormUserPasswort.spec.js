@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import UserCardFormPasswort from './UserCard_FormUserPasswort'
 import flushPromises from 'flush-promises'
 
-import { toastErrorSpy, toastSuccessSpy } from '../../../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
