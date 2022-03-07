@@ -95,9 +95,6 @@ export default {
       })
       window.scrollTo(0, 0)
     },
-    throwError(msg) {
-      throw new Error(msg)
-    },
   },
   watch: {
     currentPage() {
