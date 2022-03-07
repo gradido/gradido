@@ -1,5 +1,5 @@
 import { ObjectType, Field } from 'type-graphql'
-import CONFIG from '../../config'
+import CONFIG from '@/config'
 import Decimal from 'decimal.js-light'
 import { Transaction } from './Transaction'
 
