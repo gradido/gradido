@@ -1,5 +1,5 @@
 import router from './router'
-import NotFound from '@/components/NotFoundPage.vue'
+import NotFound from '@/pages/NotFoundPage.vue'
 
 describe('router', () => {
   describe('options', () => {
@@ -58,7 +58,7 @@ describe('router', () => {
           expect(routes.find((r) => r.path === '/overview').meta.requiresAuth).toBeTruthy()
         })
 
-        it('loads the "Overview" component', async () => {
+        it('loads the "Overview" page', async () => {
           const component = await routes.find((r) => r.path === '/overview').component()
           expect(component.default.name).toBe('Overview')
         })
@@ -69,7 +69,7 @@ describe('router', () => {
           expect(routes.find((r) => r.path === '/send').meta.requiresAuth).toBeTruthy()
         })
 
-        it('loads the "Send" component', async () => {
+        it('loads the "Send" page', async () => {
           const component = await routes.find((r) => r.path === '/send').component()
           expect(component.default.name).toBe('Send')
         })
@@ -80,7 +80,7 @@ describe('router', () => {
           expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
         })
 
-        it('loads the "UserProfile" component', async () => {
+        it('loads the "Profile" page', async () => {
           const component = await routes.find((r) => r.path === '/profile').component()
           expect(component.default.name).toBe('Profile')
         })
@@ -91,30 +91,30 @@ describe('router', () => {
           expect(routes.find((r) => r.path === '/transactions').meta.requiresAuth).toBeTruthy()
         })
 
-        it('loads the "UserProfileTransactionList" component', async () => {
+        it('loads the "Transactions" page', async () => {
           const component = await routes.find((r) => r.path === '/transactions').component()
-          expect(component.default.name).toBe('UserProfileTransactionList')
+          expect(component.default.name).toBe('Transactions')
         })
       })
 
       describe('login', () => {
-        it('loads the "Login" component', async () => {
+        it('loads the "Login" page', async () => {
           const component = await routes.find((r) => r.path === '/login').component()
-          expect(component.default.name).toBe('login')
+          expect(component.default.name).toBe('Login')
         })
       })
 
       describe('register', () => {
-        it('loads the "register" component', async () => {
+        it('loads the "register" page', async () => {
           const component = await routes.find((r) => r.path === '/register').component()
-          expect(component.default.name).toBe('register')
+          expect(component.default.name).toBe('Register')
         })
       })
 
       describe('thx', () => {
         const thx = routes.find((r) => r.path === '/thx/:comingFrom')
 
-        it('loads the "Thx" component', async () => {
+        it('loads the "Thx" page', async () => {
           const component = await thx.component()
           expect(component.default.name).toBe('Thx')
         })
@@ -137,14 +137,14 @@ describe('router', () => {
       })
 
       describe('forgot password', () => {
-        it('loads the "ForgotPassword" component', async () => {
+        it('loads the "ForgotPassword" page', async () => {
           const component = await routes.find((r) => r.path === '/forgot-password').component()
           expect(component.default.name).toBe('ForgotPassword')
         })
       })
 
       describe('password with param comingFrom', () => {
-        it('loads the "ForgotPassword" component', async () => {
+        it('loads the "ForgotPassword" page', async () => {
           const component = await routes
             .find((r) => r.path === '/forgot-password/:comingFrom')
             .component()
@@ -153,21 +153,21 @@ describe('router', () => {
       })
 
       describe('register-community', () => {
-        it('loads the "registerCommunity" component', async () => {
+        it('loads the "registerCommunity" page', async () => {
           const component = await routes.find((r) => r.path === '/register-community').component()
-          expect(component.default.name).toBe('registerCommunity')
+          expect(component.default.name).toBe('RegisterCommunity')
         })
       })
 
       describe('select-community', () => {
-        it('loads the "registerSelectCommunity" component', async () => {
+        it('loads the "SelectCommunity" page', async () => {
           const component = await routes.find((r) => r.path === '/select-community').component()
-          expect(component.default.name).toBe('registerSelectCommunity')
+          expect(component.default.name).toBe('SelectCommunity')
         })
       })
 
       describe('reset password', () => {
-        it('loads the "ResetPassword" component', async () => {
+        it('loads the "ResetPassword" page', async () => {
           const component = await routes
             .find((r) => r.path === '/reset-password/:optin')
             .component()
@@ -176,14 +176,14 @@ describe('router', () => {
       })
 
       describe('checkEmail', () => {
-        it('loads the "CheckEmail" component', async () => {
+        it('loads the "CheckEmail" page', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
           expect(component.default.name).toBe('ResetPassword')
         })
       })
 
       describe('not found page', () => {
-        it('renders the "NotFound" component', async () => {
+        it('renders the "NotFound" page', async () => {
           expect(routes.find((r) => r.path === '*').component).toEqual(NotFound)
         })
       })

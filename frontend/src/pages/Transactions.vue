@@ -30,7 +30,7 @@ import GddTransactionList from '@/components/GddTransactionList.vue'
 import GdtTransactionList from '@/components/GdtTransactionList.vue'
 
 export default {
-  name: 'UserProfileTransactionList',
+  name: 'Transactions',
   components: {
     GddTransactionList,
     GdtTransactionList,

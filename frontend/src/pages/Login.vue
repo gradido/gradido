@@ -66,7 +66,7 @@ import { login } from '@/graphql/queries'
 import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
-  name: 'login',
+  name: 'Login',
   components: {
     InputPassword,
     InputEmail,

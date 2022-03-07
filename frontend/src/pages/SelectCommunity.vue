@@ -52,7 +52,7 @@ import { communities } from '@/graphql/queries'
 import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
-  name: 'registerSelectCommunity',
+  name: 'SelectCommunity',
   data() {
     return {
       communities: [],

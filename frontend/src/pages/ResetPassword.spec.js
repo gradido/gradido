@@ -4,7 +4,7 @@ import flushPromises from 'flush-promises'
 
 import { toastErrorSpy } from '@test/testSetup'
 
-// validation is tested in src/views/Pages/UserProfile/UserCard_FormUserPasswort.spec.js
+// validation is tested in src/components/UserCard_FormUserPasswort.spec.js
 
 const localVue = global.localVue
 

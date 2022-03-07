@@ -195,7 +195,7 @@ import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
   components: { InputEmail, LanguageSwitchSelect },
-  name: 'register',
+  name: 'Register',
   mixins: [getCommunityInfoMixin],
   data() {
     return {

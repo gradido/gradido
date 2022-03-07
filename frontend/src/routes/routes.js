@@ -1,4 +1,4 @@
-import NotFound from '@/components/NotFoundPage.vue'
+import NotFound from '@/pages/NotFoundPage.vue'
 
 const routes = [
   {

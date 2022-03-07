@@ -52,7 +52,7 @@
 import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
 export default {
-  name: 'registerCommunity',
+  name: 'RegisterCommunity',
   mixins: [getCommunityInfoMixin],
 }
 </script>

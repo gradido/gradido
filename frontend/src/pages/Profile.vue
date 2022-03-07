@@ -13,12 +13,12 @@
   </div>
 </template>
 <script>
-import UserCard from './UserProfile/UserCard.vue'
-import FormUserData from './UserProfile/UserCard_FormUserData.vue'
-import FormUserPasswort from './UserProfile/UserCard_FormUserPasswort.vue'
-import FormUserLanguage from './UserProfile/UserCard_Language.vue'
-import FormUserNewsletter from './UserProfile/UserCard_Newsletter.vue'
-import FormUserCoinAnimation from './UserProfile/UserCard_CoinAnimation.vue'
+import UserCard from '@/components/UserCard.vue'
+import FormUserData from '@/components/UserCard_FormUserData.vue'
+import FormUserPasswort from '@/components/UserCard_FormUserPasswort.vue'
+import FormUserLanguage from '@/components/UserCard_Language.vue'
+import FormUserNewsletter from '@/components/UserCard_Newsletter.vue'
+import FormUserCoinAnimation from '@/components/UserCard_CoinAnimation.vue'
 
 export default {
   name: 'Profile',
