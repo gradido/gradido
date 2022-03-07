@@ -71,7 +71,7 @@ describe('router', () => {
 
         it('loads the "Send" component', async () => {
           const component = await routes.find((r) => r.path === '/send').component()
-          expect(component.default.name).toBe('SendOverview')
+          expect(component.default.name).toBe('Send')
         })
       })
 
@@ -82,7 +82,7 @@ describe('router', () => {
 
         it('loads the "UserProfile" component', async () => {
           const component = await routes.find((r) => r.path === '/profile').component()
-          expect(component.default.name).toBe('UserProfile')
+          expect(component.default.name).toBe('Profile')
         })
       })
 

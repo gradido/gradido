@@ -21,7 +21,7 @@ import FormUserNewsletter from './UserProfile/UserCard_Newsletter.vue'
 import FormUserCoinAnimation from './UserProfile/UserCard_CoinAnimation.vue'
 
 export default {
-  name: 'UserProfile',
+  name: 'Profile',
   components: {
     UserCard,
     FormUserData,

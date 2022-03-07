@@ -30,10 +30,10 @@
   </div>
 </template>
 <script>
-import GddSend from './SendOverview/GddSend.vue'
-import TransactionForm from './SendOverview/GddSend/TransactionForm.vue'
-import TransactionConfirmation from './SendOverview/GddSend/TransactionConfirmation.vue'
-import TransactionResult from './SendOverview/GddSend/TransactionResult.vue'
+import GddSend from '@/components/GddSend.vue'
+import TransactionForm from '@/components/GddSend/TransactionForm.vue'
+import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
+import TransactionResult from '@/components/GddSend/TransactionResult.vue'
 import { sendCoins } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
@@ -43,7 +43,7 @@ const EMPTY_TRANSACTION_DATA = {
 }
 
 export default {
-  name: 'SendOverview',
+  name: 'Send',
   components: {
     GddSend,
     TransactionForm,
