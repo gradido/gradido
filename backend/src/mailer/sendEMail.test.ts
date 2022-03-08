@@ -1,6 +1,6 @@
 import { sendEMail } from './sendEMail'
 import { createTransport } from 'nodemailer'
-import CONFIG from '../config'
+import CONFIG from '@/config'
 
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'

@@ -1,7 +1,7 @@
 import { calculateDecay } from './decay'
 import Decimal from 'decimal.js-light'
 import { Transaction } from '@entity/Transaction'
-import { Decay } from '../graphql/model/Decay'
+import { Decay } from '@model/Decay'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()

@@ -28,7 +28,7 @@
 */
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { UserResolver } from '../graphql/resolver/UserResolver'
+import { UserResolver } from '@/graphql/resolver/UserResolver'
 import { User as dbUser } from '@entity/User'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
