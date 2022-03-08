@@ -22,29 +22,10 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mb-3 mt-3">({{ selected }})</div>
-
-            <b-alert class="mb-3 mt-3" v-show="selected === 'gift'" show variant="muted">
+            <b-alert class="mt-3" v-show="selected === 'gift'" show variant="muted">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <p>
                 {{ $t('gdd_per_link.sentence_1') }}
-              </p>
-              <p>
-                -
-                <b>{{ $t('gdd_per_link.sentence_2') }}</b>
-              </p>
-              <p>
-                -
-                <b>{{ $t('gdd_per_link.sentence_3') }}</b>
-              </p>
-              <p>
-                -
-                <b>{{ $t('gdd_per_link.sentence_4') }}</b>
-              </p>
-
-              <hr />
-              <p class="mb-0">
-                {{ $t('gdd_per_link.sentence_5') }}
               </p>
             </b-alert>
 
@@ -53,13 +34,13 @@
                 v-show="selected === 'send'"
                 name="Email"
                 :rules="{
-                  required: true,
+                  required: selected === 'send' ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
                 v-slot="{ errors }"
               >
-                <label class="input-1" for="input-1">{{ $t('form.recipient') }}</label>
+                <label class="input-1 mt-5" for="input-1">{{ $t('form.recipient') }}</label>
                 <b-input-group
                   id="input-group-1"
                   class="border border-default"
@@ -153,7 +134,6 @@
                 </b-col>
               </validation-provider>
             </div>
-
             <br />
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
@@ -209,23 +189,8 @@ export default {
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
-      switch (this.selected) {
-        case 'send':
-          this.$emit('set-transaction', {
-            email: this.form.email,
-            amount: this.form.amountValue,
-            memo: this.form.memo,
-          })
-          break
-        case 'gift':
-          this.$emit('set-transaction-per-link', {
-            selected: this.selected,
-            amount: this.form.amountValue,
-            memo: this.form.memo,
-          })
-          break
-      }
       this.$emit('set-transaction', {
+        selected: this.selected,
         email: this.form.email,
         amount: this.form.amountValue,
         memo: this.form.memo,
