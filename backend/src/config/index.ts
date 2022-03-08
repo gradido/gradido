@@ -46,6 +46,7 @@ const community = {
   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
   COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
   COMMUNITY_ALIAS: process.env.COMMUNITY_ALIAS || 'gradido_dev',
+  COMMUNITY_COIN_COLOR: process.env.COMMUNITY_COIN_COLOR || 'ff0000ff',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
@@ -58,6 +59,10 @@ const loginServer = {
 const blockchainConnector = {
   BLOCKCHAIN_CONNECTOR_API_URL:
     process.env.BLOCKCHAIN_CONNECTOR_API_URL || 'http://blockchain-connector:1271',
+}
+
+const gradidoNode = {
+  GRADIDO_NODE_API_URL: process.env.GRADIDO_NODE_API_URL || 'http://gradido-node:8340',
 }
 
 // TODO: Hannes if I find you... this looks like blasphemy
@@ -92,6 +97,7 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...blockchainConnector,
+  ...gradidoNode,
   ...webhook,
 }
 
