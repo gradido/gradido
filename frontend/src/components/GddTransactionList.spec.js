@@ -270,7 +270,7 @@ describe('GddTransactionList', () => {
 
         it('shows the decay calculation', () => {
           expect(transaction.findAll('div.gdd-transaction-list-item-decay').at(0).text()).toContain(
-            '− 0.20383140554826432',
+            '− 0.2038314055482643084',
           )
         })
       })
