@@ -53,10 +53,7 @@
     </b-row>
     <!-- Type-->
     <b-row>
-      <b-col cols="6" class="text-right">
-        <div v-if="typeId === 'SEND'">{{ $t('decay.sent') }}</div>
-        <div v-if="typeId === 'RECEIVE'">{{ $t('decay.received') }}</div>
-      </b-col>
+      <b-col cols="6" class="text-right">{{ $t(`decay.${typeId.toLowerCase()}`) }}</b-col>
       <b-col cols="6">
         <div>{{ amount | GDD }}</div>
       </b-col>
