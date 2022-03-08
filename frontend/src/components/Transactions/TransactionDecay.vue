@@ -23,9 +23,8 @@
             <b-row>
               <b-col cols="5">
                 <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator">−</span>
                   <span class="gdd-transaction-list-item-amount">
-                    {{ $n(Number(amount) * -1, 'decimal') }}
+                    {{ amount | amount }}
                   </span>
                 </div>
               </b-col>
