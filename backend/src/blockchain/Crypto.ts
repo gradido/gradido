@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { Base64 } from 'js-base64'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 
@@ -38,4 +39,34 @@ function KeyPairEd25519Create(passphrase: string[]): Buffer[] {
   return [pubKey, privKey]
 }
 
-export { KeyPairEd25519Create, PHRASE_WORD_COUNT }
+function encryptMemo(memo: string, senderPrivateKey: Buffer, recipientPublicKey: Buffer): string {
+  const result = Buffer.alloc(
+    sodium.crypto_box_NONCEBYTES + sodium.crypto_box_MACBYTES + memo.length,
+  )
+  sodium.randombytes_buf(result)
+  sodium.crypto_box_easy(
+    result.subarray(sodium.crypto_box_NONCEBYTES),
+    Buffer.from(memo),
+    result.subarray(0, sodium.crypto_box_NONCEBYTES),
+    recipientPublicKey,
+    senderPrivateKey,
+  )
+  return result.toString('base64url')
+}
+
+function decryptMemo(encryptedMemoBase64: string, publicKey: Buffer, privateKey: Buffer): string {
+  const encryptedMemo = Base64.toUint8Array(encryptedMemoBase64)
+  const result = Buffer.alloc(
+    encryptedMemo.length - sodium.crypto_box_NONCEBYTES - sodium.crypto_box_MACBYTES,
+  )
+  sodium.crypto_box_open_easy(
+    result,
+    encryptedMemo.subarray(sodium.crypto_box_NONCEBYTES),
+    encryptedMemo.subarray(0, sodium.crypto_box_NONCEBYTES),
+    publicKey,
+    privateKey,
+  )
+  return result.toString()
+}
+
+export { KeyPairEd25519Create, PHRASE_WORD_COUNT, encryptMemo, decryptMemo }
