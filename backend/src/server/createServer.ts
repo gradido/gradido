@@ -21,7 +21,13 @@ import schema from '../graphql/schema'
 
 // webhooks
 import { elopageWebhook } from '../webhook/elopage'
-import { Connection } from '@dbTools/typeorm'
+import { Connection, getRepository } from '@dbTools/typeorm'
+
+// blockchain
+import { isCommunityAliasExisting } from '../blockchain/GradidoNodeRequests'
+import { registerNewGroup } from '../blockchain/TransactionToIota'
+import { User as dbUser } from '@entity/User'
+import { UserAdmin } from '../graphql/model/UserAdmin'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -41,7 +47,37 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
   if (!dbVersion) {
     throw new Error('Fatal: Database Version incorrect')
   }
-
+  // *********** UNICORN ADD ************************
+  // check if community alias was registered on blockchain
+  if (!isCommunityAliasExisting(CONFIG.COMMUNITY_ALIAS)) {
+    // is not registered, so we create it
+    // load first admin user for signing transaction
+    const created = new Date()
+    const adminUserRepository = getRepository(UserAdmin)
+    const adminUserResult = await adminUserRepository.find({
+      select: ['userId'],
+      order: {
+        userId: 'ASC',
+      },
+      take: 1,
+    })
+    if (adminUserResult.length <= 0) {
+      throw Error('no admin user found')
+    }
+    const userRepository = getRepository(dbUser)
+    const user = await userRepository.findOneOrFail(adminUserResult[0].userId)
+    if (!user) {
+      throw Error('user for first admin user not found')
+    }
+    registerNewGroup(
+      created,
+      user,
+      CONFIG.COMMUNITY_NAME,
+      CONFIG.COMMUNITY_ALIAS,
+      CONFIG.COMMUNITY_COIN_COLOR,
+    )
+  }
+  // *********** UNICORN ADD END ************************
   // Express Server
   const app = express()
 
