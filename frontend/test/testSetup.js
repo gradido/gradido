@@ -57,6 +57,7 @@ global.localVue.mixin(toasters)
 
 const filters = loadFilters(i18nMock)
 global.localVue.filter('amount', filters.amount)
+global.localVue.filter('GDD', filters.GDD)
 
 // Filter the warnings for portal vue
 // https://github.com/BeniRupp/bug_portal-vue-target-already-exists
