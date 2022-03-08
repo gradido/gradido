@@ -25,14 +25,7 @@
         <div>{{ $t('decay.past_time') }}</div>
       </b-col>
       <b-col cols="6">
-        <span v-if="duration">
-          <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
-          <span v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</span>
-          <span v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</span>
-          <span v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</span>
-          <span v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</span>
-          <span v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</span>
-        </span>
+        <span v-if="duration">{{ durationText }}</span>
       </b-col>
     </b-row>
 
@@ -91,6 +84,17 @@ export default {
   computed: {
     duration() {
       return this.$moment.duration(new Date(this.decay.end) - new Date(this.decay.start))._data
+    },
+    durationText() {
+      const order = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
+      const result = []
+      order.forEach((timeSpan) => {
+        if (this.duration[timeSpan] > 0) {
+          const locale = this.$t(`decay.${timeSpan}`)
+          result.push(`${this.duration[timeSpan]} ${locale}`)
+        }
+      })
+      return result.join(', ')
     },
   },
 }
