@@ -1,0 +1,229 @@
+import { mount, RouterLinkStub } from '@vue/test-utils'
+import ResetPassword from './ResetPassword'
+import flushPromises from 'flush-promises'
+
+import { toastErrorSpy } from '@test/testSetup'
+
+// validation is tested in src/components/UserSettings/UserPassword.spec.js
+
+const localVue = global.localVue
+
+const apolloMutationMock = jest.fn()
+
+const routerPushMock = jest.fn()
+
+const stubs = {
+  RouterLink: RouterLinkStub,
+}
+
+const mocks = {
+  $i18n: {
+    locale: 'en',
+  },
+  $t: jest.fn((t) => t),
+  $route: {
+    params: {
+      optin: '123',
+    },
+    path: {
+      mock: 'checkEmail',
+      includes: jest.fn((t) => t === mocks.$route.path.mock),
+    },
+  },
+  $router: {
+    push: routerPushMock,
+  },
+  $loading: {
+    show: jest.fn(() => {
+      return { hide: jest.fn() }
+    }),
+  },
+  $apollo: {
+    mutate: apolloMutationMock,
+  },
+}
+
+describe('ResetPassword', () => {
+  let wrapper
+
+  const Wrapper = () => {
+    return mount(ResetPassword, { localVue, mocks, stubs })
+  }
+
+  describe('mount', () => {
+    beforeEach(() => {
+      wrapper = Wrapper()
+    })
+
+    describe('No valid optin', () => {
+      it.skip('does not render the Reset Password form when not authenticated', () => {
+        expect(wrapper.find('form').exists()).toBeFalsy()
+      })
+
+      it.skip('toasts an error when no valid optin is given', () => {
+        expect(toastErrorSpy).toHaveBeenCalledWith('error')
+      })
+
+      it.skip('has a message suggesting to contact the support', () => {
+        expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
+        expect(wrapper.find('div.header').text()).toContain('settings.password.not-authenticated')
+      })
+    })
+
+    describe('is authenticated', () => {
+      it('renders the Reset Password form when authenticated', () => {
+        expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
+      })
+
+      describe('Register header', () => {
+        describe('from reset', () => {
+          beforeEach(() => {
+            mocks.$route.path.mock = 'reset-password'
+            wrapper = Wrapper()
+          })
+
+          it('has a welcome message', async () => {
+            expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
+            expect(wrapper.find('div.header').text()).toContain(
+              'settings.password.reset-password.text',
+            )
+          })
+        })
+
+        describe('from checkEmail', () => {
+          beforeEach(() => {
+            mocks.$route.path.mock = 'checkEmail'
+            wrapper = Wrapper()
+          })
+
+          it('has a welcome message', async () => {
+            expect(wrapper.find('div.header').text()).toContain('settings.password.set')
+            expect(wrapper.find('div.header').text()).toContain(
+              'settings.password.set-password.text',
+            )
+          })
+        })
+      })
+
+      describe('links', () => {
+        it('has a link "Back"', async () => {
+          expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
+        })
+
+        it('links to /login when clicking "Back"', async () => {
+          expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
+        })
+      })
+
+      describe('reset password form', () => {
+        it('has a register form', async () => {
+          expect(wrapper.find('form').exists()).toBeTruthy()
+        })
+
+        it('has 2 password input fields', async () => {
+          expect(wrapper.findAll('input[type="password"]').length).toBe(2)
+        })
+
+        it('toggles the first input field to text when eye icon is clicked', async () => {
+          await wrapper.findAll('button').at(0).trigger('click')
+          await wrapper.vm.$nextTick()
+          expect(wrapper.findAll('input').at(0).attributes('type')).toBe('text')
+        })
+
+        it('toggles the second input field to text when eye icon is clicked', async () => {
+          wrapper.findAll('button').at(1).trigger('click')
+          await wrapper.vm.$nextTick()
+          expect(wrapper.findAll('input').at(1).attributes('type')).toBe('text')
+        })
+      })
+
+      describe('submit form', () => {
+        beforeEach(async () => {
+          await wrapper.findAll('input').at(0).setValue('Aa123456_')
+          await wrapper.findAll('input').at(1).setValue('Aa123456_')
+          await flushPromises()
+        })
+
+        describe('server response with error code > 10min', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            apolloMutationMock.mockRejectedValue({ message: '...Code is older than 10 minutes' })
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toHaveBeenCalledWith('...Code is older than 10 minutes')
+          })
+
+          it('router pushes to /forgot-password/resetPassword', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
+          })
+        })
+
+        describe('server response with error code > 10min', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            apolloMutationMock.mockRejectedValueOnce({ message: 'Error' })
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toHaveBeenCalledWith('Error')
+          })
+        })
+
+        describe('server response with success on /checkEmail', () => {
+          beforeEach(async () => {
+            mocks.$route.path.mock = 'checkEmail'
+            apolloMutationMock.mockResolvedValue({
+              data: {
+                resetPassword: 'success',
+              },
+            })
+            await wrapper.findAll('input').at(0).setValue('Aa123456_')
+            await wrapper.findAll('input').at(1).setValue('Aa123456_')
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('calls the API', () => {
+            expect(apolloMutationMock).toBeCalledWith(
+              expect.objectContaining({
+                variables: {
+                  code: '123',
+                  password: 'Aa123456_',
+                },
+              }),
+            )
+          })
+
+          it('redirects to "/thx/checkEmail"', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/thx/checkEmail')
+          })
+        })
+
+        describe('server response with success on /reset-password', () => {
+          beforeEach(async () => {
+            mocks.$route.path.mock = 'reset-password'
+            wrapper = Wrapper()
+            apolloMutationMock.mockResolvedValue({
+              data: {
+                resetPassword: 'success',
+              },
+            })
+            await wrapper.findAll('input').at(0).setValue('Aa123456_')
+            await wrapper.findAll('input').at(1).setValue('Aa123456_')
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
+          })
+
+          it('redirects to "/thx/resetPassword"', () => {
+            expect(routerPushMock).toHaveBeenCalledWith('/thx/resetPassword')
+          })
+        })
+      })
+    })
+  })
+})

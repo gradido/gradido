@@ -12,6 +12,7 @@ module.exports = {
     '\\.(css|less)$': 'identity-obj-proxy',
     '\\.(scss)$': '<rootDir>/src/assets/mocks/styleMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@test/(.*)$': '<rootDir>/test/$1',
   },
   transform: {
     '^.+\\.vue$': 'vue-jest',
