@@ -6,12 +6,11 @@ export const loadFilters = (_i18n) => {
 }
 
 const amount = (value) => {
-  if (!value) return ''
+  if (!value && value !== 0) return ''
   return i18n.n(value.toString(), 'decimal').replace('-', '− ')
 }
 
 const GDD = (value) => {
-  if (!value) return ''
   value = amount(value)
   if (!value.match(/^− /)) value = '+ ' + value
   return value + ' GDD'
