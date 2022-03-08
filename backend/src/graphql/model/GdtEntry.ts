@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
-import { GdtEntryType } from '../enum/GdtEntryType'
+import { GdtEntryType } from '@enum/GdtEntryType'
 
 @ObjectType()
 export class GdtEntry {

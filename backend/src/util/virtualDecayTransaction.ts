@@ -3,9 +3,9 @@ import Decimal from 'decimal.js-light'
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { calculateDecay } from './decay'
-import { TransactionTypeId } from '../graphql/enum/TransactionTypeId'
-import { Transaction } from '../graphql/model/Transaction'
-import { User } from '../graphql/model/User'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { Transaction } from '@model/Transaction'
+import { User } from '@model/User'
 
 const virtualDecayTransaction = (
   balance: Decimal,

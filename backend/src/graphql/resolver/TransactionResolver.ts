@@ -6,32 +6,32 @@
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import CONFIG from '../../config'
-import { sendTransactionReceivedEmail } from '../../mailer/sendTransactionReceivedEmail'
+import CONFIG from '@/config'
+import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
-import { Transaction } from '../model/Transaction'
-import { TransactionList } from '../model/TransactionList'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
 
-import TransactionSendArgs from '../arg/TransactionSendArgs'
-import Paginated from '../arg/Paginated'
+import TransactionSendArgs from '@arg/TransactionSendArgs'
+import Paginated from '@arg/Paginated'
 
-import { Order } from '../enum/Order'
+import { Order } from '@enum/Order'
 
-import { UserRepository } from '../../typeorm/repository/User'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
+import { UserRepository } from '@repository/User'
+import { TransactionRepository } from '@repository/Transaction'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
-import { apiPost } from '../../apis/HttpRequest'
-import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { calculateBalance, isHexPublicKey } from '../../util/validate'
-import { RIGHTS } from '../../auth/RIGHTS'
-import { User } from '../model/User'
-import { communityUser } from '../../util/communityUser'
-import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
+import { apiPost } from '@/apis/HttpRequest'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { calculateBalance, isHexPublicKey } from '@/util/validate'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { User } from '@model/User'
+import { communityUser } from '@/util/communityUser'
+import { virtualDecayTransaction } from '@/util/virtualDecayTransaction'
 import Decimal from 'decimal.js-light'
-import { calculateDecay } from '../../util/decay'
+import { calculateDecay } from '@/util/decay'
 
 @Resolver()
 export class TransactionResolver {
