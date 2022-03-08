@@ -1,11 +1,11 @@
 import { mutations, actions } from './store'
 import Vuex from 'vuex'
 import Vue from 'vue'
-import i18n from '../i18n.js'
+import i18n from '@/i18n.js'
 import { localeChanged } from 'vee-validate'
 
 jest.mock('vuex')
-jest.mock('../i18n.js')
+jest.mock('@/i18n.js')
 jest.mock('vee-validate', () => {
   return {
     localeChanged: jest.fn(),

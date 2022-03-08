@@ -65,7 +65,8 @@ const email = {
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/{code}',
+  EMAIL_LINK_SETPASSWORD:
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
   RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 
