@@ -33,24 +33,16 @@
     <!-- Type-->
     <b-row>
       <b-col cols="6" class="text-right">{{ $t(`decay.${typeId.toLowerCase()}`) }}</b-col>
-      <b-col cols="6">
-        <div>{{ amount | GDD }}</div>
-      </b-col>
+      <b-col cols="6">{{ amount | GDD }}</b-col>
     </b-row>
     <!-- Decay-->
     <b-row>
-      <b-col cols="6" class="text-right">
-        <div>{{ $t('decay.decay') }}</div>
-      </b-col>
-      <b-col cols="6">
-        <div>{{ decay.decay | GDD }}</div>
-      </b-col>
+      <b-col cols="6" class="text-right">{{ $t('decay.decay') }}</b-col>
+      <b-col cols="6">{{ decay.decay | GDD }}</b-col>
     </b-row>
     <!-- Total-->
     <b-row>
-      <b-col cols="6" class="text-right">
-        <div>{{ $t('decay.total') }}</div>
-      </b-col>
+      <b-col cols="6" class="text-right">{{ $t('decay.total') }}</b-col>
       <b-col cols="6">
         <b>{{ (Number(amount) + Number(decay.decay)) | GDD }}</b>
       </b-col>
