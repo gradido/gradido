@@ -75,6 +75,7 @@
   "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",
+    "balanceDate": "Schöpfungsdatum",
     "community": "Gemeinschaft",
     "date": "Datum",
     "decay": "Vergänglichkeit",

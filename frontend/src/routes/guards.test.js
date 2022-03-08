@@ -41,7 +41,7 @@ describe('navigation guards', () => {
     })
 
     it('does not commit the pid when not present', async () => {
-      await router.push({ path: 'password' })
+      await router.push({ path: 'forgot-password' })
       expect(storeCommitMock).not.toBeCalled()
     })
   })

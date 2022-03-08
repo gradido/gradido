@@ -10,7 +10,7 @@
     "lint": "eslint --max-warnings=0 --ext .js,.vue .",
     "dev": "yarn run serve",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
-    "test": "jest --coverage",
+    "test": "TZ=UTC jest --coverage",
     "locales": "scripts/missing-keys.sh && scripts/sort.sh"
   },
   "dependencies": {

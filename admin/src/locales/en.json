@@ -75,6 +75,7 @@
   "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",
+    "balanceDate": "Creation date",
     "community": "Community",
     "date": "Date",
     "decay": "Decay",
