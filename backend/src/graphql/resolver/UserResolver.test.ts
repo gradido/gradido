@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, resetEntities, createUser } from '../../../test/helpers'
-import { createUserMutation, setPasswordMutation } from '../../../test/graphql'
+import { testEnvironment, resetEntities, createUser } from '@test/helpers'
+import { createUserMutation, setPasswordMutation } from '@test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
 import { resetDB } from '@dbTools/helpers'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
-import CONFIG from '../../config'
-import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-// import { klicktippSignIn } from '../../apis/KlicktippController'
+import CONFIG from '@/config'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+// import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.setTimeout(10000)
 
-jest.mock('../../mailer/sendAccountActivationEmail', () => {
+jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock('../../mailer/sendAccountActivationEmail', () => {
 })
 
 /*
-jest.mock('../../apis/KlicktippController', () => {
+jest.mock('@/apis/KlicktippController', () => {
   return {
     __esModule: true,
     klicktippSignIn: jest.fn(),
