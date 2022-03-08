@@ -140,6 +140,7 @@ async function creation(
   signingUser: User,
   recipientUser: User,
   apolloTransactionId: number,
+  apolloTransactionId: number,
   memo: string,
   amount: string,
   targetDate: Date,
