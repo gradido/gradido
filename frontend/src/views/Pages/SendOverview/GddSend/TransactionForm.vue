@@ -18,7 +18,7 @@
               </b-col>
               <b-col>
                 <b-form-radio v-model="selected" name="some-radios" value="gift" size="lg">
-                  GDD verschenken per Link
+                  GDD versenden per Link
                 </b-form-radio>
               </b-col>
             </b-row>

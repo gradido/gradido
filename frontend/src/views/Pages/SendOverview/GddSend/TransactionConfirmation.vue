@@ -5,7 +5,7 @@
         <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
 
         <div>
-          Du verschenkst:
+          Du versendest per Link:
           <h1>{{ $n(amount, 'decimal') }} GDD</h1>
         </div>
       </b-alert>
