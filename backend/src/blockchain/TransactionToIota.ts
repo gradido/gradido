@@ -89,6 +89,7 @@ async function signAndSendTransaction(
 async function sendCoins(
   created: Date,
   user: User,
+  apolloTransactionId: number,
   recipientPublicHex: string,
   amount: string,
   memo: string,
@@ -97,6 +98,7 @@ async function sendCoins(
   const packTransactionRequest = {
     transactionType: 'transfer',
     created: created.toISOString(),
+    apolloTransactionId: apolloTransactionId,
     senderPubkey: user.pubKey.toString('hex'),
     recipientPubkey: recipientPublicHex,
     amount: amount,
@@ -127,6 +129,7 @@ async function registerNewGroup(
 async function creation(
   created: Date,
   user: User,
+  apolloTransactionId: number,
   memo: string,
   amount: string,
   targetDate: Date,
@@ -134,6 +137,7 @@ async function creation(
   const packTransactionRequest = {
     transactionType: 'creation',
     created: created.toISOString(),
+    apolloTransactionId: apolloTransactionId,
     memo: memo,
     recipientPubkey: user.pubKey.toString('hex'),
     amount: amount,
@@ -141,3 +145,5 @@ async function creation(
   }
   return signAndSendTransaction(user, packTransactionRequest, '')
 }
+
+export { sendCoins, registerNewGroup, creation }
