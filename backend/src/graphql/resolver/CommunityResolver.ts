@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Authorized } from 'type-graphql'
-import { RIGHTS } from '../../auth/RIGHTS'
-import CONFIG from '../../config'
-import { Community } from '../model/Community'
+import { RIGHTS } from '@/auth/RIGHTS'
+import CONFIG from '@/config'
+import { Community } from '@model/Community'
 
 @Resolver()
 export class CommunityResolver {

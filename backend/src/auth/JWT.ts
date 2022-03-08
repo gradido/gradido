@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import CONFIG from '../config/'
+import CONFIG from '@/config/'
 import { CustomJwtPayload } from './CustomJwtPayload'
 
 export const decode = (token: string): CustomJwtPayload | null => {

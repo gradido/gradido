@@ -7,9 +7,9 @@ import {
   getKlicktippTagMap,
   unsubscribe,
   klicktippSignIn,
-} from '../../apis/KlicktippController'
-import { RIGHTS } from '../../auth/RIGHTS'
-import SubscribeNewsletterArgs from '../arg/SubscribeNewsletterArgs'
+} from '@/apis/KlicktippController'
+import { RIGHTS } from '@/auth/RIGHTS'
+import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
 
 @Resolver()
 export class KlicktippResolver {

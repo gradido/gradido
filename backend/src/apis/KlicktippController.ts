@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { KlicktippConnector } from './klicktippConnector'
-import CONFIG from '../config'
+import CONFIG from '@/config'
 
 const klicktippConnector = new KlicktippConnector()
 
