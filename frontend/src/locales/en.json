@@ -101,8 +101,8 @@
     "your_amount": "Your amount"
   },
   "gdd_per_link": {
-    "header": "Give away Gradidos by link",
-    "sentence_1": "Select an amount that you would like to give away via a link. You can also enter a message. Click 'Generate now' to create a link that you can send.",
+    "header": "Send Gradidos by link",
+    "sentence_1": "Select an amount that you would like to send via a link. You can also enter a message. Click 'Generate now' to create a link that you can send.",
     "sentence_2": "The link is valid for 14 days!",
     "sentence_3": "If the link is not called up within the 14-day period, it will be deleted automatically. The amount will then be credited to your account.",
     "sentence_4": "Whoever activates the link will receive the payment from your account. If you are not yet a member of Gradido, you will be guided through the registration process and will get the GDD amount credited to your account after registration / confirmation of your Gradido account.",
