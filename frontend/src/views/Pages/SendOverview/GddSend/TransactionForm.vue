@@ -10,9 +10,47 @@
                  </div>
                  <br />
             -->
+            <b-row>
+              <b-col>
+                <b-form-radio v-model="selected" name="some-radios" value="send" size="lg">
+                  GDD versenden
+                </b-form-radio>
+              </b-col>
+              <b-col>
+                <b-form-radio v-model="selected" name="some-radios" value="gift" size="lg">
+                  GDD verschenken per Link
+                </b-form-radio>
+              </b-col>
+            </b-row>
+            <div class="mb-3 mt-3">({{ selected }})</div>
+
+            <b-alert class="mb-3 mt-3" v-show="selected === 'gift'" show variant="muted">
+              <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
+              <p>
+                {{ $t('gdd_per_link.sentence_1') }}
+              </p>
+              <p>
+                -
+                <b>{{ $t('gdd_per_link.sentence_2') }}</b>
+              </p>
+              <p>
+                -
+                <b>{{ $t('gdd_per_link.sentence_3') }}</b>
+              </p>
+              <p>
+                -
+                <b>{{ $t('gdd_per_link.sentence_4') }}</b>
+              </p>
+
+              <hr />
+              <p class="mb-0">
+                {{ $t('gdd_per_link.sentence_5') }}
+              </p>
+            </b-alert>
 
             <div>
               <validation-provider
+                v-show="selected === 'send'"
                 name="Email"
                 :rules="{
                   required: true,
@@ -128,7 +166,7 @@
               </b-col>
               <b-col class="text-right">
                 <b-button type="submit" variant="success">
-                  {{ $t('form.send_now') }}
+                  {{ selected === 'send' ? $t('form.send_now') : $t('form.generate_now') }}
                 </b-button>
               </b-col>
             </b-row>
@@ -165,11 +203,28 @@ export default {
         memo: '',
         amountValue: 0.0,
       },
+      selected: 'send',
     }
   },
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
+      switch (this.selected) {
+        case 'send':
+          this.$emit('set-transaction', {
+            email: this.form.email,
+            amount: this.form.amountValue,
+            memo: this.form.memo,
+          })
+          break
+        case 'gift':
+          this.$emit('set-transaction-per-link', {
+            selected: this.selected,
+            amount: this.form.amountValue,
+            memo: this.form.memo,
+          })
+          break
+      }
       this.$emit('set-transaction', {
         email: this.form.email,
         amount: this.form.amountValue,

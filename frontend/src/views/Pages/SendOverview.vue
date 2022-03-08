@@ -76,6 +76,10 @@ export default {
       this.transactionData = { ...data }
       this.currentTransactionStep = 1
     },
+    setTransactionPerLink(data) {
+      this.transactionData = { ...data }
+      this.currentTransactionStep = 1
+    },
     async sendTransaction() {
       this.loading = true
       this.error = false
