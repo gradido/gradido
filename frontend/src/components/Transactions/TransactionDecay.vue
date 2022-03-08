@@ -24,7 +24,7 @@
               <b-col cols="5">
                 <div class="text-right">
                   <span class="gdd-transaction-list-item-amount">
-                    {{ amount | amount }}
+                    {{ amount | GDD }}
                   </span>
                 </div>
               </b-col>
