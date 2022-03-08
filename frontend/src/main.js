@@ -23,6 +23,7 @@ Vue.config.productionTip = false
 Vue.mixin(toasters)
 const filters = loadFilters(i18n)
 Vue.filter('amount', filters.amount)
+Vue.filter('GDD', filters.GDD)
 
 loadAllRules(i18n)
 

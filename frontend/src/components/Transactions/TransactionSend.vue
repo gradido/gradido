@@ -24,7 +24,7 @@
               <b-col cols="5">
                 <div class="text-right">
                   <span class="gdd-transaction-list-item-amount">
-                    {{ amount | amount }}
+                    {{ amount | GDD }}
                   </span>
                 </div>
               </b-col>
@@ -78,7 +78,7 @@
       <b-collapse class="pb-4 pt-5" v-model="visible">
         <decay-information-before-startblock v-if="decay.start === null" />
         <decay-information-decay-startblock
-          v-else-if="true"
+          v-else-if="isStartBlock"
           :amount="amount"
           :decay="decay"
           :typeId="typeId"
