@@ -1,14 +1,27 @@
 import { User } from '@entity/User'
 import { apiPost } from '../apis/HttpRequest'
 import CONFIG from '../config'
-import { KeyPairEd25519Create, PHRASE_WORD_COUNT } from './Crypto'
+import { encryptMemo, KeyPairEd25519Create, PHRASE_WORD_COUNT } from './Crypto'
 
 import { Base64 } from 'js-base64'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 
+async function recoverPrivateKey(user: User): Promise<Buffer> {
+  // this can be only temporary, because the user backup will be encrypted for security reasons
+  // TODO: Use another approach
+  const passphrase = user.passphrase.slice(0, -1).split(' ')
+  if (passphrase.length < PHRASE_WORD_COUNT) {
+    // TODO if this can happen we cannot recover from that
+    throw new Error('Could not load a correct passphrase')
+  }
+  const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+  return keyPair[1]
+}
+
 async function signAndSendTransaction(
   user: User,
+  privateKey: Buffer,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   packTransaction: any,
   recipientGroupAlias: string,
@@ -26,19 +39,11 @@ async function signAndSendTransaction(
     throw new Error(resultPackTransaction.data)
   }
 
-  // this can be only temporary, because the user backup will be encrypted for security reasons
-  // TODO: Use another approach
-  const passphrase = user.passphrase.slice(0, -1).split(' ')
-  if (passphrase.length < PHRASE_WORD_COUNT) {
-    // TODO if this can happen we cannot recover from that
-    throw new Error('Could not load a correct passphrase')
-  }
-  const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
   const sign = Buffer.alloc(sodium.crypto_sign_BYTES)
   sodium.crypto_sign_detached(
     sign,
     Base64.toUint8Array(resultPackTransaction.data.transactions[0].bodyBytesBase64),
-    keyPair[1],
+    privateKey,
   )
   const senderPubkeyHex = user.pubKey.toString('hex')
   const resultSendTransactionIota = await apiPost(
@@ -63,7 +68,7 @@ async function signAndSendTransaction(
     sodium.crypto_sign_detached(
       sign,
       Base64.toUint8Array(resultPackTransaction.data.transactions[1].bodyBytesBase64),
-      keyPair[1],
+      privateKey,
     )
     const resultSendTransactionIota = await apiPost(
       CONFIG.BLOCKCHAIN_CONNECTOR_API_URL + 'sendTransactionIota',
@@ -95,6 +100,8 @@ async function sendCoins(
   memo: string,
   recipientGroupAlias: string | '',
 ): Promise<Buffer> {
+  const privateKey = await recoverPrivateKey(user)
+  const encryptedMemo = encryptMemo(memo, privateKey, Buffer.from(recipientPublicHex, 'hex'))
   const packTransactionRequest = {
     transactionType: 'transfer',
     created: created.toISOString(),
@@ -102,11 +109,12 @@ async function sendCoins(
     senderPubkey: user.pubKey.toString('hex'),
     recipientPubkey: recipientPublicHex,
     amount: amount,
-    memo: memo,
+    memo: encryptedMemo,
     senderGroupAlias: '',
     recipientGroupAlias: '',
   }
-  return signAndSendTransaction(user, packTransactionRequest, recipientGroupAlias)
+
+  return signAndSendTransaction(user, privateKey, packTransactionRequest, recipientGroupAlias)
 }
 
 async function registerNewGroup(
@@ -116,6 +124,7 @@ async function registerNewGroup(
   communityAlias: string,
   communityCoinColor: number | string,
 ): Promise<Buffer> {
+  const privateKey = await recoverPrivateKey(user)
   const packTransactionRequest = {
     transactionType: 'groupAdd',
     created: created.toISOString(),
@@ -123,27 +132,30 @@ async function registerNewGroup(
     groupAlias: communityAlias,
     coinColor: communityCoinColor,
   }
-  return signAndSendTransaction(user, packTransactionRequest, '')
+  return signAndSendTransaction(user, privateKey, packTransactionRequest, '')
 }
 
 async function creation(
   created: Date,
-  user: User,
+  signingUser: User,
+  recipientUser: User,
   apolloTransactionId: number,
   memo: string,
   amount: string,
   targetDate: Date,
 ): Promise<Buffer> {
+  const privateKey = await recoverPrivateKey(signingUser)
+  const encryptedMemo = encryptMemo(memo, privateKey, recipientUser.pubKey)
   const packTransactionRequest = {
     transactionType: 'creation',
     created: created.toISOString(),
     apolloTransactionId: apolloTransactionId,
     memo: memo,
-    recipientPubkey: user.pubKey.toString('hex'),
+    recipientPubkey: recipientUser.pubKey.toString('hex'),
     amount: amount,
     targetDate: targetDate.toISOString(),
   }
-  return signAndSendTransaction(user, packTransactionRequest, '')
+  return signAndSendTransaction(signingUser, privateKey, packTransactionRequest, encryptedMemo)
 }
 
 export { sendCoins, registerNewGroup, creation }
