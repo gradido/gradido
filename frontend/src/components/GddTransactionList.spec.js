@@ -19,7 +19,7 @@ describe('GddTransactionList', () => {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
     $i18n: {
-      locale: () => 'de',
+      locale: () => 'en',
     },
   }
 
@@ -256,7 +256,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Mon Feb 28 2022 13:55:47',
+            'Mon Feb 28 2022 13:55:47 GMT+0000',
           )
         })
 
@@ -321,7 +321,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Fri Feb 25 2022 07:29:26',
+            'Fri Feb 25 2022 07:29:26 GMT+0000',
           )
         })
       })
@@ -383,7 +383,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30',
+            'Wed Feb 23 2022 10:55:30 GMT+0000',
           )
         })
 
