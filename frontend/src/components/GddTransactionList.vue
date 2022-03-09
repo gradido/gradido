@@ -13,7 +13,7 @@
       </div>
 
       <div v-for="({ id, typeId }, index) in transactions" :key="id">
-        <transaction-list-item :typeId="typeId">
+        <transaction-list-item :typeId="typeId" class="pointer">
           <template #DECAY>
             <transaction-decay class="list-group-item" v-bind="transactions[index]" />
           </template>
