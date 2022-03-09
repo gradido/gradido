@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, MoreThan } from '@dbTools/typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
@@ -43,24 +43,10 @@ export class TransactionLinkResolver {
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
-    const holdAvailableAmount = amount.add(
-      calculateDecay(amount, createdDate, validUntil).decay.mul(-1),
-    )
-
-    const openTransactionLinks = await dbTransactionLink.find({
-      select: ['holdAvailableAmount'],
-      where: { userId: user.id, redeemedAt: null, validUntil: MoreThan(createdDate) },
-    })
-
-    const holdAvailable = openTransactionLinks.reduce(
-      (previousValue, currentValue) =>
-        previousValue.add(currentValue.holdAvailableAmount.toString()),
-      holdAvailableAmount,
-    )
+    const holdAvailableAmount = amount.minus(calculateDecay(amount, createdDate, validUntil).decay)
 
     // validate amount
-    // TODO taken from transaction resolver, duplicate code
-    const sendBalance = await calculateBalance(user.id, holdAvailable.mul(-1), createdDate)
+    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
     if (!sendBalance) {
       throw new Error("user hasn't enough GDD or amount is < 0")
     }

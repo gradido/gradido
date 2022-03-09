@@ -25,7 +25,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateBalance, isHexPublicKey } from '@/util/validate'
+import { calculateBalance, isHexPublicKey, holdAvailable } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
@@ -127,9 +127,13 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
 
+    const toHoldAvailable = await holdAvailable(user.id, now)
+
     // Construct Result
     return new TransactionList(
-      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
+      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
+        toHoldAvailable.toString(),
+      ),
       transactions,
       userTransactionsCount,
       balanceGDT,
