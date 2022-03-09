@@ -40,6 +40,9 @@ export class TransactionLink {
   @Field(() => Date)
   createdAt: Date
 
+  @Field(() => Date, { nullable: true })
+  deletedAt: Date | null
+
   @Field(() => Date)
   validUntil: Date
 
