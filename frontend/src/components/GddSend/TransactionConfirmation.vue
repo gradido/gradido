@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-row v-if="selected === 'gift'">
+    <b-row v-if="selected === 'link'">
       <b-alert class="mb-3 mt-3" show variant="muted">
         <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
 
@@ -67,7 +67,7 @@
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col v-if="selected === 'gift'" class="text-right">
+        <b-col v-if="selected === 'link'" class="text-right">
           ~ {{ $n(balance - amount - amount * 0.028, 'decimal') }}
         </b-col>
         <b-col v-else class="text-right">~ {{ $n(balance - amount, 'decimal') }}</b-col>
@@ -91,7 +91,7 @@
       </b-col>
     </b-row>
 
-    <b-alert class="mt-3" show v-show="selected === 'gift'" variant="muted">
+    <b-alert class="mt-3" show v-show="selected === 'link'" variant="muted">
       <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
 
       <p>

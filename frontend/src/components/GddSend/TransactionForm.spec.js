@@ -241,10 +241,10 @@ describe('GddSend', () => {
       })
     })
 
-    describe('is selected: "gift"', () => {
+    describe('is selected: "link"', () => {
       beforeEach(async () => {
         await wrapper.setData({
-          selected: 'gift',
+          selected: 'link',
         })
       })
 

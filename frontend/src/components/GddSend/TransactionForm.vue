@@ -17,12 +17,12 @@
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="some-radios" value="gift" size="lg">
+                <b-form-radio v-model="selected" name="some-radios" value="link" size="lg">
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
             </b-row>
-            <b-alert class="mt-3" v-show="selected === 'gift'" show variant="muted">
+            <b-alert class="mt-3" v-show="selected === 'link'" show variant="muted">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <p>
                 {{ $t('gdd_per_link.sentence_1') }}
