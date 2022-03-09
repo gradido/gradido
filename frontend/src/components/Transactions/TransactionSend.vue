@@ -1,5 +1,5 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-send">
+  <div class="transaction-slot-send">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -75,7 +75,7 @@
         </b-row>
       </div>
 
-      <b-collapse class="pb-4 pt-5" v-model="visible">
+      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
         <decay-information-before-startblock v-if="decay.start === null" />
         <decay-information-decay-startblock
           v-else-if="isStartBlock"
