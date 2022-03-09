@@ -27,14 +27,12 @@ export class TransactionLink extends BaseEntity {
 
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: false,
   })
   createdAt: Date
 
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: false,
   })
   validUntil: Date
@@ -48,7 +46,6 @@ export class TransactionLink extends BaseEntity {
 
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: true,
   })
   redeemedAt?: Date | null
