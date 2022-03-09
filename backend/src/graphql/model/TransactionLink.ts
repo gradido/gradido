@@ -16,6 +16,9 @@ export class TransactionLink {
   @Field(() => String)
   memo: string
 
+  @Field(() => String)
+  code: string
+
   @Field(() => Date)
   createdAt: Date
 
