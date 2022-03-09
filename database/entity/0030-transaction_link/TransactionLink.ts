@@ -40,19 +40,19 @@ export class TransactionLink extends BaseEntity {
   validUntil: Date
 
   @Column({
-    type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  redeemedAt: Date
-
-  @Column({
     type: 'boolean',
     default: () => false,
     nullable: false,
   })
   showEmail: boolean
 
-  @Column({ unsigned: true, nullable: true })
-  redeemedBy: number
+  @Column({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  redeemedAt?: Date | null
+
+  @Column({ type: 'int', unsigned: true, nullable: true })
+  redeemedBy?: number | null
 }
