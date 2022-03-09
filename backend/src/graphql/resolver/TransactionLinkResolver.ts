@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { Resolver, Args, Authorized, Ctx, Mutation, Query, Arg } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -60,6 +60,15 @@ export class TransactionLinkResolver {
       throw error
     })
 
+    return new TransactionLink(transactionLink, new User(user))
+  }
+
+  @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
+  @Query(() => TransactionLink)
+  async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
     return new TransactionLink(transactionLink, new User(user))
   }
 }
