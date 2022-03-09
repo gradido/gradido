@@ -1,9 +1,23 @@
 import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
 
 @ObjectType()
 export class TransactionLink {
+  constructor(transactionLink: dbTransactionLink, user: User) {
+    this.id = transactionLink.id
+    this.user = user
+    this.amount = transactionLink.amount
+    this.memo = transactionLink.memo
+    this.code = transactionLink.code
+    this.createdAt = transactionLink.createdAt
+    this.validUntil = transactionLink.validUntil
+    this.showEmail = transactionLink.showEmail
+    this.redeemedAt = null
+    this.redeemedBy = null
+  }
+
   @Field(() => Number)
   id: number
 
