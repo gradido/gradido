@@ -225,6 +225,7 @@ describe('GddSend', () => {
                 email: 'someone@watches.tv',
                 amount: 87.23,
                 memo: 'Long enough',
+                selected: 'send',
               },
             ],
           ])
