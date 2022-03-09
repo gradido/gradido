@@ -24,7 +24,8 @@ export const transactionLinkCode = (date: Date): string => {
 
 const transactionLinkExpireDate = (date: Date): Date => {
   // valid for 14 days
-  return new Date(date.setDate(date.getDate() + 14))
+  const validUntil = new Date(date)
+  return new Date(validUntil.setDate(date.getDate() + 14))
 }
 
 @Resolver()
