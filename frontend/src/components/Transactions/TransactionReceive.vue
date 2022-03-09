@@ -1,5 +1,5 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-receive">
+  <div class="transaction-slot-receive">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
