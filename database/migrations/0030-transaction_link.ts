@@ -11,7 +11,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`amount\` DECIMAL(40,20) NOT NULL,
       \`hold_available_amount\` DECIMAL(40,20) NOT NULL,
       \`memo\` varchar(255) NOT NULL,
-      \`code\` varchar(96) NOT NULL,
+      \`code\` varchar(24) NOT NULL,
       \`createdAt\` datetime NOT NULL,
       \`validUntil\` datetime NOT NULL,
       \`showEmail\` boolean NOT NULL DEFAULT false,
