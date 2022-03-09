@@ -3,6 +3,7 @@ import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { Migration } from './Migration'
 import { ServerUser } from './ServerUser'
 import { Transaction } from './Transaction'
+import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
 import { AdminPendingCreation } from './AdminPendingCreation'
@@ -14,6 +15,7 @@ export const entities = [
   Migration,
   ServerUser,
   Transaction,
+  TransactionLink,
   User,
   UserSetting,
 ]
