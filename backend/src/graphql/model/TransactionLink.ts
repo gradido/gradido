@@ -9,6 +9,7 @@ export class TransactionLink {
     this.id = transactionLink.id
     this.user = user
     this.amount = transactionLink.amount
+    this.holdAvailableAmount = transactionLink.holdAvailableAmount
     this.memo = transactionLink.memo
     this.code = transactionLink.code
     this.createdAt = transactionLink.createdAt
@@ -26,6 +27,9 @@ export class TransactionLink {
 
   @Field(() => Decimal)
   amount: Decimal
+
+  @Field(() => Decimal)
+  holdAvailableAmount: Decimal
 
   @Field(() => String)
   memo: string

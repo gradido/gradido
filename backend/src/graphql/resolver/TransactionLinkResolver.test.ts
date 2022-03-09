@@ -3,8 +3,8 @@ import { transactionLinkCode } from './TransactionLinkResolver'
 describe('transactionLinkCode', () => {
   const date = new Date()
 
-  it('returns a string of length 96', () => {
-    expect(transactionLinkCode(date)).toHaveLength(96)
+  it('returns a string of length 24', () => {
+    expect(transactionLinkCode(date)).toHaveLength(24)
   })
 
   it('returns a string that ends with the hex value of date', () => {
