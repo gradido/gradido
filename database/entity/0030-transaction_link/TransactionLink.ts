@@ -32,7 +32,7 @@ export class TransactionLink extends BaseEntity {
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
-  @Column({ length: 96, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
   code: string
 
   @Column({
