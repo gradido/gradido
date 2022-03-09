@@ -1,5 +1,5 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-decay">
+  <div class="transaction-slot-decay">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <div class="text-right" style="width: 95%; position: absolute">
@@ -23,9 +23,8 @@
             <b-row>
               <b-col cols="5">
                 <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator">−</span>
                   <span class="gdd-transaction-list-item-amount">
-                    {{ $n(Number(amount) * -1, 'decimal') }}
+                    {{ amount | GDD }}
                   </span>
                 </div>
               </b-col>
@@ -39,7 +38,7 @@
         </b-row>
       </div>
 
-      <b-collapse class="pb-4 pt-5" v-model="visible">
+      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
         <decay-information-decay :balance="balance" :decay="decay" />
       </b-collapse>
     </div>

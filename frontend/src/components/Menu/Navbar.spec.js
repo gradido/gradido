@@ -21,7 +21,6 @@ const mocks = {
       isAdmin: true,
     },
   },
-  $n: jest.fn((n) => n),
 }
 
 describe('Navbar', () => {

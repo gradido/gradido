@@ -13,9 +13,9 @@
       </b-col>
       <b-col cols="6">
         <div>
-          {{ $n(Number(balance) - Number(decay.decay), 'decimal') }}
-          GDD − {{ $n(Number(decay.decay) * -1, 'decimal') }} GDD =
-          <b>{{ $n(Number(balance), 'decimal') }} GDD</b>
+          {{ (Number(balance) - Number(decay.decay)) | GDD }}
+          {{ decay.decay | GDD }} =
+          <b>{{ balance | GDD }}</b>
         </div>
       </b-col>
     </b-row>
