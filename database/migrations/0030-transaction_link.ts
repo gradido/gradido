@@ -13,6 +13,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`memo\` varchar(255) NOT NULL,
       \`code\` varchar(24) NOT NULL,
       \`createdAt\` datetime NOT NULL,
+      \`deletedAt\` datetime DEFAULT NULL,
       \`validUntil\` datetime NOT NULL,
       \`showEmail\` boolean NOT NULL DEFAULT false,
       \`redeemedAt\` datetime,
