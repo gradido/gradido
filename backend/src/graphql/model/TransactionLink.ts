@@ -15,6 +15,7 @@ export class TransactionLink {
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.showEmail = transactionLink.showEmail
+    this.deletedAt = null
     this.redeemedAt = null
     this.redeemedBy = null
   }
