@@ -8,7 +8,7 @@
         <template #transaction-confirmation>
           <transaction-confirmation
             :balance="balance"
-            :transactions="transactions"
+            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
