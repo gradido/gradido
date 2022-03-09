@@ -19,6 +19,16 @@ export class TransactionLink extends BaseEntity {
   })
   amount: Decimal
 
+  @Column({
+    type: 'decimal',
+    name: 'hold_available_amount',
+    precision: 40,
+    scale: 20,
+    nullable: false,
+    transformer: DecimalTransformer,
+  })
+  holdAvailableAmount: Decimal
+
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
