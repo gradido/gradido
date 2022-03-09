@@ -13,12 +13,12 @@
             <b-row>
               <b-col>
                 <b-form-radio v-model="selected" name="some-radios" value="send" size="lg">
-                  GDD versenden
+                  {{ $t('send_gdd') }}
                 </b-form-radio>
               </b-col>
               <b-col>
                 <b-form-radio v-model="selected" name="some-radios" value="gift" size="lg">
-                  GDD versenden per Link
+                  {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
             </b-row>
