@@ -2,22 +2,16 @@
   <b-row class="transaction-form">
     <b-col xl="12" md="12" class="p-0">
       <b-card class="p-0 m-0" style="background-color: #ebebeba3 !important">
-        <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-            <!-- <div>
-                 <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
-                 </div>
-                 <br />
-            -->
             <b-row>
               <b-col>
-                <b-form-radio v-model="selected" name="some-radios" value="send" size="lg">
+                <b-form-radio v-model="selected" name="radios" value="send" size="lg">
                   {{ $t('send_gdd') }}
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="some-radios" value="link" size="lg">
+                <b-form-radio v-model="selected" name="radios" value="link" size="lg">
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
@@ -159,16 +153,12 @@
   </b-row>
 </template>
 <script>
-// import QrCode from './QrCode'
-// import { QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
 
 export default {
   name: 'TransactionForm',
   components: {
     BIcon,
-    //    QrCode,
-    // QrcodeDropZone,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -202,11 +192,6 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
     },
-    /*
-     setTransaction(data) {
-       this.form.email = data.email
-       this.form.amount = data.amount
-     }, */
     normalizeAmount(isValid) {
       this.amountFocused = false
       if (!isValid) return

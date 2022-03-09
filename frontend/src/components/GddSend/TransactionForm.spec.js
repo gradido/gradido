@@ -57,9 +57,10 @@ describe('GddSend', () => {
 
     describe('is selected: "send"', () => {
       beforeEach(async () => {
-        await wrapper.setData({
-          selected: 'send',
-        })
+        // await wrapper.setData({
+        //   selected: 'send',
+        // })
+        await wrapper.findAll('input[type="radio"]').at(0).setChecked()
       })
 
       describe('transaction form', () => {
@@ -243,9 +244,10 @@ describe('GddSend', () => {
 
     describe('is selected: "link"', () => {
       beforeEach(async () => {
-        await wrapper.setData({
-          selected: 'link',
-        })
+        // await wrapper.setData({
+        //   selected: 'link',
+        // })
+        await wrapper.findAll('input[type="radio"]').at(1).setChecked()
       })
 
       it('has no input field of id input-group-1', () => {

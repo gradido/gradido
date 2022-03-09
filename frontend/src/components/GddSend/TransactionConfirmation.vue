@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <b-row v-if="selected === 'link'">
+  <div class="transaction-confirm">
+    <b-row v-if="selected === 'link'" class="confirm-box-link">
       <b-alert class="mb-3 mt-3" show variant="muted">
         <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
 
@@ -10,7 +10,7 @@
         </div>
       </b-alert>
     </b-row>
-    <b-row v-else>
+    <b-row v-else class="confirm-box-send">
       <b-col>
         <div class="display-4 pb-4">{{ $t('form.send_check') }}</div>
         <b-list-group class="">
@@ -79,19 +79,13 @@
         <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
       </b-col>
       <b-col class="text-right">
-        <b-button
-          variant="success"
-          :disabled="loading"
-          @click="
-            selected === 'send' ? $emit('send-transaction') : $emit('send-transaction-per-link')
-          "
-        >
+        <b-button variant="success" :disabled="loading" @click="$emit('send-transaction')">
           {{ selected === 'send' ? $t('form.send_now') : $t('form.generate_now') }}
         </b-button>
       </b-col>
     </b-row>
 
-    <b-alert class="mt-3" show v-show="selected === 'link'" variant="muted">
+    <b-alert class="mt-3 confirm-box-link" show v-if="selected === 'link'" variant="muted">
       <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
 
       <p>
@@ -118,20 +112,12 @@
 export default {
   name: 'TransactionConfirmation',
   props: {
-    balance: { type: Number, default: 0 },
-    email: { type: String, default: '' },
-    amount: { type: Number, default: 0 },
-    memo: { type: String, default: '' },
-    loading: { type: Boolean, default: false },
-    selected: { type: String, required: false },
-    transactions: {
-      default: () => [],
-    },
-  },
-  data() {
-    return {
-      decay: this.transactions[0].balance,
-    }
+    balance: { type: Number, default: 0, required: true },
+    email: { type: String, default: '', required: false },
+    amount: { type: Number, default: 0, required: true },
+    memo: { type: String, default: '', required: true },
+    loading: { type: Boolean, default: false, required: true },
+    selected: { type: String, default: 'send', required: true },
   },
 }
 </script>

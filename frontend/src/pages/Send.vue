@@ -8,14 +8,12 @@
         <template #transaction-confirmation>
           <transaction-confirmation
             :balance="balance"
-            :transactions="transactions"
             :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
             :loading="loading"
             @send-transaction="sendTransaction"
-            @send-transaction-per-link="sendTransactionPerLink"
             @on-reset="onReset"
           ></transaction-confirmation>
         </template>
@@ -36,7 +34,7 @@ import GddSend from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
 import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
 import TransactionResult from '@/components/GddSend/TransactionResult.vue'
-import { sendCoins, sendCoinsPerLink } from '@/graphql/mutations.js'
+import { sendCoins } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
   email: '',
@@ -84,26 +82,6 @@ export default {
       this.$apollo
         .mutate({
           mutation: sendCoins,
-          variables: this.transactionData,
-        })
-        .then(() => {
-          this.error = false
-          this.$emit('update-balance', this.transactionData.amount)
-        })
-        .catch((err) => {
-          this.errorResult = err.message
-          this.error = true
-        })
-      this.currentTransactionStep = 2
-      this.loading = false
-    },
-    async sendTransactionPerLink() {
-      alert('sendTransactionPerLink: TODO : lege sendCoinsPerLink als mutation an!')
-      this.loading = true
-      this.error = false
-      this.$apollo
-        .mutate({
-          mutation: sendCoinsPerLink,
           variables: this.transactionData,
         })
         .then(() => {
