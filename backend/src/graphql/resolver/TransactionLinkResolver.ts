@@ -66,7 +66,8 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
   async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+    console.log(code)
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code: code })
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
     return new TransactionLink(transactionLink, new User(user))
