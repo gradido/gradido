@@ -3,10 +3,10 @@
 
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
-import { Balance } from '../model/Balance'
-import { UserRepository } from '../../typeorm/repository/User'
-import { calculateDecay } from '../../util/decay'
-import { RIGHTS } from '../../auth/RIGHTS'
+import { Balance } from '@model/Balance'
+import { UserRepository } from '@repository/User'
+import { calculateDecay } from '@/util/decay'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 

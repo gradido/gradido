@@ -1,7 +1,7 @@
 import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { Transaction } from '@entity/Transaction'
-import { Order } from '../../graphql/enum/Order'
-import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
+import { Order } from '@enum/Order'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
 
 @EntityRepository(Transaction)
 export class TransactionRepository extends Repository<Transaction> {
