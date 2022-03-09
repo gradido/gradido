@@ -34,7 +34,7 @@ import GddSend from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
 import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
 import TransactionResult from '@/components/GddSend/TransactionResult.vue'
-import { sendCoins } from '@/graphql/mutations.js'
+import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
   email: '',
