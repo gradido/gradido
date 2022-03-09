@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository } from '@dbTools/typeorm'
+import { getCustomRepository, MoreThan } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
@@ -40,8 +40,6 @@ export class TransactionLinkResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByPubkeyHex(context.pubKey)
 
-    // validate amount
-    // TODO taken from transaction resolver, duplicate code
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
@@ -49,12 +47,23 @@ export class TransactionLinkResolver {
       calculateDecay(amount, createdDate, validUntil).decay.mul(-1),
     )
 
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
+    const openTransactionLinks = await dbTransactionLink.find({
+      select: ['holdAvailableAmount'],
+      where: { userId: user.id, redeemedAt: null, validUntil: MoreThan(createdDate) },
+    })
+
+    const holdAvailable = openTransactionLinks.reduce(
+      (previousValue, currentValue) =>
+        previousValue.add(currentValue.holdAvailableAmount.toString()),
+      holdAvailableAmount,
+    )
+
+    // validate amount
+    // TODO taken from transaction resolver, duplicate code
+    const sendBalance = await calculateBalance(user.id, holdAvailable.mul(-1), createdDate)
     if (!sendBalance) {
       throw new Error("user hasn't enough GDD or amount is < 0")
     }
-
-    // TODO!!!! Test balance for pending transaction links
 
     const transactionLink = dbTransactionLink.create()
     transactionLink.userId = user.id
