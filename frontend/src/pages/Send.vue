@@ -77,21 +77,36 @@ export default {
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
+      console.log('TESTETESTESTES')
       this.loading = true
       this.error = false
-      this.$apollo
-        .mutate({
-          mutation: sendCoins,
-          variables: this.transactionData,
-        })
-        .then(() => {
-          this.error = false
-          this.$emit('update-balance', this.transactionData.amount)
-        })
-        .catch((err) => {
-          this.errorResult = err.message
-          this.error = true
-        })
+      if (this.transactionData.selected === 'send') {
+        this.$apollo
+          .mutate({
+            mutation: sendCoins,
+            variables: this.transactionData,
+          })
+          .then(() => {
+            this.error = false
+            this.$emit('update-balance', this.transactionData.amount)
+          })
+          .catch((err) => {
+            this.errorResult = err.message
+            this.error = true
+          })
+      } else if (this.transactionData.selected === 'link') {
+        this.$apollo
+          .mutate({
+            mutation: createTransactionLink,
+            variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
+          })
+          .then((result) => {
+            console.log(result)
+          })
+          .catch((error) => {
+            this.toastError(error)
+          })
+      }
       this.currentTransactionStep = 2
       this.loading = false
     },
