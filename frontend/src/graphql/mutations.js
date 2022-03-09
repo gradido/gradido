@@ -61,3 +61,19 @@ export const sendCoins = gql`
     sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `
+
+export const createTransactionLink = gql`
+  mutation($amount: Decimal!, $memo: String!) {
+    createTransactionLink(amount: $amount, memo: $memo) {
+      code
+      id
+      validUntil
+      user {
+        email
+      }
+      memo
+      createdAt
+      validUntil
+    }
+  }
+`
