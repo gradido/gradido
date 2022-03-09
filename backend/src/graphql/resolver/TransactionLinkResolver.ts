@@ -11,20 +11,21 @@ import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
+import { calculateDecay } from '@/util/decay'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
   return (
-    randomBytes(48)
+    randomBytes(12)
       .toString('hex')
-      .substring(0, 96 - time.length) + time
+      .substring(0, 24 - time.length) + time
   )
 }
 
 const transactionLinkExpireDate = (date: Date): Date => {
-  // valid for 14 days
   const validUntil = new Date(date)
+  // valid for 14 days
   return new Date(validUntil.setDate(date.getDate() + 14))
 }
 
@@ -42,7 +43,13 @@ export class TransactionLinkResolver {
     // validate amount
     // TODO taken from transaction resolver, duplicate code
     const createdDate = new Date()
-    const sendBalance = await calculateBalance(user.id, amount.mul(-1), createdDate)
+    const validUntil = transactionLinkExpireDate(createdDate)
+
+    const holdAvailableAmount = amount.add(
+      calculateDecay(amount, createdDate, validUntil).decay.mul(-1),
+    )
+
+    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
     if (!sendBalance) {
       throw new Error("user hasn't enough GDD or amount is < 0")
     }
@@ -53,9 +60,10 @@ export class TransactionLinkResolver {
     transactionLink.userId = user.id
     transactionLink.amount = amount
     transactionLink.memo = memo
+    transactionLink.holdAvailableAmount = holdAvailableAmount
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
-    transactionLink.validUntil = transactionLinkExpireDate(createdDate)
+    transactionLink.validUntil = validUntil
     transactionLink.showEmail = showEmail
     await dbTransactionLink.save(transactionLink).catch((error) => {
       throw error
