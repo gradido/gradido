@@ -88,6 +88,7 @@ describe('GddTransactionList', () => {
 
     describe('with transactions', () => {
       beforeEach(async () => {
+        const decayStartBlock = new Date(2001, 8, 9)
         await wrapper.setProps({
           transactions: [
             {
@@ -103,9 +104,7 @@ describe('GddTransactionList', () => {
                 start: '2022-02-28T13:55:47',
                 end: '2022-03-03T08:54:54',
                 duration: 241147.02,
-                __typename: 'Decay',
               },
-              __typename: 'Transaction',
             },
             {
               id: 9,
@@ -117,16 +116,13 @@ describe('GddTransactionList', () => {
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
-                __typename: 'User',
               },
               decay: {
                 decay: '-0.2038314055482643084',
                 start: '2022-02-25T07:29:26',
                 end: '2022-02-28T13:55:47',
                 duration: 282381,
-                __typename: 'Decay',
               },
-              __typename: 'Transaction',
             },
             {
               id: 8,
@@ -138,16 +134,13 @@ describe('GddTransactionList', () => {
               linkedUser: {
                 firstName: 'Gradido',
                 lastName: 'Akademie',
-                __typename: 'User',
               },
               decay: {
                 decay: '-0.03517768386652623868',
                 start: '2022-02-23T10:55:30',
                 end: '2022-02-25T07:29:26',
                 duration: 160436,
-                __typename: 'Decay',
               },
-              __typename: 'Transaction',
             },
             {
               id: 6,
@@ -159,24 +152,22 @@ describe('GddTransactionList', () => {
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
-                __typename: 'User',
               },
               decay: {
                 decay: '0',
                 start: null,
                 end: null,
                 duration: null,
-                __typename: 'Decay',
               },
-              __typename: 'Transaction',
             },
           ],
           count: 12,
+          decayStartBlock,
         })
       })
 
       it('renders 4 transactions', () => {
-        expect(wrapper.findAll('div.list-group-item')).toHaveLength(3)
+        expect(wrapper.findAll('div.list-group-item')).toHaveLength(4)
       })
 
       describe('decay transactions', () => {
@@ -238,11 +229,12 @@ describe('GddTransactionList', () => {
           expect(transaction.findAll('svg').at(1).classes()).toContain('text-danger')
         })
 
-        // it('has a minus operator', () => {
-        //   expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
-        //     '-',
-        //   )
-        // })
+        // operators are renderd by GDD filter
+        it.skip('has a minus operator', () => {
+          expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
+            '-',
+          )
+        })
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
@@ -263,9 +255,9 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the date of the transaction', () => {
-          expect(
-            transaction.findAll('.gdd-transaction-list-item-date').at(0).text().substr(0, 24),
-          ).toContain('Mon Feb 28 2022 13:55:47')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Mon Feb 28 2022 13:55:47',
+          )
         })
 
         it('shows the decay calculation', () => {
@@ -293,7 +285,7 @@ describe('GddTransactionList', () => {
 
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-arrow-right-circle',
+            'bi-gift',
             'gradido-global-color-accent',
             'm-mb-1',
             'font2em',
@@ -308,7 +300,8 @@ describe('GddTransactionList', () => {
           )
         })
 
-        it('has a plus operator', () => {
+        // operators are renderd by GDD filter
+        it.skip('has a plus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
             '+',
           )
@@ -316,27 +309,27 @@ describe('GddTransactionList', () => {
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '10',
+            '1000',
           )
         })
 
         it('shows the name of the receiver', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Bibi Bloxberg',
+            'Gradido Akademie',
           )
         })
 
         it('shows the date of the transaction', () => {
-          expect(
-            transaction.findAll('.gdd-transaction-list-item-date').at(0).text().substr(0, 24),
-          ).toContain('Wed Feb 23 2022 10:55:30')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Fri Feb 25 2022 07:29:26',
+          )
         })
       })
 
       describe('receive transactions', () => {
         let transaction
         beforeEach(() => {
-          transaction = wrapper.findAll('div.list-group-item').at(2)
+          transaction = wrapper.findAll('div.list-group-item').at(3)
         })
 
         it('has a bi-caret-down-square icon', () => {
@@ -363,7 +356,8 @@ describe('GddTransactionList', () => {
           ])
         })
 
-        it('has a plus operator', () => {
+        // operators are renderd by GDD filter
+        it.skip('has a plus operator', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-operator').at(0).text()).toContain(
             '+',
           )
@@ -388,9 +382,9 @@ describe('GddTransactionList', () => {
         })
 
         it('shows the date of the transaction', () => {
-          expect(
-            transaction.findAll('.gdd-transaction-list-item-date').at(0).text().substr(0, 24),
-          ).toContain('Wed Feb 23 2022 10:55:30')
+          expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
+            'Wed Feb 23 2022 10:55:30',
+          )
         })
 
         it('shows the decay calculation', () => {
