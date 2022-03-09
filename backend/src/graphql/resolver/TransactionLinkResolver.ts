@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { Resolver, Args, Arg, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -66,5 +66,33 @@ export class TransactionLinkResolver {
     })
 
     return new TransactionLink(transactionLink, new User(user))
+  }
+
+  @Authorized([RIGHTS.DELETE_TRANSACTION_LINK])
+  @Mutation(() => Date, { nullable: true })
+  async deleteTransactionLink(
+    @Arg('id') id: number,
+    @Ctx() context: any,
+  ): Promise<Date | null | undefined> {
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+
+    const transactionLink = await dbTransactionLink.findOne({ id })
+    if (!transactionLink) {
+      throw new Error('Transaction Link not found!')
+    }
+
+    // TODO: admin can delete links?
+    if (transactionLink.userId !== user.id) {
+      throw new Error('Transaction Link cannot be deleted!')
+    }
+
+    if (transactionLink.redeemedBy) {
+      throw new Error('Transaction Link already redeemed!')
+    }
+
+    await transactionLink.softRemove()
+    const newLink = await dbTransactionLink.findOne({ id }, { withDeleted: true })
+    return newLink ? newLink.deletedAt : null
   }
 }
