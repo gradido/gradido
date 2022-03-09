@@ -23,10 +23,11 @@ export const transactionLinkCode = (date: Date): string => {
   )
 }
 
+const CODE_VALID_DAYS_DURATION = 14
+
 const transactionLinkExpireDate = (date: Date): Date => {
   const validUntil = new Date(date)
-  // valid for 14 days
-  return new Date(validUntil.setDate(date.getDate() + 14))
+  return new Date(validUntil.setDate(date.getDate() + CODE_VALID_DAYS_DURATION))
 }
 
 @Resolver()
@@ -60,8 +61,8 @@ export class TransactionLinkResolver {
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
     transactionLink.showEmail = showEmail
-    await dbTransactionLink.save(transactionLink).catch((error) => {
-      throw error
+    await dbTransactionLink.save(transactionLink).catch(() => {
+      throw new Error('Unable to save transaction link')
     })
 
     return new TransactionLink(transactionLink, new User(user))
