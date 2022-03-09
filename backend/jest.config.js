@@ -11,6 +11,7 @@ module.exports = {
     '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
+    '@test/(.*)': '<rootDir>/test/$1',
     '@entity/(.*)':
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/entity/$1'

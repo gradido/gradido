@@ -53,7 +53,8 @@
       "@entity/*": ["../database/entity/*"],
       "@enum/*": ["./src/graphql/enum/*"],
       "@model/*": ["./src/graphql/model/*"],
-      "@repository/*": ["./src/typeorm/repository/*"]
+      "@repository/*": ["./src/typeorm/repository/*"],
+      "@test/*": ["./test/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     // "typeRoots": [],                             /* List of folders to include type definitions from. */
