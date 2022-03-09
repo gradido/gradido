@@ -13,6 +13,9 @@ export class TransactionLink {
   @Field(() => Decimal)
   amount: Decimal
 
+  @Field(() => Decimal)
+  holdAvailableAmount: Decimal
+
   @Field(() => String)
   memo: string
 
