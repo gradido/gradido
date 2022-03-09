@@ -32,7 +32,6 @@
   </div>
 </template>
 <script>
-
 import GddSend from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
 import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
