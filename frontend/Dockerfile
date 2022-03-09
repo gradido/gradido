@@ -32,7 +32,7 @@ LABEL maintainer="support@ogradido.net"
 
 # Install Additional Software
 ## install: node-gyp dependencies
-RUN apk --no-cache add g++ make python
+RUN apk --no-cache add g++ make python3
 
 # Settings
 ## Expose Container Port
