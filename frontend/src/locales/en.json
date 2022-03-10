@@ -232,6 +232,11 @@
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },
+  "transaction-link": {
+    "button": "redeem",
+    "send_you": "wants to send you",
+    "subtitle": "subtitle"
+  },
   "transactions": "Transactions",
   "whitepaper": "Whitepaper"
 }

@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('transaction_links')
@@ -40,6 +40,9 @@ export class TransactionLink extends BaseEntity {
     nullable: false,
   })
   createdAt: Date
+
+  @DeleteDateColumn()
+  deletedAt?: Date | null
 
   @Column({
     type: 'datetime',

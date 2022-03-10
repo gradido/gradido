@@ -77,7 +77,6 @@ export default {
       this.currentTransactionStep = 1
     },
     async sendTransaction() {
-      console.log('TESTETESTESTES')
       this.loading = true
       this.error = false
       if (this.transactionData.selected === 'send') {
@@ -101,7 +100,7 @@ export default {
             variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
           })
           .then((result) => {
-            console.log(result)
+            alert(result)
           })
           .catch((error) => {
             this.toastError(error)

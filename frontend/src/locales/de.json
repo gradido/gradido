@@ -232,6 +232,11 @@
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },
+  "transaction-link": {
+    "button": "einlösen",
+    "send_you": "sendet dir",
+    "subtitle": "subtitle"
+  },
   "transactions": "Transaktionen",
   "whitepaper": "Whitepaper"
 }
