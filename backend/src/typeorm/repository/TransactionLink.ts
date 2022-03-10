@@ -4,13 +4,23 @@ import Decimal from 'decimal.js-light'
 
 @EntityRepository(dbTransactionLink)
 export class TransactionLinkRepository extends Repository<dbTransactionLink> {
-  async sumAmountToHoldAvailable(userId: number, date: Date): Promise<Decimal> {
-    const { sum } = await this.createQueryBuilder('transactionLinks')
-      .select('SUM(transactionLinks.holdAvailableAmount)', 'sum')
+  async sumAmounts(
+    userId: number,
+    date: Date,
+  ): Promise<{ sumHoldAvailableAmount: Decimal; sumAmount: Decimal }> {
+    const { sumHoldAvailableAmount, sumAmount } = await this.createQueryBuilder('transactionLinks')
+      .select('SUM(transactionLinks.holdAvailableAmount)', 'sumHoldAvailableAmount')
+      .addSelect('SUM(transactionLinks.amount)', 'sumAmount')
       .where('transactionLinks.userId = :userId', { userId })
       .andWhere('transactionLinks.redeemedAt is NULL')
       .andWhere('transactionLinks.validUntil > :date', { date })
+      .orderBy('transactionLinks.createdAt', 'DESC')
       .getRawOne()
-    return sum ? new Decimal(sum) : new Decimal(0)
+    return {
+      sumHoldAvailableAmount: sumHoldAvailableAmount
+        ? new Decimal(sumHoldAvailableAmount)
+        : new Decimal(0),
+      sumAmount: sumAmount ? new Decimal(sumAmount) : new Decimal(0),
+    }
   }
 }
