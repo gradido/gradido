@@ -46,11 +46,6 @@
     "total": "Total",
     "year": "Years"
   },
-  "transaction-link": {
-    "send_you":"wants to send you",
-    "subtitle":"subtitle",
-    "button":"redeem"
-  },
   "error": {
     "change-password": "Error while changing password",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -236,6 +231,11 @@
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
+  },
+  "transaction-link": {
+    "button": "redeem",
+    "send_you": "wants to send you",
+    "subtitle": "subtitle"
   },
   "transactions": "Transactions",
   "whitepaper": "Whitepaper"
