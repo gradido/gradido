@@ -46,6 +46,7 @@ import TypeIcon from '../TransactionRows/TypeIcon'
 import AmountAndName from '../TransactionRows/AmountAndName'
 import Memo from '../TransactionRows/Memo'
 import DateRow from '../TransactionRows/DateRow'
+import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
 import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
@@ -58,6 +59,7 @@ export default {
     AmountAndName,
     Memo,
     DateRow,
+    DecayRow,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
     DecayInformationDecayStartblock,
