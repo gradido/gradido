@@ -42,7 +42,7 @@ export class TransactionLink extends BaseEntity {
   createdAt: Date
 
   @DeleteDateColumn()
-  deletedAt?: Date | null
+  deletedAt: Date | null
 
   @Column({
     type: 'datetime',
@@ -54,8 +54,8 @@ export class TransactionLink extends BaseEntity {
     type: 'datetime',
     nullable: true,
   })
-  redeemedAt?: Date | null
+  redeemedAt: Date | null
 
   @Column({ type: 'int', unsigned: true, nullable: true })
-  redeemedBy?: number | null
+  redeemedBy: number | null
 }
