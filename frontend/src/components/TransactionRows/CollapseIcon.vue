@@ -1,5 +1,5 @@
 <template>
-  <div class="Collaps-Icon">
+  <div class="collapse-icon">
     <b-icon
       :icon="visible ? 'caret-up-square' : 'caret-down-square'"
       :class="visible ? 'text-black' : 'text-muted'"
@@ -8,6 +8,7 @@
 </template>
 <script>
 export default {
+  name: 'Collapse-Icon',
   props: {
     visible: {
       type: Boolean,

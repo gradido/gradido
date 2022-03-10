@@ -19,21 +19,10 @@
             <memo :memo="memo" />
 
             <!-- Datum -->
-            <date :balanceDate="balanceDate" />
+            <date-row :balanceDate="balanceDate" />
 
             <!-- Decay -->
-            <b-row v-if="decay">
-              <b-col cols="5">
-                <div class="text-right">
-                  <b-icon icon="droplet-half" height="15" class="mb-1" />
-                </div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-decay">
-                  <decay-information-short decaytyp="short" :decay="decay" />
-                </div>
-              </b-col>
-            </b-row>
+            <decay-row :decay="decay" />
           </b-col>
         </b-row>
       </div>
@@ -54,10 +43,9 @@
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndName from '../TransactionRows/AmountAndName.vue'
-import Memo from '../TransactionRows/Memo.vue'
-import Date from '../TransactionRows/Date.vue'
-import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
+import AmountAndName from '../TransactionRows/AmountAndName'
+import Memo from '../TransactionRows/Memo'
+import DateRow from '../TransactionRows/DateRow'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
 import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
@@ -69,8 +57,7 @@ export default {
     TypeIcon,
     AmountAndName,
     Memo,
-    Date,
-    DecayInformationShort,
+    DateRow,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
     DecayInformationDecayStartblock,

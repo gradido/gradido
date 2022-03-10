@@ -21,7 +21,7 @@ export default {
   name: 'AmountAndName',
   props: {
     amount: {
-      type: Number,
+      type: String,
     },
     linkedUser: {
       type: Object,
