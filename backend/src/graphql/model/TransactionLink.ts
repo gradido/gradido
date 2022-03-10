@@ -15,6 +15,7 @@ export class TransactionLink {
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.showEmail = transactionLink.showEmail
+    // Type 'Date | null | undefined' is not assignable to type 'Date | null'.
     this.deletedAt = null // transactionLink.deletedAt
     this.redeemedAt = null // transactionLink.redeemedAt
     this.redeemedBy = null // transactionLink.redeemedBy
