@@ -1,0 +1,20 @@
+<template>
+  <div class="type-icon">
+    <div class="gdd-transaction-list-item-icon">
+      <b-icon :icon="icon" :class="color" class="m-mb-1 font2em" />
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'Type-Icon',
+  props: {
+    icon: {
+      type: String,
+    },
+    color: {
+      type: String,
+    },
+  },
+}
+</script>

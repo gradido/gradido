@@ -2,56 +2,24 @@
   <div class="transaction-slot-send">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
-      <collaps-icon class="text-right" :visible="visible" />
+      <collapse-icon class="text-right" :visible="visible" />
 
       <div>
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <div class="gdd-transaction-list-item-icon">
-              <b-icon icon="arrow-left-circle" class="text-danger m-mb-1 font2em" />
-            </div>
+            <type-icon color="text-danger" icon="arrow-left-circle" />
           </b-col>
 
           <b-col cols="11">
-            <!-- Betrag / Name Email -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">
-                  <span class="gdd-transaction-list-item-amount">
-                    {{ amount | GDD }}
-                  </span>
-                </div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-name">
-                  {{ linkedUser.firstName + ' ' + linkedUser.lastName }}
-                </div>
-              </b-col>
-            </b-row>
+            <!-- Amount / Name  -->
+            <amount-and-name :amount="amount" :linkedUser="linkedUser" />
 
-            <!-- Nachricht Memo -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">{{ $t('form.memo') }}</div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-message">{{ memo }}</div>
-              </b-col>
-            </b-row>
+            <!-- Memo -->
+            <memo :memo="memo" />
 
             <!-- Datum -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">{{ $t('form.date') }}</div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-date">
-                  {{ $d(new Date(balanceDate), 'long') }}
-                  {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-                </div>
-              </b-col>
-            </b-row>
+            <date :balanceDate="balanceDate" />
 
             <!-- Decay -->
             <b-row v-if="decay">
@@ -84,7 +52,11 @@
   </div>
 </template>
 <script>
-import CollapsIcon from '../TransactionRows/CollapsIcon'
+import CollapseIcon from '../TransactionRows/CollapseIcon'
+import TypeIcon from '../TransactionRows/TypeIcon'
+import AmountAndName from '../TransactionRows/AmountAndName.vue'
+import Memo from '../TransactionRows/Memo.vue'
+import Date from '../TransactionRows/Date.vue'
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
@@ -92,7 +64,11 @@ import DecayInformationDecayStartblock from '../DecayInformations/DecayInformati
 export default {
   name: 'slot-send',
   components: {
-    CollapsIcon,
+    CollapseIcon,
+    TypeIcon,
+    AmountAndName,
+    Memo,
+    Date,
     DecayInformationShort,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
