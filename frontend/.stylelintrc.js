@@ -9,9 +9,9 @@ module.exports = {
       extends: ["stylelint-config-standard-scss"],
     },
     {
-        files: "**/*.vue",
-        customSyntax: "postcss-html",
-        extends: ["stylelint-config-recommended-vue"],
+      files: "**/*.vue",
+      customSyntax: "postcss-html",
+      extends: ["stylelint-config-recommended-vue"],
     }
   ]
 
