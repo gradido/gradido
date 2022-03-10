@@ -1,14 +1,13 @@
-
 // Bootstrap (4.5.3) functions
 
 @import "~bootstrap/scss/functions";
-
 @import "custom/variables";
-// @import "~bootstrap/scss/variables"; wird am 
+
+// @import "~bootstrap/scss/variables"; wird am
 // ende der custom/variables angehangen
- 
+
 // Bootstrap (4.5.3) mixins
-@import "~bootstrap/scss/mixins"; 
+@import "~bootstrap/scss/mixins";
 
 // Bootstrap (4.5.3) components
 
@@ -22,13 +21,16 @@
 @import "~bootstrap/scss/close";
 @import "~bootstrap/scss/code";
 @import "~bootstrap/scss/custom-forms";
-@import "~bootstrap/scss/dropdown";
+
+// @import "~bootstrap/scss/dropdown";
 @import "~bootstrap/scss/forms";
-@import "~bootstrap/scss/functions";
+
+// @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/grid";
 @import "~bootstrap/scss/input-group";
 @import "~bootstrap/scss/list-group";
-@import "~bootstrap/scss/mixins";
+
+// @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/modal";
 @import "~bootstrap/scss/nav";
 @import "~bootstrap/scss/navbar";
@@ -48,94 +50,111 @@
 @import "~bootstrap/scss/bootstrap";
 
 // Bootstrap-vue (2.21.1) scss
-@import '~bootstrap-vue/src/index.scss';
-
+@import "~bootstrap-vue/src/index";
 
 .alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-}
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
 }
 
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
 
 .b-toast-danger .toast .toast-header {
-    color: #721c24;
-    background-color: rgba(248,215,218,.85);
-    border-bottom-color: rgba(245,198,203,.85);
+  color: #721c24;
+  background-color: rgb(248 215 218 / 85%);
+  border-bottom-color: rgb(245 198 203 / 85%);
 }
-.b-toast-danger .toast .toast-body{
-    background-color: rgba(252,237,238,.85);
-    border-color: rgba(245,198,203,.85);
-    color: #721c24;
+
+.b-toast-danger .toast .toast-body {
+  background-color: rgb(252 237 238 / 85%);
+  border-color: rgb(245 198 203 / 85%);
+  color: #721c24;
 }
 
 .b-toast-success .toast .toast-header {
-    color: #155724;
-    background-color: rgba(212,237,218,.58);
-    border-bottom-color: rgba(195,230,203,.85);
-}
-.b-toast-success .toast .toast-body{
-    color: #155724;
-    background-color: rgba(212,237,218,.85);
-    border-bottom-color: rgba(195,230,203,.85);
+  color: #155724;
+  background-color: rgb(212 237 218 / 58%);
+  border-bottom-color: rgb(195 230 203 / 85%);
 }
 
+.b-toast-success .toast .toast-body {
+  color: #155724;
+  background-color: rgb(212 237 218 / 85%);
+  border-bottom-color: rgb(195 230 203 / 85%);
+}
 
-  .btn-primary pim {
-    background-color: #5a7b02;
-    border-color: #5e72e4;
-  }
-  a,
-  .copyright {
-    color: #5a7b02;
-  }
-  .font1_2em {
-    font-size: 1.2em;
-  }
-  .font2em {
-    font-size: 1.5em;
-  }
-  .gradido-global-color-text {
-    color: #3d443b;
-  }
-  .gradido-global-color-accent {
-    color: #047006;
-  }
-  .gradido-global-color-6e0a9c9e {
-    color: #000;
-  }
-  .gradido-global-color-2d0fb154 {
-    color: #047006;
-  }
-  .gradido-global-color-16efe88c {
-    color: #7ebc55;
-  }
-  .gradido-global-color-1939326 {
-    color: #f6fff6;
-  }
-  .gradido-global-color-9d79fc1 {
-    color: #047006;
-  }
-  .gradido-global-color-6347f4d {
-    color: #5a7b02;
-  }
-  .gradido-global-color-4fbc19a {
-    color: #014034;
-  }
-  .gradido-global-color-d341874 {
-    color: #b6d939;
-  }
-  .gradido-global-color-619d338 {
-    color: #8ebfb1;
-  }
-  .gradido-global-color-44819a9 {
-    color: #026873;
-  }
-  .gradido-global-color-gray {
-    color: #858383;
-  }
+// .btn-primary pim {
+.btn-primary {
+  background-color: #5a7b02;
+  border-color: #5e72e4;
+}
+
+a,
+.copyright {
+  color: #5a7b02;
+}
+
+.font12em {
+  font-size: 1.2em;
+}
+
+.font2em {
+  font-size: 1.5em;
+}
+
+.gradido-global-color-text {
+  color: #3d443b;
+}
+
+.gradido-global-color-accent {
+  color: #047006;
+}
+
+.gradido-global-color-6e0a9c9e {
+  color: #000;
+}
+
+.gradido-global-color-2d0fb154 {
+  color: #047006;
+}
+
+.gradido-global-color-16efe88c {
+  color: #7ebc55;
+}
+
+.gradido-global-color-1939326 {
+  color: #f6fff6;
+}
+
+.gradido-global-color-9d79fc1 {
+  color: #047006;
+}
+
+.gradido-global-color-6347f4d {
+  color: #5a7b02;
+}
+
+.gradido-global-color-4fbc19a {
+  color: #014034;
+}
+
+.gradido-global-color-d341874 {
+  color: #b6d939;
+}
+
+.gradido-global-color-619d338 {
+  color: #8ebfb1;
+}
+
+.gradido-global-color-44819a9 {
+  color: #026873;
+}
+
+.gradido-global-color-gray {
+  color: #858383;
+}
