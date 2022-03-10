@@ -68,7 +68,7 @@ $warning: $orange !default;
 $danger: $red !default;
 $light: $gray-500 !default;
 $dark: $gray-900 !default;
-$darker: color.adjust($gray-900, -15%) !default;
+$darker: color.adjust($gray-900, $lightness: -15%) !default;
 $facebook: #3b5999 !default;
 $twitter: #1da1f2 !default;
 $google-plus: #dd4b39 !default;

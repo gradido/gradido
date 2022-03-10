@@ -17,7 +17,7 @@ $input-border-radius-sm: $border-radius-sm !default;
 $input-bg: $white !default;
 $input-disabled-bg: $gray-200 !default;
 $input-muted-bg: #f7fafe !default;
-$input-focus-muted-bg: color.adjust($input-muted-bg, 1%) !default;
+$input-focus-muted-bg: color.adjust($input-muted-bg, $lightness: 1%) !default;
 $input-alternative-box-shadow: 0 1px 3px rgb(50 50 93 / 15%), 0 1px 0 rgb(0 0 0 / 2%) !default;
 $input-focus-alternative-box-shadow: 0 4px 6px rgb(50 50 93 / 11%),0 1px 3px rgb(0 0 0 / 8%) !default;
 $input-color: $gray-600 !default;
