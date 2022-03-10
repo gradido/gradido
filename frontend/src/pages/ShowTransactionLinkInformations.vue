@@ -7,12 +7,12 @@
           <div class="mb-5">resultDB : {{ resultDB }}</div>
           <p class="h1">
             {{ displaySetup.user.firstName }} {{ displaySetup.user.lastName }}
-            {{ $t('wants to send you') }} {{ displaySetup.amount | GDD }}
+            {{ $t('transaction-link.send_you') }} {{ displaySetup.amount | GDD }}
           </p>
-          <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
+          <p class="h4">{{ displaySetup.memo }}</p>
           <hr />
           <b-button v-if="displaySetup.linkTo" :to="displaySetup.linkTo">
-            {{ $t(displaySetup.button) }}
+            {{ $t('transaction-link.button') }}
           </b-button>
         </div>
       </b-container>
@@ -30,10 +30,12 @@ export default {
       displaySetup: {
         amount: '123456',
         linkTo: '',
+        memo: 'Test Memo, Test Memo von Ogerly, Test Memo von Ogerly für testuser',
         user: {
           publisherId: 1,
           firstName: 'testName',
           lastName: 'testOgerly',
+          email: 'test@example.de',
         },
       },
     }

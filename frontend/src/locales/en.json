@@ -46,6 +46,11 @@
     "total": "Total",
     "year": "Years"
   },
+  "transaction-link": {
+    "send_you":"wants to send you",
+    "subtitle":"subtitle",
+    "button":"redeem"
+  },
   "error": {
     "change-password": "Error while changing password",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",

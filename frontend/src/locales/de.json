@@ -46,6 +46,11 @@
     "total": "Gesamt",
     "year": "Jahre"
   },
+  "transaction-link": {
+    "send_you":"sendet dir",
+    "subtitle":"subtitle",
+    "button":"einlösen"
+  },
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
