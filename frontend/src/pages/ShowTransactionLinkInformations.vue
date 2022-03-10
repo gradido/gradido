@@ -50,7 +50,7 @@ export default {
     },
   },
   created() {
-    this.setDisplaySetup()
+    this.setTransactionLinkInformation()
   },
 }
 </script>
