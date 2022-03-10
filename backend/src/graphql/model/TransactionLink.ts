@@ -5,7 +5,7 @@ import { User } from './User'
 
 @ObjectType()
 export class TransactionLink {
-  constructor(transactionLink: dbTransactionLink, user: User) {
+  constructor(transactionLink: dbTransactionLink, user: User, redeemedBy: User | null = null) {
     this.id = transactionLink.id
     this.user = user
     this.amount = transactionLink.amount
@@ -15,10 +15,9 @@ export class TransactionLink {
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.showEmail = transactionLink.showEmail
-    // Type 'Date | null | undefined' is not assignable to type 'Date | null'.
-    this.deletedAt = null // transactionLink.deletedAt
-    this.redeemedAt = null // transactionLink.redeemedAt
-    this.redeemedBy = null // transactionLink.redeemedBy
+    this.deletedAt = transactionLink.deletedAt
+    this.redeemedAt = transactionLink.redeemedAt
+    this.redeemedBy = redeemedBy
   }
 
   @Field(() => Number)
