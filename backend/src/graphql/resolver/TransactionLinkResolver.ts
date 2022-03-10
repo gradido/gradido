@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Args, Authorized, Ctx, Mutation, Query, Arg } from 'type-graphql'
+import { Resolver, Args, Authorized, Ctx, Mutation, Query } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
