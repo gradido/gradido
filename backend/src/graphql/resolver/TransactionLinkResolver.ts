@@ -6,6 +6,7 @@ import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
+import QueryTransactionLinkArgs from '@arg/QueryTransactionLinkArgs'
 import { UserRepository } from '@repository/User'
 import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -71,14 +72,14 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
   async queryTransactionLink(
-    @Args() { code, redeemedByUserId }: QueryTransactionLinkArgs,
+    @Args() { code, redeemUserId }: QueryTransactionLinkArgs,
   ): Promise<TransactionLink> {
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
     let userRedeem = null
-    if (redeemedByUserId) {
-      const redeemedByUser = await userRepository.findOne({ id: redeemedByUserId })
+    if (redeemUserId) {
+      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
       if (redeemedByUser) userRedeem = new User(redeemedByUser)
     }
     return new TransactionLink(transactionLink, new User(user), userRedeem)
