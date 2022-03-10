@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -12,7 +12,7 @@
     "clean": "tsc --build --clean",
     "start": "node build/src/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "test": "TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "axios": "^0.21.1",
     "class-validator": "^0.13.1",
     "cors": "^2.8.5",
+    "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "graphql": "^15.5.1",
@@ -59,7 +60,12 @@
     "typescript": "^4.3.4"
   },
   "_moduleAliases": {
+    "@": "./src",
+    "@arg": "./src/graphql/arg",
+    "@dbTools": "../database/build/src",
     "@entity": "../database/build/entity",
-    "@dbTools": "../database/build/src"
+    "@enum": "./src/graphql/enum",
+    "@model": "./src/graphql/model",
+    "@repository": "./src/typeorm/repository"
   }
 }

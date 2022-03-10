@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { createTestClient } from 'apollo-server-testing'
-import createServer from '../../server/createServer'
-import CONFIG from '../../config'
+import createServer from '@/server/createServer'
+import CONFIG from '@/config'
 
-jest.mock('../../config')
+jest.mock('@/config')
 
 let query: any
 

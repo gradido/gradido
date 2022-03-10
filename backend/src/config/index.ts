@@ -1,10 +1,16 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
 import dotenv from 'dotenv'
+import Decimal from 'decimal.js-light'
 dotenv.config()
 
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
+
 const constants = {
-  DB_VERSION: '0024-combine_transaction_tables',
+  DB_VERSION: '0030-transaction_link',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 
@@ -59,7 +65,8 @@ const email = {
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/{code}',
+  EMAIL_LINK_SETPASSWORD:
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
   RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
 }
 

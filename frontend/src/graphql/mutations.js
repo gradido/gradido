@@ -57,7 +57,7 @@ export const createUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation($email: String!, $amount: Float!, $memo: String!) {
+  mutation($email: String!, $amount: Decimal!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
   }
 `

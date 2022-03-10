@@ -55,28 +55,26 @@ export const transactionsQuery = gql`
       order: $order
       onlyCreations: $onlyCreations
     ) {
-      gdtSum
+      balanceGDT
       count
       balance
-      decay
-      decayDate
+      decayStartBlock
       transactions {
-        type
+        id
+        typeId
+        amount
         balance
-        decayStart
-        decayEnd
-        decayDuration
+        balanceDate
         memo
-        transactionId
-        name
-        email
-        date
+        linkedUser {
+          firstName
+          lastName
+        }
         decay {
-          balance
-          decayStart
-          decayEnd
-          decayDuration
-          decayStartBlock
+          decay
+          start
+          end
+          duration
         }
       }
     }

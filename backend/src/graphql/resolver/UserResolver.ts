@@ -4,24 +4,24 @@
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
-import CONFIG from '../../config'
-import { User } from '../model/User'
+import CONFIG from '@/config'
+import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
-import { encode } from '../../auth/JWT'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
-import { klicktippNewsletterStateMiddleware } from '../../middleware/klicktippMiddleware'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../enum/Setting'
-import { UserRepository } from '../../typeorm/repository/User'
+import { encode } from '@/auth/JWT'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { UserSettingRepository } from '@repository/UserSettingRepository'
+import { Setting } from '@enum/Setting'
+import { UserRepository } from '@repository/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { klicktippSignIn } from '../../apis/KlicktippController'
-import { RIGHTS } from '../../auth/RIGHTS'
-import { ROLE_ADMIN } from '../../auth/ROLES'
-import { hasElopageBuys } from '../../util/hasElopageBuys'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '@/apis/KlicktippController'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_ADMIN } from '@/auth/ROLES'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
@@ -216,14 +216,8 @@ export class UserResolver {
     // TODO refactor and do not have duplicate code with login(see below)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const user = new User()
-    user.id = userEntity.id
-    user.email = userEntity.email
-    user.firstName = userEntity.firstName
-    user.lastName = userEntity.lastName
-    user.pubkey = userEntity.pubKey.toString('hex')
-    user.language = userEntity.language
-
+    const user = new User(userEntity)
+    // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -252,7 +246,7 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     })
     if (dbUser.deletedAt) {
-      throw new Error('This user was permanently disabled. Contact support for questions.')
+      throw new Error('This user was permanently deleted. Contact support for questions.')
     }
     if (!dbUser.emailChecked) {
       throw new Error('User email not validated')
@@ -271,12 +265,9 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     }
 
-    const user = new User()
-    user.id = dbUser.id
-    user.email = email
-    user.firstName = dbUser.firstName
-    user.lastName = dbUser.lastName
-    user.pubkey = dbUser.pubKey.toString('hex')
+    const user = new User(dbUser)
+    // user.email = email
+    // user.pubkey = dbUser.pubKey.toString('hex')
     user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId
@@ -335,7 +326,7 @@ export class UserResolver {
     }
 
     // Validate email unique
-    // TODO: i can register an email in upper/lower case twice
+    email = email.trim().toLowerCase()
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     if (userFound) {
@@ -408,6 +399,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email: email })
 
     const queryRunner = getConnection().createQueryRunner()
@@ -448,7 +440,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
-
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email })
 
     const optInCode = await getOptInCode(user.id)
@@ -600,6 +592,13 @@ export class UserResolver {
     }
 
     if (password && passwordNew) {
+      // Validate Password
+      if (!isPassword(passwordNew)) {
+        throw new Error(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
+      }
+
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
       const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
       if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
