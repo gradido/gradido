@@ -31,9 +31,6 @@ export class TransactionLink {
   @Field(() => Date)
   validUntil: Date
 
-  @Field(() => Boolean)
-  showEmail: boolean
-
   @Field(() => Date, { nullable: true })
   redeemedAt: Date | null
 
