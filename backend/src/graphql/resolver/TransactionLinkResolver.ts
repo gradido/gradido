@@ -69,11 +69,8 @@ export class TransactionLinkResolver {
   }
 
   @Authorized([RIGHTS.DELETE_TRANSACTION_LINK])
-  @Mutation(() => Date, { nullable: true })
-  async deleteTransactionLink(
-    @Arg('id') id: number,
-    @Ctx() context: any,
-  ): Promise<Date | null | undefined> {
+  @Mutation(() => Boolean)
+  async deleteTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByPubkeyHex(context.pubKey)
 
@@ -82,7 +79,6 @@ export class TransactionLinkResolver {
       throw new Error('Transaction Link not found!')
     }
 
-    // TODO: admin can delete links?
     if (transactionLink.userId !== user.id) {
       throw new Error('Transaction Link cannot be deleted!')
     }
@@ -91,8 +87,10 @@ export class TransactionLinkResolver {
       throw new Error('Transaction Link already redeemed!')
     }
 
-    await transactionLink.softRemove()
-    const newLink = await dbTransactionLink.findOne({ id }, { withDeleted: true })
-    return newLink ? newLink.deletedAt : null
+    await transactionLink.softRemove().catch(() => {
+      throw new Error('Transaction Link could not be deleted!')
+    })
+
+    return true
   }
 }
