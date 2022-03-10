@@ -19,7 +19,9 @@ $custom-control-indicator-checked-color: $component-active-color !default;
 $custom-control-indicator-checked-bg: $component-active-bg !default;
 $custom-control-indicator-checked-border-color: $component-active-border-color !default;
 $custom-control-indicator-checked-box-shadow: $custom-control-indicator-box-shadow !default;
-$custom-control-indicator-checked-disabled-bg: rgb(theme-color("primary") 0.5) !default;
+
+// $custom-control-indicator-checked-disabled-bg: rgb(theme-color("primary") 0.5) !default;
+$custom-control-indicator-checked-disabled-bg: theme-color("primary") !default;
 $custom-control-indicator-disabled-bg: $gray-200 !default;
 $custom-control-label-disabled-color: $gray-600 !default;
 $custom-checkbox-indicator-border-radius: $border-radius-sm !default;
