@@ -19,6 +19,7 @@ import { Order } from '@enum/Order'
 
 import { UserRepository } from '@repository/User'
 import { TransactionRepository } from '@repository/Transaction'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
@@ -127,9 +128,14 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
 
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const toHoldAvailable = await transactionLinkRepository.sumAmountToHoldAvailable(user.id, now)
+
     // Construct Result
     return new TransactionList(
-      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
+      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
+        toHoldAvailable.toString(),
+      ),
       transactions,
       userTransactionsCount,
       balanceGDT,

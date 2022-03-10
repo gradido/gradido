@@ -5,17 +5,19 @@ import { User } from './User'
 
 @ObjectType()
 export class TransactionLink {
-  constructor(transactionLink: dbTransactionLink, user: User) {
+  constructor(transactionLink: dbTransactionLink, user: User, redeemedBy: User | null = null) {
     this.id = transactionLink.id
     this.user = user
     this.amount = transactionLink.amount
+    this.holdAvailableAmount = transactionLink.holdAvailableAmount
     this.memo = transactionLink.memo
     this.code = transactionLink.code
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.showEmail = transactionLink.showEmail
-    this.redeemedAt = null
-    this.redeemedBy = null
+    this.deletedAt = transactionLink.deletedAt
+    this.redeemedAt = transactionLink.redeemedAt
+    this.redeemedBy = redeemedBy
   }
 
   @Field(() => Number)
