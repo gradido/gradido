@@ -1,4 +1,5 @@
 // Fonts
+@use "sass:math";
 
 $font-family-sans-serif: open sans, sans-serif !default;
 $font-family-base: $font-family-sans-serif !default;
@@ -20,7 +21,7 @@ $h3-font-size: $font-size-base * 1.0625 !default;
 $h4-font-size: $font-size-base * 0.9375 !default;
 $h5-font-size: $font-size-base * 0.8125 !default;
 $h6-font-size: $font-size-base * 0.625 !default;
-$headings-margin-bottom: ($spacer / 2);
+$headings-margin-bottom: (math.div($spacer, 2));
 $headings-font-family: inherit !default;
 $headings-font-weight: $font-weight-bold !default;
 $headings-line-height: 1.5 !default;
