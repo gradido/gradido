@@ -35,7 +35,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.CREATE_TRANSACTION_LINK])
   @Mutation(() => TransactionLink)
   async createTransactionLink(
-    @Args() { amount, memo, showEmail = false }: TransactionLinkArgs,
+    @Args() { amount, memo }: TransactionLinkArgs,
     @Ctx() context: any,
   ): Promise<TransactionLink> {
     const userRepository = getCustomRepository(UserRepository)
@@ -60,7 +60,6 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
-    transactionLink.showEmail = showEmail
     await dbTransactionLink.save(transactionLink).catch(() => {
       throw new Error('Unable to save transaction link')
     })
