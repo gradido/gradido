@@ -2,12 +2,7 @@
   <div class="transaction-slot-receive">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
-      <div class="text-right" style="width: 95%; position: absolute">
-        <b-icon
-          :icon="visible ? 'caret-up-square' : 'caret-down-square'"
-          :class="visible ? 'text-black' : 'text-muted'"
-        />
-      </div>
+      <collaps-icon class="text-right" :visible="visible" />
 
       <div>
         <b-row>
@@ -92,6 +87,7 @@
   </div>
 </template>
 <script>
+import CollapsIcon from '../TransactionRows/CollapsIcon'
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
@@ -100,6 +96,7 @@ import DecayInformationDecayStartblock from '../DecayInformations/DecayInformati
 export default {
   name: 'slot-receive',
   components: {
+    CollapsIcon,
     DecayInformationShort,
     DecayInformationLong,
     DecayInformationBeforeStartblock,
