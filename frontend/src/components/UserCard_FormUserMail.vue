@@ -1,5 +1,5 @@
 <template>
-  <b-card id="formusermail" class="bg-transparent" style="background-color: #ebebeba3 !important">
+  <b-card id="formusermail" class="bg-transparent gradido-custom-background">
     <b-container>
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
