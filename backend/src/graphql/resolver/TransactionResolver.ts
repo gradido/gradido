@@ -19,13 +19,14 @@ import { Order } from '@enum/Order'
 
 import { UserRepository } from '@repository/User'
 import { TransactionRepository } from '@repository/Transaction'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 
 import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { calculateBalance, isHexPublicKey, holdAvailable } from '@/util/validate'
+import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
@@ -127,7 +128,8 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
 
-    const toHoldAvailable = await holdAvailable(user.id, now)
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const toHoldAvailable = await transactionLinkRepository.sumAmountToHoldAvailable(user.id, now)
 
     // Construct Result
     return new TransactionList(

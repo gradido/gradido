@@ -15,9 +15,9 @@ export class TransactionLink {
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.showEmail = transactionLink.showEmail
-    this.deletedAt = transactionLink.deletedAt
-    this.redeemedAt = transactionLink.redeemedAt
-    this.redeemedBy = transactionLink.redeemedBy
+    this.deletedAt = null // transactionLink.deletedAt
+    this.redeemedAt = null // transactionLink.redeemedAt
+    this.redeemedBy = null // transactionLink.redeemedBy
   }
 
   @Field(() => Number)

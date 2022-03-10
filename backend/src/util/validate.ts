@@ -2,8 +2,8 @@ import { calculateDecay } from './decay'
 import Decimal from 'decimal.js-light'
 import { Transaction } from '@entity/Transaction'
 import { Decay } from '@model/Decay'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { MoreThan } from '@dbTools/typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -29,23 +29,13 @@ async function calculateBalance(
 
   // TODO why we have to use toString() here?
   const balance = decay.balance.add(amount.toString())
-  const toHoldAvailable = await holdAvailable(userId, time)
+  const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+  const toHoldAvailable = await transactionLinkRepository.sumAmountToHoldAvailable(userId, time)
+
   if (balance.minus(toHoldAvailable.toString()).lessThan(0)) {
     return null
   }
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-async function holdAvailable(userId: number, date: Date): Promise<Decimal> {
-  const openTransactionLinks = await dbTransactionLink.find({
-    select: ['holdAvailableAmount'],
-    where: { userId, redeemedAt: null, validUntil: MoreThan(date) },
-  })
-
-  return openTransactionLinks.reduce(
-    (previousValue, currentValue) => previousValue.add(currentValue.holdAvailableAmount.toString()),
-    new Decimal(0),
-  )
-}
-
-export { isHexPublicKey, calculateBalance, isStringBoolean, holdAvailable }
+export { isHexPublicKey, calculateBalance, isStringBoolean }
