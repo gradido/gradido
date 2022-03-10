@@ -40,6 +40,8 @@ const apolloLogPlugin = ApolloLogPlugin({
 })
 
 const plugins =
-  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, apolloLogPlugin]
+  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === '"development"'
+    ? [setHeadersPlugin]
+    : [setHeadersPlugin, apolloLogPlugin]
 
 export default plugins
