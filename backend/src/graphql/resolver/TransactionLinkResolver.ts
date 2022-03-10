@@ -78,9 +78,22 @@ export class TransactionLinkResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
     let userRedeem = null
-    if (redeemUserId) {
+    if (redeemUserId && !transactionLink.redeemedBy) {
       const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
-      if (redeemedByUser) userRedeem = new User(redeemedByUser)
+      if (!redeemedByUser) {
+        throw new Error('Unable to find user that redeem the link')
+      }
+      userRedeem = new User(redeemedByUser)
+      transactionLink.redeemedBy = userRedeem.id
+      await dbTransactionLink.save(transactionLink).catch(() => {
+        throw new Error('Unable to save transaction link')
+      })
+    } else if (transactionLink.redeemedBy) {
+      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
+      if (!redeemedByUser) {
+        throw new Error('Unable to find user that has redeemed the link')
+      }
+      userRedeem = new User(redeemedByUser)
     }
     return new TransactionLink(transactionLink, new User(user), userRedeem)
   }
