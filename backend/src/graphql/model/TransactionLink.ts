@@ -27,6 +27,9 @@ export class TransactionLink {
   @Field(() => Decimal)
   amount: Decimal
 
+  @Field(() => Decimal)
+  holdAvailableAmount: Decimal
+
   @Field(() => String)
   memo: string
 
@@ -35,6 +38,9 @@ export class TransactionLink {
 
   @Field(() => Date)
   createdAt: Date
+
+  @Field(() => Date, { nullable: true })
+  deletedAt: Date | null
 
   @Field(() => Date)
   validUntil: Date

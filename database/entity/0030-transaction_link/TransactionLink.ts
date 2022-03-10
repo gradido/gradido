@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('transaction_links')
@@ -19,22 +19,33 @@ export class TransactionLink extends BaseEntity {
   })
   amount: Decimal
 
+  @Column({
+    type: 'decimal',
+    name: 'hold_available_amount',
+    precision: 40,
+    scale: 20,
+    nullable: false,
+    transformer: DecimalTransformer,
+  })
+  holdAvailableAmount: Decimal
+
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
-  @Column({ length: 96, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
   code: string
 
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: false,
   })
   createdAt: Date
 
+  @DeleteDateColumn()
+  deletedAt?: Date | null
+
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: false,
   })
   validUntil: Date
@@ -48,7 +59,6 @@ export class TransactionLink extends BaseEntity {
 
   @Column({
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
     nullable: true,
   })
   redeemedAt?: Date | null
