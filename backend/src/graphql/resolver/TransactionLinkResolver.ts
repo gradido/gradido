@@ -12,7 +12,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
-^
+
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -70,10 +70,17 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
-  async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
+  async queryTransactionLink(
+    @Args() { code, redeemedByUserId }: QueryTransactionLinkArgs,
+  ): Promise<TransactionLink> {
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
-    return new TransactionLink(transactionLink, new User(user))
+    let userRedeem = null
+    if (redeemedByUserId) {
+      const redeemedByUser = await userRepository.findOne({ id: redeemedByUserId })
+      if (redeemedByUser) userRedeem = new User(redeemedByUser)
+    }
+    return new TransactionLink(transactionLink, new User(user), userRedeem)
   }
 }
