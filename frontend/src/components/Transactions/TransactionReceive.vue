@@ -28,14 +28,12 @@
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information-before-startblock v-if="decay.start === null" />
-        <decay-information-decay-startblock
-          v-else-if="isStartBlock"
-          :amount="amount"
-          :decay="decay"
+        <decay-information
           :typeId="typeId"
+          :decay="decay"
+          :amount="amount"
+          :decayStartBlock="decayStartBlock"
         />
-        <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
   </div>
@@ -47,9 +45,7 @@ import AmountAndName from '../TransactionRows/AmountAndName'
 import Memo from '../TransactionRows/Memo'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
-import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
-import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
-import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
+import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
   name: 'slot-receive',
@@ -60,9 +56,7 @@ export default {
     Memo,
     DateRow,
     DecayRow,
-    DecayInformationLong,
-    DecayInformationBeforeStartblock,
-    DecayInformationDecayStartblock,
+    DecayInformation,
   },
   props: {
     amount: {
