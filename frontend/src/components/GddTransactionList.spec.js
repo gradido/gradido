@@ -405,6 +405,7 @@ describe('GddTransactionList', () => {
         return {
           amount: '3.14',
           balanceDate: '2021-04-29T17:26:40+00:00',
+          decay: {},
           memo: 'Kreiszahl PI',
           linkedUser: {
             firstName: 'Bibi',
@@ -423,6 +424,7 @@ describe('GddTransactionList', () => {
           transactions,
           transactionCount: 42,
           showPagination: true,
+          decayStartBlock: new Date(),
         })
         paginationButtons = wrapper.find('div.pagination-buttons')
       })
