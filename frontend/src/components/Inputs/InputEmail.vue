@@ -43,7 +43,7 @@ export default {
   },
   data() {
     return {
-      currentValue: this.defaultValue !== null ? this.defaultValue : '',
+      currentValue: this.defaultValue !== undefined ? this.defaultValue : '',
     }
   },
   computed: {
