@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(16)
+        expect(routes).toHaveLength(17)
       })
 
       describe('overview', () => {

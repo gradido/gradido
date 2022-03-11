@@ -44,12 +44,14 @@ describe('Send', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
     })
 
+    /* SEND */
     describe('transaction form', () => {
       beforeEach(async () => {
         wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
+          selected: 'send',
         })
       })
       it('steps forward in the dialog', () => {
@@ -57,7 +59,7 @@ describe('Send', () => {
       })
     })
 
-    describe('confirm transaction', () => {
+    describe('confirm transaction if selected:send', () => {
       beforeEach(() => {
         wrapper.setData({
           currentTransactionStep: 1,
@@ -65,6 +67,7 @@ describe('Send', () => {
             email: 'user@example.org',
             amount: 23.45,
             memo: 'Make the best of it!',
+            selected: 'send',
           },
         })
       })
@@ -76,6 +79,7 @@ describe('Send', () => {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
+          selected: 'send',
         })
       })
 
@@ -94,6 +98,7 @@ describe('Send', () => {
                 email: 'user@example.org',
                 amount: 23.45,
                 memo: 'Make the best of it!',
+                selected: 'send',
               },
             }),
           )
@@ -128,6 +133,44 @@ describe('Send', () => {
           expect(wrapper.find('.test-receiver-not-found').text()).toContain(
             'transaction.receiverNotFound',
           )
+        })
+      })
+    })
+
+    /* LINK */
+    describe('transaction form', () => {
+      beforeEach(async () => {
+        wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
+          amount: 23.45,
+          memo: 'Make the best of it!',
+          selected: 'link',
+        })
+      })
+      it('steps forward in the dialog', () => {
+        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
+      })
+    })
+
+    describe('confirm transaction if selected:link', () => {
+      beforeEach(() => {
+        wrapper.setData({
+          currentTransactionStep: 1,
+          transactionData: {
+            amount: 23.45,
+            memo: 'Make the best of it!',
+            selected: 'link',
+          },
+        })
+      })
+
+      it('resets the transaction process when on-reset is emitted', async () => {
+        await wrapper.findComponent({ name: 'TransactionConfirmation' }).vm.$emit('on-reset')
+        expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
+        expect(wrapper.vm.transactionData).toEqual({
+          email: '',
+          amount: 23.45,
+          memo: 'Make the best of it!',
+          selected: 'link',
         })
       })
     })

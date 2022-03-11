@@ -79,32 +79,37 @@ export default {
     async sendTransaction() {
       this.loading = true
       this.error = false
-      if (this.transactionData.selected === 'send') {
-        this.$apollo
-          .mutate({
-            mutation: sendCoins,
-            variables: this.transactionData,
-          })
-          .then(() => {
-            this.error = false
-            this.$emit('update-balance', this.transactionData.amount)
-          })
-          .catch((err) => {
-            this.errorResult = err.message
-            this.error = true
-          })
-      } else if (this.transactionData.selected === 'link') {
-        this.$apollo
-          .mutate({
-            mutation: createTransactionLink,
-            variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
-          })
-          .then((result) => {
-            alert(result)
-          })
-          .catch((error) => {
-            this.toastError(error)
-          })
+      switch (this.transactionData.selected) {
+        case 'send':
+          this.$apollo
+            .mutate({
+              mutation: sendCoins,
+              variables: this.transactionData,
+            })
+            .then(() => {
+              this.error = false
+              this.$emit('update-balance', this.transactionData.amount)
+            })
+            .catch((err) => {
+              this.errorResult = err.message
+              this.error = true
+            })
+          break
+        case 'link':
+          this.$apollo
+            .mutate({
+              mutation: createTransactionLink,
+              variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
+            })
+            .then((result) => {
+              alert(result)
+            })
+            .catch((error) => {
+              this.toastError(error)
+            })
+          break
+        default:
+          throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
       }
       this.currentTransactionStep = 2
       this.loading = false
