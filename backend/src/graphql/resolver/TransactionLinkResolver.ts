@@ -15,7 +15,6 @@ import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
 import { executeTransaction } from './TransactionResolver'
-import { User as dbUser } from '@entity/User'
 import { Order } from '@enum/Order'
 
 // TODO: do not export, test it inside the resolver
