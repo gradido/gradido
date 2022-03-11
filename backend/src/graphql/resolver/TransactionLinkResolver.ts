@@ -13,7 +13,8 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
-import { TransactionResolver } from './TransactionResolver'
+import { executeTransaction } from './TransactionResolver'
+import { User as dbUser } from '@entity/User'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -130,10 +131,11 @@ export class TransactionLinkResolver {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByPubkeyHex(context.pubKey)
     const transactionLink = await dbTransactionLink.findOneOrFail({ id })
+    const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 
     const now = new Date()
 
-    if (user.id === transactionLink.userId) {
+    if (user.id === linkedUser.id) {
       throw new Error('Cannot redeem own transaction link.')
     }
 
@@ -145,16 +147,8 @@ export class TransactionLinkResolver {
       throw new Error('Transaction Link already redeemed.')
     }
 
-    const transactionResolver = new TransactionResolver()
-    transactionResolver.sendCoins(
-      {
-        email: user.email,
-        amount: transactionLink.amount,
-        memo: transactionLink.memo,
-        senderId: transactionLink.userId,
-      },
-      context,
-    )
+    await executeTransaction(transactionLink.amount, transactionLink.memo, linkedUser, user)
+
     transactionLink.redeemedAt = now
     transactionLink.redeemedBy = user.id
     transactionLink.save().catch(() => {
