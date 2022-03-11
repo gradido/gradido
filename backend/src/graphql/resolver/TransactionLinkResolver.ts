@@ -126,7 +126,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
   @Query(() => [TransactionLink])
   async listTransactionLinks(
-    @Arg('offset', { nullable: true }) offset: number = 0,
+    @Arg('offset', { nullable: true }) offset = 0,
     @Ctx() context: any,
   ): Promise<TransactionLink[]> {
     const userRepository = getCustomRepository(UserRepository)
