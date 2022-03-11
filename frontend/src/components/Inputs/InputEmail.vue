@@ -4,7 +4,6 @@
     :rules="rules"
     :name="name"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-    immediate
   >
     <b-form-group :label="label" :label-for="labelFor">
       <b-form-input
@@ -39,11 +38,10 @@ export default {
     label: { type: String, default: 'Email' },
     placeholder: { type: String, default: 'Email' },
     value: { required: true, type: String },
-    defaultValue: { type: String },
   },
   data() {
     return {
-      currentValue: this.defaultValue !== undefined ? this.defaultValue : '',
+      currentValue: '',
     }
   },
   computed: {
@@ -58,11 +56,6 @@ export default {
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
     },
-  },
-  mounted() {
-    if (this.defaultValue !== undefined) {
-      this.$emit('input', this.currentValue)
-    }
   },
 }
 </script>
