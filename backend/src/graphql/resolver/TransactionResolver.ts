@@ -116,7 +116,7 @@ export class TransactionResolver {
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
       await transactionLinkRepository.summary(user.id, now)
 
-    // decay transaction
+    // decay & link transactions
     if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
