@@ -99,14 +99,10 @@ export class TransactionLinkResolver {
   async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
-    let redeemedBy: dbUser | null = null
+    let redeemedBy: User | null = null
     if (transactionLink && transactionLink.redeemedBy) {
-      redeemedBy = await dbUser.findOneOrFail({ id: transactionLink.redeemedBy })
+      redeemedBy = new User(await dbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
     }
-    return new TransactionLink(
-      transactionLink,
-      new User(user),
-      redeemedBy ? new User(redeemedBy) : null,
-    )
+    return new TransactionLink(transactionLink, new User(user), redeemedBy)
   }
 }
