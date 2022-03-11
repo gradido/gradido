@@ -19,6 +19,7 @@ export default {
   data() {
     return {
       url: `http://localhost/redeem/${this.code}`,
+      err: 'asdasdsd',
     }
   },
   methods: {
@@ -29,7 +30,7 @@ export default {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
         .catch((err) => {
-          this.toastError(`${this.$t('gdd_per_link.link-copied')}: ${err}`)
+          this.toastError(this.$t('gdd_per_link.not-copied', { err }))
         })
     },
   },
