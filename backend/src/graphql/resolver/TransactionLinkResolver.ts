@@ -122,4 +122,10 @@ export class TransactionLinkResolver {
     }
     return new TransactionLink(transactionLink, new User(user), userRedeem)
   }
+
+  /*
+  @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
+  @Mutation(() => Boolean)
+  async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any)
+  */
 }
