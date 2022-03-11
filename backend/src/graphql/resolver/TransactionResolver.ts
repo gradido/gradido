@@ -145,12 +145,14 @@ export class TransactionResolver {
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => String)
   async sendCoins(
-    @Args() { email, amount, memo }: TransactionSendArgs,
+    @Args() { email, amount, memo, senderId = 0 }: TransactionSendArgs,
     @Ctx() context: any,
   ): Promise<boolean> {
     // TODO this is subject to replay attacks
     const userRepository = getCustomRepository(UserRepository)
-    const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const senderUser = senderId
+      ? await dbUser.findOneOrFail({ id: senderId })
+      : await userRepository.findByPubkeyHex(context.pubKey)
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }

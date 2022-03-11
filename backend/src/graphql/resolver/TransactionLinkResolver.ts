@@ -13,6 +13,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
+import { TransactionResolver } from './TransactionResolver'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -123,9 +124,43 @@ export class TransactionLinkResolver {
     return new TransactionLink(transactionLink, new User(user), userRedeem)
   }
 
-  /*
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
   @Mutation(() => Boolean)
-  async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any)
-  */
+  async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const transactionLink = await dbTransactionLink.findOneOrFail({ id })
+
+    const now = new Date()
+
+    if (user.id === transactionLink.userId) {
+      throw new Error('Cannot redeem own transaction link.')
+    }
+
+    if (transactionLink.validUntil.getTime() < now.getTime()) {
+      throw new Error('Transaction Link is not valid anymore.')
+    }
+
+    if (transactionLink.redeemedBy) {
+      throw new Error('Transaction Link already redeemed.')
+    }
+
+    const transactionResolver = new TransactionResolver()
+    transactionResolver.sendCoins(
+      {
+        email: user.email,
+        amount: transactionLink.amount,
+        memo: transactionLink.memo,
+        senderId: transactionLink.userId,
+      },
+      context,
+    )
+    transactionLink.redeemedAt = now
+    transactionLink.redeemedBy = user.id
+    transactionLink.save().catch(() => {
+      throw new Error('Could not update transaction link.')
+    })
+
+    return true
+  }
 }
