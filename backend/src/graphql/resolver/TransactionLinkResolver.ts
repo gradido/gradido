@@ -8,11 +8,13 @@ import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
 import { UserRepository } from '@repository/User'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
+import Paginated from '@arg/Paginated'
 import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
+import { Order } from '@enum/Order'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -109,8 +111,8 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
   @Query(() => [TransactionLink])
   async listTransactionLinks(
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-    @Arg('offset', { nullable: true }) offset: number = 0,
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionLink[]> {
     const userRepository = getCustomRepository(UserRepository)
@@ -123,10 +125,10 @@ export class TransactionLinkResolver {
         validUntil: MoreThan(now),
       },
       order: {
-        createdAt: 'DESC',
+        createdAt: order,
       },
-      skip: offset,
-      take: 5,
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
     })
     return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
   }
