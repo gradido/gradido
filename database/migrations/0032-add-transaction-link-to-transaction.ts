@@ -5,10 +5,10 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    'ALTER TABLE `transactions` ADD COLUMN `transactionLinkId` int UNSIGNED DEFAULT NULL;',
+    'ALTER TABLE `transactions` ADD COLUMN `transaction_link_id` int UNSIGNED DEFAULT NULL;',
   )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `transactionLinkId`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN `transaction_link_id`;')
 }
