@@ -1,5 +1,5 @@
 <template>
-  <div class="amount-and-name">
+  <div class="amount-and-name-row">
     <b-row>
       <b-col cols="5">
         <div class="text-right">
@@ -18,7 +18,7 @@
 </template>
 <script>
 export default {
-  name: 'Amount-And-Name',
+  name: 'AmountAndNameRow',
   props: {
     amount: {
       type: String,

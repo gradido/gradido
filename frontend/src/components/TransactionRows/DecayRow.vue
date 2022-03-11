@@ -17,7 +17,7 @@
 <script>
 import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
 export default {
-  name: 'Decay-Row',
+  name: 'DecayRow',
   components: {
     DecayInformationShort,
   },

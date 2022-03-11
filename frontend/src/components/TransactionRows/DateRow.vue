@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-rows-date">
+  <div class="date-row">
     <b-row>
       <b-col cols="5">
         <div class="text-right">{{ $t('form.date') }}</div>
@@ -15,7 +15,7 @@
 </template>
 <script>
 export default {
-  name: 'Transaction-Rows-Date',
+  name: 'DateRow',
   props: {
     balanceDate: {
       type: String,

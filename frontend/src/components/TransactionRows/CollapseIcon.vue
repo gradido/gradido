@@ -8,7 +8,7 @@
 </template>
 <script>
 export default {
-  name: 'Collapse-Icon',
+  name: 'CollapseIcon',
   props: {
     visible: {
       type: Boolean,

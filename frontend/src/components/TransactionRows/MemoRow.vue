@@ -12,7 +12,7 @@
 </template>
 <script>
 export default {
-  name: 'Memo-Row',
+  name: 'MemoRow',
   props: {
     memo: {
       type: String,

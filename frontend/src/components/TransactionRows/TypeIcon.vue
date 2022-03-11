@@ -7,7 +7,7 @@
 </template>
 <script>
 export default {
-  name: 'Type-Icon',
+  name: 'TypeIcon',
   props: {
     icon: {
       type: String,

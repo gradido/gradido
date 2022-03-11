@@ -12,7 +12,10 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name :amount="amount" :text="$t('decay.decay_since_last_transaction')" />
+            <amount-and-name-row
+              :amount="amount"
+              :text="$t('decay.decay_since_last_transaction')"
+            />
           </b-col>
         </b-row>
       </div>
@@ -26,7 +29,7 @@
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndName from '../TransactionRows/AmountAndName.vue'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
@@ -34,7 +37,7 @@ export default {
   components: {
     CollapseIcon,
     TypeIcon,
-    AmountAndName,
+    AmountAndNameRow,
     DecayInformationDecay,
   },
   props: {

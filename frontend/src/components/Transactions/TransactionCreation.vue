@@ -12,7 +12,7 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name :amount="amount" :linkedUser="linkedUser" />
+            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
 
             <!-- Nachricht Memo -->
             <memo-row :memo="memo" />
@@ -40,7 +40,7 @@
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndName from '../TransactionRows/AmountAndName'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
@@ -51,7 +51,7 @@ export default {
   components: {
     CollapseIcon,
     TypeIcon,
-    AmountAndName,
+    AmountAndNameRow,
     MemoRow,
     DateRow,
     DecayRow,
