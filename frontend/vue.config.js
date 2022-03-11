@@ -2,6 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
+const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
 
 // vue.config.js
 module.exports = {
@@ -38,6 +39,20 @@ module.exports = {
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
+      new HtmlWebpackPlugin({
+        vue: true,
+        template: 'public/index.html',
+        meta: {
+          title_de: process.env.META_TITLE_DE,
+          title_en: process.env.META_TITLE_EN,
+          description_de: process.env.META_DESCRIPTION_DE,
+          description_en: process.env.META_DESCRIPTION_EN,
+          keywords_de: process.env.META_KEYWORDS_DE,
+          keywords_en: process.env.META_KEYWORDS_EN,
+          author: process.env.META_AUTHOR,
+          url: process.env.META_URL,
+        },
+      }),
     ],
     infrastructureLogging: {
       level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'

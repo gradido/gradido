@@ -14364,6 +14364,19 @@ vue-hot-reload-api@^2.3.0:
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.3.4.tgz#532955cc1eb208a3d990b3a9f9a70574657e08f2"
   integrity sha512-BXq3jwIagosjgNVae6tkHzzIk6a8MHFtzAdwhnV5VlvPTFxDCvIttgSiHWjdGoTJvXtmRu5HacExfdarRcFhog==
 
+vue-html-webpack-plugin@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/vue-html-webpack-plugin/-/vue-html-webpack-plugin-3.2.2.tgz#df1499f05bcdf22c2e7040fa760fb0f5de66beea"
+  integrity sha512-C1qz9hxxrzvPSkpr59GHY8oh0U6TUuKYkhRg47pcYoq8D7JQKDGON8xsI6LYudVKGowcPj8GulfdHsp0Cc1gJA==
+  dependencies:
+    html-minifier "^3.2.3"
+    loader-utils "^0.2.16"
+    lodash "^4.17.3"
+    pretty-error "^2.0.2"
+    tapable "^1.0.0"
+    toposort "^1.0.0"
+    util.promisify "1.0.0"
+
 vue-i18n-extract@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/vue-i18n-extract/-/vue-i18n-extract-1.0.2.tgz#0a136e12d1634d6799e187aad81a7003d02f67a5"
