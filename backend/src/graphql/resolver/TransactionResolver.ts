@@ -30,7 +30,7 @@ import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
-import { virtualDecayTransaction } from '@/util/virtualDecayTransaction'
+import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
 
@@ -112,11 +112,29 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    // decay transaction
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+      await transactionLinkRepository.summary(user.id, now)
+
+    // decay & link transactions
     if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
+      // virtual transaction for pending transaction-links sum
+      if (sumHoldAvailableAmount.greaterThan(0)) {
+        transactions.push(
+          virtualLinkTransaction(
+            lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
+            sumAmount,
+            sumHoldAvailableAmount,
+            sumHoldAvailableAmount.minus(sumAmount.toString()),
+            firstDate || now,
+            lastDate || now,
+            self,
+          ),
+        )
+      }
     }
 
     // transactions
@@ -128,13 +146,10 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
 
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const toHoldAvailable = await transactionLinkRepository.sumAmountToHoldAvailable(user.id, now)
-
     // Construct Result
     return new TransactionList(
       calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
-        toHoldAvailable.toString(),
+        sumHoldAvailableAmount.toString(),
       ),
       transactions,
       userTransactionsCount,
