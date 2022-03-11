@@ -4,6 +4,7 @@
     :rules="rules"
     :name="name"
     v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
+    immediate
   >
     <b-form-group :label="label" :label-for="labelFor">
       <b-form-input
@@ -57,6 +58,11 @@ export default {
     value() {
       if (this.value !== this.currentValue) this.currentValue = this.value
     },
+  },
+  mounted() {
+    if (this.defaultValue !== undefined) {
+      this.$emit('input', this.currentValue)
+    }
   },
 }
 </script>
