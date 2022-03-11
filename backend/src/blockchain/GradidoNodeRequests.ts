@@ -1,5 +1,5 @@
 import CONFIG from '../config'
-import { RpcClient } from 'jsonrpc-ts'
+import { RpcClient, RpcError } from 'jsonrpc-ts'
 import { randomInt } from 'crypto'
 
 interface GroupDetails {
@@ -11,6 +11,8 @@ interface GroupDetails {
 enum GradidoNodeErrorCodes {
   JSON_RPC_ERROR_GRADIDO_NODE_ERROR = -10000,
   JSON_RPC_ERROR_UNKNOWN_GROUP = -10001,
+  // default json rpc error codes
+  JSON_RPC_ERROR_INVALID_PARAMS = -32602,
 }
 
 // we have a service that can do math,
@@ -24,20 +26,24 @@ async function isCommunityAliasExisting(communityAlias: string): Promise<boolean
   const rpcClient = new RpcClient<GradidoNodeService>({ url: CONFIG.GRADIDO_NODE_API_URL })
   // now you have a strongly typed methods.
   // try to change [3, 2] to ['3', '2'] and the typescript compiler will catch you !
-  const response = await rpcClient.makeRequest({
-    method: 'getgroupdetails',
-    params: { groupAlias: communityAlias },
-    id: randomInt(10000),
-    jsonrpc: '2.0',
-  })
-  const error = response.data.error
-  if (error) {
-    if (error.code === GradidoNodeErrorCodes.JSON_RPC_ERROR_UNKNOWN_GROUP) {
-      return false
+  try {
+    const response = await rpcClient.makeRequest({
+      method: 'getgroupdetails',
+      params: { groupAlias: communityAlias },
+      id: randomInt(10000),
+      jsonrpc: '2.0',
+    })
+    return true
+  } catch (e) {
+    if (e instanceof RpcError) {
+      if (e.getCode() === GradidoNodeErrorCodes.JSON_RPC_ERROR_UNKNOWN_GROUP) {
+        return false
+      }
+      throw Error(e.message)
+    } else {
+      throw e
     }
-    throw Error(error.message)
   }
-  return true
 }
 
 export { isCommunityAliasExisting }
