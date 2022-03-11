@@ -1,16 +1,16 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.6.1",
+  "version": "1.6.6",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
     "serve": "vue-cli-service serve --open",
     "build": "vue-cli-service build",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
-    "lint": "eslint --ext .js,.vue .",
+    "lint": "eslint --max-warnings=0 --ext .js,.vue .",
     "dev": "yarn run serve",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
-    "test": "jest --coverage",
+    "test": "TZ=UTC jest --coverage",
     "locales": "scripts/missing-keys.sh && scripts/sort.sh"
   },
   "dependencies": {
@@ -62,7 +62,6 @@
     "vue-qrcode": "^0.3.5",
     "vue-qrcode-reader": "^2.3.16",
     "vue-router": "^3.0.6",
-    "vue-toasted": "^1.1.28",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
     "vuex-persistedstate": "^4.0.0-beta.3"

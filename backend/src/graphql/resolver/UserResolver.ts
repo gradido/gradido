@@ -3,25 +3,25 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, getRepository, QueryRunner } from '@dbTools/typeorm'
-import CONFIG from '../../config'
-import { User } from '../model/User'
+import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
+import CONFIG from '@/config'
+import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
-import { encode } from '../../auth/JWT'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
-import { klicktippNewsletterStateMiddleware } from '../../middleware/klicktippMiddleware'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../enum/Setting'
-import { UserRepository } from '../../typeorm/repository/User'
+import { encode } from '@/auth/JWT'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { UserSettingRepository } from '@repository/UserSettingRepository'
+import { Setting } from '@enum/Setting'
+import { UserRepository } from '@repository/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { klicktippSignIn } from '../../apis/KlicktippController'
-import { RIGHTS } from '../../auth/RIGHTS'
-import { ROLE_ADMIN } from '../../auth/ROLES'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '@/apis/KlicktippController'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_ADMIN } from '@/auth/ROLES'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
@@ -152,8 +152,7 @@ const createEmailOptIn = async (
   loginUserId: number,
   queryRunner: QueryRunner,
 ): Promise<LoginEmailOptIn> => {
-  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-  let emailOptIn = await loginEmailOptInRepository.findOne({
+  let emailOptIn = await LoginEmailOptIn.findOne({
     userId: loginUserId,
     emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
   })
@@ -182,8 +181,7 @@ const createEmailOptIn = async (
 }
 
 const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
-  const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-  let optInCode = await loginEmailOptInRepository.findOne({
+  let optInCode = await LoginEmailOptIn.findOne({
     userId: loginUserId,
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
@@ -205,7 +203,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     optInCode.userId = loginUserId
     optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
   }
-  await loginEmailOptInRepository.save(optInCode)
+  await LoginEmailOptIn.save(optInCode)
   return optInCode
 }
 
@@ -218,14 +216,8 @@ export class UserResolver {
     // TODO refactor and do not have duplicate code with login(see below)
     const userRepository = getCustomRepository(UserRepository)
     const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const user = new User()
-    user.id = userEntity.id
-    user.email = userEntity.email
-    user.firstName = userEntity.firstName
-    user.lastName = userEntity.lastName
-    user.pubkey = userEntity.pubKey.toString('hex')
-    user.language = userEntity.language
-
+    const user = new User(userEntity)
+    // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -250,9 +242,12 @@ export class UserResolver {
     @Ctx() context: any,
   ): Promise<User> {
     email = email.trim().toLowerCase()
-    const dbUser = await DbUser.findOneOrFail({ email }).catch(() => {
+    const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
       throw new Error('No user with this credentials')
     })
+    if (dbUser.deletedAt) {
+      throw new Error('This user was permanently deleted. Contact support for questions.')
+    }
     if (!dbUser.emailChecked) {
       throw new Error('User email not validated')
     }
@@ -270,12 +265,9 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     }
 
-    const user = new User()
-    user.id = dbUser.id
-    user.email = email
-    user.firstName = dbUser.firstName
-    user.lastName = dbUser.lastName
-    user.pubkey = dbUser.pubKey.toString('hex')
+    const user = new User(dbUser)
+    // user.email = email
+    // user.pubkey = dbUser.pubKey.toString('hex')
     user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId
@@ -334,10 +326,10 @@ export class UserResolver {
     }
 
     // Validate email unique
-    // TODO: i can register an email in upper/lower case twice
-    const userRepository = getCustomRepository(UserRepository)
-    const usersFound = await userRepository.count({ email })
-    if (usersFound !== 0) {
+    email = email.trim().toLowerCase()
+    // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
+    const userFound = await DbUser.findOne({ email }, { withDeleted: true })
+    if (userFound) {
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
       throw new Error(`User already exists.`)
     }
@@ -407,6 +399,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email: email })
 
     const queryRunner = getConnection().createQueryRunner()
@@ -447,7 +440,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
     // TODO: this has duplicate code with createUser
-
+    email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email })
 
     const optInCode = await getOptInCode(user.id)
@@ -487,12 +480,9 @@ export class UserResolver {
     }
 
     // Load code
-    const loginEmailOptInRepository = await getRepository(LoginEmailOptIn)
-    const optInCode = await loginEmailOptInRepository
-      .findOneOrFail({ verificationCode: code })
-      .catch(() => {
-        throw new Error('Could not login with emailVerificationCode')
-      })
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
+      throw new Error('Could not login with emailVerificationCode')
+    })
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
@@ -602,6 +592,13 @@ export class UserResolver {
     }
 
     if (password && passwordNew) {
+      // Validate Password
+      if (!isPassword(passwordNew)) {
+        throw new Error(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
+      }
+
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
       const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
       if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
@@ -661,7 +658,6 @@ export class UserResolver {
       return false
     }
 
-    const elopageBuyCount = await LoginElopageBuys.count({ payerEmail: userEntity.email })
-    return elopageBuyCount > 0
+    return hasElopageBuys(userEntity.email)
   }
 }

@@ -15,30 +15,32 @@ export default {
     return {
       fields: [
         {
-          key: 'date',
+          key: 'creationDate',
           label: this.$t('transactionlist.date'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
         },
         {
-          key: 'balance',
+          key: 'amount',
           label: this.$t('transactionlist.amount'),
           formatter: (value, key, item) => {
             return `${value} GDD`
           },
         },
-        { key: 'name', label: this.$t('transactionlist.community') },
+        {
+          key: 'linkedUser',
+          label: this.$t('transactionlist.community'),
+          formatter: (value, key, item) => {
+            return `${value.firstName} ${value.lastName}`
+          },
+        },
         { key: 'memo', label: this.$t('transactionlist.memo') },
         {
-          key: 'decay',
-          label: this.$t('transactionlist.decay'),
+          key: 'balanceDate',
+          label: this.$t('transactionlist.balanceDate'),
           formatter: (value, key, item) => {
-            if (value && value.balance >= 0) {
-              return value.balance
-            } else {
-              return '0'
-            }
+            return this.$d(new Date(value))
           },
         },
       ],
@@ -59,10 +61,10 @@ export default {
           },
         })
         .then((result) => {
-          this.items = result.data.transactionList.transactions.filter((t) => t.type === 'creation')
+          this.items = result.data.transactionList.transactions
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
   },

@@ -12,8 +12,8 @@
   </div>
 </template>
 <script>
-import locales from '../locales/'
-import { updateUserInfos } from '../graphql/mutations'
+import locales from '@/locales/'
+import { updateUserInfos } from '@/graphql/mutations'
 
 export default {
   name: 'LanguageSwitch',

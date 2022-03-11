@@ -1,55 +1,70 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 import { Decay } from './Decay'
-
-// we need a better solution for the decay block:
-// the first transaction on the first page shows the decay since the last transaction
-// the format is actually a Decay and not a Transaction.
-// Therefore we have a lot of nullable fields, which should be always present
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { User } from './User'
 
 @ObjectType()
 export class Transaction {
-  constructor() {
-    this.type = ''
-    this.balance = 0
-    this.totalBalance = 0
-    this.memo = ''
+  constructor(transaction: dbTransaction, user: User, linkedUser: User | null = null) {
+    this.id = transaction.id
+    this.user = user
+    this.previous = transaction.previous
+    this.typeId = transaction.typeId
+    this.amount = transaction.amount
+    this.balance = transaction.balance
+    this.balanceDate = transaction.balanceDate
+    if (!transaction.decayStart) {
+      this.decay = new Decay(transaction.balance, new Decimal(0), null, null, null)
+    } else {
+      this.decay = new Decay(
+        transaction.balance,
+        transaction.decay,
+        transaction.decayStart,
+        transaction.balanceDate,
+        Math.round((transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000),
+      )
+    }
+    this.memo = transaction.memo
+    this.creationDate = transaction.creationDate
+    this.linkedUser = linkedUser
+    this.linkedTransactionId = transaction.linkedTransactionId
   }
 
-  @Field(() => String)
-  type: string
-
   @Field(() => Number)
-  balance: number
+  id: number
 
-  @Field(() => Number)
-  totalBalance: number
+  @Field(() => User)
+  user: User
 
-  @Field({ nullable: true })
-  decayStart?: string
+  @Field(() => Number, { nullable: true })
+  previous: number | null
 
-  @Field({ nullable: true })
-  decayEnd?: string
+  @Field(() => TransactionTypeId)
+  typeId: TransactionTypeId
 
-  @Field({ nullable: true })
-  decayDuration?: number
+  @Field(() => Decimal)
+  amount: Decimal
+
+  @Field(() => Decimal)
+  balance: Decimal
+
+  @Field(() => Date)
+  balanceDate: Date
+
+  @Field(() => Decay)
+  decay: Decay
 
   @Field(() => String)
   memo: string
 
+  @Field(() => Date, { nullable: true })
+  creationDate: Date | null
+
+  @Field(() => User, { nullable: true })
+  linkedUser: User | null
+
   @Field(() => Number, { nullable: true })
-  transactionId?: number
-
-  @Field({ nullable: true })
-  name?: string
-
-  @Field({ nullable: true })
-  email?: string
-
-  @Field({ nullable: true })
-  date?: string
-
-  @Field({ nullable: true })
-  decay?: Decay
+  linkedTransactionId?: number | null
 }

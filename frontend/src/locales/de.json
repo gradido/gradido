@@ -21,6 +21,7 @@
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "decay": {
+    "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "calculation_total": "Berechnung der Gesamtsumme",
     "created": "Geschöpft",
@@ -29,15 +30,16 @@
     "decayStart": " - Startblock für Vergänglichkeit am: ",
     "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "first_transaction": "Die erste Transaktion beinhaltet keine Vergänglichkeit.",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
     "minutes": "Minuten",
     "months": "Monate",
     "noDecay": "Keine Vergänglichkeit",
     "past_time": "Vergangene Zeit",
-    "received": "Empfangen",
+    "receive": "Empfangen",
     "seconds": "Sekunden",
-    "sent": "Gesendet",
+    "send": "Gesendet",
     "since_introduction": "seit Einführung der Vergänglichkeit",
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "toCommunity": "An die Gemeinschaft",
@@ -109,6 +111,7 @@
     "funding": "Zu den Förderbeiträgen",
     "gdt-received": "GradidoTransform (GDT) erhalten",
     "no-transactions": "Du hast noch keine GradidoTransform (GDT).",
+    "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
@@ -209,11 +212,13 @@
       "title": "Danke!"
     }
   },
+  "success": "Erfolg",
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
     "gdt-text": "GradidoTransform Transaktionen",
     "more": "mehr",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },

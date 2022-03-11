@@ -1,17 +1,20 @@
 <template>
   <div class="creation-confirm">
-    <user-table
+    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
+      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
+    </div>
+    <open-creations-table
       class="mt-4"
-      type="PageCreationConfirm"
-      :itemsUser="pendingCreations"
-      :fieldsTable="fields"
+      :items="pendingCreations"
+      :fields="fields"
       @remove-creation="removeCreation"
-      @confirm-creation="confirmCreation"
+      @show-overlay="showOverlay"
     />
   </div>
 </template>
 <script>
-import UserTable from '../components/UserTable.vue'
+import Overlay from '../components/Overlay.vue'
+import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { getPendingCreations } from '../graphql/getPendingCreations'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
@@ -19,11 +22,14 @@ import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 export default {
   name: 'CreationConfirm',
   components: {
-    UserTable,
+    OpenCreationsTable,
+    Overlay,
   },
   data() {
     return {
       pendingCreations: [],
+      overlay: false,
+      item: {},
     }
   },
   methods: {
@@ -37,26 +43,28 @@ export default {
         })
         .then((result) => {
           this.updatePendingCreations(item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_delete'))
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
-    confirmCreation(item) {
+    confirmCreation() {
       this.$apollo
         .mutate({
           mutation: confirmPendingCreation,
           variables: {
-            id: item.id,
+            id: this.item.id,
           },
         })
         .then((result) => {
-          this.updatePendingCreations(item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_created'))
+          this.overlay = false
+          this.updatePendingCreations(this.item.id)
+          this.toastSuccess(this.$t('creation_form.toasted_created'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.overlay = false
+          this.toastError(error.message)
         })
     },
     getPendingCreations() {
@@ -71,29 +79,33 @@ export default {
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     updatePendingCreations(id) {
       this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
     },
+    showOverlay(item) {
+      this.overlay = true
+      this.item = item
+    },
   },
   computed: {
     fields() {
       return [
-        { key: 'bookmark', label: 'löschen' },
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Vorname' },
-        { key: 'lastName', label: 'Nachname' },
+        { key: 'bookmark', label: this.$t('delete') },
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
         {
           key: 'amount',
-          label: 'Schöpfung',
+          label: this.$t('creation'),
           formatter: (value) => {
             return value + ' GDD'
           },
         },
-        { key: 'memo', label: 'Text' },
+        { key: 'memo', label: this.$t('text') },
         {
           key: 'date',
           label: this.$t('date'),
@@ -101,9 +113,9 @@ export default {
             return this.$d(new Date(value), 'short')
           },
         },
-        { key: 'moderator', label: 'Moderator' },
-        { key: 'edit_creation', label: 'ändern' },
-        { key: 'confirm', label: 'speichern' },
+        { key: 'moderator', label: this.$t('moderator') },
+        { key: 'edit_creation', label: this.$t('edit') },
+        { key: 'confirm', label: this.$t('save') },
       ]
     },
   },
@@ -112,3 +124,20 @@ export default {
   },
 }
 </script>
+<style>
+#overlay {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-left: 5%;
+  background-color: rgba(12, 11, 11, 0.781);
+  z-index: 1000000;
+  cursor: pointer;
+}
+</style>

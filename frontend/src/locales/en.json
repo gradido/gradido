@@ -21,6 +21,7 @@
     "switch-to-this-community": "Switch to this community"
   },
   "decay": {
+    "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
     "created": "Created",
@@ -29,15 +30,16 @@
     "decayStart": " - Starting block for decay at: ",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
+    "first_transaction": "The first transaction does not include decay.",
     "hours": "Hours",
     "last_transaction": "Last transaction:",
     "minutes": "Minutes",
     "months": "Months",
     "noDecay": "No Decay",
     "past_time": "Time passed",
-    "received": "Received",
+    "receive": "Received",
     "seconds": "Seconds",
-    "sent": "Sent",
+    "send": "Sent",
     "since_introduction": "Since the introduction of Decay",
     "Starting_block_decay": "Starting Block Decay",
     "toCommunity": "To the community",
@@ -109,6 +111,7 @@
     "funding": "To the funding contributions",
     "gdt-received": "GradidoTransform (GDT) received",
     "no-transactions": "You do not have GradidoTransform (GDT) yet.",
+    "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
@@ -209,11 +212,13 @@
       "title": "Thank you!"
     }
   },
+  "success": "Success",
   "transaction": {
     "gdd-text": "Gradido Transactions",
     "gdt-text": "GradidoTransform Transactions",
     "more": "more",
     "nullTransactions": "You don't have any transactions on your account yet.",
+    "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },

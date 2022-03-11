@@ -5,6 +5,9 @@
  * account is set as not yet activated
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Generate a random private key where the required data is present (pubkey + password + passphrase).
   // Furthermore the email needs to be confirmed
@@ -23,6 +26,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  return [] // cannot undelete things
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // cannot undelete things
 }

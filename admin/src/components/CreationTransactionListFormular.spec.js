@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import CreationTransactionListFormular from './CreationTransactionListFormular.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -8,41 +9,25 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
     transactionList: {
       transactions: [
         {
-          type: 'creation',
-          balance: 100,
-          decayStart: 0,
-          decayEnd: 0,
-          decayDuration: 0,
+          id: 1,
+          amount: 100,
+          balanceDate: 0,
+          creationDate: new Date(),
           memo: 'Testing',
-          transactionId: 1,
-          name: 'Gradido Akademie',
-          email: 'bibi@bloxberg.de',
-          date: new Date(),
-          decay: {
-            balance: 0.01,
-            decayStart: 0,
-            decayEnd: 0,
-            decayDuration: 0,
-            decayStartBlock: 0,
+          linkedUser: {
+            firstName: 'Gradido',
+            lastName: 'Akademie',
           },
         },
         {
-          type: 'creation',
-          balance: 200,
-          decayStart: 0,
-          decayEnd: 0,
-          decayDuration: 0,
+          id: 2,
+          amount: 200,
+          balanceDate: 0,
+          creationDate: new Date(),
           memo: 'Testing 2',
-          transactionId: 2,
-          name: 'Gradido Akademie',
-          email: 'bibi@bloxberg.de',
-          date: new Date(),
-          decay: {
-            balance: 0.01,
-            decayStart: 0,
-            decayEnd: 0,
-            decayDuration: 0,
-            decayStartBlock: 0,
+          linkedUser: {
+            firstName: 'Gradido',
+            lastName: 'Akademie',
           },
         },
       ],
@@ -50,16 +35,11 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
   },
 })
 
-const toastedErrorMock = jest.fn()
-
 const mocks = {
   $d: jest.fn((t) => t),
   $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
   },
 }
 
@@ -109,7 +89,7 @@ describe('CreationTransactionListFormular', () => {
       })
 
       it('toast error', () => {
-        expect(toastedErrorMock).toBeCalledWith('OUCH!')
+        expect(toastErrorSpy).toBeCalledWith('OUCH!')
       })
     })
   })

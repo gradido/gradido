@@ -2,20 +2,23 @@ import Faker from 'faker'
 import { define } from 'typeorm-seeding'
 import { Transaction } from '../../entity/Transaction'
 import { TransactionContext } from '../interface/TransactionContext'
-import { randomBytes } from 'crypto'
+import Decimal from 'decimal.js-light'
 
 define(Transaction, (faker: typeof Faker, context?: TransactionContext) => {
-  if (!context) context = {}
+  if (!context) {
+    throw new Error('TransactionContext not well defined.')
+  }
 
   const transaction = new Transaction()
-  transaction.transactionTypeId = context.transactionTypeId ? context.transactionTypeId : 2
-  transaction.txHash = context.txHash ? context.txHash : randomBytes(48)
-  transaction.memo = context.memo || context.memo === '' ? context.memo : faker.lorem.sentence()
-  transaction.received = context.received ? context.received : new Date()
-  transaction.signature = context.signature ? context.signature : randomBytes(64)
-  transaction.pubkey = context.signaturePubkey ? context.signaturePubkey : randomBytes(32)
-  if (context.transactionSendCoin) transaction.transactionSendCoin = context.transactionSendCoin
-  if (context.transactionCreation) transaction.transactionCreation = context.transactionCreation
+  transaction.typeId = context.typeId // || 2
+  transaction.userId = context.userId
+  transaction.amount = context.amount
+  transaction.balance = context.balance
+  transaction.decay = new Decimal(0) // context.decay
+  transaction.memo = context.memo
+  transaction.creationDate = context.creationDate || new Date()
+  // transaction.sendReceiverPublicKey = context.sendReceiverPublicKey || null
+  transaction.linkedUserId = context.sendReceiverUserId || null
 
   return transaction
 })

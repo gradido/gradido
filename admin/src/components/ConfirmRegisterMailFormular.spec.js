@@ -1,20 +1,16 @@
 import { mount } from '@vue/test-utils'
 import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
 
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue()
-const toastSuccessMock = jest.fn()
-const toastErrorMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
   $apollo: {
     mutate: apolloMutateMock,
-  },
-  $toasted: {
-    success: toastSuccessMock,
-    error: toastErrorMock,
   },
 }
 
@@ -54,7 +50,7 @@ describe('ConfirmRegisterMailFormular', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastSuccessMock).toBeCalledWith('unregister_mail.success')
+        expect(toastSuccessSpy).toBeCalledWith('unregister_mail.success')
       })
     })
 
@@ -66,7 +62,7 @@ describe('ConfirmRegisterMailFormular', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('unregister_mail.error')
+        expect(toastErrorSpy).toBeCalledWith('unregister_mail.error')
       })
     })
   })

@@ -1,9 +1,13 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div v-if="checked">{{ $t('unregister_mail.text_true', { date: dateLastSend }) }}</div>
+      <div v-if="checked">{{ $t('unregister_mail.text_true') }}</div>
       <div v-else>
-        {{ $t('unregister_mail.text_false', { date: dateLastSend, mail: email }) }}
+        {{
+          dateLastSend === ''
+            ? $t('unregister_mail.never_sent', { email })
+            : $t('unregister_mail.text_false', { date: dateLastSend, email })
+        }}
 
         <!-- Using components -->
         <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
@@ -44,10 +48,10 @@ export default {
           },
         })
         .then(() => {
-          this.$toasted.success(this.$t('unregister_mail.success', { email: this.email }))
+          this.toastSuccess(this.$t('unregister_mail.success', { email: this.email }))
         })
         .catch((error) => {
-          this.$toasted.error(this.$t('unregister_mail.error', { message: error.message }))
+          this.toastError(this.$t('unregister_mail.error', { message: error.message }))
         })
     },
   },

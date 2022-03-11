@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* MIGRATION TO COPY LOGIN_SERVER DATA
  *
  * This migration copies all existing data from the `login_server` database (`gradido_login`)
@@ -11,6 +8,9 @@
  *       Manual export and import of the database will be required then.
  * NOTE: This migration does not delete the data when downgrading!
  */
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const LOGIN_SERVER_DB = 'gradido_login'
 
@@ -62,6 +62,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   `)
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // TODO NO EMPTY FUNCTION
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // EMPTY FUNCTION
 }

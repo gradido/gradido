@@ -17,11 +17,10 @@
             </b-input-group-text>
           </b-input-group-append>
         </b-input-group>
-        <user-table
+        <select-users-table
           v-if="itemsList.length > 0"
-          type="UserListSearch"
-          :itemsUser="itemsList"
-          :fieldsTable="Searchfields"
+          :items="itemsList"
+          :fields="Searchfields"
           @push-item="pushItem"
         />
         <b-pagination
@@ -41,11 +40,10 @@
               {{ $t('remove_all') }}
             </b-button>
           </div>
-          <user-table
+          <selected-users-table
             class="shadow p-3 mb-5 bg-white rounded"
-            type="UserListMassCreation"
-            :itemsUser="itemsMassCreation"
-            :fieldsTable="fields"
+            :items="itemsMassCreation"
+            :fields="fields"
             @remove-item="removeItem"
           />
         </div>
@@ -58,6 +56,7 @@
           :creation="creation"
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmarks"
+          @toast-failed-creations="toastFailedCreations"
         />
       </b-col>
     </b-row>
@@ -65,7 +64,8 @@
 </template>
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
-import UserTable from '../components/UserTable.vue'
+import SelectUsersTable from '../components/Tables/SelectUsersTable.vue'
+import SelectedUsersTable from '../components/Tables/SelectedUsersTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
 import { creationMonths } from '../mixins/creationMonths'
 
@@ -74,7 +74,8 @@ export default {
   mixins: [creationMonths],
   components: {
     CreationFormular,
-    UserTable,
+    SelectUsersTable,
+    SelectedUsersTable,
   },
   data() {
     return {
@@ -118,7 +119,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     pushItem(selectedItem) {
@@ -143,6 +144,11 @@ export default {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
+    },
+    toastFailedCreations(failedCreations) {
+      failedCreations.forEach((email) =>
+        this.toastError(this.$t('creation_form.creation_failed', { email })),
+      )
     },
   },
   computed: {

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import EditCreationFormular from './EditCreationFormular.vue'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -16,8 +17,6 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
 })
 
 const stateCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -36,10 +35,6 @@ const mocks = {
       },
     },
     commit: stateCommitMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -142,7 +137,7 @@ describe('EditCreationFormular', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_update')
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_update')
         })
       })
 
@@ -155,7 +150,7 @@ describe('EditCreationFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })
