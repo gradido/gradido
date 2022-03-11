@@ -56,4 +56,3 @@ export default {
   mixins: [getCommunityInfoMixin],
 }
 </script>
-<style></style>
