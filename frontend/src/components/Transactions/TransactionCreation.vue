@@ -3,7 +3,6 @@
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
       <collapse-icon class="text-right" :visible="visible" />
-
       <div>
         <b-row>
           <!-- ICON  -->
