@@ -12,6 +12,7 @@ export default {
   props: {
     visible: {
       type: Boolean,
+      required: true,
     },
   },
 }

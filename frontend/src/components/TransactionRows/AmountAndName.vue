@@ -10,7 +10,7 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-name">
-          {{ linkedUser ? linkedUser.firstName + ' ' + linkedUser.lastName : text }}
+          {{ itemText }}
         </div>
       </b-col>
     </b-row>
@@ -18,16 +18,26 @@
 </template>
 <script>
 export default {
-  name: 'AmountAndName',
+  name: 'Amount-And-Name',
   props: {
     amount: {
       type: String,
+      required: true,
     },
     linkedUser: {
       type: Object,
+      required: false,
     },
     text: {
       type: String,
+      required: false,
+    },
+  },
+  computed: {
+    itemText() {
+      return this.linkedUser
+        ? this.linkedUser.firstName + ' ' + this.linkedUser.lastName
+        : this.text
     },
   },
 }

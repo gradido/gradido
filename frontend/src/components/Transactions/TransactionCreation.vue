@@ -16,7 +16,7 @@
             <amount-and-name :amount="amount" :linkedUser="linkedUser" />
 
             <!-- Nachricht Memo -->
-            <memo :memo="memo" />
+            <memo-row :memo="memo" />
 
             <!-- Datum -->
             <date-row :balanceDate="balanceDate" />
@@ -42,7 +42,7 @@
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import TypeIcon from '../TransactionRows/TypeIcon'
 import AmountAndName from '../TransactionRows/AmountAndName'
-import Memo from '../TransactionRows/Memo'
+import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
@@ -53,7 +53,7 @@ export default {
     CollapseIcon,
     TypeIcon,
     AmountAndName,
-    Memo,
+    MemoRow,
     DateRow,
     DecayRow,
     DecayInformation,

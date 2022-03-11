@@ -1,5 +1,5 @@
 <template>
-  <div class="memo">
+  <div class="memo-row">
     <b-row>
       <b-col cols="5">
         <div class="text-right">{{ $t('form.memo') }}</div>
@@ -12,10 +12,11 @@
 </template>
 <script>
 export default {
-  name: 'Memo',
+  name: 'Memo-Row',
   props: {
     memo: {
       type: String,
+      required: false,
     },
   },
 }

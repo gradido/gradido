@@ -19,6 +19,7 @@ export default {
   props: {
     balanceDate: {
       type: String,
+      required: true,
     },
   },
 }

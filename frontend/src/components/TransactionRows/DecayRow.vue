@@ -24,6 +24,7 @@ export default {
   props: {
     decay: {
       type: Object,
+      required: false,
     },
   },
 }
