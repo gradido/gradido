@@ -122,7 +122,7 @@ export class TransactionResolver {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
-      // open transaction link sum transaction
+      // virtual transaction for pending transaction-links sum 
       if (sumHoldAvailableAmount.greaterThan(0)) {
         transactions.push(
           virtualLinkTransaction(
