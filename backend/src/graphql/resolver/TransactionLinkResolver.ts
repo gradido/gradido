@@ -158,6 +158,7 @@ export class TransactionLinkResolver {
 
     await executeTransaction(transactionLink.amount, transactionLink.memo, linkedUser, user)
 
+    // TODO: Rollback transaction when updating links fails
     transactionLink.redeemedAt = now
     transactionLink.redeemedBy = user.id
     transactionLink.save().catch(() => {
