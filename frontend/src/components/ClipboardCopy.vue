@@ -19,7 +19,6 @@ export default {
   data() {
     return {
       url: `http://localhost/redeem/${this.code}`,
-      err: 'asdasdsd',
     }
   },
   methods: {
