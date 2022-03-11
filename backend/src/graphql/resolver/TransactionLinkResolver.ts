@@ -109,6 +109,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
   @Query(() => [TransactionLink])
   async listTransactionLinks(
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
     @Arg('offset', { nullable: true }) offset: number = 0,
     @Ctx() context: any,
   ): Promise<TransactionLink[]> {
