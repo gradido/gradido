@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query } from 'type-graphql'
-import { getCustomRepository, MoreThan } from '@dbTools/typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -117,12 +117,12 @@ export class TransactionLinkResolver {
   ): Promise<TransactionLink[]> {
     const userRepository = getCustomRepository(UserRepository)
     const user = await userRepository.findByPubkeyHex(context.pubKey)
-    const now = new Date()
+    // const now = new Date()
     const transactionLinks = await dbTransactionLink.find({
       where: {
         userId: user.id,
         redeemedBy: null,
-        validUntil: MoreThan(now),
+        // validUntil: MoreThan(now),
       },
       order: {
         createdAt: order,
