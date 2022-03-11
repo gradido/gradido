@@ -11,7 +11,6 @@ $grid-breakpoints: (
 @include _assert-ascending($grid-breakpoints, "$grid-breakpoints");
 @include _assert-starts-at-zero($grid-breakpoints);
 
-
 // Grid containers
-//
+
 // Define the maximum width of `.container` for different screen sizes.

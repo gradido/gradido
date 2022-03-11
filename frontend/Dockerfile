@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:12.19.0-alpine3.10 as base
+FROM node:16-alpine3.14 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -31,8 +31,8 @@ LABEL org.label-schema.schema-version="1.0"
 LABEL maintainer="support@ogradido.net"
 
 # Install Additional Software
-## install: git
-#RUN apk --no-cache add git
+## install: node-gyp dependencies
+RUN apk --no-cache add g++ make python3
 
 # Settings
 ## Expose Container Port
