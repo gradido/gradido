@@ -28,6 +28,11 @@ const createMockObject = (comingFrom) => {
           comingFrom,
         },
       },
+      $store: {
+        state: {
+          email: undefined,
+        },
+      },
     },
     stubs,
   }
