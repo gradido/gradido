@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Args, Authorized, Ctx, Mutation, Query } from 'type-graphql'
+import { Resolver, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
-import QueryTransactionLinkArgs from '@arg/QueryTransactionLinkArgs'
 import { UserRepository } from '@repository/User'
 import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -67,34 +66,5 @@ export class TransactionLinkResolver {
     })
 
     return new TransactionLink(transactionLink, new User(user))
-  }
-
-  @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
-  @Query(() => TransactionLink)
-  async queryTransactionLink(
-    @Args() { code, redeemUserId }: QueryTransactionLinkArgs,
-  ): Promise<TransactionLink> {
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
-    let userRedeem = null
-    if (redeemUserId && !transactionLink.redeemedBy) {
-      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
-      if (!redeemedByUser) {
-        throw new Error('Unable to find user that redeem the link')
-      }
-      userRedeem = new User(redeemedByUser)
-      transactionLink.redeemedBy = userRedeem.id
-      await dbTransactionLink.save(transactionLink).catch(() => {
-        throw new Error('Unable to save transaction link')
-      })
-    } else if (transactionLink.redeemedBy) {
-      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
-      if (!redeemedByUser) {
-        throw new Error('Unable to find user that has redeemed the link')
-      }
-      userRedeem = new User(redeemedByUser)
-    }
-    return new TransactionLink(transactionLink, new User(user), userRedeem)
   }
 }
