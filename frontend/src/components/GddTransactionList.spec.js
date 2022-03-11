@@ -285,14 +285,24 @@ describe('GddTransactionList', () => {
 
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-gift',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
             'gradido-global-color-accent',
           ])
         })
 
         it('has gradido-global-color-accent color', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain(
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-gift',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
             'gradido-global-color-accent',
-          )
+          ])
         })
 
         // operators are renderd by GDD filter
@@ -342,6 +352,11 @@ describe('GddTransactionList', () => {
 
         it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-arrow-right-circle',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
             'gradido-global-color-accent',
           ])
         })
