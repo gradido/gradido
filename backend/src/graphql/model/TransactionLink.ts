@@ -14,7 +14,6 @@ export class TransactionLink {
     this.code = transactionLink.code
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
-    this.showEmail = transactionLink.showEmail
     this.deletedAt = transactionLink.deletedAt
     this.redeemedAt = transactionLink.redeemedAt
     this.redeemedBy = redeemedBy
@@ -46,9 +45,6 @@ export class TransactionLink {
 
   @Field(() => Date)
   validUntil: Date
-
-  @Field(() => Boolean)
-  showEmail: boolean
 
   @Field(() => Date, { nullable: true })
   redeemedAt: Date | null
