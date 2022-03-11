@@ -156,14 +156,13 @@ export class TransactionLinkResolver {
       throw new Error('Transaction Link already redeemed.')
     }
 
-    await executeTransaction(transactionLink.amount, transactionLink.memo, linkedUser, user)
-
-    // TODO: Rollback transaction when updating links fails
-    transactionLink.redeemedAt = now
-    transactionLink.redeemedBy = user.id
-    transactionLink.save().catch(() => {
-      throw new Error('Could not update transaction link.')
-    })
+    await executeTransaction(
+      transactionLink.amount,
+      transactionLink.memo,
+      linkedUser,
+      user,
+      transactionLink,
+    )
 
     return true
   }

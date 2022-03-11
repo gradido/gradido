@@ -23,6 +23,7 @@ import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 
 import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -39,6 +40,7 @@ export const executeTransaction = async (
   memo: string,
   sender: dbUser,
   recipient: dbUser,
+  transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   if (sender.id === recipient.id) {
     throw new Error('Sender and Recipient are the same.')
@@ -67,6 +69,7 @@ export const executeTransaction = async (
     transactionSend.decay = sendBalance.decay.decay
     transactionSend.decayStart = sendBalance.decay.start
     transactionSend.previous = sendBalance.lastTransactionId
+    transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
     await queryRunner.manager.insert(dbTransaction, transactionSend)
 
     const transactionReceive = new dbTransaction()
@@ -82,11 +85,22 @@ export const executeTransaction = async (
     transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = transactionSend.id
+    transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
 
     // Save linked transaction id for send
     transactionSend.linkedTransactionId = transactionReceive.id
     await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
+
+    if (transactionLink) {
+      transactionLink.redeemedAt = receivedCallDate
+      transactionLink.redeemedBy = recipient.id
+      await queryRunner.manager.update(
+        dbTransactionLink,
+        { id: transactionLink.id },
+        transactionLink,
+      )
+    }
 
     await queryRunner.commitTransaction()
   } catch (e) {
