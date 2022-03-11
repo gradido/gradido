@@ -31,13 +31,8 @@
       <b-col>
         <b-card class="p-0 gradido-custom-background">
           <div class="p-4">
-            {{ $t('form.thx') }}
-            <hr />
-            Der Link wurde erstellt!
-            <br />
-            linkResult: {{ linkResult }}
-            <br />
-            <h2>http://localhost/redeem/{{ linkResult.code }}</h2>
+            <div class="h3 mb-5">{{ $t('gdd_per_link.created') }}</div>
+            <clipboard-copy :code="linkResult.code" />
           </div>
           <p class="text-center mt-3">
             <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
@@ -62,9 +57,15 @@
   </b-container>
 </template>
 <script>
+import ClipboardCopy from '../ClipboardCopy.vue'
+
 export default {
   name: 'TransactionResult',
+  components: {
+    ClipboardCopy,
+  },
   props: {
+    selected: { type: String },
     linkResult: {
       type: Object,
       required: false,

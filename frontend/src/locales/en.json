@@ -101,6 +101,10 @@
     "your_amount": "Your amount"
   },
   "gdd_per_link": {
+    "created":"Link Is Created!",
+    "copy":"copy",
+    "link-copied":"Link copied to clipboard",
+    "dont-copied":"Link kann nicht kopiert werden",
     "header": "Send Gradidos by link",
     "sentence_1": "Select an amount that you would like to send via a link. You can also enter a message. Click 'Generate now' to create a link that you can send.",
     "sentence_2": "The link is valid for 14 days!",

@@ -16,12 +16,12 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <b-alert class="mt-3" v-show="selected === 'link'" show variant="muted">
+            <div class="mt-4" v-show="selected === 'link'">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
-              <p>
+              <div>
                 {{ $t('gdd_per_link.sentence_1') }}
-              </p>
-            </b-alert>
+              </div>
+            </div>
 
             <div>
               <validation-provider
@@ -34,7 +34,7 @@
                 }"
                 v-slot="{ errors }"
               >
-                <label class="input-1 mt-5" for="input-1">{{ $t('form.recipient') }}</label>
+                <label class="input-1 mt-4" for="input-1">{{ $t('form.recipient') }}</label>
                 <b-input-group
                   id="input-group-1"
                   class="border border-default"

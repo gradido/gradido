@@ -52,6 +52,7 @@
 // Bootstrap-vue (2.21.1) scss
 @import "~bootstrap-vue/src/index";
 
+
 .alert-success {
   color: #155724;
   background-color: #d4edda;
@@ -92,6 +93,11 @@
 .btn-primary {
   background-color: #5a7b02;
   border-color: #5e72e4;
+}
+
+.gradido-font-large {
+  font-size: large;
+  height: auto !important;
 }
 
 a,
@@ -199,10 +205,6 @@ a,
 
 .gradido-background-white {
   background-color: #fff;
-}
-
-.gradido-font-large {
-  font-size: large;
 }
 
 .gradido-font-15rem {

@@ -101,6 +101,10 @@
     "your_amount": "Dein Betrag"
   },
   "gdd_per_link": {
+    "created":"Der Link wurde erstellt!",
+    "copy":"kopieren",
+    "link-copied":"Link wurde in die Zwischenablage kopiert",
+    "dont-copied":"Could not copy text",
     "header": "Gradidos versenden per Link",
     "sentence_1": "Wähle einen Betrag, aus welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "sentence_2": "Der Link ist 14 Tage gültig!",

@@ -1,14 +1,12 @@
 <template>
   <div class="transaction-confirm">
     <b-row v-if="selected === 'link'" class="confirm-box-link">
-      <b-alert class="mb-3 mt-3" show variant="muted">
-        <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
+      <b-col class="text-right mt-4 mb-3">
+        <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
 
-        <div>
-          Du versendest per Link:
-          <h1>{{ $n(amount, 'decimal') }} GDD</h1>
-        </div>
-      </b-alert>
+        <h1>{{ amount | GDD }}</h1>
+        <b class="mt-2">{{ memo }}</b>
+      </b-col>
     </b-row>
     <b-row v-else class="confirm-box-send">
       <b-col>
@@ -43,8 +41,8 @@
       </b-col>
     </b-row>
 
-    <b-container class="bv-example-row mt-3 gray-background p-2">
-      <p>{{ $t('advanced-calculation') }}</p>
+    <b-container class="bv-example-row mt-3 mb-3 gray-background p-2">
+      <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
         <b-col class="text-right">{{ $n(balance, 'decimal') }}</b-col>
@@ -84,28 +82,6 @@
         </b-button>
       </b-col>
     </b-row>
-
-    <b-alert class="mt-3 confirm-box-link" show v-if="selected === 'link'" variant="muted">
-      <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
-
-      <p>
-        -
-        <b>{{ $t('gdd_per_link.sentence_2') }}</b>
-      </p>
-      <p>
-        -
-        <b>{{ $t('gdd_per_link.sentence_3') }}</b>
-      </p>
-      <p>
-        -
-        <b>{{ $t('gdd_per_link.sentence_4') }}</b>
-      </p>
-
-      <hr />
-      <p class="mb-0">
-        {{ $t('gdd_per_link.sentence_5') }}
-      </p>
-    </b-alert>
   </div>
 </template>
 <script>
