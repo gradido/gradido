@@ -2,8 +2,8 @@
   <b-container>
     <b-row v-if="error">
       <b-col>
-        <b-card class="p-0" style="background-color: #ebebeba3 !important">
-          <div class="p-4" style="font-size: 1.5rem">
+        <b-card class="p-0 gradido-custom-background">
+          <div class="p-4 gradido-font-15rem">
             <div>{{ $t('form.sorry') }}</div>
             <hr />
 
@@ -29,7 +29,7 @@
     </b-row>
     <b-row v-if="!error">
       <b-col>
-        <b-card class="p-0" style="background-color: #ebebeba3 !important">
+        <b-card class="p-0 gradido-custom-background">
           <div class="p-4">
             {{ $t('form.thx') }}
             <hr />
