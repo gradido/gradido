@@ -256,7 +256,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Mon Feb 28 2022 13:55:47 GMT+0000 (Coordinated Universal Time)',
+            'Mon Feb 28 2022 13:55:47',
           )
         })
 
@@ -285,12 +285,7 @@ describe('GddTransactionList', () => {
 
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-gift',
             'gradido-global-color-accent',
-            'm-mb-1',
-            'font2em',
-            'b-icon',
-            'bi',
           ])
         })
 
@@ -321,7 +316,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Fri Feb 25 2022 07:29:26 GMT+0000 (Coordinated Universal Time)',
+            'Fri Feb 25 2022 07:29:26',
           )
         })
       })
@@ -347,12 +342,7 @@ describe('GddTransactionList', () => {
 
         it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-arrow-right-circle',
             'gradido-global-color-accent',
-            'm-mb-1',
-            'font2em',
-            'b-icon',
-            'bi',
           ])
         })
 
@@ -383,7 +373,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
+            'Wed Feb 23 2022 10:55:30',
           )
         })
 
