@@ -16,6 +16,12 @@ module.exports = {
     'no-console': ['error'],
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
+    'vue/no-static-inline-styles': [
+      'error',
+      {
+        allowBinding: false,
+      },
+    ],
     'prettier/prettier': [
       'error',
       {

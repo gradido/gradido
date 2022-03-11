@@ -53,8 +53,8 @@ export default {
 }
 </script>
 <style>
-#component-sidebar .active,
-.component-navbar .active {
+.component-navbar .active,
+#component-sidebar .active {
   font-weight: bold;
 }
 </style>

@@ -2,7 +2,7 @@
   <div class="transaction-slot-send">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
-      <div class="text-right" style="width: 95%; position: absolute">
+      <div class="text-right gradido-width-95-absolute">
         <b-icon
           :icon="visible ? 'caret-up-square' : 'caret-down-square'"
           :class="visible ? 'text-black' : 'text-muted'"
