@@ -10,7 +10,7 @@ const sodium = require('sodium-native')
 async function recoverPrivateKey(user: User): Promise<Buffer> {
   // this can be only temporary, because the user backup will be encrypted for security reasons
   // TODO: Use another approach
-  const passphrase = user.passphrase.slice(0, -1).split(' ')
+  const passphrase = user.passphrase.slice().split(' ')
   if (passphrase.length < PHRASE_WORD_COUNT) {
     // TODO if this can happen we cannot recover from that
     throw new Error('Could not load a correct passphrase')

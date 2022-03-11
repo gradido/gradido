@@ -27,7 +27,7 @@ import { Connection, getRepository } from '@dbTools/typeorm'
 import { isCommunityAliasExisting } from '../blockchain/GradidoNodeRequests'
 import { registerNewGroup } from '../blockchain/TransactionToIota'
 import { User as dbUser } from '@entity/User'
-import { UserAdmin } from '../graphql/model/UserAdmin'
+import { ServerUser } from '@entity/ServerUser'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -49,33 +49,38 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
   }
   // *********** UNICORN ADD ************************
   // check if community alias was registered on blockchain
-  if (!isCommunityAliasExisting(CONFIG.COMMUNITY_ALIAS)) {
+  if (!(await isCommunityAliasExisting(CONFIG.COMMUNITY_ALIAS))) {
     // is not registered, so we create it
     // load first admin user for signing transaction
     const created = new Date()
-    const adminUserRepository = getRepository(UserAdmin)
-    const adminUserResult = await adminUserRepository.find({
-      select: ['userId'],
+    const serverUserRepository = getRepository(ServerUser)
+    const serverUserResult = await serverUserRepository.find({
+      select: ['email'],
       order: {
-        userId: 'ASC',
+        id: 'ASC',
       },
       take: 1,
     })
-    if (adminUserResult.length <= 0) {
-      throw Error('no admin user found')
+
+    if (serverUserResult.length > 0) {
+      const userRepository = getRepository(dbUser)
+      const user = await userRepository.find({
+        where: { email: serverUserResult[0].email },
+        take: 1,
+      })
+
+      if (!user || user.length <= 0) {
+        throw Error('user for first admin user not found')
+      }
+
+      registerNewGroup(
+        created,
+        user[0],
+        CONFIG.COMMUNITY_NAME,
+        CONFIG.COMMUNITY_ALIAS,
+        CONFIG.COMMUNITY_COIN_COLOR,
+      )
     }
-    const userRepository = getRepository(dbUser)
-    const user = await userRepository.findOneOrFail(adminUserResult[0].userId)
-    if (!user) {
-      throw Error('user for first admin user not found')
-    }
-    registerNewGroup(
-      created,
-      user,
-      CONFIG.COMMUNITY_NAME,
-      CONFIG.COMMUNITY_ALIAS,
-      CONFIG.COMMUNITY_COIN_COLOR,
-    )
   }
   // *********** UNICORN ADD END ************************
   // Express Server
