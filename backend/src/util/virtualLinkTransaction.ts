@@ -21,7 +21,7 @@ const virtualLinkTransaction = (
     previous: -1,
     typeId: TransactionTypeId.TRANSACTION_LINK,
     amount: amount,
-    balance: balance.minus(holdAvailableAmount.toString()),
+    balance: balance,
     balanceDate: validUntil,
     decayStart: createdAt,
     decay: decay,
