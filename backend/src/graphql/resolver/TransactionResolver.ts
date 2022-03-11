@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection, MoreThan } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
 import CONFIG from '@/config'
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
@@ -23,7 +23,6 @@ import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 
 import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -115,10 +114,8 @@ export class TransactionResolver {
     const transactions: Transaction[] = []
 
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const { sumHoldAvailableAmount, sumAmount } = await transactionLinkRepository.sumAmounts(
-      user.id,
-      now,
-    )
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+      await transactionLinkRepository.sumAmounts(user.id, now)
 
     // decay transaction
     if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
@@ -127,24 +124,14 @@ export class TransactionResolver {
       )
       // open transaction link sum transaction
       if (sumHoldAvailableAmount.greaterThan(0)) {
-        const lastTransactionLink = await dbTransactionLink.find({
-          where: { userId: self.id, redeemedBy: null, validUntil: MoreThan(now) },
-          order: { createdAt: 'DESC' },
-          take: 1,
-        })
-        const firstTransactionLink = await dbTransactionLink.find({
-          where: { userId: self.id, redeemedBy: null, validUntil: MoreThan(now) },
-          order: { createdAt: 'ASC' },
-          take: 1,
-        })
         transactions.push(
           virtualLinkTransaction(
             lastTransaction.balance,
             sumAmount,
             sumHoldAvailableAmount,
             sumHoldAvailableAmount.minus(sumAmount.toString()),
-            firstTransactionLink[0].createdAt,
-            lastTransactionLink[0].validUntil,
+            firstDate || now,
+            lastDate || now,
             self,
           ),
         )

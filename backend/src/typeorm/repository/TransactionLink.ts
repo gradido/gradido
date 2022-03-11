@@ -7,20 +7,30 @@ export class TransactionLinkRepository extends Repository<dbTransactionLink> {
   async sumAmounts(
     userId: number,
     date: Date,
-  ): Promise<{ sumHoldAvailableAmount: Decimal; sumAmount: Decimal }> {
-    const { sumHoldAvailableAmount, sumAmount } = await this.createQueryBuilder('transactionLinks')
-      .select('SUM(transactionLinks.holdAvailableAmount)', 'sumHoldAvailableAmount')
-      .addSelect('SUM(transactionLinks.amount)', 'sumAmount')
-      .where('transactionLinks.userId = :userId', { userId })
-      .andWhere('transactionLinks.redeemedAt is NULL')
-      .andWhere('transactionLinks.validUntil > :date', { date })
-      .orderBy('transactionLinks.createdAt', 'DESC')
-      .getRawOne()
+  ): Promise<{
+    sumHoldAvailableAmount: Decimal
+    sumAmount: Decimal
+    lastDate: Date | null
+    firstDate: Date | null
+  }> {
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+      await this.createQueryBuilder('transactionLinks')
+        .select('SUM(transactionLinks.holdAvailableAmount)', 'sumHoldAvailableAmount')
+        .addSelect('SUM(transactionLinks.amount)', 'sumAmount')
+        .addSelect('MAX(transactionLinks.validUntil)', 'lastDate')
+        .addSelect('MIN(transactionLinks.createdAt)', 'firstDate')
+        .where('transactionLinks.userId = :userId', { userId })
+        .andWhere('transactionLinks.redeemedAt is NULL')
+        .andWhere('transactionLinks.validUntil > :date', { date })
+        .orderBy('transactionLinks.createdAt', 'DESC')
+        .getRawOne()
     return {
       sumHoldAvailableAmount: sumHoldAvailableAmount
         ? new Decimal(sumHoldAvailableAmount)
         : new Decimal(0),
       sumAmount: sumAmount ? new Decimal(sumAmount) : new Decimal(0),
+      lastDate: lastDate || null,
+      firstDate: firstDate || null,
     }
   }
 }
