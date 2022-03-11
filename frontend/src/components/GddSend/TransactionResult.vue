@@ -27,7 +27,25 @@
         </b-card>
       </b-col>
     </b-row>
-    <b-row v-if="!error">
+    <b-row v-if="linkResult.code">
+       <b-col>
+        <b-card class="p-0 gradido-custom-background">
+          <div class="p-4">
+            {{ $t('form.thx') }}
+            <hr />
+            Der Link wurde erstellt!
+            <br />
+            linkResult: {{ linkResult }}
+            <br />
+            <h2>http://localhost/redeem/{{ linkResult.code }}</h2>
+          </div>
+          <p class="text-center mt-3">
+            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
+          </p>
+        </b-card>
+      </b-col>
+    </b-row>
+    <b-row v-if="!error && !linkResult.code">
       <b-col>
         <b-card class="p-0 gradido-custom-background">
           <div class="p-4">
@@ -47,6 +65,13 @@
 export default {
   name: 'TransactionResult',
   props: {
+    linkResult: {
+      type: Object,
+      required: false,
+      default() {
+        return {}
+      },
+    },
     error: { type: Boolean, default: false },
     errorResult: { type: String, default: '' },
   },

@@ -19,6 +19,7 @@
         </template>
         <template #transaction-result>
           <transaction-result
+            :linkResult="linkResult"
             :error="error"
             :errorResult="errorResult"
             @on-reset="onReset"
@@ -57,6 +58,7 @@ export default {
       errorResult: '',
       currentTransactionStep: 0,
       loading: false,
+      linkResult: {},
     }
   },
   props: {
@@ -102,7 +104,8 @@ export default {
               variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
             })
             .then((result) => {
-              alert(result)
+              console.log(result.data.createTransactionLink)
+              this.linkResult = result.data.createTransactionLink
             })
             .catch((error) => {
               this.toastError(error)
