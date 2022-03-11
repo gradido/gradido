@@ -20,7 +20,7 @@
 
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
-          <b-card no-body class="border-0" style="background-color: #ebebeba3 !important">
+          <b-card no-body class="border-0 gradido-custom-background">
             <b-card-body class="p-4">
               <div class="text-center text-muted mb-4 test-communitydata">
                 <b>{{ $store.state.community.name }}</b>

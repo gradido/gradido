@@ -1,1 +1,1 @@
-export { TransactionLink } from './0030-transaction_link/TransactionLink'
+export { TransactionLink } from './0031-remove_sendEmail_from_transaction_link/TransactionLink'

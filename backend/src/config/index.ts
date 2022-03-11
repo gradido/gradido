@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0030-transaction_link',
+  DB_VERSION: '0031-remove_sendEmail_from_transaction_link',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 

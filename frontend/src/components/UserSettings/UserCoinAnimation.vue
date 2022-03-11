@@ -1,8 +1,7 @@
 <template>
   <b-card
     id="formusercoinanimation"
-    class="bg-transparent"
-    style="background-color: #ebebeba3 !important; border-radius: 0px"
+    class="bg-transparent gradido-custom-background gradido-no-border-radius"
   >
     <div>
       <b-row class="mb-3">
