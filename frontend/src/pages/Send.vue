@@ -104,7 +104,6 @@ export default {
               variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
             })
             .then((result) => {
-              console.log(result.data.createTransactionLink)
               this.linkResult = result.data.createTransactionLink
             })
             .catch((error) => {
