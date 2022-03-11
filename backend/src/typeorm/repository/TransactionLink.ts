@@ -4,7 +4,7 @@ import Decimal from 'decimal.js-light'
 
 @EntityRepository(dbTransactionLink)
 export class TransactionLinkRepository extends Repository<dbTransactionLink> {
-  async sumAmounts(
+  async summary(
     userId: number,
     date: Date,
   ): Promise<{

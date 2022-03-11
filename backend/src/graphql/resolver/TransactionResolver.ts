@@ -114,7 +114,7 @@ export class TransactionResolver {
 
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
-      await transactionLinkRepository.sumAmounts(user.id, now)
+      await transactionLinkRepository.summary(user.id, now)
 
     // decay transaction
     if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
