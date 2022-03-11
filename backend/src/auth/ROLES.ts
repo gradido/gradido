@@ -20,6 +20,7 @@ export const ROLE_USER = new Role('user', [
   RIGHTS.HAS_ELOPAGE,
   RIGHTS.CREATE_TRANSACTION_LINK,
   RIGHTS.DELETE_TRANSACTION_LINK,
+  RIGHTS.LIST_TRANSACTION_LINKS,
 ])
 export const ROLE_ADMIN = new Role('admin', Object.values(RIGHTS)) // all rights
 
