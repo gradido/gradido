@@ -1,7 +1,7 @@
 <template>
   <b-row class="transaction-form">
     <b-col xl="12" md="12" class="p-0">
-      <b-card class="p-0 m-0" style="background-color: #ebebeba3 !important">
+      <b-card class="p-0 m-0 gradido-custom-background">
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-row>
@@ -52,8 +52,7 @@
                     @blur="normalizeEmail()"
                     type="email"
                     placeholder="E-Mail"
-                    style="font-size: large"
-                    class="pl-3"
+                    class="pl-3 gradido-font-large"
                     :disabled="isBalanceDisabled"
                   ></b-form-input>
                 </b-input-group>
@@ -88,8 +87,7 @@
                     @focus="amountFocused = true"
                     @blur="normalizeAmount(valid)"
                     :placeholder="$n(0.01)"
-                    style="font-size: large"
-                    class="pl-3"
+                    class="pl-3 gradido-font-large"
                     :disabled="isBalanceDisabled"
                   ></b-form-input>
                 </b-input-group>
@@ -118,8 +116,7 @@
                     id="input-3"
                     rows="3"
                     v-model="form.memo"
-                    class="pl-3"
-                    style="font-size: large"
+                    class="pl-3 gradido-font-large"
                     :disabled="isBalanceDisabled"
                   ></b-form-textarea>
                 </b-input-group>
