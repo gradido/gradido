@@ -102,8 +102,8 @@ describe('Thx', () => {
       expect(wrapper.find('a.btn').text()).toBe('settings.password.reset')
     })
 
-    it('links the redirect button to /password', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/password')
+    it('links the redirect button to /forgot-password', () => {
+      expect(wrapper.find('a.btn').attributes('href')).toBe('/forgot-password')
     })
   })
 })

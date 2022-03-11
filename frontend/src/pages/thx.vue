@@ -46,13 +46,13 @@ const textFields = {
     headline: 'site.thx.errorTitle',
     subtitle: 'site.thx.activateEmail',
     button: 'settings.password.reset',
-    linkTo: '/password',
+    linkTo: '/forgot-password',
   },
   resetFailed: {
     headline: 'site.thx.errorTitle',
     subtitle: 'site.thx.resetPassword',
     button: 'settings.password.reset',
-    linkTo: '/password',
+    linkTo: '/forgot-password',
   },
 }
 
