@@ -6,6 +6,7 @@ export enum TransactionTypeId {
   RECEIVE = 3,
   // This is a virtual property, never occurring on the database
   DECAY = 4,
+  TRANSACTION_LINK,
 }
 
 registerEnumType(TransactionTypeId, {
