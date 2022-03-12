@@ -50,7 +50,7 @@ TODAY=$(date +"%Y-%m-%d")
 
 # redirect all output of the script to the UPDATE_HTML and also have things on console
 # TODO: this might pose a security risk
-exec > >(tee $UPDATE_HTML) 2>&1
+exec > >>(tee $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
