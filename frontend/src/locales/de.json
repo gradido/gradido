@@ -100,11 +100,8 @@
     "your_amount": "Dein Betrag"
   },
   "gdd_per_link": {
-    "links_sum":"Summe deiner versendeten Gradidos",
-    "links_count":"aktive Links"
-  },
-  "links-list": {
-    "header": "Liste deiner aktiven Links"
+    "links_count": "aktive Links",
+    "links_sum": "Summe deiner versendeten Gradidos"
   },
   "gdt": {
     "action": "Aktion",
@@ -125,6 +122,9 @@
   },
   "imprint": "Impressum",
   "language": "Sprache",
+  "links-list": {
+    "header": "Liste deiner aktiven Links"
+  },
   "login": "Anmeldung",
   "logout": "Abmelden",
   "members_area": "Mitgliederbereich",
