@@ -66,7 +66,8 @@ pm2 stop all
 BRANCH=${1:-master}
 echo "Starting with git pull - branch:$BRANCH<br>" >> $UPDATE_HTML
 cd $PROJECT_ROOT
-git fetch origin $BRANCH
+# TODO: this overfetches alot, but ensures we can use start.sh with tags
+git fetch origin --all
 git checkout $BRANCH
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
