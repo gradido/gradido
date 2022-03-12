@@ -42,8 +42,15 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
+# find today string
+TODAY=$(date +"%Y-%m-%d")
+
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
+
+# redirect all output of the script to the UPDATE_HTML and also have things on console
+# TODO: this might pose a security risk
+exec 3>&1 1>>$UPDATE_HTML 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
@@ -113,7 +120,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # Install & build frontend
@@ -126,7 +133,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # Install & build admin
@@ -139,7 +146,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'DD-MM HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
@@ -147,6 +154,9 @@ echo 'Configuring nginx to serve gradido again<br>' >> $UPDATE_HTML
 ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
+
+# keep the update log
+cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
 # release lock
 rm $LOCK_FILE
