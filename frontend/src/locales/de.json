@@ -99,6 +99,13 @@
     },
     "your_amount": "Dein Betrag"
   },
+  "gdd_per_link": {
+    "links_sum":"Summe deiner versendeten Gradidos",
+    "links_count":"aktive Links"
+  },
+  "links-list": {
+    "header": "Liste deiner aktiven Links"
+  },
   "gdt": {
     "action": "Aktion",
     "calculation": "Berechnung der GradidoTransform",

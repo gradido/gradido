@@ -1,0 +1,82 @@
+<template>
+  <div class="transaction-slot-link">
+    <div @click="visible = !visible">
+      <!-- Collaps Icon  -->
+      <collapse-icon class="text-right" :visible="visible" />
+      <div>
+        <b-row>
+          <!-- ICON  -->
+          <b-col cols="1">
+            <type-icon color="text-danger" icon="share" />
+          </b-col>
+
+          <b-col cols="11">
+            <!-- Amount / Name || Text -->
+            <amount-and-name-row :amount="amount" :text="$t('gdd_per_link.links_sum')" />
+
+            <!-- Count Links -->
+            <link-count-row count="22" />
+
+            <!-- Decay -->
+            <decay-row :decay="decay" />
+          </b-col>
+        </b-row>
+      </div>
+
+      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
+        <collapse-links-list />
+      </b-collapse>
+    </div>
+  </div>
+</template>
+<script>
+import CollapseIcon from '../TransactionRows/CollapseIcon'
+import TypeIcon from '../TransactionRows/TypeIcon'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
+import LinkCountRow from '../TransactionRows/LinkCountRow'
+import DecayRow from '../TransactionRows/DecayRow'
+import CollapseLinksList from '../DecayInformations/CollapseLinksList'
+
+export default {
+  name: 'TransactionSlotLink',
+  components: {
+    CollapseIcon,
+    TypeIcon,
+    AmountAndNameRow,
+    LinkCountRow,
+    DecayRow,
+    CollapseLinksList,
+  },
+  props: {
+    amount: {
+      type: String,
+    },
+    balance: {
+      type: String,
+    },
+    balanceDate: {
+      type: String,
+    },
+    decay: {
+      type: Object,
+    },
+    id: {
+      type: Number,
+    },
+    linkedUser: {
+      type: Object,
+    },
+    memo: {
+      type: String,
+    },
+    typeId: {
+      type: String,
+    },
+  },
+  data() {
+    return {
+      visible: false,
+    }
+  },
+}
+</script>
