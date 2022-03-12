@@ -1,4 +1,4 @@
-$GRADIDO_LOG_PATH/* {
+$GRADIDO_LOG_PATH/*.log {
     weekly
     rotate 26
     size 10M
