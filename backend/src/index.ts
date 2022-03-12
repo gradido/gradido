@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// resolve @-import-aliases
-import 'module-alias/register'
-
 import createServer from './server/createServer'
 
 // config
