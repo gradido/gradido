@@ -7,7 +7,7 @@
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <type-icon color="text-danger" icon="share" />
+            <type-icon color="text-danger" icon="link45deg" />
           </b-col>
 
           <b-col cols="11">
@@ -51,26 +51,8 @@ export default {
     amount: {
       type: String,
     },
-    balance: {
-      type: String,
-    },
-    balanceDate: {
-      type: String,
-    },
     decay: {
       type: Object,
-    },
-    id: {
-      type: Number,
-    },
-    linkedUser: {
-      type: Object,
-    },
-    memo: {
-      type: String,
-    },
-    typeId: {
-      type: String,
     },
   },
   data() {
