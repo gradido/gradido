@@ -26,7 +26,7 @@
               <div class="m-1 mt-2">GDD</div>
             </b-input-group-prepend>
 
-            <div class="p-3">{{ $n(amount, 'decimal') }}</div>
+            <div class="p-3">{{ amount | GDD }}</div>
           </b-input-group>
 
           <br />
@@ -45,14 +45,14 @@
       <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
-        <b-col class="text-right">{{ $n(balance, 'decimal') }}</b-col>
+        <b-col class="text-right">{{ balance | GDD }}</b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
         <b-col class="text-right">
-          <strong>- {{ $n(amount, 'decimal') }}</strong>
+          <strong>- {{ amount | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
@@ -60,7 +60,7 @@
           <strong>Vergänglichkeit für 14 Tage</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>- {{ $n(amount * 0.028, 'decimal') }}</strong>
+          <strong>~ {{ $n(amount * 0.028, 'decimal') }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
@@ -88,12 +88,12 @@
 export default {
   name: 'TransactionConfirmation',
   props: {
-    balance: { type: Number, default: 0, required: true },
-    email: { type: String, default: '', required: false },
-    amount: { type: Number, default: 0, required: true },
-    memo: { type: String, default: '', required: true },
-    loading: { type: Boolean, default: false, required: true },
-    selected: { type: String, default: 'send', required: true },
+    balance: { type: Number, required: true },
+    email: { type: String, required: false, default: '' },
+    amount: { type: Number, required: true },
+    memo: { type: String, required: true },
+    loading: { type: Boolean, required: true },
+    selected: { type: String, required: true },
   },
 }
 </script>

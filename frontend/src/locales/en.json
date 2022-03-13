@@ -238,8 +238,7 @@
   },
   "transaction-link": {
     "button": "redeem",
-    "send_you": "wants to send you",
-    "subtitle": "subtitle"
+    "send_you": "wants to send you"
   },
   "transactions": "Transactions",
   "whitepaper": "Whitepaper"

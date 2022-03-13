@@ -238,8 +238,7 @@
   },
   "transaction-link": {
     "button": "einlösen",
-    "send_you": "sendet dir",
-    "subtitle": "subtitle"
+    "send_you": "sendet dir"
   },
   "transactions": "Transaktionen",
   "whitepaper": "Whitepaper"

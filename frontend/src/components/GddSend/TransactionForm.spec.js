@@ -69,7 +69,7 @@ describe('GddSend', () => {
         })
         describe('transaction form show because balance 100,0 GDD', () => {
           it('has no warning message ', () => {
-            expect(wrapper.find('.text-danger').exists()).toBeFalsy()
+            expect(wrapper.find('.errors').exists()).toBeFalsy()
           })
           it('has a reset button', () => {
             expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(

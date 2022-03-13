@@ -18,9 +18,6 @@ const createMockObject = (code) => {
       $i18n: {
         locale: () => 'en',
       },
-      $store: {
-        // commit: stateCommitMock,
-      },
       $apollo: {
         query: queryTransactionLink,
       },

@@ -18,7 +18,7 @@ export default {
   },
   data() {
     return {
-      url: `http://localhost/redeem/${this.code}`,
+      url: `${window.location.origin}/redeem/${this.code}`,
     }
   },
   methods: {

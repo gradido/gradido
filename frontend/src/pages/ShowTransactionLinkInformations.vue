@@ -5,7 +5,7 @@
       <b-container>
         <div class="header-body text-center mb-7">
           <p class="h1">
-            {{ username }}
+            {{ displaySetup.user.firstName }}
             {{ $t('transaction-link.send_you') }} {{ displaySetup.amount | GDD }}
           </p>
           <p class="h4">{{ displaySetup.memo }}</p>
@@ -49,11 +49,6 @@ export default {
         .catch((error) => {
           this.toastError(error)
         })
-    },
-  },
-  computed: {
-    username() {
-      return this.displaySetup.user.firstName + ' ' + this.displaySetup.user.lastName
     },
   },
   created() {
