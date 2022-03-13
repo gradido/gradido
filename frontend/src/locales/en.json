@@ -14,13 +14,19 @@
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
+    "days": "Days",
     "decay": "Decay",
     "decay_introduced": "Decay was introduced on",
     "decay_since_last_transaction": "Decay since the last transaction",
+    "hours": "Hours",
     "last_transaction": "Last transaction:",
+    "minutes": "Minutes",
+    "months": "Months",
     "past_time": "Time passed",
+    "seconds": "Seconds",
     "Starting_block_decay": "Starting Block Decay",
-    "total": "Total"
+    "total": "Total",
+    "year": "Years"
   },
   "error": {
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -113,7 +119,10 @@
     },
     "password": {
       "change-password": "Change password",
-      "forgot_pwd": "Forgot password?"
+      "forgot_pwd": "Forgot password?",
+      "reset": "Reset password",
+      "send_now": "send now",
+      "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
   "signup": "Sign up",

@@ -14,13 +14,19 @@
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "calculation_total": "Berechnung der Gesamtsumme",
+    "days": "Tage",
     "decay": "Vergänglichkeit",
     "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
+    "minutes": "Minuten",
+    "months": "Monate",
     "past_time": "Vergangene Zeit",
+    "seconds": "Sekunden",
     "Starting_block_decay": "Startblock Vergänglichkeit",
-    "total": "Gesamt"
+    "total": "Gesamt",
+    "year": "Jahre"
   },
   "error": {
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -113,7 +119,10 @@
     },
     "password": {
       "change-password": "Passwort ändern",
-      "forgot_pwd": "Passwort vergessen?"
+      "forgot_pwd": "Passwort vergessen?",
+      "reset": "Passwort zurücksetzen",
+      "send_now": "Jetzt senden",
+      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     }
   },
   "signup": "Registrieren",
