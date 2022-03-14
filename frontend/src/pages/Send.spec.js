@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Send from './Send'
+import Send, { SEND_TYPES } from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
@@ -10,8 +10,6 @@ apolloMutationMock.mockResolvedValue('success')
 const navigatorClipboardMock = jest.fn()
 
 const localVue = global.localVue
-
-// window.scrollTo = jest.fn()
 
 describe('Send', () => {
   let wrapper
@@ -57,7 +55,7 @@ describe('Send', () => {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
-          selected: 'send',
+          selected: SEND_TYPES.send,
         })
       })
       it('steps forward in the dialog', () => {
@@ -65,7 +63,7 @@ describe('Send', () => {
       })
     })
 
-    describe('confirm transaction if selected:send', () => {
+    describe('confirm transaction if selected: SEND_TYPES.send', () => {
       beforeEach(() => {
         wrapper.setData({
           currentTransactionStep: TRANSACTION_STEPS.transactionConfirmationSend,
@@ -73,7 +71,7 @@ describe('Send', () => {
             email: 'user@example.org',
             amount: 23.45,
             memo: 'Make the best of it!',
-            selected: 'send',
+            selected: SEND_TYPES.send,
           },
         })
       })
@@ -85,7 +83,7 @@ describe('Send', () => {
           email: 'user@example.org',
           amount: 23.45,
           memo: 'Make the best of it!',
-          selected: 'send',
+          selected: SEND_TYPES.send,
         })
       })
 
@@ -105,7 +103,7 @@ describe('Send', () => {
                 email: 'user@example.org',
                 amount: 23.45,
                 memo: 'Make the best of it!',
-                selected: 'send',
+                selected: SEND_TYPES.send,
               },
             }),
           )
@@ -154,7 +152,7 @@ describe('Send', () => {
         await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           amount: 56.78,
           memo: 'Make the best of it link!',
-          selected: 'link',
+          selected: SEND_TYPES.link,
         })
       })
       it('steps forward in the dialog', () => {
