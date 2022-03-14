@@ -127,3 +127,18 @@ export const communities = gql`
     }
   }
 `
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      amount
+      memo
+      createdAt
+      validUntil
+      user {
+        firstName
+        publisherId
+      }
+    }
+  }
+`

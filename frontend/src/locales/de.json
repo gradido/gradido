@@ -67,6 +67,7 @@
     "email": "E-Mail",
     "firstname": "Vorname",
     "from": "Von",
+    "generate_now": "jetzt generieren",
     "lastname": "Nachname",
     "memo": "Nachricht",
     "message": "Nachricht",
@@ -99,6 +100,19 @@
     },
     "your_amount": "Dein Betrag"
   },
+  "gdd_per_link": {
+    "copy": "kopieren",
+    "created": "Der Link wurde erstellt!",
+    "decay-14-day": "Vergänglichkeit für 14 Tage",
+    "header": "Gradidos versenden per Link",
+    "link-copied": "Link wurde in die Zwischenablage kopiert",
+    "not-copied": "Konnte den Link nicht kopieren: {err}",
+    "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
+    "sentence_2": "Der Link ist 14 Tage gültig!",
+    "sentence_3": "Wird der Link nicht innerhalb der 14 Tage Frist abgerufen, wird er automatisch gelöscht. Der Betrag wird dann wieder deinem Konto gutgeschrieben.",
+    "sentence_4": "Wer den Link aktiviert, erhält die Zahlung von deinem Konto. Wer noch nicht Mitglied bei Gradido ist, wird durch den Registrierungsprozess geleitet und bekommt den GDD Betrag nach Registrierung / Bestätigung seines Gradido Kontos gut geschrieben.",
+    "sentence_5": "Der Vergänglichkeitsbetrag wird von dir getragen und für die maximale Gültigkeit deinem Betrag aufgerechnet. Dir wird aber nur der Betrag als Vergänglichkeit berechnet, je nachdem wie viel Tage bis zum Einlösen des Links vergangen sind. Bis zum Einlösen wird die Vergänglichkeit für den gesamten Zeitraum der Gültigkeit vorgehalten."
+  },
   "gdt": {
     "action": "Aktion",
     "calculation": "Berechnung der GradidoTransform",
@@ -129,6 +143,8 @@
     "publisherId": "Publisher-Id"
   },
   "send": "Senden",
+  "send_gdd": "GDD versenden",
+  "send_per_link": "GDD versenden per Link",
   "settings": {
     "coinanimation": {
       "coinanimation": "Münzanimation",
@@ -220,6 +236,10 @@
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
+  },
+  "transaction-link": {
+    "button": "einlösen",
+    "send_you": "sendet dir"
   },
   "transactions": "Transaktionen",
   "whitepaper": "Whitepaper"
