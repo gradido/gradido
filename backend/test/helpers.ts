@@ -35,7 +35,6 @@ export const testEnvironment = async () => {
   const mutate = testClient.mutate
   const query = testClient.query
   await initialize()
-  await resetDB()
   return { mutate, query, con }
 }
 
