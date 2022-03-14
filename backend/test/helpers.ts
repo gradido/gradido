@@ -39,7 +39,7 @@ export const testEnvironment = async () => {
 }
 
 export const resetEntity = async (entity: any) => {
-  const items = await entity.find()
+  const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
     const ids = items.map((i: any) => i.id)
     await entity.delete(ids)
@@ -47,11 +47,11 @@ export const resetEntity = async (entity: any) => {
 }
 
 export const createUser = async (mutate: any, user: any) => {
-  resetToken()
+  // resetToken()
   await mutate({ mutation: createUserMutation, variables: user })
   const dbUser = await User.findOne({ where: { email: user.email } })
   if (!dbUser) throw new Error('Ups, no user found')
-  const optin = await LoginEmailOptIn.findOne(dbUser.id)
+  const optin = await LoginEmailOptIn.findOne({ where: { userId: dbUser.id } })
   if (!optin) throw new Error('Ups, no optin found')
   await mutate({
     mutation: setPasswordMutation,
@@ -59,6 +59,6 @@ export const createUser = async (mutate: any, user: any) => {
   })
 }
 
-const resetToken = () => {
+export const resetToken = () => {
   context.token = ''
 }

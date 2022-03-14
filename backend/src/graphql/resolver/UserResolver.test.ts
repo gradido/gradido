@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, createUser, headerPushMock, cleanDB } from '@test/helpers'
+import { testEnvironment, createUser, headerPushMock, cleanDB, resetToken } from '@test/helpers'
 import { createUserMutation, setPasswordMutation } from '@test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
@@ -407,6 +407,7 @@ describe('UserResolver', () => {
 
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        resetToken()
         await expect(query({ query: logoutQuery })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],

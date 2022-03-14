@@ -36,11 +36,15 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
     // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
     const userRepository = await getCustomRepository(UserRepository)
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
-    const countServerUsers = await ServerUser.count({ email: user.email })
-    context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
+    try {
+      const user = await userRepository.findByPubkeyHex(context.pubKey)
+      const countServerUsers = await ServerUser.count({ email: user.email })
+      context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
 
-    context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
+      context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
+    } catch {
+      throw new Error('401 Unauthorized')
+    }
   }
 
   // check for correct rights
