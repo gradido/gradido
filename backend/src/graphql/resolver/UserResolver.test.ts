@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, resetEntities, createUser } from '@test/helpers'
+import { testEnvironment, createUser, headerPushMock, cleanDB } from '@test/helpers'
 import { createUserMutation, setPasswordMutation } from '@test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
-import { resetDB } from '@dbTools/helpers'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
@@ -30,30 +29,19 @@ jest.mock('@/apis/KlicktippController', () => {
 })
 */
 
-let token: string
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const headerPushMock = jest.fn((t) => (token = t.value))
-
-const context = {
-  setHeaders: {
-    push: headerPushMock,
-    forEach: jest.fn(),
-  },
-}
-
 let mutate: any, query: any, con: any
 
 beforeAll(async () => {
-  const testEnv = await testEnvironment(context)
+  const testEnv = await testEnvironment()
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  await cleanDB()
 })
 
 afterAll(async () => {
-  await resetDB(true)
-  await con.close()
+  await cleanDB()
+  con.close()
 })
 
 describe('UserResolver', () => {
@@ -75,7 +63,7 @@ describe('UserResolver', () => {
     })
 
     afterAll(async () => {
-      await resetEntities([User, LoginEmailOptIn])
+      await cleanDB()
     })
 
     it('returns success', () => {
@@ -213,7 +201,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetEntities([User, LoginEmailOptIn])
+        await cleanDB()
       })
 
       it('sets email checked to true', () => {
@@ -256,7 +244,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetEntities([User, LoginEmailOptIn])
+        await cleanDB()
       })
 
       it('throws an error', () => {
@@ -282,7 +270,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetEntities([User, LoginEmailOptIn])
+        await cleanDB()
       })
 
       it('throws an error', () => {
@@ -323,7 +311,7 @@ describe('UserResolver', () => {
     let result: User
 
     afterAll(async () => {
-      await resetEntities([User, LoginEmailOptIn])
+      await cleanDB()
     })
 
     describe('no users in database', () => {
@@ -353,7 +341,7 @@ describe('UserResolver', () => {
       })
 
       afterAll(async () => {
-        await resetEntities([User, LoginEmailOptIn])
+        await cleanDB()
       })
 
       it('returns the user object', () => {
