@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import TransactionConfirmation from './TransactionConfirmation'
+import TransactionConfirmation from './TransactionConfirmationLink'
 
 const localVue = global.localVue
 

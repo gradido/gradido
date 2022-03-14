@@ -5,8 +5,8 @@
         <template #transaction-form>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
-        <template #transaction-confirmation>
-          <transaction-confirmation
+        <template #transaction-confirmation-send>
+          <transaction-confirmation-send
             :balance="balance"
             :selected="transactionData.selected"
             :email="transactionData.email"
@@ -15,15 +15,40 @@
             :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
-          ></transaction-confirmation>
+          ></transaction-confirmation-send>
         </template>
-        <template #transaction-result>
-          <transaction-result
+        <template #transaction-confirmation-link>
+          <transaction-confirmation-link
+            :balance="balance"
+            :selected="transactionData.selected"
+            :email="transactionData.email"
+            :amount="transactionData.amount"
+            :memo="transactionData.memo"
+            :loading="loading"
+            @send-transaction="sendTransaction"
+            @on-reset="onReset"
+          ></transaction-confirmation-link>
+        </template>
+        <template #transaction-result-send-success>
+          <transaction-result-send-success
+            :linkResult="linkResult"
+            @on-reset="onReset"
+          ></transaction-result-send-success>
+        </template>
+        <template #transaction-result-send-error>
+          <transaction-result-send-error
+            :error="error"
+            :errorResult="errorResult"
+            @on-reset="onReset"
+          ></transaction-result-send-error>
+        </template>
+        <template #transaction-result-link>
+          <transaction-result-link
             :linkResult="linkResult"
             :error="error"
             :errorResult="errorResult"
             @on-reset="onReset"
-          ></transaction-result>
+          ></transaction-result-link>
         </template>
       </gdd-send>
       <hr />
@@ -33,8 +58,11 @@
 <script>
 import GddSend from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
-import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
-import TransactionResult from '@/components/GddSend/TransactionResult.vue'
+import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend.vue'
+import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink.vue'
+import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess.vue'
+import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError.vue'
+import TransactionResultLink from '@/components/GddSend/TransactionResultLink.vue'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
@@ -48,8 +76,11 @@ export default {
   components: {
     GddSend,
     TransactionForm,
-    TransactionConfirmation,
-    TransactionResult,
+    TransactionConfirmationSend,
+    TransactionConfirmationLink,
+    TransactionResultSendSuccess,
+    TransactionResultSendError,
+    TransactionResultLink,
   },
   data() {
     return {
@@ -76,7 +107,14 @@ export default {
   methods: {
     setTransaction(data) {
       this.transactionData = { ...data }
-      this.currentTransactionStep = 1
+      switch (data.selected) {
+        case 'send':
+          this.currentTransactionStep = 1
+          break
+        case 'link':
+          this.currentTransactionStep = 2
+          break
+      }
     },
     async sendTransaction() {
       this.loading = true
@@ -91,10 +129,12 @@ export default {
             .then(() => {
               this.error = false
               this.$emit('update-balance', this.transactionData.amount)
+              this.currentTransactionStep = 3
             })
             .catch((err) => {
               this.errorResult = err.message
               this.error = true
+              this.currentTransactionStep = 4
             })
           break
         case 'link':
@@ -105,6 +145,7 @@ export default {
             })
             .then((result) => {
               this.linkResult = result.data.createTransactionLink
+              this.currentTransactionStep = 5
             })
             .catch((error) => {
               this.toastError(error)
@@ -113,7 +154,6 @@ export default {
         default:
           throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
       }
-      this.currentTransactionStep = 2
       this.loading = false
     },
     onReset() {
