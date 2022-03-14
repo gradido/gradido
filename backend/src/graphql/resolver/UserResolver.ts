@@ -486,8 +486,8 @@ export class UserResolver {
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > 10 * 60 * 1000) {
-      throw new Error('Code is older than 10 minutes')
+    if (timeElapsed > parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error('Code is older than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes')
     }
 
     // load user
@@ -555,6 +555,19 @@ export class UserResolver {
       }
     }
 
+    return true
+  }
+
+  @Authorized([RIGHTS.QUERY_OPT_IN])
+  @Query(() => Boolean)
+  async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
+    console.log('optInCode', optInCode)
+    // Code is only valid for 10minutes
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed > parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error('Code is older than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes')
+    }
     return true
   }
 
