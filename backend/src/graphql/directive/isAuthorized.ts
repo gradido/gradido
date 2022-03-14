@@ -13,6 +13,8 @@ import { ServerUser } from '@entity/ServerUser'
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
+  // moriz: I think it is better to check the INALIENABLE_RIGHTS here
+
   // Do we have a token?
   if (context.token) {
     // Decode the token
@@ -33,6 +35,12 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     }
     // Set context pubKey
     context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
+
+    // Problem found by unit testing:
+    // I have a valid token in the context, but the database is cleaned,
+    // so the user object cannot be found here
+    // this should be working for inalienable rights
+
     // set new header token
     // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
     // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey

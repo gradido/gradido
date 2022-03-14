@@ -373,7 +373,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
-        resetToken()
+        // resetToken()
         await createUser(mutate, {
           email: 'peter@lustig.de',
           firstName: 'Peter',
