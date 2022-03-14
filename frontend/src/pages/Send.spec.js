@@ -1,8 +1,11 @@
 import { mount } from '@vue/test-utils'
 import Send from './Send'
 
-const sendMock = jest.fn()
-sendMock.mockResolvedValue('success')
+const sendCoinsMock = jest.fn()
+sendCoinsMock.mockResolvedValue('success')
+
+const createTransactionLinkMock = jest.fn()
+createTransactionLinkMock.mockResolvedValue('success')
 
 const localVue = global.localVue
 
@@ -27,7 +30,7 @@ describe('Send', () => {
       },
     },
     $apollo: {
-      mutate: sendMock,
+      mutate: sendCoinsMock,
     },
   }
 
@@ -92,7 +95,7 @@ describe('Send', () => {
         })
 
         it('calls the API when send-transaction is emitted', async () => {
-          expect(sendMock).toBeCalledWith(
+          expect(sendCoinsMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'user@example.org',
@@ -117,7 +120,7 @@ describe('Send', () => {
       describe('transaction is confirmed and server response is error', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
-          sendMock.mockRejectedValue({ message: 'recipient not known' })
+          sendCoinsMock.mockRejectedValue({ message: 'recipient not known' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmationSend' })
             .vm.$emit('send-transaction')
