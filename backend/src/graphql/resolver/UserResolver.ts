@@ -158,9 +158,11 @@ const createEmailOptIn = async (
   })
   if (emailOptIn) {
     const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
       throw new Error(
-        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+        'email already sent less than ' +
+          parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) +
+          ' minutes ago',
       )
     } else {
       emailOptIn.updatedAt = new Date()
@@ -189,9 +191,11 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   // Check for 10 minute delay
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
       throw new Error(
-        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+        'email already sent less than ' +
+          parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) +
+          ' minutes ago',
       )
     } else {
       optInCode.updatedAt = new Date()
@@ -486,8 +490,10 @@ export class UserResolver {
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-      throw new Error('Code is older than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes')
+    if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'Code is older than ' + parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) + ' minutes',
+      )
     }
 
     // load user
@@ -562,11 +568,12 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
-    console.log('optInCode', optInCode)
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-      throw new Error('Code is older than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes')
+    if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'Code is older than ' + parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) + ' minutes',
+      )
     }
     return true
   }
