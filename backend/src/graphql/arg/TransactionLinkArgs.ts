@@ -8,7 +8,4 @@ export default class TransactionLinkArgs {
 
   @Field(() => String)
   memo: string
-
-  @Field(() => Boolean, { nullable: true })
-  showEmail?: boolean
 }
