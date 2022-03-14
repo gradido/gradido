@@ -18,7 +18,7 @@
               <div class="m-1 mt-2">GDD</div>
             </b-input-group-prepend>
 
-            <div class="p-3">− {{ $n(amount, 'decimal') }} GDD</div>
+            <div class="p-3">{{ (amount * -1) | GDD }}</div>
           </b-input-group>
 
           <br />
@@ -44,12 +44,12 @@
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>− {{ $n(amount, 'decimal') }} GDD</strong>
+          <strong>{{ (amount * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">~ {{ $n(balance - amount, 'decimal') }}</b-col>
+        <b-col class="text-right">{{ (balance - amount) | GDD }}</b-col>
       </b-row>
     </b-container>
 

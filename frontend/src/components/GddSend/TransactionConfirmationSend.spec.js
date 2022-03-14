@@ -11,7 +11,6 @@ describe('GddSend confirm', () => {
     $i18n: {
       locale: jest.fn(() => 'en'),
     },
-    $n: jest.fn((n) => String(n)),
   }
 
   const propsData = {

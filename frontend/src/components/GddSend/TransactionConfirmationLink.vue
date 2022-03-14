@@ -4,7 +4,7 @@
       <b-col class="text-right mt-4 mb-3">
         <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
 
-        <h1>− {{ $n(amount, 'decimal') }} GDD</h1>
+        <h1>{{ (amount * -1) | GDD }}</h1>
         <b class="mt-2">{{ memo }}</b>
       </b-col>
     </b-row>
@@ -20,7 +20,7 @@
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
         <b-col class="text-right">
-          <strong>− {{ $n(amount, 'decimal') }} GDD</strong>
+          <strong>{{ (amount * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
@@ -28,12 +28,12 @@
           <strong>Vergänglichkeit für 14 Tage</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>~ {{ $n(amount * 0.028, 'decimal') }}</strong>
+          <strong>~ {{ (amount * 0.028 * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">~ {{ $n(balance - amount - amount * 0.028, 'decimal') }}</b-col>
+        <b-col class="text-right">~ {{ (balance - amount - amount * 0.028) | GDD }}</b-col>
       </b-row>
     </b-container>
 
