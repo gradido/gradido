@@ -4,7 +4,7 @@
       <b-col class="text-right mt-4 mb-3">
         <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
 
-        <h1>{{ amount | GDD }}</h1>
+        <h1>− {{ $n(amount, 'decimal') }} GDD</h1>
         <b class="mt-2">{{ memo }}</b>
       </b-col>
     </b-row>
@@ -20,7 +20,7 @@
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
         <b-col class="text-right">
-          <strong>- {{ amount | GDD }}</strong>
+          <strong>− {{ $n(amount, 'decimal') }} GDD</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">

@@ -6,17 +6,17 @@
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-row>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" value="send" size="lg">
+                <b-form-radio v-model="selected" name="radios" :value="sendTypes.send" size="lg">
                   {{ $t('send_gdd') }}
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" value="link" size="lg">
+                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-show="selected === 'link'">
+            <div class="mt-4" v-show="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.sentence_1') }}
@@ -25,10 +25,10 @@
 
             <div>
               <validation-provider
-                v-show="selected === 'send'"
+                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
-                  required: selected === 'send' ? true : false,
+                  required: selected === sendTypes.send ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
@@ -137,7 +137,7 @@
               </b-col>
               <b-col class="text-right">
                 <b-button type="submit" variant="success">
-                  {{ selected === 'send' ? $t('form.send_now') : $t('form.generate_now') }}
+                  {{ selected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now') }}
                 </b-button>
               </b-col>
             </b-row>
@@ -151,6 +151,7 @@
 </template>
 <script>
 import { BIcon } from 'bootstrap-vue'
+import { SEND_TYPES } from '@/pages/Send.vue'
 
 export default {
   name: 'TransactionForm',
@@ -170,7 +171,7 @@ export default {
         memo: '',
         amountValue: 0.0,
       },
-      selected: 'send',
+      selected: SEND_TYPES.send,
     }
   },
   methods: {
@@ -203,6 +204,9 @@ export default {
   computed: {
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
+    },
+    sendTypes() {
+      return SEND_TYPES
     },
   },
 }

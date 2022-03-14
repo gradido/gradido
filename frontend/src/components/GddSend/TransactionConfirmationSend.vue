@@ -18,7 +18,7 @@
               <div class="m-1 mt-2">GDD</div>
             </b-input-group-prepend>
 
-            <div class="p-3">{{ amount | GDD }}</div>
+            <div class="p-3">− {{ $n(amount, 'decimal') }} GDD</div>
           </b-input-group>
 
           <br />
@@ -43,16 +43,8 @@
         <b-col class="text-right">
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
-        <b-col class="text-right">
-          <strong>- {{ amount | GDD }}</strong>
-        </b-col>
-      </b-row>
-      <b-row class="pr-3">
-        <b-col class="text-right">
-          <strong>Vergänglichkeit für 14 Tage</strong>
-        </b-col>
         <b-col class="text-right borderbottom">
-          <strong>~ {{ $n(amount * 0.028, 'decimal') }}</strong>
+          <strong>− {{ $n(amount, 'decimal') }} GDD</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">

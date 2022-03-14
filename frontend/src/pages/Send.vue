@@ -71,6 +71,11 @@ const EMPTY_TRANSACTION_DATA = {
   memo: '',
 }
 
+export const SEND_TYPES = {
+  send: 'send',
+  link: 'link',
+}
+
 export default {
   name: 'Send',
   components: {
@@ -108,10 +113,10 @@ export default {
     setTransaction(data) {
       this.transactionData = { ...data }
       switch (data.selected) {
-        case 'send':
+        case SEND_TYPES.send:
           this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationSend
           break
-        case 'link':
+        case SEND_TYPES.link:
           this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationLink
           break
       }
@@ -120,7 +125,7 @@ export default {
       this.loading = true
       this.error = false
       switch (this.transactionData.selected) {
-        case 'send':
+        case SEND_TYPES.send:
           this.$apollo
             .mutate({
               mutation: sendCoins,
@@ -137,7 +142,7 @@ export default {
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
           break
-        case 'link':
+        case SEND_TYPES.link:
           this.$apollo
             .mutate({
               mutation: createTransactionLink,
