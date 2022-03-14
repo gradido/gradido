@@ -59,7 +59,7 @@
       </b-col>
       <b-col class="text-right">
         <b-button variant="success" :disabled="loading" @click="$emit('send-transaction')">
-          {{ selected === 'send' ? $t('form.send_now') : $t('form.generate_now') }}
+          {{ $t('form.send_now') }}
         </b-button>
       </b-col>
     </b-row>
