@@ -9,12 +9,16 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { entities } from '@entity/index'
 
-let token = ''
+export const headerPushMock = jest.fn((t) => {
+  context.token = t.value
+})
 
-export const headerPushMock = jest.fn((t) => (token = t.value))
+export const resetToken = () => {
+  context.token = ''
+}
 
 const context = {
-  token,
+  token: '',
   setHeaders: {
     push: headerPushMock,
     forEach: jest.fn(),

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, createUser, headerPushMock, cleanDB } from '@test/helpers'
+import { testEnvironment, createUser, headerPushMock, cleanDB, resetToken } from '@test/helpers'
 import { createUserMutation, setPasswordMutation } from '@test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
@@ -30,6 +30,24 @@ jest.mock('@/apis/KlicktippController', () => {
 */
 
 let mutate: any, query: any, con: any
+
+const loginQuery = gql`
+  query ($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
+      email
+      firstName
+      lastName
+      language
+      coinanimation
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+    }
+  }
+`
 
 beforeAll(async () => {
   const testEnv = await testEnvironment()
@@ -284,24 +302,6 @@ describe('UserResolver', () => {
   })
 
   describe('login', () => {
-    const loginQuery = gql`
-      query ($email: String!, $password: String!, $publisherId: Int) {
-        login(email: $email, password: $password, publisherId: $publisherId) {
-          email
-          firstName
-          lastName
-          language
-          coinanimation
-          klickTipp {
-            newsletterState
-          }
-          hasElopage
-          publisherId
-          isAdmin
-        }
-      }
-    `
-
     const variables = {
       email: 'peter@lustig.de',
       password: 'Aa12345_',
@@ -328,7 +328,7 @@ describe('UserResolver', () => {
       })
     })
 
-    describe('user is in database', () => {
+    describe('user is in database and correct login data', () => {
       beforeAll(async () => {
         await createUser(mutate, {
           email: 'peter@lustig.de',
@@ -368,6 +368,83 @@ describe('UserResolver', () => {
 
       it('sets the token in the header', () => {
         expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
+      })
+    })
+
+    describe('user is in database and wrong password', () => {
+      beforeAll(async () => {
+        resetToken()
+        await createUser(mutate, {
+          email: 'peter@lustig.de',
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          language: 'de',
+          publisherId: 1234,
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns an error', () => {
+        expect(
+          query({ query: loginQuery, variables: { ...variables, password: 'wrong' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('No user with this credentials')],
+          }),
+        )
+      })
+    })
+  })
+
+  describe('logout', () => {
+    const logoutQuery = gql`
+      query {
+        logout
+      }
+    `
+
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        await expect(query({ query: logoutQuery })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      const variables = {
+        email: 'peter@lustig.de',
+        password: 'Aa12345_',
+      }
+
+      beforeAll(async () => {
+        resetToken()
+        await createUser(mutate, {
+          email: 'peter@lustig.de',
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          language: 'de',
+          publisherId: 1234,
+        })
+        await query({ query: loginQuery, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true', async () => {
+        await expect(query({ query: logoutQuery })).resolves.toEqual(
+          expect.objectContaining({
+            data: { logout: 'true' },
+            errors: undefined,
+          }),
+        )
       })
     })
   })
