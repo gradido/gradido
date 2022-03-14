@@ -1,11 +1,12 @@
 import { mount } from '@vue/test-utils'
 import Send from './Send'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const sendCoinsMock = jest.fn()
 sendCoinsMock.mockResolvedValue('success')
 
 const createTransactionLinkMock = jest.fn()
-createTransactionLinkMock.mockResolvedValue('success')
+createTransactionLinkMock.mockResolvedValue('error')
 
 const localVue = global.localVue
 
@@ -151,6 +152,18 @@ describe('Send', () => {
       })
       it('steps forward in the dialog', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmationLink' }).exists()).toBe(true)
+      })
+    })
+
+    describe('send apollo if transaction link with error', () => {
+      beforeEach(() => {
+        createTransactionLinkMock.mockRejectedValue({ message: 'OUCH!' })
+        wrapper = Wrapper()
+        wrapper.find('button.btn-success').trigger('click')
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('unregister_mail.error')
       })
     })
 
