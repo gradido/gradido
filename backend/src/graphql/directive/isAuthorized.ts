@@ -14,6 +14,12 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // moriz: I think it is better to check the INALIENABLE_RIGHTS here
+  /* 
+  if ((<RIGHTS[]>rights).reduce(
+    (acc, right) => acc && INALIENABLE_RIGHTS.includes(right),
+    true,
+  )) return true
+  */
 
   // Do we have a token?
   if (context.token) {
