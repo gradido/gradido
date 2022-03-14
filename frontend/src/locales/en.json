@@ -109,7 +109,7 @@
     "not-copied": "Could not copy link: {err}",
     "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "sentence_2": "The link is valid for 14 days!",
-    "sentence_3": "If the link is not called up within the 14-day period, it will be deleted automatically. The amount will then be credited to your account.",
+    "sentence_3": "If the link is not redeemed within the 14-day validity period, it will be invalidated automatically. The amount will then be available to your account again.",
     "sentence_4": "Whoever activates the link will receive the payment from your account. If the recipient is not yet a member of Gradido, he will be guided through the registration process and will get the GDD amount credited after registration / confirmation of the newly created Gradido account.",
     "sentence_5": "The decay amount will be blocked for your account for the whole duration of the link. However, you will only be charged the amount of decay for the time which has actually passed until the link is redeemed. The remaining amount will then be available to your account again."
   },
