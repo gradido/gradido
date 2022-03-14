@@ -55,7 +55,7 @@ describe('Send', () => {
         })
       })
       it('steps forward in the dialog', () => {
-        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'TransactionConfirmationSend' }).exists()).toBe(true)
       })
     })
 
@@ -73,7 +73,7 @@ describe('Send', () => {
       })
 
       it('resets the transaction process when on-reset is emitted', async () => {
-        await wrapper.findComponent({ name: 'TransactionConfirmation' }).vm.$emit('on-reset')
+        await wrapper.findComponent({ name: 'TransactionConfirmationSend' }).vm.$emit('on-reset')
         expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
         expect(wrapper.vm.transactionData).toEqual({
           email: 'user@example.org',
@@ -87,7 +87,7 @@ describe('Send', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
           await wrapper
-            .findComponent({ name: 'TransactionConfirmation' })
+            .findComponent({ name: 'TransactionConfirmationSend' })
             .vm.$emit('send-transaction')
         })
 
@@ -119,7 +119,7 @@ describe('Send', () => {
           jest.clearAllMocks()
           sendMock.mockRejectedValue({ message: 'recipient not known' })
           await wrapper
-            .findComponent({ name: 'TransactionConfirmation' })
+            .findComponent({ name: 'TransactionConfirmationSend' })
             .vm.$emit('send-transaction')
         })
 
@@ -147,7 +147,7 @@ describe('Send', () => {
         })
       })
       it('steps forward in the dialog', () => {
-        expect(wrapper.findComponent({ name: 'TransactionConfirmation' }).exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'TransactionConfirmationLink' }).exists()).toBe(true)
       })
     })
 
@@ -164,7 +164,7 @@ describe('Send', () => {
       })
 
       it('resets the transaction process when on-reset is emitted', async () => {
-        await wrapper.findComponent({ name: 'TransactionConfirmation' }).vm.$emit('on-reset')
+        await wrapper.findComponent({ name: 'TransactionConfirmationSend' }).vm.$emit('on-reset')
         expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
         expect(wrapper.vm.transactionData).toEqual({
           email: '',

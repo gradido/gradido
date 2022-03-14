@@ -51,7 +51,7 @@
 </template>
 <script>
 export default {
-  name: 'TransactionConfirmation',
+  name: 'TransactionConfirmationLink',
   props: {
     balance: { type: Number, required: true },
     email: { type: String, required: false, default: '' },
