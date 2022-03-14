@@ -509,16 +509,13 @@ jobs:
       ##########################################################################
       # UNIT TESTS BACKEND #####################################################
       ##########################################################################
-      - name: backend | docker-compose
+      - name: backend | docker-compose mariadb
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
       - name: Sleep for 30 seconds
         run: sleep 30s
         shell: bash
       - name: backend | docker-compose database
         run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
       - name: backend Unit tests | test
         run: cd database && yarn && yarn build && cd ../backend && yarn && yarn test
         # run: docker-compose -f docker-compose.yml -f docker-compose.test.yml exec -T backend yarn test
@@ -531,7 +528,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 48
+          min_coverage: 54
           token: ${{ github.token }}
 
   ##########################################################################
