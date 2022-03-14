@@ -18,33 +18,27 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     return true
 
   // Do we have a token?
-  if (context.token) {
-    // Decode the token
-    const decoded = decode(context.token)
-    if (!decoded) {
-      throw new Error('403.13 - Client certificate revoked')
-    }
-    // Set context pubKey
-    context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
+  if (!context.token) {
+    throw new Error('401 Unauthorized')
+  }
 
-    // Problem found by unit testing:
-    // I have a valid token in the context, but the database is cleaned,
-    // so the user object cannot be found here
-    // this should be working for inalienable rights
+  // Decode the token
+  const decoded = decode(context.token)
+  if (!decoded) {
+    throw new Error('403.13 - Client certificate revoked')
+  }
+  // Set context pubKey
+  context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
 
-    // set new header token
-    // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
-    // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
-    const userRepository = await getCustomRepository(UserRepository)
-    try {
-      const user = await userRepository.findByPubkeyHex(context.pubKey)
-      const countServerUsers = await ServerUser.count({ email: user.email })
-      context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
-
-      context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
-    } catch {
-      throw new Error('401 Unauthorized')
-    }
+  // TODO - load from database dynamically & admin - maybe encode this in the token to prevent many database requests
+  // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
+  const userRepository = await getCustomRepository(UserRepository)
+  try {
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const countServerUsers = await ServerUser.count({ email: user.email })
+    context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
+  } catch {
+    throw new Error('401 Unauthorized')
   }
 
   // check for correct rights
@@ -53,6 +47,8 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     throw new Error('401 Unauthorized')
   }
 
+  // set new header token
+  context.setHeaders.push({ key: 'token', value: encode(decoded.pubKey) })
   return true
 }
 
