@@ -191,7 +191,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   // Check for 10 minute delay
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed < parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
       throw new Error(
         'email already sent less than ' +
           parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) +
