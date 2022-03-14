@@ -121,7 +121,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD:mm:ss.SSS'
 pm2 save
 
 # Install & build frontend
