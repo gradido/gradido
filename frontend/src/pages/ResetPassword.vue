@@ -46,6 +46,7 @@
 <script>
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { setPassword } from '@/graphql/mutations'
+import { queryOptIn } from '@/graphql/queries'
 
 const textFields = {
   reset: {
@@ -104,7 +105,22 @@ export default {
             this.$router.push('/forgot-password/resetPassword')
         })
     },
+    checkOptInCode() {
+      this.$apollo
+        .query({
+          query: queryOptIn,
+          variables: {
+            optIn: this.$route.params.optin,
+          },
+        })
+        .then()
+        .catch((error) => {
+          this.toastError(error.message)
+          this.$router.push('/forgot-password/resetPassword')
+        })
+    },
     setDisplaySetup() {
+      this.checkOptInCode()
       if (this.$route.path.includes('checkEmail')) {
         this.displaySetup = textFields.checkEmail
       }

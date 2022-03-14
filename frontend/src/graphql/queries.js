@@ -127,3 +127,9 @@ export const communities = gql`
     }
   }
 `
+
+export const queryOptIn = gql`
+  query($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
