@@ -41,7 +41,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  con.close()
+  await con.close()
 })
 
 describe('UserResolver', () => {
