@@ -43,7 +43,11 @@
           </template>
 
           <template #TRANSACTION_LINK>
-            <transaction-link class="list-group-item" v-bind="transactions[index]" />
+            <transaction-link
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :transactionLinkCount="transactionLinkCount"
+            />
           </template>
         </transaction-list-item>
       </div>
@@ -91,6 +95,7 @@ export default {
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+    transactionLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
   },
   methods: {

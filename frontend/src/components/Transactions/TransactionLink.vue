@@ -15,7 +15,7 @@
             <amount-and-name-row :amount="amount" :text="$t('gdd_per_link.links_sum')" />
 
             <!-- Count Links -->
-            <link-count-row count="22" />
+            <link-count-row :count="transactionLinkCount" />
 
             <!-- Decay -->
             <decay-row :decay="decay" />
@@ -53,6 +53,9 @@ export default {
     },
     decay: {
       type: Object,
+    },
+    transactionLinkCount: {
+      type: Number,
     },
   },
   data() {

@@ -15,7 +15,7 @@ export default {
   name: 'LinkCountRow',
   props: {
     count: {
-      type: String,
+      type: Number,
       required: true,
     },
   },
