@@ -217,9 +217,9 @@ export class TransactionResolver {
         transactions.push(
           virtualLinkTransaction(
             lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
-            sumAmount,
-            sumHoldAvailableAmount,
-            sumHoldAvailableAmount.minus(sumAmount.toString()),
+            sumAmount.mul(-1),
+            sumHoldAvailableAmount.mul(-1),
+            sumHoldAvailableAmount.minus(sumAmount.toString()).mul(-1),
             firstDate || now,
             lastDate || now,
             self,
