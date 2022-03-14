@@ -193,9 +193,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed < parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
       throw new Error(
-        'email already sent less than ' +
-          parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) +
-          ' minutes ago',
+        `email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`
       )
     } else {
       optInCode.updatedAt = new Date()
