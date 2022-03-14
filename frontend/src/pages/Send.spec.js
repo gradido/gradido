@@ -9,9 +9,6 @@ apolloMutationMock.mockResolvedValue('success')
 
 const navigatorClipboardMock = jest.fn()
 
-// const createTransactionLinkMock = jest.fn()
-// createTransactionLinkMock.mockRejectedValue({ message: 'OOPS' })
-
 const localVue = global.localVue
 
 // window.scrollTo = jest.fn()
