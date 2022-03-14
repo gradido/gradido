@@ -60,12 +60,12 @@
     "typescript": "^4.3.4"
   },
   "_moduleAliases": {
-    "@": "./src",
-    "@arg": "./src/graphql/arg",
+    "@": "./build/src",
+    "@arg": "./build/src/graphql/arg",
     "@dbTools": "../database/build/src",
     "@entity": "../database/build/entity",
-    "@enum": "./src/graphql/enum",
-    "@model": "./src/graphql/model",
-    "@repository": "./src/typeorm/repository"
+    "@enum": "./build/src/graphql/enum",
+    "@model": "./build/src/graphql/model",
+    "@repository": "./build/src/typeorm/repository"
   }
 }
