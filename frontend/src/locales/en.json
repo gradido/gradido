@@ -107,7 +107,7 @@
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "not-copied": "Could not copy link: {err}",
-    "sentence_1": "Select an amount that you would like to send via a link. You can also enter a message. Click 'Generate now' to create a link that you can send.",
+    "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "sentence_2": "The link is valid for 14 days!",
     "sentence_3": "If the link is not called up within the 14-day period, it will be deleted automatically. The amount will then be credited to your account.",
     "sentence_4": "Whoever activates the link will receive the payment from your account. If you are not yet a member of Gradido, you will be guided through the registration process and will get the GDD amount credited to your account after registration / confirmation of your Gradido account.",
