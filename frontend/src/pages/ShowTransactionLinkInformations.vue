@@ -28,7 +28,6 @@ export default {
       displaySetup: {
         user: {
           firstName: '',
-          lastName: '',
         },
       },
     }

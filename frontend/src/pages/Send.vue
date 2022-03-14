@@ -30,10 +30,7 @@
           ></transaction-confirmation-link>
         </template>
         <template #transactionResultSendSuccess>
-          <transaction-result-send-success
-            :linkResult="linkResult"
-            @on-reset="onReset"
-          ></transaction-result-send-success>
+          <transaction-result-send-success @on-reset="onReset"></transaction-result-send-success>
         </template>
         <template #transactionResultSendError>
           <transaction-result-send-error
@@ -43,12 +40,7 @@
           ></transaction-result-send-error>
         </template>
         <template #transactionResultLink>
-          <transaction-result-link
-            :linkResult="linkResult"
-            :error="error"
-            :errorResult="errorResult"
-            @on-reset="onReset"
-          ></transaction-result-link>
+          <transaction-result-link :code="code" @on-reset="onReset"></transaction-result-link>
         </template>
       </gdd-send>
       <hr />
@@ -94,7 +86,7 @@ export default {
       errorResult: '',
       currentTransactionStep: TRANSACTION_STEPS.transactionForm,
       loading: false,
-      linkResult: {},
+      code: null,
     }
   },
   props: {
@@ -149,7 +141,7 @@ export default {
               variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
             })
             .then((result) => {
-              this.linkResult = result.data.createTransactionLink
+              this.code = result.data.createTransactionLink.code
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
             })
             .catch((error) => {

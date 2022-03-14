@@ -19,14 +19,5 @@
 <script>
 export default {
   name: 'TransactionResultSend',
-  props: {
-    linkResult: {
-      type: Object,
-      required: false,
-      default() {
-        return {}
-      },
-    },
-  },
 }
 </script>
