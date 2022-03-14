@@ -3,7 +3,7 @@
 
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
-import { resetDB, initialize } from '@dbTools/helpers'
+import { initialize } from '@dbTools/helpers'
 import { createUserMutation, setPasswordMutation } from './graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'

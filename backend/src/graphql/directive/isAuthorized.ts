@@ -13,31 +13,16 @@ import { ServerUser } from '@entity/ServerUser'
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
-  // moriz: I think it is better to check the INALIENABLE_RIGHTS here
-  /* 
-  if ((<RIGHTS[]>rights).reduce(
-    (acc, right) => acc && INALIENABLE_RIGHTS.includes(right),
-    true,
-  )) return true
-  */
+  // is rights an inalienable right?
+  if ((<RIGHTS[]>rights).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
+    return true
 
   // Do we have a token?
   if (context.token) {
     // Decode the token
     const decoded = decode(context.token)
     if (!decoded) {
-      // Are all rights requested public?
-      const isInalienable = (<RIGHTS[]>rights).reduce(
-        (acc, right) => acc && INALIENABLE_RIGHTS.includes(right),
-        true,
-      )
-      if (isInalienable) {
-        // If public dont throw and permit access
-        return true
-      } else {
-        // Throw on a protected route
-        throw new Error('403.13 - Client certificate revoked')
-      }
+      throw new Error('403.13 - Client certificate revoked')
     }
     // Set context pubKey
     context.pubKey = Buffer.from(decoded.pubKey).toString('hex')
