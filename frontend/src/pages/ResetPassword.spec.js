@@ -9,6 +9,7 @@ import { toastErrorSpy } from '@test/testSetup'
 const localVue = global.localVue
 
 const apolloMutationMock = jest.fn()
+const apolloQueryMock = jest.fn().mockResolvedValue()
 
 const routerPushMock = jest.fn()
 
@@ -40,6 +41,7 @@ const mocks = {
   },
   $apollo: {
     mutate: apolloMutationMock,
+    query: apolloQueryMock,
   },
 }
 
