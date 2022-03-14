@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, createUser, headerPushMock, cleanDB, resetToken } from '@test/helpers'
+import { testEnvironment, createUser, headerPushMock, cleanDB } from '@test/helpers'
 import { createUserMutation, setPasswordMutation } from '@test/graphql'
 import gql from 'graphql-tag'
 import { GraphQLError } from 'graphql'
@@ -373,7 +373,6 @@ describe('UserResolver', () => {
 
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
-        resetToken()
         await createUser(mutate, {
           email: 'peter@lustig.de',
           firstName: 'Peter',
@@ -423,7 +422,6 @@ describe('UserResolver', () => {
       }
 
       beforeAll(async () => {
-        resetToken()
         await createUser(mutate, {
           email: 'peter@lustig.de',
           firstName: 'Peter',

@@ -13,10 +13,6 @@ export const headerPushMock = jest.fn((t) => {
   context.token = t.value
 })
 
-export const resetToken = () => {
-  context.token = ''
-}
-
 const context = {
   token: '',
   setHeaders: {
@@ -52,6 +48,7 @@ export const resetEntity = async (entity: any) => {
 }
 
 export const createUser = async (mutate: any, user: any) => {
+  resetToken()
   await mutate({ mutation: createUserMutation, variables: user })
   const dbUser = await User.findOne({ where: { email: user.email } })
   if (!dbUser) throw new Error('Ups, no user found')
@@ -61,4 +58,8 @@ export const createUser = async (mutate: any, user: any) => {
     mutation: setPasswordMutation,
     variables: { password: 'Aa12345_', code: optin.verificationCode },
   })
+}
+
+const resetToken = () => {
+  context.token = ''
 }
