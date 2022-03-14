@@ -102,7 +102,7 @@
   },
   "gdd_per_link": {
     "copy": "copy",
-    "created": "Link Is Created!",
+    "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
     "header": "Send Gradidos by link",
     "link-copied": "Link copied to clipboard",
