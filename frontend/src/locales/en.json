@@ -111,7 +111,7 @@
     "sentence_2": "The link is valid for 14 days!",
     "sentence_3": "If the link is not called up within the 14-day period, it will be deleted automatically. The amount will then be credited to your account.",
     "sentence_4": "Whoever activates the link will receive the payment from your account. If you are not yet a member of Gradido, you will be guided through the registration process and will get the GDD amount credited to your account after registration / confirmation of your Gradido account.",
-    "sentence_5": "The transience amount will be borne by you and will be added to your amount for the maximum validity. However, you will only be charged the amount as transience depending on how many days have passed until the link is redeemed. The remaining amount will be refunded to you."
+    "sentence_5": "The decay amount will be blocked for your account for the whole duration of the link. However, you will only be charged the amount of decay for the time which has actually passed until the link is redeemed. The remaining amount will then be available to your account again."
   },
   "gdt": {
     "action": "Action",
