@@ -7,8 +7,28 @@ import { resetDB, initialize } from '@dbTools/helpers'
 import { createUserMutation, setPasswordMutation } from './graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
+import { entities } from '@entity/index'
 
-export const testEnvironment = async (context: any) => {
+let token = ''
+
+export const headerPushMock = jest.fn((t) => (token = t.value))
+
+const context = {
+  token,
+  setHeaders: {
+    push: headerPushMock,
+    forEach: jest.fn(),
+  },
+}
+
+export const cleanDB = async () => {
+  // this only works as lond we do not have foreign key constraints
+  for (let i = 0; i < entities.length; i++) {
+    await resetEntity(entities[i])
+  }
+}
+
+export const testEnvironment = async () => {
   const server = await createServer(context)
   const con = server.con
   const testClient = createTestClient(server.apollo)
@@ -24,12 +44,6 @@ export const resetEntity = async (entity: any) => {
   if (items.length > 0) {
     const ids = items.map((i: any) => i.id)
     await entity.delete(ids)
-  }
-}
-
-export const resetEntities = async (entities: any[]) => {
-  for (let i = 0; i < entities.length; i++) {
-    await resetEntity(entities[i])
   }
 }
 
