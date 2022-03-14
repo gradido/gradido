@@ -1,25 +1,26 @@
 <template>
   <div class="gdd-send">
-    <slot :name="transactionSteps[currentTransactionStep]" />
+    <slot :name="currentTransactionStep" />
   </div>
 </template>
 <script>
+export const TRANSACTION_STEPS = {
+  transactionForm: 'transactionForm',
+  transactionConfirmationSend: 'transactionConfirmationSend',
+  transactionConfirmationLink: 'transactionConfirmationLink',
+  transactionResultSendSuccess: 'transactionResultSendSuccess',
+  transactionResultSendError: 'transactionResultSendError',
+  transactionResultLink: 'transactionResultLink',
+}
+
 export default {
   name: 'GddSend',
-  data() {
-    return {
-      transactionSteps: [
-        'transaction-form',
-        'transaction-confirmation-send',
-        'transaction-confirmation-link',
-        'transaction-result-send-success',
-        'transaction-result-send-error',
-        'transaction-result-link',
-      ],
-    }
-  },
   props: {
-    currentTransactionStep: { type: Number, default: 0 },
+    currentTransactionStep: {
+      type: String,
+      default: TRANSACTION_STEPS.transactionForm,
+      validator: (transactionStep) => TRANSACTION_STEPS[transactionStep] !== undefined,
+    },
   },
 }
 </script>

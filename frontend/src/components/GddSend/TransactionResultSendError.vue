@@ -1,6 +1,6 @@
 <template>
   <b-container>
-    <b-row v-if="error">
+    <b-row>
       <b-col>
         <b-card class="p-0 gradido-custom-background">
           <div class="p-4 gradido-font-15rem">

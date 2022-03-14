@@ -2,10 +2,10 @@
   <div>
     <b-container>
       <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
-        <template #transaction-form>
+        <template #transactionForm>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
-        <template #transaction-confirmation-send>
+        <template #transactionConfirmationSend>
           <transaction-confirmation-send
             :balance="balance"
             :selected="transactionData.selected"
@@ -17,7 +17,7 @@
             @on-reset="onReset"
           ></transaction-confirmation-send>
         </template>
-        <template #transaction-confirmation-link>
+        <template #transactionConfirmationLink>
           <transaction-confirmation-link
             :balance="balance"
             :selected="transactionData.selected"
@@ -29,20 +29,20 @@
             @on-reset="onReset"
           ></transaction-confirmation-link>
         </template>
-        <template #transaction-result-send-success>
+        <template #transactionResultSendSuccess>
           <transaction-result-send-success
             :linkResult="linkResult"
             @on-reset="onReset"
           ></transaction-result-send-success>
         </template>
-        <template #transaction-result-send-error>
+        <template #transactionResultSendError>
           <transaction-result-send-error
             :error="error"
             :errorResult="errorResult"
             @on-reset="onReset"
           ></transaction-result-send-error>
         </template>
-        <template #transaction-result-link>
+        <template #transactionResultLink>
           <transaction-result-link
             :linkResult="linkResult"
             :error="error"
@@ -56,7 +56,7 @@
   </div>
 </template>
 <script>
-import GddSend from '@/components/GddSend.vue'
+import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
 import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend.vue'
 import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink.vue'
@@ -87,7 +87,7 @@ export default {
       transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
       errorResult: '',
-      currentTransactionStep: 0,
+      currentTransactionStep: TRANSACTION_STEPS.transactionForm,
       loading: false,
       linkResult: {},
     }
@@ -109,10 +109,10 @@ export default {
       this.transactionData = { ...data }
       switch (data.selected) {
         case 'send':
-          this.currentTransactionStep = 1
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationSend
           break
         case 'link':
-          this.currentTransactionStep = 2
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationLink
           break
       }
     },
@@ -129,12 +129,12 @@ export default {
             .then(() => {
               this.error = false
               this.$emit('update-balance', this.transactionData.amount)
-              this.currentTransactionStep = 3
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
             .catch((err) => {
               this.errorResult = err.message
               this.error = true
-              this.currentTransactionStep = 4
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
           break
         case 'link':
@@ -145,7 +145,7 @@ export default {
             })
             .then((result) => {
               this.linkResult = result.data.createTransactionLink
-              this.currentTransactionStep = 5
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
             })
             .catch((error) => {
               this.toastError(error)
@@ -157,7 +157,7 @@ export default {
       this.loading = false
     },
     onReset() {
-      this.currentTransactionStep = 0
+      this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
