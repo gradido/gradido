@@ -38,6 +38,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
     const countServerUsers = await ServerUser.count({ email: user.email })
     context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
   } catch {
+    // in case the database query fails (user deleted)
     throw new Error('401 Unauthorized')
   }
 
