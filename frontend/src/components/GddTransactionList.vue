@@ -108,6 +108,10 @@ export default {
 }
 </script>
 <style>
+collaps-icon {
+  width: 95%;
+  position: absolute;
+}
 .el-table .cell {
   padding-left: 0px;
   padding-right: 0px;
