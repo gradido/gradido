@@ -147,7 +147,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
