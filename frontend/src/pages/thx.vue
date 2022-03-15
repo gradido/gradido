@@ -48,12 +48,6 @@ const textFields = {
     button: 'settings.password.reset',
     linkTo: '/forgot-password',
   },
-  resetFailed: {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.resetPassword',
-    button: 'settings.password.reset',
-    linkTo: '/forgot-password',
-  },
 }
 
 export default {
