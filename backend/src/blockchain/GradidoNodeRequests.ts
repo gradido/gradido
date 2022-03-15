@@ -15,8 +15,7 @@ enum GradidoNodeErrorCodes {
   JSON_RPC_ERROR_INVALID_PARAMS = -32602,
 }
 
-// we have a service that can do math,
-// and it has this methods
+// gradido Node service definition
 interface GradidoNodeService {
   // a method called sum that accepts 2 args of type number
   getgroupdetails: ({ groupAlias }: { groupAlias: string }) => GroupDetails
@@ -33,13 +32,18 @@ async function isCommunityAliasExisting(communityAlias: string): Promise<boolean
       id: randomInt(10000),
       jsonrpc: '2.0',
     })
+    console.log(response)
     return true
   } catch (e) {
     if (e instanceof RpcError) {
       if (e.getCode() === GradidoNodeErrorCodes.JSON_RPC_ERROR_UNKNOWN_GROUP) {
         return false
       }
-      throw Error(e.message)
+      let errorMessage = e.message
+      if (e.getData()) {
+        errorMessage += e.getData()
+      }
+      throw Error(errorMessage)
     } else {
       throw e
     }
