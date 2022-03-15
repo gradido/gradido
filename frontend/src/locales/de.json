@@ -20,7 +20,13 @@
     "last_transaction": "Letzte Transaktion",
     "past_time": "Vergangene Zeit",
     "Starting_block_decay": "Startblock Vergänglichkeit",
-    "total": "Gesamt"
+    "total": "Gesamt",
+    "types": {
+      "created": "Geschöpft",
+      "noDecay": "Keine Vergänglichkeit",
+      "receive": "Empfangen",
+      "send": "Gesendet"
+    }
   },
   "error": {
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -193,6 +199,14 @@
     }
   },
   "success": "Erfolg",
+  "time": {
+    "days": "Tage",
+    "hours": "Stunden",
+    "minutes": "Minuten",
+    "months": "Monate",
+    "seconds": "Sekunden",
+    "year": "Jahre"
+  },
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
     "gdt-text": "GradidoTransform Transaktionen",

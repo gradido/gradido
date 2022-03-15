@@ -44,7 +44,7 @@ module.exports = {
       {
         src: './src',
         extensions: ['.js', '.vue'],
-        ignores: ['/site.thx./', '/form./'],
+        ignores: ['/site.thx./', '/form./', '/time./', '/decay.types./'],
         enableFix: false,
       },
     ],

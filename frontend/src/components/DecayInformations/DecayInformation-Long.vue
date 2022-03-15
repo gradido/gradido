@@ -44,7 +44,7 @@
     <!-- Type-->
     <b-row>
       <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-      <b-col cols="6" class="text-right">{{ $t(`decay.${typeId.toLowerCase()}`) }}</b-col>
+      <b-col cols="6" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
       <b-col cols="6">{{ amount | GDD }}</b-col>
     </b-row>
     <!-- Decay-->
@@ -83,7 +83,7 @@ export default {
       order.forEach((timeSpan) => {
         if (this.duration[timeSpan] > 0) {
           // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-          const locale = this.$t(`decay.${timeSpan}`)
+          const locale = this.$t(`time.${timeSpan}`)
           result.push(`${this.duration[timeSpan]} ${locale}`)
         }
       })

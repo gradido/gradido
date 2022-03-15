@@ -20,7 +20,13 @@
     "last_transaction": "Last transaction:",
     "past_time": "Time passed",
     "Starting_block_decay": "Starting Block Decay",
-    "total": "Total"
+    "total": "Total",
+    "types": {
+      "creation": "Created",
+      "noDecay": "No Decay",
+      "receive": "Received",
+      "send": "Sent"
+    }
   },
   "error": {
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -193,6 +199,14 @@
     }
   },
   "success": "Success",
+  "time": {
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "months": "Months",
+    "seconds": "Seconds",
+    "year": "Years"
+  },
   "transaction": {
     "gdd-text": "Gradido Transactions",
     "gdt-text": "GradidoTransform Transactions",
