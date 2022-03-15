@@ -4,6 +4,8 @@
 import createServer from '../server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 
+import { name, internet, random } from 'faker'
+
 import { users } from './users/index'
 import { createUserFactory } from './factory/user'
 import { entities } from '@entity/index'
@@ -41,8 +43,19 @@ const run = async () => {
   const { con } = server
   await cleanDB()
 
+  // seed the standard users
   for (let i = 0; i < users.length; i++) {
     await createUserFactory(mutate, users[i])
+  }
+
+  // seed 100 random users
+  for (let i = 0; i < 100; i++) {
+    await createUserFactory(mutate, {
+      firstName: name.firstName(),
+      lastName: name.lastName(),
+      email: internet.email(),
+      language: random.boolean() ? 'en' : 'de',
+    })
   }
 
   await con.close()
