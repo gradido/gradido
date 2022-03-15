@@ -1,9 +1,9 @@
 <template>
   <div class="transaction-slot-link">
-    <div @click="visible = !visible">
+    <div>
       <!-- Collaps Icon  -->
       <collapse-icon class="text-right" :visible="visible" />
-      <div>
+      <div @click="visible = !visible">
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
@@ -80,7 +80,7 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          this.transactionLinks = result.data
+          this.transactionLinks = result.data.listTransactionLinks
         })
         .catch((err) => {
           this.toastError(err.message)
