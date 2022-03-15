@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <b-row>
+  <div class="transaction-confirm-send">
+    <b-row class="confirm-box-send">
       <b-col>
         <div class="display-4 pb-4">{{ $t('form.send_check') }}</div>
         <b-list-group class="">
@@ -18,7 +18,7 @@
               <div class="m-1 mt-2">GDD</div>
             </b-input-group-prepend>
 
-            <div class="p-3">{{ $n(amount, 'decimal') }}</div>
+            <div class="p-3">{{ (amount * -1) | GDD }}</div>
           </b-input-group>
 
           <br />
@@ -33,23 +33,23 @@
       </b-col>
     </b-row>
 
-    <b-container class="bv-example-row mt-3 gray-background p-2">
-      <p>{{ $t('advanced-calculation') }}</p>
+    <b-container class="bv-example-row mt-3 mb-3 gray-background p-2">
+      <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
-        <b-col class="text-right">{{ $n(balance, 'decimal') }}</b-col>
+        <b-col class="text-right">{{ balance | GDD }}</b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">
           <strong>{{ $t('form.your_amount') }}</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>- {{ $n(amount, 'decimal') }}</strong>
+          <strong>{{ (amount * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">~ {{ $n(balance - amount, 'decimal') }}</b-col>
+        <b-col class="text-right">{{ (balance - amount) | GDD }}</b-col>
       </b-row>
     </b-container>
 
@@ -67,21 +67,14 @@
 </template>
 <script>
 export default {
-  name: 'TransactionConfirmation',
+  name: 'TransactionConfirmationSend',
   props: {
-    balance: { type: Number, default: 0 },
-    email: { type: String, default: '' },
-    amount: { type: Number, default: 0 },
-    memo: { type: String, default: '' },
-    loading: { type: Boolean, default: false },
-    transactions: {
-      default: () => [],
-    },
-  },
-  data() {
-    return {
-      decay: this.transactions[0].balance,
-    }
+    balance: { type: Number, required: true },
+    email: { type: String, required: false, default: '' },
+    amount: { type: Number, required: true },
+    memo: { type: String, required: true },
+    loading: { type: Boolean, required: true },
+    selected: { type: String, required: true },
   },
 }
 </script>

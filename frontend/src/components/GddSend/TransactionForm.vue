@@ -2,26 +2,39 @@
   <b-row class="transaction-form">
     <b-col xl="12" md="12" class="p-0">
       <b-card class="p-0 m-0 gradido-custom-background">
-        <!-- -<QrCode @set-transaction="setTransaction"></QrCode> -->
         <validation-observer v-slot="{ handleSubmit }" ref="formValidator">
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
-            <!-- <div>
-                 <qrcode-drop-zone id="input-0" v-model="form.img"></qrcode-drop-zone>
-                 </div>
-                 <br />
-            -->
+            <b-row>
+              <b-col>
+                <b-form-radio v-model="selected" name="radios" :value="sendTypes.send" size="lg">
+                  {{ $t('send_gdd') }}
+                </b-form-radio>
+              </b-col>
+              <b-col>
+                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
+                  {{ $t('send_per_link') }}
+                </b-form-radio>
+              </b-col>
+            </b-row>
+            <div class="mt-4" v-show="selected === sendTypes.link">
+              <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
+              <div>
+                {{ $t('gdd_per_link.sentence_1') }}
+              </div>
+            </div>
 
             <div>
               <validation-provider
+                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
-                  required: true,
+                  required: selected === sendTypes.send ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
                 v-slot="{ errors }"
               >
-                <label class="input-1" for="input-1">{{ $t('form.recipient') }}</label>
+                <label class="input-1 mt-4" for="input-1">{{ $t('form.recipient') }}</label>
                 <b-input-group
                   id="input-group-1"
                   class="border border-default"
@@ -112,7 +125,6 @@
                 </b-col>
               </validation-provider>
             </div>
-
             <br />
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
@@ -125,7 +137,7 @@
               </b-col>
               <b-col class="text-right">
                 <b-button type="submit" variant="success">
-                  {{ $t('form.send_now') }}
+                  {{ selected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now') }}
                 </b-button>
               </b-col>
             </b-row>
@@ -138,16 +150,13 @@
   </b-row>
 </template>
 <script>
-// import QrCode from './QrCode'
-// import { QrcodeDropZone } from 'vue-qrcode-reader'
 import { BIcon } from 'bootstrap-vue'
+import { SEND_TYPES } from '@/pages/Send.vue'
 
 export default {
   name: 'TransactionForm',
   components: {
     BIcon,
-    //    QrCode,
-    // QrcodeDropZone,
   },
   props: {
     balance: { type: Number, default: 0 },
@@ -162,12 +171,14 @@ export default {
         memo: '',
         amountValue: 0.0,
       },
+      selected: SEND_TYPES.send,
     }
   },
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
       this.$emit('set-transaction', {
+        selected: this.selected,
         email: this.form.email,
         amount: this.form.amountValue,
         memo: this.form.memo,
@@ -179,11 +190,6 @@ export default {
       this.form.amount = ''
       this.form.memo = ''
     },
-    /*
-     setTransaction(data) {
-       this.form.email = data.email
-       this.form.amount = data.amount
-     }, */
     normalizeAmount(isValid) {
       this.amountFocused = false
       if (!isValid) return
@@ -198,6 +204,9 @@ export default {
   computed: {
     isBalanceDisabled() {
       return this.balance <= 0 ? 'disabled' : false
+    },
+    sendTypes() {
+      return SEND_TYPES
     },
   },
 }

@@ -3,18 +3,18 @@
 
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
-import { resetDB, initialize } from '@dbTools/helpers'
+import { initialize } from '@dbTools/helpers'
 import { createUserMutation, setPasswordMutation } from './graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { entities } from '@entity/index'
 
-let token = ''
-
-export const headerPushMock = jest.fn((t) => (token = t.value))
+export const headerPushMock = jest.fn((t) => {
+  context.token = t.value
+})
 
 const context = {
-  token,
+  token: '',
   setHeaders: {
     push: headerPushMock,
     forEach: jest.fn(),
@@ -35,12 +35,11 @@ export const testEnvironment = async () => {
   const mutate = testClient.mutate
   const query = testClient.query
   await initialize()
-  await resetDB()
   return { mutate, query, con }
 }
 
 export const resetEntity = async (entity: any) => {
-  const items = await entity.find()
+  const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
     const ids = items.map((i: any) => i.id)
     await entity.delete(ids)
@@ -48,13 +47,18 @@ export const resetEntity = async (entity: any) => {
 }
 
 export const createUser = async (mutate: any, user: any) => {
+  // resetToken()
   await mutate({ mutation: createUserMutation, variables: user })
   const dbUser = await User.findOne({ where: { email: user.email } })
   if (!dbUser) throw new Error('Ups, no user found')
-  const optin = await LoginEmailOptIn.findOne(dbUser.id)
+  const optin = await LoginEmailOptIn.findOne({ where: { userId: dbUser.id } })
   if (!optin) throw new Error('Ups, no optin found')
   await mutate({
     mutation: setPasswordMutation,
     variables: { password: 'Aa12345_', code: optin.verificationCode },
   })
+}
+
+export const resetToken = () => {
+  context.token = ''
 }
