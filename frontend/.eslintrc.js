@@ -20,6 +20,10 @@ module.exports = {
     {
       files: ['*.json'],
       extends: ['plugin:@intlify/vue-i18n/recommended'],
+      rules: {
+        // TODO: enable
+        '@intlify/vue-i18n/no-html-messages': 'off',
+      },
     },
   ],
   // add your custom rules here
@@ -34,21 +38,17 @@ module.exports = {
       },
     ],
     '@intlify/vue-i18n/no-dynamic-keys': 'error',
+    // TODO: no ignores
     '@intlify/vue-i18n/no-unused-keys': [
       'error',
       {
         src: './src',
         extensions: ['.js', '.vue'],
-        ignores: ['/site.thx./'],
+        ignores: ['/site.thx./', '/form./'],
         enableFix: false,
       },
     ],
-    '@intlify/vue-i18n/no-missing-keys-in-other-locales': [
-      'error',
-      {
-        ignoreLocales: [],
-      },
-    ],
+    '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'error',
     'prettier/prettier': [
       'error',
       {
