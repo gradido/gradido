@@ -8,7 +8,12 @@ module.exports = {
   parserOptions: {
     parser: 'babel-eslint',
   },
-  extends: ['standard', 'plugin:vue/essential', 'plugin:prettier/recommended'],
+  extends: [
+    'standard',
+    'plugin:vue/essential',
+    'plugin:prettier/recommended',
+    'plugin:@intlify/vue-i18n/recommended',
+  ],
   // required to lint *.vue files
   plugins: ['vue', 'prettier', 'jest'],
   // add your custom rules here
@@ -28,5 +33,13 @@ module.exports = {
         htmlWhitespaceSensitivity: 'ignore',
       },
     ],
+  },
+  settings: {
+    'vue-i18n': {
+      localeDir: './src/locales/*.json',
+      // Specify the version of `vue-i18n` you are using.
+      // If not specified, the message will be parsed twice.
+      messageSyntaxVersion: '^8.22.4',
+    },
   },
 }
