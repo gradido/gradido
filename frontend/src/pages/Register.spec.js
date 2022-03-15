@@ -270,7 +270,7 @@ describe('Register', () => {
         it('shows error message', () => {
           expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
           expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text()).toContain('error.error!')
+          expect(wrapper.find('span.alert-text').text()).toContain('error.error')
           expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
         })
 

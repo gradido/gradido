@@ -37,7 +37,7 @@ describe('ContentFooter', () => {
       })
 
       it('renders a link to Gradido-Akademie', () => {
-        expect(wrapper.find('div.copyright').find('a').text()).toEqual('Gradido-Akademie')
+        expect(wrapper.find('div.copyright').find('a').text()).toEqual('footer.copyright.link')
       })
 
       it('links to the login page when clicked on copyright', () => {
@@ -78,7 +78,7 @@ describe('ContentFooter', () => {
 
     describe('links to gradido.net', () => {
       it('has a link to the legal notice', () => {
-        expect(wrapper.findAll('a.nav-link').at(0).text()).toEqual('imprint')
+        expect(wrapper.findAll('a.nav-link').at(0).text()).toEqual('footer.imprint')
       })
 
       it('links to the https://gradido.net/en/impressum when locale is en', () => {
@@ -88,7 +88,7 @@ describe('ContentFooter', () => {
       })
 
       it('has a link to the privacy policy', () => {
-        expect(wrapper.findAll('a.nav-link').at(1).text()).toEqual('privacy_policy')
+        expect(wrapper.findAll('a.nav-link').at(1).text()).toEqual('footer.privacy_policy')
       })
 
       it('links to the https://gradido.net/en/datenschutz when locale is en', () => {

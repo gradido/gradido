@@ -12,8 +12,12 @@ const propsData = {
 describe('PaginationButtons', () => {
   let wrapper
 
+  const mocks = {
+    $t: jest.fn((t) => t),
+  }
+
   const Wrapper = () => {
-    return mount(PaginationButtons, { localVue, propsData })
+    return mount(PaginationButtons, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

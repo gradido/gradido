@@ -7,6 +7,7 @@ describe('Status', () => {
   let wrapper
 
   const mocks = {
+    $t: jest.fn((t) => t),
     $n: jest.fn((n) => n),
   }
 
@@ -26,7 +27,7 @@ describe('Status', () => {
 
     describe('balance is pending', () => {
       it('it displays an en-dash', () => {
-        expect(wrapper.find('div.gdd-status-div').text()).toEqual('— GDD')
+        expect(wrapper.find('div.gdd-status-div').text()).toEqual('dash GDD')
       })
     })
 
