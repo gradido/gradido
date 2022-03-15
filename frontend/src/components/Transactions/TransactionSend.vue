@@ -61,29 +61,32 @@ export default {
   props: {
     amount: {
       type: String,
-    },
-    balance: {
-      type: String,
+      required: true,
     },
     balanceDate: {
       type: String,
+      required: true,
     },
     decay: {
       type: Object,
-    },
-    id: {
-      type: Number,
+      required: true,
     },
     linkedUser: {
       type: Object,
+      required: true,
     },
     memo: {
       type: String,
+      required: true,
     },
     typeId: {
       type: String,
+      required: true,
     },
-    decayStartBlock: { type: Date },
+    decayStartBlock: {
+      type: Date,
+      required: true,
+    },
   },
   data() {
     return {

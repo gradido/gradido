@@ -50,12 +50,15 @@ export default {
   props: {
     amount: {
       type: String,
+      required: true,
     },
     decay: {
       type: Object,
+      required: true,
     },
     transactionLinkCount: {
       type: Number,
+      required: true,
     },
   },
   data() {
