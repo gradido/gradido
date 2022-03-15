@@ -9,16 +9,23 @@ import { UserInterface } from '@/seeds/users/UserInterface'
 
 export const createUserFactory = async (mutate: any, user: UserInterface): Promise<void> => {
   await mutate({ mutation: createUser, variables: user })
-  const dbUser = await User.findOne({ where: { email: user.email } })
-  if (!dbUser) throw new Error('Ups, no user found')
+  let dbUser = await User.findOneOrFail({ where: { email: user.email } })
 
   if (user.emailChecked) {
-    const optin = await LoginEmailOptIn.findOne({ where: { userId: dbUser.id } })
-    if (!optin) throw new Error('Ups, no optin found')
+    const optin = await LoginEmailOptIn.findOneOrFail({ where: { userId: dbUser.id } })
     await mutate({
       mutation: setPassword,
       variables: { password: 'Aa12345_', code: optin.verificationCode },
     })
+  }
+
+  // refetch data
+  dbUser = await User.findOneOrFail({ where: { email: user.email } })
+
+  if (user.createdAt || user.deletedAt) {
+    if (user.createdAt) dbUser.createdAt = user.createdAt
+    if (user.deletedAt) dbUser.deletedAt = user.deletedAt
+    await dbUser.save()
   }
 
   if (user.isAdmin) {
@@ -31,6 +38,6 @@ export const createUserFactory = async (mutate: any, user: UserInterface): Promi
     admin.lastLogin = new Date()
     admin.created = dbUser.createdAt
     admin.modified = dbUser.createdAt
-    admin.save()
+    await admin.save()
   }
 }
