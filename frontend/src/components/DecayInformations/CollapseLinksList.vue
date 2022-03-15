@@ -12,7 +12,7 @@
 export default {
   name: 'CollapseLinksList',
   props: {
-    transactionLinks: { type: Object, required: true },
+    transactionLinks: { type: Array, required: true },
   },
 }
 </script>
