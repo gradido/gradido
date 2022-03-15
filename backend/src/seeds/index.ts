@@ -7,14 +7,16 @@ import { createTestClient } from 'apollo-server-testing'
 import { name, internet, random } from 'faker'
 
 import { users } from './users/index'
+import { creations } from './creation/index'
 import { userFactory } from './factory/user'
+import { creationFactory } from './factory/creation'
 import { entities } from '@entity/index'
 
 const context = {
   token: '',
   setHeaders: {
-    push: (value: string): void => {
-      context.token = value
+    push: (value: { key: string; value: string }): void => {
+      context.token = value.value
     },
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     forEach: (): void => {},
@@ -38,23 +40,28 @@ const resetEntity = async (entity: any) => {
 
 const run = async () => {
   const server = await createServer(context)
-  const testClient = createTestClient(server.apollo)
+  const seedClient = createTestClient(server.apollo)
   const { con } = server
   await cleanDB()
 
   // seed the standard users
   for (let i = 0; i < users.length; i++) {
-    await userFactory(testClient, users[i])
+    await userFactory(seedClient, users[i])
   }
 
   // seed 100 random users
   for (let i = 0; i < 100; i++) {
-    await userFactory(testClient, {
+    await userFactory(seedClient, {
       firstName: name.firstName(),
       lastName: name.lastName(),
       email: internet.email(),
       language: random.boolean() ? 'en' : 'de',
     })
+  }
+
+  // create GDD
+  for (let i = 0; i < creations.length; i++) {
+    await creationFactory(seedClient, creations[i])
   }
 
   await con.close()
