@@ -4,12 +4,11 @@
       <b-col cols="12" class="text-center">
         <div>
           <div class="display-4">{{ $t('decay.Starting_block_decay') }}</div>
-          <div>{{ $t('decay.decay_introduced') }} :</div>
+          <div>{{ $t('decay.decay_introduced') }}</div>
         </div>
         <div>
           <span v-if="decay.start">
             {{ $d(new Date(decay.start), 'long') }}
-            {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </span>
         </div>
       </b-col>

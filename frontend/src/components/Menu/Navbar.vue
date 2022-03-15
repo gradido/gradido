@@ -10,10 +10,10 @@
       </div>
 
       <b-navbar-nav class="ml-auto" is-nav>
-        <b-nav-item>{{ pending ? '—' : balance | amount }} GDD</b-nav-item>
+        <b-nav-item>{{ pending ? '—' : balance | amount }} {{ $t('GDD') }}</b-nav-item>
         <b-nav-item to="/profile" right class="d-none d-sm-none d-md-none d-lg-flex shadow-lg">
           <small>
-            {{ $store.state.firstName }} {{ $store.state.lastName }},
+            {{ $store.state.firstName }} {{ $store.state.lastName }}
             <b>{{ $store.state.email }}</b>
             <b-icon class="ml-3" icon="gear-fill" aria-hidden="true"></b-icon>
           </small>
@@ -32,40 +32,42 @@
           <b-link to="/profile">
             <small>
               {{ $store.state.firstName }}
-              {{ $store.state.lastName }},
+              {{ $store.state.lastName }}
               <b>{{ $store.state.email }}</b>
             </small>
           </b-link>
         </div>
         <b-nav-item to="/overview" class="mb-3">
           <b-icon icon="house" aria-hidden="true"></b-icon>
-          {{ $t('overview') }}
+          {{ $t('navigation.overview') }}
         </b-nav-item>
         <b-nav-item to="/send" class="mb-3">
           <b-icon icon="arrow-left-right" aria-hidden="true"></b-icon>
-          {{ $t('send') }}
+          {{ $t('navigation.send') }}
         </b-nav-item>
         <b-nav-item to="/transactions" class="mb-3">
           <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
-          {{ $t('transactions') }}
+          {{ $t('navigation.transactions') }}
         </b-nav-item>
         <b-nav-item to="/profile" class="mb-3">
           <b-icon icon="gear" aria-hidden="true"></b-icon>
-          {{ $t('site.navbar.my-profil') }}
+          {{ $t('navigation.my-profil') }}
         </b-nav-item>
         <br />
         <b-nav-item :href="elopageUri" class="mb-3" target="_blank">
           <b-icon icon="link45deg" aria-hidden="true"></b-icon>
-          {{ $t('members_area') }}
-          <b-badge v-if="!$store.state.hasElopage" pill variant="danger">!</b-badge>
+          {{ $t('navigation.members_area') }}
+          <b-badge v-if="!$store.state.hasElopage" pill variant="danger">
+            {{ $t('math.exclaim') }}
+          </b-badge>
         </b-nav-item>
         <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
           <b-icon icon="shield-check" aria-hidden="true"></b-icon>
-          {{ $t('admin_area') }}
+          {{ $t('navigation.admin_area') }}
         </b-nav-item>
         <b-nav-item class="mb-3" @click="$emit('logout')">
           <b-icon icon="power" aria-hidden="true"></b-icon>
-          {{ $t('logout') }}
+          {{ $t('navigation.logout') }}
         </b-nav-item>
       </b-nav>
     </b-collapse>

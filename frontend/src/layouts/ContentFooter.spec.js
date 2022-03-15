@@ -98,7 +98,7 @@ describe('ContentFooter', () => {
       })
 
       it('has a link to the members area', () => {
-        expect(wrapper.findAll('a.nav-link').at(2).text()).toEqual('members_area')
+        expect(wrapper.findAll('a.nav-link').at(2).text()).toEqual('navigation.members_area')
       })
 
       it('links to the elopage', () => {

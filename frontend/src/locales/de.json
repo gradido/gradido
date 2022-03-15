@@ -1,5 +1,4 @@
 {
-  "admin_area": "Adminbereich",
   "advanced-calculation": "Vorausberechnung",
   "back": "Zurück",
   "community": {
@@ -27,8 +26,8 @@
     "created": "Geschöpft",
     "days": "Tage",
     "decay": "Vergänglichkeit",
-    "decayStart": " - Startblock für Vergänglichkeit am: ",
-    "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
+    "decayStart": " - Startblock für Vergänglichkeit am:",
+    "decay_introduced": "Die Vergänglichkeit wurde eingeführt am:",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
     "first_transaction": "Die erste Transaktion beinhaltet keine Vergänglichkeit.",
     "hours": "Stunden",
@@ -49,11 +48,22 @@
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
-    "error": "Fehler",
+    "error": "Fehler!",
     "no-account": "Leider konnten wir keinen Account mit diesen Daten finden.",
     "no-email-verify": "Dein Konto wurde noch nicht bestätigt. Bitte überprüfe deine E-Mails und klicke auf den Aktivierungslink!",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
+  },
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido-Akademie",
+      "year": "© {year}"
+    },
+    "imprint": "Impressum",
+    "privacy_policy": "Datenschutzerklärung",
+    "short_hash": "({shortHash})",
+    "whitepaper": "Whitepaper"
   },
   "form": {
     "amount": "Betrag",
@@ -100,6 +110,7 @@
     },
     "your_amount": "Dein Betrag"
   },
+  "GDD": "GDD",
   "gdd_per_link": {
     "copy": "kopieren",
     "created": "Der Link wurde erstellt!",
@@ -130,19 +141,30 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
-  "imprint": "Impressum",
   "language": "Sprache",
   "login": "Anmeldung",
-  "logout": "Abmelden",
-  "members_area": "Mitgliederbereich",
+  "math": {
+    "aprox": "~",
+    "div": "/",
+    "equal": "=",
+    "pipe": "|",
+    "exclaim": "!"
+  },
   "message": "hallo gradido!!",
-  "overview": "Übersicht",
-  "privacy_policy": "Datenschutzerklärung",
+  "navigation": {
+    "admin_area": "Adminbereich",
+    "my-profil": "Mein Profil",
+    "support": "Support",
+    "overview": "Übersicht",
+    "transactions": "Transaktionen",
+    "send": "Senden",
+    "logout": "Abmelden",
+    "members_area": "Mitgliederbereich"
+  },
   "publisher": {
     "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
-    "publisherId": "Publisher-Id"
+    "publisherId": "Publisher-Id:"
   },
-  "send": "Senden",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "settings": {
@@ -197,12 +219,9 @@
     },
     "login": {
       "community": "Tausend Dank, weil du bei uns bist!",
+      "heading": "Gradido",
       "new_wallet": "Neues Konto erstellen",
       "signin": "Anmelden"
-    },
-    "navbar": {
-      "my-profil": "Mein Profil",
-      "support": "Support"
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
@@ -241,6 +260,4 @@
     "button": "einlösen",
     "send_you": "sendet dir"
   },
-  "transactions": "Transaktionen",
-  "whitepaper": "Whitepaper"
 }

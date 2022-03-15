@@ -17,21 +17,25 @@ export const loadAllRules = (i18nCallback) => {
 
   extend('email', {
     ...email,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.email', values),
   })
 
   extend('required', {
     ...required,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.required', values),
   })
 
   extend('min', {
     ...min,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.min', values),
   })
 
   extend('max', {
     ...max,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.max', values),
   })
 

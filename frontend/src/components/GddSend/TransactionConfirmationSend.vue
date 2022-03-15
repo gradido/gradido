@@ -15,7 +15,7 @@
           <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
           <b-input-group id="input-group-2" class="borderbottom" size="lg">
             <b-input-group-prepend class="p-2 d-none d-md-block gray-background">
-              <div class="m-1 mt-2">GDD</div>
+              <div class="m-1 mt-2">{{ $t('GDD') }}</div>
             </b-input-group-prepend>
 
             <div class="p-3">{{ (amount * -1) | GDD }}</div>
@@ -27,7 +27,7 @@
             <b-input-group-prepend class="d-none d-md-block gray-background">
               <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
             </b-input-group-prepend>
-            <div class="p-3">{{ memo ? memo : '-' }}</div>
+            <div class="p-3">{{ memo ? memo : $t('dash') }}</div>
           </b-input-group>
         </b-list-group>
       </b-col>

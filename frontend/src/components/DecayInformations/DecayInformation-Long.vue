@@ -15,7 +15,6 @@
         <div>
           <span>
             {{ $d(new Date(decay.start), 'long') }}
-            {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </span>
         </div>
       </b-col>

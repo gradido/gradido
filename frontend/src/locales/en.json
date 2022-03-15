@@ -1,5 +1,4 @@
 {
-  "admin_area": "Admin Area",
   "advanced-calculation": "Advanced calculation",
   "back": "Back",
   "community": {
@@ -27,8 +26,8 @@
     "created": "Created",
     "days": "Days",
     "decay": "Decay",
-    "decayStart": " - Starting block for decay at: ",
-    "decay_introduced": "Decay was introduced on",
+    "decayStart": " - Starting block for decay at:",
+    "decay_introduced": "Decay was introduced on:",
     "decay_since_last_transaction": "Decay since the last transaction",
     "first_transaction": "The first transaction does not include decay.",
     "hours": "Hours",
@@ -49,11 +48,22 @@
   "error": {
     "change-password": "Error while changing password",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
-    "error": "Error",
+    "error": "Error!",
     "no-account": "Unfortunately we could not find an account to the given data!",
     "no-email-verify": "Your account has not been confirmed yet. Please check your emails and click on the activation link!",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "session-expired": "The session was closed for security reasons."
+  },
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido-Akademie",
+      "year": "© {year}"
+    },
+    "imprint": "Legal notice",
+    "privacy_policy": "Privacy policy",
+    "short_hash": "({shortHash})",
+    "whitepaper": "Whitepaper"
   },
   "form": {
     "amount": "Amount",
@@ -130,19 +140,31 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
-  "imprint": "Legal notice",
   "language": "Language",
   "login": "Login",
-  "logout": "Logout",
-  "members_area": "Members area",
+  "math": {
+    "aprox": "~",
+    "div": "/",
+    "equal": "=",
+    "pipe": "|",
+    "exclaim": "!"
+  },
+  "dash": "—",
   "message": "hello gradido !!",
-  "overview": "Overview",
-  "privacy_policy": "Privacy policy",
+  "navigation": {
+    "admin_area": "Admin Area",
+    "my-profil": "My profile",
+    "support": "Support",
+    "overview": "Overview",
+    "transactions": "Transactions",
+    "send": "Send",
+    "logout": "Logout",
+    "members_area": "Members area"
+  },
   "publisher": {
     "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
-    "publisherId": "PublisherID"
+    "publisherId": "PublisherID:"
   },
-  "send": "Send",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "settings": {
@@ -197,12 +219,9 @@
     },
     "login": {
       "community": "A thousand thanks for being with us!",
+      "heading": "Gradido",
       "new_wallet": "Create new account",
       "signin": "Sign in"
-    },
-    "navbar": {
-      "my-profil": "My profile",
-      "support": "Support"
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
@@ -240,7 +259,5 @@
   "transaction-link": {
     "button": "redeem",
     "send_you": "wants to send you"
-  },
-  "transactions": "Transactions",
-  "whitepaper": "Whitepaper"
+  }
 }
