@@ -69,7 +69,7 @@ export default {
     }
   },
   methods: {
-    async listTransactionLinks(pagination) {
+    async listTransactionLinks() {
       this.$apollo
         .query({
           query: listTransactionLinks,

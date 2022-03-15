@@ -43,7 +43,7 @@
           </template>
 
           <template #TRANSACTION_LINK>
-            <transaction-link-summary
+            <transaction-links-summary
               class="list-group-item"
               v-bind="transactions[index]"
               :transactionLinkCount="transactionLinkCount"
@@ -71,7 +71,7 @@ import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionSend from '@/components/Transactions/TransactionSend'
 import TransactionReceive from '@/components/Transactions/TransactionReceive'
 import TransactionCreation from '@/components/Transactions/TransactionCreation'
-import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
+import TransactionLinksSummary from '@/components/Transactions/TransactionLinksSummary'
 
 export default {
   name: 'gdd-transaction-list',
@@ -82,7 +82,7 @@ export default {
     TransactionSend,
     TransactionReceive,
     TransactionCreation,
-    TransactionLinkSummary,
+    TransactionLinksSummary,
   },
   data() {
     return {
