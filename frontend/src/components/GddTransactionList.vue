@@ -47,6 +47,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :transactionLinkCount="transactionLinkCount"
+              @update-transactions="updateTransactions"
             />
           </template>
         </transaction-list-item>
