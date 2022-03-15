@@ -29,6 +29,7 @@ import { User } from '@entity/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
+import { creation } from '../../blockchain/TransactionToIota'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -322,20 +323,32 @@ export class AdminResolver {
     newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
 
     const transaction = new Transaction()
+    const amountDecimal = new Decimal(Number(pendingCreation.amount))
+
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
     transaction.previous = lastTransaction ? lastTransaction.id : null
     // TODO pending creations decimal
-    transaction.amount = new Decimal(Number(pendingCreation.amount))
+    transaction.amount = amountDecimal
     transaction.creationDate = pendingCreation.date
     transaction.balance = newBalance
     transaction.balanceDate = receivedCallDate
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
-    await transaction.save()
-
+    const savedTransaction = await transaction.save()
     await AdminPendingCreation.delete(pendingCreation)
+    // send creation transaction over iota to Gradido Nodes 
+    // return first signature
+    await creation(
+      receivedCallDate,
+      moderatorUser,
+      user,
+      savedTransaction.id,
+      pendingCreation.memo,
+      amountDecimal.toFixed(20),
+      pendingCreation.date,
+    )
 
     return true
   }
