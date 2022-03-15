@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, headerPushMock, cleanDB, resetToken } from '@test/helpers'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { createUserFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'

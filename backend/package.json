@@ -13,7 +13,8 @@
     "start": "node build/src/index.js",
     "dev": "nodemon -w src --ext ts --exec ts-node src/index.ts",
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
-    "test": "TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles"
+    "test": "TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles",
+    "seed": "TZ=UTC ts-node src/seeds/index.ts"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
