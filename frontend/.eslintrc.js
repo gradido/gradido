@@ -27,6 +27,13 @@ module.exports = {
         allowBinding: false,
       },
     ],
+    '@intlify/vue-i18n/no-dynamic-keys': 'error',
+    '@intlify/vue-i18n/no-unused-keys': [
+      'error',
+      {
+        extensions: ['.js', '.vue'],
+      },
+    ],
     'prettier/prettier': [
       'error',
       {

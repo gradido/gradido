@@ -43,6 +43,7 @@
     </b-row>
     <!-- Type-->
     <b-row>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
       <b-col cols="6" class="text-right">{{ $t(`decay.${typeId.toLowerCase()}`) }}</b-col>
       <b-col cols="6">{{ amount | GDD }}</b-col>
     </b-row>
@@ -81,6 +82,7 @@ export default {
       const result = []
       order.forEach((timeSpan) => {
         if (this.duration[timeSpan] > 0) {
+          // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
           const locale = this.$t(`decay.${timeSpan}`)
           result.push(`${this.duration[timeSpan]} ${locale}`)
         }

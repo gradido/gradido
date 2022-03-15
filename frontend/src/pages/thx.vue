@@ -4,10 +4,13 @@
     <div class="header py-7 py-lg-8 pt-lg-9">
       <b-container>
         <div class="header-body text-center mb-7">
+          <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h1">{{ $t(displaySetup.headline) }}</p>
+          <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
           <b-button v-if="displaySetup.linkTo" :to="displaySetup.linkTo">
+            <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
         </div>

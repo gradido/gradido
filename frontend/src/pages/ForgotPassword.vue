@@ -5,7 +5,9 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
               <h1>{{ $t(displaySetup.headline) }}</h1>
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
               <p class="text-lead">{{ $t(displaySetup.subtitle) }}</p>
             </b-col>
           </b-row>
@@ -22,6 +24,7 @@
                   <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
+                      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
                       {{ $t(displaySetup.button) }}
                     </b-button>
                   </div>

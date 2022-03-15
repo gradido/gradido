@@ -22,6 +22,7 @@
             <b>{{ $t('language') }}</b>
           </small>
         </b-col>
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
         <b-col class="col-12">{{ $t(buildTagFromLanguageString()) }}</b-col>
       </b-row>
     </div>

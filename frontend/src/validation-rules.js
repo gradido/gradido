@@ -5,7 +5,9 @@ import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
 export const loadAllRules = (i18nCallback) => {
   configure({
     defaultMessage: (field, values) => {
+      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
       values._field_ = i18nCallback.t(`fields.${field}`)
+      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
       return i18nCallback.t(`validations.messages.${values._rule_}`, values)
     },
     classes: {
