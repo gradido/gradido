@@ -16,6 +16,12 @@ module.exports = {
   ],
   // required to lint *.vue files
   plugins: ['vue', 'prettier', 'jest'],
+  overrides: [
+    {
+      files: ['*.json'],
+      extends: ['plugin:@intlify/vue-i18n/recommended'],
+    },
+  ],
   // add your custom rules here
   rules: {
     'no-console': ['error'],
@@ -31,7 +37,16 @@ module.exports = {
     '@intlify/vue-i18n/no-unused-keys': [
       'error',
       {
+        src: './src',
         extensions: ['.js', '.vue'],
+        ignores: ['/site.thx./'],
+        enableFix: false,
+      },
+    ],
+    '@intlify/vue-i18n/no-missing-keys-in-other-locales': [
+      'error',
+      {
+        ignoreLocales: [],
       },
     ],
     'prettier/prettier': [

@@ -1,5 +1,6 @@
-{"state":"success", "admin0userlist": 
-	[
+{
+  "state": "success",
+  "admin0userlist": [
     {
       "created": 1578688666,
       "disabled": false,
@@ -12,8 +13,8 @@
       "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71b",
       "role": "admin",
       "username": "",
-      "balance_gdd": 174500, 
-      "balance_gdt": 4500, 
+      "balance_gdd": 174500,
+      "balance_gdt": 4500,
       "errorCount": 0
     },
     {
@@ -28,8 +29,8 @@
       "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71x",
       "role": "user",
       "username": "",
-      "balance_gdd": 144500, 
-      "balance_gdt": 0, 
+      "balance_gdd": 144500,
+      "balance_gdt": 0,
       "errorCount": 0
     },
     {
@@ -44,8 +45,8 @@
       "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71a",
       "role": "user",
       "username": "",
-      "balance_gdd": 444500, 
-      "balance_gdt": 4500, 
+      "balance_gdd": 444500,
+      "balance_gdt": 4500,
       "errorCount": 0
     }
   ]

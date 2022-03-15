@@ -1,5 +1,6 @@
-{"state":"success", "userdata": 
-	[
+{
+  "state": "success",
+  "userdata": [
     {
       "created": 1578688666,
       "disabled": false,
@@ -12,7 +13,7 @@
       "public_hex": "2ed28a1cf5e116d83615406bc577152221c2f774a5656f66a0e7540f7576d71b",
       "role": "admin",
       "username": "",
-      "balance": 174500, 
+      "balance": 174500,
       "errorCount": 0
     }
   ]
