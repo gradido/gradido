@@ -18,7 +18,7 @@
       <b-col cols="2">{{ $moment(item.validUntil).fromNow() }}</b-col>
       <b-col cols="2">
         <b-button size="sm" variant="primary" @click="copy">kopieren</b-button>
-        <b-button size="sm" variant="danger"  @click="deleteTransactionLink(item.id)">löschen</b-button>
+        <b-button size="sm" variant="danger" @click="deleteLink(item.id)">löschen</b-button>
       </b-col>
     </b-row>
   </div>
@@ -41,7 +41,8 @@ export default {
           },
         })
         .then((result) => {
-          console.log(result.data)
+          this.toastSuccess('Link gelöscht')
+          this.$emit('update-list-transaction-links')
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -56,6 +57,16 @@ export default {
         })
         .catch(() => {
           this.toastError(this.$t('gdd_per_link.not-copied'))
+        })
+    },
+    deleteLink(id) {
+      this.$bvModal
+        .msgBoxConfirm('Den Link löschen?')
+        .then(() => {
+          this.deleteTransactionLink(id)
+        })
+        .catch((err) => {
+          console.log(err)
         })
     },
   },
