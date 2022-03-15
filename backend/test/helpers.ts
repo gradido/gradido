@@ -4,7 +4,7 @@
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
 import { initialize } from '@dbTools/helpers'
-import { createUserMutation, setPasswordMutation } from './graphql'
+import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import { entities } from '@entity/index'
@@ -46,15 +46,15 @@ export const resetEntity = async (entity: any) => {
   }
 }
 
-export const createUser = async (mutate: any, user: any) => {
+export const createConfirmedUser = async (mutate: any, user: any) => {
   // resetToken()
-  await mutate({ mutation: createUserMutation, variables: user })
+  await mutate({ mutation: createUser, variables: user })
   const dbUser = await User.findOne({ where: { email: user.email } })
   if (!dbUser) throw new Error('Ups, no user found')
   const optin = await LoginEmailOptIn.findOne({ where: { userId: dbUser.id } })
   if (!optin) throw new Error('Ups, no optin found')
   await mutate({
-    mutation: setPasswordMutation,
+    mutation: setPassword,
     variables: { password: 'Aa12345_', code: optin.verificationCode },
   })
 }
