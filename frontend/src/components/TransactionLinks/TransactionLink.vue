@@ -65,9 +65,7 @@ export default {
         .then(() => {
           this.deleteTransactionLink(id)
         })
-        .catch((err) => {
-          console.log(err)
-        })
+        .catch(() => {})
     },
   },
 }
