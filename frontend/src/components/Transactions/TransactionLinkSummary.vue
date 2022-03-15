@@ -24,7 +24,7 @@
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <collapse-links-list />
+        <collapse-links-list :transactionLinks="transactionLinks" />
       </b-collapse>
     </div>
   </div>
@@ -36,6 +36,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import LinkCountRow from '../TransactionRows/LinkCountRow'
 import DecayRow from '../TransactionRows/DecayRow'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
+import { listTransactionLinks } from '@/graphql/queries'
 
 export default {
   name: 'TransactionSlotLink',
@@ -64,7 +65,30 @@ export default {
   data() {
     return {
       visible: false,
+      transactionLinks: [],
     }
+  },
+  methods: {
+    async listTransactionLinks(pagination) {
+      this.$apollo
+        .query({
+          query: listTransactionLinks,
+          variables: {
+            currentPage: 1,
+            pageSize: 5,
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.transactionLinks = result.data
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+        })
+    },
+  },
+  created() {
+    this.listTransactionLinks()
   },
 }
 </script>
