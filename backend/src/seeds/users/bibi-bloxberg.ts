@@ -7,4 +7,5 @@ export const bibiBloxberg: UserInterface = {
   // description: 'Hex Hex',
   emailChecked: true,
   language: 'de',
+  publisherId: 1234,
 }

@@ -7,5 +7,6 @@ export interface UserInterface {
   emailChecked?: boolean
   language?: string
   deletedAt?: Date
+  publisherId?: number
   isAdmin?: boolean
 }

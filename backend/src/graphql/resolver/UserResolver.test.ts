@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { testEnvironment, headerPushMock, cleanDB, resetToken } from '@test/helpers'
-import { createConfirmedUser } from '@/seeds/factory/user'
+import { createUserFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { login, logout } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
@@ -284,7 +285,7 @@ describe('UserResolver', () => {
 
   describe('login', () => {
     const variables = {
-      email: 'peter@lustig.de',
+      email: 'bibi@bloxberg.de',
       password: 'Aa12345_',
       publisherId: 1234,
     }
@@ -311,13 +312,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
-        await createConfirmedUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
+        await createUserFactory(mutate, bibiBloxberg)
         result = await query({ query: login, variables })
       })
 
@@ -331,15 +326,15 @@ describe('UserResolver', () => {
             data: {
               login: {
                 coinanimation: true,
-                email: 'peter@lustig.de',
-                firstName: 'Peter',
+                email: 'bibi@bloxberg.de',
+                firstName: 'Bibi',
                 hasElopage: false,
                 isAdmin: false,
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
-                lastName: 'Lustig',
+                lastName: 'Bloxberg',
                 publisherId: 1234,
               },
             },
@@ -354,13 +349,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
-        await createConfirmedUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
+        await createUserFactory(mutate, bibiBloxberg)
       })
 
       afterAll(async () => {
@@ -393,18 +382,12 @@ describe('UserResolver', () => {
 
     describe('authenticated', () => {
       const variables = {
-        email: 'peter@lustig.de',
+        email: 'bibi@bloxberg.de',
         password: 'Aa12345_',
       }
 
       beforeAll(async () => {
-        await createConfirmedUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
+        await createUserFactory(mutate, bibiBloxberg)
         await query({ query: login, variables })
       })
 
