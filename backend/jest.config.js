@@ -3,7 +3,7 @@ module.exports = {
   verbose: true,
   preset: 'ts-jest',
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**'],
   setupFiles: ['<rootDir>/test/testSetup.ts'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
