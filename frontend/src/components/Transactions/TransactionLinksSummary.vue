@@ -24,7 +24,10 @@
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <collapse-links-list :transactionLinks="transactionLinks" />
+        <collapse-links-list
+          :transactionLinks="transactionLinks"
+          @update-list-transaction-links="updateListTransactionLinks"
+        />
       </b-collapse>
     </div>
   </div>
@@ -69,7 +72,7 @@ export default {
     }
   },
   methods: {
-    async listTransactionLinks() {
+    async updateListTransactionLinks() {
       this.$apollo
         .query({
           query: listTransactionLinks,
@@ -81,6 +84,7 @@ export default {
         })
         .then((result) => {
           this.transactionLinks = result.data.listTransactionLinks
+          this.$emit('update-transactions')
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -88,7 +92,7 @@ export default {
     },
   },
   created() {
-    this.listTransactionLinks()
+    this.updateListTransactionLinks()
   },
 }
 </script>
