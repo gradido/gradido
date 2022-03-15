@@ -106,7 +106,7 @@
     "decay-14-day": "Decay for 14 days",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
-    "links_count": "active links",
+    "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
     "not-copied": "Could not copy link: {err}",
     "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
