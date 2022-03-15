@@ -10,7 +10,6 @@
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
     "test": "TZ=UTC jest --coverage",
     "locales": "scripts/sort.sh"
   },
