@@ -2,104 +2,61 @@
   <div class="transaction-slot-send">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
-      <div class="text-right gradido-width-95-absolute">
-        <b-icon
-          :icon="visible ? 'caret-up-square' : 'caret-down-square'"
-          :class="visible ? 'text-black' : 'text-muted'"
-        />
-      </div>
+      <collapse-icon class="text-right" :visible="visible" />
 
       <div>
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <div class="gdd-transaction-list-item-icon">
-              <b-icon icon="arrow-left-circle" class="text-danger m-mb-1 font2em" />
-            </div>
+            <type-icon color="text-danger" icon="arrow-left-circle" />
           </b-col>
 
           <b-col cols="11">
-            <!-- Betrag / Name Email -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">
-                  <span class="gdd-transaction-list-item-amount">
-                    {{ amount | GDD }}
-                  </span>
-                </div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-name">
-                  {{ linkedUser.firstName + ' ' + linkedUser.lastName }}
-                </div>
-              </b-col>
-            </b-row>
+            <!-- Amount / Name  -->
+            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
 
-            <!-- Nachricht Memo -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">{{ $t('form.memo') }}</div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-message">{{ memo }}</div>
-              </b-col>
-            </b-row>
+            <!-- Memo -->
+            <memo-row :memo="memo" />
 
             <!-- Datum -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">{{ $t('form.date') }}</div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-date">
-                  {{ $d(new Date(balanceDate), 'long') }}
-                  {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
-                </div>
-              </b-col>
-            </b-row>
+            <date-row :balanceDate="balanceDate" />
 
             <!-- Decay -->
-            <b-row v-if="decay">
-              <b-col cols="5">
-                <div class="text-right">
-                  <b-icon icon="droplet-half" height="15" class="mb-1" />
-                </div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-decay">
-                  <decay-information-short decaytyp="short" :decay="decay" />
-                </div>
-              </b-col>
-            </b-row>
+            <decay-row :decay="decay" />
           </b-col>
         </b-row>
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information-before-startblock v-if="decay.start === null" />
-        <decay-information-decay-startblock
-          v-else-if="isStartBlock"
-          :amount="amount"
-          :decay="decay"
+        <decay-information
           :typeId="typeId"
+          :decay="decay"
+          :amount="amount"
+          :decayStartBlock="decayStartBlock"
         />
-        <decay-information-long v-else :amount="amount" :decay="decay" :typeId="typeId" />
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
-import DecayInformationShort from '../DecayInformations/DecayInformation-Short'
-import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
-import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
-import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
+import CollapseIcon from '../TransactionRows/CollapseIcon'
+import TypeIcon from '../TransactionRows/TypeIcon'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
+import MemoRow from '../TransactionRows/MemoRow'
+import DateRow from '../TransactionRows/DateRow'
+import DecayRow from '../TransactionRows/DecayRow'
+import DecayInformation from '../DecayInformations/DecayInformation'
+
 export default {
   name: 'slot-send',
   components: {
-    DecayInformationShort,
-    DecayInformationLong,
-    DecayInformationBeforeStartblock,
-    DecayInformationDecayStartblock,
+    CollapseIcon,
+    TypeIcon,
+    AmountAndNameRow,
+    MemoRow,
+    DateRow,
+    DecayRow,
+    DecayInformation,
   },
   props: {
     amount: {
@@ -132,11 +89,6 @@ export default {
     return {
       visible: false,
     }
-  },
-  computed: {
-    isStartBlock() {
-      return new Date(this.decay.start).getTime() === this.decayStartBlock.getTime()
-    },
   },
 }
 </script>

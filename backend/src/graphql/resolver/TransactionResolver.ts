@@ -23,6 +23,7 @@ import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 
 import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -30,9 +31,99 @@ import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
-import { virtualDecayTransaction } from '@/util/virtualDecayTransaction'
+import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
+
+export const executeTransaction = async (
+  amount: Decimal,
+  memo: string,
+  sender: dbUser,
+  recipient: dbUser,
+  transactionLink?: dbTransactionLink | null,
+): Promise<boolean> => {
+  if (sender.id === recipient.id) {
+    throw new Error('Sender and Recipient are the same.')
+  }
+
+  // validate amount
+  const receivedCallDate = new Date()
+  const sendBalance = await calculateBalance(sender.id, amount.mul(-1), receivedCallDate)
+  if (!sendBalance) {
+    throw new Error("user hasn't enough GDD or amount is < 0")
+  }
+
+  const queryRunner = getConnection().createQueryRunner()
+  await queryRunner.connect()
+  await queryRunner.startTransaction('READ UNCOMMITTED')
+  try {
+    // transaction
+    const transactionSend = new dbTransaction()
+    transactionSend.typeId = TransactionTypeId.SEND
+    transactionSend.memo = memo
+    transactionSend.userId = sender.id
+    transactionSend.linkedUserId = recipient.id
+    transactionSend.amount = amount.mul(-1)
+    transactionSend.balance = sendBalance.balance
+    transactionSend.balanceDate = receivedCallDate
+    transactionSend.decay = sendBalance.decay.decay
+    transactionSend.decayStart = sendBalance.decay.start
+    transactionSend.previous = sendBalance.lastTransactionId
+    transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
+    await queryRunner.manager.insert(dbTransaction, transactionSend)
+
+    const transactionReceive = new dbTransaction()
+    transactionReceive.typeId = TransactionTypeId.RECEIVE
+    transactionReceive.memo = memo
+    transactionReceive.userId = recipient.id
+    transactionReceive.linkedUserId = sender.id
+    transactionReceive.amount = amount
+    const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+    transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
+    transactionReceive.balanceDate = receivedCallDate
+    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+    transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+    transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
+    transactionReceive.linkedTransactionId = transactionSend.id
+    transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
+    await queryRunner.manager.insert(dbTransaction, transactionReceive)
+
+    // Save linked transaction id for send
+    transactionSend.linkedTransactionId = transactionReceive.id
+    await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
+
+    if (transactionLink) {
+      transactionLink.redeemedAt = receivedCallDate
+      transactionLink.redeemedBy = recipient.id
+      await queryRunner.manager.update(
+        dbTransactionLink,
+        { id: transactionLink.id },
+        transactionLink,
+      )
+    }
+
+    await queryRunner.commitTransaction()
+  } catch (e) {
+    await queryRunner.rollbackTransaction()
+    throw new Error(`Transaction was not successful: ${e}`)
+  } finally {
+    await queryRunner.release()
+  }
+
+  // send notification email
+  // TODO: translate
+  await sendTransactionReceivedEmail({
+    senderFirstName: sender.firstName,
+    senderLastName: sender.lastName,
+    recipientFirstName: recipient.firstName,
+    recipientLastName: recipient.lastName,
+    email: recipient.email,
+    amount,
+    memo,
+  })
+
+  return true
+}
 
 @Resolver()
 export class TransactionResolver {
@@ -112,11 +203,29 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    // decay transaction
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+      await transactionLinkRepository.summary(user.id, now)
+
+    // decay & link transactions
     if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
+      // virtual transaction for pending transaction-links sum
+      if (sumHoldAvailableAmount.greaterThan(0)) {
+        transactions.push(
+          virtualLinkTransaction(
+            lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
+            sumAmount,
+            sumHoldAvailableAmount,
+            sumHoldAvailableAmount.minus(sumAmount.toString()),
+            firstDate || now,
+            lastDate || now,
+            self,
+          ),
+        )
+      }
     }
 
     // transactions
@@ -128,13 +237,10 @@ export class TransactionResolver {
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
 
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const toHoldAvailable = await transactionLinkRepository.sumAmountToHoldAvailable(user.id, now)
-
     // Construct Result
     return new TransactionList(
       calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
-        toHoldAvailable.toString(),
+        sumHoldAvailableAmount.toString(),
       ),
       transactions,
       userTransactionsCount,
@@ -154,12 +260,6 @@ export class TransactionResolver {
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
-    // validate amount
-    const receivedCallDate = new Date()
-    const sendBalance = await calculateBalance(senderUser.id, amount.mul(-1), receivedCallDate)
-    if (!sendBalance) {
-      throw new Error("user hasn't enough GDD or amount is < 0")
-    }
 
     // validate recipient user
     const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
@@ -173,62 +273,7 @@ export class TransactionResolver {
       throw new Error('invalid recipient public key')
     }
 
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
-    try {
-      // transaction
-      const transactionSend = new dbTransaction()
-      transactionSend.typeId = TransactionTypeId.SEND
-      transactionSend.memo = memo
-      transactionSend.userId = senderUser.id
-      transactionSend.linkedUserId = recipientUser.id
-      transactionSend.amount = amount.mul(-1)
-      transactionSend.balance = sendBalance.balance
-      transactionSend.balanceDate = receivedCallDate
-      transactionSend.decay = sendBalance.decay.decay
-      transactionSend.decayStart = sendBalance.decay.start
-      transactionSend.previous = sendBalance.lastTransactionId
-      await queryRunner.manager.insert(dbTransaction, transactionSend)
-
-      const transactionReceive = new dbTransaction()
-      transactionReceive.typeId = TransactionTypeId.RECEIVE
-      transactionReceive.memo = memo
-      transactionReceive.userId = recipientUser.id
-      transactionReceive.linkedUserId = senderUser.id
-      transactionReceive.amount = amount
-      const receiveBalance = await calculateBalance(recipientUser.id, amount, receivedCallDate)
-      transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
-      transactionReceive.balanceDate = receivedCallDate
-      transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
-      transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
-      transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
-      transactionReceive.linkedTransactionId = transactionSend.id
-      await queryRunner.manager.insert(dbTransaction, transactionReceive)
-
-      // Save linked transaction id for send
-      transactionSend.linkedTransactionId = transactionReceive.id
-      await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw new Error(`Transaction was not successful: ${e}`)
-    } finally {
-      await queryRunner.release()
-    }
-
-    // send notification email
-    // TODO: translate
-    await sendTransactionReceivedEmail({
-      senderFirstName: senderUser.firstName,
-      senderLastName: senderUser.lastName,
-      recipientFirstName: recipientUser.firstName,
-      recipientLastName: recipientUser.lastName,
-      email: recipientUser.email,
-      amount,
-      memo,
-    })
+    await executeTransaction(amount, memo, senderUser, recipientUser)
 
     return true
   }

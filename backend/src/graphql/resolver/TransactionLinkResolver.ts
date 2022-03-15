@@ -5,14 +5,17 @@ import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query } from 'type-grap
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import TransactionLinkArgs from '@arg/TransactionLinkArgs'
-import QueryTransactionLinkArgs from '@arg/QueryTransactionLinkArgs'
+import { User as dbUser } from '@entity/User'
 import { UserRepository } from '@repository/User'
+import TransactionLinkArgs from '@arg/TransactionLinkArgs'
+import Paginated from '@arg/Paginated'
 import { calculateBalance } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { randomBytes } from 'crypto'
 import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
+import { executeTransaction } from './TransactionResolver'
+import { Order } from '@enum/Order'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -96,30 +99,71 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
-  async queryTransactionLink(
-    @Args() { code, redeemUserId }: QueryTransactionLinkArgs,
-  ): Promise<TransactionLink> {
+  async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findOneOrFail({ id: transactionLink.userId })
-    let userRedeem = null
-    if (redeemUserId && !transactionLink.redeemedBy) {
-      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
-      if (!redeemedByUser) {
-        throw new Error('Unable to find user that redeem the link')
-      }
-      userRedeem = new User(redeemedByUser)
-      transactionLink.redeemedBy = userRedeem.id
-      await dbTransactionLink.save(transactionLink).catch(() => {
-        throw new Error('Unable to save transaction link')
-      })
-    } else if (transactionLink.redeemedBy) {
-      const redeemedByUser = await userRepository.findOne({ id: redeemUserId })
-      if (!redeemedByUser) {
-        throw new Error('Unable to find user that has redeemed the link')
-      }
-      userRedeem = new User(redeemedByUser)
+    const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
+    let redeemedBy: User | null = null
+    if (transactionLink && transactionLink.redeemedBy) {
+      redeemedBy = new User(await dbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
     }
-    return new TransactionLink(transactionLink, new User(user), userRedeem)
+    return new TransactionLink(transactionLink, new User(user), redeemedBy)
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
+  @Query(() => [TransactionLink])
+  async listTransactionLinks(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Ctx() context: any,
+  ): Promise<TransactionLink[]> {
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    // const now = new Date()
+    const transactionLinks = await dbTransactionLink.find({
+      where: {
+        userId: user.id,
+        redeemedBy: null,
+        // validUntil: MoreThan(now),
+      },
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
+  }
+
+  @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
+  @Mutation(() => Boolean)
+  async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
+    const userRepository = getCustomRepository(UserRepository)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const transactionLink = await dbTransactionLink.findOneOrFail({ id })
+    const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+
+    const now = new Date()
+
+    if (user.id === linkedUser.id) {
+      throw new Error('Cannot redeem own transaction link.')
+    }
+
+    if (transactionLink.validUntil.getTime() < now.getTime()) {
+      throw new Error('Transaction Link is not valid anymore.')
+    }
+
+    if (transactionLink.redeemedBy) {
+      throw new Error('Transaction Link already redeemed.')
+    }
+
+    await executeTransaction(
+      transactionLink.amount,
+      transactionLink.memo,
+      linkedUser,
+      user,
+      transactionLink,
+    )
+
+    return true
   }
 }

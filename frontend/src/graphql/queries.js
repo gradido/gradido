@@ -139,7 +139,7 @@ export const queryTransactionLink = gql`
         email
         firstName
         lastName
-        publisherId
+        id
       }
     }
   }

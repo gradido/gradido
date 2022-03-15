@@ -2,27 +2,45 @@
   <div>
     <b-container>
       <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
-        <template #transaction-form>
+        <template #transactionForm>
           <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
         </template>
-        <template #transaction-confirmation>
-          <transaction-confirmation
+        <template #transactionConfirmationSend>
+          <transaction-confirmation-send
             :balance="balance"
-            :transactions="transactions"
+            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
             :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
-          ></transaction-confirmation>
+          ></transaction-confirmation-send>
         </template>
-        <template #transaction-result>
-          <transaction-result
+        <template #transactionConfirmationLink>
+          <transaction-confirmation-link
+            :balance="balance"
+            :selected="transactionData.selected"
+            :email="transactionData.email"
+            :amount="transactionData.amount"
+            :memo="transactionData.memo"
+            :loading="loading"
+            @send-transaction="sendTransaction"
+            @on-reset="onReset"
+          ></transaction-confirmation-link>
+        </template>
+        <template #transactionResultSendSuccess>
+          <transaction-result-send-success @on-reset="onReset"></transaction-result-send-success>
+        </template>
+        <template #transactionResultSendError>
+          <transaction-result-send-error
             :error="error"
             :errorResult="errorResult"
             @on-reset="onReset"
-          ></transaction-result>
+          ></transaction-result-send-error>
+        </template>
+        <template #transactionResultLink>
+          <transaction-result-link :code="code" @on-reset="onReset"></transaction-result-link>
         </template>
       </gdd-send>
       <hr />
@@ -30,11 +48,14 @@
   </div>
 </template>
 <script>
-import GddSend from '@/components/GddSend.vue'
+import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import TransactionForm from '@/components/GddSend/TransactionForm.vue'
-import TransactionConfirmation from '@/components/GddSend/TransactionConfirmation.vue'
-import TransactionResult from '@/components/GddSend/TransactionResult.vue'
-import { sendCoins } from '@/graphql/mutations.js'
+import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend.vue'
+import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink.vue'
+import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess.vue'
+import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError.vue'
+import TransactionResultLink from '@/components/GddSend/TransactionResultLink.vue'
+import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 
 const EMPTY_TRANSACTION_DATA = {
   email: '',
@@ -42,21 +63,30 @@ const EMPTY_TRANSACTION_DATA = {
   memo: '',
 }
 
+export const SEND_TYPES = {
+  send: 'send',
+  link: 'link',
+}
+
 export default {
   name: 'Send',
   components: {
     GddSend,
     TransactionForm,
-    TransactionConfirmation,
-    TransactionResult,
+    TransactionConfirmationSend,
+    TransactionConfirmationLink,
+    TransactionResultSendSuccess,
+    TransactionResultSendError,
+    TransactionResultLink,
   },
   data() {
     return {
       transactionData: { ...EMPTY_TRANSACTION_DATA },
       error: false,
       errorResult: '',
-      currentTransactionStep: 0,
+      currentTransactionStep: TRANSACTION_STEPS.transactionForm,
       loading: false,
+      code: null,
     }
   },
   props: {
@@ -74,29 +104,57 @@ export default {
   methods: {
     setTransaction(data) {
       this.transactionData = { ...data }
-      this.currentTransactionStep = 1
+      switch (data.selected) {
+        case SEND_TYPES.send:
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationSend
+          break
+        case SEND_TYPES.link:
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationLink
+          break
+      }
     },
     async sendTransaction() {
       this.loading = true
       this.error = false
-      this.$apollo
-        .mutate({
-          mutation: sendCoins,
-          variables: this.transactionData,
-        })
-        .then(() => {
-          this.error = false
-          this.$emit('update-balance', this.transactionData.amount)
-        })
-        .catch((err) => {
-          this.errorResult = err.message
-          this.error = true
-        })
-      this.currentTransactionStep = 2
+      switch (this.transactionData.selected) {
+        case SEND_TYPES.send:
+          this.$apollo
+            .mutate({
+              mutation: sendCoins,
+              variables: this.transactionData,
+            })
+            .then(() => {
+              this.error = false
+              this.$emit('update-balance', this.transactionData.amount)
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
+            })
+            .catch((err) => {
+              this.errorResult = err.message
+              this.error = true
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
+            })
+          break
+        case SEND_TYPES.link:
+          this.$apollo
+            .mutate({
+              mutation: createTransactionLink,
+              variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
+            })
+            .then((result) => {
+              this.code = result.data.createTransactionLink.code
+              this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
+            })
+            .catch((error) => {
+              this.toastError(error)
+            })
+          break
+        default:
+          throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
+      }
       this.loading = false
     },
     onReset() {
-      this.currentTransactionStep = 0
+      this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)

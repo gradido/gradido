@@ -19,7 +19,7 @@ describe('GddTransactionList', () => {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
     $i18n: {
-      locale: () => 'de',
+      locale: () => 'en',
     },
   }
 
@@ -96,13 +96,13 @@ describe('GddTransactionList', () => {
               typeId: 'DECAY',
               amount: '-0.16778637075575395772595',
               balance: '31.59320453982945549519405',
-              balanceDate: '2022-03-03T08:54:54.020Z',
+              balanceDate: '2022-03-03T08:54:54',
               memo: '',
               linkedUser: null,
               decay: {
                 decay: '-0.16778637075575395772595',
-                start: '2022-02-28T13:55:47.000Z',
-                end: '2022-03-03T08:54:54.020Z',
+                start: '2022-02-28T13:55:47',
+                end: '2022-03-03T08:54:54',
                 duration: 241147.02,
               },
             },
@@ -111,7 +111,7 @@ describe('GddTransactionList', () => {
               typeId: 'SEND',
               amount: '1',
               balance: '31.76099091058520945292',
-              balanceDate: '2022-02-28T13:55:47.000Z',
+              balanceDate: '2022-02-28T13:55:47',
               memo: 'adasd adada',
               linkedUser: {
                 firstName: 'Bibi',
@@ -119,8 +119,8 @@ describe('GddTransactionList', () => {
               },
               decay: {
                 decay: '-0.2038314055482643084',
-                start: '2022-02-25T07:29:26.000Z',
-                end: '2022-02-28T13:55:47.000Z',
+                start: '2022-02-25T07:29:26',
+                end: '2022-02-28T13:55:47',
                 duration: 282381,
               },
             },
@@ -129,7 +129,7 @@ describe('GddTransactionList', () => {
               typeId: 'CREATION',
               amount: '1000',
               balance: '32.96482231613347376132',
-              balanceDate: '2022-02-25T07:29:26.000Z',
+              balanceDate: '2022-02-25T07:29:26',
               memo: 'asd adada dad',
               linkedUser: {
                 firstName: 'Gradido',
@@ -137,8 +137,8 @@ describe('GddTransactionList', () => {
               },
               decay: {
                 decay: '-0.03517768386652623868',
-                start: '2022-02-23T10:55:30.000Z',
-                end: '2022-02-25T07:29:26.000Z',
+                start: '2022-02-23T10:55:30',
+                end: '2022-02-25T07:29:26',
                 duration: 160436,
               },
             },
@@ -147,7 +147,7 @@ describe('GddTransactionList', () => {
               typeId: 'RECEIVE',
               amount: '10',
               balance: '10',
-              balanceDate: '2022-02-23T10:55:30.000Z',
+              balanceDate: '2022-02-23T10:55:30',
               memo: 'asd adaaad adad addad ',
               linkedUser: {
                 firstName: 'Bibi',
@@ -256,7 +256,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Mon Feb 28 2022 13:55:47 GMT+0000 (Coordinated Universal Time)',
+            'Mon Feb 28 2022 13:55:47 GMT+0000',
           )
         })
 
@@ -286,18 +286,23 @@ describe('GddTransactionList', () => {
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-gift',
-            'gradido-global-color-accent',
             'm-mb-1',
             'font2em',
             'b-icon',
             'bi',
+            'gradido-global-color-accent',
           ])
         })
 
         it('has gradido-global-color-accent color', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain(
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-gift',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
             'gradido-global-color-accent',
-          )
+          ])
         })
 
         // operators are renderd by GDD filter
@@ -321,7 +326,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Fri Feb 25 2022 07:29:26 GMT+0000 (Coordinated Universal Time)',
+            'Fri Feb 25 2022 07:29:26 GMT+0000',
           )
         })
       })
@@ -348,11 +353,11 @@ describe('GddTransactionList', () => {
         it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
             'bi-arrow-right-circle',
-            'gradido-global-color-accent',
             'm-mb-1',
             'font2em',
             'b-icon',
             'bi',
+            'gradido-global-color-accent',
           ])
         })
 
@@ -383,7 +388,7 @@ describe('GddTransactionList', () => {
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30 GMT+0000 (Coordinated Universal Time)',
+            'Wed Feb 23 2022 10:55:30 GMT+0000',
           )
         })
 
@@ -400,6 +405,7 @@ describe('GddTransactionList', () => {
         return {
           amount: '3.14',
           balanceDate: '2021-04-29T17:26:40+00:00',
+          decay: {},
           memo: 'Kreiszahl PI',
           linkedUser: {
             firstName: 'Bibi',
@@ -418,6 +424,7 @@ describe('GddTransactionList', () => {
           transactions,
           transactionCount: 42,
           showPagination: true,
+          decayStartBlock: new Date(),
         })
         paginationButtons = wrapper.find('div.pagination-buttons')
       })

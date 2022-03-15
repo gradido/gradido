@@ -1,17 +1,17 @@
 <template>
-  <div>
+  <div class="show-transaction-link-informations">
     <!-- Header -->
     <div class="header py-7 py-lg-8 pt-lg-9">
       <b-container>
         <div class="header-body text-center mb-7">
           <p class="h1">
-            {{ displaySetup.user.firstName }} {{ displaySetup.user.lastName }}
-            {{ $t('wants to send you') }} {{ displaySetup.amount | GDD }}
+            {{ displaySetup.user.firstName }}
+            {{ $t('transaction-link.send_you') }} {{ displaySetup.amount | GDD }}
           </p>
-          <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
+          <p class="h4">{{ displaySetup.memo }}</p>
           <hr />
           <b-button v-if="displaySetup.linkTo" :to="displaySetup.linkTo">
-            {{ $t(displaySetup.button) }}
+            {{ $t('transaction-link.button') }}
           </b-button>
         </div>
       </b-container>
@@ -25,7 +25,11 @@ export default {
   name: 'ShowTransactionLinkInformations',
   data() {
     return {
-      displaySetup: {},
+      displaySetup: {
+        user: {
+          firstName: '',
+        },
+      },
     }
   },
   methods: {
@@ -38,11 +42,8 @@ export default {
           },
         })
         .then((result) => {
-          const {
-            data: { queryTransactionLink },
-          } = result
-          this.displaySetup = queryTransactionLink
-          this.$store.commit('publisherId', queryTransactionLink.user.publisherId)
+          this.displaySetup = result.data.queryTransactionLink
+          this.$store.commit('publisherId', result.data.queryTransactionLink.user.id)
         })
         .catch((error) => {
           this.toastError(error)
@@ -50,7 +51,7 @@ export default {
     },
   },
   created() {
-    this.setDisplaySetup()
+    this.setTransactionLinkInformation()
   },
 }
 </script>
