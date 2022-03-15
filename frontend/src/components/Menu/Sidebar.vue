@@ -18,7 +18,7 @@
           </b-nav-item>
           <b-nav-item to="/profile" class="mb-3">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
-            {{ $t('navigation.my-profil') }}
+            {{ $t('navigation.profile') }}
           </b-nav-item>
         </b-nav>
         <hr />

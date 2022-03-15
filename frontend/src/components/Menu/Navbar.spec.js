@@ -63,8 +63,8 @@ describe('Navbar', () => {
       it('has first nav-item "navigation.transactions" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.transactions')
       })
-      it('has first nav-item "navigation.my-profil" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.my-profil')
+      it('has first nav-item "navigation.profile" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.profile')
       })
 
       it('has a link to the members area', () => {
