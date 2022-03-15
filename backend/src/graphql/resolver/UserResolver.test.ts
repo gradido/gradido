@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  testEnvironment,
-  createConfirmedUser,
-  headerPushMock,
-  cleanDB,
-  resetToken,
-} from '@test/helpers'
+import { testEnvironment, headerPushMock, cleanDB, resetToken } from '@test/helpers'
+import { createConfirmedUser } from '@/seeds/factory/user'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { login, logout } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
