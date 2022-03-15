@@ -29,7 +29,7 @@ export const transactionLinkCode = (date: Date): string => {
 
 const CODE_VALID_DAYS_DURATION = 14
 
-const transactionLinkExpireDate = (date: Date): Date => {
+export const transactionLinkExpireDate = (date: Date): Date => {
   const validUntil = new Date(date)
   return new Date(validUntil.setDate(date.getDate() + CODE_VALID_DAYS_DURATION))
 }
