@@ -12,9 +12,9 @@ export const unsubscribeNewsletter = gql`
   }
 `
 
-export const resetPassword = gql`
-  mutation($sessionId: Float!, $email: String!, $password: String!) {
-    resetPassword(sessionId: $sessionId, email: $email, password: $password)
+export const setPassword = gql`
+  mutation($code: String!, $password: String!) {
+    setPassword(code: $code, password: $password)
   }
 `
 
@@ -22,8 +22,6 @@ export const updateUserInfos = gql`
   mutation(
     $firstName: String
     $lastName: String
-    $description: String
-    $username: String
     $password: String
     $passwordNew: String
     $locale: String
@@ -32,24 +30,19 @@ export const updateUserInfos = gql`
     updateUserInfos(
       firstName: $firstName
       lastName: $lastName
-      description: $description
-      username: $username
       password: $password
       passwordNew: $passwordNew
       language: $locale
       coinanimation: $coinanimation
-    ) {
-      validValues
-    }
+    )
   }
 `
 
-export const registerUser = gql`
+export const createUser = gql`
   mutation(
     $firstName: String!
     $lastName: String!
     $email: String!
-    $password: String!
     $language: String!
     $publisherId: Int
   ) {
@@ -57,7 +50,6 @@ export const registerUser = gql`
       email: $email
       firstName: $firstName
       lastName: $lastName
-      password: $password
       language: $language
       publisherId: $publisherId
     )
@@ -65,7 +57,15 @@ export const registerUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation($email: String!, $amount: Float!, $memo: String!) {
+  mutation($email: String!, $amount: Decimal!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
+  }
+`
+
+export const createTransactionLink = gql`
+  mutation($amount: Decimal!, $memo: String!) {
+    createTransactionLink(amount: $amount, memo: $memo) {
+      code
+    }
   }
 `

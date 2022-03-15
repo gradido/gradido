@@ -1,86 +1,227 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { from_hex as fromHex } from 'libsodium-wrappers'
-import { getCustomRepository } from 'typeorm'
-import CONFIG from '../../config'
-import { LoginViaVerificationCode } from '../model/LoginViaVerificationCode'
-import { SendPasswordResetEmailResponse } from '../model/SendPasswordResetEmailResponse'
-import { UpdateUserInfosResponse } from '../model/UpdateUserInfosResponse'
-import { User } from '../model/User'
+import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
+import CONFIG from '@/config'
+import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
-import encode from '../../jwt/encode'
-import ChangePasswordArgs from '../arg/ChangePasswordArgs'
-import CheckUsernameArgs from '../arg/CheckUsernameArgs'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
-import { apiPost, apiGet } from '../../apis/HttpRequest'
-import {
-  klicktippRegistrationMiddleware,
-  klicktippNewsletterStateMiddleware,
-} from '../../middleware/klicktippMiddleware'
-import { CheckEmailResponse } from '../model/CheckEmailResponse'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../enum/Setting'
-import { UserRepository } from '../../typeorm/repository/User'
-import { LoginUser } from '@entity/LoginUser'
+import { encode } from '@/auth/JWT'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { UserSettingRepository } from '@repository/UserSettingRepository'
+import { Setting } from '@enum/Setting'
+import { UserRepository } from '@repository/User'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '@/apis/KlicktippController'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_ADMIN } from '@/auth/ROLES'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { ServerUser } from '@entity/ServerUser'
+
+const EMAIL_OPT_IN_RESET_PASSWORD = 2
+const EMAIL_OPT_IN_REGISTER = 1
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sodium = require('sodium-native')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const random = require('random-bigint')
+
+// We will reuse this for changePassword
+const isPassword = (password: string): boolean => {
+  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
+}
+
+const LANGUAGES = ['de', 'en']
+const DEFAULT_LANGUAGE = 'de'
+const isLanguage = (language: string): boolean => {
+  return LANGUAGES.includes(language)
+}
+
+const PHRASE_WORD_COUNT = 24
+const WORDS = fs
+  .readFileSync('src/config/mnemonic.uncompressed_buffer13116.txt')
+  .toString()
+  .split(',')
+const PassphraseGenerate = (): string[] => {
+  const result = []
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    result.push(WORDS[sodium.randombytes_random() % 2048])
+  }
+  return result
+}
+
+const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
+  if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
+    throw new Error('passphrase empty or to short')
+  }
+
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+
+  // To prevent breaking existing passphrase-hash combinations word indices will be put into 64 Bit Variable to mimic first implementation of algorithms
+  for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
+    const value = Buffer.alloc(8)
+    const wordIndex = WORDS.indexOf(passphrase[i])
+    value.writeBigInt64LE(BigInt(wordIndex))
+    sodium.crypto_hash_sha512_update(state, value)
+  }
+  // trailing space is part of the login_server implementation
+  const clearPassphrase = passphrase.join(' ') + ' '
+  sodium.crypto_hash_sha512_update(state, Buffer.from(clearPassphrase))
+  const outputHashBuffer = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, outputHashBuffer)
+
+  const pubKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  const privKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+
+  sodium.crypto_sign_seed_keypair(
+    pubKey,
+    privKey,
+    outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
+  )
+
+  return [pubKey, privKey]
+}
+
+const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
+  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
+  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
+  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
+    throw new Error(
+      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
+    )
+  }
+
+  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
+  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
+  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
+  sodium.crypto_hash_sha512_final(state, hash)
+
+  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
+  const opsLimit = 10
+  const memLimit = 33554432
+  const algo = 2
+  sodium.crypto_pwhash(
+    encryptionKey,
+    Buffer.from(password),
+    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
+    opsLimit,
+    memLimit,
+    algo,
+  )
+
+  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
+  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
+
+  return [encryptionKeyHash, encryptionKey]
+}
+
+const getEmailHash = (email: string): Buffer => {
+  const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash(emailHash, Buffer.from(email))
+  return emailHash
+}
+
+const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
+  const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
+  return encrypted
+}
+
+const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
+  const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.fill(31) // static nonce
+
+  sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
+
+  return message
+}
+const createEmailOptIn = async (
+  loginUserId: number,
+  queryRunner: QueryRunner,
+): Promise<LoginEmailOptIn> => {
+  let emailOptIn = await LoginEmailOptIn.findOne({
+    userId: loginUserId,
+    emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+  })
+  if (emailOptIn) {
+    const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      emailOptIn.updatedAt = new Date()
+      emailOptIn.resendCount++
+    }
+  } else {
+    emailOptIn = new LoginEmailOptIn()
+    emailOptIn.verificationCode = random(64)
+    emailOptIn.userId = loginUserId
+    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+  }
+  await queryRunner.manager.save(emailOptIn).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log('Error while saving emailOptIn', error)
+    throw new Error('error saving email opt in')
+  })
+  return emailOptIn
+}
+
+const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
+  let optInCode = await LoginEmailOptIn.findOne({
+    userId: loginUserId,
+    emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
+  })
+
+  // Check for 10 minute delay
+  if (optInCode) {
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
+      throw new Error(
+        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
+      )
+    } else {
+      optInCode.updatedAt = new Date()
+      optInCode.resendCount++
+    }
+  } else {
+    optInCode = new LoginEmailOptIn()
+    optInCode.verificationCode = random(64)
+    optInCode.userId = loginUserId
+    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+  }
+  await LoginEmailOptIn.save(optInCode)
+  return optInCode
+}
 
 @Resolver()
 export class UserResolver {
+  @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
-  async login(
-    @Args() { email, password, publisherId }: UnsecureLoginArgs,
-    @Ctx() context: any,
-  ): Promise<User> {
-    email = email.trim().toLowerCase()
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'unsecureLogin', { email, password })
-
-    // if there is no user, throw an authentication error
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: encode(result.data.session_id, result.data.user.public_hex),
-    })
-    const user = new User(result.data.user)
-    // Hack: Database Field is not validated properly and not nullable
-    if (user.publisherId === 0) {
-      user.publisherId = undefined
-    }
-    user.hasElopage = result.data.hasElopage
-    // read additional settings from settings table
+  async verifyLogin(@Ctx() context: any): Promise<User> {
+    // TODO refactor and do not have duplicate code with login(see below)
     const userRepository = getCustomRepository(UserRepository)
-    let userEntity: void | DbUser
-    userEntity = await userRepository.findByPubkeyHex(user.pubkey).catch(() => {
-      userEntity = new DbUser()
-      userEntity.firstName = user.firstName
-      userEntity.lastName = user.lastName
-      userEntity.username = user.username
-      userEntity.email = user.email
-      userEntity.pubkey = Buffer.from(fromHex(user.pubkey))
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const user = new User(userEntity)
+    // user.pubkey = userEntity.pubKey.toString('hex')
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage(context)
 
-      userRepository.save(userEntity).catch(() => {
-        throw new Error('error by save userEntity')
-      })
-    })
-    if (!userEntity) {
-      throw new Error('error with cannot happen')
-    }
-
-    // Save publisherId if Elopage is not yet registered
-    if (!user.hasElopage && publisherId) {
-      user.publisherId = publisherId
-      await this.updateUserInfos(
-        { publisherId },
-        { sessionId: result.data.session_id, pubKey: result.data.user.public_hex },
-      )
-    }
-
+    // coinAnimation
     const userSettingRepository = getCustomRepository(UserSettingRepository)
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
@@ -88,112 +229,354 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
+
+    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
-  @Query(() => LoginViaVerificationCode)
-  async loginViaEmailVerificationCode(
-    @Arg('optin') optin: string,
-  ): Promise<LoginViaVerificationCode> {
-    // I cannot use number as type here.
-    // The value received is not the same as sent by the query
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
+  @Authorized([RIGHTS.LOGIN])
+  @Query(() => User)
+  @UseMiddleware(klicktippNewsletterStateMiddleware)
+  async login(
+    @Args() { email, password, publisherId }: UnsecureLoginArgs,
+    @Ctx() context: any,
+  ): Promise<User> {
+    email = email.trim().toLowerCase()
+    const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
+      throw new Error('No user with this credentials')
+    })
+    if (dbUser.deletedAt) {
+      throw new Error('This user was permanently deleted. Contact support for questions.')
     }
-    return new LoginViaVerificationCode(result.data)
-  }
-
-  @Authorized()
-  @Query(() => String)
-  async logout(@Ctx() context: any): Promise<string> {
-    const payload = { session_id: context.sessionId }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'logout', payload)
-    if (!result.success) {
-      throw new Error(result.data)
+    if (!dbUser.emailChecked) {
+      throw new Error('User email not validated')
     }
-    return 'success'
-  }
-
-  @Mutation(() => String)
-  async createUser(
-    @Args() { email, firstName, lastName, password, language, publisherId }: CreateUserArgs,
-  ): Promise<string> {
-    const payload = {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      password,
-      emailType: 2,
-      login_after_register: true,
-      language: language,
-      publisher_id: publisherId,
+    if (dbUser.password === BigInt(0)) {
+      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
+      throw new Error('User has no password set yet')
     }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'createUser', payload)
-    if (!result.success) {
-      throw new Error(result.data)
+    if (!dbUser.pubKey || !dbUser.privKey) {
+      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
+      throw new Error('User has no private or publicKey')
+    }
+    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    const loginUserPassword = BigInt(dbUser.password.toString())
+    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+      throw new Error('No user with this credentials')
     }
 
-    const user = new User(result.data.user)
-    const dbuser = new DbUser()
-    dbuser.pubkey = Buffer.from(fromHex(user.pubkey))
-    dbuser.email = user.email
-    dbuser.firstName = user.firstName
-    dbuser.lastName = user.lastName
-    dbuser.username = user.username
+    const user = new User(dbUser)
+    // user.email = email
+    // user.pubkey = dbUser.pubKey.toString('hex')
+    user.language = dbUser.language
 
-    const userRepository = getCustomRepository(UserRepository)
-    userRepository.save(dbuser).catch(() => {
-      throw new Error('error saving user')
+    // Elopage Status & Stored PublisherId
+    user.hasElopage = await this.hasElopage({ pubKey: dbUser.pubKey.toString('hex') })
+    if (!user.hasElopage && publisherId) {
+      user.publisherId = publisherId
+      // TODO: Check if we can use updateUserInfos
+      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
+      dbUser.publisherId = publisherId
+      DbUser.save(dbUser)
+    }
+
+    // coinAnimation
+    const userSettingRepository = getCustomRepository(UserSettingRepository)
+    const coinanimation = await userSettingRepository
+      .readBoolean(dbUser.id, Setting.COIN_ANIMATION)
+      .catch((error) => {
+        throw new Error(error)
+      })
+    user.coinanimation = coinanimation
+
+    // context.role is not set to the actual role yet on login
+    const countServerUsers = await ServerUser.count({ email: user.email })
+    user.isAdmin = countServerUsers > 0
+
+    context.setHeaders.push({
+      key: 'token',
+      value: encode(dbUser.pubKey),
     })
 
-    return 'success'
+    return user
   }
 
-  @Query(() => SendPasswordResetEmailResponse)
-  async sendResetPasswordEmail(
-    @Arg('email') email: string,
-  ): Promise<SendPasswordResetEmailResponse> {
-    const payload = {
-      email,
-      email_text: 7,
-      email_verification_code_type: 'resetPassword',
-    }
-    const response = await apiPost(CONFIG.LOGIN_API_URL + 'sendEmail', payload)
-    if (!response.success) {
-      throw new Error(response.data)
-    }
-    return new SendPasswordResetEmailResponse(response.data)
+  @Authorized([RIGHTS.LOGOUT])
+  @Query(() => String)
+  async logout(): Promise<boolean> {
+    // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
+    // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
+    // The functionality is fully client side - the client just needs to delete his token with the current implementation.
+    // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
+    // we should just return true for now.
+    return true
   }
 
+  @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => String)
-  async resetPassword(
-    @Args()
-    { sessionId, email, password }: ChangePasswordArgs,
+  async createUser(
+    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
   ): Promise<string> {
-    const payload = {
-      session_id: sessionId,
-      email,
-      password,
+    // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
+    // default int publisher_id = 0;
+
+    // Validate Language (no throw)
+    if (!language || !isLanguage(language)) {
+      language = DEFAULT_LANGUAGE
     }
-    const result = await apiPost(CONFIG.LOGIN_API_URL + 'resetPassword', payload)
-    if (!result.success) {
-      throw new Error(result.data)
+
+    // Validate email unique
+    email = email.trim().toLowerCase()
+    // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
+    const userFound = await DbUser.findOne({ email }, { withDeleted: true })
+    if (userFound) {
+      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+      throw new Error(`User already exists.`)
+    }
+
+    const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+    const emailHash = getEmailHash(email)
+
+    const dbUser = new DbUser()
+    dbUser.email = email
+    dbUser.firstName = firstName
+    dbUser.lastName = lastName
+    dbUser.emailHash = emailHash
+    dbUser.language = language
+    dbUser.publisherId = publisherId
+    dbUser.passphrase = passphrase.join(' ')
+    // TODO this field has no null allowed unlike the loginServer table
+    // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
+    // dbUser.pubkey = keyPair[0]
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    try {
+      await queryRunner.manager.save(dbUser).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('Error while saving dbUser', error)
+        throw new Error('error saving user')
+      })
+
+      // Store EmailOptIn in DB
+      // TODO: this has duplicate code with sendResetPasswordEmail
+      const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
+
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /{code}/g,
+        emailOptIn.verificationCode.toString(),
+      )
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName,
+        lastName,
+        email,
+      })
+
+      /* uncomment this, when you need the activation link on the console
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
+      */
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
     }
     return 'success'
   }
 
-  @Authorized()
-  @Mutation(() => UpdateUserInfosResponse)
+  // THis is used by the admin only - should we move it to the admin resolver?
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    const user = await DbUser.findOneOrFail({ email: email })
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      const emailOptIn = await createEmailOptIn(user.id, queryRunner)
+
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /{code}/g,
+        emailOptIn.verificationCode.toString(),
+      )
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email,
+      })
+
+      /*  uncomment this, when you need the activation link on the console
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        // eslint-disable-next-line no-console
+        console.log(`Account confirmation link: ${activationLink}`)
+      }
+      */
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+    return true
+  }
+
+  @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
+  @Query(() => Boolean)
+  async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
+    // TODO: this has duplicate code with createUser
+    email = email.trim().toLowerCase()
+    const user = await DbUser.findOneOrFail({ email })
+
+    const optInCode = await getOptInCode(user.id)
+
+    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
+      /{code}/g,
+      optInCode.verificationCode.toString(),
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const emailSent = await sendResetPasswordEmail({
+      link,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+    })
+
+    /*  uncomment this, when you need the activation link on the console
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+      // eslint-disable-next-line no-console
+      console.log(`Reset password link: ${link}`)
+    }
+    */
+
+    return true
+  }
+
+  @Authorized([RIGHTS.SET_PASSWORD])
+  @Mutation(() => Boolean)
+  async setPassword(
+    @Arg('code') code: string,
+    @Arg('password') password: string,
+  ): Promise<boolean> {
+    // Validate Password
+    if (!isPassword(password)) {
+      throw new Error(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
+
+    // Load code
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
+      throw new Error('Could not login with emailVerificationCode')
+    })
+
+    // Code is only valid for 10minutes
+    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+    if (timeElapsed > 10 * 60 * 1000) {
+      throw new Error('Code is older than 10 minutes')
+    }
+
+    // load user
+    const user = await DbUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
+      throw new Error('Could not find corresponding Login User')
+    })
+
+    // Generate Passphrase if needed
+    if (!user.passphrase) {
+      const passphrase = PassphraseGenerate()
+      user.passphrase = passphrase.join(' ')
+    }
+
+    const passphrase = user.passphrase.split(' ')
+    if (passphrase.length < PHRASE_WORD_COUNT) {
+      // TODO if this can happen we cannot recover from that
+      // this seem to be good on production data, if we dont
+      // make a coding mistake we do not have a problem here
+      throw new Error('Could not load a correct passphrase')
+    }
+
+    // Activate EMail
+    user.emailChecked = true
+
+    // Update Password
+    const passwordHash = SecretKeyCryptographyCreateKey(user.email, password) // return short and long hash
+    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+    user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    user.pubKey = keyPair[0]
+    user.privKey = encryptedPrivkey
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      // Save user
+      await queryRunner.manager.save(user).catch((error) => {
+        throw new Error('error saving user: ' + error)
+      })
+
+      // Delete Code
+      await queryRunner.manager.remove(optInCode).catch((error) => {
+        throw new Error('error deleting code: ' + error)
+      })
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+
+    // Sign into Klicktipp
+    // TODO do we always signUp the user? How to handle things with old users?
+    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
+      try {
+        await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
+      } catch {
+        // TODO is this a problem?
+        // eslint-disable-next-line no-console
+        /*  uncomment this, when you need the activation link on the console
+        console.log('Could not subscribe to klicktipp')
+        */
+      }
+    }
+
+    return true
+  }
+
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
     {
       firstName,
       lastName,
-      description,
-      username,
       language,
       publisherId,
       password,
@@ -201,122 +584,92 @@ export class UserResolver {
       coinanimation,
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
-  ): Promise<UpdateUserInfosResponse> {
-    const payload = {
-      session_id: context.sessionId,
-      update: {
-        'User.first_name': firstName || undefined,
-        'User.last_name': lastName || undefined,
-        'User.description': description || undefined,
-        'User.username': username || undefined,
-        'User.language': language || undefined,
-        'User.publisher_id': publisherId || undefined,
-        'User.password': passwordNew || undefined,
-        'User.password_old': password || undefined,
-      },
-    }
-    let response: UpdateUserInfosResponse | undefined
+  ): Promise<boolean> {
     const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
 
-    if (
-      firstName ||
-      lastName ||
-      description ||
-      username ||
-      language ||
-      publisherId ||
-      passwordNew ||
-      password
-    ) {
-      const result = await apiPost(CONFIG.LOGIN_API_URL + 'updateUserInfos', payload)
-      if (!result.success) throw new Error(result.data)
-      response = new UpdateUserInfosResponse(result.data)
-
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-      let userEntityChanged = false
-      if (firstName) {
-        userEntity.firstName = firstName
-        userEntityChanged = true
-      }
-      if (lastName) {
-        userEntity.lastName = lastName
-        userEntityChanged = true
-      }
-      if (username) {
-        userEntity.username = username
-        userEntityChanged = true
-      }
-      if (userEntityChanged) {
-        userRepository.save(userEntity).catch((error) => {
-          throw new Error(error)
-        })
-      }
-    }
-    if (coinanimation !== undefined) {
-      // load user and balance
-
-      const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-
-      const userSettingRepository = getCustomRepository(UserSettingRepository)
-      userSettingRepository
-        .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
-        .catch((error) => {
-          throw new Error(error)
-        })
-
-      if (!response) {
-        response = new UpdateUserInfosResponse({ valid_values: 1 })
-      } else {
-        response.validValues++
-      }
-    }
-    if (!response) {
-      throw new Error('no valid response')
-    }
-    return response
-  }
-
-  @Query(() => Boolean)
-  async checkUsername(@Args() { username }: CheckUsernameArgs): Promise<boolean> {
-    // Username empty?
-    if (username === '') {
-      throw new Error('Username must be set.')
+    if (firstName) {
+      userEntity.firstName = firstName
     }
 
-    // Do we fullfil the minimum character length?
-    const MIN_CHARACTERS_USERNAME = 2
-    if (username.length < MIN_CHARACTERS_USERNAME) {
-      throw new Error(`Username must be at minimum ${MIN_CHARACTERS_USERNAME} characters long.`)
+    if (lastName) {
+      userEntity.lastName = lastName
     }
 
-    const usersFound = await LoginUser.count({ username })
+    if (language) {
+      if (!isLanguage(language)) {
+        throw new Error(`"${language}" isn't a valid language`)
+      }
+      userEntity.language = language
+    }
 
-    // Username already present?
-    if (usersFound !== 0) {
-      throw new Error(`Username "${username}" already taken.`)
+    if (password && passwordNew) {
+      // Validate Password
+      if (!isPassword(passwordNew)) {
+        throw new Error(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
+      }
+
+      // TODO: This had some error cases defined - like missing private key. This is no longer checked.
+      const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
+      if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
+        throw new Error(`Old password is invalid`)
+      }
+
+      const privKey = SecretKeyCryptographyDecrypt(userEntity.privKey, oldPasswordHash[1])
+
+      const newPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, passwordNew) // return short and long hash
+      const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
+
+      // Save new password hash and newly encrypted private key
+      userEntity.password = newPasswordHash[0].readBigUInt64LE()
+      userEntity.privKey = encryptedPrivkey
+    }
+
+    // Save publisherId only if Elopage is not yet registered
+    if (publisherId && !(await this.hasElopage(context))) {
+      userEntity.publisherId = publisherId
+    }
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+
+    try {
+      if (coinanimation !== null && coinanimation !== undefined) {
+        queryRunner.manager
+          .getCustomRepository(UserSettingRepository)
+          .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
+          .catch((error) => {
+            throw new Error('error saving coinanimation: ' + error)
+          })
+      }
+
+      await queryRunner.manager.save(userEntity).catch((error) => {
+        throw new Error('error saving user: ' + error)
+      })
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
     }
 
     return true
   }
 
-  @Query(() => CheckEmailResponse)
-  @UseMiddleware(klicktippRegistrationMiddleware)
-  async checkEmail(@Arg('optin') optin: string): Promise<CheckEmailResponse> {
-    const result = await apiGet(
-      CONFIG.LOGIN_API_URL + 'loginViaEmailVerificationCode?emailVerificationCode=' + optin,
-    )
-    if (!result.success) {
-      throw new Error(result.data)
-    }
-    return new CheckEmailResponse(result.data)
-  }
-
+  @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    const result = await apiGet(CONFIG.LOGIN_API_URL + 'hasElopage?session_id=' + context.sessionId)
-    if (!result.success) {
-      throw new Error(result.data)
+    const userRepository = getCustomRepository(UserRepository)
+    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
+    if (!userEntity) {
+      return false
     }
-    return result.data.hasElopage
+
+    return hasElopageBuys(userEntity.email)
   }
 }

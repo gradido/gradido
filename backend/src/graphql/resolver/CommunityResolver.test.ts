@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { createTestClient } from 'apollo-server-testing'
-import createServer from '../../server/createServer'
-import CONFIG from '../../config'
+import createServer from '@/server/createServer'
+import CONFIG from '@/config'
 
-jest.mock('../../config')
+jest.mock('@/config')
 
 let query: any
 
@@ -48,13 +48,13 @@ describe('CommunityResolver', () => {
 
   describe('getCommunityInfo', () => {
     it('returns the default values', async () => {
-      expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
+      await expect(query({ query: getCommunityInfoQuery })).resolves.toMatchObject({
         data: {
           getCommunityInfo: {
             name: 'Gradido Entwicklung',
             description: 'Die lokale Entwicklungsumgebung von Gradido.',
-            url: 'http://localhost/vue/',
-            registerUrl: 'http://localhost/vue/register',
+            url: 'http://localhost/',
+            registerUrl: 'http://localhost/register',
           },
         },
       })
@@ -68,29 +68,29 @@ describe('CommunityResolver', () => {
       })
 
       it('returns three communities', async () => {
-        expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
             communities: [
               {
                 id: 1,
                 name: 'Gradido Entwicklung',
                 description: 'Die lokale Entwicklungsumgebung von Gradido.',
-                url: 'http://localhost/vue/',
-                registerUrl: 'http://localhost/vue/register-community',
+                url: 'http://localhost/',
+                registerUrl: 'http://localhost/register-community',
               },
               {
                 id: 2,
                 name: 'Gradido Staging',
                 description: 'Der Testserver der Gradido-Akademie.',
-                url: 'https://stage1.gradido.net/vue/',
-                registerUrl: 'https://stage1.gradido.net/vue/register-community',
+                url: 'https://stage1.gradido.net/',
+                registerUrl: 'https://stage1.gradido.net/register-community',
               },
               {
                 id: 3,
                 name: 'Gradido-Akademie',
                 description: 'Freies Institut für Wirtschaftsbionik.',
                 url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+                registerUrl: 'https://gdd1.gradido.com/register-community',
               },
             ],
           },
@@ -104,7 +104,7 @@ describe('CommunityResolver', () => {
       })
 
       it('returns one community', async () => {
-        expect(query({ query: communities })).resolves.toMatchObject({
+        await expect(query({ query: communities })).resolves.toMatchObject({
           data: {
             communities: [
               {
@@ -112,7 +112,7 @@ describe('CommunityResolver', () => {
                 name: 'Gradido-Akademie',
                 description: 'Freies Institut für Wirtschaftsbionik.',
                 url: 'https://gradido.net',
-                registerUrl: 'https://gdd1.gradido.com/vue/register-community',
+                registerUrl: 'https://gdd1.gradido.com/register-community',
               },
             ],
           },

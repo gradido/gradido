@@ -4,6 +4,8 @@ import Vue from 'vue'
 import GlobalComponents from './globalComponents'
 import GlobalDirectives from './globalDirectives'
 
+import './assets/scss/gradido.scss'
+
 jest.mock('./globalComponents')
 jest.mock('./globalDirectives')
 

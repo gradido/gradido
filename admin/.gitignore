@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.cache/
+
+/.env
+/.env.bak
+
+# coverage folder
+coverage/
+
+# emacs
+*~

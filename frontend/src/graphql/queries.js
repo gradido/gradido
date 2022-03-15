@@ -4,17 +4,34 @@ export const login = gql`
   query($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
       }
       hasElopage
       publisherId
+      isAdmin
+    }
+  }
+`
+
+export const verifyLogin = gql`
+  query {
+    verifyLogin {
+      email
+      firstName
+      lastName
+      language
+      coinanimation
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
     }
   }
 `
@@ -25,40 +42,39 @@ export const logout = gql`
   }
 `
 
-export const loginViaEmailVerificationCode = gql`
-  query($optin: String!) {
-    loginViaEmailVerificationCode(optin: $optin) {
-      sessionId
-      email
-    }
-  }
-`
-
 export const transactionsQuery = gql`
-  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      gdtSum
+  query(
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $onlyCreations: Boolean = false
+  ) {
+    transactionList(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      onlyCreations: $onlyCreations
+    ) {
+      balanceGDT
       count
       balance
-      decay
-      decayDate
+      decayStartBlock
       transactions {
-        type
+        id
+        typeId
+        amount
         balance
-        decayStart
-        decayEnd
-        decayDuration
+        balanceDate
         memo
-        transactionId
-        name
-        email
-        date
+        linkedUser {
+          firstName
+          lastName
+        }
         decay {
-          balance
-          decayStart
-          decayEnd
-          decayDuration
-          decayStartBlock
+          decay
+          start
+          end
+          duration
         }
       }
     }
@@ -67,15 +83,7 @@ export const transactionsQuery = gql`
 
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
-    sendResetPasswordEmail(email: $email) {
-      state
-    }
-  }
-`
-
-export const checkUsername = gql`
-  query($username: String!) {
-    checkUsername(username: $username)
+    sendResetPasswordEmail(email: $email)
   }
 `
 
@@ -93,15 +101,6 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
-    }
-  }
-`
-
-export const checkEmailQuery = gql`
-  query($optin: String!) {
-    checkEmail(optin: $optin) {
-      email
-      sessionId
     }
   }
 `
@@ -125,6 +124,21 @@ export const communities = gql`
       url
       description
       registerUrl
+    }
+  }
+`
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      amount
+      memo
+      createdAt
+      validUntil
+      user {
+        firstName
+        publisherId
+      }
     }
   }
 `

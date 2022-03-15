@@ -3,15 +3,16 @@
     <div class="list-group">
       <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
         <!-- icon  -->
-        <div class="text-right" style="position: absolute">
+        <div class="text-right gradido-absolute">
           <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
         </div>
 
         <!-- collaps Button  -->
-        <div class="text-right" style="width: 96%; position: absolute">
-          <b-button class="btn-sm">
-            <b>i</b>
-          </b-button>
+        <div class="text-right gradido-width-96-absolute">
+          <b-icon
+            :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
+            :class="getCollapseState(id) ? 'text-black' : 'text-muted'"
+          />
         </div>
 
         <!-- type  -->
@@ -50,7 +51,7 @@
             {{ $t('form.date') }}
           </b-col>
           <b-col cols="6">
-            {{ $d($moment(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            {{ $d(new Date(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </b-col>
         </b-row>
 
@@ -84,6 +85,16 @@ export default {
     factor: { type: Number },
     gdt: { type: Number },
     id: { type: Number },
+  },
+  data() {
+    return {
+      collapseStatus: [],
+    }
+  },
+  methods: {
+    getCollapseState(id) {
+      return this.collapseStatus.includes('gdt-collapse-' + id)
+    },
   },
   computed: {
     collapseId() {
@@ -129,6 +140,15 @@ export default {
           throw new Error('no lines for this type: ' + this.gdtEntryType)
       }
     },
+  },
+  mounted() {
+    this.$root.$on('bv::collapse::state', (collapseId, isJustShown) => {
+      if (isJustShown) {
+        this.collapseStatus.push(collapseId)
+      } else {
+        this.collapseStatus = this.collapseStatus.filter((id) => id !== collapseId)
+      }
+    })
   },
 }
 </script>

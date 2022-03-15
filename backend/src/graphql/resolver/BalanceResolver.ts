@@ -2,40 +2,42 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
-import { getCustomRepository } from 'typeorm'
-import { Balance } from '../model/Balance'
-import { BalanceRepository } from '../../typeorm/repository/Balance'
-import { UserRepository } from '../../typeorm/repository/User'
-import { calculateDecay } from '../../util/decay'
-import { roundFloorFrom4 } from '../../util/round'
+import { getCustomRepository } from '@dbTools/typeorm'
+import { Balance } from '@model/Balance'
+import { UserRepository } from '@repository/User'
+import { calculateDecay } from '@/util/decay'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { Transaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 
 @Resolver()
 export class BalanceResolver {
-  @Authorized()
+  @Authorized([RIGHTS.BALANCE])
   @Query(() => Balance)
   async balance(@Ctx() context: any): Promise<Balance> {
     // load user and balance
-    const balanceRepository = getCustomRepository(BalanceRepository)
     const userRepository = getCustomRepository(UserRepository)
 
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
-    const balanceEntity = await balanceRepository.findByUser(userEntity.id)
+    const user = await userRepository.findByPubkeyHex(context.pubKey)
     const now = new Date()
 
+    const lastTransaction = await Transaction.findOne(
+      { userId: user.id },
+      { order: { balanceDate: 'DESC' } },
+    )
+
     // No balance found
-    if (!balanceEntity) {
+    if (!lastTransaction) {
       return new Balance({
-        balance: 0,
-        decay: 0,
+        balance: new Decimal(0),
+        decay: new Decimal(0),
         decay_date: now.toString(),
       })
     }
 
     return new Balance({
-      balance: roundFloorFrom4(balanceEntity.amount),
-      decay: roundFloorFrom4(
-        await calculateDecay(balanceEntity.amount, balanceEntity.recordDate, now),
-      ),
+      balance: lastTransaction.balance,
+      decay: calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
       decay_date: now.toString(),
     })
   }

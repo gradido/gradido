@@ -1,17 +1,14 @@
-/* FIRST MIGRATION
+/* MIGRATION TO ADD USER SETTINGS
  *
- * This migration is special since it takes into account that
- * the database can be setup already but also may not be.
- * Therefore you will find all `CREATE TABLE` statements with
- * a `IF NOT EXISTS`, all `INSERT` with an `IGNORE` and in the
- * downgrade function all `DROP TABLE` with a `IF EXISTS`.
- * This ensures compatibility for existing or non-existing
- * databases.
+ * This migration adds the table `user_setting` in order to store all sorts of user configuration data
  */
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
-      CREATE TABLE \`user_setting\` (
+      CREATE TABLE IF NOT EXISTS \`user_setting\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
         \`userId\` int(11) NOT NULL,
         \`key\` varchar(255) NOT NULL,
@@ -22,5 +19,5 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE \`user_setting\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`user_setting\`;`)
 }

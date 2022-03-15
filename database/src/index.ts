@@ -1,32 +1,18 @@
 import 'reflect-metadata'
-import { createPool, PoolConfig } from 'mysql'
-import { Migration } from 'ts-mysql-migrate'
-import CONFIG from './config'
 import prepare from './prepare'
 import connection from './typeorm/connection'
+import { CreatePeterLustigSeed } from './seeds/users/peter-lustig.admin.seed'
+import { CreateBibiBloxbergSeed } from './seeds/users/bibi-bloxberg.seed'
+import { CreateRaeuberHotzenplotzSeed } from './seeds/users/raeuber-hotzenplotz.seed'
+import { CreateBobBaumeisterSeed } from './seeds/users/bob-baumeister.seed'
+import { CreateStephenHawkingSeed } from './seeds/users/stephen-hawking.seed'
+import { CreateGarrickOllivanderSeed } from './seeds/users/garrick-ollivander.seed'
+import { CreateUserSeed } from './seeds/create-user.seed'
+import { resetDB, pool, migration, runSeeds } from './helpers'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
   await prepare()
-
-  // Database connection for Migrations
-  const poolConfig: PoolConfig = {
-    host: CONFIG.DB_HOST,
-    port: CONFIG.DB_PORT,
-    user: CONFIG.DB_USER,
-    password: CONFIG.DB_PASSWORD,
-    database: CONFIG.DB_DATABASE,
-  }
-
-  // Pool?
-  const pool = createPool(poolConfig)
-
-  // Create & Initialize Migrations
-  const migration = new Migration({
-    conn: pool,
-    tableName: CONFIG.MIGRATIONS_TABLE,
-    dir: CONFIG.MIGRATIONS_DIRECTORY,
-  })
 
   // Database connection for TypeORM
   const con = await connection()
@@ -45,7 +31,21 @@ const run = async (command: string) => {
       await migration.down() // use for downgrade script
       break
     case 'reset':
-      await migration.reset() // use for resetting database
+      // TODO protect from production
+      await resetDB() // use for resetting database
+      break
+    case 'seed':
+      // TODO protect from production
+      // await runSeeder(CreatePeterLustigSeed)
+      await runSeeds([
+        CreatePeterLustigSeed,
+        CreateBibiBloxbergSeed,
+        CreateRaeuberHotzenplotzSeed,
+        CreateBobBaumeisterSeed,
+        CreateStephenHawkingSeed,
+        CreateGarrickOllivanderSeed,
+        ...Array(96).fill(CreateUserSeed),
+      ])
       break
     default:
       throw new Error(`Unsupported command ${command}`)

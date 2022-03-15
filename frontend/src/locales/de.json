@@ -1,4 +1,6 @@
 {
+  "admin_area": "Adminbereich",
+  "advanced-calculation": "Vorausberechnung",
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -19,23 +21,25 @@
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "decay": {
+    "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "calculation_total": "Berechnung der Gesamtsumme",
     "created": "Geschöpft",
     "days": "Tage",
     "decay": "Vergänglichkeit",
     "decayStart": " - Startblock für Vergänglichkeit am: ",
-    "decay_introduced": "Die Vergänglichkeit wurde Eingeführt am ",
+    "decay_introduced": "Die Vergänglichkeit wurde eingeführt am ",
     "decay_since_last_transaction": "Vergänglichkeit seit der letzten Transaktion",
+    "first_transaction": "Die erste Transaktion beinhaltet keine Vergänglichkeit.",
     "hours": "Stunden",
     "last_transaction": "Letzte Transaktion",
     "minutes": "Minuten",
     "months": "Monate",
     "noDecay": "Keine Vergänglichkeit",
     "past_time": "Vergangene Zeit",
-    "received": "Empfangen",
+    "receive": "Empfangen",
     "seconds": "Sekunden",
-    "sent": "Gesendet",
+    "send": "Gesendet",
     "since_introduction": "seit Einführung der Vergänglichkeit",
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "toCommunity": "An die Gemeinschaft",
@@ -44,35 +48,42 @@
   },
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
+    "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
     "error": "Fehler",
-    "no-account": "Leider konnten wir keinen Account finden mit diesen Daten!",
-    "session-expired": "Sitzung abgelaufen!"
+    "no-account": "Leider konnten wir keinen Account mit diesen Daten finden.",
+    "no-email-verify": "Dein Konto wurde noch nicht bestätigt. Bitte überprüfe deine E-Mails und klicke auf den Aktivierungslink!",
+    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt",
+    "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
   },
   "form": {
     "amount": "Betrag",
     "at": "am",
     "cancel": "Abbrechen",
-    "close": "schließen",
+    "close": "Schließen",
+    "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
-    "edit": "bearbeiten",
+    "edit": "Bearbeiten",
     "email": "E-Mail",
     "firstname": "Vorname",
-    "from": "von",
+    "from": "Von",
+    "generate_now": "jetzt generieren",
     "lastname": "Nachname",
     "memo": "Nachricht",
     "message": "Nachricht",
+    "new_balance": "Neuer Kontostand nach Bestätigung",
+    "no_gdd_available": "Du hast keine GDD zum versenden.",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
-    "password_new": "neues Passwort",
-    "password_new_repeat": "neues Passwort wiederholen",
-    "password_old": "altes Passwort",
+    "password_new": "Neues Passwort",
+    "password_new_repeat": "Neues Passwort wiederholen",
+    "password_old": "Altes Passwort",
     "recipient": "Empfänger",
     "reset": "Zurücksetzen",
-    "save": "speichern",
+    "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
     "sender": "Absender",
-    "send_check": "Bestätige deine Zahlung. Prüfe bitte nochmal alle Daten!",
+    "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
     "send_now": "Jetzt senden",
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
@@ -84,35 +95,56 @@
     "validation": {
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
-      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen auf den mindestens zwei alfanumerische Zeichen folgen müssen.",
+      "usernmae-regex": "Der Username muss mit einem Buchstaben beginnen, auf den mindestens zwei alpha-numerische Zeichen folgen müssen.",
       "usernmae-unique": "Der Username ist bereits vergeben."
-    }
+    },
+    "your_amount": "Dein Betrag"
+  },
+  "gdd_per_link": {
+    "copy": "kopieren",
+    "created": "Der Link wurde erstellt!",
+    "decay-14-day": "Vergänglichkeit für 14 Tage",
+    "header": "Gradidos versenden per Link",
+    "link-copied": "Link wurde in die Zwischenablage kopiert",
+    "not-copied": "Konnte den Link nicht kopieren: {err}",
+    "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
+    "sentence_2": "Der Link ist 14 Tage gültig!",
+    "sentence_3": "Wird der Link nicht innerhalb der 14 Tage Frist abgerufen, wird er automatisch gelöscht. Der Betrag wird dann wieder deinem Konto gutgeschrieben.",
+    "sentence_4": "Wer den Link aktiviert, erhält die Zahlung von deinem Konto. Wer noch nicht Mitglied bei Gradido ist, wird durch den Registrierungsprozess geleitet und bekommt den GDD Betrag nach Registrierung / Bestätigung seines Gradido Kontos gut geschrieben.",
+    "sentence_5": "Der Vergänglichkeitsbetrag wird von dir getragen und für die maximale Gültigkeit deinem Betrag aufgerechnet. Dir wird aber nur der Betrag als Vergänglichkeit berechnet, je nachdem wie viel Tage bis zum Einlösen des Links vergangen sind. Bis zum Einlösen wird die Vergänglichkeit für den gesamten Zeitraum der Gültigkeit vorgehalten."
   },
   "gdt": {
     "action": "Aktion",
-    "calculation": "Berechnung der Gradido Transform",
+    "calculation": "Berechnung der GradidoTransform",
     "contribution": "Beitrag",
     "conversion": "Umrechnung",
-    "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
+    "conversion-gdt-euro": "Umrechnung Euro / GradidoTransform (GDT)",
     "credit": "Gutschrift",
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
-    "gdt-received": "Gradido Transform (GDT) erhalten",
-    "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
+    "gdt-received": "GradidoTransform (GDT) erhalten",
+    "no-transactions": "Du hast noch keine GradidoTransform (GDT).",
+    "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
-    "recruited-member": "Geworbenes Mitglied"
+    "recruited-member": "Eingeladenes Mitglied"
   },
   "imprint": "Impressum",
   "language": "Sprache",
   "login": "Anmeldung",
   "logout": "Abmelden",
   "members_area": "Mitgliederbereich",
-  "message": "hallo gradido !!",
+  "message": "hallo gradido!!",
   "overview": "Übersicht",
   "privacy_policy": "Datenschutzerklärung",
+  "publisher": {
+    "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
+    "publisherId": "Publisher-Id"
+  },
   "send": "Senden",
+  "send_gdd": "GDD versenden",
+  "send_per_link": "GDD versenden per Link",
   "settings": {
     "coinanimation": {
       "coinanimation": "Münzanimation",
@@ -131,32 +163,37 @@
       "change-success": "Dein Name wurde erfolgreich geändert."
     },
     "newsletter": {
-      "newsletter": "Newsletter",
+      "newsletter": "Informationen per E-Mail",
       "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
       "newsletterTrue": "Du erhältst Informationen per E-Mail."
     },
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
+      "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
-        "not-authenticated": "Leider konnten wir dich nicht authentifizieren. Bitte wende dich an den Support.",
-        "text": "Jetzt kannst du ein neues Passwort speichern, mit dem du dich zukünftig in der Gradido-App anmelden kannst."
+        "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
       },
       "send_now": "Jetzt senden",
+      "set": "Passwort festlegen",
+      "set-password": {
+        "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
+      },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     }
   },
   "signup": "Registrieren",
   "site": {
     "404": {
-      "back": "Zurück zur Übersicht!",
+      "back": "Zurück zur Übersicht",
       "ooops": "Ooops!",
-      "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zum Erkunden"
+      "text": "Seite nicht gefunden. Aber keine Sorge, wir haben noch viele andere Seiten zu erkunden."
     },
     "checkEmail": {
-      "errorText": "Email konnte nicht verifiziert werden.",
-      "title": "Email wird verifiziert"
+      "errorText": "E-Mail konnte nicht verifiziert werden.",
+      "title": "E-Mail wird verifiziert"
     },
     "login": {
       "community": "Tausend Dank, weil du bei uns bist!",
@@ -173,27 +210,36 @@
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
-      "one_number": "Eine Zahl erforderlich.",
-      "special-char": "Ein Sonderzeichen erforderlich (z.B. _ oder ä)",
+      "one_number": "Zahl erforderlich.",
+      "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
       "subtitle": "Werde Teil der Gemeinschaft!",
       "title": "Erstelle dein Gradido-Konto",
-      "uppercase": "Ein Großbuchstabe erforderlich."
+      "uppercase": "Großbuchstabe erforderlich."
     },
     "thx": {
-      "checkEmail": "Deine Email würde erfolgreich verifiziert.",
-      "email": "Wir haben dir eine eMail gesendet.",
-      "register": "Du bist jetzt registriert.",
+      "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink!",
+      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
+      "email": "Wir haben dir eine E-Mail gesendet.",
+      "emailActivated": "Danke dass Du deine E-Mail bestätigt hast.",
+      "errorTitle": "Achtung!",
+      "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "title": "Danke!"
     }
   },
+  "success": "Erfolg",
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
-    "gdt-text": "Gradido Transform Transaktionen",
+    "gdt-text": "GradidoTransform Transaktionen",
     "more": "mehr",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
+  },
+  "transaction-link": {
+    "button": "einlösen",
+    "send_you": "sendet dir"
   },
   "transactions": "Transaktionen",
   "whitepaper": "Whitepaper"

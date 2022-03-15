@@ -1,13 +1,5 @@
-import {
-  BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  Timestamp,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm'
-import { Transaction } from './Transaction'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import { Transaction } from '../Transaction'
 
 @Entity('transaction_creations')
 export class TransactionCreation extends BaseEntity {
@@ -24,7 +16,7 @@ export class TransactionCreation extends BaseEntity {
   amount: number
 
   @Column({ name: 'target_date', type: 'timestamp' })
-  targetDate: Timestamp
+  targetDate: Date
 
   @OneToOne(() => Transaction)
   @JoinColumn({ name: 'transaction_id' })

@@ -9,12 +9,6 @@ export default class UpdateUserInfosArgs {
   lastName?: string
 
   @Field({ nullable: true })
-  description?: string
-
-  @Field({ nullable: true })
-  username?: string
-
-  @Field({ nullable: true })
   language?: string
 
   @Field({ nullable: true })

@@ -13,7 +13,7 @@ export const getCommunityInfoMixin = {
             return result.data.getCommunityInfo
           })
           .catch((error) => {
-            this.$toasted.error(error.message)
+            this.toastError(error.message)
           })
       }
     },
