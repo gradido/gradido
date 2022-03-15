@@ -159,11 +159,7 @@ const createEmailOptIn = async (
   if (emailOptIn) {
     const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
     if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        'email already sent less than ' +
-          parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) +
-          ' minutes ago',
-      )
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       emailOptIn.updatedAt = new Date()
       emailOptIn.resendCount++
@@ -192,9 +188,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed < parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        `email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`
-      )
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       optInCode.updatedAt = new Date()
       optInCode.resendCount++
@@ -489,9 +483,7 @@ export class UserResolver {
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        'Code is older than ' + parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) + ' minutes',
-      )
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
 
     // load user
@@ -569,9 +561,7 @@ export class UserResolver {
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        'Code is older than ' + parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) + ' minutes',
-      )
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
     return true
   }
