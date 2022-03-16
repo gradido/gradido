@@ -46,6 +46,7 @@
     "total": "Total",
     "year": "Years"
   },
+  "delete":"delete",
   "error": {
     "change-password": "Error while changing password",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -104,6 +105,8 @@
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
+    "deleted":"The link was deleted!",
+    "delete-the-link":"Delete the link?",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "links_count": "Active links",

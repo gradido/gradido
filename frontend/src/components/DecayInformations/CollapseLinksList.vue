@@ -20,7 +20,7 @@
             <b-button
               v-if="!value.pending && value.itemsShown < transactionLinkCount"
               block
-              variant="primary"
+              variant="outline-primary"
               @click="loadMoreLinks"
             >
               {{ buttonText }}

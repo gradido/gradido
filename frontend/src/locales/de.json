@@ -46,6 +46,7 @@
     "total": "Gesamt",
     "year": "Jahre"
   },
+  "delete":"löschen",
   "error": {
     "change-password": "Fehler beim Ändern des Passworts",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -103,6 +104,8 @@
   "gdd_per_link": {
     "copy": "kopieren",
     "created": "Der Link wurde erstellt!",
+    "delete-the-link":"Den Link löschen?",
+    "deleted":"Der Link wurde gelöscht!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
