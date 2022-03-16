@@ -24,6 +24,7 @@
               :gdt-balance="GdtBalance"
               :transactions="transactions"
               :transactionCount="transactionCount"
+              :transactionLinkCount="transactionLinkCount"
               :pending="pending"
               :decayStartBlock="decayStartBlock"
               @update-balance="updateBalance"
@@ -59,6 +60,7 @@ export default {
       transactions: [],
       bookedBalance: 0,
       transactionCount: 0,
+      transactionLinkCount: 0,
       pending: true,
       visible: false,
       decayStartBlock: new Date(),
@@ -99,6 +101,7 @@ export default {
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.balance)
           this.transactionCount = transactionList.count
+          this.transactionLinkCount = transactionList.linkCount
           this.decayStartBlock = new Date(transactionList.decayStartBlock)
           this.pending = false
         })
