@@ -33,7 +33,7 @@ export default {
     }
   },
   methods: {
-    setTransactionLinkInformation() {
+    setTransactionLink() {
       this.$apollo
         .query({
           query: queryTransactionLink,
@@ -51,7 +51,7 @@ export default {
     },
   },
   created() {
-    this.setTransactionLinkInformation()
+    this.setTransactionLink()
   },
 }
 </script>

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ShowTransactionLinkInformations from './ShowTransactionLinkInformations'
+import ShowTransactionLink from './ShowTransactionLink'
 
 const localVue = global.localVue
 
@@ -30,11 +30,11 @@ const createMockObject = (code) => {
   }
 }
 
-describe('ShowTransactionLinkInformations', () => {
+describe('ShowTransactionLink', () => {
   let wrapper
 
   const Wrapper = (functionN) => {
-    return mount(ShowTransactionLinkInformations, functionN)
+    return mount(ShowTransactionLink, functionN)
   }
 
   describe('mount', () => {
@@ -43,7 +43,7 @@ describe('ShowTransactionLinkInformations', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.show-transaction-link-informations').exists()).toBeTruthy()
+      expect(wrapper.find('div.show-transaction-link-').exists()).toBeTruthy()
     })
   })
 })

@@ -84,7 +84,7 @@ const routes = [
   },
   {
     path: '/redeem/:code',
-    component: () => import('@/pages/ShowTransactionLinkInformations.vue'),
+    component: () => import('@/pages/ShowTransactionLink.vue'),
   },
   { path: '*', component: NotFound },
 ]
