@@ -43,7 +43,7 @@ describe('ShowTransactionLink', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.show-transaction-link-').exists()).toBeTruthy()
+      expect(wrapper.find('div.show-transaction-link').exists()).toBeTruthy()
     })
   })
 })
