@@ -4,9 +4,6 @@
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '../src/server/createServer'
 import { initialize } from '@dbTools/helpers'
-import { createUserMutation, setPasswordMutation } from './graphql'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { User } from '@entity/User'
 import { entities } from '@entity/index'
 
 export const headerPushMock = jest.fn((t) => {
@@ -44,19 +41,6 @@ export const resetEntity = async (entity: any) => {
     const ids = items.map((i: any) => i.id)
     await entity.delete(ids)
   }
-}
-
-export const createUser = async (mutate: any, user: any) => {
-  // resetToken()
-  await mutate({ mutation: createUserMutation, variables: user })
-  const dbUser = await User.findOne({ where: { email: user.email } })
-  if (!dbUser) throw new Error('Ups, no user found')
-  const optin = await LoginEmailOptIn.findOne({ where: { userId: dbUser.id } })
-  if (!optin) throw new Error('Ups, no optin found')
-  await mutate({
-    mutation: setPasswordMutation,
-    variables: { password: 'Aa12345_', code: optin.verificationCode },
-  })
 }
 
 export const resetToken = () => {
