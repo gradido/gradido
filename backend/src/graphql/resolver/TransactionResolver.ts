@@ -170,7 +170,7 @@ export class TransactionResolver {
     }
 
     if (!lastTransaction) {
-      return new TransactionList(new Decimal(0), [], 0, balanceGDT)
+      return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)
     }
 
     // find transactions
@@ -204,7 +204,7 @@ export class TransactionResolver {
     const transactions: Transaction[] = []
 
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkRepository.summary(user.id, now)
 
     // decay & link transactions
@@ -217,9 +217,9 @@ export class TransactionResolver {
         transactions.push(
           virtualLinkTransaction(
             lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
-            sumAmount,
-            sumHoldAvailableAmount,
-            sumHoldAvailableAmount.minus(sumAmount.toString()),
+            sumAmount.mul(-1),
+            sumHoldAvailableAmount.mul(-1),
+            sumHoldAvailableAmount.minus(sumAmount.toString()).mul(-1),
             firstDate || now,
             lastDate || now,
             self,
@@ -244,6 +244,7 @@ export class TransactionResolver {
       ),
       transactions,
       userTransactionsCount,
+      transactionLinkcount,
       balanceGDT,
     )
   }

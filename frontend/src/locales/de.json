@@ -106,6 +106,8 @@
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
+    "links_count": "Aktive Links",
+    "links_sum": "Summe deiner versendeten Gradidos",
     "not-copied": "Konnte den Link nicht kopieren: {err}",
     "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "sentence_2": "Der Link ist 14 Tage gültig!",
@@ -132,6 +134,9 @@
   },
   "imprint": "Impressum",
   "language": "Sprache",
+  "links-list": {
+    "header": "Liste deiner aktiven Links"
+  },
   "login": "Anmeldung",
   "logout": "Abmelden",
   "members_area": "Mitgliederbereich",
