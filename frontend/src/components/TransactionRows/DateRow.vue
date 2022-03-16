@@ -7,7 +7,6 @@
       <b-col cols="7">
         <div class="gdd-transaction-list-item-date">
           {{ $d(new Date(balanceDate), 'long') }}
-          {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
         </div>
       </b-col>
     </b-row>

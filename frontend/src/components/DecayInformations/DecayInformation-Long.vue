@@ -15,7 +15,6 @@
         <div>
           <span>
             {{ $d(new Date(decay.start), 'long') }}
-            {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </span>
         </div>
       </b-col>
@@ -44,7 +43,8 @@
     </b-row>
     <!-- Type-->
     <b-row>
-      <b-col cols="6" class="text-right">{{ $t(`decay.${typeId.toLowerCase()}`) }}</b-col>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
+      <b-col cols="6" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
       <b-col cols="6">{{ amount | GDD }}</b-col>
     </b-row>
     <!-- Decay-->
@@ -82,7 +82,8 @@ export default {
       const result = []
       order.forEach((timeSpan) => {
         if (this.duration[timeSpan] > 0) {
-          const locale = this.$t(`decay.${timeSpan}`)
+          // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+          const locale = this.$t(`time.${timeSpan}`)
           result.push(`${this.duration[timeSpan]} ${locale}`)
         }
       })

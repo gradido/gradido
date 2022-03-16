@@ -6,7 +6,7 @@
         <div class="text-center mb-7 header">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>Gradido</h1>
+              <h1>{{ $t('site.login.heading') }}</h1>
               <p class="text-lead">{{ $t('site.login.community') }}</p>
             </b-col>
           </b-row>

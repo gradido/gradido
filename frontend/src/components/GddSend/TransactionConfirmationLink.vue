@@ -28,12 +28,14 @@
           <strong>{{ $t('gdd_per_link.decay-14-day') }}</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>~ {{ (amount * 0.028 * -1) | GDD }}</strong>
+          <strong>{{ $t('math.aprox') }} {{ (amount * 0.028 * -1) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">~ {{ (balance - amount - amount * 0.028) | GDD }}</b-col>
+        <b-col class="text-right">
+          {{ $t('math.aprox') }} {{ (balance - amount - amount * 0.028) | GDD }}
+        </b-col>
       </b-row>
     </b-container>
 

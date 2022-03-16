@@ -8,11 +8,10 @@
     "build": "vue-cli-service build",
     "dev": "yarn run serve",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
-    "lint": "eslint --max-warnings=0 --ext .js,.vue .",
+    "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
     "test": "TZ=UTC jest --coverage",
-    "locales": "scripts/missing-keys.sh && scripts/sort.sh"
+    "locales": "scripts/sort.sh"
   },
   "dependencies": {
     "@babel/core": "^7.13.13",
@@ -67,6 +66,7 @@
     "vuex-persistedstate": "^4.0.0-beta.3"
   },
   "devDependencies": {
+    "@intlify/eslint-plugin-vue-i18n": "^1.4.0",
     "@vue/cli-plugin-babel": "^3.7.0",
     "@vue/cli-plugin-eslint": "^3.7.0",
     "@vue/cli-service": "^3.7.0",

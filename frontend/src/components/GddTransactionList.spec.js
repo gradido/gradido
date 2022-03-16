@@ -440,7 +440,7 @@ describe('GddTransactionList', () => {
       })
 
       it('shows the text "1 / 2"', () => {
-        expect(paginationButtons.find('p.text-center').text()).toBe('1 / 2')
+        expect(paginationButtons.find('p.text-center').text()).toBe('1 math.div 2')
       })
 
       it('emits update-transactions when next button is clicked', async () => {
@@ -452,7 +452,7 @@ describe('GddTransactionList', () => {
 
       it('shows text "2 / 2" when next button is clicked', async () => {
         await paginationButtons.find('button.next-page').trigger('click')
-        expect(paginationButtons.find('p.text-center').text()).toBe('2 / 2')
+        expect(paginationButtons.find('p.text-center').text()).toBe('2 math.div 2')
       })
 
       it('has next-button disabled when next button is clicked', async () => {

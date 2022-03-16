@@ -8,7 +8,7 @@
   </div>
 </template>
 <script>
-import ContentFooter from './ContentFooter.vue'
+import ContentFooter from '@/components/ContentFooter.vue'
 import LanguageSwitch from '@/components/LanguageSwitch.vue'
 export default {
   components: {

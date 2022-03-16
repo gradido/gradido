@@ -15,18 +15,18 @@
             <div class="text-center font-weight-bold">
               {{ $n(balance, 'decimal') }}
             </div>
-            <div class="text-center">GDD</div>
+            <div class="text-center">{{ $t('GDD') }}</div>
           </b-col>
           <b-col>
             <div class="text-center font-weight-bold">
               {{ transactionCount }}
             </div>
             <div class="text-center">
-              {{ $t('transactions') }}
+              {{ $t('navigation.transactions') }}
             </div>
           </b-col>
           <b-col>
-            <div class="text-center font-weight-bold">--</div>
+            <div class="text-center font-weight-bold">{{ $t('em-dash') }}</div>
             <div class="text-center">
               {{ $t('community.community') }}
             </div>
