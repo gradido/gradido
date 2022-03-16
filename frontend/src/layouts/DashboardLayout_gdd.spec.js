@@ -155,6 +155,7 @@ describe('DashboardLayoutGdd', () => {
               transactionList: {
                 balanceGDT: 100,
                 count: 4,
+                linkCount: 8,
                 balance: 1450,
                 decay: 1250,
                 transactions: ['transaction', 'transaction', 'transaction', 'transaction'],
@@ -197,6 +198,10 @@ describe('DashboardLayoutGdd', () => {
 
         it('updates transaction count', () => {
           expect(wrapper.vm.transactionCount).toBe(4)
+        })
+
+        it('updates transaction link count', () => {
+          expect(wrapper.vm.transactionLinkCount).toBe(8)
         })
       })
 

@@ -9,12 +9,14 @@ export class TransactionList {
     balance: Decimal,
     transactions: Transaction[],
     count: number,
+    linkCount: number,
     balanceGDT?: number | null,
     decayStartBlock: Date = CONFIG.DECAY_START_TIME,
   ) {
     this.balance = balance
     this.transactions = transactions
     this.count = count
+    this.linkCount = linkCount
     this.balanceGDT = balanceGDT || null
     this.decayStartBlock = decayStartBlock
   }
@@ -24,6 +26,9 @@ export class TransactionList {
 
   @Field(() => Number)
   count: number
+
+  @Field(() => Number)
+  linkCount: number
 
   @Field(() => Decimal)
   balance: Decimal

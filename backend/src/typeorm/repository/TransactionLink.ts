@@ -12,13 +12,15 @@ export class TransactionLinkRepository extends Repository<dbTransactionLink> {
     sumAmount: Decimal
     lastDate: Date | null
     firstDate: Date | null
+    transactionLinkcount: number
   }> {
-    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate } =
+    const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, count } =
       await this.createQueryBuilder('transactionLinks')
         .select('SUM(transactionLinks.holdAvailableAmount)', 'sumHoldAvailableAmount')
         .addSelect('SUM(transactionLinks.amount)', 'sumAmount')
         .addSelect('MAX(transactionLinks.validUntil)', 'lastDate')
         .addSelect('MIN(transactionLinks.createdAt)', 'firstDate')
+        .addSelect('COUNT(*)', 'count')
         .where('transactionLinks.userId = :userId', { userId })
         .andWhere('transactionLinks.redeemedAt is NULL')
         .andWhere('transactionLinks.validUntil > :date', { date })
@@ -31,6 +33,7 @@ export class TransactionLinkRepository extends Repository<dbTransactionLink> {
       sumAmount: sumAmount ? new Decimal(sumAmount) : new Decimal(0),
       lastDate: lastDate || null,
       firstDate: firstDate || null,
+      transactionLinkcount: count || 0,
     }
   }
 }
