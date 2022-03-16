@@ -22,7 +22,7 @@
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
-      "creation": "Created",
+      "created": "Created",
       "noDecay": "No Decay",
       "receive": "Received",
       "send": "Sent"
