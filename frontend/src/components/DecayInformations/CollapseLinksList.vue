@@ -3,7 +3,7 @@
     <div class="d-flex">
       <div class="text-center pb-3 gradido-max-width">
         <div>
-          <b-row class="gradido-custom-background mb-2">
+          <b-row class="mb-2">
             <b-col cols="2">
               <b>{{ $t('form.amount') }}</b>
             </b-col>
