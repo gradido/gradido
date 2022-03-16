@@ -71,9 +71,9 @@ export default {
   computed: {
     buttonText() {
       const i = this.transactionLinkCount - this.value.itemsShown
-      if (i === 1) return this.$tc('link-reload', i, { n: i })
-      if (i < 6) return this.$tc('link-reload', 2, { n: i })
-      return this.$tc('link-reload', 3, { n: 5 })
+      if (i === 1) return this.$tc('link-reload', 0, { n: i })
+      if (i < 6) return this.$tc('link-reload', 1, { n: i })
+      return this.$tc('link-reload', 2, { n: 5 })
     },
   },
 }
