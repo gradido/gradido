@@ -158,7 +158,7 @@ const createEmailOptIn = async (
   })
   if (emailOptIn) {
     const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       emailOptIn.updatedAt = new Date()
@@ -187,7 +187,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   // Check for 10 minute delay
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       optInCode.updatedAt = new Date()
@@ -482,7 +482,7 @@ export class UserResolver {
 
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
 
@@ -560,7 +560,7 @@ export class UserResolver {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for 10minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
+    if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
     return true
