@@ -15,7 +15,7 @@
       <div v-for="({ id, typeId }, index) in transactions" :key="id">
         <transaction-list-item :typeId="typeId" class="pointer">
           <template #DECAY>
-            <transaction-decay class="list-group-item" v-bind="transactions[index]" />
+            <transaction-decay class="list-group-item gradido-background-beige" v-bind="transactions[index]" />
           </template>
 
           <template #SEND>
