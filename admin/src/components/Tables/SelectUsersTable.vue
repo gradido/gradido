@@ -12,7 +12,7 @@
           >
             <b-icon icon="plus" variant="success"></b-icon>
           </b-button>
-          <div v-else>{{ $t('e_mail') }}!</div>
+          <div v-else>{{ $t('e_mail') }}{{ $t('math.exclaim') }}</div>
         </div>
       </template>
     </b-table-lite>

@@ -14,7 +14,7 @@
       <b-col cols="6">
         <div>
           {{ (Number(balance) - Number(decay.decay)) | GDD }}
-          {{ decay.decay | GDD }} =
+          {{ decay.decay | GDD }} {{ $t('math.equal') }}
           <b>{{ balance | GDD }}</b>
         </div>
       </b-col>

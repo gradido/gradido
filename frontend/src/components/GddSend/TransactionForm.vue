@@ -76,7 +76,7 @@
                 <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
                 <b-input-group id="input-group-2" class="border border-default" size="lg">
                   <b-input-group-prepend class="p-2 d-none d-md-block">
-                    <div class="m-1 mt-2">GDD</div>
+                    <div class="m-1 mt-2">{{ $t('GDD') }}</div>
                   </b-input-group-prepend>
 
                   <b-form-input

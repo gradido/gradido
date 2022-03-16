@@ -42,8 +42,8 @@ describe('UserCard_FormUserMail', () => {
       expect(wrapper.find('a[href="#formusermail"]').exists()).toBeTruthy()
     })
 
-    it('renders the E-Mail form.change', () => {
-      expect(wrapper.findAll('div.col').at(0).text()).toBe('E-Mail form.change')
+    it('renders the form.email form.change', () => {
+      expect(wrapper.findAll('div.col').at(0).text()).toBe('form.email form.change')
     })
 
     it('renders the E-Mail', () => {

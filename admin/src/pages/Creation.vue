@@ -2,7 +2,7 @@
   <div class="creation">
     <b-row>
       <b-col cols="12" lg="6">
-        <label>Usersuche</label>
+        <label>{{ $t('user_search') }}</label>
         <b-input-group>
           <b-form-input
             type="text"

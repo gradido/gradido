@@ -4,7 +4,7 @@
       <b-row class="mb-4 text-right">
         <b-col class="text-right">
           <a href="#formusermail" v-if="edit_email" @click="edit_email = !edit_email">
-            <span>E-Mail {{ $t('form.change') }}</span>
+            <span>{{ $t('form.email') }} {{ $t('form.change') }}</span>
           </a>
           <div v-else>
             <a href="#formusermail" @click="onSubmit">
@@ -21,7 +21,7 @@
 
       <b-row class="mb-3">
         <b-col class="col-lg-3 col-md-10 col-sm-10 text-md-left text-lg-right">
-          <small>E-Mail</small>
+          <small>{{ $t('form.email') }}</small>
         </b-col>
         <b-col v-if="edit_email" class="col-md-9 col-sm-10">{{ $store.state.email }}</b-col>
         <b-col v-else class="col-md-9 col-sm-10">
