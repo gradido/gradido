@@ -46,7 +46,7 @@
     "total": "Total",
     "year": "Years"
   },
-  "delete":"delete",
+  "delete": "delete",
   "error": {
     "change-password": "Error while changing password",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -105,9 +105,9 @@
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
-    "expired":"expired",
-    "deleted":"The link was deleted!",
-    "delete-the-link":"Delete the link?",
+    "delete-the-link": "Delete the link?",
+    "deleted": "The link was deleted!",
+    "expired": "expired",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "links_count": "Active links",
@@ -138,7 +138,7 @@
   },
   "imprint": "Legal notice",
   "language": "Language",
-  "link-reload":"Reload the last {n} link | reload the last {n} links |  reload more {n} links",
+  "link-reload": "Reload the last {n} link | reload the last {n} links |  reload more {n} links",
   "links-list": {
     "header": "List of your active links"
   },
