@@ -9,7 +9,7 @@
     "other-communities": "Weitere Gemeinschaften",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
-  "dash": "—",
+  "em-dash": "—",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",

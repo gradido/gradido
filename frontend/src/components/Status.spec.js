@@ -27,7 +27,7 @@ describe('Status', () => {
 
     describe('balance is pending', () => {
       it('it displays an en-dash', () => {
-        expect(wrapper.find('div.gdd-status-div').text()).toEqual('dash GDD')
+        expect(wrapper.find('div.gdd-status-div').text()).toEqual('em-dash GDD')
       })
     })
 

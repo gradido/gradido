@@ -27,7 +27,7 @@
             <b-input-group-prepend class="d-none d-md-block gray-background">
               <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
             </b-input-group-prepend>
-            <div class="p-3">{{ memo ? memo : $t('dash') }}</div>
+            <div class="p-3">{{ memo ? memo : $t('em-dash') }}</div>
           </b-input-group>
         </b-list-group>
       </b-col>

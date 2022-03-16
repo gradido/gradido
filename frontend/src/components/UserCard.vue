@@ -26,7 +26,7 @@
             </div>
           </b-col>
           <b-col>
-            <div class="text-center font-weight-bold">{{ $t('dash') }}</div>
+            <div class="text-center font-weight-bold">{{ $t('em-dash') }}</div>
             <div class="text-center">
               {{ $t('community.community') }}
             </div>
