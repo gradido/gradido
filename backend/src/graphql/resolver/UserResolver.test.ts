@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
-import { createUserFactory } from '@/seeds/factory/user'
+import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { login, logout } from '@/seeds/graphql/queries'
@@ -11,6 +11,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -30,9 +31,10 @@ jest.mock('@/apis/KlicktippController', () => {
 */
 
 let mutate: any, query: any, con: any
+let testEnv: any
 
 beforeAll(async () => {
-  const testEnv = await testEnvironment()
+  testEnv = await testEnvironment()
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -312,7 +314,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
-        await createUserFactory(mutate, bibiBloxberg)
+        await userFactory(testEnv, bibiBloxberg)
         result = await query({ query: login, variables })
       })
 
@@ -349,7 +351,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
-        await createUserFactory(mutate, bibiBloxberg)
+        await userFactory(testEnv, bibiBloxberg)
       })
 
       afterAll(async () => {
@@ -387,7 +389,7 @@ describe('UserResolver', () => {
       }
 
       beforeAll(async () => {
-        await createUserFactory(mutate, bibiBloxberg)
+        await userFactory(testEnv, bibiBloxberg)
         await query({ query: login, variables })
       })
 
