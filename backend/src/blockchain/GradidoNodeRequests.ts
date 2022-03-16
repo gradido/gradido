@@ -32,7 +32,6 @@ async function isCommunityAliasExisting(communityAlias: string): Promise<boolean
       id: randomInt(10000),
       jsonrpc: '2.0',
     })
-    console.log(response)
     return true
   } catch (e) {
     if (e instanceof RpcError) {

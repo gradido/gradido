@@ -24,9 +24,9 @@ async function signAndSendTransaction(
   privateKey: Buffer,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   packTransaction: any,
-  recipientGroupAlias: string,
+  recipientGroupAlias?: string | null,
 ): Promise<Buffer> {
-  if (recipientGroupAlias !== '') {
+  if (recipientGroupAlias) {
     packTransaction.senderGroupAlias = CONFIG.COMMUNITY_ALIAS
     packTransaction.recipientGroupAlias = recipientGroupAlias
   }
@@ -64,7 +64,7 @@ async function signAndSendTransaction(
     throw new Error(resultSendTransactionIota.data)
   }
   const signature = sign
-  if (recipientGroupAlias !== '' && resultPackTransaction.data.transactions.length > 1) {
+  if (recipientGroupAlias && resultPackTransaction.data.transactions.length > 1) {
     sodium.crypto_sign_detached(
       sign,
       Base64.toUint8Array(resultPackTransaction.data.transactions[1].bodyBytesBase64),
@@ -98,7 +98,7 @@ async function sendCoins(
   recipientPublicHex: string,
   amount: string,
   memo: string,
-  recipientGroupAlias: string | '',
+  recipientGroupAlias: string | null,
 ): Promise<Buffer> {
   const privateKey = await recoverPrivateKey(user)
   const encryptedMemo = encryptMemo(memo, privateKey, Buffer.from(recipientPublicHex, 'hex'))
@@ -132,7 +132,7 @@ async function registerNewGroup(
     groupAlias: communityAlias,
     coinColor: communityCoinColor,
   }
-  return signAndSendTransaction(user, privateKey, packTransactionRequest, '')
+  return signAndSendTransaction(user, privateKey, packTransactionRequest)
 }
 
 async function creation(
@@ -151,12 +151,12 @@ async function creation(
     transactionType: 'creation',
     created: created.toISOString(),
     apolloTransactionId: apolloTransactionId,
-    memo: memo,
+    memo: encryptedMemo,
     recipientPubkey: recipientUser.pubKey.toString('hex'),
     amount: amount,
     targetDate: targetDate.toISOString(),
   }
-  return signAndSendTransaction(signingUser, privateKey, packTransactionRequest, encryptedMemo)
+  return signAndSendTransaction(signingUser, privateKey, packTransactionRequest)
 }
 
 export { sendCoins, registerNewGroup, creation }

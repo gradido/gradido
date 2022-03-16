@@ -35,21 +35,21 @@ function KeyPairEd25519Create(passphrase: string[]): Buffer[] {
     privKey,
     outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
   )
-
   return [pubKey, privKey]
 }
 
 function encryptMemo(memo: string, senderPrivateKey: Buffer, recipientPublicKey: Buffer): string {
+  const memoBuffer = Buffer.from(memo)
   const result = Buffer.alloc(
-    sodium.crypto_box_NONCEBYTES + sodium.crypto_box_MACBYTES + memo.length,
+    sodium.crypto_box_NONCEBYTES + sodium.crypto_box_MACBYTES + memoBuffer.length,
   )
   sodium.randombytes_buf(result)
   sodium.crypto_box_easy(
     result.subarray(sodium.crypto_box_NONCEBYTES),
-    Buffer.from(memo),
+    memoBuffer,
     result.subarray(0, sodium.crypto_box_NONCEBYTES),
     recipientPublicKey,
-    senderPrivateKey,
+    senderPrivateKey.subarray(0, sodium.crypto_box_SECRETKEYBYTES),
   )
   return result.toString('base64url')
 }

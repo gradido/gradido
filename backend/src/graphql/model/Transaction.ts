@@ -4,6 +4,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { User } from './User'
+import { PrimaryGeneratedColumn } from '@dbTools/typeorm'
 
 @ObjectType()
 export class Transaction {
