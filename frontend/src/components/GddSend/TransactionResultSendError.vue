@@ -19,7 +19,7 @@
             >
               {{ $t('transaction.receiverDeleted') }}
             </div>
-            <div v-else>({{ errorResult }})</div>
+            <div v-else>{{ errorResult }}</div>
           </div>
           <p class="text-center mt-3">
             <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>

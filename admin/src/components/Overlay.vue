@@ -7,7 +7,7 @@
         <b-row class="mt-4">
           <b-col class="col-3">{{ $t('transactionlist.amount') }}</b-col>
           <b-col class="h3">
-            <b>{{ item.amount }} GDD</b>
+            <b>{{ item.amount }} {{ $t('GDD') }}</b>
           </b-col>
         </b-row>
         <b-row>
