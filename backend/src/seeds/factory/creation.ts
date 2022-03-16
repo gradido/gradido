@@ -15,7 +15,7 @@ export const creationFactory = async (
 ): Promise<void> => {
   const { mutate, query } = client
 
-  // get Peter Lustig
+  // get Peter Lustig's user id
   const peterLustig = await User.findOneOrFail({ where: { email: 'peter@lustig.de' } })
   const variables = { ...creation, moderator: peterLustig.id }
 
