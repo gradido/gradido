@@ -490,7 +490,7 @@ export class UserResolver {
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+      throw new Error(`email already more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
 
     // load user
