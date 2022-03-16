@@ -11,7 +11,7 @@ describe('ContentFooter', () => {
     $i18n: {
       locale: 'en',
     },
-    $t: jest.fn((t) => t),
+    $t: jest.fn((t, options) => (options ? [t, options] : t)),
   }
 
   const Wrapper = () => {
@@ -32,8 +32,8 @@ describe('ContentFooter', () => {
         expect(wrapper.find('div.copyright').exists()).toBeTruthy()
       })
 
-      it.skip('renders the copyright year', () => {
-        expect(wrapper.find('div.copyright').text()).toMatch(/©\s*2[0-9]{3,3}\s+/)
+      it('renders the copyright year', () => {
+        expect(mocks.$t).toBeCalledWith('footer.copyright.year', { year: 2022 })
       })
 
       it('renders a link to Gradido-Akademie', () => {
@@ -48,10 +48,10 @@ describe('ContentFooter', () => {
     })
 
     describe('version', () => {
-      it.skip('shows the current version', async () => {
+      it('shows the current version', async () => {
         wrapper.setData({ version: 1.23 })
         await wrapper.vm.$nextTick()
-        expect(wrapper.find('div.copyright').findAll('a').at(1).text()).toEqual('App version 1.23')
+        expect(mocks.$t).toBeCalledWith('footer.app_version', { version: 1.23 })
       })
 
       it('links to latest release on GitHub', () => {
@@ -60,11 +60,11 @@ describe('ContentFooter', () => {
         )
       })
 
-      it.skip('has last commit hash', async () => {
+      it('has last commit hash', async () => {
         wrapper.setData({ shortHash: 'ACCEDED' })
         wrapper.setData({ hash: 'ACCEDEDC001D00DC001D00DC001D00DC001CAFA' })
         await wrapper.vm.$nextTick()
-        expect(wrapper.find('div.copyright').findAll('a').at(2).text()).toEqual('(ACCEDED)')
+        expect(mocks.$t).toBeCalledWith('footer.short_hash', { shortHash: 'ACCEDED' })
       })
 
       it('links to last release commit', async () => {
