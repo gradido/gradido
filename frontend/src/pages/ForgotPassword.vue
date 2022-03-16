@@ -5,10 +5,9 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
+              <h1>{{ $t('settings.password.reset') }}</h1>
               <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-              <h1>{{ $t(displaySetup.headline) }}</h1>
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-              <p class="text-lead">{{ $t(displaySetup.subtitle) }}</p>
+              <p class="text-lead">{{ $t(subtitle) }}</p>
             </b-col>
           </b-row>
         </div>
@@ -24,8 +23,7 @@
                   <input-email v-model="form.email"></input-email>
                   <div class="text-center">
                     <b-button type="submit" variant="primary">
-                      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-                      {{ $t(displaySetup.button) }}
+                      {{ $t('settings.password.send_now') }}
                     </b-button>
                   </div>
                 </b-form>
@@ -44,21 +42,6 @@
 import { sendResetPasswordEmail } from '@/graphql/queries'
 import InputEmail from '@/components/Inputs/InputEmail'
 
-const textFields = {
-  resetPassword: {
-    headline: 'settings.password.reset',
-    subtitle: 'settings.password.resend_subtitle',
-    button: 'settings.password.send_now',
-    cancel: 'back',
-  },
-  login: {
-    headline: 'settings.password.reset',
-    subtitle: 'settings.password.subtitle',
-    button: 'settings.password.send_now',
-    cancel: 'back',
-  },
-}
-
 export default {
   name: 'ForgotPassword',
   components: {
@@ -70,7 +53,7 @@ export default {
       form: {
         email: '',
       },
-      displaySetup: {},
+      subtitle: 'settings.password.subtitle',
     }
   },
   methods: {
@@ -92,9 +75,7 @@ export default {
   },
   created() {
     if (this.$route.params.comingFrom) {
-      this.displaySetup = textFields[this.$route.params.comingFrom]
-    } else {
-      this.displaySetup = textFields.login
+      this.subtitle = 'settings.password.resend_subtitle'
     }
   },
 }

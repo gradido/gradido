@@ -38,13 +38,24 @@ module.exports = {
       },
     ],
     '@intlify/vue-i18n/no-dynamic-keys': 'error',
-    // TODO: no ignores
     '@intlify/vue-i18n/no-unused-keys': [
       'error',
       {
         src: './src',
         extensions: ['.js', '.vue'],
-        ignores: ['/site.thx./', '/form./', '/time./', '/decay.types./'],
+        // TODO: remove ignores
+        ignores: [
+          '/site.thx./',
+          '/form./',
+          '/time./',
+          '/decay.types./',
+          'settings.password.resend_subtitle',
+          'settings.password.reset-password.text',
+          'settings.password.set',
+          'settings.password.set-password.text',
+          'settings.password.subtitle',
+          'site.login.signin',
+        ],
         enableFix: false,
       },
     ],

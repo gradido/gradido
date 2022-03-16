@@ -165,7 +165,18 @@
     },
     "password": {
       "change-password": "Change password",
-      "forgot_pwd": "Forgot password?"
+      "forgot_pwd": "Forgot password?",
+      "resend_subtitle": "Your activation link has expired, here you can order a new one.",
+      "reset": "Reset password",
+      "reset-password": {
+        "text": "Enter a new password that you will use to log in to your Gradido account in the future.."
+      },
+      "set": "Set password",
+      "set-password": {
+        "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
+      },
+      "send_now": "Send now",
+      "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
   "signup": "Sign up",
@@ -173,7 +184,8 @@
     "login": {
       "community": "A thousand thanks for being with us!",
       "heading": "Gradido",
-      "new_wallet": "Create new account"
+      "new_wallet": "Create new account",
+      "signin": "Sign in"
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
