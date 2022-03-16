@@ -5,9 +5,9 @@
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
       </b-col>
       <b-col cols="9">
-        <amount-and-name-row :amount="item.amount" :text="$t('form.amount')" />
-        <memo-row :memo="item.memo" />
-        <date-row :date="item.validUntil" :diffNow="true" />
+        <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
+        <memo-row :memo="memo" />
+        <date-row :date="validUntil" :diffNow="true" />
         <decay-row :decay="decayObject" />
       </b-col>
 
@@ -26,7 +26,7 @@
           class="p-2 mt-3"
           size="sm"
           variant="outline-danger"
-          @click="deleteLink(item.id)"
+          @click="deleteLink()"
           :title="$t('delete')"
         >
           <b-icon icon="trash"></b-icon>
@@ -53,11 +53,16 @@ export default {
     DecayRow,
   },
   props: {
-    item: { type: Object, required: true },
+    amount: { type: String, required: true },
+    code: { type: String, required: true },
+    holdAvailableAmount: { type: String, required: true },
+    id: { type: Number, required: true },
+    memo: { type: String, required: true },
+    validUntil: { type: String, required: true },
   },
   methods: {
     copy() {
-      const link = `${window.location.origin}/redeem/${this.item.code}`
+      const link = `${window.location.origin}/redeem/${this.code}`
       navigator.clipboard
         .writeText(link)
         .then(() => {
@@ -67,14 +72,14 @@ export default {
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
     },
-    deleteLink(id) {
+    deleteLink() {
       this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.delete-the-link')).then(async (value) => {
         if (value)
           await this.$apollo
             .mutate({
               mutation: deleteTransactionLink,
               variables: {
-                id: id,
+                id: this.id,
               },
             })
             .then((result) => {
@@ -89,7 +94,7 @@ export default {
   },
   computed: {
     decayObject() {
-      return { decay: this.item.amount - this.item.holdAvailableAmount }
+      return { decay: this.amount - this.holdAvailableAmount }
     },
   },
 }
