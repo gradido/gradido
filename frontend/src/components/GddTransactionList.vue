@@ -44,7 +44,7 @@
 
           <template #TRANSACTION_LINK>
             <transaction-links-summary
-              class="list-group-item"
+              class="list-group-item gradido-background-azure"
               v-bind="transactions[index]"
               :transactionLinkCount="transactionLinkCount"
               @update-transactions="updateTransactions"
