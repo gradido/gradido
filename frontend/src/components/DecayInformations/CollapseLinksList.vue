@@ -7,11 +7,12 @@
           <transaction-link
             v-for="item in transactionLinks"
             :key="item.id"
-            v-bind:item="item"
+            v-bind="item"
             @reset-transaction-link-list="resetTransactionLinkList"
           />
           <div class="mb-3">
             <b-button
+              class="test-button-load-more"
               v-if="!value.pending && value.itemsShown < transactionLinkCount"
               block
               variant="outline-primary"
@@ -58,8 +59,8 @@ export default {
     buttonText() {
       const i = this.transactionLinkCount - this.value.itemsShown
       if (i === 1) return this.$tc('link-load', 0)
-      if (i < 6) return this.$tc('link-load', 1, { n: i })
-      return this.$tc('link-load', 2, { n: 5 })
+      if (i <= this.value.pageSize) return this.$tc('link-load', 1, { n: i })
+      return this.$tc('link-load', 2, { n: this.value.pageSize })
     },
   },
 }
