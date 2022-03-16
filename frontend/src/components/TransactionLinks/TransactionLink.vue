@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-link">
-    <b-row class="gradido-custom-background mb-2">
+    <b-row class="gradido-background-18f50533 mb-2">
       <b-col cols="2">{{ item.amount | GDD }}</b-col>
       <b-col cols="2">{{ (item.amount - item.holdAvailableAmount) | GDD }}</b-col>
       <b-col cols="4">{{ item.memo }}</b-col>
