@@ -145,8 +145,8 @@ export const queryTransactionLink = gql`
 `
 
 export const listTransactionLinks = gql`
-  query($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
-    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
       id
       amount
       holdAvailableAmount
