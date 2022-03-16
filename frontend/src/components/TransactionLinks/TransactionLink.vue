@@ -1,16 +1,5 @@
 <template>
   <div class="transaction-link">
-    <!-- 
-        { "id": "1"
-          "amount": "11", 
-          "holdAvailableAmount": 
-          "11.28840866470862043644", 
-          "memo": "asdas das d", 
-          "code": "d9cc2a3a685ab17f8cd91d46", 
-          "createdAt": "2022-03-15T09:11:53.000Z", 
-          "validUntil": "2022-03-29T09:11:53.000Z", 
-          "redeemedAt": null,  
-    -->
     <b-row class="gradido-custom-background mb-2">
       <b-col cols="2">{{ item.amount | GDD }}</b-col>
       <b-col cols="2">{{ (item.amount - item.holdAvailableAmount) | GDD }}</b-col>
@@ -32,22 +21,6 @@ export default {
     item: { type: Object, required: true },
   },
   methods: {
-    async deleteTransactionLink(id) {
-      await this.$apollo
-        .mutate({
-          mutation: deleteTransactionLink,
-          variables: {
-            id: id,
-          },
-        })
-        .then((result) => {
-          this.toastSuccess('Link gelöscht')
-          this.$emit('update-list-transaction-links')
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
-    },
     copy() {
       const link = `${window.location.origin}/redeem/${this.item.code}`
       navigator.clipboard
@@ -60,12 +33,23 @@ export default {
         })
     },
     deleteLink(id) {
-      this.$bvModal
-        .msgBoxConfirm('Den Link löschen?')
-        .then(() => {
-          this.deleteTransactionLink(id)
-        })
-        .catch(() => {})
+      this.$bvModal.msgBoxConfirm('Den Link löschen?').then(async (value) => {
+        if (value)
+          await this.$apollo
+            .mutate({
+              mutation: deleteTransactionLink,
+              variables: {
+                id: id,
+              },
+            })
+            .then((result) => {
+              this.toastSuccess('Link gelöscht')
+              this.$emit('reset-transaction-link-list')
+            })
+            .catch((err) => {
+              this.toastError(err.message)
+            })
+      })
     },
   },
 }
