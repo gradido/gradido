@@ -184,7 +184,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
 
-  // Check for 10 minute delay
+  // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed <= parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
