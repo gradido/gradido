@@ -137,10 +137,8 @@ export const queryTransactionLink = gql`
       createdAt
       validUntil
       user {
-        email
-        firstName
-        lastName
         id
+        firstName
       }
     }
   }
