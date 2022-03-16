@@ -9,6 +9,7 @@ import {
   ObjectLiteral,
   getConnection,
   In,
+  getRepository,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '../model/UserAdmin'
 import { PendingCreation } from '../model/PendingCreation'
@@ -336,15 +337,17 @@ export class AdminResolver {
     transaction.balanceDate = receivedCallDate
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
-    const savedTransaction = await transaction.save()
+    const savedTransaction = await transactionRepository.insert(transaction)
     await AdminPendingCreation.delete(pendingCreation)
-    // send creation transaction over iota to Gradido Nodes 
+
+    // send creation transaction over iota to Gradido Nodes
     // return first signature
     await creation(
       receivedCallDate,
       moderatorUser,
       user,
-      savedTransaction.id,
+      // Q: https://github.com/typeorm/typeorm/issues/3053
+      savedTransaction.identifiers[0].id,
       pendingCreation.memo,
       amountDecimal.toFixed(20),
       pendingCreation.date,
