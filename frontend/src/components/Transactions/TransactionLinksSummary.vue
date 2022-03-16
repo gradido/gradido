@@ -25,9 +25,8 @@
         </div>
       </div>
 
-      <b-collapse class="pb-4 pt-5" v-model="visible">
+      <b-collapse v-model="visible">
         <collapse-links-list
-          class="m-2"
           v-model="variables"
           :transactionLinkCount="transactionLinkCount"
           :transactionLinks="transactionLinks"
