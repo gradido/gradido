@@ -570,7 +570,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
-    // Code is only valid for 10minutes
+    // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed > parseInt(CONFIG.EMAIL_CODE_VALID_TIME.toString()) * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
