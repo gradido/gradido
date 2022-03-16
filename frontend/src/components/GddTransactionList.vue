@@ -41,6 +41,14 @@
               :decayStartBlock="decayStartBlock"
             />
           </template>
+
+          <template #TRANSACTION_LINK>
+            <transaction-link
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :transactionLinkCount="transactionLinkCount"
+            />
+          </template>
         </transaction-list-item>
       </div>
     </div>
@@ -63,6 +71,7 @@ import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionSend from '@/components/Transactions/TransactionSend'
 import TransactionReceive from '@/components/Transactions/TransactionReceive'
 import TransactionCreation from '@/components/Transactions/TransactionCreation'
+import TransactionLink from '@/components/Transactions/TransactionLink'
 
 export default {
   name: 'gdd-transaction-list',
@@ -73,6 +82,7 @@ export default {
     TransactionSend,
     TransactionReceive,
     TransactionCreation,
+    TransactionLink,
   },
   data() {
     return {
@@ -85,6 +95,7 @@ export default {
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+    transactionLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
   },
   methods: {

@@ -24,6 +24,7 @@
               :gdt-balance="GdtBalance"
               :transactions="transactions"
               :transactionCount="transactionCount"
+              :transactionLinkCount="transactionLinkCount"
               :pending="pending"
               :decayStartBlock="decayStartBlock"
               @update-balance="updateBalance"
@@ -40,7 +41,7 @@
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
 import { logout, transactionsQuery } from '@/graphql/queries'
-import ContentFooter from './ContentFooter.vue'
+import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
 
@@ -59,6 +60,7 @@ export default {
       transactions: [],
       bookedBalance: 0,
       transactionCount: 0,
+      transactionLinkCount: 0,
       pending: true,
       visible: false,
       decayStartBlock: new Date(),
@@ -99,6 +101,7 @@ export default {
           this.transactions = transactionList.transactions
           this.balance = Number(transactionList.balance)
           this.transactionCount = transactionList.count
+          this.transactionLinkCount = transactionList.linkCount
           this.decayStartBlock = new Date(transactionList.decayStartBlock)
           this.pending = false
         })

@@ -98,7 +98,7 @@ describe('Login', () => {
 
     describe('Login header', () => {
       it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('Gradido site.login.community')
+        expect(wrapper.find('div.header').text()).toBe('site.login.heading site.login.community')
       })
     })
 

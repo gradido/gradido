@@ -3,24 +3,24 @@
     <b-row align-v="center" class="mt-4 justify-content-lg-between">
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
-          © {{ year }}
+          {{ $t('footer.copyright.year', { year }) }}
           <a
             :href="`https://gradido.net/${$i18n.locale}`"
             class="font-weight-bold ml-1"
             target="_blank"
           >
-            Gradido-Akademie
+            {{ $t('footer.copyright.link') }}
           </a>
-          |
+          {{ $t('math.pipe') }}
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
-            App version {{ version }}
+            {{ $t('footer.app_version', { version }) }}
           </a>
           <a
             v-if="hash"
             :href="'https://github.com/gradido/gradido/commit/' + hash"
             target="_blank"
           >
-            ({{ shortHash }})
+            {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
       </b-col>
@@ -29,16 +29,16 @@
       <b-col>
         <b-nav class="nav-footer justify-content-center">
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
-            {{ $t('imprint') }}
+            {{ $t('footer.imprint') }}
           </b-nav-item>
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
-            {{ $t('privacy_policy') }}
+            {{ $t('footer.privacy_policy') }}
           </b-nav-item>
           <b-nav-item
             :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
             target="_blank"
           >
-            {{ $t('members_area') }}
+            {{ $t('navigation.members_area') }}
           </b-nav-item>
           <b-nav-item
             :href="
@@ -48,10 +48,10 @@
             "
             target="_blank"
           >
-            {{ $t('whitepaper') }}
+            {{ $t('footer.whitepaper') }}
           </b-nav-item>
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/contact/`" target="_blank">
-            {{ $t('site.navbar.support') }}
+            {{ $t('navigation.support') }}
           </b-nav-item>
         </b-nav>
       </b-col>

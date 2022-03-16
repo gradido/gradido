@@ -1,8 +1,6 @@
 {
   "all_emails": "All users",
   "back": "back",
-  "bookmark": "Remember",
-  "confirmed": "confirmed",
   "creation": "Creation",
   "creation_form": {
     "creation_failed": "Could not create pending creation for {email}",
@@ -16,7 +14,6 @@
     "submit_creation": "Submit creation",
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
-    "toasted_default": "`Case {event} is not supported`",
     "toasted_delete": "Open creation has been deleted",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
@@ -27,14 +24,26 @@
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "delete_user": "Delete user",
-  "details": "Details",
   "edit": "Edit",
+  "enabled": "enabled",
   "error": "Error",
   "e_mail": "E-mail",
   "firstname": "Firstname",
-  "gradido_admin_footer": "Gradido Academy Admin Console",
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido Academy Admin Console",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "GDD": "GDD",
   "hide_details": "Hide details",
   "lastname": "Lastname",
+  "math": {
+    "exclaim": "!",
+    "pipe": "|"
+  },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
@@ -47,7 +56,6 @@
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
-  "open_creation": "Open creation",
   "open_creations": "Open creations",
   "overlay": {
     "confirm": {
@@ -56,13 +64,6 @@
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Confirm creation!",
       "yes": "Yes, confirm and save creation!"
-    },
-    "remove": {
-      "no": "No, do not delete.",
-      "question": "Do you really want to delete the pre-stored creation?",
-      "text": "After deletion, there is no possibility to restore this data record. However, the entire process is saved in the log file as an overview.",
-      "title": "Attention! Delete creation!",
-      "yes": "Yes, delete creation!"
     }
   },
   "remove": "Remove",
@@ -72,13 +73,11 @@
   "status": "Status",
   "success": "Success",
   "text": "Text",
-  "transaction": "Transaction",
   "transactionlist": {
     "amount": "Amount",
     "balanceDate": "Creation date",
     "community": "Community",
     "date": "Date",
-    "decay": "Decay",
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },

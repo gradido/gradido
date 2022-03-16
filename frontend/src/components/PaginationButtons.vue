@@ -7,7 +7,7 @@
         </b-button>
       </b-col>
       <b-col cols="3">
-        <p class="text-center pt-2">{{ value }} / {{ totalPages }}</p>
+        <p class="text-center pt-2">{{ value }} {{ $t('math.div') }} {{ totalPages }}</p>
       </b-col>
       <b-col>
         <b-button class="next-page" :disabled="!hasNext" @click="currentValue++">

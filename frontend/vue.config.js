@@ -15,6 +15,7 @@ module.exports = {
       fallbackLocale: 'de',
       localeDir: 'locales',
       enableInSFC: false,
+      enableLegacy: false,
     },
   },
   lintOnSave: true,
