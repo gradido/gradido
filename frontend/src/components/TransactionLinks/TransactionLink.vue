@@ -1,15 +1,29 @@
 <template>
-  <div class="transaction-link">
-    <b-row class="gradido-background-18f50533 mb-2">
-      <b-col cols="2">{{ item.amount | GDD }}</b-col>
-      <b-col cols="2">{{ (item.amount - item.holdAvailableAmount) | GDD }}</b-col>
-      <b-col cols="4">{{ item.memo }}</b-col>
-      <b-col cols="2">{{ $moment(item.validUntil).fromNow() }}</b-col>
+  <div class="transaction-link gradido-custom-background">
+    <b-row class="mb-2 pt-2 pb-2">
       <b-col cols="2">
-        <b-button class="mr-2" size="sm" variant="outline-primary" @click="copy">
-          {{ $t('gdd_per_link.copy') }}
-        </b-button>
+        <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
+      </b-col>
+      <b-col cols="9">
+        <amount-and-name-row :amount="item.amount" :text="$t('form.amount')" />
+        <memo-row :memo="item.memo" />
+        <date-row :date="item.validUntil" :diffNow="true" />
+        <decay-row :decay="decayObject" />
+      </b-col>
+
+      <b-col cols="1" class="text-right">
         <b-button
+          class="p-2"
+          size="sm"
+          variant="outline-primary"
+          @click="copy"
+          :title="$t('gdd_per_link.copy')"
+        >
+          <b-icon icon="clipboard"></b-icon>
+        </b-button>
+        <br />
+        <b-button
+          class="p-2 mt-3"
           size="sm"
           variant="outline-danger"
           @click="deleteLink(item.id)"
@@ -23,9 +37,21 @@
 </template>
 <script>
 import { deleteTransactionLink } from '@/graphql/mutations'
+import TypeIcon from '../TransactionRows/TypeIcon'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
+import MemoRow from '../TransactionRows/MemoRow'
+import DateRow from '../TransactionRows/DateRow'
+import DecayRow from '../TransactionRows/DecayRow'
 
 export default {
   name: 'TransactionLink',
+  components: {
+    TypeIcon,
+    AmountAndNameRow,
+    MemoRow,
+    DateRow,
+    DecayRow,
+  },
   props: {
     item: { type: Object, required: true },
   },
@@ -35,7 +61,7 @@ export default {
       navigator.clipboard
         .writeText(link)
         .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-copied'))
+          this.toastSuccess(this.$t('gdd_per_link.link-copied') + '\n' + link)
         })
         .catch(() => {
           this.toastError(this.$t('gdd_per_link.not-copied'))
@@ -59,6 +85,11 @@ export default {
               this.toastError(err.message)
             })
       })
+    },
+  },
+  computed: {
+    decayObject() {
+      return { decay: this.item.amount - this.item.holdAvailableAmount }
     },
   },
 }
