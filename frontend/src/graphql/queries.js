@@ -57,6 +57,7 @@ export const transactionsQuery = gql`
     ) {
       balanceGDT
       count
+      linkCount
       balance
       decayStartBlock
       transactions {
@@ -131,5 +132,20 @@ export const communities = gql`
 export const queryOptIn = gql`
   query($optIn: String!) {
     queryOptIn(optIn: $optIn)
+  }
+`
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      amount
+      memo
+      createdAt
+      validUntil
+      user {
+        firstName
+        publisherId
+      }
+    }
   }
 `

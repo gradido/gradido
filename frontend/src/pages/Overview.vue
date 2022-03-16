@@ -20,6 +20,7 @@
         :timestamp="timestamp"
         :decayStartBlock="decayStartBlock"
         :transaction-count="transactionCount"
+        :transactionLinkCount="transactionLinkCount"
         @update-transactions="updateTransactions"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
@@ -51,6 +52,7 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    transactionLinkCount: { type: Number, default: 0 },
     pending: {
       type: Boolean,
       default: true,

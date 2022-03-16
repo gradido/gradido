@@ -184,7 +184,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
 
-  // Check for 10 minute delay
+  // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
@@ -369,6 +369,8 @@ export class UserResolver {
         /{code}/g,
         emailOptIn.verificationCode.toString(),
       )
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
         link: activationLink,
         firstName,
@@ -376,11 +378,13 @@ export class UserResolver {
         email,
       })
 
+      /* uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         // eslint-disable-next-line no-console
         console.log(`Account confirmation link: ${activationLink}`)
       }
+      */
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -410,6 +414,7 @@ export class UserResolver {
         emailOptIn.verificationCode.toString(),
       )
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
         link: activationLink,
         firstName: user.firstName,
@@ -417,11 +422,13 @@ export class UserResolver {
         email,
       })
 
+      /*  uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         // eslint-disable-next-line no-console
         console.log(`Account confirmation link: ${activationLink}`)
       }
+      */
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -446,6 +453,7 @@ export class UserResolver {
       optInCode.verificationCode.toString(),
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmail({
       link,
       firstName: user.firstName,
@@ -453,11 +461,13 @@ export class UserResolver {
       email,
     })
 
+    /*  uncomment this, when you need the activation link on the console
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       // eslint-disable-next-line no-console
       console.log(`Reset password link: ${link}`)
     }
+    */
 
     return true
   }
@@ -480,7 +490,7 @@ export class UserResolver {
       throw new Error('Could not login with emailVerificationCode')
     })
 
-    // Code is only valid for 10minutes
+    // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
@@ -547,7 +557,9 @@ export class UserResolver {
       } catch {
         // TODO is this a problem?
         // eslint-disable-next-line no-console
+        /*  uncomment this, when you need the activation link on the console
         console.log('Could not subscribe to klicktipp')
+        */
       }
     }
 
@@ -558,7 +570,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
-    // Code is only valid for 10minutes
+    // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
     if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
