@@ -157,8 +157,7 @@ const createEmailOptIn = async (
     emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
   })
   if (emailOptIn) {
-    const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
-    if (timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
+    if (isOptInCodeValid(emailOptIn)) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       emailOptIn.updatedAt = new Date()
@@ -186,8 +185,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
 
   // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
-    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
+    if (isOptInCodeValid(optInCode)) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     } else {
       optInCode.updatedAt = new Date()
@@ -491,8 +489,7 @@ export class UserResolver {
     })
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
+    if (!isOptInCodeValid(optInCode)) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
 
@@ -571,9 +568,8 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+    if (!isOptInCodeValid(optInCode)) {
+      throw new Error(`email was sent more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
     return true
   }
@@ -680,4 +676,8 @@ export class UserResolver {
 
     return hasElopageBuys(userEntity.email)
   }
+}
+function isOptInCodeValid(optInCode: LoginEmailOptIn) {
+  const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+  return timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000
 }
