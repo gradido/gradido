@@ -9,7 +9,6 @@
     "other-communities": "Other communities",
     "switch-to-this-community": "Switch to this community"
   },
-  "em-dash": "—",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -28,6 +27,7 @@
       "send": "Sent"
     }
   },
+  "em-dash": "—",
   "error": {
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error!",
@@ -130,8 +130,8 @@
     "admin_area": "Admin Area",
     "logout": "Logout",
     "members_area": "Members area",
-    "profile": "My profile",
     "overview": "Overview",
+    "profile": "My profile",
     "send": "Send",
     "support": "Support",
     "transactions": "Transactions"
@@ -171,11 +171,11 @@
       "reset-password": {
         "text": "Enter a new password that you will use to log in to your Gradido account in the future.."
       },
+      "send_now": "Send now",
       "set": "Set password",
       "set-password": {
         "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
-      "send_now": "Send now",
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },

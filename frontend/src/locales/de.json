@@ -9,7 +9,6 @@
     "other-communities": "Weitere Gemeinschaften",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
-  "em-dash": "—",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
@@ -28,6 +27,7 @@
       "send": "Gesendet"
     }
   },
+  "em-dash": "—",
   "error": {
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
     "error": "Fehler!",
@@ -130,8 +130,8 @@
     "admin_area": "Adminbereich",
     "logout": "Abmelden",
     "members_area": "Mitgliederbereich",
-    "profile": "Mein Profil",
     "overview": "Übersicht",
+    "profile": "Mein Profil",
     "send": "Senden",
     "support": "Support",
     "transactions": "Transaktionen"
