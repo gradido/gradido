@@ -25,8 +25,9 @@
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
         <collapse-links-list
+          v-model="variables"
+          :transactionLinkCount="transactionLinkCount"
           :transactionLinks="transactionLinks"
-          @update-list-transaction-links="updateListTransactionLinks"
         />
       </b-collapse>
     </div>
@@ -69,26 +70,50 @@ export default {
     return {
       visible: false,
       transactionLinks: [],
+      variables: {
+        currentPage: 1,
+        pending: false,
+        pageSize: 5,
+        itemsShown: 0,
+      },
     }
   },
   methods: {
     async updateListTransactionLinks() {
-      this.$apollo
-        .query({
-          query: listTransactionLinks,
-          variables: {
-            currentPage: 1,
-            pageSize: 5,
-          },
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.transactionLinks = result.data.listTransactionLinks
-          this.$emit('update-transactions')
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-        })
+      if (this.currentPage === 0) {
+        this.transactionLinks = []
+        this.variables.currentPage = 1
+      } else {
+        this.variables.pending = true
+        this.$apollo
+          .query({
+            query: listTransactionLinks,
+            variables: {
+              currentPage: this.currentPage,
+            },
+            fetchPolicy: 'network-only',
+          })
+          .then((result) => {
+            this.transactionLinks = [...this.transactionLinks, ...result.data.listTransactionLinks]
+            this.$emit('update-transactions')
+            this.variables.pending = false
+            this.variables.itemsShown = this.transactionLinks.length
+          })
+          .catch((err) => {
+            this.toastError(err.message)
+            this.variables.pending = false
+          })
+      }
+    },
+  },
+  computed: {
+    currentPage() {
+      return this.variables.currentPage
+    },
+  },
+  watch: {
+    currentPage() {
+      this.updateListTransactionLinks()
     },
   },
   created() {
