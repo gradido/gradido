@@ -8,7 +8,7 @@
     "build": "vue-cli-service build",
     "dev": "yarn run serve",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
-    "lint": "eslint --max-warnings=0 --ext .js,.vue,.json --ignore-path .gitignore .",
+    "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
     "test": "TZ=UTC jest --coverage",
     "locales": "scripts/sort.sh"
