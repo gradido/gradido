@@ -125,9 +125,6 @@
   },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "links-list": {
-    "header": "List of your active links"
-  },
   "login": "Login",
   "math": {
     "aprox": "~",

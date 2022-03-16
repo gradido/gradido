@@ -125,9 +125,6 @@
   },
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
-  "links-list": {
-    "header": "Liste deiner aktiven Links"
-  },
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
