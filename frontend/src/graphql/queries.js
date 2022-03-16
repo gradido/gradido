@@ -57,6 +57,7 @@ export const transactionsQuery = gql`
     ) {
       balanceGDT
       count
+      linkCount
       balance
       decayStartBlock
       transactions {

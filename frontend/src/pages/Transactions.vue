@@ -7,6 +7,7 @@
         <gdd-transaction-list
           :timestamp="timestamp"
           :transactionCount="transactionCount"
+          :transactionLinkCount="transactionLinkCount"
           :transactions="transactions"
           :show-pagination="true"
           :decayStartBlock="decayStartBlock"
@@ -42,6 +43,7 @@ export default {
       default: () => [],
     },
     transactionCount: { type: Number, default: 0 },
+    transactionLinkCount: { type: Number, default: 0 },
     decayStartBlock: { type: Date },
   },
   data() {
