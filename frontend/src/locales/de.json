@@ -107,6 +107,7 @@
     "delete-the-link":"Den Link löschen?",
     "deleted":"Der Link wurde gelöscht!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
+    "expired":"abgelaufen",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
     "links_count": "Aktive Links",
@@ -137,6 +138,7 @@
   },
   "imprint": "Impressum",
   "language": "Sprache",
+  "link-reload":"den letzten {n} Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "links-list": {
     "header": "Liste deiner aktiven Links"
   },

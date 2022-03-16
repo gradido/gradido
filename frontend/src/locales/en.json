@@ -105,6 +105,7 @@
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
+    "expired":"expired",
     "deleted":"The link was deleted!",
     "delete-the-link":"Delete the link?",
     "header": "Send Gradidos via link",
@@ -137,6 +138,7 @@
   },
   "imprint": "Legal notice",
   "language": "Language",
+  "link-reload":"Reload the last {n} link | reload the last {n} links |  reload more {n} links",
   "links-list": {
     "header": "List of your active links"
   },

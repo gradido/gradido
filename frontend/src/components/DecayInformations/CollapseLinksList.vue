@@ -4,10 +4,18 @@
       <div class="text-center pb-3 gradido-max-width">
         <div>
           <b-row class="gradido-custom-background mb-2">
-            <b-col cols="2"><b>Betrag</b></b-col>
-            <b-col cols="2"><b>Vergänglichkeit</b></b-col>
-            <b-col cols="4"><b>Nachricht</b></b-col>
-            <b-col cols="2"><b>Abgelaufen</b></b-col>
+            <b-col cols="2">
+              <b>{{ $t('form.amount') }}</b>
+            </b-col>
+            <b-col cols="2">
+              <b>{{ $t('decay.decay') }}</b>
+            </b-col>
+            <b-col cols="4">
+              <b>{{ $t('form.memo') }}</b>
+            </b-col>
+            <b-col cols="2">
+              <b>{{ $t('gdd_per_link.expired') }}</b>
+            </b-col>
             <b-col cols="2"></b-col>
           </b-row>
           <transaction-link
@@ -62,11 +70,10 @@ export default {
   },
   computed: {
     buttonText() {
-      if (this.transactionLinkCount - this.value.itemsShown > this.value.pageSize)
-        return 'weitere ' + this.value.pageSize + ' Links Nachladen'
-      return (
-        'die letzten ' + (this.transactionLinkCount - this.value.itemsShown) + ' Links nachladen'
-      )
+      const i = this.transactionLinkCount - this.value.itemsShown
+      if (i === 1) return this.$tc('link-reload', i, { n: i })
+      if (i < 6) return this.$tc('link-reload', 2, { n: i })
+      return this.$tc('link-reload', 3, { n: 5 })
     },
   },
 }
