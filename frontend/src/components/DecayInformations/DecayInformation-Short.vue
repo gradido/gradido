@@ -9,6 +9,7 @@ export default {
   props: {
     decay: {
       type: Object,
+      required: true,
     },
   },
 }
