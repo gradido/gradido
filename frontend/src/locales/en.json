@@ -138,7 +138,7 @@
   },
   "imprint": "Legal notice",
   "language": "Language",
-  "link-reload": "Reload the last {n} link | reload the last {n} links |  reload more {n} links",
+  "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "links-list": {
     "header": "List of your active links"
   },

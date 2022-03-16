@@ -138,7 +138,7 @@
   },
   "imprint": "Impressum",
   "language": "Sprache",
-  "link-reload": "den letzten {n} Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
+  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "links-list": {
     "header": "Liste deiner aktiven Links"
   },
