@@ -100,6 +100,7 @@
                         v-model="form.agree"
                         :name="$t('site.signup.agree')"
                       >
+                        <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
                         <span class="text-muted" v-html="$t('site.signup.agree')"></span>
                       </b-form-checkbox>
                     </b-col>
@@ -113,14 +114,12 @@
                   >
                     <span class="alert-icon"><i class="ni ni-point"></i></span>
                     <span class="alert-text">
-                      <strong>{{ $t('error.error') }}!</strong>
+                      <strong>{{ $t('error.error') }}</strong>
                       {{ messageError }}
                     </span>
                   </b-alert>
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
-                    <b-col>
-                      {{ $t('publisher.publisherId') }} : {{ $store.state.publisherId }}
-                    </b-col>
+                    <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
                     </b-col>

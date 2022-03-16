@@ -1,5 +1,6 @@
 <template>
   <b-alert show variant="secondary">
+    <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
     <span class="alert-text" v-html="$t('form.scann_code')"></span>
     <b-col v-show="!scan" lg="12" class="text-right">
       <a @click="toggle" class="nav-link pointer">
@@ -18,6 +19,7 @@
         <b-row>
           <b-col lg="8">
             <b-alert show variant="secondary">
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
               <span class="alert-text" v-html="$t('form.scann_code')"></span>
             </b-alert>
           </b-col>
