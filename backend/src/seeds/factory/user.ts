@@ -1,13 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { ServerUser } from '@entity/ServerUser'
 import { UserInterface } from '@/seeds/users/UserInterface'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
-export const createUserFactory = async (mutate: any, user: UserInterface): Promise<void> => {
+export const userFactory = async (
+  client: ApolloServerTestClient,
+  user: UserInterface,
+): Promise<void> => {
+  const { mutate } = client
+
   await mutate({ mutation: createUser, variables: user })
   let dbUser = await User.findOneOrFail({ where: { email: user.email } })
 
