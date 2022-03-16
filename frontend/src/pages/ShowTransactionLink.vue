@@ -1,5 +1,5 @@
 <template>
-  <div class="show-transaction-link-informations">
+  <div class="show-transaction-link">
     <!-- Header -->
     <div class="header py-7 py-lg-8 pt-lg-9">
       <b-container>
@@ -22,7 +22,7 @@
 import { queryTransactionLink } from '@/graphql/queries'
 
 export default {
-  name: 'ShowTransactionLinkInformations',
+  name: 'ShowTransactionLink',
   data() {
     return {
       displaySetup: {
