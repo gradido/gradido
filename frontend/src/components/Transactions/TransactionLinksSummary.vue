@@ -1,30 +1,33 @@
 <template>
   <div class="transaction-slot-link">
     <div>
-      <!-- Collaps Icon  -->
-      <collapse-icon class="text-right" :visible="visible" />
       <div @click="visible = !visible">
-        <b-row>
-          <!-- ICON  -->
-          <b-col cols="1">
-            <type-icon color="text-danger" icon="link45deg" />
-          </b-col>
+        <!-- Collaps Icon  -->
+        <collapse-icon class="text-right" :visible="visible" />
+        <div>
+          <b-row>
+            <!-- ICON  -->
+            <b-col cols="1">
+              <type-icon color="text-danger" icon="link45deg" />
+            </b-col>
 
-          <b-col cols="11">
-            <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :text="$t('gdd_per_link.links_sum')" />
+            <b-col cols="11">
+              <!-- Amount / Name || Text -->
+              <amount-and-name-row :amount="amount" :text="$t('gdd_per_link.links_sum')" />
 
-            <!-- Count Links -->
-            <link-count-row :count="transactionLinkCount" />
+              <!-- Count Links -->
+              <link-count-row :count="transactionLinkCount" />
 
-            <!-- Decay -->
-            <decay-row :decay="decay" />
-          </b-col>
-        </b-row>
+              <!-- Decay -->
+              <decay-row :decay="decay" />
+            </b-col>
+          </b-row>
+        </div>
       </div>
 
-      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
+      <b-collapse class="pb-4 pt-5" v-model="visible">
         <collapse-links-list
+          class="m-2"
           v-model="variables"
           :transactionLinkCount="transactionLinkCount"
           :transactionLinks="transactionLinks"
