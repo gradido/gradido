@@ -5,52 +5,7 @@ import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    listTransactionLinks: [
-      {
-        amount: '75',
-        code: 'ce28664b5308c17f931c0367',
-        createdAt: '2022-03-16T14:22:40.000Z',
-        holdAvailableAmount: '5.13109484759482747111',
-        id: 86,
-        memo: 'Na komm schon. Etwas Kreativität.',
-        redeemedAt: null,
-        validUntil: '2022-03-30T14:22:40.000Z',
-      },
-      {
-        amount: '85',
-        code: 'ce28664b5308c17f931c0367',
-        createdAt: '2022-03-16T14:22:40.000Z',
-        holdAvailableAmount: '5.13109484759482747111',
-        id: 107,
-        memo: 'asdasdaadsdd asd asdadss',
-        redeemedAt: null,
-        validUntil: '2022-03-30T14:22:40.000Z',
-      },
-      {
-        amount: '95',
-        code: 'ce28664b5308c17f931c0367',
-        createdAt: '2022-03-16T14:22:40.000Z',
-        holdAvailableAmount: '5.13109484759482747111',
-        id: 92,
-        memo: 'asdasdaadsdd asd asdadss',
-        redeemedAt: null,
-        validUntil: '2022-03-30T14:22:40.000Z',
-      },
-      {
-        amount: '150',
-        code: 'ce28664b5308c17f931c0367',
-        createdAt: '2022-03-16T14:22:40.000Z',
-        holdAvailableAmount: '5.13109484759482747111',
-        id: 16,
-        memo: 'asdasdaadsdd asd asdadss',
-        redeemedAt: null,
-        validUntil: '2022-03-30T14:22:40.000Z',
-      },
-    ],
-  },
-})
+const apolloQueryMock = jest.fn()
 
 const mocks = {
   $i18n: {
@@ -80,8 +35,56 @@ describe('TransactionLinksSummary', () => {
   const Wrapper = () => {
     return mount(TransactionLinksSummary, { localVue, mocks, propsData })
   }
+
   describe('mount', () => {
     beforeEach(() => {
+      apolloQueryMock.mockResolvedValue({
+        data: {
+          listTransactionLinks: [
+            {
+              amount: '75',
+              code: 'ce28664b5308c17f931c0367',
+              createdAt: '2022-03-16T14:22:40.000Z',
+              holdAvailableAmount: '5.13109484759482747111',
+              id: 86,
+              memo: 'Na komm schon. Etwas Kreativität.',
+              redeemedAt: null,
+              validUntil: '2022-03-30T14:22:40.000Z',
+            },
+            {
+              amount: '85',
+              code: 'ce28664b5308c17f931c0367',
+              createdAt: '2022-03-16T14:22:40.000Z',
+              holdAvailableAmount: '5.13109484759482747111',
+              id: 107,
+              memo: 'asdasdaadsdd asd asdadss',
+              redeemedAt: null,
+              validUntil: '2022-03-30T14:22:40.000Z',
+            },
+            {
+              amount: '95',
+              code: 'ce28664b5308c17f931c0367',
+              createdAt: '2022-03-16T14:22:40.000Z',
+              holdAvailableAmount: '5.13109484759482747111',
+              id: 92,
+              memo: 'asdasdaadsdd asd asdadss',
+              redeemedAt: null,
+              validUntil: '2022-03-30T14:22:40.000Z',
+            },
+            {
+              amount: '150',
+              code: 'ce28664b5308c17f931c0367',
+              createdAt: '2022-03-16T14:22:40.000Z',
+              holdAvailableAmount: '5.13109484759482747111',
+              id: 16,
+              memo: 'asdasdaadsdd asd asdadss',
+              redeemedAt: null,
+              validUntil: '2022-03-30T14:22:40.000Z',
+            },
+          ],
+        },
+      })
+
       wrapper = Wrapper()
     })
 
@@ -131,6 +134,10 @@ describe('TransactionLinksSummary', () => {
 
       it('emits update transactions', () => {
         expect(wrapper.emitted('update-transactions')).toBeTruthy()
+      })
+
+      it('has four transaction links in list', () => {
+        expect(wrapper.vm.transactionLinks).toHaveLength(4)
       })
     })
 
