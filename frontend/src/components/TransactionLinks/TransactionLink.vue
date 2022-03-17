@@ -66,7 +66,7 @@ export default {
       navigator.clipboard
         .writeText(link)
         .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-copied') + '\n' + link)
+          this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
         .catch(() => {
           this.toastError(this.$t('gdd_per_link.not-copied'))
