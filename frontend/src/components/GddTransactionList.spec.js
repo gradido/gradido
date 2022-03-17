@@ -112,7 +112,8 @@ describe('GddTransactionList', () => {
               amount: '1',
               balance: '31.76099091058520945292',
               balanceDate: '2022-02-28T13:55:47',
-              memo: 'adasd adada',
+              memo:
+                'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -125,30 +126,13 @@ describe('GddTransactionList', () => {
               },
             },
             {
-              id: 8,
-              typeId: 'CREATION',
-              amount: '1000',
-              balance: '32.96482231613347376132',
-              balanceDate: '2022-02-25T07:29:26',
-              memo: 'asd adada dad',
-              linkedUser: {
-                firstName: 'Gradido',
-                lastName: 'Akademie',
-              },
-              decay: {
-                decay: '-0.03517768386652623868',
-                start: '2022-02-23T10:55:30',
-                end: '2022-02-25T07:29:26',
-                duration: 160436,
-              },
-            },
-            {
               id: 6,
               typeId: 'RECEIVE',
               amount: '10',
               balance: '10',
               balanceDate: '2022-02-23T10:55:30',
-              memo: 'asd adaaad adad addad ',
+              memo:
+                'Monatlanges Gift sog ein, In den Topf zuerst hinein… (William Shakespeare, Die Hexen aus Macbeth)',
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -158,6 +142,24 @@ describe('GddTransactionList', () => {
                 start: null,
                 end: null,
                 duration: null,
+              },
+            },
+            {
+              id: 8,
+              typeId: 'CREATION',
+              amount: '1000',
+              balance: '32.96482231613347376132',
+              balanceDate: '2022-02-25T07:29:26',
+              memo: 'Jammern hilft nichts, sondern ich kann selber meinen Teil dazu beitragen.',
+              linkedUser: {
+                firstName: 'Gradido',
+                lastName: 'Akademie',
+              },
+              decay: {
+                decay: '-0.03517768386652623868',
+                start: '2022-02-23T10:55:30',
+                end: '2022-02-25T07:29:26',
+                duration: 160436,
               },
             },
           ],
