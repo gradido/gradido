@@ -1,7 +1,8 @@
 import { User } from '@entity/User'
 import { apiPost } from '../apis/HttpRequest'
 import CONFIG from '../config'
-import { encryptMemo, KeyPairEd25519Create, PHRASE_WORD_COUNT } from './Crypto'
+import { KeyPairEd25519Create } from '../graphql/resolver/UserResolver'
+import { encryptMemo, PHRASE_WORD_COUNT } from './Crypto'
 
 import { Base64 } from 'js-base64'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -20,13 +21,18 @@ async function recoverPrivateKey(user: User): Promise<Buffer> {
 }
 
 async function signAndSendTransaction(
-  user: User,
-  privateKey: Buffer,
+  signingUser: User,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   packTransaction: any,
+  recipientUserPubkey?: Buffer | null,
+  memo?: string | null,
   apolloTransactionId?: number | 0,
   recipientGroupAlias?: string | null,
 ): Promise<Buffer> {
+  const privateKey = await recoverPrivateKey(signingUser)
+  if (memo && recipientUserPubkey) {
+    packTransaction.memo = encryptMemo(memo, privateKey, recipientUserPubkey)
+  }
   if (recipientGroupAlias) {
     packTransaction.senderGroupAlias = CONFIG.COMMUNITY_ALIAS
     packTransaction.recipientGroupAlias = recipientGroupAlias
@@ -46,7 +52,7 @@ async function signAndSendTransaction(
     Base64.toUint8Array(resultPackTransaction.data.transactions[0].bodyBytesBase64),
     privateKey,
   )
-  const senderPubkeyHex = user.pubKey.toString('hex')
+  const signingUserPubkeyHex = signingUser.pubKey.toString('hex')
   const resultSendTransactionIota = await apiPost(
     CONFIG.BLOCKCHAIN_CONNECTOR_API_URL + 'sendTransactionIota',
     {
@@ -54,7 +60,7 @@ async function signAndSendTransaction(
       apolloTransactionId: apolloTransactionId,
       signaturePairs: [
         {
-          pubkey: senderPubkeyHex,
+          pubkey: signingUserPubkeyHex,
           signature: sign.toString('hex'),
         },
       ],
@@ -78,7 +84,7 @@ async function signAndSendTransaction(
         bodyBytesBase64: resultPackTransaction.data.transactions[1].bodyBytesBase64,
         signaturePairs: [
           {
-            pubkey: senderPubkeyHex,
+            pubkey: signingUserPubkeyHex,
             signature: sign.toString('hex'),
           },
         ],
@@ -102,23 +108,21 @@ async function sendCoins(
   memo: string,
   recipientGroupAlias?: string | null,
 ): Promise<Buffer> {
-  const privateKey = await recoverPrivateKey(user)
-  const encryptedMemo = encryptMemo(memo, privateKey, Buffer.from(recipientPublicHex, 'hex'))
   const packTransactionRequest = {
     transactionType: 'transfer',
     created: created.toISOString(),
     senderPubkey: user.pubKey.toString('hex'),
     recipientPubkey: recipientPublicHex,
     amount: amount,
-    memo: encryptedMemo,
     senderGroupAlias: '',
     recipientGroupAlias: '',
   }
 
   return signAndSendTransaction(
     user,
-    privateKey,
     packTransactionRequest,
+    Buffer.from(recipientPublicHex, 'hex'),
+    memo,
     apolloTransactionId,
     recipientGroupAlias,
   )
@@ -131,7 +135,6 @@ async function registerNewGroup(
   communityAlias: string,
   communityCoinColor: number | string,
 ): Promise<Buffer> {
-  const privateKey = await recoverPrivateKey(user)
   const packTransactionRequest = {
     transactionType: 'groupAdd',
     created: created.toISOString(),
@@ -139,7 +142,7 @@ async function registerNewGroup(
     groupAlias: communityAlias,
     coinColor: communityCoinColor,
   }
-  return signAndSendTransaction(user, privateKey, packTransactionRequest)
+  return signAndSendTransaction(user, packTransactionRequest)
 }
 
 async function creation(
@@ -152,20 +155,18 @@ async function creation(
   amount: string,
   targetDate: Date,
 ): Promise<Buffer> {
-  const privateKey = await recoverPrivateKey(signingUser)
-  const encryptedMemo = encryptMemo(memo, privateKey, recipientUser.pubKey)
   const packTransactionRequest = {
     transactionType: 'creation',
     created: created.toISOString(),
-    memo: encryptedMemo,
     recipientPubkey: recipientUser.pubKey.toString('hex'),
     amount: amount,
     targetDate: targetDate.toISOString(),
   }
   return signAndSendTransaction(
     signingUser,
-    privateKey,
     packTransactionRequest,
+    recipientUser.pubKey,
+    memo,
     apolloTransactionId,
   )
 }
