@@ -13,7 +13,7 @@
           <div class="mb-3">
             <b-button
               class="test-button-load-more"
-              v-if="!value.pending && value.itemsShown < transactionLinkCount"
+              v-if="!value.pending && transactionLinks.length < transactionLinkCount"
               block
               variant="outline-primary"
               @click="loadMoreLinks"
@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     buttonText() {
-      const i = this.transactionLinkCount - this.value.itemsShown
+      const i = this.transactionLinkCount - this.transactionLinks.length
       if (i === 1) return this.$tc('link-load', 0)
       if (i <= this.value.pageSize) return this.$tc('link-load', 1, { n: i })
       return this.$tc('link-load', 2, { n: this.value.pageSize })
