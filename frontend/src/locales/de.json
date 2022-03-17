@@ -27,7 +27,7 @@
       "send": "Gesendet"
     }
   },
-  "delete": "löschen",
+  "delete": "Löschen",
   "em-dash": "—",
   "error": {
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
