@@ -82,7 +82,7 @@ export default {
                 id: this.id,
               },
             })
-            .then((result) => {
+            .then(() => {
               this.toastSuccess(this.$t('gdd_per_link.deleted'))
               this.$emit('reset-transaction-link-list')
             })

@@ -13,7 +13,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         code: 'ce28664b5308c17f931c0367',
         createdAt: '2022-03-16T14:22:40.000Z',
         holdAvailableAmount: '5.13109484759482747111',
-        id: 12,
+        id: 86,
         memo: 'asdasdaadsdd asd asdadss',
         redeemedAt: null,
         validUntil: '2022-03-30T14:22:40.000Z',
@@ -23,7 +23,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         code: 'ce28664b5308c17f931c0367',
         createdAt: '2022-03-16T14:22:40.000Z',
         holdAvailableAmount: '5.13109484759482747111',
-        id: 34,
+        id: 107,
         memo: 'asdasdaadsdd asd asdadss',
         redeemedAt: null,
         validUntil: '2022-03-30T14:22:40.000Z',
@@ -33,7 +33,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         code: 'ce28664b5308c17f931c0367',
         createdAt: '2022-03-16T14:22:40.000Z',
         holdAvailableAmount: '5.13109484759482747111',
-        id: 56,
+        id: 92,
         memo: 'asdasdaadsdd asd asdadss',
         redeemedAt: null,
         validUntil: '2022-03-30T14:22:40.000Z',
@@ -43,7 +43,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         code: 'ce28664b5308c17f931c0367',
         createdAt: '2022-03-16T14:22:40.000Z',
         holdAvailableAmount: '5.13109484759482747111',
-        id: 78,
+        id: 16,
         memo: 'asdasdaadsdd asd asdadss',
         redeemedAt: null,
         validUntil: '2022-03-30T14:22:40.000Z',
@@ -137,6 +137,52 @@ describe('TransactionLinksSummary', () => {
     describe('load more transaction links', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
+        apolloQueryMock.mockResolvedValue({
+          data: {
+            listTransactionLinks: [
+              {
+                amount: '76',
+                code: 'ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 87,
+                memo: 'asdasdaadsdd asd asdadss',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '86',
+                code: 'ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 108,
+                memo: 'asdasdaadsdd asd asdadss',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '96',
+                code: 'ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 93,
+                memo: 'asdasdaadsdd asd asdadss',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+              {
+                amount: '150',
+                code: 'ce28664b5308c17f931c0367',
+                createdAt: '2022-03-16T14:22:40.000Z',
+                holdAvailableAmount: '5.13109484759482747111',
+                id: 17,
+                memo: 'asdasdaadsdd asd asdadss',
+                redeemedAt: null,
+                validUntil: '2022-03-30T14:22:40.000Z',
+              },
+            ],
+          },
+        })
         await wrapper.setData({
           variables: {
             currentPage: 2,

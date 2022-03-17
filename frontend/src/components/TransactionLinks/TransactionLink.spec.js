@@ -78,39 +78,70 @@ describe('TransactionLink', () => {
       })
     })
 
-    describe('deleteLink', () => {
-      beforeEach(async () => {
+    describe('delete link', () => {
+      let spy
+
+      beforeEach(() => {
         jest.clearAllMocks()
-        mockAPIcall.mockResolvedValue()
-        await wrapper.findAll('button').at(1).trigger('click')
       })
 
-      it('test Modal if confirm true', () => {
-        const spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-        spy.mockImplementation(() => Promise.resolve('some value'))
-        wrapper.vm.deleteLink()
-        expect(spy).toHaveBeenCalled()
+      describe('with success', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve('some value'))
+          mockAPIcall.mockResolvedValue()
+          await wrapper.findAll('button').at(1).trigger('click')
+        })
+
+        it('test Modal if confirm true', () => {
+          expect(spy).toBeCalled()
+        })
+
+        it('calls the API', () => {
+          expect(mockAPIcall).toBeCalledWith(
+            expect.objectContaining({
+              mutation: deleteTransactionLink,
+              variables: {
+                id: 12,
+              },
+            }),
+          )
+        })
+
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.deleted')
+        })
+
+        it('emits reset transaction link list', () => {
+          expect(wrapper.emitted('reset-transaction-link-list')).toBeTruthy()
+        })
       })
 
-      it('calls the API', () => {
-        expect.objectContaining({
-          mutation: deleteTransactionLink,
-          variables: {
-            id: 12,
-          },
+      describe('with error', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve('some value'))
+          mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
+          await wrapper.findAll('button').at(1).trigger('click')
+        })
+
+        it('toasts an error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('Something went wrong :(')
+        })
+      })
+
+      describe('cancel delete', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(false))
+          mockAPIcall.mockResolvedValue()
+          await wrapper.findAll('button').at(1).trigger('click')
+        })
+
+        it('does not call the API', () => {
+          expect(mockAPIcall).not.toBeCalled()
         })
       })
     })
-
-    // describe('delete with error', () => {
-    //   beforeEach(async () => {
-    //     mockAPIcall.mockRejectedValue({ message: 'Oh no!' })
-    //     await wrapper.findAll('button').at(1).trigger('click')
-    //   })
-
-    //   it('toasts an error message', () => {
-    //     expect(toastErrorSpy).toBeCalledWith('Oh no!')
-    //   })
-    // })
   })
 })
