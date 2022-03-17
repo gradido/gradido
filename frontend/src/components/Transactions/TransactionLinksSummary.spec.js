@@ -14,7 +14,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         createdAt: '2022-03-16T14:22:40.000Z',
         holdAvailableAmount: '5.13109484759482747111',
         id: 86,
-        memo: 'asdasdaadsdd asd asdadss',
+        memo: 'Na komm schon. Etwas Kreativität.',
         redeemedAt: null,
         validUntil: '2022-03-30T14:22:40.000Z',
       },
