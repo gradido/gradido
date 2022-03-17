@@ -76,7 +76,6 @@ export default {
         currentPage: 1,
         pending: false,
         pageSize: 5,
-        itemsShown: 0,
       },
     }
   },
@@ -99,7 +98,6 @@ export default {
             this.transactionLinks = [...this.transactionLinks, ...result.data.listTransactionLinks]
             this.$emit('update-transactions')
             this.variables.pending = false
-            this.variables.itemsShown = this.transactionLinks.length
           })
           .catch((err) => {
             this.toastError(err.message)
