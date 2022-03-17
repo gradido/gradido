@@ -6,7 +6,6 @@
         <collapse-icon class="text-right" :visible="visible" />
         <div>
           <b-row>
-            <!-- ICON  -->
             <b-col cols="1">
               <type-icon color="text-danger" icon="link45deg" />
             </b-col>
