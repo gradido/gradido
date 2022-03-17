@@ -89,9 +89,7 @@ describe('TransactionLink', () => {
         const spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
         spy.mockImplementation(() => Promise.resolve('some value'))
         wrapper.vm.deleteLink()
-        wrapper.vm.$nextTick(() => {
-          expect(spy).toHaveBeenCalled()
-        })
+        expect(spy).toHaveBeenCalled()
       })
 
       it('calls the API', () => {
