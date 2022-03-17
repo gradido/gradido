@@ -113,7 +113,7 @@ describe('CollapseLinksList', () => {
           })
         })
 
-        it('renders text in singular', () => {
+        it('renders text in plural with page size links to load', () => {
           expect(mocks.$tc).toBeCalledWith('link-load', 2, { n: 5 })
         })
       })
