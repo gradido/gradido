@@ -208,7 +208,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
 }
 
 @Resolver()
-export class UserResolver {
+class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
@@ -661,3 +661,5 @@ export class UserResolver {
     return hasElopageBuys(userEntity.email)
   }
 }
+
+export { UserResolver, KeyPairEd25519Create }
