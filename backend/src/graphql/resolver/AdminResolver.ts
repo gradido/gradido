@@ -56,7 +56,6 @@ export class AdminResolver {
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
-    console.log('searchUsers')
     const filterCriteria: ObjectLiteral[] = []
     if (notActivated) {
       filterCriteria.push({ emailChecked: false })
@@ -343,7 +342,7 @@ export class AdminResolver {
 
     return true
   }
-  
+
   @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
   @Query(() => [Transaction])
   async creationTransactionList(
@@ -351,7 +350,6 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
     @Arg('userId', () => Int) userId: number,
   ): Promise<Transaction[]> {
-
     const offset = (currentPage - 1) * pageSize
     const transactionRepository = getCustomRepository(TransactionRepository)
     const [userTransactions] = await transactionRepository.findByUserPaged(
