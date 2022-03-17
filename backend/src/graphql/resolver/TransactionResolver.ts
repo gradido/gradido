@@ -35,6 +35,7 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
 import { sendCoins } from '@/blockchain/TransactionToIota'
+import { sendCoins } from '../../blockchain/TransactionToIota'
 
 export const executeTransaction = async (
   amount: Decimal,

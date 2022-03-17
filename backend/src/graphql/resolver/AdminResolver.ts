@@ -31,6 +31,7 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import { creation } from '../../blockchain/TransactionToIota'
+import { creation } from '../../blockchain/TransactionToIota'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
