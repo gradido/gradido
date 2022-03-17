@@ -4,7 +4,6 @@ import { login } from '@/seeds/graphql/queries'
 import { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
 import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
 import { TransactionLink } from '@entity/TransactionLink'
-import { User } from '@entity/User'
 
 export const transactionLinkFactory = async (
   client: ApolloServerTestClient,
@@ -20,14 +19,15 @@ export const transactionLinkFactory = async (
     memo: transactionLink.memo,
   }
 
-  await mutate({ mutation: createTransactionLink, variables })
+  // get the transaction links's id
+  const {
+    data: {
+      createTransactionLink: { id },
+    },
+  } = await mutate({ mutation: createTransactionLink, variables })
 
   if (transactionLink.createdAt || transactionLink.deletedAt) {
-    const user = await User.findOneOrFail({ where: { email: transactionLink.email } })
-    const dbTransactionLink = await TransactionLink.findOneOrFail({
-      where: { userId: user.id },
-      order: { createdAt: 'DESC' },
-    })
+    const dbTransactionLink = await TransactionLink.findOneOrFail({ id })
 
     if (transactionLink.createdAt) {
       dbTransactionLink.createdAt = transactionLink.createdAt
