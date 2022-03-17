@@ -13,19 +13,16 @@
           <div class="mb-3">
             <b-button
               class="test-button-load-more"
-              v-if="!value.pending && transactionLinks.length < transactionLinkCount"
+              v-if="!pending && transactionLinks.length < transactionLinkCount"
               block
               variant="outline-primary"
               @click="loadMoreLinks"
             >
               {{ buttonText }}
             </b-button>
-            <b-icon
-              v-if="value.pending"
-              icon="three-dots"
-              animation="cylon"
-              font-scale="4"
-            ></b-icon>
+            <div class="text-center">
+              <b-icon v-if="pending" icon="three-dots" animation="cylon" font-scale="4"></b-icon>
+            </div>
           </div>
         </div>
       </div>
@@ -46,6 +43,7 @@ export default {
       required: true,
     },
     value: { type: Object, required: true },
+    pending: { type: Boolean, default: false },
   },
   methods: {
     resetTransactionLinkList() {

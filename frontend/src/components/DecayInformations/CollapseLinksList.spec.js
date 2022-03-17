@@ -100,7 +100,7 @@ describe('CollapseLinksList', () => {
           })
         })
 
-        it('renders text in plural and shows the correct count of links, () => {
+        it('renders text in plural and shows the correct count of links', () => {
           expect(mocks.$tc).toBeCalledWith('link-load', 1, { n: 4 })
         })
       })

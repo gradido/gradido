@@ -28,6 +28,7 @@
       <b-collapse v-model="visible">
         <collapse-links-list
           v-model="variables"
+          :pending="pending"
           :transactionLinkCount="transactionLinkCount"
           :transactionLinks="transactionLinks"
         />
@@ -74,9 +75,9 @@ export default {
       transactionLinks: [],
       variables: {
         currentPage: 1,
-        pending: false,
         pageSize: 5,
       },
+      pending: false,
     }
   },
   methods: {
@@ -85,7 +86,7 @@ export default {
         this.transactionLinks = []
         this.variables.currentPage = 1
       } else {
-        this.variables.pending = true
+        this.pending = true
         this.$apollo
           .query({
             query: listTransactionLinks,
@@ -97,11 +98,11 @@ export default {
           .then((result) => {
             this.transactionLinks = [...this.transactionLinks, ...result.data.listTransactionLinks]
             this.$emit('update-transactions')
-            this.variables.pending = false
+            this.pending = false
           })
           .catch((err) => {
             this.toastError(err.message)
-            this.variables.pending = false
+            this.pending = false
           })
       }
     },

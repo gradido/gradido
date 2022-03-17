@@ -60,9 +60,7 @@ describe('TransactionLink', () => {
         })
 
         it('toasts success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith(
-            'gdd_per_link.link-copied' + '\n' + 'http://localhost/redeem/c00000000c000000c0000',
-          )
+          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
         })
       })
 
