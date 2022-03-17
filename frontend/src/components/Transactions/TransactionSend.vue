@@ -22,7 +22,7 @@
             <date-row :date="balanceDate" />
 
             <!-- Decay -->
-            <decay-row :decay="decay" />
+            <decay-row :decay="decay.decay" />
           </b-col>
         </b-row>
       </div>

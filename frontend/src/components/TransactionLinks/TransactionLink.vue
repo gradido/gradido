@@ -8,7 +8,7 @@
         <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
         <memo-row :memo="memo" />
         <date-row :date="validUntil" :diffNow="true" />
-        <decay-row :decay="decayObject" />
+        <decay-row :decay="decay" />
       </b-col>
 
       <b-col cols="1" class="text-right">
@@ -93,8 +93,8 @@ export default {
     },
   },
   computed: {
-    decayObject() {
-      return { decay: this.amount - this.holdAvailableAmount }
+    decay() {
+      return `${this.amount - this.holdAvailableAmount}`
     },
   },
 }

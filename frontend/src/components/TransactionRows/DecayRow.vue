@@ -23,7 +23,7 @@ export default {
   },
   props: {
     decay: {
-      type: Object,
+      type: String,
       required: false,
     },
   },

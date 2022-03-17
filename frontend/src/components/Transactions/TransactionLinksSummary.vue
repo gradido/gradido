@@ -19,7 +19,7 @@
               <link-count-row :count="transactionLinkCount" />
 
               <!-- Decay -->
-              <decay-row :decay="decay" />
+              <decay-row :decay="decay.decay" />
             </b-col>
           </b-row>
         </div>
