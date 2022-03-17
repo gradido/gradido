@@ -27,6 +27,7 @@
       "send": "Gesendet"
     }
   },
+  "delete": "Löschen",
   "em-dash": "—",
   "error": {
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -96,6 +97,9 @@
     "copy": "kopieren",
     "created": "Der Link wurde erstellt!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
+    "delete-the-link": "Den Link löschen?",
+    "deleted": "Der Link wurde gelöscht!",
+    "expired": "Abgelaufen",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
     "links_count": "Aktive Links",
@@ -125,9 +129,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "language": "Sprache",
-  "links-list": {
-    "header": "Liste deiner aktiven Links"
-  },
+  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
