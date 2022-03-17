@@ -158,7 +158,10 @@ After this one-time migration the column users.email can be deleted.
 
 ### Adaption of BusinessLogic
 
+The following logic or business processes has to be adapted through introducing the Gradido-ID
+
 #### Read-Write Access of Users-Table especially Email
+
 
 #### Registration Process
 
