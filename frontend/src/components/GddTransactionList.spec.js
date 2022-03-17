@@ -252,7 +252,7 @@ describe('GddTransactionList', () => {
 
         it('shows the message of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-            'adasd adada',
+            'Um den Kessel schlingt den Reihn, Werft die Eingeweid‘ hinein. Kröte du, die Nacht und Tag Unterm kalten Steine lag,',
           )
         })
 
@@ -287,7 +287,7 @@ describe('GddTransactionList', () => {
 
         it('has a bi-gift icon', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-gift',
+            'bi-arrow-right-circle',
             'm-mb-1',
             'font2em',
             'b-icon',
@@ -298,7 +298,7 @@ describe('GddTransactionList', () => {
 
         it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-gift',
+            'bi-arrow-right-circle',
             'm-mb-1',
             'font2em',
             'b-icon',
@@ -316,19 +316,19 @@ describe('GddTransactionList', () => {
 
         it('shows the amount of transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-amount').at(0).text()).toContain(
-            '1000',
+            '+ 10 GDD',
           )
         })
 
         it('shows the name of the receiver', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Gradido Akademie',
+            'Bibi Bloxberg',
           )
         })
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Fri Feb 25 2022 07:29:26 GMT+0000',
+            'Wed Feb 23 2022 10:55:30 GMT+0000',
           )
         })
       })
@@ -349,12 +349,19 @@ describe('GddTransactionList', () => {
         })
 
         it('has a bi-arrow-right-circle icon', () => {
-          expect(transaction.findAll('svg').at(1).classes()).toContain('bi-arrow-right-circle')
+          expect(transaction.findAll('svg').at(1).classes()).toEqual([
+            'bi-gift',
+            'm-mb-1',
+            'font2em',
+            'b-icon',
+            'bi',
+            'gradido-global-color-accent',
+          ])
         })
 
         it('has gradido-global-color-accent color', () => {
           expect(transaction.findAll('svg').at(1).classes()).toEqual([
-            'bi-arrow-right-circle',
+            'bi-gift',
             'm-mb-1',
             'font2em',
             'b-icon',
@@ -378,19 +385,19 @@ describe('GddTransactionList', () => {
 
         it('shows the name of the recipient', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-name').at(0).text()).toContain(
-            'Bibi Bloxberg',
+            'Gradido Akademie',
           )
         })
 
         it('shows the message of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-message').at(0).text()).toContain(
-            'asd adaaad adad addad',
+            'Jammern hilft nichts, sondern ich kann selber meinen Teil dazu beitragen.',
           )
         })
 
         it('shows the date of the transaction', () => {
           expect(transaction.findAll('.gdd-transaction-list-item-date').at(0).text()).toContain(
-            'Wed Feb 23 2022 10:55:30 GMT+0000',
+            'Fri Feb 25 2022 07:29:26 GMT+0000',
           )
         })
 
