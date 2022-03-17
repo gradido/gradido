@@ -256,8 +256,7 @@ export class TransactionResolver {
     @Ctx() context: any,
   ): Promise<boolean> {
     // TODO this is subject to replay attacks
-    const userRepository = getCustomRepository(UserRepository)
-    const senderUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const senderUser = context.user
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
