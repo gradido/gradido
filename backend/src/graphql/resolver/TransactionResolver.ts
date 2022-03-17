@@ -17,7 +17,6 @@ import Paginated from '@arg/Paginated'
 
 import { Order } from '@enum/Order'
 
-import { UserRepository } from '@repository/User'
 import { TransactionRepository } from '@repository/Transaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
@@ -131,22 +130,11 @@ export class TransactionResolver {
   @Query(() => TransactionList)
   async transactionList(
     @Args()
-    {
-      currentPage = 1,
-      pageSize = 25,
-      order = Order.DESC,
-      onlyCreations = false,
-      userId,
-    }: Paginated,
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionList> {
     const now = new Date()
-    // find user
-    const userRepository = getCustomRepository(UserRepository)
-    // TODO: separate those usecases - this is a security issue
-    const user = userId
-      ? await userRepository.findOneOrFail({ id: userId }, { withDeleted: true })
-      : await userRepository.findByPubkeyHex(context.pubKey)
+    const user = context.user
 
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
@@ -182,7 +170,6 @@ export class TransactionResolver {
       pageSize,
       offset,
       order,
-      onlyCreations,
     )
 
     // find involved users; I am involved
@@ -208,7 +195,7 @@ export class TransactionResolver {
       await transactionLinkRepository.summary(user.id, now)
 
     // decay & link transactions
-    if (!onlyCreations && currentPage === 1 && order === Order.DESC) {
+    if (currentPage === 1 && order === Order.DESC) {
       transactions.push(
         virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
       )
