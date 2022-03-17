@@ -129,8 +129,7 @@ export class AdminResolver {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
-    const userRepository = getCustomRepository(UserRepository)
-    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const moderatorUser = context.user
     if (moderatorUser.id === userId) {
       throw new Error('Moderator can not delete his own account!')
     }
@@ -294,8 +293,7 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
     const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
-    const userRepository = getCustomRepository(UserRepository)
-    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const moderatorUser = context.user
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
