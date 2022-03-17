@@ -24,7 +24,7 @@ const propsData = {
   code: 'c00000000c000000c0000',
   holdAvailableAmount: '5.13109484759482747111',
   id: 12,
-  memo: 'asdasdaadsdd asd asdadss',
+  memo: 'Wie schön hier etwas Quatsch zu lesen!',
   validUntil: '2022-03-30T14:22:40.000Z',
 }
 
