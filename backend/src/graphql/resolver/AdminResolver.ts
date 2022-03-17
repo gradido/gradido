@@ -9,7 +9,6 @@ import {
   ObjectLiteral,
   getConnection,
   In,
-  getRepository,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { PendingCreation } from '@model/PendingCreation'
@@ -30,7 +29,6 @@ import { User } from '@entity/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
-import { creation } from '../../blockchain/TransactionToIota'
 import { creation } from '../../blockchain/TransactionToIota'
 
 // const EMAIL_OPT_IN_REGISTER = 1

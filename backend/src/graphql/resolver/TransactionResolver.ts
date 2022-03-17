@@ -34,7 +34,6 @@ import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
-import { sendCoins } from '@/blockchain/TransactionToIota'
 import { sendCoins } from '../../blockchain/TransactionToIota'
 
 export const executeTransaction = async (

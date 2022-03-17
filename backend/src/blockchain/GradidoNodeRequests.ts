@@ -26,7 +26,7 @@ async function isCommunityAliasExisting(communityAlias: string): Promise<boolean
   // now you have a strongly typed methods.
   // try to change [3, 2] to ['3', '2'] and the typescript compiler will catch you !
   try {
-    const response = await rpcClient.makeRequest({
+    /* const response = */ await rpcClient.makeRequest({
       method: 'getgroupdetails',
       params: { groupAlias: communityAlias },
       id: randomInt(10000),

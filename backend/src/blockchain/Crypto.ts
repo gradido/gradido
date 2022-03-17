@@ -1,10 +1,8 @@
-import fs from 'fs'
 import { Base64 } from 'js-base64'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 
 const PHRASE_WORD_COUNT = 24
-const WORDS = fs.readFileSync('src/config/mnemonic.english.txt').toString().split('\n')
 
 function encryptMemo(memo: string, senderPrivateKey: Buffer, recipientPublicKey: Buffer): string {
   const memoBuffer = Buffer.from(memo)
