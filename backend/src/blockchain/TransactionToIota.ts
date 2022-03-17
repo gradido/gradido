@@ -24,6 +24,7 @@ async function signAndSendTransaction(
   privateKey: Buffer,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   packTransaction: any,
+  apolloTransactionId?: number | 0,
   recipientGroupAlias?: string | null,
 ): Promise<Buffer> {
   if (recipientGroupAlias) {
@@ -50,6 +51,7 @@ async function signAndSendTransaction(
     CONFIG.BLOCKCHAIN_CONNECTOR_API_URL + 'sendTransactionIota',
     {
       bodyBytesBase64: resultPackTransaction.data.transactions[0].bodyBytesBase64,
+      apolloTransactionId: apolloTransactionId,
       signaturePairs: [
         {
           pubkey: senderPubkeyHex,
@@ -98,14 +100,13 @@ async function sendCoins(
   recipientPublicHex: string,
   amount: string,
   memo: string,
-  recipientGroupAlias: string | null,
+  recipientGroupAlias?: string | null,
 ): Promise<Buffer> {
   const privateKey = await recoverPrivateKey(user)
   const encryptedMemo = encryptMemo(memo, privateKey, Buffer.from(recipientPublicHex, 'hex'))
   const packTransactionRequest = {
     transactionType: 'transfer',
     created: created.toISOString(),
-    apolloTransactionId: apolloTransactionId,
     senderPubkey: user.pubKey.toString('hex'),
     recipientPubkey: recipientPublicHex,
     amount: amount,
@@ -114,7 +115,13 @@ async function sendCoins(
     recipientGroupAlias: '',
   }
 
-  return signAndSendTransaction(user, privateKey, packTransactionRequest, recipientGroupAlias)
+  return signAndSendTransaction(
+    user,
+    privateKey,
+    packTransactionRequest,
+    apolloTransactionId,
+    recipientGroupAlias,
+  )
 }
 
 async function registerNewGroup(
@@ -149,13 +156,17 @@ async function creation(
   const packTransactionRequest = {
     transactionType: 'creation',
     created: created.toISOString(),
-    apolloTransactionId: apolloTransactionId,
     memo: encryptedMemo,
     recipientPubkey: recipientUser.pubKey.toString('hex'),
     amount: amount,
     targetDate: targetDate.toISOString(),
   }
-  return signAndSendTransaction(signingUser, privateKey, packTransactionRequest)
+  return signAndSendTransaction(
+    signingUser,
+    privateKey,
+    packTransactionRequest,
+    apolloTransactionId,
+  )
 }
 
 export { sendCoins, registerNewGroup, creation }

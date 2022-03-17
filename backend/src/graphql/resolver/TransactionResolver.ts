@@ -32,6 +32,7 @@ import { communityUser } from '../../util/communityUser'
 import { virtualDecayTransaction } from '../../util/virtualDecayTransaction'
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '../../util/decay'
+import { sendCoins } from '../../blockchain/TransactionToIota'
 
 @Resolver()
 export class TransactionResolver {
@@ -170,6 +171,7 @@ export class TransactionResolver {
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
+    let newTransactionID: number
     try {
       // transaction
       const transactionSend = new dbTransaction()
@@ -198,7 +200,12 @@ export class TransactionResolver {
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
-      await queryRunner.manager.insert(dbTransaction, transactionReceive)
+      const savedReceivedTransaction = await queryRunner.manager.insert(
+        dbTransaction,
+        transactionReceive,
+      )
+      // Q: https://github.com/typeorm/typeorm/issues/3053
+      newTransactionID = savedReceivedTransaction.identifiers[0].id
 
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
@@ -210,6 +217,18 @@ export class TransactionResolver {
       throw new Error(`Transaction was not successful: ${e}`)
     } finally {
       await queryRunner.release()
+    }
+    if (newTransactionID) {
+      // send creation transaction over iota to Gradido Nodes
+      // return first signature
+      await sendCoins(
+        receivedCallDate,
+        senderUser,
+        newTransactionID,
+        recipientUser.pubKey.toString('hex'),
+        amount.toFixed(20),
+        memo,
+      )
     }
 
     // send notification email
