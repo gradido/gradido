@@ -192,6 +192,10 @@ describe('TransactionLinksSummary', () => {
         })
       })
 
+      it('has eight transactionLinks', () => {
+        expect(wrapper.vm.transactionLinks).toHaveLength(8)
+      })
+
       it('loads more transaction links', () => {
         expect(apolloQueryMock).toBeCalledWith({
           query: listTransactionLinks,
