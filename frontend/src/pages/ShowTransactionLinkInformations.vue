@@ -8,6 +8,7 @@
             {{ displaySetup.user.firstName }}
             {{ $t('transaction-link.send_you') }} {{ displaySetup.amount | GDD }}
           </h1>
+          <b>{{ displaySetup.memo }}</b>
         </b-jumbotron>
       </div>
 
