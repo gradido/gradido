@@ -19,7 +19,7 @@ const propsData = {
       createdAt: '2022-03-16T14:22:40.000Z',
       holdAvailableAmount: '5.13109484759482747111',
       id: 87,
-      memo: 'asdasdaadsdd asd asdadss',
+      memo: 'Eene meene Siegerpreis, vor mir steht ein Schokoeis. Hex-hex!',
       redeemedAt: null,
       validUntil: '2022-03-30T14:22:40.000Z',
     },
@@ -29,13 +29,15 @@ const propsData = {
       createdAt: '2022-03-16T14:22:40.000Z',
       holdAvailableAmount: '5.13109484759482747111',
       id: 86,
-      memo: 'asdasdaadsdd asd asdadss',
+      memo: 'Eene meene buntes Laub, auf dem Schrank da liegt kein Staub.',
       redeemedAt: null,
       validUntil: '2022-03-30T14:22:40.000Z',
     },
   ],
   transactionLinkCount: 3,
-  value: { currentPage: 1, pending: false, pageSize: 5 },
+  value: 1,
+  pending: false,
+  pageSize: 5,
 }
 
 describe('CollapseLinksList', () => {
@@ -59,9 +61,7 @@ describe('CollapseLinksList', () => {
       })
 
       it('emits input', () => {
-        expect(wrapper.emitted('input')).toEqual([
-          [{ currentPage: 2, pageSize: 5, pending: false }],
-        ])
+        expect(wrapper.emitted('input')).toEqual([[2]])
       })
     })
 
@@ -73,9 +73,7 @@ describe('CollapseLinksList', () => {
       })
 
       it('emits input ', () => {
-        expect(wrapper.emitted('input')).toEqual([
-          [{ currentPage: 0, pageSize: 5, pending: false }],
-        ])
+        expect(wrapper.emitted('input')).toEqual([[0]])
       })
     })
 
@@ -83,7 +81,9 @@ describe('CollapseLinksList', () => {
       describe('one more link to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5 },
+            value: 1,
+            pending: false,
+            pageSize: 5,
           })
         })
 
@@ -95,7 +95,9 @@ describe('CollapseLinksList', () => {
       describe('less than pageSize links to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5 },
+            value: 1,
+            pending: false,
+            pageSize: 5,
             transactionLinkCount: 6,
           })
         })
@@ -108,7 +110,9 @@ describe('CollapseLinksList', () => {
       describe('more than pageSize links to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5 },
+            value: 1,
+            pending: false,
+            pageSize: 5,
             transactionLinkCount: 16,
           })
         })

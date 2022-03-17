@@ -26,8 +26,9 @@
 
       <b-collapse v-model="visible">
         <collapse-links-list
-          v-model="variables"
+          v-model="currentPage"
           :pending="pending"
+          :pageSize="pageSize"
           :transactionLinkCount="transactionLinkCount"
           :transactionLinks="transactionLinks"
         />
@@ -72,10 +73,8 @@ export default {
     return {
       visible: false,
       transactionLinks: [],
-      variables: {
-        currentPage: 1,
-        pageSize: 5,
-      },
+      currentPage: 1,
+      pageSize: 5,
       pending: false,
     }
   },
@@ -83,7 +82,7 @@ export default {
     async updateListTransactionLinks() {
       if (this.currentPage === 0) {
         this.transactionLinks = []
-        this.variables.currentPage = 1
+        this.currentPage = 1
       } else {
         this.pending = true
         this.$apollo
@@ -104,11 +103,6 @@ export default {
             this.pending = false
           })
       }
-    },
-  },
-  computed: {
-    currentPage() {
-      return this.variables.currentPage
     },
   },
   watch: {

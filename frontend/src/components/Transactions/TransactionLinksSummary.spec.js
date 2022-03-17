@@ -117,11 +117,9 @@ describe('TransactionLinksSummary', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
         await wrapper.setData({
-          variables: {
-            currentPage: 0,
-            pending: false,
-            pageSize: 5,
-          },
+          currentPage: 0,
+          pending: false,
+          pageSize: 5,
         })
       })
 
@@ -197,11 +195,9 @@ describe('TransactionLinksSummary', () => {
           },
         })
         await wrapper.setData({
-          variables: {
-            currentPage: 2,
-            pending: false,
-            pageSize: 5,
-          },
+          currentPage: 2,
+          pending: false,
+          pageSize: 5,
         })
       })
 

@@ -42,23 +42,24 @@ export default {
       type: Number,
       required: true,
     },
-    value: { type: Object, required: true },
+    value: { type: Number, required: true },
+    pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
   },
   methods: {
     resetTransactionLinkList() {
-      this.$emit('input', { ...this.value, currentPage: 0 })
+      this.$emit('input', 0)
     },
     loadMoreLinks() {
-      this.$emit('input', { ...this.value, currentPage: this.value.currentPage + 1 })
+      this.$emit('input', this.value + 1)
     },
   },
   computed: {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
       if (i === 1) return this.$tc('link-load', 0)
-      if (i <= this.value.pageSize) return this.$tc('link-load', 1, { n: i })
-      return this.$tc('link-load', 2, { n: this.value.pageSize })
+      if (i <= this.pageSize) return this.$tc('link-load', 1, { n: i })
+      return this.$tc('link-load', 2, { n: this.pageSize })
     },
   },
 }
