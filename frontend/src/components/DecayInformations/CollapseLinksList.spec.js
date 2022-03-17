@@ -23,9 +23,19 @@ const propsData = {
       redeemedAt: null,
       validUntil: '2022-03-30T14:22:40.000Z',
     },
+    {
+      amount: '6',
+      code: 'ce28664b5308c17f931c0367',
+      createdAt: '2022-03-16T14:22:40.000Z',
+      holdAvailableAmount: '5.13109484759482747111',
+      id: 86,
+      memo: 'asdasdaadsdd asd asdadss',
+      redeemedAt: null,
+      validUntil: '2022-03-30T14:22:40.000Z',
+    },
   ],
   transactionLinkCount: 3,
-  value: { currentPage: 1, pending: false, pageSize: 5, itemsShown: 0 },
+  value: { currentPage: 1, pending: false, pageSize: 5 },
 }
 
 describe('CollapseLinksList', () => {
@@ -50,7 +60,7 @@ describe('CollapseLinksList', () => {
 
       it('emits input', () => {
         expect(wrapper.emitted('input')).toEqual([
-          [{ currentPage: 2, itemsShown: 0, pageSize: 5, pending: false }],
+          [{ currentPage: 2, pageSize: 5, pending: false }],
         ])
       })
     })
@@ -64,7 +74,7 @@ describe('CollapseLinksList', () => {
 
       it('emits input ', () => {
         expect(wrapper.emitted('input')).toEqual([
-          [{ currentPage: 0, itemsShown: 0, pageSize: 5, pending: false }],
+          [{ currentPage: 0, pageSize: 5, pending: false }],
         ])
       })
     })
@@ -73,7 +83,7 @@ describe('CollapseLinksList', () => {
       describe('one more link to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5, itemsShown: 2 },
+            value: { currentPage: 1, pending: false, pageSize: 5 },
           })
         })
 
@@ -85,7 +95,7 @@ describe('CollapseLinksList', () => {
       describe('less than pageSize links to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5, itemsShown: 2 },
+            value: { currentPage: 1, pending: false, pageSize: 5 },
             transactionLinkCount: 6,
           })
         })
@@ -98,7 +108,7 @@ describe('CollapseLinksList', () => {
       describe('more than pageSize links to load', () => {
         beforeEach(async () => {
           await wrapper.setProps({
-            value: { currentPage: 1, pending: false, pageSize: 5, itemsShown: 2 },
+            value: { currentPage: 1, pending: false, pageSize: 5 },
             transactionLinkCount: 16,
           })
         })
