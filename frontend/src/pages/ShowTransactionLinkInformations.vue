@@ -116,7 +116,6 @@ export default {
         })
         .then((result) => {
           this.displaySetup = result.data.queryTransactionLink
-          this.$store.commit('publisherId', result.data.queryTransactionLink.user.publisherId)
         })
         .catch(() => {
           this.displaySetup.deletedAt = true
