@@ -1,8 +1,45 @@
 <template>
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
-    <b-container class="pt-5">
+    <b-container v-if="displaySetup.redeemedAt" class="pt-5">
+      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
+        <div class="text-center">
+          <h1>
+            {{ $t('gdd_per_link.link-invalid') }}
+          </h1>
+        </div>
+      </b-jumbotron>
+      <div class="text-center">
+        <b-button to="/overview">{{ $t('back') }}</b-button>
+      </div>
+    </b-container>
+    <b-container v-else-if="displaySetup.deletedAt" class="pt-5">
+      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
+        <div class="text-center">
+          <h1>
+            {{ $t('gdd_per_link.link-deleted') }}
+          </h1>
+        </div>
+      </b-jumbotron>
+      <div class="text-center">
+        <b-button to="/overview">{{ $t('back') }}</b-button>
+      </div>
+    </b-container>
+    <b-container v-else-if="redeemed" class="pt-5">
+      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
+        <div class="text-center">
+          <h1>
+            {{ $t('gdd_per_link.redeemed', { n: displaySetup.amount }) }}
+          </h1>
+        </div>
+      </b-jumbotron>
+      <div class="text-center">
+        <b-button to="/overview">{{ $t('back') }}</b-button>
+      </div>
+    </b-container>
+    <b-container v-else class="pt-5">
       <div>
+        <div></div>
         <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
           <h1>
             {{ displaySetup.user.firstName }}
@@ -11,7 +48,6 @@
           <b>{{ displaySetup.memo }}</b>
         </b-jumbotron>
       </div>
-
       <div v-if="$store.state.token">
         <b-jumbotron>
           <div class="mb-3 text-center">
@@ -64,7 +100,9 @@ export default {
         user: {
           firstName: '',
         },
+        deletedAt: null,
       },
+      redeemed: null,
     }
   },
   methods: {
@@ -80,8 +118,8 @@ export default {
           this.displaySetup = result.data.queryTransactionLink
           this.$store.commit('publisherId', result.data.queryTransactionLink.user.publisherId)
         })
-        .catch((error) => {
-          this.toastError(error)
+        .catch(() => {
+          this.displaySetup.deletedAt = true
         })
     },
     redeemLink() {
@@ -95,6 +133,7 @@ export default {
               },
             })
             .then((result) => {
+              if (result) this.redeemed = true
               alert(result.data.redeemTransactionLink)
               // this.toastSuccess(this.$t('gdd_per_link.deleted'))
               // this.$emit('reset-transaction-link-list')

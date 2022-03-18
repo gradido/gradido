@@ -137,6 +137,8 @@ export const queryTransactionLink = gql`
       memo
       createdAt
       validUntil
+      redeemedAt
+      deletedAt
       user {
         firstName
         publisherId
