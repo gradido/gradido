@@ -15,14 +15,14 @@ export const creationFactory = async (
 ): Promise<void> => {
   const { mutate, query } = client
 
-  // login as Peter Lustig (admin)
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  // login as Peter Lustig (admin) and get his user ID
+  const {
+    data: {
+      login: { id },
+    },
+  } = await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
 
-  // get Peter Lustig's user id
-  const peterLustig = await User.findOneOrFail({ where: { email: 'peter@lustig.de' } })
-  const variables = { ...creation, moderator: peterLustig.id }
-
-  await mutate({ mutation: createPendingCreation, variables })
+  await mutate({ mutation: createPendingCreation, variables: { ...creation, moderator: id } })
 
   // get User
   const user = await User.findOneOrFail({ where: { email: creation.email } })
