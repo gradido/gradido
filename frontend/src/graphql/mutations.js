@@ -71,3 +71,9 @@ export const createTransactionLink = gql`
     }
   }
 `
+
+export const deleteTransactionLink = gql`
+  mutation($id: Float!) {
+    deleteTransactionLink(id: $id)
+  }
+`
