@@ -104,15 +104,15 @@
     "link-copied": "Link copied to clipboard",
     "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
-    "link-overview":"Link overview",
-    "link-invalid":"The link is no longer valid.",
-    "link-deleted":"The link has been deleted.",
-    "redeemed":"Successfully redeemed! Your account has been credited with {n} GDD.",
+    "link-overview": "Link overview",
+    "link-invalid": "The link is no longer valid.",
+    "link-deleted": "The link has been deleted.",
+    "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "not-copied": "Could not copy link: {err}",
     "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "redeem": "Redeem",
-    "redeem-text":"Do you want to redeem the amount now?",
-    "no-redeem":"You can't redeem your own link!",
+    "redeem-text": "Do you want to redeem the amount now?",
+    "no-redeem": "You can't redeem your own link!",
     "no-account": "You don't have a Gradido account yet",
     "to-register": "Register a new account",
     "has-account": "You have a Gradido account",
@@ -246,7 +246,6 @@
     "show_all": "View all <strong>{count}</strong> transactions."
   },
   "transaction-link": {
-    "button": "redeem",
     "send_you": "wants to send you"
   }
 }
