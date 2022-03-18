@@ -18,6 +18,11 @@ const createMockObject = (code) => {
       $i18n: {
         locale: () => 'en',
       },
+      $store: {
+        state: {
+          email: 'bibi@bloxberg.de',
+        },
+      },
       $apollo: {
         query: queryTransactionLink,
       },
