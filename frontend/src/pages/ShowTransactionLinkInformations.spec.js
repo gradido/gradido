@@ -1,8 +1,6 @@
 import { mount } from '@vue/test-utils'
 import ShowTransactionLinkInformations from './ShowTransactionLinkInformations'
 import { queryTransactionLink } from '@/graphql/queries'
-import { redeemTransactionLink } from '@/graphql/mutations'
-import { wrap } from 'regenerator-runtime'
 
 const localVue = global.localVue
 

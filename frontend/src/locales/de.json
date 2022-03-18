@@ -114,7 +114,7 @@
     "redeem": "Einlösen",
     "redeem-text": "Willst du den Betrag jetzt einlösen?",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
-    "redeemed-at": "Der Link wurde bereits am {date} eingelöst",
+    "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto"

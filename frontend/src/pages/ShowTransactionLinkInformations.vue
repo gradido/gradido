@@ -83,7 +83,7 @@ export default {
             })
             .catch((err) => {
               this.toastError(err.message)
-               this.$router.push('/overview')
+              this.$router.push('/overview')
             })
       })
     },
@@ -137,7 +137,6 @@ export default {
         }
       }
 
-      
       return ''
     },
   },
