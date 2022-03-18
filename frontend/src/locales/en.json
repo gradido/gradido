@@ -104,6 +104,7 @@
     "link-copied": "Link copied to clipboard",
     "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
+    "link-overview":"Link overview",
     "not-copied": "Could not copy link: {err}",
     "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "redeem": "Redeem",

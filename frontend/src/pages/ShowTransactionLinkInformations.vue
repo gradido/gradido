@@ -2,10 +2,6 @@
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="pt-5">
-      <!-- store: {{ $store.state }}
-      <hr />
-      displaySetup : {{ displaySetup }}
-      -->
       <div>
         <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
           <h1>
@@ -22,7 +18,12 @@
             <b-button :disabled="disabled" variant="primary" @click="redeemLink" size="lg">
               {{ $t('gdd_per_link.redeem') }}
             </b-button>
-            <div v-if="disabled" class="mt-3"><small>{{ $t('gdd_per_link.no-redeem') }}</small></div>
+            <div v-if="disabled" class="mt-3">
+              {{ $t('gdd_per_link.no-redeem') }}
+              <a to="/transactions" href="#!">
+                <b>{{ $t('gdd_per_link.link-overview') }}</b>
+              </a>
+            </div>
           </div>
         </b-jumbotron>
       </div>
@@ -90,12 +91,13 @@ export default {
             .mutate({
               mutation: redeemTransactionLink,
               variables: {
-                id: this.id,
+                id: this.displaySetup.id,
               },
             })
-            .then(() => {
-              this.toastSuccess(this.$t('gdd_per_link.deleted'))
-              this.$emit('reset-transaction-link-list')
+            .then((result) => {
+              alert(result.data.redeemTransactionLink)
+              // this.toastSuccess(this.$t('gdd_per_link.deleted'))
+              // this.$emit('reset-transaction-link-list')
             })
             .catch((err) => {
               this.toastError(err.message)
@@ -105,13 +107,11 @@ export default {
   },
   computed: {
     disabled() {
-      return this.displaySetup.user.email === this.$store.state.email ? true : false
-      
+      return this.displaySetup.user.email === this.$store.state.email
     },
   },
   created() {
     this.setTransactionLinkInformation()
-    console.log(this)
   },
 }
 </script>

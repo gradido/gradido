@@ -104,6 +104,7 @@
     "link-copied": "Link wurde in die Zwischenablage kopiert",
     "links_count": "Aktive Links",
     "links_sum": "Summe deiner versendeten Gradidos",
+    "link-overview":"Linkübersicht",
     "not-copied": "Konnte den Link nicht kopieren: {err}",
     "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "redeem":"Einlösen",
