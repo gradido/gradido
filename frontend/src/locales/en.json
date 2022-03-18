@@ -104,7 +104,7 @@
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "link-deleted": "The link has been deleted.",
-    "link-invalid": "The link is no longer valid.",
+    "link-invalid": "The link is no longer valid. \n The validity expired on {date}.",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
