@@ -39,6 +39,8 @@ export default {
     return {
       img: '/img/brand/green.png',
       displaySetup: {
+        amount: '123.45',
+        memo: '',
         user: {
           firstName: '',
         },
