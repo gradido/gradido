@@ -8,8 +8,10 @@ import { name, internet, random } from 'faker'
 
 import { users } from './users/index'
 import { creations } from './creation/index'
+import { transactionLinks } from './transactionLink/index'
 import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
+import { transactionLinkFactory } from './factory/transactionLink'
 import { entities } from '@entity/index'
 
 const context = {
@@ -62,6 +64,11 @@ const run = async () => {
   // create GDD
   for (let i = 0; i < creations.length; i++) {
     await creationFactory(seedClient, creations[i])
+  }
+
+  // create Transaction Links
+  for (let i = 0; i < transactionLinks.length; i++) {
+    await transactionLinkFactory(seedClient, transactionLinks[i])
   }
 
   await con.close()

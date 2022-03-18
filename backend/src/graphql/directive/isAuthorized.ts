@@ -35,6 +35,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   const userRepository = await getCustomRepository(UserRepository)
   try {
     const user = await userRepository.findByPubkeyHex(context.pubKey)
+    context.user = user
     const countServerUsers = await ServerUser.count({ email: user.email })
     context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
   } catch {

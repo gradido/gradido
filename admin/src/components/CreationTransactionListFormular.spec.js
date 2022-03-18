@@ -6,32 +6,30 @@ const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    transactionList: {
-      transactions: [
-        {
-          id: 1,
-          amount: 100,
-          balanceDate: 0,
-          creationDate: new Date(),
-          memo: 'Testing',
-          linkedUser: {
-            firstName: 'Gradido',
-            lastName: 'Akademie',
-          },
+    creationTransactionList: [
+      {
+        id: 1,
+        amount: 100,
+        balanceDate: 0,
+        creationDate: new Date(),
+        memo: 'Testing',
+        linkedUser: {
+          firstName: 'Gradido',
+          lastName: 'Akademie',
         },
-        {
-          id: 2,
-          amount: 200,
-          balanceDate: 0,
-          creationDate: new Date(),
-          memo: 'Testing 2',
-          linkedUser: {
-            firstName: 'Gradido',
-            lastName: 'Akademie',
-          },
+      },
+      {
+        id: 2,
+        amount: 200,
+        balanceDate: 0,
+        creationDate: new Date(),
+        memo: 'Testing 2',
+        linkedUser: {
+          firstName: 'Gradido',
+          lastName: 'Akademie',
         },
-      ],
-    },
+      },
+    ],
   },
 })
 
@@ -67,7 +65,6 @@ describe('CreationTransactionListFormular', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            onlyCreations: true,
             userId: 1,
           },
         }),

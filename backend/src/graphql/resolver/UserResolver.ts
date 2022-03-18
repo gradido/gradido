@@ -14,7 +14,6 @@ import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
-import { UserRepository } from '@repository/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
@@ -214,8 +213,7 @@ export class UserResolver {
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: any): Promise<User> {
     // TODO refactor and do not have duplicate code with login(see below)
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const userEntity = context.user
     const user = new User(userEntity)
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
@@ -313,10 +311,10 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.CREATE_USER])
-  @Mutation(() => String)
+  @Mutation(() => User)
   async createUser(
     @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
-  ): Promise<string> {
+  ): Promise<User> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -396,7 +394,7 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
-    return 'success'
+    return new User(dbUser)
   }
 
   // THis is used by the admin only - should we move it to the admin resolver?
@@ -585,8 +583,7 @@ export class UserResolver {
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
   ): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const userEntity = context.user
 
     if (firstName) {
       userEntity.firstName = firstName
@@ -664,8 +661,7 @@ export class UserResolver {
   @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
+    const userEntity = context.user
     if (!userEntity) {
       return false
     }
