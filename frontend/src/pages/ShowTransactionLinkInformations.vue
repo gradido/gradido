@@ -133,9 +133,6 @@ export default {
             })
             .then((result) => {
               if (result) this.redeemed = true
-              alert(result.data.redeemTransactionLink)
-              // this.toastSuccess(this.$t('gdd_per_link.deleted'))
-              // this.$emit('reset-transaction-link-list')
             })
             .catch((err) => {
               this.toastError(err.message)
