@@ -5,7 +5,7 @@
 </template>
 <script>
 export default {
-  name: 'TransactionList',
+  name: 'TransactionListItem',
   props: {
     typeId: {
       type: String,
