@@ -52,7 +52,9 @@ export const createUser = gql`
       lastName: $lastName
       language: $language
       publisherId: $publisherId
-    )
+    ) {
+      id
+    }
   }
 `
 
