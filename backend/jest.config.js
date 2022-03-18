@@ -3,8 +3,9 @@ module.exports = {
   verbose: true,
   preset: 'ts-jest',
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   setupFiles: ['<rootDir>/test/testSetup.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
