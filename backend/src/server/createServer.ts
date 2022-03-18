@@ -1,5 +1,4 @@
 import 'reflect-metadata'
-import 'module-alias/register'
 
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express } from 'express'
