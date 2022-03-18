@@ -182,6 +182,13 @@ describe('router', () => {
         })
       })
 
+      describe('redeem', () => {
+        it('loads the "ShowTransactionLinkInformations" page', async () => {
+          const component = await routes.find((r) => r.path === '/redeem/:code').component()
+          expect(component.default.name).toBe('ShowTransactionLinkInformations')
+        })
+      })
+
       describe('not found page', () => {
         it('renders the "NotFound" page', async () => {
           expect(routes.find((r) => r.path === '*').component).toEqual(NotFound)
