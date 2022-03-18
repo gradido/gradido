@@ -108,6 +108,7 @@
     "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "redeem": "Redeem",
     "redeem-text":"Do you want to redeem the amount now?",
+    "no-redeem":"You can't redeem your own link!",
     "no-account": "You don't have a Gradido account yet",
     "to-register": "Register a new account",
     "has-account": "You have a Gradido account",

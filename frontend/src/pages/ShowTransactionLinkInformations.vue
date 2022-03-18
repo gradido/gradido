@@ -2,7 +2,10 @@
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="pt-5">
-      displaySetup : {{displaySetup}} 
+      <!-- store: {{ $store.state }}
+      <hr />
+      displaySetup : {{ displaySetup }}
+      -->
       <div>
         <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
           <h1>
@@ -16,11 +19,10 @@
       <div v-if="$store.state.token">
         <b-jumbotron>
           <div class="mb-3 text-center">
-             
-            
-              <b-button variant="primary" to="/register" size="lg">
-                {{ $t('gdd_per_link.redeem') }}
-              </b-button>
+            <b-button :disabled="disabled" variant="primary" @click="redeemLink" size="lg">
+              {{ $t('gdd_per_link.redeem') }}
+            </b-button>
+            <div v-if="disabled" class="mt-3"><small>{{ $t('gdd_per_link.no-redeem') }}</small></div>
           </div>
         </b-jumbotron>
       </div>
@@ -99,6 +101,12 @@ export default {
               this.toastError(err.message)
             })
       })
+    },
+  },
+  computed: {
+    disabled() {
+      return this.displaySetup.user.email === this.$store.state.email ? true : false
+      
     },
   },
   created() {

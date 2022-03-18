@@ -140,7 +140,7 @@ export const queryTransactionLink = gql`
       user {
         firstName
         publisherId
-        id
+        email
       }
     }
   }
