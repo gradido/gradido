@@ -1,8 +1,6 @@
 <template>
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
-    {{ displaySetup }}
-    <hr />
     <b-container>
       <transaction-link-information-item :type="itemType">
         <template #X1><redeem-logged-out v-bind="displaySetup" /></template>

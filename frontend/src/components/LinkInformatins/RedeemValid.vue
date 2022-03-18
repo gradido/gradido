@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-valid">
-    <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
+    <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
       <h1>
         {{ user.firstName }}
         {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
