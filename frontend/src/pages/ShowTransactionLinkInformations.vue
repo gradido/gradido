@@ -1,98 +1,40 @@
 <template>
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
-    <b-container v-if="displaySetup.redeemedAt" class="pt-5">
-      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
-        <div class="text-center">
-          <h1>
-            {{ $t('gdd_per_link.link-invalid') }}
-          </h1>
-        </div>
-      </b-jumbotron>
-      <div class="text-center">
-        <b-button to="/overview">{{ $t('back') }}</b-button>
-      </div>
-    </b-container>
-    <b-container v-else-if="displaySetup.deletedAt" class="pt-5">
-      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
-        <div class="text-center">
-          <h1>
-            {{ $t('gdd_per_link.link-deleted') }}
-          </h1>
-        </div>
-      </b-jumbotron>
-      <div class="text-center">
-        <b-button to="/overview">{{ $t('back') }}</b-button>
-      </div>
-    </b-container>
-    <b-container v-else-if="redeemed" class="pt-5">
-      <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
-        <div class="text-center">
-          <h1>
-            {{ $t('gdd_per_link.redeemed', { n: displaySetup.amount }) }}
-          </h1>
-        </div>
-      </b-jumbotron>
-      <div class="text-center">
-        <b-button to="/overview">{{ $t('back') }}</b-button>
-      </div>
-    </b-container>
-    <b-container v-else class="pt-5">
-      <div>
-        <div></div>
-        <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
-          <h1>
-            {{ displaySetup.user.firstName }}
-            {{ $t('transaction-link.send_you') }} {{ displaySetup.amount | GDD }}
-          </h1>
-          <b>{{ displaySetup.memo }}</b>
-        </b-jumbotron>
-      </div>
-      <div v-if="$store.state.token">
-        <b-jumbotron>
-          <div class="mb-3 text-center">
-            <b-button :disabled="disabled" variant="primary" @click="redeemLink" size="lg">
-              {{ $t('gdd_per_link.redeem') }}
-            </b-button>
-            <div v-if="disabled" class="mt-3">
-              {{ $t('gdd_per_link.no-redeem') }}
-              <a to="/transactions" href="#!">
-                <b>{{ $t('gdd_per_link.link-overview') }}</b>
-              </a>
-            </div>
-          </div>
-        </b-jumbotron>
-      </div>
+    {{ displaySetup }}
+    <hr />
+    <b-container>
+      <transaction-link-information-item :type="itemType">
+        <template #X1><redeem-logged-out v-bind="displaySetup" /></template>
 
-      <div v-else>
-        <b-jumbotron>
-          <div class="mb-6">
-            <h2>{{ $t('gdd_per_link.redeem') }}</h2>
-          </div>
+        <template #X2><redeem-self-creator v-bind="displaySetup" /></template>
 
-          <b-row>
-            <b-col col sm="12" md="6">
-              <p>{{ $t('gdd_per_link.no-account') }}</p>
-              <b-button variant="primary" to="/register">
-                {{ $t('gdd_per_link.to-register') }}
-              </b-button>
-            </b-col>
-            <b-col sm="12" md="6" class="mt-xs-6 mt-sm-6 mt-md-0">
-              <p>{{ $t('gdd_per_link.has-account') }}</p>
-              <b-button variant="info" to="/login">{{ $t('gdd_per_link.to-login') }}</b-button>
-            </b-col>
-          </b-row>
-        </b-jumbotron>
-      </div>
+        <template #X3><redeem-valid v-bind="displaySetup" @redeem-link="redeemLink" /></template>
+
+        <template #X4><redeemed-text-box :text="redeemedBoxText" /></template>
+      </transaction-link-information-item>
     </b-container>
   </div>
 </template>
 <script>
+import TransactionLinkInformationItem from '@/components/TransactionLinkInformationItem'
+import RedeemLoggedOut from '@/components/LinkInformatins/RedeemLoggedOut'
+import RedeemSelfCreator from '@/components/LinkInformatins/RedeemSelfCreator'
+import RedeemValid from '@/components/LinkInformatins/RedeemValid'
+import RedeemedTextBox from '@/components/LinkInformatins/RedeemedTextBox'
+
 import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'ShowTransactionLinkInformations',
+  components: {
+    TransactionLinkInformationItem,
+    RedeemLoggedOut,
+    RedeemSelfCreator,
+    RedeemValid,
+    RedeemedTextBox,
+  },
   data() {
     return {
       img: '/img/brand/green.png',
@@ -102,7 +44,6 @@ export default {
         },
         deletedAt: null,
       },
-      redeemed: null,
     }
   },
   methods: {
@@ -118,6 +59,7 @@ export default {
           this.displaySetup = result.data.queryTransactionLink
         })
         .catch(() => {
+          this.itemType = 'X4'
           this.displaySetup.deletedAt = true
         })
     },
@@ -132,17 +74,71 @@ export default {
               },
             })
             .then((result) => {
-              if (result) this.redeemed = true
+              this.toastSuccess(
+                this.$t('gdd_per_link.redeemed', {
+                  n: this.displaySetup.amount,
+                }),
+              )
+              this.$router.push('/overview')
             })
             .catch((err) => {
               this.toastError(err.message)
+               this.$router.push('/overview')
             })
       })
     },
   },
   computed: {
-    disabled() {
-      return this.displaySetup.user.email === this.$store.state.email
+    itemType() {
+      // logged out
+      // link wurde gelöscht: am, von
+      if (this.displaySetup.deletedAt) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
+          date: this.displaySetup.deletedAt,
+          user: this.displaySetup.firstName,
+        })
+        return 'X4'
+      } else {
+        // link ist abgelaufen, nicht gelöscht
+        if (new Date(this.displaySetup.validUntil) < new Date()) {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
+            date: this.displaySetup.validUntil,
+          })
+          return 'X4'
+        }
+
+        // der link wurde eingelöst, nicht gelöscht
+        if (this.displaySetup.redeemedAt) {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
+            date: this.displaySetup.redeemedAt,
+          })
+          return 'X4'
+        }
+      }
+
+      if (!this.$store.state.token) {
+        return 'X1'
+      } else {
+        // logged in, nicht berechtigt einzulösen, eigener link
+        if (this.$store.state.email === this.displaySetup.user.email) {
+          return 'X2'
+        }
+
+        // logged in und berechtigt einzulösen
+        if (
+          this.$store.state.email !== this.displaySetup.user.email &&
+          !this.displaySetup.redeemedAt &&
+          !this.displaySetup.deletedAt
+        ) {
+          return 'X3'
+        }
+      }
+
+      
+      return ''
     },
   },
   created() {
