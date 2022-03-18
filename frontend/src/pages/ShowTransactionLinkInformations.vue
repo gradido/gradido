@@ -50,6 +50,7 @@
 </template>
 <script>
 import { queryTransactionLink } from '@/graphql/queries'
+import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'ShowTransactionLinkInformations',
@@ -85,7 +86,7 @@ export default {
         if (value)
           await this.$apollo
             .mutate({
-              mutation: deleteTransactionLink,
+              mutation: redeemTransactionLink,
               variables: {
                 id: this.id,
               },
