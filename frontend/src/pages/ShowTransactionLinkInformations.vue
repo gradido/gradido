@@ -2,6 +2,7 @@
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="pt-5">
+      displaySetup : {{displaySetup}} 
       <div>
         <b-jumbotron bg-variant="info" text-variant="dark" border-variant="dark">
           <h1>
@@ -12,7 +13,19 @@
         </b-jumbotron>
       </div>
 
-      <div>
+      <div v-if="$store.state.token">
+        <b-jumbotron>
+          <div class="mb-3 text-center">
+             
+            
+              <b-button variant="primary" to="/register" size="lg">
+                {{ $t('gdd_per_link.redeem') }}
+              </b-button>
+          </div>
+        </b-jumbotron>
+      </div>
+
+      <div v-else>
         <b-jumbotron>
           <div class="mb-6">
             <h2>{{ $t('gdd_per_link.redeem') }}</h2>
@@ -67,9 +80,29 @@ export default {
           this.toastError(error)
         })
     },
+    redeemLink() {
+      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
+        if (value)
+          await this.$apollo
+            .mutate({
+              mutation: deleteTransactionLink,
+              variables: {
+                id: this.id,
+              },
+            })
+            .then(() => {
+              this.toastSuccess(this.$t('gdd_per_link.deleted'))
+              this.$emit('reset-transaction-link-list')
+            })
+            .catch((err) => {
+              this.toastError(err.message)
+            })
+      })
+    },
   },
   created() {
     this.setTransactionLinkInformation()
+    console.log(this)
   },
 }
 </script>

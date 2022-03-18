@@ -107,6 +107,7 @@
     "not-copied": "Konnte den Link nicht kopieren: {err}",
     "sentence_1": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "redeem":"Einlösen",
+    "redeem-text":"Willst du den Betrag jetzt einlösen?",
     "no-account":"Du hast noch kein Gradido Konto",
     "to-register":"Registriere ein neues Konto",
     "has-account":"Du hast einen Gradido Konto",

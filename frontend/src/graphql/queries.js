@@ -132,6 +132,7 @@ export const communities = gql`
 export const queryTransactionLink = gql`
   query($code: String!) {
     queryTransactionLink(code: $code) {
+      id
       amount
       memo
       createdAt
@@ -139,6 +140,7 @@ export const queryTransactionLink = gql`
       user {
         firstName
         publisherId
+        id
       }
     }
   }
