@@ -27,6 +27,7 @@
       "send": "Sent"
     }
   },
+  "delete": "Delete",
   "em-dash": "—",
   "error": {
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -96,6 +97,9 @@
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
+    "delete-the-link": "Delete the link?",
+    "deleted": "The link was deleted!",
+    "expired": "Expired",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "links_count": "Active links",
@@ -120,9 +124,7 @@
     "recruited-member": "Invited member"
   },
   "language": "Language",
-  "links-list": {
-    "header": "List of your active links"
-  },
+  "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Login",
   "math": {
     "aprox": "~",

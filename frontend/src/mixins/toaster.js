@@ -14,7 +14,7 @@ export const toasters = {
     },
     toast(message, options) {
       if (message.replace) message = message.replace(/^GraphQL error: /, '')
-      this.$bvToast.toast(message, {
+      this.$root.$bvToast.toast(message, {
         autoHideDelay: 5000,
         appendToast: true,
         solid: true,

@@ -311,10 +311,10 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.CREATE_USER])
-  @Mutation(() => String)
+  @Mutation(() => User)
   async createUser(
     @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
-  ): Promise<string> {
+  ): Promise<User> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -394,7 +394,7 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
-    return 'success'
+    return new User(dbUser)
   }
 
   // THis is used by the admin only - should we move it to the admin resolver?
