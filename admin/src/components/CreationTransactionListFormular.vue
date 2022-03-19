@@ -5,7 +5,7 @@
   </div>
 </template>
 <script>
-import { transactionList } from '../graphql/transactionList'
+import { creationTransactionList } from '../graphql/creationTransactionList'
 export default {
   name: 'CreationTransactionList',
   props: {
@@ -51,17 +51,16 @@ export default {
     getTransactions() {
       this.$apollo
         .query({
-          query: transactionList,
+          query: creationTransactionList,
           variables: {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            onlyCreations: true,
             userId: parseInt(this.userId),
           },
         })
         .then((result) => {
-          this.items = result.data.transactionList.transactions
+          this.items = result.data.creationTransactionList
         })
         .catch((error) => {
           this.toastError(error.message)

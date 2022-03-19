@@ -52,7 +52,9 @@ export const createUser = gql`
       lastName: $lastName
       language: $language
       publisherId: $publisherId
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -67,5 +69,11 @@ export const createTransactionLink = gql`
     createTransactionLink(amount: $amount, memo: $memo) {
       code
     }
+  }
+`
+
+export const deleteTransactionLink = gql`
+  mutation($id: Float!) {
+    deleteTransactionLink(id: $id)
   }
 `

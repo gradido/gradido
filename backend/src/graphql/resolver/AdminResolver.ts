@@ -19,16 +19,21 @@ import { UserRepository } from '@repository/User'
 import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
-import { Transaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction } from '@model/Transaction'
 import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { User } from '@entity/User'
+import { User as dbUser } from '@entity/User'
+import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { communityUser } from '@/util/communityUser'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -126,27 +131,26 @@ export class AdminResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: any,
   ): Promise<Date | null> {
-    const user = await User.findOne({ id: userId })
+    const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
-    const userRepository = getCustomRepository(UserRepository)
-    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const moderatorUser = context.user
     if (moderatorUser.id === userId) {
       throw new Error('Moderator can not delete his own account!')
     }
     // soft-delete user
     await user.softRemove()
-    const newUser = await User.findOne({ id: userId }, { withDeleted: true })
+    const newUser = await dbUser.findOne({ id: userId }, { withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
   @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
-    const user = await User.findOne({ id: userId }, { withDeleted: true })
+    const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
     // user exists ?
     if (!user) {
       throw new Error(`Could not find user with userId: ${userId}`)
@@ -161,7 +165,7 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
-    const user = await User.findOne({ email }, { withDeleted: true })
+    const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
     }
@@ -218,7 +222,7 @@ export class AdminResolver {
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
   ): Promise<UpdatePendingCreation> {
-    const user = await User.findOne({ email }, { withDeleted: true })
+    const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
     }
@@ -268,7 +272,7 @@ export class AdminResolver {
 
     const userIds = pendingCreations.map((p) => p.userId)
     const userCreations = await getUserCreations(userIds)
-    const users = await User.find({ where: { id: In(userIds) }, withDeleted: true })
+    const users = await dbUser.find({ where: { id: In(userIds) }, withDeleted: true })
 
     return pendingCreations.map((pendingCreation) => {
       const user = users.find((u) => u.id === pendingCreation.userId)
@@ -300,12 +304,11 @@ export class AdminResolver {
     @Ctx() context: any,
   ): Promise<boolean> {
     const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
-    const userRepository = getCustomRepository(UserRepository)
-    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+    const moderatorUser = context.user
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
-    const user = await User.findOneOrFail({ id: pendingCreation.userId }, { withDeleted: true })
+    const user = await dbUser.findOneOrFail({ id: pendingCreation.userId }, { withDeleted: true })
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
     const creations = await getUserCreation(pendingCreation.userId, false)
@@ -327,7 +330,7 @@ export class AdminResolver {
     // TODO pending creations decimal
     newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
 
-    const transaction = new Transaction()
+    const transaction = new DbTransaction()
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
@@ -344,6 +347,27 @@ export class AdminResolver {
     await AdminPendingCreation.delete(pendingCreation)
 
     return true
+  }
+
+  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
+  @Query(() => [Transaction])
+  async creationTransactionList(
+    @Args()
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    @Arg('userId', () => Int) userId: number,
+  ): Promise<Transaction[]> {
+    const offset = (currentPage - 1) * pageSize
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const [userTransactions] = await transactionRepository.findByUserPaged(
+      userId,
+      pageSize,
+      offset,
+      order,
+      true,
+    )
+
+    const user = await dbUser.findOneOrFail({ id: userId })
+    return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
   }
 }
 

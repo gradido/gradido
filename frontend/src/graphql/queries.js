@@ -43,18 +43,8 @@ export const logout = gql`
 `
 
 export const transactionsQuery = gql`
-  query(
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       balanceGDT
       count
       linkCount
@@ -140,6 +130,21 @@ export const queryTransactionLink = gql`
         firstName
         publisherId
       }
+    }
+  }
+`
+
+export const listTransactionLinks = gql`
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
+      id
+      amount
+      holdAvailableAmount
+      memo
+      code
+      createdAt
+      validUntil
+      redeemedAt
     }
   }
 `

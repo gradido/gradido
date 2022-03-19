@@ -69,7 +69,9 @@ describe('UserResolver', () => {
     })
 
     it('returns success', () => {
-      expect(result).toEqual(expect.objectContaining({ data: { createUser: 'success' } }))
+      expect(result).toEqual(
+        expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
+      )
     })
 
     describe('valid input data', () => {
@@ -331,6 +333,7 @@ describe('UserResolver', () => {
                 email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
+                id: expect.any(Number),
                 isAdmin: false,
                 klickTipp: {
                   newsletterState: false,
