@@ -96,7 +96,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
   async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
     const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
     let redeemedBy: User | null = null
     if (transactionLink && transactionLink.redeemedBy) {
