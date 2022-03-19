@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import TransactionLinksSummary from './TransactionLinksSummary'
+import TransactionLinksSummary from './TransactionLinkSummary'
 import { listTransactionLinks } from '@/graphql/queries'
 import { toastErrorSpy } from '@test/testSetup'
 
@@ -29,7 +29,7 @@ const propsData = {
   transactionLinkCount: 4,
 }
 
-describe('TransactionLinksSummary', () => {
+describe('TransactionLinkSummary', () => {
   let wrapper
 
   const Wrapper = () => {
