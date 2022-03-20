@@ -26,6 +26,7 @@ const {
   isAdmin,
   community,
   hasElopage,
+  redeemCode,
 } = mutations
 const { login, logout } = actions
 
@@ -141,6 +142,14 @@ describe('Vuex store', () => {
         hasElopage(state, true)
         expect(state.hasElopage).toBeTruthy()
       })
+
+      describe('redeemCode', () => {
+        it('sets the state of token', () => {
+          const state = { redeemCode: null }
+          redeemCode(state, 'a0000b0000c0000')
+          expect(state.redeemCode).toEqual('a0000b0000c0000')
+        })
+      })
     })
   })
 
@@ -219,7 +228,7 @@ describe('Vuex store', () => {
 
       it('calls nine commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(10)
       })
 
       it('commits token', () => {
