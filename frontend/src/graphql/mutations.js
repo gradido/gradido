@@ -79,7 +79,7 @@ export const deleteTransactionLink = gql`
 `
 
 export const redeemTransactionLink = gql`
-  mutation($id: Int!) {
-    redeemTransactionLink(id: $id)
+  mutation($code: String!) {
+    redeemTransactionLink(id: $code)
   }
 `
