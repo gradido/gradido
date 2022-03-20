@@ -42,6 +42,10 @@
               </validation-observer>
             </b-card-body>
           </b-card>
+          <div v-if="$route.params.code" class="mt-2 mb-2">
+            {{ $t('gdd_per_link.redeem') + ':' }}
+            <b>{{ $route.params.code }}</b>
+          </div>
           <b-row class="mt-3">
             <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
               <router-link to="/forgot-password" class="mt-3">
@@ -64,6 +68,7 @@ import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import { login } from '@/graphql/queries'
 import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'Login',
@@ -101,7 +106,12 @@ export default {
             data: { login },
           } = result
           this.$store.dispatch('login', login)
+          if (this.$route.params.code) {
+            this.redeemLink(this.$route.params.code)
+          }
+
           this.$router.push('/overview')
+
           loader.hide()
         })
         .catch((error) => {
@@ -112,6 +122,21 @@ export default {
             this.$router.push('/reset-password/login')
           }
           loader.hide()
+        })
+    },
+    redeemLink(code) {
+      this.$apollo
+        .mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: code,
+          },
+        })
+        .then(() => {
+          this.toastSuccess(this.$t('gdd_per_link.successfully-redeemed'))
+        })
+        .catch((err) => {
+          this.toastError(err.message)
         })
     },
   },
