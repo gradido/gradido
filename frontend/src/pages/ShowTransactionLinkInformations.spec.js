@@ -5,20 +5,26 @@ import { queryTransactionLink } from '@/graphql/queries'
 const localVue = global.localVue
 
 const errorHandler = jest.fn()
+const apolloQueryMock = jest.fn()
 
 localVue.config.errorHandler = errorHandler
 
-const apolloQueryMock = jest.fn()
 apolloQueryMock.mockResolvedValue({
-  id: 92,
-  amount: '22',
-  memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
-  createdAt: '2022-03-17T16:10:28.000Z',
-  validUntil: '2022-03-31T16:10:28.000Z',
-  redeemedAt: '2022-03-18T10:08:43.000Z',
-  deletedAt: null,
-  user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de', __typename: 'User' },
-  __typename: 'TransactionLink',
+  data: {
+    listTransactionLinks: [
+      {
+        id: 92,
+        amount: '22',
+        memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+        createdAt: '2022-03-17T16:10:28.000Z',
+        validUntil: '2022-03-31T16:10:28.000Z',
+        redeemedAt: '2022-03-18T10:08:43.000Z',
+        deletedAt: null,
+        user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de', __typename: 'User' },
+        __typename: 'TransactionLink',
+      },
+    ],
+  },
 })
 
 const createMockObject = (code) => {

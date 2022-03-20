@@ -3,13 +3,21 @@
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="mt-4">
       <transaction-link-information-item :type="itemType">
-        <template #X1><redeem-logged-out v-bind="displaySetup" /></template>
+        <template #X1>
+          <redeem-logged-out v-bind="displaySetup" />
+        </template>
 
-        <template #X2><redeem-self-creator v-bind="displaySetup" /></template>
+        <template #X2>
+          <redeem-self-creator v-bind="displaySetup" />
+        </template>
 
-        <template #X3><redeem-valid v-bind="displaySetup" @redeem-link="redeemLink" /></template>
+        <template #X3>
+          <redeem-valid v-bind="displaySetup" @redeem-link="redeemLink" />
+        </template>
 
-        <template #X4><redeemed-text-box :text="redeemedBoxText" /></template>
+        <template #X4>
+          <redeemed-text-box :text="redeemedBoxText" />
+        </template>
       </transaction-link-information-item>
     </b-container>
   </div>
@@ -20,7 +28,6 @@ import RedeemLoggedOut from '@/components/LinkInformatins/RedeemLoggedOut'
 import RedeemSelfCreator from '@/components/LinkInformatins/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformatins/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformatins/RedeemedTextBox'
-
 import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
 
@@ -38,9 +45,9 @@ export default {
       img: '/img/brand/green.png',
       displaySetup: {
         amount: '123.45',
-        memo: '',
+        memo: 'memo',
         user: {
-          firstName: '',
+          firstName: 'Bibi',
         },
         deletedAt: null,
       },
@@ -63,20 +70,20 @@ export default {
           this.displaySetup.deletedAt = true
         })
     },
-    redeemLink() {
+    redeemLink(id, amount) {
       this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
         if (value)
           await this.$apollo
             .mutate({
               mutation: redeemTransactionLink,
               variables: {
-                id: this.displaySetup.id,
+                id: id,
               },
             })
-            .then((result) => {
+            .then(() => {
               this.toastSuccess(
                 this.$t('gdd_per_link.redeemed', {
-                  n: this.displaySetup.amount,
+                  n: amount,
                 }),
               )
               this.$router.push('/overview')
@@ -98,15 +105,15 @@ export default {
           date: this.displaySetup.deletedAt,
           user: this.displaySetup.firstName,
         })
-        return 'X4'
+        return `X4`
       } else {
         // link ist abgelaufen, nicht gelöscht
-        if (new Date(this.displaySetup.validUntil) < new Date()) {
+        if (new Date(this.displaySetup.validUntil) > new Date()) {
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
             date: this.displaySetup.validUntil,
           })
-          return 'X4'
+          return `X4`
         }
 
         // der link wurde eingelöst, nicht gelöscht
@@ -115,16 +122,16 @@ export default {
           this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
             date: this.displaySetup.redeemedAt,
           })
-          return 'X4'
+          return `X4`
         }
       }
 
       if (!this.$store.state.token) {
-        return 'X1'
+        return `X1`
       } else {
         // logged in, nicht berechtigt einzulösen, eigener link
         if (this.$store.state.email === this.displaySetup.user.email) {
-          return 'X2'
+          return `X2`
         }
 
         // logged in und berechtigt einzulösen
@@ -133,11 +140,11 @@ export default {
           !this.displaySetup.redeemedAt &&
           !this.displaySetup.deletedAt
         ) {
-          return 'X3'
+          return `X3`
         }
       }
 
-      return ''
+      return `X`
     },
   },
   created() {
