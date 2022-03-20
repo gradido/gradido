@@ -47,6 +47,9 @@ export const mutations = {
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
+  redeemCode: (state, redeemCode) => {
+    state.redeemCode = redeemCode
+  },
 }
 
 export const actions = {
@@ -73,6 +76,7 @@ export const actions = {
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
+    commit('redeemCode', null)
     localStorage.clear()
   },
 }
@@ -102,6 +106,7 @@ try {
       },
       hasElopage: false,
       publisherId: null,
+      redeemCode: null,
     },
     getters: {},
     // Syncronous mutation of the state

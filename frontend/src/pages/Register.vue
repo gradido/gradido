@@ -118,12 +118,37 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
-                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
+                  <b-row v-if="$route.params.code">
+                    <b-col>
+                      <label>{{ $t('gdd_per_link.redeem') }}</label>
+                      <div class="mt-2 mb-2">
+                        <b-input-group class="shadow-sm p-2 bg-white rounded">
+                          <b-input-group-prepend is-text>
+                            <b-icon icon="link45deg"></b-icon>
+                          </b-input-group-prepend>
+                          <b-form-input
+                            readonly
+                            id="redeem-code"
+                            type="text"
+                            v-model="redeemCode"
+                            @input="commitStoreRedeemCode(redeemCode)"
+                          ></b-form-input>
+                        </b-input-group>
+                      </div>
+                    </b-col>
+                  </b-row>
+
+                  <b-row
+                    v-else
+                    v-b-toggle:my-collapse
+                    class="text-muted shadow-sm p-3 publisherCollaps"
+                  >
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
                     </b-col>
                   </b-row>
+
                   <b-row>
                     <b-col>
                       <b-collapse id="my-collapse" class="">
@@ -136,7 +161,7 @@
                             type="text"
                             placeholder="Publisher ID"
                             v-model="publisherId"
-                            @input="commitStore(publisherId)"
+                            @input="commitStorePublisherId(publisherId)"
                           ></b-form-input>
                         </b-input-group>
                         <div
@@ -210,6 +235,7 @@ export default {
       messageError: '',
       register: true,
       publisherId: this.$store.state.publisherId,
+      redeemCode: this.$store.state.redeemCode,
     }
   },
   methods: {
@@ -220,8 +246,11 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    commitStore(val) {
+    commitStorePublisherId(val) {
       this.$store.commit('publisherId', val)
+    },
+    commitStoreRedeemCode(val) {
+      this.$store.commit('redeemCode', val)
     },
     async onSubmit() {
       this.$apollo
@@ -233,6 +262,7 @@ export default {
             lastName: this.form.lastname,
             language: this.language,
             publisherId: this.$store.state.publisherId,
+            redeemCode: this.$store.state.redeemCode,
           },
         })
         .then(() => {
@@ -266,6 +296,11 @@ export default {
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
     },
+  },
+  created() {
+    if (this.$route.params.code) {
+      this.commitStoreRedeemCode(this.$route.params.code)
+    }
   },
 }
 </script>
