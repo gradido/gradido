@@ -103,12 +103,12 @@ export default {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
           date: this.displaySetup.deletedAt,
-          user: this.displaySetup.firstName,
+          user: this.displaySetup.user.firstName,
         })
         return `X4`
       } else {
         // link ist abgelaufen, nicht gelöscht
-        if (new Date(this.displaySetup.validUntil) > new Date()) {
+        if (new Date(this.displaySetup.validUntil) < new Date()) {
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
             date: this.displaySetup.validUntil,
