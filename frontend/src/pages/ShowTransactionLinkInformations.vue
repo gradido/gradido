@@ -4,15 +4,15 @@
     <b-container class="mt-4">
       <transaction-link-information-item :type="itemType">
         <template #X1>
-          <redeem-logged-out v-bind="displaySetup" />
+          <redeem-logged-out v-bind="linkData" />
         </template>
 
         <template #X2>
-          <redeem-self-creator v-bind="displaySetup" />
+          <redeem-self-creator v-bind="linkData" />
         </template>
 
         <template #X3>
-          <redeem-valid v-bind="displaySetup" @redeem-link="redeemLink" />
+          <redeem-valid v-bind="linkData" @redeem-link="redeemLink" />
         </template>
 
         <template #X4>
@@ -43,7 +43,7 @@ export default {
   data() {
     return {
       img: '/img/brand/green.png',
-      displaySetup: {
+      linkData: {
         amount: '123.45',
         memo: 'memo',
         user: {
@@ -63,11 +63,11 @@ export default {
           },
         })
         .then((result) => {
-          this.displaySetup = result.data.queryTransactionLink
+          this.linkData = result.data.queryTransactionLink
         })
         .catch(() => {
           this.itemType = 'X4'
-          this.displaySetup.deletedAt = true
+          this.linkData.deletedAt = true
         })
     },
     redeemLink(id, amount) {
@@ -99,28 +99,28 @@ export default {
     itemType() {
       // logged out
       // link wurde gelöscht: am, von
-      if (this.displaySetup.deletedAt) {
+      if (this.linkData.deletedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
-          date: this.displaySetup.deletedAt,
-          user: this.displaySetup.user.firstName,
+          date: this.linkData.deletedAt,
+          user: this.linkData.user.firstName,
         })
         return `X4`
       } else {
         // link ist abgelaufen, nicht gelöscht
-        if (new Date(this.displaySetup.validUntil) < new Date()) {
+        if (new Date(this.linkData.validUntil) < new Date()) {
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
-            date: this.displaySetup.validUntil,
+            date: this.linkData.validUntil,
           })
           return `X4`
         }
 
         // der link wurde eingelöst, nicht gelöscht
-        if (this.displaySetup.redeemedAt) {
+        if (this.linkData.redeemedAt) {
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
-            date: this.displaySetup.redeemedAt,
+            date: this.linkData.redeemedAt,
           })
           return `X4`
         }
@@ -130,15 +130,15 @@ export default {
         return `X1`
       } else {
         // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.$store.state.email === this.displaySetup.user.email) {
+        if (this.$store.state.email === this.linkData.user.email) {
           return `X2`
         }
 
         // logged in und berechtigt einzulösen
         if (
-          this.$store.state.email !== this.displaySetup.user.email &&
-          !this.displaySetup.redeemedAt &&
-          !this.displaySetup.deletedAt
+          this.$store.state.email !== this.linkData.user.email &&
+          !this.linkData.redeemedAt &&
+          !this.linkData.deletedAt
         ) {
           return `X3`
         }
