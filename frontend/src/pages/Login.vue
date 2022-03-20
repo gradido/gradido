@@ -109,9 +109,7 @@ export default {
           if (this.$route.params.code) {
             this.redeemLink(this.$route.params.code)
           }
-
           this.$router.push('/overview')
-
           loader.hide()
         })
         .catch((error) => {
