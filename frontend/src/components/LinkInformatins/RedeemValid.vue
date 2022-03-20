@@ -10,7 +10,7 @@
 
     <b-jumbotron>
       <div class="mb-3 text-center">
-        <b-button variant="primary" @click="$emit('redeem-link', id, amount)" size="lg">
+        <b-button variant="primary" @click="$emit('redeem-link', amount)" size="lg">
           {{ $t('gdd_per_link.redeem') }}
         </b-button>
       </div>
@@ -21,7 +21,6 @@
 export default {
   name: 'RedeemValid',
   props: {
-    id: { type: Number, required: false },
     user: { type: Object, required: false },
     amount: { type: String, required: false },
     memo: { type: String, required: false, default: '' },
