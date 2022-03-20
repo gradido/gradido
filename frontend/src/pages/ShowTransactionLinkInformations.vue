@@ -70,14 +70,14 @@ export default {
           this.linkData.deletedAt = true
         })
     },
-    redeemLink(id, amount) {
+    redeemLink(amount) {
       this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
         if (value)
           await this.$apollo
             .mutate({
               mutation: redeemTransactionLink,
               variables: {
-                id: id,
+                code: this.$route.params.code,
               },
             })
             .then(() => {
