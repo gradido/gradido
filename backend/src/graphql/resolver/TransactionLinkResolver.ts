@@ -135,11 +135,11 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async redeemTransactionLink(
-    @Arg('id', () => String) id: string,
+    @Arg('code', () => String) id: string,
     @Ctx() context: any,
   ): Promise<boolean> {
     const { user } = context
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code: id })
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 
     const now = new Date()
