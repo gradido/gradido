@@ -135,7 +135,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async redeemTransactionLink(
-    @Arg('code', () => String) id: string,
+    @Arg('code', () => String) code: string,
     @Ctx() context: any,
   ): Promise<boolean> {
     const { user } = context
