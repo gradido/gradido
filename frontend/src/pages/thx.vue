@@ -52,8 +52,8 @@ const textFields = {
   login: {
     headline: 'site.thx.errorTitle',
     subtitle: 'site.thx.activateEmail',
-    button: 'login',
-    linkTo: '/login',
+    button: 'settings.password.reset',
+    linkTo: '/forgot-password',
   },
 }
 

@@ -96,7 +96,7 @@ export const createPendingCreation = gql`
 `
 
 export const confirmPendingCreation = gql`
-  mutation ($id: Float!) {
+  mutation ($id: Int!) {
     confirmPendingCreation(id: $id)
   }
 `

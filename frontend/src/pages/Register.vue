@@ -118,30 +118,8 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
-                  <b-row v-if="redeemCode">
-                    <b-col>
-                      <label>{{ $t('gdd_per_link.redeem') }}</label>
-                      <div class="mt-2 mb-2">
-                        <b-input-group class="shadow-sm p-2 bg-white rounded">
-                          <b-input-group-prepend is-text>
-                            <b-icon icon="link45deg"></b-icon>
-                          </b-input-group-prepend>
-                          <b-form-input
-                            readonly
-                            id="redeem-code"
-                            type="text"
-                            v-model="redeemCode"
-                          ></b-form-input>
-                        </b-input-group>
-                      </div>
-                    </b-col>
-                  </b-row>
 
-                  <b-row
-                    v-else
-                    v-b-toggle:my-collapse
-                    class="text-muted shadow-sm p-3 publisherCollaps"
-                  >
+                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>

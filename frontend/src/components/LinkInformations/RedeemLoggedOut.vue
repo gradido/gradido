@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-logged-out">
-    <redeem-information :user="user" :amount="amount" :memo="memo" />
+    <redeem-information :firstName="user.firstName" :amount="amount" :memo="memo" />
 
     <b-jumbotron>
       <div class="mb-6">

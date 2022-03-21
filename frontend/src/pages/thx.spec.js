@@ -99,11 +99,11 @@ describe('Thx', () => {
     })
 
     it('renders the thanks redirect button', () => {
-      expect(wrapper.find('a.btn').text()).toBe('login')
+      expect(wrapper.find('a.btn').text()).toBe('settings.password.reset')
     })
 
-    it('links the redirect button to /login', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+    it('links the redirect button to /forgot-password', () => {
+      expect(wrapper.find('a.btn').attributes('href')).toBe('/forgot-password')
     })
   })
 })

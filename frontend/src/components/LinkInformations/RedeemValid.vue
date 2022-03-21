@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-valid">
-    <redeem-information :user="user" :amount="amount" :memo="memo" />
+    <redeem-information :firstName="user.firstName" :amount="amount" :memo="memo" />
     <b-jumbotron>
       <div class="mb-3 text-center">
         <b-button variant="primary" @click="$emit('redeem-link', amount)" size="lg">
