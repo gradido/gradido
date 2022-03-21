@@ -3,7 +3,11 @@
     <b-container>
       <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
         <template #transactionForm>
-          <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
+          <transaction-form
+            :balance="balance"
+            @set-transaction="setTransaction"
+            :email="$route.query.email"
+          ></transaction-form>
         </template>
         <template #transactionConfirmationSend>
           <transaction-confirmation-send

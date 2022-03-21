@@ -160,13 +160,14 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
+    email: { type: String, default: null },
   },
   data() {
     return {
       amountFocused: false,
       emailFocused: false,
       form: {
-        email: '',
+        email: this.email ? this.email : '',
         amount: '',
         memo: '',
         amountValue: 0.0,
