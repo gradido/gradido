@@ -2,7 +2,7 @@
   <div class="redeem-information">
     <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
       <h1>
-        {{ user.firstName }}
+        {{ firstName }}
         {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
       </h1>
       <b>{{ memo }}</b>
@@ -13,7 +13,7 @@
 export default {
   name: 'RedeemInformation',
   props: {
-    user: { type: Object, required: true },
+    firstName: { type: String, required: true },
     amount: { type: String, required: true },
     memo: { type: String, required: true, default: '' },
   },

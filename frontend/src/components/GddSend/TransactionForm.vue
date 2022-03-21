@@ -19,7 +19,7 @@
             <div class="mt-4" v-show="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
-                {{ $t('gdd_per_link.sentence_1') }}
+                {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
