@@ -9,7 +9,11 @@
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
-          <b-button v-if="displaySetup.linkTo" :to="displaySetup.linkTo">
+          <b-button v-if="$route.params.code" :to="redeemLoginLink">
+            <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
+            {{ $t(displaySetup.button) }}
+          </b-button>
+          <b-button v-else :to="displaySetup.linkTo">
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
@@ -63,6 +67,11 @@ export default {
   methods: {
     setDisplaySetup(from) {
       this.displaySetup = textFields[this.$route.params.comingFrom]
+    },
+  },
+  computed: {
+    redeemLoginLink() {
+      return this.$route.params.code ? '/login/' + this.$route.params.code : '/login'
     },
   },
   created() {
