@@ -236,7 +236,7 @@ export default {
             lastName: this.form.lastname,
             language: this.language,
             publisherId: this.$store.state.publisherId,
-            redeemCode: this.redeem,
+            redeemCode: this.redeemCode,
           },
         })
         .then(() => {

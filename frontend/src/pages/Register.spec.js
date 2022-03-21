@@ -32,6 +32,9 @@ describe('Register', () => {
     $router: {
       push: routerPushMock,
     },
+    $route: {
+      params: {},
+    },
     $apollo: {
       mutate: registerUserMutationMock,
       query: apolloQueryMock,
@@ -312,6 +315,45 @@ describe('Register', () => {
         })
       })
     })
-    // TODO: line 157
+
+    describe('redeem code', () => {
+      describe('no redeem code', () => {
+        it('has no redeem code', () => {
+          expect(wrapper.vm.redeemCode).toBe(undefined)
+        })
+      })
+    })
+
+    describe('with redeem code', () => {
+      beforeEach(async () => {
+        jest.clearAllMocks()
+        mocks.$route.params = {
+          code: 'some-code',
+        }
+        wrapper = Wrapper()
+        wrapper.find('#registerFirstname').setValue('Max')
+        wrapper.find('#registerLastname').setValue('Mustermann')
+        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
+        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
+        wrapper.find('#registerCheckbox').setChecked()
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+      })
+
+      it('sends the redeem code to the server', () => {
+        expect(registerUserMutationMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              email: 'max.mustermann@gradido.net',
+              firstName: 'Max',
+              lastName: 'Mustermann',
+              language: 'en',
+              publisherId: 12345,
+              redeemCode: 'some-code',
+            },
+          }),
+        )
+      })
+    })
   })
 })
