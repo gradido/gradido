@@ -96,7 +96,11 @@ export default {
         .then(() => {
           this.form.password = ''
           if (this.$route.path.includes('checkEmail')) {
-            this.$router.push('/thx/checkEmail')
+            if (this.$route.params.code) {
+              this.$router.push('/thx/checkEmail/' + this.$route.params.code)
+            } else {
+              this.$router.push('/thx/checkEmail')
+            }
           } else {
             this.$router.push('/thx/resetPassword')
           }
