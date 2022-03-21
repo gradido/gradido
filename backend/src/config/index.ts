@@ -54,8 +54,6 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
-// TODO: Hannes if I find you... this looks like blasphemy
-const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -67,7 +65,9 @@ const email = {
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
   EMAIL_LINK_SETPASSWORD:
     process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
-  RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
+  EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
+    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 10
+    : 10,
 }
 
 const webhook = {

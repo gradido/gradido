@@ -119,6 +119,12 @@ export const communities = gql`
   }
 `
 
+export const queryOptIn = gql`
+  query($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
 export const queryTransactionLink = gql`
   query($code: String!) {
     queryTransactionLink(code: $code) {
