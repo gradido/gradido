@@ -33,6 +33,9 @@ describe('Send', () => {
     $apollo: {
       mutate: apolloMutationMock,
     },
+    $route: {
+      query: {},
+    },
   }
 
   const Wrapper = () => {
