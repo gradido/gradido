@@ -100,7 +100,7 @@
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "expired": "Expired",
-    "has-account": "You have a Gradido account",
+    "has-account": "You already have a Gradido account",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
     "link-deleted": "The link was deleted on {date}.",
