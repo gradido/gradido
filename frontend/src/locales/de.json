@@ -109,7 +109,7 @@
     "links_count": "Aktive Links",
     "links_sum": "Summe deiner versendeten Gradidos",
     "no-account": "Du hast noch kein Gradido Konto",
-    "no-redeem": "Du kannst deinen eigenen Link nicht einlösen!",
+    "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Konnte den Link nicht kopieren: {err}",
     "redeem": "Einlösen",
     "redeem-text": "Willst du den Betrag jetzt einlösen?",
