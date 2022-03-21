@@ -109,7 +109,7 @@
     "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
     "no-account": "You don't have a Gradido account yet",
-    "no-redeem": "You can't redeem your own link!",
+    "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Could not copy link: {err}",
     "redeem": "Redeem",
     "redeem-text": "Do you want to redeem the amount now?",
