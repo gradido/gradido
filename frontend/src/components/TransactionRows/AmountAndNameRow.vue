@@ -12,8 +12,7 @@
         <div class="gdd-transaction-list-item-name">
           <b-link
             v-if="linkedUser && linkedUser.email"
-            :href="`/send?email=${linkedUser.email}`"
-            @click.stop
+            @click.stop="$router.push({ path: '/send', query: { email: `${linkedUser.email}` } })"
           >
             {{ itemText }}
           </b-link>

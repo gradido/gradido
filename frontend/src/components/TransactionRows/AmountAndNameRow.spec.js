@@ -3,7 +3,11 @@ import AmountAndNameRow from './AmountAndNameRow'
 
 const localVue = global.localVue
 
-const mocks = {}
+const mocks = {
+  $router: {
+    push: jest.fn(),
+  },
+}
 
 const propsData = {
   amount: '19.99',
@@ -51,10 +55,17 @@ describe('AmountAndNameRow', () => {
         expect(wrapper.find('div.gdd-transaction-list-item-name').find('a').exists()).toBe(true)
       })
 
-      it('links with param email', () => {
-        expect(
-          wrapper.find('div.gdd-transaction-list-item-name').find('a').attributes('href'),
-        ).toBe('/send?email=bibi@bloxberg.de')
+      describe('click link', () => {
+        beforeEach(async () => {
+          await wrapper.find('div.gdd-transaction-list-item-name').find('a').trigger('click')
+        })
+
+        it('pushes the rpute with query for email', () => {
+          expect(mocks.$router.push).toBeCalledWith({
+            path: '/send',
+            query: { email: 'bibi@bloxberg.de' },
+          })
+        })
       })
     })
   })
