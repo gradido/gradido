@@ -367,10 +367,14 @@ export class UserResolver {
       // TODO: this has duplicate code with sendResetPasswordEmail
       const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
-      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+      let activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{code}/g,
         emailOptIn.verificationCode.toString(),
       )
+
+      if (redeemCode !== '') {
+        activationLink += '/' + redeemCode
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
@@ -380,13 +384,13 @@ export class UserResolver {
         email,
       })
 
-      /* uncomment this, when you need the activation link on the console
+      // uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         // eslint-disable-next-line no-console
         console.log(`Account confirmation link: ${activationLink}`)
       }
-      */
+
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
