@@ -127,7 +127,10 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.DELETE_USER])
   @Mutation(() => Date, { nullable: true })
-  async deleteUser(@Arg('userId') userId: number, @Ctx() context: any): Promise<Date | null> {
+  async deleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: any,
+  ): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
@@ -146,7 +149,7 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
-  async unDeleteUser(@Arg('userId') userId: number): Promise<Date | null> {
+  async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
     // user exists ?
     if (!user) {
@@ -288,7 +291,7 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
-  async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
+  async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
     const entity = await AdminPendingCreation.findOneOrFail(id)
     const res = await AdminPendingCreation.delete(entity)
     return !!res
@@ -296,7 +299,10 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
-  async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
+  async confirmPendingCreation(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: any,
+  ): Promise<boolean> {
     const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
     const moderatorUser = context.user
     if (moderatorUser.id === pendingCreation.userId)
