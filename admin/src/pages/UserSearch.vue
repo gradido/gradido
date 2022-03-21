@@ -99,7 +99,7 @@ export default {
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
-      this.toastSuccess(this.$t('user_deleted'))
+      this.toastSuccess(deletedAt ? this.$t('user_deleted') : this.$t('user_recovered'))
     },
   },
   watch: {
