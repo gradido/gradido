@@ -103,7 +103,7 @@
     "has-account": "Du hast ein Gradido Konto",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
-    "link-deleted": "Der Link wurde am {date} von {user} gelöscht.",
+    "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",

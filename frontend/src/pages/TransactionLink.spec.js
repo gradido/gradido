@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ShowTransactionLinkInformations from './ShowTransactionLinkInformations'
+import TransactionLink from './TransactionLink'
 import { queryTransactionLink } from '@/graphql/queries'
 
 const localVue = global.localVue
@@ -21,7 +21,6 @@ apolloQueryMock.mockResolvedValue({
         redeemedAt: '2022-03-18T10:08:43.000Z',
         deletedAt: null,
         user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de', __typename: 'User' },
-        __typename: 'TransactionLink',
       },
     ],
   },
@@ -52,11 +51,11 @@ const createMockObject = (code) => {
   }
 }
 
-describe('ShowTransactionLinkInformations', () => {
+describe('TransactionLink', () => {
   let wrapper
 
   const Wrapper = (functionN) => {
-    return mount(ShowTransactionLinkInformations, functionN)
+    return mount(TransactionLink, functionN)
   }
 
   describe('mount', () => {

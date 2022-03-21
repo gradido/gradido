@@ -183,9 +183,9 @@ describe('router', () => {
       })
 
       describe('redeem', () => {
-        it('loads the "ShowTransactionLinkInformations" page', async () => {
+        it('loads the "TransactionLink" page', async () => {
           const component = await routes.find((r) => r.path === '/redeem/:code').component()
-          expect(component.default.name).toBe('ShowTransactionLinkInformations')
+          expect(component.default.name).toBe('TransactionLink')
         })
       })
 

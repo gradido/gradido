@@ -32,7 +32,7 @@ import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
-  name: 'ShowTransactionLinkInformations',
+  name: 'TransactionLink',
   components: {
     TransactionLinkInformationItem,
     RedeemLoggedOut,
@@ -103,7 +103,6 @@ export default {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
           date: this.linkData.deletedAt,
-          user: this.linkData.user.firstName,
         })
         return `X4`
       } else {
