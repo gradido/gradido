@@ -7,6 +7,7 @@ import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeor
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { encode } from '@/auth/JWT'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
@@ -338,6 +339,12 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
+    if (redeemCode) {
+      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+      if (transactionLink) {
+        dbUser.referrerId = transactionLink.userId
+      }
+    }
     // TODO this field has no null allowed unlike the loginServer table
     // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
     // dbUser.pubkey = keyPair[0]
