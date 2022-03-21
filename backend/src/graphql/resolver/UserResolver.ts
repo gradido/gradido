@@ -158,10 +158,9 @@ const createEmailOptIn = async (
   if (emailOptIn) {
     if (isOptInCodeValid(emailOptIn)) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
-    } else {
-      emailOptIn.updatedAt = new Date()
-      emailOptIn.resendCount++
     }
+    emailOptIn.updatedAt = new Date()
+    emailOptIn.resendCount++
   } else {
     emailOptIn = new LoginEmailOptIn()
     emailOptIn.verificationCode = random(64)
@@ -186,10 +185,9 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   if (optInCode) {
     if (isOptInCodeValid(optInCode)) {
       throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
-    } else {
-      optInCode.updatedAt = new Date()
-      optInCode.resendCount++
     }
+    optInCode.updatedAt = new Date()
+    optInCode.resendCount++
   } else {
     optInCode = new LoginEmailOptIn()
     optInCode.verificationCode = random(64)
