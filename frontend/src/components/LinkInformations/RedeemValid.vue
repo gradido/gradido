@@ -1,13 +1,6 @@
 <template>
   <div class="redeem-valid">
-    <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
-      <h1>
-        {{ user.firstName }}
-        {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
-      </h1>
-      <b>{{ memo }}</b>
-    </b-jumbotron>
-
+    <redeem-information :user="user" :amount="amount" :memo="memo" />
     <b-jumbotron>
       <div class="mb-3 text-center">
         <b-button variant="primary" @click="$emit('redeem-link', amount)" size="lg">
@@ -18,8 +11,13 @@
   </div>
 </template>
 <script>
+import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+
 export default {
   name: 'RedeemValid',
+  components: {
+    RedeemInformation,
+  },
   props: {
     user: { type: Object, required: false },
     amount: { type: String, required: false },

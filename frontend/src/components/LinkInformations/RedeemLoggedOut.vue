@@ -1,12 +1,7 @@
 <template>
   <div class="redeem-logged-out">
-    <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
-      <h1>
-        {{ user.firstName }}
-        {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
-      </h1>
-      <b>{{ memo }}</b>
-    </b-jumbotron>
+    <redeem-information :user="user" :amount="amount" :memo="memo" />
+
     <b-jumbotron>
       <div class="mb-6">
         <h2>{{ $t('gdd_per_link.redeem') }}</h2>
@@ -28,8 +23,13 @@
   </div>
 </template>
 <script>
+import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+
 export default {
   name: 'RedeemLoggedOut',
+  components: {
+    RedeemInformation,
+  },
   props: {
     user: { type: Object, required: true },
     amount: { type: String, required: true },

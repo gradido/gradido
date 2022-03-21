@@ -1,12 +1,6 @@
 <template>
   <div class="redeem-self-creator">
-    <b-jumbotron bg-variant="muted" text-variant="dark" border-variant="info">
-      <h1>
-        {{ user.firstName }}
-        {{ $t('transaction-link.send_you') }} {{ amount | GDD }}
-      </h1>
-      <b>{{ memo }}</b>
-    </b-jumbotron>
+    <redeem-information :user="user" :amount="amount" :memo="memo" />
 
     <b-jumbotron>
       <div class="mb-3 text-center">
@@ -21,8 +15,13 @@
   </div>
 </template>
 <script>
+import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+
 export default {
   name: 'RedeemSelfCreator',
+  components: {
+    RedeemInformation,
+  },
   props: {
     user: { type: Object, required: true },
     amount: { type: String, required: true },

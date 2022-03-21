@@ -130,8 +130,7 @@
                             readonly
                             id="redeem-code"
                             type="text"
-                            v-model="redeemCode"
-                            @input="commitStoreRedeemCode(redeemCode)"
+                            v-model="$store.state.redeemCode"
                           ></b-form-input>
                         </b-input-group>
                       </div>

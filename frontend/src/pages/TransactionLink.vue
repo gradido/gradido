@@ -2,28 +2,28 @@
   <div class="show-transaction-link-informations">
     <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="mt-4">
-      <transaction-link-information-item :type="itemType">
-        <template #X1>
+      <transaction-link-item :type="itemType">
+        <template #LOGGED_OUT>
           <redeem-logged-out v-bind="linkData" />
         </template>
 
-        <template #X2>
+        <template #SELF_CREATOR>
           <redeem-self-creator v-bind="linkData" />
         </template>
 
-        <template #X3>
+        <template #VALID>
           <redeem-valid v-bind="linkData" @redeem-link="redeemLink" />
         </template>
 
-        <template #X4>
+        <template #TEXT>
           <redeemed-text-box :text="redeemedBoxText" />
         </template>
-      </transaction-link-information-item>
+      </transaction-link-item>
     </b-container>
   </div>
 </template>
 <script>
-import TransactionLinkInformationItem from '@/components/TransactionLinkInformationItem'
+import TransactionLinkItem from '@/components/TransactionLinkItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
 import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
@@ -34,7 +34,7 @@ import { redeemTransactionLink } from '@/graphql/mutations'
 export default {
   name: 'TransactionLink',
   components: {
-    TransactionLinkInformationItem,
+    TransactionLinkItem,
     RedeemLoggedOut,
     RedeemSelfCreator,
     RedeemValid,
@@ -104,7 +104,7 @@ export default {
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
           date: this.linkData.deletedAt,
         })
-        return `X4`
+        return `TEXT`
       } else {
         // link ist abgelaufen, nicht gelöscht
         if (new Date(this.linkData.validUntil) < new Date()) {
@@ -112,7 +112,7 @@ export default {
           this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
             date: this.linkData.validUntil,
           })
-          return `X4`
+          return `TEXT`
         }
 
         // der link wurde eingelöst, nicht gelöscht
@@ -121,16 +121,14 @@ export default {
           this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
             date: this.linkData.redeemedAt,
           })
-          return `X4`
+          return `TEXT`
         }
       }
 
-      if (!this.$store.state.token) {
-        return `X1`
-      } else {
+      if (this.$store.state.token) {
         // logged in, nicht berechtigt einzulösen, eigener link
         if (this.$store.state.email === this.linkData.user.email) {
-          return `X2`
+          return `SELF_CREATOR`
         }
 
         // logged in und berechtigt einzulösen
@@ -139,11 +137,11 @@ export default {
           !this.linkData.redeemedAt &&
           !this.linkData.deletedAt
         ) {
-          return `X3`
+          return `VALID`
         }
       }
 
-      return `X`
+      return `LOGGED_OUT`
     },
   },
   created() {

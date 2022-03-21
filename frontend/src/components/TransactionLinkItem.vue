@@ -5,7 +5,7 @@
 </template>
 <script>
 export default {
-  name: 'TransactionLinkInformationItem',
+  name: 'TransactionLinkItem',
   props: {
     type: {
       type: String,
