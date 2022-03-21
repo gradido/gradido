@@ -10,7 +10,10 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-name">
-          {{ itemText }}
+          <b-link v-if="linkedUser" :href="`/send?email=${linkedUser.email}`" @click.stop>
+            {{ itemText }}
+          </b-link>
+          <span v-else>{{ itemText }}</span>
         </div>
       </b-col>
     </b-row>
