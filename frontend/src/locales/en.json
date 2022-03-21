@@ -94,6 +94,7 @@
   },
   "GDD": "GDD",
   "gdd_per_link": {
+    "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
@@ -115,8 +116,6 @@
     "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
-    "successfully-redeemed": "Successfully redeemed!",
-    "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "to-login": "Log in",
     "to-register": "Register a new account"
   },

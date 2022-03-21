@@ -119,11 +119,7 @@
                     </span>
                   </b-alert>
 
-                  <b-row
-                    v-else
-                    v-b-toggle:my-collapse
-                    class="text-muted shadow-sm p-3 publisherCollaps"
-                  >
+                  <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
