@@ -65,9 +65,8 @@ export default {
         .then((result) => {
           this.linkData = result.data.queryTransactionLink
         })
-        .catch(() => {
-          this.itemType = 'X4'
-          this.linkData.deletedAt = true
+        .catch((err) => {
+          this.toastError(err.message)
         })
     },
     redeemLink(amount) {
@@ -97,7 +96,6 @@ export default {
   },
   computed: {
     itemType() {
-      // logged out
       // link wurde gelöscht: am, von
       if (this.linkData.deletedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
@@ -105,24 +103,23 @@ export default {
           date: this.linkData.deletedAt,
         })
         return `TEXT`
-      } else {
-        // link ist abgelaufen, nicht gelöscht
-        if (new Date(this.linkData.validUntil) < new Date()) {
-          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
-            date: this.linkData.validUntil,
-          })
-          return `TEXT`
-        }
+      }
+      // link ist abgelaufen, nicht gelöscht
+      if (new Date(this.linkData.validUntil) < new Date()) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
+          date: this.linkData.validUntil,
+        })
+        return `TEXT`
+      }
 
-        // der link wurde eingelöst, nicht gelöscht
-        if (this.linkData.redeemedAt) {
-          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
-            date: this.linkData.redeemedAt,
-          })
-          return `TEXT`
-        }
+      // der link wurde eingelöst, nicht gelöscht
+      if (this.linkData.redeemedAt) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
+          date: this.linkData.redeemedAt,
+        })
+        return `TEXT`
       }
 
       if (this.$store.state.token) {
