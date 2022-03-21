@@ -1,8 +1,6 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
-  "bookmark": "bookmark",
-  "confirmed": "bestätigt",
   "creation": "Schöpfung",
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
@@ -16,7 +14,6 @@
     "submit_creation": "Schöpfung einreichen",
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
     "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
-    "toasted_default": "`Fall {event} wird nicht unterstützt`",
     "toasted_delete": "Offene Schöpfung wurde gelöscht",
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
@@ -27,14 +24,26 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "delete_user": "Nutzer löschen",
-  "details": "Details",
   "edit": "Bearbeiten",
+  "enabled": "aktiviert",
   "error": "Fehler",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
-  "gradido_admin_footer": "Gradido Akademie Adminkonsole",
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido Akademie Adminkonsole",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "GDD": "GDD",
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
+  "math": {
+    "exclaim": "!",
+    "pipe": "|"
+  },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
@@ -47,7 +56,6 @@
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
-  "open_creation": "Offene Schöpfung",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "confirm": {
@@ -56,13 +64,6 @@
       "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
       "title": "Schöpfung bestätigen!",
       "yes": "Ja, Schöpfung bestätigen und speichern!"
-    },
-    "remove": {
-      "no": "Nein, nicht löschen.",
-      "question": "Willst du die vorgespeicherte Schöpfung wirklich löschen?",
-      "text": "Nach dem Löschen gibt es keine Möglichkeit mehr diesen Datensatz wiederherzustellen. Es wird aber der gesamte Vorgang in der Logdatei als Übersicht gespeichert.",
-      "title": "Achtung! Schöpfung löschen!",
-      "yes": "Ja, Schöpfung löschen!"
     }
   },
   "remove": "Entfernen",
@@ -72,13 +73,11 @@
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
-  "transaction": "Transaktion",
   "transactionlist": {
     "amount": "Betrag",
     "balanceDate": "Schöpfungsdatum",
     "community": "Gemeinschaft",
     "date": "Datum",
-    "decay": "Vergänglichkeit",
     "memo": "Nachricht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },

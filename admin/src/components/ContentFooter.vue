@@ -4,24 +4,24 @@
     <b-row align-v="center" class="mt-4 justify-content-lg-between">
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
-          © {{ year }}
+          {{ $t('footer.copyright.year', { year }) }}
           <a
             :href="`https://gradido.net/${$i18n.locale}`"
             class="font-weight-bold ml-1"
             target="_blank"
           >
-            {{ $t('gradido_admin_footer') }}
+            {{ $t('footer.copyright.link') }}
           </a>
-          |
+          {{ $t('math.pipe') }}
           <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
-            App version {{ version }}
+            {{ $t('footer.app_version', { version }) }}
           </a>
           <a
             v-if="hash"
             :href="'https://github.com/gradido/gradido/commit/' + hash"
             target="_blank"
           >
-            ({{ shortHash }})
+            {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
       </b-col>

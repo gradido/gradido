@@ -13,8 +13,8 @@
       </b-col>
       <b-col cols="6">
         <div>
-          {{ (Number(balance) - Number(decay.decay)) | GDD }}
-          {{ decay.decay | GDD }} =
+          {{ (Number(balance) - Number(decay)) | GDD }}
+          {{ decay | GDD }} {{ $t('math.equal') }}
           <b>{{ balance | GDD }}</b>
         </div>
       </b-col>
@@ -27,9 +27,11 @@ export default {
   props: {
     balance: {
       type: String,
+      required: true,
     },
     decay: {
-      type: Object,
+      type: String,
+      required: true,
     },
   },
 }

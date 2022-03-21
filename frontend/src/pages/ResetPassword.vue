@@ -5,9 +5,11 @@
         <div class="header-body text-center mb-7">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
               <h1>{{ $t(displaySetup.authenticated) }}</h1>
               <div class="pb-4">
                 <span>
+                  <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
                   {{ $t(displaySetup.notAuthenticated) }}
                 </span>
               </div>
@@ -26,6 +28,7 @@
                   <input-password-confirmation v-model="form" />
                   <div class="text-center">
                     <b-button type="submit" variant="primary" class="mt-4">
+                      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
                       {{ $t(displaySetup.button) }}
                     </b-button>
                   </div>

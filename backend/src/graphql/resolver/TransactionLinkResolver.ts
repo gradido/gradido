@@ -2,11 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query } from 'type-graphql'
-import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
-import { UserRepository } from '@repository/User'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
 import Paginated from '@arg/Paginated'
 import { calculateBalance } from '@/util/validate'
@@ -29,7 +27,7 @@ export const transactionLinkCode = (date: Date): string => {
 
 const CODE_VALID_DAYS_DURATION = 14
 
-const transactionLinkExpireDate = (date: Date): Date => {
+export const transactionLinkExpireDate = (date: Date): Date => {
   const validUntil = new Date(date)
   return new Date(validUntil.setDate(date.getDate() + CODE_VALID_DAYS_DURATION))
 }
@@ -42,8 +40,7 @@ export class TransactionLinkResolver {
     @Args() { amount, memo }: TransactionLinkArgs,
     @Ctx() context: any,
   ): Promise<TransactionLink> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const { user } = context
 
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
@@ -74,8 +71,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.DELETE_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async deleteTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const { user } = context
 
     const transactionLink = await dbTransactionLink.findOne({ id })
     if (!transactionLink) {
@@ -116,8 +112,7 @@ export class TransactionLinkResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: any,
   ): Promise<TransactionLink[]> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const { user } = context
     // const now = new Date()
     const transactionLinks = await dbTransactionLink.find({
       where: {
@@ -137,8 +132,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const { user } = context
     const transactionLink = await dbTransactionLink.findOneOrFail({ id })
     const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 

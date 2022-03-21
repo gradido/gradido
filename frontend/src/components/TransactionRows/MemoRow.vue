@@ -16,7 +16,7 @@ export default {
   props: {
     memo: {
       type: String,
-      required: false,
+      required: true,
     },
   },
 }

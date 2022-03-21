@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, createUser, headerPushMock, cleanDB, resetToken } from '@test/helpers'
-import { createUserMutation, setPasswordMutation } from '@test/graphql'
-import gql from 'graphql-tag'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { userFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { createUser, setPassword } from '@/seeds/graphql/mutations'
+import { login, logout } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-// import { klicktippSignIn } from '@/apis/KlicktippController'
 
-jest.setTimeout(1000000)
+// import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
@@ -30,27 +31,10 @@ jest.mock('@/apis/KlicktippController', () => {
 */
 
 let mutate: any, query: any, con: any
-
-const loginQuery = gql`
-  query ($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
-      email
-      firstName
-      lastName
-      language
-      coinanimation
-      klickTipp {
-        newsletterState
-      }
-      hasElopage
-      publisherId
-      isAdmin
-    }
-  }
-`
+let testEnv: any
 
 beforeAll(async () => {
-  const testEnv = await testEnvironment()
+  testEnv = await testEnvironment()
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -77,7 +61,7 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       jest.clearAllMocks()
-      result = await mutate({ mutation: createUserMutation, variables })
+      result = await mutate({ mutation: createUser, variables })
     })
 
     afterAll(async () => {
@@ -85,7 +69,9 @@ describe('UserResolver', () => {
     })
 
     it('returns success', () => {
-      expect(result).toEqual(expect.objectContaining({ data: { createUser: 'success' } }))
+      expect(result).toEqual(
+        expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
+      )
     })
 
     describe('valid input data', () => {
@@ -149,7 +135,7 @@ describe('UserResolver', () => {
 
     describe('email already exists', () => {
       it('throws an error', async () => {
-        await expect(mutate({ mutation: createUserMutation, variables })).resolves.toEqual(
+        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
@@ -160,7 +146,7 @@ describe('UserResolver', () => {
     describe('unknown language', () => {
       it('sets "de" as default language', async () => {
         await mutate({
-          mutation: createUserMutation,
+          mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
         })
         await expect(User.find()).resolves.toEqual(
@@ -177,7 +163,7 @@ describe('UserResolver', () => {
     describe('no publisher id', () => {
       it('sets publisher id to null', async () => {
         await mutate({
-          mutation: createUserMutation,
+          mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
         await expect(User.find()).resolves.toEqual(
@@ -208,11 +194,11 @@ describe('UserResolver', () => {
       let newUser: any
 
       beforeAll(async () => {
-        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        await mutate({ mutation: createUser, variables: createUserVariables })
         const loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
         result = await mutate({
-          mutation: setPasswordMutation,
+          mutation: setPassword,
           variables: { code: emailOptIn, password: 'Aa12345_' },
         })
         newUser = await User.find()
@@ -252,11 +238,11 @@ describe('UserResolver', () => {
 
     describe('no valid password', () => {
       beforeAll(async () => {
-        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        await mutate({ mutation: createUser, variables: createUserVariables })
         const loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
         result = await mutate({
-          mutation: setPasswordMutation,
+          mutation: setPassword,
           variables: { code: emailOptIn, password: 'not-valid' },
         })
       })
@@ -280,9 +266,9 @@ describe('UserResolver', () => {
 
     describe('no valid optin code', () => {
       beforeAll(async () => {
-        await mutate({ mutation: createUserMutation, variables: createUserVariables })
+        await mutate({ mutation: createUser, variables: createUserVariables })
         result = await mutate({
-          mutation: setPasswordMutation,
+          mutation: setPassword,
           variables: { code: 'not valid', password: 'Aa12345_' },
         })
       })
@@ -303,7 +289,7 @@ describe('UserResolver', () => {
 
   describe('login', () => {
     const variables = {
-      email: 'peter@lustig.de',
+      email: 'bibi@bloxberg.de',
       password: 'Aa12345_',
       publisherId: 1234,
     }
@@ -316,7 +302,7 @@ describe('UserResolver', () => {
 
     describe('no users in database', () => {
       beforeAll(async () => {
-        result = await query({ query: loginQuery, variables })
+        result = await query({ query: login, variables })
       })
 
       it('throws an error', () => {
@@ -330,14 +316,8 @@ describe('UserResolver', () => {
 
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
-        await createUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
-        result = await query({ query: loginQuery, variables })
+        await userFactory(testEnv, bibiBloxberg)
+        result = await query({ query: login, variables })
       })
 
       afterAll(async () => {
@@ -350,15 +330,16 @@ describe('UserResolver', () => {
             data: {
               login: {
                 coinanimation: true,
-                email: 'peter@lustig.de',
-                firstName: 'Peter',
+                email: 'bibi@bloxberg.de',
+                firstName: 'Bibi',
                 hasElopage: false,
+                id: expect.any(Number),
                 isAdmin: false,
                 klickTipp: {
                   newsletterState: false,
                 },
                 language: 'de',
-                lastName: 'Lustig',
+                lastName: 'Bloxberg',
                 publisherId: 1234,
               },
             },
@@ -373,13 +354,7 @@ describe('UserResolver', () => {
 
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
-        await createUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
+        await userFactory(testEnv, bibiBloxberg)
       })
 
       afterAll(async () => {
@@ -388,7 +363,7 @@ describe('UserResolver', () => {
 
       it('returns an error', () => {
         expect(
-          query({ query: loginQuery, variables: { ...variables, password: 'wrong' } }),
+          query({ query: login, variables: { ...variables, password: 'wrong' } }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
@@ -399,16 +374,10 @@ describe('UserResolver', () => {
   })
 
   describe('logout', () => {
-    const logoutQuery = gql`
-      query {
-        logout
-      }
-    `
-
     describe('unauthenticated', () => {
       it('throws an error', async () => {
         resetToken()
-        await expect(query({ query: logoutQuery })).resolves.toEqual(
+        await expect(query({ query: logout })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -418,19 +387,13 @@ describe('UserResolver', () => {
 
     describe('authenticated', () => {
       const variables = {
-        email: 'peter@lustig.de',
+        email: 'bibi@bloxberg.de',
         password: 'Aa12345_',
       }
 
       beforeAll(async () => {
-        await createUser(mutate, {
-          email: 'peter@lustig.de',
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          language: 'de',
-          publisherId: 1234,
-        })
-        await query({ query: loginQuery, variables })
+        await userFactory(testEnv, bibiBloxberg)
+        await query({ query: login, variables })
       })
 
       afterAll(async () => {
@@ -438,7 +401,7 @@ describe('UserResolver', () => {
       })
 
       it('returns true', async () => {
-        await expect(query({ query: logoutQuery })).resolves.toEqual(
+        await expect(query({ query: logout })).resolves.toEqual(
           expect.objectContaining({
             data: { logout: 'true' },
             errors: undefined,
