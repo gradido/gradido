@@ -220,13 +220,14 @@
       "uppercase": "Großbuchstabe erforderlich."
     },
     "thx": {
-      "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink!",
+      "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite.",
       "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
       "email": "Wir haben dir eine E-Mail gesendet.",
       "emailActivated": "Danke dass Du deine E-Mail bestätigt hast.",
       "errorTitle": "Achtung!",
       "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
+      "resetPassword": "Den Code den Du genutzt hast ist zu alt bitte fordere ein neuen über die Passwort Reset Seite an.",
       "title": "Danke!"
     }
   },
