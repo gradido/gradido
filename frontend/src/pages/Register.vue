@@ -118,7 +118,7 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
-                  <b-row v-if="$route.params.code">
+                  <b-row v-if="redeemCode">
                     <b-col>
                       <label>{{ $t('gdd_per_link.redeem') }}</label>
                       <div class="mt-2 mb-2">
@@ -130,7 +130,7 @@
                             readonly
                             id="redeem-code"
                             type="text"
-                            v-model="$store.state.redeemCode"
+                            v-model="redeemCode"
                           ></b-form-input>
                         </b-input-group>
                       </div>
@@ -234,7 +234,7 @@ export default {
       messageError: '',
       register: true,
       publisherId: this.$store.state.publisherId,
-      redeemCode: this.$store.state.redeemCode,
+      redeemCode: this.$route.params.code,
     }
   },
   methods: {
@@ -248,9 +248,6 @@ export default {
     commitStorePublisherId(val) {
       this.$store.commit('publisherId', val)
     },
-    commitStoreRedeemCode(val) {
-      this.$store.commit('redeemCode', val)
-    },
     async onSubmit() {
       this.$apollo
         .mutate({
@@ -261,7 +258,7 @@ export default {
             lastName: this.form.lastname,
             language: this.language,
             publisherId: this.$store.state.publisherId,
-            redeemCode: this.$store.state.redeemCode,
+            redeemCode: this.redeem,
           },
         })
         .then(() => {
@@ -295,11 +292,6 @@ export default {
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
     },
-  },
-  created() {
-    if (this.$route.params.code) {
-      this.commitStoreRedeemCode(this.$route.params.code)
-    }
   },
 }
 </script>
