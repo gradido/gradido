@@ -24,7 +24,7 @@
 </template>
 <script>
 import TransactionLinkInformationItem from '@/components/TransactionLinkInformationItem'
-import RedeemLoggedOut from '@/components/LinkInformatins/RedeemLoggedOut'
+import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
 import RedeemSelfCreator from '@/components/LinkInformatins/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformatins/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformatins/RedeemedTextBox'
