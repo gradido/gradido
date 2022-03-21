@@ -25,9 +25,9 @@
 <script>
 import TransactionLinkInformationItem from '@/components/TransactionLinkInformationItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
-import RedeemSelfCreator from '@/components/LinkInformatins/RedeemSelfCreator'
-import RedeemValid from '@/components/LinkInformatins/RedeemValid'
-import RedeemedTextBox from '@/components/LinkInformatins/RedeemedTextBox'
+import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
+import RedeemValid from '@/components/LinkInformations/RedeemValid'
+import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
 
