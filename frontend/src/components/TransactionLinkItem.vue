@@ -1,13 +1,13 @@
 <template>
   <div>
-    <slot :name="typeId"></slot>
+    <slot :name="type"></slot>
   </div>
 </template>
 <script>
 export default {
-  name: 'TransactionListItem',
+  name: 'TransactionLinkItem',
   props: {
-    typeId: {
+    type: {
       type: String,
       required: true,
     },

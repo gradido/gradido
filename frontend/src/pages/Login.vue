@@ -96,13 +96,17 @@ export default {
           },
           fetchPolicy: 'network-only',
         })
-        .then((result) => {
+        .then(async (result) => {
           const {
             data: { login },
           } = result
           this.$store.dispatch('login', login)
-          this.$router.push('/overview')
-          loader.hide()
+          await loader.hide()
+          if (this.$route.params.code) {
+            this.$router.push(`/redeem/${this.$route.params.code}`)
+          } else {
+            this.$router.push('/overview')
+          }
         })
         .catch((error) => {
           this.toastError(this.$t('error.no-account'))
