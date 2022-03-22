@@ -3,7 +3,11 @@
     <b-container>
       <gdd-send :currentTransactionStep="currentTransactionStep" class="pt-3 ml-2 mr-2">
         <template #transactionForm>
-          <transaction-form :balance="balance" @set-transaction="setTransaction"></transaction-form>
+          <transaction-form
+            v-bind="transactionData"
+            :balance="balance"
+            @set-transaction="setTransaction"
+          ></transaction-form>
         </template>
         <template #transactionConfirmationSend>
           <transaction-confirmation-send
@@ -95,7 +99,6 @@ export default {
     transactions: {
       default: () => [],
     },
-
     pending: {
       type: Boolean,
       default: true,
@@ -125,7 +128,7 @@ export default {
             })
             .then(() => {
               this.error = false
-              this.$emit('update-balance', this.transactionData.amount)
+              this.updateTransactions({})
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
             .catch((err) => {
@@ -143,10 +146,7 @@ export default {
             .then((result) => {
               this.code = result.data.createTransactionLink.code
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
-              this.$emit(
-                'update-balance',
-                this.transactionData.amount + this.transactionData.amount * 0.028,
-              )
+              this.updateTransactions({})
             })
             .catch((error) => {
               this.toastError(error)
@@ -165,7 +165,7 @@ export default {
     },
   },
   created() {
-    this.updateTransactions(0)
+    this.updateTransactions({})
   },
 }
 </script>
