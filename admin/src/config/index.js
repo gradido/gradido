@@ -16,7 +16,7 @@ const version = {
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT || null,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
-  BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT || '0000000').substr(0, 7),
+  BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT || '0000000').slice(0, 7),
   PORT: process.env.PORT || 8080,
 }
 
