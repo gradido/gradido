@@ -101,6 +101,7 @@ describe('UserResolver', () => {
               language: 'de',
               deletedAt: null,
               publisherId: 1234,
+              referrerId: null,
             },
           ])
         })
