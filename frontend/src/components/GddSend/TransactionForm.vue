@@ -160,7 +160,6 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
-    email: { type: String, default: null },
   },
   inject: ['getTunneledEmail'],
   data() {
