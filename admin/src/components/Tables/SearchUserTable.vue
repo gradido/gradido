@@ -73,7 +73,7 @@
             v-if="!row.item.deletedAt"
             :userId="row.item.userId"
           />
-          <links-transaction-list-formular :userId="row.item.userId"/>
+          <links-transaction-list-formular :userId="row.item.userId" />
 
           <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
         </b-card>

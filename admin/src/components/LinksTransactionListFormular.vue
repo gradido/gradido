@@ -1,12 +1,11 @@
 <template>
   <div class="links-transaction-list-formular">
-    Transaction Links
-    {{items}}
+    {{ $t('transactionlink.form_header') }}
     <b-table striped hover :fields="fields" :items="items"></b-table>
   </div>
 </template>
 <script>
-import { getListTransactionLinks } from '../graphql/getListTransactionLinks'
+import { listTransactionLinks } from '../graphql/listTransactionLinks.js'
 export default {
   name: 'LinksTransactionListFormular',
   props: {
@@ -16,8 +15,8 @@ export default {
     return {
       fields: [
         {
-          key: 'creationDate',
-          label: this.$t('transactionlist.date'),
+          key: 'createdAt',
+          label: this.$t('transactionlink.created'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
@@ -29,17 +28,10 @@ export default {
             return `${value} GDD`
           },
         },
-        {
-          key: 'linkedUser',
-          label: this.$t('transactionlist.community'),
-          formatter: (value, key, item) => {
-            return `${value.firstName} ${value.lastName}`
-          },
-        },
         { key: 'memo', label: this.$t('transactionlist.memo') },
         {
-          key: 'balanceDate',
-          label: this.$t('transactionlist.balanceDate'),
+          key: 'validUntil',
+          label: this.$t('transactionlink.expired'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
@@ -50,18 +42,19 @@ export default {
   },
   methods: {
     getListTransactionLinks() {
+      alert('es wird nur die id von peter erkannt. bitte die links der userId aus dem backend geben.')
       this.$apollo
         .query({
-          query: getListTransactionLinks,
+          query: listTransactionLinks,
           variables: {
             currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
+            pageSize: 5,
             userId: parseInt(this.userId),
           },
         })
         .then((result) => {
-          this.items = result.data.getListTransactionLinks
+          console.log(result.data.listTransactionLinks)
+          this.items = result.data.listTransactionLinks
         })
         .catch((error) => {
           this.toastError(error.message)

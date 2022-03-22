@@ -81,6 +81,11 @@
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
+  "transactionlink": {
+    "form_header": "Transaction links",
+    "created":"Created",
+    "expired":"Expired"
+  },
   "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
