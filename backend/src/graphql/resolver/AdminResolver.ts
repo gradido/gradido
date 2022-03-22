@@ -21,6 +21,8 @@ import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Transaction } from '@model/Transaction'
+import { TransactionLink } from '@model/TransactionLink'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
@@ -368,6 +370,27 @@ export class AdminResolver {
 
     const user = await dbUser.findOneOrFail({ id: userId })
     return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Query(() => [TransactionLink])
+  async listTransactionLinksAdmin(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('userId', () => Int) userId: number,
+  ): Promise<TransactionLink[]> {
+    const user = await dbUser.findOneOrFail({ id: userId })
+    const transactionLinks = await dbTransactionLink.find({
+      where: {
+        userId: user.id,
+      },
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
   }
 }
 
