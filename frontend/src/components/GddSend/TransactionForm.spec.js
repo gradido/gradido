@@ -200,7 +200,7 @@ describe('GddSend', () => {
             expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
           })
 
-          it('clears all fields on click', async () => {
+          it('clears all fields on click and emits set-transaction', async () => {
             await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
             await wrapper.find('#input-group-2').find('input').setValue('87.23')
             await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
@@ -213,6 +213,16 @@ describe('GddSend', () => {
             expect(wrapper.vm.form.email).toBe('')
             expect(wrapper.vm.form.amount).toBe('')
             expect(wrapper.vm.form.memo).toBe('')
+            expect(wrapper.emitted('set-transaction')).toEqual([
+              [
+                {
+                  selected: 'send',
+                  email: '',
+                  amount: 0,
+                  memo: '',
+                },
+              ],
+            ])
           })
         })
 
