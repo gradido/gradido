@@ -382,7 +382,7 @@ export class AdminResolver {
     const user = await dbUser.findOneOrFail({ id: userId })
     const transactionLinks = await dbTransactionLink.find({
       where: {
-        userId: user.id,
+        userId,
       },
       order: {
         createdAt: order,
