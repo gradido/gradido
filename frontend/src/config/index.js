@@ -64,6 +64,7 @@ if (
 }
 
 const CONFIG = {
+  ...constants,
   ...version,
   ...environment,
   ...endpoints,
