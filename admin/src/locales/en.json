@@ -83,8 +83,8 @@
   },
   "transactionlink": {
     "form_header": "Transaction links",
-    "created":"Created",
-    "expired":"Expired"
+    "created": "Created",
+    "expired": "Expired"
   },
   "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",

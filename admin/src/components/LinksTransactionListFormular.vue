@@ -5,7 +5,7 @@
   </div>
 </template>
 <script>
-import { listTransactionLinks } from '../graphql/listTransactionLinks.js'
+import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 export default {
   name: 'LinksTransactionListFormular',
   props: {
@@ -42,19 +42,17 @@ export default {
   },
   methods: {
     getListTransactionLinks() {
-      alert('es wird nur die id von peter erkannt. bitte die links der userId aus dem backend geben.')
       this.$apollo
         .query({
-          query: listTransactionLinks,
+          query: listTransactionLinksAdmin,
           variables: {
             currentPage: 1,
             pageSize: 5,
-            userId: parseInt(this.userId),
+            userId: this.userId,
           },
         })
         .then((result) => {
-          console.log(result.data.listTransactionLinks)
-          this.items = result.data.listTransactionLinks
+          this.items = result.data.listTransactionLinksAdmin
         })
         .catch((error) => {
           this.toastError(error.message)

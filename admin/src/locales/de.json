@@ -83,8 +83,8 @@
   },
   "transactionlink": {
     "form_header": "Transaktion Links",
-    "created":"Erstellt",
-    "expired":"Abgelaufen"
+    "created": "Erstellt",
+    "expired": "Abgelaufen"
   },
   "undelete_user": "Nutzer wiederherstellen",
   "unregistered_emails": "Nur unregistrierte Nutzer",
