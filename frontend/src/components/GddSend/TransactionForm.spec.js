@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
+import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 
 const localVue = global.localVue
 
@@ -29,11 +30,7 @@ describe('TransactionForm', () => {
       localVue,
       mocks,
       propsData,
-      provide: {
-        getTunneledEmail() {
-          return null
-        },
-      },
+      provide: DashboardLayout.provide,
     })
   }
 

@@ -284,5 +284,14 @@ describe('DashboardLayoutGdd', () => {
         })
       })
     })
+
+    describe('set tunneled email', () => {
+      it('updates tunneled email', async () => {
+        await wrapper
+          .findComponent({ ref: 'router-view' })
+          .vm.$emit('set-tunneled-email', 'bibi@bloxberg.de')
+        expect(wrapper.vm.tunneledEmail).toBe('bibi@bloxberg.de')
+      })
+    })
   })
 })
