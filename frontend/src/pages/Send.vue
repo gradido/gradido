@@ -129,6 +129,7 @@ export default {
             .then(() => {
               this.error = false
               this.updateTransactions({})
+              this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
             .catch((err) => {

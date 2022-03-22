@@ -192,12 +192,6 @@ export default {
       this.form.email = ''
       this.form.amount = ''
       this.form.memo = ''
-      this.$emit('set-transaction', {
-        selected: this.selected,
-        email: '',
-        amount: 0,
-        memo: '',
-      })
     },
     normalizeAmount(isValid) {
       this.amountFocused = false
