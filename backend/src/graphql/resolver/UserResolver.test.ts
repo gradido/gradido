@@ -54,7 +54,6 @@ describe('UserResolver', () => {
       lastName: 'Lustig',
       language: 'de',
       publisherId: 1234,
-      redeemCode: 'a0000b0000c0000',
     }
 
     let result: any
