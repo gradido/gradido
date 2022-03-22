@@ -143,6 +143,10 @@ export default {
             .then((result) => {
               this.code = result.data.createTransactionLink.code
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
+              this.$emit(
+                'update-balance',
+                this.transactionData.amount + this.transactionData.amount * 0.028,
+              )
             })
             .catch((error) => {
               this.toastError(error)
