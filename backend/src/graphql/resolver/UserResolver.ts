@@ -371,7 +371,7 @@ export class UserResolver {
         emailOptIn.verificationCode.toString(),
       )
 
-      if (redeemCode !== '') {
+      if (redeemCode) {
         activationLink += '/' + redeemCode
       }
 
