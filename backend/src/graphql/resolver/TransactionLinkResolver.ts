@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query } from 'type-graphql'
+import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
@@ -70,7 +70,10 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.DELETE_TRANSACTION_LINK])
   @Mutation(() => Boolean)
-  async deleteTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
+  async deleteTransactionLink(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: any,
+  ): Promise<boolean> {
     const { user } = context
 
     const transactionLink = await dbTransactionLink.findOne({ id })
@@ -96,7 +99,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => TransactionLink)
   async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
     const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
     let redeemedBy: User | null = null
     if (transactionLink && transactionLink.redeemedBy) {
@@ -131,9 +134,12 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
   @Mutation(() => Boolean)
-  async redeemTransactionLink(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
+  async redeemTransactionLink(
+    @Arg('code', () => String) code: string,
+    @Ctx() context: any,
+  ): Promise<boolean> {
     const { user } = context
-    const transactionLink = await dbTransactionLink.findOneOrFail({ id })
+    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 
     const now = new Date()

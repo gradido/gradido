@@ -99,14 +99,14 @@ describe('router', () => {
 
       describe('login', () => {
         it('loads the "Login" page', async () => {
-          const component = await routes.find((r) => r.path === '/login').component()
+          const component = await routes.find((r) => r.path === '/login/:code?').component()
           expect(component.default.name).toBe('Login')
         })
       })
 
       describe('register', () => {
         it('loads the "register" page', async () => {
-          const component = await routes.find((r) => r.path === '/register').component()
+          const component = await routes.find((r) => r.path === '/register/:code?').component()
           expect(component.default.name).toBe('Register')
         })
       })
@@ -179,6 +179,13 @@ describe('router', () => {
         it('loads the "CheckEmail" page', async () => {
           const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
           expect(component.default.name).toBe('ResetPassword')
+        })
+      })
+
+      describe('redeem', () => {
+        it('loads the "TransactionLink" page', async () => {
+          const component = await routes.find((r) => r.path === '/redeem/:code').component()
+          expect(component.default.name).toBe('TransactionLink')
         })
       })
 

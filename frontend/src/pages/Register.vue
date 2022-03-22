@@ -118,12 +118,14 @@
                       {{ messageError }}
                     </span>
                   </b-alert>
+
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
                     <b-col class="text-right">
                       <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
                     </b-col>
                   </b-row>
+
                   <b-row>
                     <b-col>
                       <b-collapse id="my-collapse" class="">
@@ -136,7 +138,7 @@
                             type="text"
                             placeholder="Publisher ID"
                             v-model="publisherId"
-                            @input="commitStore(publisherId)"
+                            @input="commitStorePublisherId(publisherId)"
                           ></b-form-input>
                         </b-input-group>
                         <div
@@ -210,6 +212,7 @@ export default {
       messageError: '',
       register: true,
       publisherId: this.$store.state.publisherId,
+      redeemCode: this.$route.params.code,
     }
   },
   methods: {
@@ -220,7 +223,7 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    commitStore(val) {
+    commitStorePublisherId(val) {
       this.$store.commit('publisherId', val)
     },
     async onSubmit() {
@@ -233,6 +236,7 @@ export default {
             lastName: this.form.lastname,
             language: this.language,
             publisherId: this.$store.state.publisherId,
+            redeemCode: this.redeemCode,
           },
         })
         .then(() => {
