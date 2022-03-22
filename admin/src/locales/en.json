@@ -84,7 +84,7 @@
   "transactionlink": {
     "form_header": "Transaction links",
     "created": "Created",
-    "expired": "Expired"
+    "expired": "Valid until"
   },
   "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",
