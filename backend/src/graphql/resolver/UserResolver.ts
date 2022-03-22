@@ -306,7 +306,8 @@ export class UserResolver {
   @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => User)
   async createUser(
-    @Args() { email, firstName, lastName, language, publisherId, redeemCode = null}: CreateUserArgs,
+    @Args()
+    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
