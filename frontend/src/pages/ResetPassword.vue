@@ -6,11 +6,11 @@
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
               <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-              <h1>{{ $t(displaySetup.authenticated) }}</h1>
+              <h1>{{ $t(displaySetup.title) }}</h1>
               <div class="pb-4">
                 <span>
                   <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-                  {{ $t(displaySetup.notAuthenticated) }}
+                  {{ $t(displaySetup.text) }}
                 </span>
               </div>
             </b-col>
@@ -53,14 +53,14 @@ import { queryOptIn } from '@/graphql/queries'
 
 const textFields = {
   reset: {
-    authenticated: 'settings.password.change-password',
-    notAuthenticated: 'settings.password.reset-password.text',
+    title: 'settings.password.change-password',
+    text: 'settings.password.reset-password.text',
     button: 'settings.password.change-password',
     linkTo: '/login',
   },
   checkEmail: {
-    authenticated: 'settings.password.set',
-    notAuthenticated: 'settings.password.set-password.text',
+    title: 'settings.password.set',
+    text: 'settings.password.set-password.text',
     button: 'settings.password.set',
     linkTo: '/login',
   },
