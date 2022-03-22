@@ -54,6 +54,7 @@ describe('UserResolver', () => {
       lastName: 'Lustig',
       language: 'de',
       publisherId: 1234,
+      redeemCode: 'a0000b0000c0000',
     }
 
     let result: any
@@ -126,7 +127,7 @@ describe('UserResolver', () => {
       it('sends an account activation email', () => {
         const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/{code}/g, emailOptIn)
         expect(sendAccountActivationEmail).toBeCalledWith({
-          link: activationLink,
+          link: activationLink + '/a0000b0000c0000',
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
