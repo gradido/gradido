@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0032-add-transaction-link-to-transaction',
+  DB_VERSION: '0033-add_referrer_id',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
 }
 
