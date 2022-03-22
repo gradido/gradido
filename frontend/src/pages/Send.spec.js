@@ -39,7 +39,16 @@ describe('Send', () => {
   }
 
   const Wrapper = () => {
-    return mount(Send, { localVue, mocks, propsData })
+    return mount(Send, {
+      localVue,
+      mocks,
+      propsData,
+      provide: {
+        getTunneledEmail() {
+          return null
+        },
+      },
+    })
   }
 
   describe('mount', () => {

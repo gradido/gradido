@@ -29,6 +29,7 @@
               :decayStartBlock="decayStartBlock"
               @update-balance="updateBalance"
               @update-transactions="updateTransactions"
+              @set-tunneled-email="setTunneledEmail"
             ></router-view>
           </fade-transition>
         </div>
@@ -64,6 +65,12 @@ export default {
       pending: true,
       visible: false,
       decayStartBlock: new Date(),
+      tunneledEmail: null,
+    }
+  },
+  provide() {
+    return {
+      getTunneledEmail: () => this.tunneledEmail,
     }
   },
   methods: {
@@ -121,6 +128,9 @@ export default {
     },
     setVisible(bool) {
       this.visible = bool
+    },
+    setTunneledEmail(email) {
+      this.tunneledEmail = email
     },
   },
   computed: {

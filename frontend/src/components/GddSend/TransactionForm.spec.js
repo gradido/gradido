@@ -4,7 +4,7 @@ import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 
-describe('GddSend', () => {
+describe('TransactionForm', () => {
   let wrapper
 
   const mocks = {
@@ -25,7 +25,16 @@ describe('GddSend', () => {
   }
 
   const Wrapper = () => {
-    return mount(TransactionForm, { localVue, mocks, propsData })
+    return mount(TransactionForm, {
+      localVue,
+      mocks,
+      propsData,
+      provide: {
+        getTunneledEmail() {
+          return null
+        },
+      },
+    })
   }
 
   describe('mount', () => {

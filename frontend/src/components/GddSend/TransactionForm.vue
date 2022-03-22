@@ -162,12 +162,13 @@ export default {
     balance: { type: Number, default: 0 },
     email: { type: String, default: null },
   },
+  inject: ['getTunneledEmail'],
   data() {
     return {
       amountFocused: false,
       emailFocused: false,
       form: {
-        email: this.email ? this.email : '',
+        email: '',
         amount: '',
         memo: '',
         amountValue: 0.0,
@@ -209,6 +210,12 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
+    recipientEmail() {
+      return this.getTunneledEmail()
+    },
+  },
+  created() {
+    this.form.email = this.recipientEmail ? this.recipientEmail : ''
   },
 }
 </script>

@@ -60,10 +60,13 @@ describe('AmountAndNameRow', () => {
           await wrapper.find('div.gdd-transaction-list-item-name').find('a').trigger('click')
         })
 
-        it('pushes the rpute with query for email', () => {
+        it('emits  set tunneled email', () => {
+          expect(wrapper.emitted('set-tunneled-email')).toEqual([['bibi@bloxberg.de']])
+        })
+
+        it('pushes the route with query for email', () => {
           expect(mocks.$router.push).toBeCalledWith({
             path: '/send',
-            query: { email: 'bibi@bloxberg.de' },
           })
         })
       })

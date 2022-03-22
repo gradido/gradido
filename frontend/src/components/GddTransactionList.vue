@@ -23,6 +23,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :decayStartBlock="decayStartBlock"
+              v-on="$listeners"
             />
           </template>
 
@@ -31,6 +32,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :decayStartBlock="decayStartBlock"
+              v-on="$listeners"
             />
           </template>
 
