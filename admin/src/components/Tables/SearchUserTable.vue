@@ -73,6 +73,8 @@
             v-if="!row.item.deletedAt"
             :userId="row.item.userId"
           />
+          <links-transaction-list-formular :userId="row.item.userId"/>
+
           <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
         </b-card>
       </template>
@@ -83,6 +85,7 @@
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
 import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
+import LinksTransactionListFormular from '../LinksTransactionListFormular.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 export default {
@@ -91,6 +94,7 @@ export default {
     CreationFormular,
     ConfirmRegisterMailFormular,
     CreationTransactionListFormular,
+    LinksTransactionListFormular,
     DeletedUserFormular,
   },
   props: {
