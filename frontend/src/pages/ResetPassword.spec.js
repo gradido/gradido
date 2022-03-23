@@ -54,25 +54,27 @@ describe('ResetPassword', () => {
 
   describe('mount', () => {
     beforeEach(() => {
+      jest.clearAllMocks()
       wrapper = Wrapper()
     })
 
-    describe('No valid optin', () => {
-      it.skip('does not render the Reset Password form when not authenticated', () => {
-        expect(wrapper.find('form').exists()).toBeFalsy()
+    describe('no valid optin', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        apolloQueryMock.mockRejectedValue({ message: 'Your time is up!' })
+        wrapper = Wrapper()
       })
 
-      it.skip('toasts an error when no valid optin is given', () => {
-        expect(toastErrorSpy).toHaveBeenCalledWith('error')
+      it('toasts an error when no valid optin is given', () => {
+        expect(toastErrorSpy).toHaveBeenCalledWith('Your time is up!')
       })
 
-      it.skip('has a message suggesting to contact the support', () => {
-        expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
-        expect(wrapper.find('div.header').text()).toContain('settings.password.not-authenticated')
+      it('redirects to /forgot-password/resetPassword', () => {
+        expect(routerPushMock).toBeCalledWith('/forgot-password/resetPassword')
       })
     })
 
-    describe('is authenticated', () => {
+    describe('valid optin', () => {
       it('renders the Reset Password form when authenticated', () => {
         expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
       })
@@ -148,7 +150,6 @@ describe('ResetPassword', () => {
 
         describe('server response with error code > 10min', () => {
           beforeEach(async () => {
-            jest.clearAllMocks()
             apolloMutationMock.mockRejectedValue({ message: '...Code is older than 10 minutes' })
             await wrapper.find('form').trigger('submit')
             await flushPromises()
@@ -163,7 +164,7 @@ describe('ResetPassword', () => {
           })
         })
 
-        describe('server response with error code > 10min', () => {
+        describe('server response with error', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
             apolloMutationMock.mockRejectedValueOnce({ message: 'Error' })
@@ -178,6 +179,7 @@ describe('ResetPassword', () => {
 
         describe('server response with success on /checkEmail', () => {
           beforeEach(async () => {
+            jest.clearAllMocks()
             mocks.$route.path.mock = 'checkEmail'
             apolloMutationMock.mockResolvedValue({
               data: {
@@ -203,6 +205,28 @@ describe('ResetPassword', () => {
 
           it('redirects to "/thx/checkEmail"', () => {
             expect(routerPushMock).toHaveBeenCalledWith('/thx/checkEmail')
+          })
+
+          describe('with param code', () => {
+            beforeEach(async () => {
+              mocks.$route.params.code = 'the-most-secret-code-ever'
+              apolloMutationMock.mockResolvedValue({
+                data: {
+                  resetPassword: 'success',
+                },
+              })
+              wrapper = Wrapper()
+              await wrapper.findAll('input').at(0).setValue('Aa123456_')
+              await wrapper.findAll('input').at(1).setValue('Aa123456_')
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to "/thx/checkEmail/the-most-secret-code-ever"', () => {
+              expect(routerPushMock).toHaveBeenCalledWith(
+                '/thx/checkEmail/the-most-secret-code-ever',
+              )
+            })
           })
         })
 
