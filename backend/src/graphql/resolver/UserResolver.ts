@@ -15,7 +15,7 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -450,11 +450,12 @@ export class UserResolver {
     )
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmail({
+    const emailSent = await sendResetPasswordEmailMailer({
       link,
       firstName: user.firstName,
       lastName: user.lastName,
       email,
+      duration: printEmailCodeValidTime(),
     })
 
     /*  uncomment this, when you need the activation link on the console

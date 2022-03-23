@@ -16,6 +16,7 @@ Deine E-Mail-Adresse wurde soeben bei Gradido registriert.
 Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:
 ${data.link}
 oder kopiere den obigen Link in dein Browserfenster.
+
 Der Link hat eine Gültigkeit von ${data.duration
         .replace('hours', 'Stunden')
         .replace('minutes', 'Minuten')
