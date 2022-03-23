@@ -117,6 +117,7 @@ export const executeTransaction = async (
     recipientFirstName: recipient.firstName,
     recipientLastName: recipient.lastName,
     email: recipient.email,
+    senderEmail: sender.email,
     amount,
     memo,
   })
