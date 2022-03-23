@@ -12,6 +12,11 @@ Decimal.set({
 const constants = {
   DB_VERSION: '0033-add_referrer_id',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  CONFIG_VERSION: {
+    DEFAULT: 'DEFAULT',
+    EXPECTED: 'v1.2022-03-18',
+    CURRENT: '',
+  },
 }
 
 const server = {
@@ -77,6 +82,18 @@ const webhook = {
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
+
+// Check config version
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+if (
+  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
+    constants.CONFIG_VERSION.CURRENT,
+  )
+) {
+  throw new Error(
+    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
+  )
+}
 
 const CONFIG = {
   ...constants,
