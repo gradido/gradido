@@ -19,7 +19,7 @@
             <div class="mt-4" v-show="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
-                {{ $t('gdd_per_link.sentence_1') }}
+                {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
@@ -160,15 +160,18 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
+    email: { type: String, default: '' },
+    amount: { type: Number, default: 0 },
+    memo: { type: String, default: '' },
   },
   data() {
     return {
       amountFocused: false,
       emailFocused: false,
       form: {
-        email: '',
-        amount: '',
-        memo: '',
+        email: this.email,
+        amount: this.amount ? String(this.amount) : '',
+        memo: this.memo,
         amountValue: 0.0,
       },
       selected: SEND_TYPES.send,

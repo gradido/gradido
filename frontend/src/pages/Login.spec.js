@@ -52,6 +52,9 @@ describe('Login', () => {
     $router: {
       push: mockRouterPush,
     },
+    $route: {
+      params: {},
+    },
     $apollo: {
       query: apolloQueryMock,
     },
@@ -224,12 +227,32 @@ describe('Login', () => {
             expect(mockStoreDispach).toBeCalledWith('login', 'token')
           })
 
-          it('redirects to overview page', () => {
-            expect(mockRouterPush).toBeCalledWith('/overview')
-          })
-
           it('hides the spinner', () => {
             expect(spinnerHideMock).toBeCalled()
+          })
+
+          describe('without code parameter', () => {
+            it('redirects to overview page', () => {
+              expect(mockRouterPush).toBeCalledWith('/overview')
+            })
+          })
+
+          describe('with code parameter', () => {
+            beforeEach(async () => {
+              mocks.$route.params = {
+                code: 'some-code',
+              }
+              wrapper = Wrapper()
+              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+              await flushPromises()
+              await wrapper.find('form').trigger('submit')
+              await flushPromises()
+            })
+
+            it('redirects to overview page', () => {
+              expect(mockRouterPush).toBeCalledWith('/redeem/some-code')
+            })
           })
         })
 

@@ -41,7 +41,7 @@ const virtualLinkTransaction = (
     id: -2,
     userId: -1,
     previous: -1,
-    typeId: TransactionTypeId.TRANSACTION_LINK,
+    typeId: TransactionTypeId.LINK_SUMMARY,
     amount: amount,
     balance: balance,
     balanceDate: validUntil,

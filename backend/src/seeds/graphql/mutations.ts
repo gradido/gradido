@@ -52,7 +52,9 @@ export const createUser = gql`
       lastName: $lastName
       language: $language
       publisherId: $publisherId
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -65,6 +67,7 @@ export const sendCoins = gql`
 export const createTransactionLink = gql`
   mutation ($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
+      id
       code
     }
   }
@@ -91,7 +94,7 @@ export const createPendingCreation = gql`
 `
 
 export const confirmPendingCreation = gql`
-  mutation ($id: Float!) {
+  mutation ($id: Int!) {
     confirmPendingCreation(id: $id)
   }
 `

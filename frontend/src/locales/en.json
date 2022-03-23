@@ -94,18 +94,30 @@
   },
   "GDD": "GDD",
   "gdd_per_link": {
+    "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy": "copy",
     "created": "Link was created!",
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "expired": "Expired",
+    "has-account": "You already have a Gradido account",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
+    "link-deleted": "The link was deleted on {date}.",
+    "link-expired": "The link is no longer valid. The validity expired on {date}.",
+    "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Total of your sent Gradidos",
+    "no-account": "You don't have a Gradido account yet",
+    "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Could not copy link: {err}",
-    "sentence_1": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share."
+    "redeem": "Redeem",
+    "redeem-text": "Do you want to redeem the amount now?",
+    "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
+    "redeemed-at": "The link was already redeemed on {date}.",
+    "to-login": "Log in",
+    "to-register": "Register a new account"
   },
   "gdt": {
     "calculation": "Calculation of GradidoTransform",
@@ -207,13 +219,14 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
-      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link!",
+      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link or order a new activation link over the password reset page.",
       "checkEmail": "Your email has been successfully verified. You can sign in now.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
       "errorTitle": "Attention!",
       "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
+      "resetPassword": "The code you used was to old please order a new on over the password reset page.",
       "title": "Thank you!"
     }
   },
@@ -235,7 +248,6 @@
     "show_all": "View all <strong>{count}</strong> transactions."
   },
   "transaction-link": {
-    "button": "redeem",
     "send_you": "wants to send you"
   }
 }

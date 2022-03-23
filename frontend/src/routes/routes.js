@@ -39,11 +39,11 @@ const routes = [
     },
   },
   {
-    path: '/login',
+    path: '/login/:code?',
     component: () => import('@/pages/Login.vue'),
   },
   {
-    path: '/register',
+    path: '/register/:code?',
     component: () => import('@/pages/Register.vue'),
   },
   {
@@ -84,7 +84,7 @@ const routes = [
   },
   {
     path: '/redeem/:code',
-    component: () => import('@/pages/ShowTransactionLinkInformations.vue'),
+    component: () => import('@/pages/TransactionLink.vue'),
   },
   { path: '*', component: NotFound },
 ]
