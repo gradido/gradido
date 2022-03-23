@@ -43,7 +43,7 @@ describe('Send', () => {
     })
 
     it('has a send field', () => {
-      expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdd-send').exists()).toBe(true)
     })
 
     describe('fill transaction form for send coins', () => {
