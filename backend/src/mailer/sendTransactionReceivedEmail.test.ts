@@ -17,6 +17,7 @@ describe('sendTransactionReceivedEmail', () => {
       recipientFirstName: 'Peter',
       recipientLastName: 'Lustig',
       email: 'peter@lustig.de',
+      senderEmail: 'bibi@bloxberg.de',
       amount: new Decimal(42.0),
       memo: 'Vielen herzlichen Dank für den neuen Hexenbesen!',
     })
@@ -30,6 +31,7 @@ describe('sendTransactionReceivedEmail', () => {
         expect.stringContaining('Hallo Peter Lustig') &&
         expect.stringContaining('42,00 GDD') &&
         expect.stringContaining('Bibi Bloxberg') &&
+        expect.stringContaining('(mailto:bibi@bloxberg.de)') &&
         expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!'),
     })
   })
