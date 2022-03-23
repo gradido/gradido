@@ -131,6 +131,7 @@ describe('UserResolver', () => {
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
+          duration: expect.any(String),
         })
       })
     })
