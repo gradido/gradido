@@ -1,5 +1,5 @@
 <template>
-  <div class="links-transaction-list-formular">
+  <div class="transaction-link-list">
     <div v-if="items.length > 0">
       {{ $t('transactionlink.form_header') }}
       <b-table striped hover :fields="fields" :items="items"></b-table>
@@ -9,7 +9,7 @@
 <script>
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
 export default {
-  name: 'LinksTransactionListFormular',
+  name: 'TransactionLinkList',
   props: {
     userId: { type: Number, required: true },
   },
