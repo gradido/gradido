@@ -47,7 +47,7 @@ const routes = [
     component: () => import('@/pages/Register.vue'),
   },
   {
-    path: '/thx/:comingFrom',
+    path: '/thx/:comingFrom/:code?',
     component: () => import('@/pages/thx.vue'),
     beforeEnter: (to, from, next) => {
       const validFrom = ['forgot-password', 'reset-password', 'register', 'login', 'checkEmail']
@@ -79,7 +79,7 @@ const routes = [
     component: () => import('@/pages/ResetPassword.vue'),
   },
   {
-    path: '/checkEmail/:optin',
+    path: '/checkEmail/:optin/:code?',
     component: () => import('@/pages/ResetPassword.vue'),
   },
   {

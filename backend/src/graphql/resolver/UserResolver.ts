@@ -7,6 +7,7 @@ import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeor
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { encode } from '@/auth/JWT'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
@@ -305,7 +306,8 @@ export class UserResolver {
   @Authorized([RIGHTS.CREATE_USER])
   @Mutation(() => User)
   async createUser(
-    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
+    @Args()
+    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
@@ -338,6 +340,12 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
+    if (redeemCode) {
+      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+      if (transactionLink) {
+        dbUser.referrerId = transactionLink.userId
+      }
+    }
     // TODO this field has no null allowed unlike the loginServer table
     // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
     // dbUser.pubkey = keyPair[0]
@@ -360,9 +368,9 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
-      )
+      ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
@@ -379,6 +387,7 @@ export class UserResolver {
         console.log(`Account confirmation link: ${activationLink}`)
       }
       */
+
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -404,7 +413,7 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(user.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
       )
 
@@ -443,7 +452,7 @@ export class UserResolver {
     const optInCode = await getOptInCode(user.id)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{code}/g,
+      /{optin}/g,
       optInCode.verificationCode.toString(),
     )
 
