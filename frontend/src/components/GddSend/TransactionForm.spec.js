@@ -251,7 +251,7 @@ describe('GddSend', () => {
       })
     })
 
-    describe('is selected: "link"', () => {
+    describe('create transaction link', () => {
       beforeEach(async () => {
         await wrapper.setData({
           form: { email: 'bibi@bloxberg.de' },
