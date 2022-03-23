@@ -9,7 +9,8 @@ import { Transaction, Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { GdtResolver } from './GdtResolver'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { MoreThan } from '@dbTools/typeorm'
+import { MoreThan, getCustomRepository } from '@dbTools/typeorm'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 @Resolver()
 export class BalanceResolver {
@@ -48,8 +49,11 @@ export class BalanceResolver {
       },
     })
 
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(user.id, now)
+
     const calculatedDecay = calculateDecay(
-      lastTransaction.balance,
+      lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
       lastTransaction.balanceDate,
       now,
     )
