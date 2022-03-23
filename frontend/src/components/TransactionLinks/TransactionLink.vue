@@ -32,8 +32,9 @@
           <b-icon icon="trash"></b-icon>
         </b-button>
         <br />
-         <b-button class="p-2 mt-1" size="sm"
-          variant="outline-success"><b-img src="img/svg/qr-code.svg"></b-img></b-button>
+        <b-button class="p-2 mt-1" size="sm" variant="outline-success">
+          <b-img src="img/svg/qr-code.svg"></b-img>
+        </b-button>
       </b-col>
     </b-row>
   </div>
