@@ -157,7 +157,7 @@ const createEmailOptIn = async (
   })
   if (emailOptIn) {
     if (isOptInCodeValid(emailOptIn)) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+      throw new Error(`email already sent less than ${printEmailCodeValidTime()} ago`)
     }
     emailOptIn.updatedAt = new Date()
     emailOptIn.resendCount++
@@ -184,7 +184,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
     if (isOptInCodeValid(optInCode)) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+      throw new Error(`email already sent less than $(printEmailCodeValidTime()} minutes ago`)
     }
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
@@ -486,7 +486,7 @@ export class UserResolver {
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email already more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+      throw new Error(`email was sent more than ${printEmailCodeValidTime()} ago`)
     }
 
     // load user
@@ -565,7 +565,7 @@ export class UserResolver {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email was sent more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+      throw new Error(`email was sent more than $(printEmailCodeValidTime()} ago`)
     }
     return true
   }
@@ -671,7 +671,25 @@ export class UserResolver {
     return hasElopageBuys(userEntity.email)
   }
 }
+
 function isOptInCodeValid(optInCode: LoginEmailOptIn) {
   const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
   return timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000
+}
+
+const emailCodeValidTime = (): { hours?: number; minutes: number } => {
+  if (CONFIG.EMAIL_CODE_VALID_TIME > 60) {
+    return {
+      hours: Math.floor(CONFIG.EMAIL_CODE_VALID_TIME / 60),
+      minutes: CONFIG.EMAIL_CODE_VALID_TIME % 60,
+    }
+  }
+  return { minutes: CONFIG.EMAIL_CODE_VALID_TIME }
+}
+
+const printEmailCodeValidTime = (): string => {
+  const time = emailCodeValidTime()
+  const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
+  if (time.hours) return `${time.hours} hours` + result !== '' ? ` and ${result}` : ''
+  return result
 }
