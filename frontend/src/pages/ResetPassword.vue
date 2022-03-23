@@ -106,7 +106,7 @@ export default {
           this.toastError(error.message)
           if (
             error.message.match(
-              /email was sent more than ([0-9]+ hours)?( and)?([0-9]+ minutes)? ago/,
+              /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
             )
           )
             this.$router.push('/forgot-password/resetPassword')

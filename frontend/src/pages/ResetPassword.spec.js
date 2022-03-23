@@ -149,13 +149,17 @@ describe('ResetPassword', () => {
         describe('server response with error code > 10min', () => {
           beforeEach(async () => {
             jest.clearAllMocks()
-            apolloMutationMock.mockRejectedValue({ message: '...Code is older than 10 minutes' })
+            apolloMutationMock.mockRejectedValue({
+              message: '...email was sent more than 23 hours and 10 minutes ago',
+            })
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
 
           it('toasts an error message', () => {
-            expect(toastErrorSpy).toHaveBeenCalledWith('...Code is older than 10 minutes')
+            expect(toastErrorSpy).toHaveBeenCalledWith(
+              '...email was sent more than 23 hours and 10 minutes ago',
+            )
           })
 
           it('router pushes to /forgot-password/resetPassword', () => {
