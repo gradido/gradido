@@ -18,5 +18,5 @@ export default class CreateUserArgs {
   publisherId: number
 
   @Field(() => String, { nullable: true })
-  redeemCode: string | null
+  redeemCode?: string | null
 }
