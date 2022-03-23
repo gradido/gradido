@@ -15,6 +15,7 @@ describe('sendAccountActivationEmail', () => {
       firstName: 'Peter',
       lastName: 'Lustig',
       email: 'peter@lustig.de',
+      duration: '23 hours and 30 minutes',
     })
   })
 
@@ -23,7 +24,9 @@ describe('sendAccountActivationEmail', () => {
       to: `Peter Lustig <peter@lustig.de>`,
       subject: 'Gradido: E-Mail Überprüfung',
       text:
-        expect.stringContaining('Hallo Peter Lustig') && expect.stringContaining('activationLink'),
+        expect.stringContaining('Hallo Peter Lustig') &&
+        expect.stringContaining('activationLink') &&
+        expect.stringContaining('23 Stunden und 30 Minuten'),
     })
   })
 })
