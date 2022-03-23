@@ -370,6 +370,7 @@ export class UserResolver {
         firstName,
         lastName,
         email,
+        duration: printEmailCodeValidTime(),
       })
 
       /* uncomment this, when you need the activation link on the console
@@ -414,6 +415,7 @@ export class UserResolver {
         firstName: user.firstName,
         lastName: user.lastName,
         email,
+        duration: printEmailCodeValidTime(),
       })
 
       /*  uncomment this, when you need the activation link on the console
