@@ -381,7 +381,7 @@ export class AdminResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Args()
-    { withDeleted = true, withExpired = true, withRedeemed = true }: TransactionLinkFilters,
+    filters: TransactionLinkFilters,
     @Arg('userId', () => Int) userId: number,
   ): Promise<TransactionLink[]> {
     const user = await dbUser.findOneOrFail({ id: userId })
@@ -392,11 +392,11 @@ export class AdminResolver {
     } = {
       userId,
     }
-    if (!withRedeemed) where.redeemedBy = null
-    if (!withExpired) where.validUntil = MoreThan(new Date())
+    if (!filters.withRedeemed) where.redeemedBy = null
+    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
     const transactionLinks = await dbTransactionLink.find({
       where,
-      withDeleted,
+      withDeleted: filters.withDeleted,
       order: {
         createdAt: order,
       },
