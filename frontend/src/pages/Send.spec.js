@@ -69,7 +69,7 @@ describe('Send', () => {
           })
 
           it('shows the transaction formular again', () => {
-            expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
+            expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBe(true)
           })
 
           it('restores the previous data in the formular', () => {
