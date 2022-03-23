@@ -17,7 +17,7 @@ export const transactionReceived = {
 
 Du hast soeben ${data.amount.toFixed(2).replace('.', ',')} GDD von ${data.senderFirstName} ${
         data.senderLastName
-      } (mailto:${data.senderEmail}) erhalten.
+      } (${data.senderEmail}) erhalten.
 ${data.senderFirstName} ${data.senderLastName} schreibt:
 
 ${data.memo}
