@@ -263,7 +263,7 @@ describe('GddSend', () => {
         expect(wrapper.vm.selected).toBe(SEND_TYPES.link)
       })
 
-      it('clear form.email to empty ', () => {
+      it('clears form email ', () => {
         expect(wrapper.vm.form.email).toBe('')
       })
 
