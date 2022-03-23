@@ -687,9 +687,9 @@ const emailCodeValidTime = (): { hours?: number; minutes: number } => {
   return { minutes: CONFIG.EMAIL_CODE_VALID_TIME }
 }
 
-const printEmailCodeValidTime = (): string => {
+export const printEmailCodeValidTime = (): string => {
   const time = emailCodeValidTime()
   const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
-  if (time.hours) return `${time.hours} hours` + result !== '' ? ` and ${result}` : ''
+  if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
   return result
 }

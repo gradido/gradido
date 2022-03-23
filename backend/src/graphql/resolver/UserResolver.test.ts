@@ -11,6 +11,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { printEmailCodeValidTime } from './UserResolver'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -410,5 +411,22 @@ describe('UserResolver', () => {
         )
       })
     })
+  })
+})
+
+describe('printEmailCodeValidTime', () => {
+  it('works with 10 minutes', () => {
+    CONFIG.EMAIL_CODE_VALID_TIME = 10
+    expect(printEmailCodeValidTime()).toBe('10 minutes')
+  })
+
+  it('works with 1440 minutes', () => {
+    CONFIG.EMAIL_CODE_VALID_TIME = 1440
+    expect(printEmailCodeValidTime()).toBe('24 hours')
+  })
+
+  it('works with 1410 minutes', () => {
+    CONFIG.EMAIL_CODE_VALID_TIME = 1410
+    expect(printEmailCodeValidTime()).toBe('23 hours and 30 minutes')
   })
 })
