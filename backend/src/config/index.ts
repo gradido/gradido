@@ -65,6 +65,8 @@ const email = {
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
   EMAIL_LINK_SETPASSWORD:
     process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
+  EMAIL_LINK_FORGOTPASSWORD:
+    process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
     : 1440,
