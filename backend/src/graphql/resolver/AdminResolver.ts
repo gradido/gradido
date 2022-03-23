@@ -9,6 +9,8 @@ import {
   ObjectLiteral,
   getConnection,
   In,
+  MoreThan,
+  FindOperator,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { PendingCreation } from '@model/PendingCreation'
@@ -34,6 +36,7 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
+import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
 
@@ -377,13 +380,23 @@ export class AdminResolver {
   async listTransactionLinksAdmin(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Args()
+    { withDeleted = true, withExpired = true, withRedeemed = true }: TransactionLinkFilters,
     @Arg('userId', () => Int) userId: number,
   ): Promise<TransactionLink[]> {
     const user = await dbUser.findOneOrFail({ id: userId })
+    const where: {
+      userId: number
+      redeemedBy?: number | null
+      validUntil?: FindOperator<Date> | null
+    } = {
+      userId,
+    }
+    if (!withRedeemed) where.redeemedBy = null
+    if (!withExpired) where.validUntil = MoreThan(new Date())
     const transactionLinks = await dbTransactionLink.find({
-      where: {
-        userId,
-      },
+      where,
+      withDeleted,
       order: {
         createdAt: order,
       },
