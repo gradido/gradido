@@ -27,7 +27,6 @@
               :transactionLinkCount="transactionLinkCount"
               :pending="pending"
               :decayStartBlock="decayStartBlock"
-              @update-balance="updateBalance"
               @update-transactions="updateTransactions"
               @set-tunneled-email="setTunneledEmail"
             ></router-view>
@@ -118,9 +117,6 @@ export default {
           this.toastError(error.message)
           // what to do when loading balance fails?
         })
-    },
-    updateBalance(ammount) {
-      this.balance -= ammount
     },
     admin() {
       window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))
