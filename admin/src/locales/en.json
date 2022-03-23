@@ -73,6 +73,11 @@
   "status": "Status",
   "success": "Success",
   "text": "Text",
+  "transactionlink": {
+    "created": "Created",
+    "expired": "Valid until",
+    "form_header": "Transaction links"
+  },
   "transactionlist": {
     "amount": "Amount",
     "balanceDate": "Creation date",
@@ -80,11 +85,6 @@
     "date": "Date",
     "memo": "Message",
     "title": "All creation-transactions for the user"
-  },
-  "transactionlink": {
-    "form_header": "Transaction links",
-    "created": "Created",
-    "expired": "Valid until"
   },
   "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",

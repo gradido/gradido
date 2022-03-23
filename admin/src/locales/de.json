@@ -73,6 +73,11 @@
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
+  "transactionlink": {
+    "created": "Erstellt",
+    "expired": "Gültig bis",
+    "form_header": "Transaktion-Links"
+  },
   "transactionlist": {
     "amount": "Betrag",
     "balanceDate": "Schöpfungsdatum",
@@ -80,11 +85,6 @@
     "date": "Datum",
     "memo": "Nachricht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
-  },
-  "transactionlink": {
-    "form_header": "Transaktion Links",
-    "created": "Erstellt",
-    "expired": "Gültig bis"
   },
   "undelete_user": "Nutzer wiederherstellen",
   "unregistered_emails": "Nur unregistrierte Nutzer",
