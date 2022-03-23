@@ -124,7 +124,7 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/{code}/g, emailOptIn)
+        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/{optin}/g, emailOptIn)
         expect(sendAccountActivationEmail).toBeCalledWith({
           link: activationLink,
           firstName: 'Peter',

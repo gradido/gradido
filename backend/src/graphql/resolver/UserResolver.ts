@@ -368,7 +368,7 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
       let activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
       )
 
@@ -417,7 +417,7 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(user.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
       )
 
@@ -456,7 +456,7 @@ export class UserResolver {
     const optInCode = await getOptInCode(user.id)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{code}/g,
+      /{optin}/g,
       optInCode.verificationCode.toString(),
     )
 

@@ -62,9 +62,9 @@ const email = {
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}',
   EMAIL_LINK_SETPASSWORD:
-    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 10
     : 10,
