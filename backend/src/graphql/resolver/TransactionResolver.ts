@@ -6,7 +6,6 @@
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import CONFIG from '@/config'
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
@@ -24,7 +23,6 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 
-import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -33,6 +31,8 @@ import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
+
+import GdtResolver from './GdtResolver'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -143,19 +143,8 @@ export class TransactionResolver {
     )
 
     // get GDT
-    let balanceGDT = null
-    try {
-      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.email,
-      })
-      if (!resultGDTSum.success) {
-        throw new Error('Call not successful')
-      }
-      balanceGDT = Number(resultGDTSum.data.sum) || 0
-    } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.log('Could not query GDT Server', err)
-    }
+    gdtResolver = new GdtResolver()
+    const balanceGDT = await gdtResolver.gdtSum()
 
     if (!lastTransaction) {
       return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)
