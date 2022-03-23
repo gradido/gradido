@@ -42,7 +42,7 @@
         </b-button>
       </b-col>
     </b-row>
-    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only>
+    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hideHeaderClose="false">
       <div class="text-center">
         <figure class="qrcode">
           <vue-qrcode :value="link" type="image/png" class="qrbox"></vue-qrcode>
