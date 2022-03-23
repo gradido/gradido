@@ -1,7 +1,9 @@
 <template>
   <div class="links-transaction-list-formular">
-    {{ $t('transactionlink.form_header') }}
-    <b-table striped hover :fields="fields" :items="items"></b-table>
+    <div v-if="items.length > 0">
+      {{ $t('transactionlink.form_header') }}
+      <b-table striped hover :fields="fields" :items="items"></b-table>
+    </div>
   </div>
 </template>
 <script>
