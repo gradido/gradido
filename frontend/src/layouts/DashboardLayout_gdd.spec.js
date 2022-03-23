@@ -140,14 +140,6 @@ describe('DashboardLayoutGdd', () => {
         })
       })
 
-      describe('update balance', () => {
-        it('updates the amount correctelly', async () => {
-          await wrapper.findComponent({ ref: 'router-view' }).vm.$emit('update-balance', 5)
-          await flushPromises()
-          expect(wrapper.vm.balance).toBe(-5)
-        })
-      })
-
       describe('update transactions', () => {
         beforeEach(async () => {
           apolloMock.mockResolvedValue({
