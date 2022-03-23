@@ -11,7 +11,13 @@
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
+                <b-form-radio
+                  v-model="selected"
+                  name="radios"
+                  :value="sendTypes.link"
+                  size="lg"
+                  @change="form.email = ''"
+                >
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
@@ -62,9 +68,7 @@
               </validation-provider>
             </div>
 
-            <br />
-
-            <div>
+            <div class="mt-4 mb-4">
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
@@ -97,7 +101,7 @@
               </validation-provider>
             </div>
 
-            <div class="mt-4">
+            <div class="mb-4">
               <validation-provider
                 :rules="{
                   required: true,
@@ -125,7 +129,7 @@
                 </b-col>
               </validation-provider>
             </div>
-            <br />
+
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
             </div>
