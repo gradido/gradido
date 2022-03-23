@@ -32,7 +32,7 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
 
-import GdtResolver from './GdtResolver'
+import { GdtResolver } from './GdtResolver'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -143,8 +143,8 @@ export class TransactionResolver {
     )
 
     // get GDT
-    gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtSum()
+    const gdtResolver = new GdtResolver()
+    const balanceGDT = await gdtResolver.gdtSum(context)
 
     if (!lastTransaction) {
       return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)

@@ -5,7 +5,7 @@ import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
 import CONFIG from '@/config'
 import { GdtEntryList } from '@model/GdtEntryList'
 import Paginated from '@arg/Paginated'
-import { apiGet } from '@/apis/HttpRequest'
+import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { Order } from '@enum/Order'
 import { RIGHTS } from '@/auth/RIGHTS'
 
@@ -34,7 +34,7 @@ export class GdtResolver {
   }
 
   @Authorized([RIGHTS.GDT_SUM])
-  @Query(() => Number | null)
+  @Query(() => Number)
   async gdtSum(@Ctx() context: any): Promise<number | null> {
     const { user } = context
     try {
@@ -48,7 +48,7 @@ export class GdtResolver {
     } catch (err: any) {
       // eslint-disable-next-line no-console
       console.log('Could not query GDT Server', err)
-      return null
+      return 0
     }
   }
 
