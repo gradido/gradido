@@ -31,7 +31,7 @@ describe('sendTransactionReceivedEmail', () => {
         expect.stringContaining('Hallo Peter Lustig') &&
         expect.stringContaining('42,00 GDD') &&
         expect.stringContaining('Bibi Bloxberg') &&
-        expect.stringContaining('(mailto:bibi@bloxberg.de)') &&
+        expect.stringContaining('(bibi@bloxberg.de)') &&
         expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!'),
     })
   })
