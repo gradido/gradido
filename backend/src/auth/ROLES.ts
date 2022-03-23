@@ -22,6 +22,7 @@ export const ROLE_USER = new Role('user', [
   RIGHTS.DELETE_TRANSACTION_LINK,
   RIGHTS.REDEEM_TRANSACTION_LINK,
   RIGHTS.LIST_TRANSACTION_LINKS,
+  RIGHTS.GDT_SUM,
 ])
 export const ROLE_ADMIN = new Role('admin', Object.values(RIGHTS)) // all rights
 
