@@ -22,16 +22,15 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-show="selected === sendTypes.link">
+            <div class="mt-4" v-if="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div>
+            <div v-if="selected === sendTypes.send">
               <validation-provider
-                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
                   required: selected === sendTypes.send ? true : false,
