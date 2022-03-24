@@ -1,24 +1,20 @@
+import Decimal from 'decimal.js-light'
+
 export interface UserInterface {
-  // from login user (contains state user)
+  // from user
   email?: string
   firstName?: string
   lastName?: string
-  username?: string
-  description?: string
   password?: BigInt
   pubKey?: Buffer
   privKey?: Buffer
   emailHash?: Buffer
   createdAt?: Date
   emailChecked?: boolean
-  passphraseShown?: boolean
   language?: string
-  disabled?: boolean
-  groupId?: number
-  publisherId?: number | null
-  // from login user backup
+  deletedAt?: Date
+  publisherId?: number
   passphrase?: string
-  mnemonicType?: number
   // from server user
   serverUserPassword?: string
   role?: string
@@ -30,11 +26,7 @@ export interface UserInterface {
   // flag for balance (creation of 1000 GDD)
   addBalance?: boolean
   // balance
-  balanceModified?: Date
   recordDate?: Date
-  targetDate?: Date
-  amount?: number
-  creationTxHash?: Buffer
-  signature?: Buffer
-  signaturePubkey?: Buffer
+  creationDate?: Date
+  amount?: Decimal
 }

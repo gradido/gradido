@@ -5,8 +5,8 @@ export class LoginElopageBuys extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'elopage_user_id', nullable: false })
-  elopageUserId: number
+  @Column({ type: 'int', width: 11, name: 'elopage_user_id', nullable: true, default: null })
+  elopageUserId: number | null
 
   @Column({ name: 'affiliate_program_id', nullable: false })
   affiliateProgramId: number

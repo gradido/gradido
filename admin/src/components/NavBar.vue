@@ -2,7 +2,7 @@
   <div class="component-nabvar">
     <b-navbar toggleable="md" type="dark" variant="success" class="p-3">
       <b-navbar-brand to="/">
-        <img src="img/brand/green.png" class="navbar-brand-img" alt="..." />
+        <img src="img/brand/gradido_logo_w.png" class="navbar-brand-img" alt="..." />
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -19,7 +19,7 @@
           >
             {{ $store.state.openCreations }} {{ $t('navbar.open_creation') }}
           </b-nav-item>
-          <b-nav-item @click="wallet">{{ $t('navbar.wallet') }}</b-nav-item>
+          <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
           <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
@@ -33,11 +33,12 @@ export default {
   name: 'navbar',
   methods: {
     logout() {
+      window.location.assign(CONFIG.WALLET_URL)
+      // window.location = CONFIG.WALLET_URL
       this.$store.dispatch('logout')
-      this.$router.push('/logout')
     },
     wallet() {
-      window.location = CONFIG.WALLET_AUTH_URL.replace('$1', this.$store.state.token)
+      window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)
       this.$store.dispatch('logout') // logout without redirect
     },
   },

@@ -4,11 +4,9 @@ export const login = gql`
   query($email: String!, $password: String!, $publisherId: Int) {
     login(email: $email, password: $password, publisherId: $publisherId) {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -24,11 +22,9 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       email
-      username
       firstName
       lastName
       language
-      description
       coinanimation
       klickTipp {
         newsletterState
@@ -47,40 +43,32 @@ export const logout = gql`
 `
 
 export const transactionsQuery = gql`
-  query(
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
-      gdtSum
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      balanceGDT
       count
+      linkCount
       balance
-      decay
-      decayDate
+      decayStartBlock
       transactions {
-        type
+        id
+        typeId
+        amount
         balance
-        decayStart
-        decayEnd
-        decayDuration
+        balanceDate
         memo
-        transactionId
-        name
-        email
-        date
+        linkedUser {
+          firstName
+          lastName
+        }
         decay {
-          balance
-          decayStart
-          decayEnd
-          decayDuration
-          decayStartBlock
+          decay
+          start
+          end
+          duration
+        }
+        linkedUser {
+          email
         }
       }
     }
@@ -90,12 +78,6 @@ export const transactionsQuery = gql`
 export const sendResetPasswordEmail = gql`
   query($email: String!) {
     sendResetPasswordEmail(email: $email)
-  }
-`
-
-export const checkUsername = gql`
-  query($username: String!) {
-    checkUsername(username: $username)
   }
 `
 
@@ -136,6 +118,46 @@ export const communities = gql`
       url
       description
       registerUrl
+    }
+  }
+`
+
+export const queryOptIn = gql`
+  query($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      id
+      amount
+      memo
+      createdAt
+      validUntil
+      redeemedAt
+      deletedAt
+      user {
+        firstName
+        publisherId
+        email
+      }
+    }
+  }
+`
+
+export const listTransactionLinks = gql`
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
+      id
+      amount
+      holdAvailableAmount
+      memo
+      code
+      createdAt
+      validUntil
+      redeemedAt
     }
   }
 `

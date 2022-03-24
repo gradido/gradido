@@ -1,35 +1,49 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createTestClient } from 'apollo-server-testing'
-import gql from 'graphql-tag'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { userFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { createUser, setPassword } from '@/seeds/graphql/mutations'
+import { login, logout } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
-import createServer from '../../server/createServer'
-import { resetDB, initialize } from '@dbTools/helpers'
-import { getRepository } from 'typeorm'
-import { LoginUser } from '@entity/LoginUser'
-import { LoginUserBackup } from '@entity/LoginUserBackup'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
-import CONFIG from '../../config'
-import { sendEMail } from '../../util/sendEMail'
+import CONFIG from '@/config'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 
-jest.mock('../../util/sendEMail', () => {
+// import { klicktippSignIn } from '@/apis/KlicktippController'
+
+jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
-    sendEMail: jest.fn(),
+    sendAccountActivationEmail: jest.fn(),
   }
 })
 
-let mutate: any
-let con: any
+/*
+jest.mock('@/apis/KlicktippController', () => {
+  return {
+    __esModule: true,
+    klicktippSignIn: jest.fn(),
+  }
+})
+*/
+
+let mutate: any, query: any, con: any
+let testEnv: any
 
 beforeAll(async () => {
-  const server = await createServer({})
-  con = server.con
-  mutate = createTestClient(server.apollo).mutate
-  await initialize()
-  await resetDB()
+  testEnv = await testEnvironment()
+  mutate = testEnv.mutate
+  query = testEnv.query
+  con = testEnv.con
+  await cleanDB()
+})
+
+afterAll(async () => {
+  await cleanDB()
+  await con.close()
 })
 
 describe('UserResolver', () => {
@@ -42,106 +56,52 @@ describe('UserResolver', () => {
       publisherId: 1234,
     }
 
-    const mutation = gql`
-      mutation (
-        $email: String!
-        $firstName: String!
-        $lastName: String!
-        $language: String!
-        $publisherId: Int
-      ) {
-        createUser(
-          email: $email
-          firstName: $firstName
-          lastName: $lastName
-          language: $language
-          publisherId: $publisherId
-        )
-      }
-    `
-
     let result: any
     let emailOptIn: string
-    let newUser: User
 
     beforeAll(async () => {
-      result = await mutate({ mutation, variables })
+      jest.clearAllMocks()
+      result = await mutate({ mutation: createUser, variables })
     })
 
     afterAll(async () => {
-      await resetDB()
+      await cleanDB()
     })
 
     it('returns success', () => {
-      expect(result).toEqual(expect.objectContaining({ data: { createUser: 'success' } }))
+      expect(result).toEqual(
+        expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
+      )
     })
 
     describe('valid input data', () => {
-      let loginUser: LoginUser[]
       let user: User[]
-      let loginUserBackup: LoginUserBackup[]
       let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        loginUser = await getRepository(LoginUser).createQueryBuilder('login_user').getMany()
-        user = await getRepository(User).createQueryBuilder('state_user').getMany()
-        loginUserBackup = await getRepository(LoginUserBackup)
-          .createQueryBuilder('login_user_backup')
-          .getMany()
-        loginEmailOptIn = await getRepository(LoginEmailOptIn)
-          .createQueryBuilder('login_email_optin')
-          .getMany()
-        newUser = user[0]
+        user = await User.find()
+        loginEmailOptIn = await LoginEmailOptIn.find()
         emailOptIn = loginEmailOptIn[0].verificationCode.toString()
       })
 
       describe('filling all tables', () => {
         it('saves the user in login_user table', () => {
-          expect(loginUser).toEqual([
+          expect(user).toEqual([
             {
               id: expect.any(Number),
               email: 'peter@lustig.de',
               firstName: 'Peter',
               lastName: 'Lustig',
-              username: '',
-              description: '',
               password: '0',
               pubKey: null,
               privKey: null,
               emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
               emailChecked: false,
-              passphraseShown: false,
-              language: 'de',
-              disabled: false,
-              groupId: 1,
-              publisherId: 1234,
-            },
-          ])
-        })
-
-        it('saves the user in state_user table', () => {
-          expect(user).toEqual([
-            {
-              id: expect.any(Number),
-              indexId: 0,
-              groupId: 0,
-              pubkey: expect.any(Buffer),
-              email: 'peter@lustig.de',
-              firstName: 'Peter',
-              lastName: 'Lustig',
-              username: '',
-              disabled: false,
-            },
-          ])
-        })
-
-        it('saves the user in login_user_backup table', () => {
-          expect(loginUserBackup).toEqual([
-            {
-              id: expect.any(Number),
               passphrase: expect.any(String),
-              userId: loginUser[0].id,
-              mnemonicType: 2,
+              language: 'de',
+              deletedAt: null,
+              publisherId: 1234,
+              referrerId: null,
             },
           ])
         })
@@ -150,7 +110,7 @@ describe('UserResolver', () => {
           expect(loginEmailOptIn).toEqual([
             {
               id: expect.any(Number),
-              userId: loginUser[0].id,
+              userId: user[0].id,
               verificationCode: expect.any(String),
               emailOptInTypeId: 1,
               createdAt: expect.any(Date),
@@ -164,21 +124,22 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(/\$1/g, emailOptIn)
-        expect(sendEMail).toBeCalledWith({
-          from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-          to: `${newUser.firstName} ${newUser.lastName} <${newUser.email}>`,
-          subject: 'Gradido: E-Mail Überprüfung',
-          text:
-            expect.stringContaining(`Hallo ${newUser.firstName} ${newUser.lastName},`) &&
-            expect.stringContaining(activationLink),
+        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+          /{optin}/g,
+          emailOptIn,
+        ).replace(/{code}/g, '')
+        expect(sendAccountActivationEmail).toBeCalledWith({
+          link: activationLink,
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
         })
       })
     })
 
     describe('email already exists', () => {
       it('throws an error', async () => {
-        await expect(mutate({ mutation, variables })).resolves.toEqual(
+        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
@@ -189,12 +150,10 @@ describe('UserResolver', () => {
     describe('unknown language', () => {
       it('sets "de" as default language', async () => {
         await mutate({
-          mutation,
+          mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
         })
-        await expect(
-          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
-        ).resolves.toEqual(
+        await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               email: 'bibi@bloxberg.de',
@@ -208,12 +167,10 @@ describe('UserResolver', () => {
     describe('no publisher id', () => {
       it('sets publisher id to null', async () => {
         await mutate({
-          mutation,
+          mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(
-          getRepository(LoginUser).createQueryBuilder('login_user').getMany(),
-        ).resolves.toEqual(
+        await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               email: 'raeuber@hotzenplotz.de',
@@ -224,9 +181,237 @@ describe('UserResolver', () => {
       })
     })
   })
-})
 
-afterAll(async () => {
-  await resetDB(true)
-  await con.close()
+  describe('setPassword', () => {
+    const createUserVariables = {
+      email: 'peter@lustig.de',
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      language: 'de',
+      publisherId: 1234,
+    }
+
+    let result: any
+    let emailOptIn: string
+
+    describe('valid optin code and valid password', () => {
+      let newUser: any
+
+      beforeAll(async () => {
+        await mutate({ mutation: createUser, variables: createUserVariables })
+        const loginEmailOptIn = await LoginEmailOptIn.find()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPassword,
+          variables: { code: emailOptIn, password: 'Aa12345_' },
+        })
+        newUser = await User.find()
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('sets email checked to true', () => {
+        expect(newUser[0].emailChecked).toBeTruthy()
+      })
+
+      it('updates the password', () => {
+        expect(newUser[0].password).toEqual('3917921995996627700')
+      })
+
+      it('removes the optin', async () => {
+        await expect(LoginEmailOptIn.find()).resolves.toHaveLength(0)
+      })
+
+      /*
+      it('calls the klicktipp API', () => {
+        expect(klicktippSignIn).toBeCalledWith(
+          user[0].email,
+          user[0].language,
+          user[0].firstName,
+          user[0].lastName,
+        )
+      })
+      */
+
+      it('returns true', () => {
+        expect(result).toBeTruthy()
+      })
+    })
+
+    describe('no valid password', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUser, variables: createUserVariables })
+        const loginEmailOptIn = await LoginEmailOptIn.find()
+        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        result = await mutate({
+          mutation: setPassword,
+          variables: { code: emailOptIn, password: 'not-valid' },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [
+              new GraphQLError(
+                'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+              ),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('no valid optin code', () => {
+      beforeAll(async () => {
+        await mutate({ mutation: createUser, variables: createUserVariables })
+        result = await mutate({
+          mutation: setPassword,
+          variables: { code: 'not valid', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Could not login with emailVerificationCode')],
+          }),
+        )
+      })
+    })
+  })
+
+  describe('login', () => {
+    const variables = {
+      email: 'bibi@bloxberg.de',
+      password: 'Aa12345_',
+      publisherId: 1234,
+    }
+
+    let result: User
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    describe('no users in database', () => {
+      beforeAll(async () => {
+        result = await query({ query: login, variables })
+      })
+
+      it('throws an error', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('No user with this credentials')],
+          }),
+        )
+      })
+    })
+
+    describe('user is in database and correct login data', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        result = await query({ query: login, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns the user object', () => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            data: {
+              login: {
+                coinanimation: true,
+                email: 'bibi@bloxberg.de',
+                firstName: 'Bibi',
+                hasElopage: false,
+                id: expect.any(Number),
+                isAdmin: false,
+                klickTipp: {
+                  newsletterState: false,
+                },
+                language: 'de',
+                lastName: 'Bloxberg',
+                publisherId: 1234,
+              },
+            },
+          }),
+        )
+      })
+
+      it('sets the token in the header', () => {
+        expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
+      })
+    })
+
+    describe('user is in database and wrong password', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns an error', () => {
+        expect(
+          query({ query: login, variables: { ...variables, password: 'wrong' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('No user with this credentials')],
+          }),
+        )
+      })
+    })
+  })
+
+  describe('logout', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(query({ query: logout })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      const variables = {
+        email: 'bibi@bloxberg.de',
+        password: 'Aa12345_',
+      }
+
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await query({ query: login, variables })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true', async () => {
+        await expect(query({ query: logout })).resolves.toEqual(
+          expect.objectContaining({
+            data: { logout: 'true' },
+            errors: undefined,
+          }),
+        )
+      })
+    })
+  })
 })

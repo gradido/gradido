@@ -3,6 +3,10 @@ import DashboardPlugin from './plugins/dashboard-plugin'
 import App from './App.vue'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
+import { toasters } from './mixins/toaster'
+import { loadFilters } from './filters/amount'
+
+import 'regenerator-runtime'
 
 import addNavigationGuards from './routes/guards'
 
@@ -16,15 +20,10 @@ import { apolloProvider } from './plugins/apolloProvider'
 Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
 
-Vue.toasted.register(
-  'error',
-  (payload) => {
-    return payload.replace(/^GraphQL error: /, '')
-  },
-  {
-    type: 'error',
-  },
-)
+Vue.mixin(toasters)
+const filters = loadFilters(i18n)
+Vue.filter('amount', filters.amount)
+Vue.filter('GDD', filters.GDD)
 
 loadAllRules(i18n)
 

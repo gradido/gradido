@@ -1,45 +1,163 @@
-import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx } from 'type-graphql'
-import { getCustomRepository, Raw } from 'typeorm'
-import { UserAdmin } from '../model/UserAdmin'
-import { PendingCreation } from '../model/PendingCreation'
-import { CreatePendingCreations } from '../model/CreatePendingCreations'
-import { UpdatePendingCreation } from '../model/UpdatePendingCreation'
-import { RIGHTS } from '../../auth/RIGHTS'
-import { TransactionRepository } from '../../typeorm/repository/Transaction'
-import { TransactionCreationRepository } from '../../typeorm/repository/TransactionCreation'
-import { LoginPendingTasksAdminRepository } from '../../typeorm/repository/LoginPendingTasksAdmin'
-import { UserRepository } from '../../typeorm/repository/User'
-import CreatePendingCreationArgs from '../arg/CreatePendingCreationArgs'
-import UpdatePendingCreationArgs from '../arg/UpdatePendingCreationArgs'
-import moment from 'moment'
-import { Transaction } from '@entity/Transaction'
-import { TransactionCreation } from '@entity/TransactionCreation'
-import { UserTransaction } from '@entity/UserTransaction'
-import { UserTransactionRepository } from '../../typeorm/repository/UserTransaction'
-import { BalanceRepository } from '../../typeorm/repository/Balance'
-import { calculateDecay } from '../../util/decay'
-import { LoginUserRepository } from '../../typeorm/repository/LoginUser'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
+import {
+  getCustomRepository,
+  IsNull,
+  Not,
+  ObjectLiteral,
+  getConnection,
+  In,
+} from '@dbTools/typeorm'
+import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { PendingCreation } from '@model/PendingCreation'
+import { CreatePendingCreations } from '@model/CreatePendingCreations'
+import { UpdatePendingCreation } from '@model/UpdatePendingCreation'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { UserRepository } from '@repository/User'
+import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
+import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
+import SearchUsersArgs from '@arg/SearchUsersArgs'
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction } from '@model/Transaction'
+import { TransactionRepository } from '@repository/Transaction'
+import { calculateDecay } from '@/util/decay'
+import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
+import { User as dbUser } from '@entity/User'
+import { User } from '@model/User'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
+import Decimal from 'decimal.js-light'
+import { Decay } from '@model/Decay'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { communityUser } from '@/util/communityUser'
+
+// const EMAIL_OPT_IN_REGISTER = 1
+// const EMAIL_OPT_UNKNOWN = 3 // elopage?
+const MAX_CREATION_AMOUNT = 1000
+const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
 
 @Resolver()
 export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_USERS])
-  @Query(() => [UserAdmin])
-  async searchUsers(@Arg('searchText') searchText: string): Promise<UserAdmin[]> {
+  @Query(() => SearchUsersResult)
+  async searchUsers(
+    @Args()
+    {
+      searchText,
+      currentPage = 1,
+      pageSize = 25,
+      notActivated = false,
+      isDeleted = false,
+    }: SearchUsersArgs,
+  ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-    const users = await userRepository.findBySearchCriteria(searchText)
+
+    const filterCriteria: ObjectLiteral[] = []
+    if (notActivated) {
+      filterCriteria.push({ emailChecked: false })
+    }
+
+    if (isDeleted) {
+      filterCriteria.push({ deletedAt: Not(IsNull()) })
+    }
+
+    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
+    const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
+      userFields.map((fieldName) => {
+        return 'user.' + fieldName
+      }),
+      searchText,
+      filterCriteria,
+      currentPage,
+      pageSize,
+    )
+
+    if (users.length === 0) {
+      return {
+        userCount: 0,
+        userList: [],
+      }
+    }
+
+    const creations = await getUserCreations(users.map((u) => u.id))
+
     const adminUsers = await Promise.all(
       users.map(async (user) => {
-        const adminUser = new UserAdmin()
-        adminUser.userId = user.id
-        adminUser.firstName = user.firstName
-        adminUser.lastName = user.lastName
-        adminUser.email = user.email
-        adminUser.creation = await getUserCreations(user.id)
-        adminUser.emailChecked = await hasActivatedEmail(user.email)
+        let emailConfirmationSend = ''
+        if (!user.emailChecked) {
+          const emailOptIn = await LoginEmailOptIn.findOne(
+            {
+              userId: user.id,
+            },
+            {
+              order: {
+                updatedAt: 'DESC',
+                createdAt: 'DESC',
+              },
+              select: ['updatedAt', 'createdAt'],
+            },
+          )
+          if (emailOptIn) {
+            if (emailOptIn.updatedAt) {
+              emailConfirmationSend = emailOptIn.updatedAt.toISOString()
+            } else {
+              emailConfirmationSend = emailOptIn.createdAt.toISOString()
+            }
+          }
+        }
+        const userCreations = creations.find((c) => c.id === user.id)
+        const adminUser = new UserAdmin(
+          user,
+          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          await hasElopageBuys(user.email),
+          emailConfirmationSend,
+        )
         return adminUser
       }),
     )
-    return adminUsers
+    return {
+      userCount: count,
+      userList: adminUsers,
+    }
+  }
+
+  @Authorized([RIGHTS.DELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async deleteUser(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: any,
+  ): Promise<Date | null> {
+    const user = await dbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // moderator user disabled own account?
+    const moderatorUser = context.user
+    if (moderatorUser.id === userId) {
+      throw new Error('Moderator can not delete his own account!')
+    }
+    // soft-delete user
+    await user.softRemove()
+    const newUser = await dbUser.findOne({ id: userId }, { withDeleted: true })
+    return newUser ? newUser.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UNDELETE_USER])
+  @Mutation(() => Date, { nullable: true })
+  async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
+    const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // recover user account
+    await user.recover()
+    return null
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
@@ -47,24 +165,30 @@ export class AdminResolver {
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
   ): Promise<number[]> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
-
-    const creations = await getUserCreations(user.id)
+    const user = await dbUser.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error('This user was deleted. Cannot make a creation.')
+    }
+    if (!user.emailChecked) {
+      throw new Error('Creation could not be saved, Email is not activated')
+    }
+    const creations = await getUserCreation(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
-      const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-      const loginPendingTaskAdmin = loginPendingTasksAdminRepository.create()
-      loginPendingTaskAdmin.userId = user.id
-      loginPendingTaskAdmin.amount = BigInt(amount * 10000)
-      loginPendingTaskAdmin.created = new Date()
-      loginPendingTaskAdmin.date = creationDateObj
-      loginPendingTaskAdmin.memo = memo
-      loginPendingTaskAdmin.moderator = moderator
+      const adminPendingCreation = AdminPendingCreation.create()
+      adminPendingCreation.userId = user.id
+      adminPendingCreation.amount = BigInt(amount)
+      adminPendingCreation.created = new Date()
+      adminPendingCreation.date = creationDateObj
+      adminPendingCreation.memo = memo
+      adminPendingCreation.moderator = moderator
 
-      loginPendingTasksAdminRepository.save(loginPendingTaskAdmin)
+      await AdminPendingCreation.save(adminPendingCreation)
     }
-    return await getUserCreations(user.id)
+    return getUserCreation(user.id)
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
@@ -98,27 +222,42 @@ export class AdminResolver {
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
   ): Promise<UpdatePendingCreation> {
-    const userRepository = getCustomRepository(UserRepository)
-    const user = await userRepository.findByEmail(email)
+    const user = await dbUser.findOne({ email }, { withDeleted: true })
+    if (!user) {
+      throw new Error(`Could not find user with email: ${email}`)
+    }
+    if (user.deletedAt) {
+      throw new Error(`User was deleted (${email})`)
+    }
 
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const updatedCreation = await loginPendingTasksAdminRepository.findOneOrFail({ id })
+    const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
-    if (updatedCreation.userId !== user.id)
+    if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
+    }
 
-    updatedCreation.amount = BigInt(amount * 10000)
-    updatedCreation.memo = memo
-    updatedCreation.date = new Date(creationDate)
-    updatedCreation.moderator = moderator
+    const creationDateObj = new Date(creationDate)
+    let creations = await getUserCreation(user.id)
+    if (pendingCreationToUpdate.date.getMonth() === creationDateObj.getMonth()) {
+      creations = updateCreations(creations, pendingCreationToUpdate)
+    }
 
-    await loginPendingTasksAdminRepository.save(updatedCreation)
+    if (!isCreationValid(creations, amount, creationDateObj)) {
+      throw new Error('Creation is not valid')
+    }
+    pendingCreationToUpdate.amount = BigInt(amount)
+    pendingCreationToUpdate.memo = memo
+    pendingCreationToUpdate.date = new Date(creationDate)
+    pendingCreationToUpdate.moderator = moderator
+
+    await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
     result.amount = parseInt(amount.toString())
-    result.memo = updatedCreation.memo
-    result.date = updatedCreation.date
-    result.moderator = updatedCreation.moderator
-    result.creation = await getUserCreations(user.id)
+    result.memo = pendingCreationToUpdate.memo
+    result.date = pendingCreationToUpdate.date
+    result.moderator = pendingCreationToUpdate.moderator
+
+    result.creation = await getUserCreation(user.id)
 
     return result
   }
@@ -126,220 +265,200 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingCreation])
   async getPendingCreations(): Promise<PendingCreation[]> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const pendingCreations = await loginPendingTasksAdminRepository.find()
+    const pendingCreations = await AdminPendingCreation.find()
+    if (pendingCreations.length === 0) {
+      return []
+    }
 
-    const pendingCreationsPromise = await Promise.all(
-      pendingCreations.map(async (pendingCreation) => {
-        const userRepository = getCustomRepository(UserRepository)
-        const user = await userRepository.findOneOrFail({ id: pendingCreation.userId })
+    const userIds = pendingCreations.map((p) => p.userId)
+    const userCreations = await getUserCreations(userIds)
+    const users = await dbUser.find({ where: { id: In(userIds) }, withDeleted: true })
 
-        const parsedAmount = Number(parseInt(pendingCreation.amount.toString()) / 10000)
-        // pendingCreation.amount = parsedAmount
-        const newPendingCreation = {
-          ...pendingCreation,
-          amount: parsedAmount,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          creation: await getUserCreations(user.id),
-        }
+    return pendingCreations.map((pendingCreation) => {
+      const user = users.find((u) => u.id === pendingCreation.userId)
+      const creation = userCreations.find((c) => c.id === pendingCreation.userId)
 
-        return newPendingCreation
-      }),
-    )
-    return pendingCreationsPromise.reverse()
+      return {
+        ...pendingCreation,
+        amount: Number(pendingCreation.amount.toString()),
+        firstName: user ? user.firstName : '',
+        lastName: user ? user.lastName : '',
+        email: user ? user.email : '',
+        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
+      }
+    })
   }
 
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
-  async deletePendingCreation(@Arg('id') id: number): Promise<boolean> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const entity = await loginPendingTasksAdminRepository.findOneOrFail(id)
-    const res = await loginPendingTasksAdminRepository.delete(entity)
+  async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
+    const entity = await AdminPendingCreation.findOneOrFail(id)
+    const res = await AdminPendingCreation.delete(entity)
     return !!res
   }
 
   @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
   @Mutation(() => Boolean)
-  async confirmPendingCreation(@Arg('id') id: number, @Ctx() context: any): Promise<boolean> {
-    const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-    const pendingCreation = await loginPendingTasksAdminRepository.findOneOrFail(id)
-
-    const userRepository = getCustomRepository(UserRepository)
-    const moderatorUser = await userRepository.findByPubkeyHex(context.pubKey)
+  async confirmPendingCreation(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: any,
+  ): Promise<boolean> {
+    const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
+    const moderatorUser = context.user
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const receivedCallDate = new Date()
-    let transaction = new Transaction()
-    transaction.transactionTypeId = 1
-    transaction.memo = pendingCreation.memo
-    transaction.received = receivedCallDate
-    transaction.blockchainTypeId = 1
-    transaction = await transactionRepository.save(transaction)
-    if (!transaction) throw new Error('Could not create transaction')
+    const user = await dbUser.findOneOrFail({ id: pendingCreation.userId }, { withDeleted: true })
+    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
-    const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
-    let transactionCreation = new TransactionCreation()
-    transactionCreation.transactionId = transaction.id
-    transactionCreation.userId = pendingCreation.userId
-    transactionCreation.amount = parseInt(pendingCreation.amount.toString())
-    transactionCreation.targetDate = pendingCreation.date
-    transactionCreation = await transactionCreationRepository.save(transactionCreation)
-    if (!transactionCreation) throw new Error('Could not create transactionCreation')
-
-    const userTransactionRepository = getCustomRepository(UserTransactionRepository)
-    const lastUserTransaction = await userTransactionRepository.findLastForUser(
-      pendingCreation.userId,
-    )
-    let newBalance = 0
-    if (!lastUserTransaction) {
-      newBalance = 0
-    } else {
-      newBalance = await calculateDecay(
-        lastUserTransaction.balance,
-        lastUserTransaction.balanceDate,
-        receivedCallDate,
-      )
+    const creations = await getUserCreation(pendingCreation.userId, false)
+    if (!isCreationValid(creations, Number(pendingCreation.amount), pendingCreation.date)) {
+      throw new Error('Creation is not valid!!')
     }
-    newBalance = Number(newBalance) + Number(parseInt(pendingCreation.amount.toString()))
 
-    const newUserTransaction = new UserTransaction()
-    newUserTransaction.userId = pendingCreation.userId
-    newUserTransaction.transactionId = transaction.id
-    newUserTransaction.transactionTypeId = transaction.transactionTypeId
-    newUserTransaction.balance = Number(newBalance)
-    newUserTransaction.balanceDate = transaction.received
+    const receivedCallDate = new Date()
 
-    await userTransactionRepository.save(newUserTransaction).catch((error) => {
-      throw new Error('Error saving user transaction: ' + error)
-    })
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const lastTransaction = await transactionRepository.findLastForUser(pendingCreation.userId)
 
-    const balanceRepository = getCustomRepository(BalanceRepository)
-    let userBalance = await balanceRepository.findByUser(pendingCreation.userId)
+    let newBalance = new Decimal(0)
+    let decay: Decay | null = null
+    if (lastTransaction) {
+      decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, receivedCallDate)
+      newBalance = decay.balance
+    }
+    // TODO pending creations decimal
+    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
 
-    if (!userBalance) userBalance = balanceRepository.create()
-    userBalance.userId = pendingCreation.userId
-    userBalance.amount = Number(newBalance)
-    userBalance.modified = receivedCallDate
-    userBalance.recordDate = receivedCallDate
-    await balanceRepository.save(userBalance)
-    await loginPendingTasksAdminRepository.delete(pendingCreation)
+    const transaction = new DbTransaction()
+    transaction.typeId = TransactionTypeId.CREATION
+    transaction.memo = pendingCreation.memo
+    transaction.userId = pendingCreation.userId
+    transaction.previous = lastTransaction ? lastTransaction.id : null
+    // TODO pending creations decimal
+    transaction.amount = new Decimal(Number(pendingCreation.amount))
+    transaction.creationDate = pendingCreation.date
+    transaction.balance = newBalance
+    transaction.balanceDate = receivedCallDate
+    transaction.decay = decay ? decay.decay : new Decimal(0)
+    transaction.decayStart = decay ? decay.start : null
+    await transaction.save()
+
+    await AdminPendingCreation.delete(pendingCreation)
 
     return true
   }
+
+  @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
+  @Query(() => [Transaction])
+  async creationTransactionList(
+    @Args()
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    @Arg('userId', () => Int) userId: number,
+  ): Promise<Transaction[]> {
+    const offset = (currentPage - 1) * pageSize
+    const transactionRepository = getCustomRepository(TransactionRepository)
+    const [userTransactions] = await transactionRepository.findByUserPaged(
+      userId,
+      pageSize,
+      offset,
+      order,
+      true,
+    )
+
+    const user = await dbUser.findOneOrFail({ id: userId })
+    return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
 }
 
-async function getUserCreations(id: number): Promise<number[]> {
-  const dateNextMonth = moment().add(1, 'month').format('YYYY-MM') + '-01'
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM') + '-01'
-  const beforeLastMonthNumber = moment().subtract(2, 'month').format('M')
-  const lastMonthNumber = moment().subtract(1, 'month').format('M')
-  const currentMonthNumber = moment().format('M')
+interface CreationMap {
+  id: number
+  creations: number[]
+}
 
-  const transactionCreationRepository = getCustomRepository(TransactionCreationRepository)
-  const createdAmountsQuery = await transactionCreationRepository
-    .createQueryBuilder('transaction_creations')
-    .select('MONTH(transaction_creations.target_date)', 'target_month')
-    .addSelect('SUM(transaction_creations.amount)', 'sum')
-    .where('transaction_creations.state_user_id = :id', { id })
-    .andWhere({
-      targetDate: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
+async function getUserCreation(id: number, includePending = true): Promise<number[]> {
+  const creations = await getUserCreations([id], includePending)
+  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
+}
+
+async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
+  const months = getCreationMonths()
+
+  const queryRunner = getConnection().createQueryRunner()
+  await queryRunner.connect()
+
+  const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
+
+  const unionString = includePending
+    ? `
+    UNION
+      SELECT date AS date, amount AS amount, userId AS userId FROM admin_pending_creations
+        WHERE userId IN (${ids.toString()})
+        AND date >= ${dateFilter}`
+    : ''
+
+  const unionQuery = await queryRunner.manager.query(`
+    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
+      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
+        WHERE user_id IN (${ids.toString()})
+        AND type_id = ${TransactionTypeId.CREATION}
+        AND creation_date >= ${dateFilter}
+      ${unionString}) AS result
+    GROUP BY month, userId
+    ORDER BY date DESC
+  `)
+
+  await queryRunner.release()
+
+  return ids.map((id) => {
+    return {
+      id,
+      creations: months.map((month) => {
+        const creation = unionQuery.find(
+          (raw: { month: string; id: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.id) === id,
+        )
+        return MAX_CREATION_AMOUNT - (creation ? Number(creation.sum) : 0)
       }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
+    }
+  })
+}
 
-  const loginPendingTasksAdminRepository = getCustomRepository(LoginPendingTasksAdminRepository)
-  const pendingAmountsQuery = await loginPendingTasksAdminRepository
-    .createQueryBuilder('login_pending_tasks_admin')
-    .select('MONTH(login_pending_tasks_admin.date)', 'target_month')
-    .addSelect('SUM(login_pending_tasks_admin.amount)', 'sum')
-    .where('login_pending_tasks_admin.userId = :id', { id })
-    .andWhere({
-      date: Raw((alias) => `${alias} >= :date and ${alias} < :endDate`, {
-        date: dateBeforeLastMonth,
-        endDate: dateNextMonth,
-      }),
-    })
-    .groupBy('target_month')
-    .orderBy('target_month', 'ASC')
-    .getRawMany()
+function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
+  const index = getCreationIndex(pendingCreation.date.getMonth())
 
-  const map = new Map()
-  if (Array.isArray(createdAmountsQuery) && createdAmountsQuery.length > 0) {
-    createdAmountsQuery.forEach((createdAmount) => {
-      if (!map.has(createdAmount.target_month)) {
-        map.set(createdAmount.target_month, createdAmount.sum)
-      } else {
-        const store = map.get(createdAmount.target_month)
-        map.set(createdAmount.target_month, Number(store) + Number(createdAmount.sum))
-      }
-    })
+  if (index < 0) {
+    throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-
-  if (Array.isArray(pendingAmountsQuery) && pendingAmountsQuery.length > 0) {
-    pendingAmountsQuery.forEach((pendingAmount) => {
-      if (!map.has(pendingAmount.target_month)) {
-        map.set(pendingAmount.target_month, pendingAmount.sum)
-      } else {
-        const store = map.get(pendingAmount.target_month)
-        map.set(pendingAmount.target_month, Number(store) + Number(pendingAmount.sum))
-      }
-    })
-  }
-  const usedCreationBeforeLastMonth = map.get(Number(beforeLastMonthNumber))
-    ? Number(map.get(Number(beforeLastMonthNumber))) / 10000
-    : 0
-  const usedCreationLastMonth = map.get(Number(lastMonthNumber))
-    ? Number(map.get(Number(lastMonthNumber))) / 10000
-    : 0
-
-  const usedCreationCurrentMonth = map.get(Number(currentMonthNumber))
-    ? Number(map.get(Number(currentMonthNumber))) / 10000
-    : 0
-
-  return [
-    1000 - usedCreationBeforeLastMonth,
-    1000 - usedCreationLastMonth,
-    1000 - usedCreationCurrentMonth,
-  ]
+  creations[index] += parseInt(pendingCreation.amount.toString())
+  return creations
 }
 
 function isCreationValid(creations: number[], amount: number, creationDate: Date) {
-  const dateMonth = moment().format('YYYY-MM')
-  const dateLastMonth = moment().subtract(1, 'month').format('YYYY-MM')
-  const dateBeforeLastMonth = moment().subtract(2, 'month').format('YYYY-MM')
-  const creationDateMonth = moment(creationDate).format('YYYY-MM')
+  const index = getCreationIndex(creationDate.getMonth())
 
-  let openCreation
-  switch (creationDateMonth) {
-    case dateMonth:
-      openCreation = creations[2]
-      break
-    case dateLastMonth:
-      openCreation = creations[1]
-      break
-    case dateBeforeLastMonth:
-      openCreation = creations[0]
-      break
-    default:
-      throw new Error('CreationDate is not in last three months')
+  if (index < 0) {
+    throw new Error(`No Creation found!`)
   }
 
-  if (openCreation < amount) {
-    throw new Error(`Open creation (${openCreation}) is less than amount (${amount})`)
+  if (amount > creations[index]) {
+    throw new Error(
+      `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
+    )
   }
+
   return true
 }
 
-async function hasActivatedEmail(email: string): Promise<boolean> {
-  const repository = getCustomRepository(LoginUserRepository)
-  const user = await repository.findByEmail(email)
-  return user ? user.emailChecked : false
+const getCreationMonths = (): number[] => {
+  const now = new Date(Date.now())
+  return [
+    now.getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
+  ].reverse()
+}
+
+const getCreationIndex = (month: number): number => {
+  return getCreationMonths().findIndex((el) => el === month + 1)
 }

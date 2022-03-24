@@ -1,11 +1,11 @@
 <template>
   <div class="component-creation-transaction-list">
     {{ $t('transactionlist.title') }}
-    <b-table striped hover :items="items"></b-table>
+    <b-table striped hover :fields="fields" :items="items"></b-table>
   </div>
 </template>
 <script>
-import { transactionList } from '../graphql/transactionList'
+import { creationTransactionList } from '../graphql/creationTransactionList'
 export default {
   name: 'CreationTransactionList',
   props: {
@@ -13,6 +13,37 @@ export default {
   },
   data() {
     return {
+      fields: [
+        {
+          key: 'creationDate',
+          label: this.$t('transactionlist.date'),
+          formatter: (value, key, item) => {
+            return this.$d(new Date(value))
+          },
+        },
+        {
+          key: 'amount',
+          label: this.$t('transactionlist.amount'),
+          formatter: (value, key, item) => {
+            return `${value} GDD`
+          },
+        },
+        {
+          key: 'linkedUser',
+          label: this.$t('transactionlist.community'),
+          formatter: (value, key, item) => {
+            return `${value.firstName} ${value.lastName}`
+          },
+        },
+        { key: 'memo', label: this.$t('transactionlist.memo') },
+        {
+          key: 'balanceDate',
+          label: this.$t('transactionlist.balanceDate'),
+          formatter: (value, key, item) => {
+            return this.$d(new Date(value))
+          },
+        },
+      ],
       items: [],
     }
   },
@@ -20,20 +51,19 @@ export default {
     getTransactions() {
       this.$apollo
         .query({
-          query: transactionList,
+          query: creationTransactionList,
           variables: {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            onlyCreations: true,
             userId: parseInt(this.userId),
           },
         })
         .then((result) => {
-          this.items = result.data.transactionList.transactions
+          this.items = result.data.creationTransactionList
         })
         .catch((error) => {
-          this.$toasted.global.error(error.message)
+          this.toastError(error.message)
         })
     },
   },

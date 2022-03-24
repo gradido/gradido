@@ -1,7 +1,7 @@
 <template>
   <div class="gdd-status">
     <div class="p-0 gdd-status-div">
-      {{ pending ? '—' : $n(balance, 'decimal') }} {{ statusText }}
+      {{ pending || balance === null ? $t('em-dash') : $n(balance, 'decimal') }} {{ statusText }}
     </div>
   </div>
 </template>

@@ -1,12 +1,12 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const storeCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     getPendingCreations: [
@@ -26,7 +26,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         lastName: 'Hotzenplotz',
         email: 'raeuber@hotzenplotz.de',
         amount: 1000000,
-        memo: 'Gut Ergatert',
+        memo: 'Gut Ergattert',
         date: new Date(),
         moderator: 0,
       },
@@ -38,6 +38,7 @@ const apolloMutateMock = jest.fn().mockResolvedValue({})
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $store: {
     commit: storeCommitMock,
   },
@@ -45,15 +46,6 @@ const mocks = {
     query: apolloQueryMock,
     mutate: apolloMutateMock,
   },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
-  },
-  $moment: jest.fn((value) => {
-    return {
-      format: jest.fn((format) => value),
-    }
-  }),
 }
 
 describe('CreationConfirm', () => {
@@ -73,46 +65,23 @@ describe('CreationConfirm', () => {
       expect(wrapper.find('div.creation-confirm').exists()).toBeTruthy()
     })
 
+    it('has two pending creations', () => {
+      expect(wrapper.vm.pendingCreations).toHaveLength(2)
+    })
+
     describe('store', () => {
       it('commits resetOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('resetOpenCreations')
       })
+
       it('commits setOpenCreations to store', () => {
         expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
       })
     })
 
-    describe('delete creation delete with success', () => {
+    describe('remove creation with success', () => {
       beforeEach(async () => {
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            getPendingCreations: [
-              {
-                id: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                amount: 500,
-                memo: 'Danke für alles',
-                date: new Date(),
-                moderator: 0,
-              },
-              {
-                id: 2,
-                firstName: 'Räuber',
-                lastName: 'Hotzenplotz',
-                email: 'raeuber@hotzenplotz.de',
-                amount: 1000000,
-                memo: 'Gut Ergatert',
-                date: new Date(),
-                moderator: 0,
-              },
-            ],
-          },
-        })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
       it('calls the deletePendingCreation mutation', () => {
@@ -127,85 +96,85 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('Pending Creation has been deleted')
+        expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
       })
     })
 
-    describe('delete creation delete with error', () => {
+    describe('remove creation with error', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'remove')
+        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
       })
     })
 
-    describe('confirm creation delete with success', () => {
+    describe('confirm creation with success', () => {
       beforeEach(async () => {
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            getPendingCreations: [
-              {
-                id: 1,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                email: 'bibi@bloxberg.de',
-                amount: 500,
-                memo: 'Danke für alles',
-                date: new Date(),
-                moderator: 0,
-              },
-              {
-                id: 2,
-                firstName: 'Räuber',
-                lastName: 'Hotzenplotz',
-                email: 'raeuber@hotzenplotz.de',
-                amount: 1000000,
-                memo: 'Gut Ergatert',
-                date: new Date(),
-                moderator: 0,
-              },
-            ],
-          },
+        apolloMutateMock.mockResolvedValue({})
+        await wrapper.findAll('tr').at(2).findAll('button').at(2).trigger('click')
+      })
+
+      describe('overlay', () => {
+        it('opens the overlay', () => {
+          expect(wrapper.find('#overlay').isVisible()).toBeTruthy()
         })
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'confirmed')
-      })
 
-      it('calls the deletePendingCreation mutation', () => {
-        expect(apolloMutateMock).not.toBeCalledWith({
-          mutation: deletePendingCreation,
-          variables: { id: 1 },
+        describe('cancel confirmation', () => {
+          beforeEach(async () => {
+            await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
+          })
+
+          it('closes the overlay', async () => {
+            expect(wrapper.find('#overlay').exists()).toBeFalsy()
+          })
+
+          it('still has 2 items in the table', () => {
+            expect(wrapper.findAll('tbody > tr')).toHaveLength(2)
+          })
         })
-      })
 
-      it('commits openCreationsMinus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-      })
+        describe('confirm creation', () => {
+          beforeEach(async () => {
+            await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+          })
 
-      it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('Pending Creation has been deleted')
+          it('calls the confirmPendingCreation mutation', () => {
+            expect(apolloMutateMock).toBeCalledWith({
+              mutation: confirmPendingCreation,
+              variables: { id: 2 },
+            })
+          })
+
+          it('commits openCreationsMinus to store', () => {
+            expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+          })
+
+          it('toasts a success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_created')
+          })
+
+          it('has 1 item left in the table', () => {
+            expect(wrapper.findAll('tbody > tr')).toHaveLength(1)
+          })
+        })
+
+        describe('confirm creation with error', () => {
+          beforeEach(async () => {
+            apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+            await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
+          })
+        })
       })
     })
 
-    describe('delete creation delete with error', () => {
-      beforeEach(async () => {
-        await wrapper
-          .findComponent({ name: 'UserTable' })
-          .vm.$emit('remove-confirm-result', { id: 1 }, 'confirm')
-      })
-
-      it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Case confirm is not supported')
-      })
-    })
-
-    describe('server response is error', () => {
+    describe('server response for get pending creations is error', () => {
       beforeEach(() => {
         jest.clearAllMocks()
         apolloQueryMock.mockRejectedValue({
@@ -215,7 +184,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toast an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouch!')
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
     })
   })

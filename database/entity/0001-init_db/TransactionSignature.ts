@@ -1,21 +1,21 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm'
-import { Transaction } from './Transaction'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import { Transaction } from '../Transaction'
 
 @Entity('transaction_signatures')
 export class TransactionSignature extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
   @Column({ name: 'transaction_id' })
   transactionId: number
 
-  @Column({ type: 'binary', length: 64 })
+  @Column({ type: 'binary', length: 64, nullable: false })
   signature: Buffer
 
-  @Column({ type: 'binary', length: 32 })
+  @Column({ type: 'binary', length: 32, nullable: false })
   pubkey: Buffer
 
-  @ManyToOne(() => Transaction)
+  @OneToOne(() => Transaction)
   @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction
 }

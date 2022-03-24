@@ -3,10 +3,20 @@ module.exports = {
   verbose: true,
   preset: 'ts-jest',
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
+  setupFiles: ['<rootDir>/test/testSetup.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
-    '@entity/(.*)': '<rootDir>/../database/build/entity/$1',
-    // This is hack to fix a problem with the library `ts-mysql-migrate` which does differentiate between its ts/js state
+    '@/(.*)': '<rootDir>/src/$1',
+    '@model/(.*)': '<rootDir>/src/graphql/model/$1',
+    '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
+    '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
+    '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
+    '@test/(.*)': '<rootDir>/test/$1',
+    '@entity/(.*)':
+      process.env.NODE_ENV === 'development'
+        ? '<rootDir>/../database/entity/$1'
+        : '<rootDir>/../database/build/entity/$1',
     '@dbTools/(.*)':
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'

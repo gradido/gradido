@@ -17,6 +17,12 @@ import { focus } from 'vue-focus'
 
 import { loadAllRules } from '../src/validation-rules'
 
+import { loadFilters } from '@/filters/amount'
+
+import { toasters } from '@/mixins/toaster'
+export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
+export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
+
 Object.keys(rules).forEach((rule) => {
   extend(rule, {
     ...rules[rule], // copies rule configuration
@@ -46,6 +52,22 @@ global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)
 global.localVue.directive('focus', focus)
+
+global.localVue.mixin(toasters)
+
+const filters = loadFilters(i18nMock)
+global.localVue.filter('amount', filters.amount)
+global.localVue.filter('GDD', filters.GDD)
+
+// Filter the warnings for portal vue
+// https://github.com/BeniRupp/bug_portal-vue-target-already-exists
+const consoleWarn = global.console.warn
+// eslint-disable-next-line no-console
+delete console.warn
+// eslint-disable-next-line no-console
+console.warn = (m) => {
+  if (!m.match(/^\[portal-vue\]: Target .+ already exists$/)) consoleWarn(m)
+}
 
 // throw errors for vue warnings to force the programmers to take care about warnings
 Vue.config.warnHandler = (w) => {

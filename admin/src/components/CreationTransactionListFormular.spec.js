@@ -1,71 +1,49 @@
 import { mount } from '@vue/test-utils'
 import CreationTransactionListFormular from './CreationTransactionListFormular.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    transactionList: {
-      transactions: [
-        {
-          type: 'created',
-          balance: 100,
-          decayStart: 0,
-          decayEnd: 0,
-          decayDuration: 0,
-          memo: 'Testing',
-          transactionId: 1,
-          name: 'Bibi',
-          email: 'bibi@bloxberg.de',
-          date: new Date(),
-          decay: {
-            balance: 0.01,
-            decayStart: 0,
-            decayEnd: 0,
-            decayDuration: 0,
-            decayStartBlock: 0,
-          },
+    creationTransactionList: [
+      {
+        id: 1,
+        amount: 100,
+        balanceDate: 0,
+        creationDate: new Date(),
+        memo: 'Testing',
+        linkedUser: {
+          firstName: 'Gradido',
+          lastName: 'Akademie',
         },
-        {
-          type: 'created',
-          balance: 200,
-          decayStart: 0,
-          decayEnd: 0,
-          decayDuration: 0,
-          memo: 'Testing 2',
-          transactionId: 2,
-          name: 'Bibi',
-          email: 'bibi@bloxberg.de',
-          date: new Date(),
-          decay: {
-            balance: 0.01,
-            decayStart: 0,
-            decayEnd: 0,
-            decayDuration: 0,
-            decayStartBlock: 0,
-          },
+      },
+      {
+        id: 2,
+        amount: 200,
+        balanceDate: 0,
+        creationDate: new Date(),
+        memo: 'Testing 2',
+        linkedUser: {
+          firstName: 'Gradido',
+          lastName: 'Akademie',
         },
-      ],
-    },
+      },
+    ],
   },
 })
 
-const toastedErrorMock = jest.fn()
-
 const mocks = {
+  $d: jest.fn((t) => t),
   $t: jest.fn((t) => t),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    global: {
-      error: toastedErrorMock,
-    },
   },
 }
 
 const propsData = {
   userId: 1,
+  fields: ['date', 'balance', 'name', 'memo', 'decay'],
 }
 
 describe('CreationTransactionListFormular', () => {
@@ -87,7 +65,6 @@ describe('CreationTransactionListFormular', () => {
             currentPage: 1,
             pageSize: 25,
             order: 'DESC',
-            onlyCreations: true,
             userId: 1,
           },
         }),
@@ -109,7 +86,7 @@ describe('CreationTransactionListFormular', () => {
       })
 
       it('toast error', () => {
-        expect(toastedErrorMock).toBeCalledWith('OUCH!')
+        expect(toastErrorSpy).toBeCalledWith('OUCH!')
       })
     })
   })

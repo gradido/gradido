@@ -23,7 +23,11 @@ const apollo = {
   query: apolloQueryMock,
 }
 
-addNavigationGuards(router, store, apollo)
+const i18n = {
+  locale: jest.fn(),
+}
+
+addNavigationGuards(router, store, apollo, i18n)
 
 describe('navigation guards', () => {
   beforeEach(() => {
@@ -37,7 +41,7 @@ describe('navigation guards', () => {
     })
 
     it('does not commit the pid when not present', async () => {
-      await router.push({ path: 'password' })
+      await router.push({ path: 'forgot-password' })
       expect(storeCommitMock).not.toBeCalled()
     })
   })
