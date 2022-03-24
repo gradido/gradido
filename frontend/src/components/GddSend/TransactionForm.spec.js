@@ -249,9 +249,6 @@ describe('GddSend', () => {
 
     describe('create transaction link', () => {
       beforeEach(async () => {
-        await wrapper.setData({
-          form: { email: 'bibi@bloxberg.de' },
-        })
         await wrapper.findAll('input[type="radio"]').at(1).setChecked()
       })
 
@@ -259,12 +256,8 @@ describe('GddSend', () => {
         expect(wrapper.vm.selected).toBe(SEND_TYPES.link)
       })
 
-      it('clears form email ', () => {
-        expect(wrapper.vm.form.email).toBe('')
-      })
-
       it('has no input field of id input-group-1', () => {
-        expect(wrapper.find('#input-group-1').isVisible()).toBe(false)
+        expect(wrapper.find('#input-group-1').exists()).toBe(false)
       })
     })
   })
