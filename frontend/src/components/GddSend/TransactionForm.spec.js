@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
+import { SEND_TYPES } from '@/pages/Send.vue'
 
 const localVue = global.localVue
 
@@ -18,11 +19,6 @@ describe('GddSend', () => {
         email: 'user@example.org',
       },
     },
-  }
-
-  const SEND_TYPES = {
-    send: 'send',
-    link: 'link',
   }
 
   const propsData = {
