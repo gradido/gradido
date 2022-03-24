@@ -15,6 +15,7 @@ import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
+import { OptinType } from '@enum/OptinType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
@@ -23,9 +24,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_ADMIN } from '@/auth/ROLES'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
-
-const EMAIL_OPT_IN_RESET_PASSWORD = 2
-const EMAIL_OPT_IN_REGISTER = 1
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -148,14 +146,16 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
   return message
 }
+
 const createEmailOptIn = async (
   loginUserId: number,
   queryRunner: QueryRunner,
 ): Promise<LoginEmailOptIn> => {
   let emailOptIn = await LoginEmailOptIn.findOne({
     userId: loginUserId,
-    emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
+    emailOptInTypeId: OptinType.EMAIL_OPT_IN_REGISTER,
   })
+
   if (emailOptIn) {
     if (isOptInCodeValid(emailOptIn)) {
       throw new Error(`email already sent less than ${printEmailCodeValidTime()} ago`)
@@ -166,7 +166,7 @@ const createEmailOptIn = async (
     emailOptIn = new LoginEmailOptIn()
     emailOptIn.verificationCode = random(64)
     emailOptIn.userId = loginUserId
-    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
+    emailOptIn.emailOptInTypeId = OptinType.EMAIL_OPT_IN_REGISTER
   }
   await queryRunner.manager.save(emailOptIn).catch((error) => {
     // eslint-disable-next-line no-console
@@ -179,7 +179,7 @@ const createEmailOptIn = async (
 const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
   let optInCode = await LoginEmailOptIn.findOne({
     userId: loginUserId,
-    emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
+    emailOptInTypeId: OptinType.EMAIL_OPT_IN_RESET_PASSWORD,
   })
 
   // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
@@ -193,7 +193,7 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     optInCode = new LoginEmailOptIn()
     optInCode.verificationCode = random(64)
     optInCode.userId = loginUserId
-    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+    optInCode.emailOptInTypeId = OptinType.EMAIL_OPT_IN_RESET_PASSWORD
   }
   await LoginEmailOptIn.save(optInCode)
   return optInCode
@@ -398,7 +398,7 @@ export class UserResolver {
     return new User(dbUser)
   }
 
-  // THis is used by the admin only - should we move it to the admin resolver?
+  // This is used by the admin only - should we move it to the admin resolver?
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
@@ -553,7 +553,7 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
+    if (optInCode.emailOptInTypeId === OptinType.EMAIL_OPT_IN_REGISTER) {
       try {
         await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
       } catch {
