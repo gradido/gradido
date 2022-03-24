@@ -28,6 +28,23 @@ A similar solution of authentication to variant A but **without autorization** c
 4. *Community-B* will verify the given one-time-code and if valid, decrypt the previous received and encrypted community key from step 1 of the invocation-chain by using the given public key from *community-A*. If the decrypted community-key is equals the own community key, the public key of *community-A* is stored in the entry of *community-A* of the internal community list. As response of the *verifyOneTimeCode* the *community-B* will send back his own public key to *community-A*.
 5. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
 
+| PR-Kommentar                 | zu Punkt 1 in der List oben                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ulf<br />24.03.2022          | ComA.org ---   (pubKeyA, SaltA, privKeyA(SaltA,pubKeyB)              ---> ComB.org<br />
+```
+<--- (pubKeyB, SaltB, privKeyB(SaltA, SaltB, pubKeyA)    ----
+```
+
+<br /><br />Das wäre mien Vorschlag, aber ich bin kein Crypto-Experte.<br />Tritt ein Validierungsfehler auf, wird der Call als unauthorized markiert.<br /><br />Vorteil: statless<br />Nachteil: Rechenaufwendig, kann umgangen werden, wenn Salt ein Datum ist und ein solcher Salt eine Gültigkeitsdauer hat - e.g. 10 min. Dann wäre aber SaltB unpraktikabel - für die Validierung auf ComB Seite wäre, dann eine Prüfung des Salt-Datums notwendig um replay Attacken zu verhindern. |
+|  Claus-Peter<br />24.03.2022 |  Da scheint in deinem Bild ein Henne-Ei-Problem zu sein:<br />Wie kommt ComA für seinen ersten Request an ComB zu dem pubKeyB?<br />Den hat ComA zu dem Zeitpunkt doch noch gar nicht, oder?<br />Daher benötigt man einen mehr-schrittigen Handshake zw. den Communities, um diese Keys auszutauschen.                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **PR-Kommentar**            |  **zu Punkt 2 in der Liste oben**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|  Ulf<br />24.03.2022         |  explain? Out key exchange was done befor, we just need to proof that our current data is correct?!                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|  Claus-Peter<br />24.03.2022 |  Das ist genau was ich oben schon meinte mit dem Henne-Ei-Problem:<br /><br />Wir sollten dazu noch einmal genau den Ablauf zu den einzelnen Zeitpunkten und welche Daten in welcher Community zu den Zeitpunkten vorliegen bzw über welche Kanäle diese ausgetauscht werden.<br />Ich glaube ich skizziere dies noch einmal möglichst einfach auf...                                                                                                                                                                                                                                                                                                                                                                                  |
+
+
+
+
+
 The result of this invocation chain is the public key exchange of the involved communities, which is the foundation to authenticate a future cross community communication - see Sequnce 2 and 3.
 
 To reach in Variant B nearly the same security level as in Variant A each community has to integrate several components to process this invocation chain like Variant A does.
@@ -41,7 +58,6 @@ The third Variant exchange the all necessary data directly without the step in b
 3. *Community-A* will store the received public key of *community-B* in the corresponding entry of the internal community-list.
 
 Variant C is quite similar to Variant B, but to exchange all security relevant data in a single request-response-roundtrip bears more security risks and should be avoided.
-
 
 ## Service: "Authenticate Community"
 
@@ -76,8 +92,6 @@ POST https://<New_Community_URL>/authenticateCommunity
 
 *UnknownCommunityException* if the community search with the value of parameter "community-key-A" could not find a matching community entry with this key.
 
-
-
 ## Service: "Verify OneTimeCode"
 
 This service must be invoked directly after getting the *one-time code*, because this code has a very short expiration time. Together with the public key of *community-A* the one-time code is send as input data to *community-B*. The service verifies the given *one-time code* and if valid it decrypt with the given *public key* the previous receive *community-key-B* from the request *authenticateCommunity*. If this decrypted community-key is equals the own community-key the *public key* is stored in the community-entry of *community-A* of the internal community-list.
@@ -110,7 +124,6 @@ POST https://<New_Community_URL>/verifyOneTimeCode
 *InvalidOneTimeCodeException* if the one-time-code is expired, invalid or unknown.
 
 *SecurityException* if the decryption result with the given parameter *public-key* and previous receive *community-key-B* from the request *authenticateCommunity* doesn't match with the own community-key.
-
 
 ## Service: "open Communication"
 
@@ -150,8 +163,6 @@ The requesting *community-A* will initialize these input data:
 *UnknownCommunityException* if the community search with the value of parameter "community-key-A" could not find a matching community entry with this key.
 
 *SecurityException* if the decrypted community-key-B will not match the own community key.
-
-
 
 ## Service: "Familiarize communities"
 
@@ -253,7 +264,6 @@ A *SecurityException* will be thrown, if the security-accesstoken is not valid o
 
 In case the transferred data can't be stored on service-provider the exception *WriteAccessException* will be thrown.
 
-
 ## Service: "confirm TradingLevel"
 
 With this service a community sends his trading level confirmation to a previous *requestTradingLevel* invocation of another community. The *community-B* invokes this service at *community-A* to confirm the previous received and optionally updated vision of trading level data with *community-A*. This service sends the TradingLevelTO with the confirmed flags for future data exchanges between *community-A* and *community-B*. *Community-A* will store this data in the entry of *community-B* of its internal community list and mark it as a *confirmed admin request* for trading level.  The update of a *admin request* to state *confirmed* will inform the administrator of *community-A* to trigger administrative interactions and decisions.
@@ -302,7 +312,6 @@ The meaning of the *TradingLevelTO*-attributes in the confirmTradingLevel reques
 ### Exceptions:
 
 A *SecurityException* will be thrown, if the security-accesstoken is not valid or the if internal autorization rules like black-listings will not allow access.
-
 
 ## Service: "Member of Community"
 

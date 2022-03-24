@@ -292,16 +292,22 @@ Der Prozess *Neue Community erstellen* wird entweder automatisiert beim erstmali
 Der oben grafisch dargestellte Ablauf wird in drei grobe Teile untergliedert:
 
 1. )den eigentlichen Community-Prozess "*neue Community erstellen*" (links in grün gehalten), in dem die Community spezifischen Attribute erfasst, geladen und/oder angelegt werden. Dazu gehören neben dem Erfassen der Community eigenen Attributen, das Laden von vordefinierten Standard-Daten wie die Tätigkeitsliste, Berechtigungen, etc. und optional als eigenständiger Prozess die Erfassung bzw das Anlegen von neuen Community-Mitgliedern.
-2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Die technischen Details der *Federation* werden im Dokument [Federation](../TechnicalRequirements/Federation.md " ") beschrieben. Dabei wird
+2. das Starten der "*Federation*" als Hintergrundprozess, um die neu erstellte Community im Gradido-Community-Verbund bekannt zu machen. Dietechnischen Details der *Federation* werden im Dokument [Federation](../TechnicalRequirements/Federation.md " ") beschrieben. Dabei wird
    * als erstes geprüft, ob in der eigenen Community die notwendigen Attribute wie Community-Key, URL und ggf. weitere korrekt initialisiert und gespeichert sind. Falls nicht wird der Hintergrundprozess mit einem Fehler abgebrochen
    * dann werden die Attribute Community-Key und URL in eine *newCommunity*-Message gepackt und asynchron an den Public-Channel der Community-Federation des Gradido-Community-Verbundes gesendet
    * Im Anschluss geht der Federation-Prozess in den "Lausch-Modus" auf eingehende Messages am *Public-Channel*. Die Verarbeitung von eingehenden Messages muss so sichergestellt werden, dass einerseits keine Message verloren geht auch bei DownTimes und andererseits, dass eine Message erst aus dem Public-Channel gelöscht wird, sobald diese vollständig abgearbeitet ist. Der Federation-Prozess lauscht auf Messages vom Typ *replyNewCommunity* und *newCommunity*, die bei Empfang entsprechend verarbeitet werden:
      * *replyNewCommunity*-Messages werden auf die zuvor gesendete *newCommunity*-Message als Antwort von allen anderen schon im Verbund existierenden Communities erwartet. Je nach MessageState erfolgt eine unterschiedliche Weiterverarbeitung:
+
        * Ist der *MessageState = OK*, dann werden die erhaltenen Daten - Community-Key und URL - von der antwortenden Community  in der Community-Datenbank als internen Liste für "*bekannte Communities*" gespeichert. Nach dem Speichern eines neue Community-Eintrags in dieser Liste wird asynchron der dritten und letzten Schritt der Federation *"Community-Communication"* als Hintergrundprozess getriggert und geht dann wieder zurück in den "Lausch-Modus" am Public-Channel.
        * Ist der MessageState = requestNewKey, dann erfolgt eine Neugenerierung und Speicherung des eigenen Community-Keys, der dann erneut als *newCommunity*-Message auf den Public-Channel verschickt wird. Danach geht der Federation-Prozess wieder in den "Lauch-Modus", um auf Anworten der existierenden Communities zu warten.
      * *newCommunity*-Messages werden von neu erstellten Communities im Rahmen derer Federation in den Public-Channel gesendet. Diese Messages sollten möglichst zeitnah von möglichst vielen schon existierenden Communities beantwortet werden. Dazu wird zuerst in der Community-Datenbank nach Einträgen gesucht, die den gleichen Community-Key aber eine unterschiedliche URL als zu den empfangenen Daten haben:
+
        * Sollte es einen solchen Eintrag geben, dann wird eine *replyNewCommunity*-Message erzeugt mit *MessageState = requestNewKey* und ohne weitere Daten in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
-       * Sollte es keine solche Einträge geben, dann werden die eigenen Daten *Community-Key* und *URL* in eine *replyNewCommunity*-Message gepackt, der *MessageState = OK* gesetzt und direkt in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
+       * Sollte es keine solche Einträge geben, dann werden die eigenen Daten *Community-Ke*y und *URL* in eine *replyNewCommunity*-Message gepackt, der *MessageState = OK* gesetzt und direkt in den Public-Channel zurückgesendet. Danach wird wieder in den "Lausch-Modus" am Public-Channel gewechselt.
+     * | PR-Kommentar        |                                                                                                                                                                                                                                                                                                                                                                          |
+       | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+       | Ulf<br />24.03.2022 | Schitte 1 & 2 sind komplett durch die Federation an sich abgedeckt. Bereits über die Federatierungsschnittstelle wird eine Direktverbindung zum Peer aufgebaut um Daten auszutauschen (die URLs)<br />Mehr infos:<br />[https://en.wikipedia.org/wiki/Kademlia](https://en.wikipedia.org/wiki/Kademlia)[https://github.com/hyperswarm/dht](https://github.com/hyperswarm/dht) |
+     *
 3. und die *"Community-Communication"* als Hintergrundprozess. Dieser liest zuerst die eigenen Community-Daten und geht dann per Direkt-Verbindung über die URL mit der neuen Community in Dialog, um sich zuerst gegenseitig zu authentifizieren und um dann die Community spezifischen Daten untereinander auszutauschen. Der logische Ablauf dieser Kommunikation soll wie folgt dargestellt ablaufen:
 
 ![AuthenticateCommunityCommunication](.\image\AuthenticateCommunityCommunication.png " ")
@@ -314,7 +320,7 @@ Die aller erste fachliche Kommunikation zwischen einer neu erstellten und einer 
 
 1. Community-Infrastruktur ist installiert und aktiv
 2. neue Community ist erzeugt und Daten in der Community-DB gespeichert
-3. der Hintergrundprozess *Federation* ist am Laufen
+3. der Hintergrundprozess *Federatio*n ist am Laufen
    * die initiale "newCommunity-Msg" mit den eigenen Community-Daten ist in den Public-Channel versendet
    * ein Listener lauscht am Public-Channel auf Antworten (*replyNewCommunity*-Msg) der schon existenten Communities
    * ein Listener lauscht am Public-Channel auf initiale "*newCommunity*-Msg" anderer neuer Communities
@@ -326,9 +332,7 @@ Die aller erste fachliche Kommunikation zwischen einer neu erstellten und einer 
 
 #### Fehlerfälle
 
-
-
-### Communities Tradinglevel aushandeln {Communities-Tradinglevel-aushandeln}
+### Communities Tradinglevel aushandeln
 
 Im Anwendungsfall *Communities Tradinglevel aushandeln* geht es darum, dass die beiden involvierten Communities sich gegenseitig anfragen und bestätigen auf welchem Level bzw. mit welchen Detailtiefe sie zukünftig Datenaustauschen und miteinander interagieren.
 
@@ -413,7 +417,6 @@ Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
 
 #### Fehlerfälle
 
-
 ### Community bearbeiten
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -438,7 +441,6 @@ Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
 
 #### Fehlerfälle
 
-
 ### Trusted Community verbinden
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -450,7 +452,6 @@ Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
 #### Ende Status
 
 #### Fehlerfälle
-
 
 ### Trusted Community lösen
 
@@ -464,7 +465,6 @@ Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
 
 #### Fehlerfälle
 
-
 ### Parent Community einrichten
 
 *Allgemeine fachliche Beschreibung des Anwendungsfalles.*
@@ -476,7 +476,6 @@ Als Ende diese Anwendungsfalles kann es folgende Konstellationen geben:
 #### Ende Status
 
 #### Fehlerfälle
-
 
 ### Parent Community löschen
 
