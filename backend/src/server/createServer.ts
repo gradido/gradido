@@ -1,12 +1,11 @@
 import 'reflect-metadata'
-import 'module-alias/register'
 
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express } from 'express'
 
 // database
-import connection from '../typeorm/connection'
-import { checkDBVersion } from '../typeorm/DBVersion'
+import connection from '@/typeorm/connection'
+import { checkDBVersion } from '@/typeorm/DBVersion'
 
 // server
 import cors from './cors'
@@ -14,13 +13,13 @@ import serverContext from './context'
 import plugins from './plugins'
 
 // config
-import CONFIG from '../config'
+import CONFIG from '@/config'
 
 // graphql
-import schema from '../graphql/schema'
+import schema from '@/graphql/schema'
 
 // webhooks
-import { elopageWebhook } from '../webhook/elopage'
+import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
 // TODO implement

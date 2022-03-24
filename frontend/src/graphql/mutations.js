@@ -45,6 +45,7 @@ export const createUser = gql`
     $email: String!
     $language: String!
     $publisherId: Int
+    $redeemCode: String
   ) {
     createUser(
       email: $email
@@ -52,12 +53,35 @@ export const createUser = gql`
       lastName: $lastName
       language: $language
       publisherId: $publisherId
-    )
+      redeemCode: $redeemCode
+    ) {
+      id
+    }
   }
 `
 
 export const sendCoins = gql`
   mutation($email: String!, $amount: Decimal!, $memo: String!) {
     sendCoins(email: $email, amount: $amount, memo: $memo)
+  }
+`
+
+export const createTransactionLink = gql`
+  mutation($amount: Decimal!, $memo: String!) {
+    createTransactionLink(amount: $amount, memo: $memo) {
+      code
+    }
+  }
+`
+
+export const deleteTransactionLink = gql`
+  mutation($id: Int!) {
+    deleteTransactionLink(id: $id)
+  }
+`
+
+export const redeemTransactionLink = gql`
+  mutation($code: String!) {
+    redeemTransactionLink(code: $code)
   }
 `

@@ -1,6 +1,6 @@
 <template>
   <div class="user-search">
-    <div style="text-align: right">
+    <div class="user-search-first-div">
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
@@ -99,7 +99,7 @@ export default {
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt
-      this.toastSuccess(this.$t('user_deleted'))
+      this.toastSuccess(deletedAt ? this.$t('user_deleted') : this.$t('user_recovered'))
     },
   },
   watch: {
@@ -136,3 +136,8 @@ export default {
   },
 }
 </script>
+<style>
+.user-search-first-div {
+  text-align: right;
+}
+</style>

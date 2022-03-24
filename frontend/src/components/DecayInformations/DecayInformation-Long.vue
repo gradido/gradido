@@ -1,7 +1,7 @@
 <template>
   <div class="decayinformation-long">
     <div class="d-flex">
-      <div style="width: 100%" class="text-center pb-3">
+      <div class="text-center pb-3 gradido-max-width">
         <b-icon icon="droplet-half" height="12" class="mb-2" />
         <b>{{ $t('decay.calculation_decay') }}</b>
       </div>
@@ -15,7 +15,6 @@
         <div>
           <span>
             {{ $d(new Date(decay.start), 'long') }}
-            {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
           </span>
         </div>
       </b-col>
@@ -25,14 +24,7 @@
         <div>{{ $t('decay.past_time') }}</div>
       </b-col>
       <b-col cols="6">
-        <span v-if="duration">
-          <span v-if="duration.years > 0">{{ duration.years }} {{ $t('decay.year') }},</span>
-          <span v-if="duration.months > 0">{{ duration.months }} {{ $t('decay.months') }},</span>
-          <span v-if="duration.days > 0">{{ duration.days }} {{ $t('decay.days') }},</span>
-          <span v-if="duration.hours > 0">{{ duration.hours }} {{ $t('decay.hours') }},</span>
-          <span v-if="duration.minutes > 0">{{ duration.minutes }} {{ $t('decay.minutes') }},</span>
-          <span v-if="duration.seconds > 0">{{ duration.seconds }} {{ $t('decay.seconds') }}</span>
-        </span>
+        <span v-if="duration">{{ durationText }}</span>
       </b-col>
     </b-row>
 
@@ -41,9 +33,7 @@
       <b-col cols="6" class="text-right">
         <div>{{ $t('decay.decay') }}</div>
       </b-col>
-      <b-col cols="6">
-        <div>− {{ $n(decay.decay * -1, 'decimal') }}</div>
-      </b-col>
+      <b-col cols="6">{{ decay.decay | GDD }}</b-col>
     </b-row>
     <hr class="mt-2 mb-2" />
     <b-row>
@@ -53,23 +43,14 @@
     </b-row>
     <!-- Type-->
     <b-row>
-      <b-col cols="6" class="text-right">
-        <div v-if="typeId === 'SEND'">{{ $t('decay.sent') }}</div>
-        <div v-if="typeId === 'RECEIVE'">{{ $t('decay.received') }}</div>
-      </b-col>
-      <b-col cols="6">
-        <div v-if="typeId === 'SEND'">− {{ $n(amount * -1, 'decimal') }}</div>
-        <div v-if="typeId === 'RECEIVE'">{{ $n(amount, 'decimal') }}</div>
-      </b-col>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
+      <b-col cols="6" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
+      <b-col cols="6">{{ amount | GDD }}</b-col>
     </b-row>
     <!-- Decay-->
     <b-row>
-      <b-col cols="6" class="text-right">
-        <div>{{ $t('decay.decay') }}</div>
-      </b-col>
-      <b-col cols="6">
-        <div>− {{ $n(decay.decay * -1, 'decimal') }}</div>
-      </b-col>
+      <b-col cols="6" class="text-right">{{ $t('decay.decay') }}</b-col>
+      <b-col cols="6">{{ decay.decay | GDD }}</b-col>
     </b-row>
     <!-- Total-->
     <b-row>
@@ -77,15 +58,7 @@
         <div>{{ $t('decay.total') }}</div>
       </b-col>
       <b-col cols="6">
-        <div v-if="typeId === 'SEND'">
-          <b>− {{ $n((Number(amount) + Number(decay.decay)) * -1, 'decimal') }}</b>
-        </div>
-        <div v-if="typeId === 'RECEIVE'">
-          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
-        </div>
-        <div v-if="typeId === 'CREATION'">
-          <b>{{ $n(Number(amount) + Number(decay.decay), 'decimal') }}</b>
-        </div>
+        <b>{{ (Number(amount) + Number(decay.decay)) | GDD }}</b>
       </b-col>
     </b-row>
   </div>
@@ -103,6 +76,18 @@ export default {
   computed: {
     duration() {
       return this.$moment.duration(new Date(this.decay.end) - new Date(this.decay.start))._data
+    },
+    durationText() {
+      const order = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
+      const result = []
+      order.forEach((timeSpan) => {
+        if (this.duration[timeSpan] > 0) {
+          // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+          const locale = this.$t(`time.${timeSpan}`)
+          result.push(`${this.duration[timeSpan]} ${locale}`)
+        }
+      })
+      return result.join(', ')
     },
   },
 }

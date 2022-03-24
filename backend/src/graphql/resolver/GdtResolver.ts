@@ -2,14 +2,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
-import { getCustomRepository } from '@dbTools/typeorm'
-import CONFIG from '../../config'
-import { GdtEntryList } from '../model/GdtEntryList'
-import Paginated from '../arg/Paginated'
-import { apiGet } from '../../apis/HttpRequest'
-import { UserRepository } from '../../typeorm/repository/User'
-import { Order } from '../enum/Order'
-import { RIGHTS } from '../../auth/RIGHTS'
+import CONFIG from '@/config'
+import { GdtEntryList } from '@model/GdtEntryList'
+import Paginated from '@arg/Paginated'
+import { apiGet } from '@/apis/HttpRequest'
+import { Order } from '@enum/Order'
+import { RIGHTS } from '@/auth/RIGHTS'
 
 @Resolver()
 export class GdtResolver {
@@ -22,8 +20,7 @@ export class GdtResolver {
     @Ctx() context: any,
   ): Promise<GdtEntryList> {
     // load user
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const userEntity = context.user
 
     try {
       const resultGDT = await apiGet(

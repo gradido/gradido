@@ -1,76 +1,57 @@
 <template>
-  <div :class="visible ? 'bg-secondary' : ''" class="transaction-slot-decay">
+  <div class="transaction-slot-decay">
     <div @click="visible = !visible">
       <!-- Collaps Icon  -->
-      <div class="text-right" style="width: 95%; position: absolute">
-        <b-icon
-          :icon="visible ? 'caret-up-square' : 'caret-down-square'"
-          :class="visible ? 'text-black' : 'text-muted'"
-        />
-      </div>
-
+      <collapse-icon class="text-right" :visible="visible" />
       <div>
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <div class="gdd-transaction-list-item-icon">
-              <b-icon icon="droplet-half" class="gradido-global-color-gray m-mb-1 font2em" />
-            </div>
+            <type-icon color="gradido-global-color-gray" icon="droplet-half" />
           </b-col>
 
           <b-col cols="11">
-            <!-- Betrag / Name Email -->
-            <b-row>
-              <b-col cols="5">
-                <div class="text-right">
-                  <span class="gdd-transaction-list-item-operator">−</span>
-                  <span class="gdd-transaction-list-item-amount">
-                    {{ $n(Number(amount) * -1, 'decimal') }}
-                  </span>
-                </div>
-              </b-col>
-              <b-col cols="7">
-                <div class="gdd-transaction-list-item-name">
-                  {{ $t('decay.decay_since_last_transaction') }}
-                </div>
-              </b-col>
-            </b-row>
+            <!-- Amount / Name || Text -->
+            <amount-and-name-row
+              :amount="amount"
+              :text="$t('decay.decay_since_last_transaction')"
+            />
           </b-col>
         </b-row>
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information-decay :balance="balance" :decay="decay" />
+        <decay-information-decay :balance="balance" :decay="decay.decay" />
       </b-collapse>
     </div>
   </div>
 </template>
 <script>
+import CollapseIcon from '../TransactionRows/CollapseIcon'
+import TypeIcon from '../TransactionRows/TypeIcon'
+import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
   name: 'slot-decay',
   components: {
+    CollapseIcon,
+    TypeIcon,
+    AmountAndNameRow,
     DecayInformationDecay,
   },
   props: {
     amount: {
       type: String,
+      required: true,
     },
     balance: {
       type: String,
-    },
-    balanceDate: {
-      type: String,
+      required: true,
     },
     decay: {
       type: Object,
-    },
-    id: {
-      type: Number,
-    },
-    typeId: {
-      type: String,
+      required: true,
     },
   },
   data() {

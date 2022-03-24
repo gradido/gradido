@@ -1,1 +1,1 @@
-export { Transaction } from './0029-clean_transaction_table/Transaction'
+export { Transaction } from './0032-add-transaction-link-to-transaction/Transaction'

@@ -4,24 +4,24 @@
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
-import CONFIG from '../../config'
-import { User } from '../model/User'
+import CONFIG from '@/config'
+import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
-import { encode } from '../../auth/JWT'
-import CreateUserArgs from '../arg/CreateUserArgs'
-import UnsecureLoginArgs from '../arg/UnsecureLoginArgs'
-import UpdateUserInfosArgs from '../arg/UpdateUserInfosArgs'
-import { klicktippNewsletterStateMiddleware } from '../../middleware/klicktippMiddleware'
-import { UserSettingRepository } from '../../typeorm/repository/UserSettingRepository'
-import { Setting } from '../enum/Setting'
-import { UserRepository } from '../../typeorm/repository/User'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { encode } from '@/auth/JWT'
+import CreateUserArgs from '@arg/CreateUserArgs'
+import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
+import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
+import { UserSettingRepository } from '@repository/UserSettingRepository'
+import { Setting } from '@enum/Setting'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '../../mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '../../mailer/sendAccountActivationEmail'
-import { klicktippSignIn } from '../../apis/KlicktippController'
-import { RIGHTS } from '../../auth/RIGHTS'
-import { ROLE_ADMIN } from '../../auth/ROLES'
-import { hasElopageBuys } from '../../util/hasElopageBuys'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { klicktippSignIn } from '@/apis/KlicktippController'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_ADMIN } from '@/auth/ROLES'
+import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
 
 const EMAIL_OPT_IN_RESET_PASSWORD = 2
@@ -157,15 +157,11 @@ const createEmailOptIn = async (
     emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
   })
   if (emailOptIn) {
-    const timeElapsed = Date.now() - new Date(emailOptIn.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
-      )
-    } else {
-      emailOptIn.updatedAt = new Date()
-      emailOptIn.resendCount++
+    if (isOptInCodeValid(emailOptIn)) {
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
+    emailOptIn.updatedAt = new Date()
+    emailOptIn.resendCount++
   } else {
     emailOptIn = new LoginEmailOptIn()
     emailOptIn.verificationCode = random(64)
@@ -186,17 +182,13 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
     emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
   })
 
-  // Check for 10 minute delay
+  // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
-    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed <= parseInt(CONFIG.RESEND_TIME.toString()) * 60 * 1000) {
-      throw new Error(
-        'email already sent less than ' + parseInt(CONFIG.RESEND_TIME.toString()) + ' minutes ago',
-      )
-    } else {
-      optInCode.updatedAt = new Date()
-      optInCode.resendCount++
+    if (isOptInCodeValid(optInCode)) {
+      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
+    optInCode.updatedAt = new Date()
+    optInCode.resendCount++
   } else {
     optInCode = new LoginEmailOptIn()
     optInCode.verificationCode = random(64)
@@ -214,8 +206,7 @@ export class UserResolver {
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: any): Promise<User> {
     // TODO refactor and do not have duplicate code with login(see below)
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const userEntity = context.user
     const user = new User(userEntity)
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
@@ -313,10 +304,11 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.CREATE_USER])
-  @Mutation(() => String)
+  @Mutation(() => User)
   async createUser(
-    @Args() { email, firstName, lastName, language, publisherId }: CreateUserArgs,
-  ): Promise<string> {
+    @Args()
+    { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
+  ): Promise<User> {
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -348,6 +340,12 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
+    if (redeemCode) {
+      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+      if (transactionLink) {
+        dbUser.referrerId = transactionLink.userId
+      }
+    }
     // TODO this field has no null allowed unlike the loginServer table
     // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
     // dbUser.pubkey = keyPair[0]
@@ -370,9 +368,11 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
-      )
+      ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
         link: activationLink,
         firstName,
@@ -380,11 +380,14 @@ export class UserResolver {
         email,
       })
 
+      /* uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         // eslint-disable-next-line no-console
         console.log(`Account confirmation link: ${activationLink}`)
       }
+      */
+
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -392,7 +395,7 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
-    return 'success'
+    return new User(dbUser)
   }
 
   // THis is used by the admin only - should we move it to the admin resolver?
@@ -410,10 +413,11 @@ export class UserResolver {
       const emailOptIn = await createEmailOptIn(user.id, queryRunner)
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{code}/g,
+        /{optin}/g,
         emailOptIn.verificationCode.toString(),
       )
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
         link: activationLink,
         firstName: user.firstName,
@@ -421,11 +425,13 @@ export class UserResolver {
         email,
       })
 
+      /*  uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         // eslint-disable-next-line no-console
         console.log(`Account confirmation link: ${activationLink}`)
       }
+      */
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -446,10 +452,11 @@ export class UserResolver {
     const optInCode = await getOptInCode(user.id)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{code}/g,
+      /{optin}/g,
       optInCode.verificationCode.toString(),
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmail({
       link,
       firstName: user.firstName,
@@ -457,11 +464,13 @@ export class UserResolver {
       email,
     })
 
+    /*  uncomment this, when you need the activation link on the console
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       // eslint-disable-next-line no-console
       console.log(`Reset password link: ${link}`)
     }
+    */
 
     return true
   }
@@ -484,10 +493,9 @@ export class UserResolver {
       throw new Error('Could not login with emailVerificationCode')
     })
 
-    // Code is only valid for 10minutes
-    const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-    if (timeElapsed > 10 * 60 * 1000) {
-      throw new Error('Code is older than 10 minutes')
+    // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
+    if (!isOptInCodeValid(optInCode)) {
+      throw new Error(`email already more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
     }
 
     // load user
@@ -551,10 +559,23 @@ export class UserResolver {
       } catch {
         // TODO is this a problem?
         // eslint-disable-next-line no-console
+        /*  uncomment this, when you need the activation link on the console
         console.log('Could not subscribe to klicktipp')
+        */
       }
     }
 
+    return true
+  }
+
+  @Authorized([RIGHTS.QUERY_OPT_IN])
+  @Query(() => Boolean)
+  async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
+    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
+    // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
+    if (!isOptInCodeValid(optInCode)) {
+      throw new Error(`email was sent more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+    }
     return true
   }
 
@@ -573,8 +594,7 @@ export class UserResolver {
     }: UpdateUserInfosArgs,
     @Ctx() context: any,
   ): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey)
+    const userEntity = context.user
 
     if (firstName) {
       userEntity.firstName = firstName
@@ -652,12 +672,15 @@ export class UserResolver {
   @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: any): Promise<boolean> {
-    const userRepository = getCustomRepository(UserRepository)
-    const userEntity = await userRepository.findByPubkeyHex(context.pubKey).catch()
+    const userEntity = context.user
     if (!userEntity) {
       return false
     }
 
     return hasElopageBuys(userEntity.email)
   }
+}
+function isOptInCodeValid(optInCode: LoginEmailOptIn) {
+  const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
+  return timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000
 }

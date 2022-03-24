@@ -3,12 +3,12 @@
     <div class="list-group">
       <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
         <!-- icon  -->
-        <div class="text-right" style="position: absolute">
+        <div class="text-right gradido-absolute">
           <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
         </div>
 
         <!-- collaps Button  -->
-        <div class="text-right" style="width: 96%; position: absolute">
+        <div class="text-right gradido-width-96-absolute">
           <b-icon
             :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
             :class="getCollapseState(id) ? 'text-black' : 'text-muted'"
@@ -51,7 +51,7 @@
             {{ $t('form.date') }}
           </b-col>
           <b-col cols="6">
-            {{ $d(new Date(date), 'long') }} {{ $i18n.locale === 'de' ? 'Uhr' : '' }}
+            {{ $d(new Date(date), 'long') }}
           </b-col>
         </b-row>
 

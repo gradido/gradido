@@ -1,7 +1,9 @@
 import { calculateDecay } from './decay'
 import Decimal from 'decimal.js-light'
 import { Transaction } from '@entity/Transaction'
-import { Decay } from '../graphql/model/Decay'
+import { Decay } from '@model/Decay'
+import { getCustomRepository } from '@dbTools/typeorm'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -24,9 +26,13 @@ async function calculateBalance(
   if (!lastTransaction) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
+
   // TODO why we have to use toString() here?
   const balance = decay.balance.add(amount.toString())
-  if (balance.lessThan(0)) {
+  const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+  const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
+
+  if (balance.minus(sumHoldAvailableAmount.toString()).lessThan(0)) {
     return null
   }
   return { balance, lastTransactionId: lastTransaction.id, decay }

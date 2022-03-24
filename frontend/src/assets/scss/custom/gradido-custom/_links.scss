@@ -1,6 +1,7 @@
 // Links
+@use "sass:color";
 
-$link-color:                $primary !default;
-$link-decoration:           none !default;
-$link-hover-color:          darken($link-color, 15%) !default;
-$link-hover-decoration:     none !default;
+$link-color: $primary !default;
+$link-decoration: none !default;
+$link-hover-color: color.adjust($link-color, $lightness: -15%) !default;
+$link-hover-decoration: none !default;

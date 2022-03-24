@@ -1,7 +1,7 @@
 <template>
   <div class="decayinformation-decay">
     <div class="d-flex">
-      <div style="width: 100%" class="text-center pb-3">
+      <div class="text-center pb-3 gradido-max-width">
         <b-icon icon="droplet-half" height="12" class="mb-2" />
         <b>{{ $t('decay.calculation_decay') }}</b>
       </div>
@@ -13,9 +13,9 @@
       </b-col>
       <b-col cols="6">
         <div>
-          {{ $n(Number(balance) - Number(decay.decay), 'decimal') }}
-          GDD − {{ $n(Number(decay.decay) * -1, 'decimal') }} GDD =
-          <b>{{ $n(Number(balance), 'decimal') }} GDD</b>
+          {{ (Number(balance) - Number(decay)) | GDD }}
+          {{ decay | GDD }} {{ $t('math.equal') }}
+          <b>{{ balance | GDD }}</b>
         </div>
       </b-col>
     </b-row>
@@ -27,9 +27,11 @@ export default {
   props: {
     balance: {
       type: String,
+      required: true,
     },
     decay: {
-      type: Object,
+      type: String,
+      required: true,
     },
   },
 }

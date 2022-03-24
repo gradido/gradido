@@ -43,20 +43,11 @@ export const logout = gql`
 `
 
 export const transactionsQuery = gql`
-  query(
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       balanceGDT
       count
+      linkCount
       balance
       decayStartBlock
       transactions {
@@ -124,6 +115,46 @@ export const communities = gql`
       url
       description
       registerUrl
+    }
+  }
+`
+
+export const queryOptIn = gql`
+  query($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      id
+      amount
+      memo
+      createdAt
+      validUntil
+      redeemedAt
+      deletedAt
+      user {
+        firstName
+        publisherId
+        email
+      }
+    }
+  }
+`
+
+export const listTransactionLinks = gql`
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
+      id
+      amount
+      holdAvailableAmount
+      memo
+      code
+      createdAt
+      validUntil
+      redeemedAt
     }
   }
 `

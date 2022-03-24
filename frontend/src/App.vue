@@ -10,8 +10,8 @@
 <script>
 import { ParticlesBg } from 'particles-bg-vue'
 import icon from './icon.js'
-import DashboardLayout from '@/views/Layout/DashboardLayout_gdd.vue'
-import AuthLayoutGDD from '@/views/Layout/AuthLayout_gdd.vue'
+import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
+import AuthLayoutGDD from '@/layouts/AuthLayout_gdd.vue'
 
 export default {
   name: 'app',
@@ -40,3 +40,8 @@ export default {
   },
 }
 </script>
+<style>
+.pointer {
+  cursor: pointer;
+}
+</style>

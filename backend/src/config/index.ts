@@ -10,8 +10,13 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0029-clean_transaction_table',
+  DB_VERSION: '0033-add_referrer_id',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  CONFIG_VERSION: {
+    DEFAULT: 'DEFAULT',
+    EXPECTED: 'v1.2022-03-18',
+    CURRENT: '',
+  },
 }
 
 const server = {
@@ -54,8 +59,6 @@ const loginServer = {
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
 }
 
-// TODO: Hannes if I find you... this looks like blasphemy
-const resendTime = parseInt(process.env.RESEND_TIME ? process.env.RESEND_TIME : 'null')
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
@@ -64,9 +67,12 @@ const email = {
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
-  EMAIL_LINK_SETPASSWORD: process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset/{code}',
-  RESEND_TIME: isNaN(resendTime) ? 10 : resendTime,
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
+  EMAIL_LINK_SETPASSWORD:
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
+  EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
+    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 10
+    : 10,
 }
 
 const webhook = {
@@ -76,6 +82,18 @@ const webhook = {
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
+
+// Check config version
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+if (
+  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
+    constants.CONFIG_VERSION.CURRENT,
+  )
+) {
+  throw new Error(
+    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
+  )
+}
 
 const CONFIG = {
   ...constants,

@@ -4,6 +4,7 @@ import App from './App.vue'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
 import { toasters } from './mixins/toaster'
+import { loadFilters } from './filters/amount'
 
 import 'regenerator-runtime'
 
@@ -20,6 +21,9 @@ Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
 
 Vue.mixin(toasters)
+const filters = loadFilters(i18n)
+Vue.filter('amount', filters.amount)
+Vue.filter('GDD', filters.GDD)
 
 loadAllRules(i18n)
 

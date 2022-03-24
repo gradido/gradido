@@ -7,7 +7,6 @@ const mocks = {
   $i18n: {
     locale: 'en',
   },
-  $n: jest.fn((n) => n),
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => d),
 }

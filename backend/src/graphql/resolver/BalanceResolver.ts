@@ -2,11 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
-import { getCustomRepository } from '@dbTools/typeorm'
-import { Balance } from '../model/Balance'
-import { UserRepository } from '../../typeorm/repository/User'
-import { calculateDecay } from '../../util/decay'
-import { RIGHTS } from '../../auth/RIGHTS'
+import { Balance } from '@model/Balance'
+import { calculateDecay } from '@/util/decay'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { Transaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 
@@ -16,9 +14,7 @@ export class BalanceResolver {
   @Query(() => Balance)
   async balance(@Ctx() context: any): Promise<Balance> {
     // load user and balance
-    const userRepository = getCustomRepository(UserRepository)
-
-    const user = await userRepository.findByPubkeyHex(context.pubKey)
+    const { user } = context
     const now = new Date()
 
     const lastTransaction = await Transaction.findOne(
