@@ -1,0 +1,286 @@
+<mxfile host="65bd71144e">
+    <diagram id="ymh7Jh5NIHEcxBqobDAe" name="Seite-1">
+        <mxGraphModel dx="1088" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="30" value="" style="endArrow=none;html=1;fontSize=20;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="260" y="1480" as="sourcePoint"/>
+                        <mxPoint x="260" y="540" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="64" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="63" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1300" y="1480" as="sourcePoint"/>
+                        <mxPoint x="1299.5" y="200" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="62" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="61" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1160" y="1190" as="sourcePoint"/>
+                        <mxPoint x="890" y="380" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="invocation chain to authenticate a new community and to open a community communication in the community network" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="10" width="1320" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="new&lt;br&gt;Community A" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fillColor=#d5e8d4;gradientColor=#97d077;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="80" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="existing Community B" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fillColor=#d5e8d4;gradientColor=#97d077;strokeColor=#82b366;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="80" width="400" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" target="3" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="260" y="541" as="sourcePoint"/>
+                        <mxPoint x="730" y="460" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="6" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" source="8" target="60" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1019.5" y="1622" as="sourcePoint"/>
+                        <mxPoint x="1019.5" y="200" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="encrypt community-key&amp;nbsp; of community-B with own private key" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="220" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="endArrow=classic;startArrow=none;html=1;fontSize=12;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;startFill=0;" parent="1" source="7" target="8" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="310" y="300" as="sourcePoint"/>
+                        <mxPoint x="730" y="450" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="10" value="request with own community key and encrypted community key of community-B as InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="9" vertex="1" connectable="0">
+                    <mxGeometry x="0.1697" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-46" y="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="12" value="" style="endArrow=classic;html=1;fontSize=12;entryX=0;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=1;exitDx=0;exitDy=0;" parent="1" source="13" target="11" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="260" y="1243" as="sourcePoint"/>
+                        <mxPoint x="730" y="1353" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="request with JWT-Token and CommunityTO as InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="12" vertex="1" connectable="0">
+                    <mxGeometry x="0.1296" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;" parent="1" source="11" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="680" y="1393" as="sourcePoint"/>
+                        <mxPoint x="260" y="1293" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="response with CommunityTO as OutputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="16" vertex="1" connectable="0">
+                    <mxGeometry x="0.0958" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="Service: &lt;br&gt;&lt;b&gt;request&lt;br&gt;TradingLevel&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1250" y="1363" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="" style="endArrow=classic;html=1;fontSize=12;entryX=0;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=1;exitDx=0;exitDy=0;" parent="1" target="18" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="310" y="1363" as="sourcePoint"/>
+                        <mxPoint x="970" y="1363" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="request with JWT-Token and TradingLevelTO-InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="20" vertex="1" connectable="0">
+                    <mxGeometry x="0.1296" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="Service:&lt;br&gt;&lt;b&gt;authenticate&lt;br&gt;Community&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="280" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" target="8" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1020" y="1190" as="sourcePoint"/>
+                        <mxPoint x="1019.5" y="220" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="if given community key of community-A&lt;br&gt;is known" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="320" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="generate and keep&lt;br&gt;one-time code together with given encrypted community key&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="380" width="100" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="28" target="38" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="970" y="521" as="sourcePoint"/>
+                        <mxPoint x="310" y="490" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="32" value="redirect back to Community-A with one-time code" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="31" vertex="1" connectable="0">
+                    <mxGeometry x="0.0958" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;" parent="1" source="8" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="960" y="320" as="sourcePoint"/>
+                        <mxPoint x="260" y="320" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="36" value="" style="endArrow=classic;html=1;fontSize=12;entryX=0;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=1;exitDx=0;exitDy=0;" parent="1" source="38" target="35" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="310" y="601" as="sourcePoint"/>
+                        <mxPoint x="730" y="691" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="37" value="request with one-time code, own public key as InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="36" vertex="1" connectable="0">
+                    <mxGeometry x="0.1296" relative="1" as="geometry">
+                        <mxPoint x="-93" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="38" value="Endpoint:&lt;br&gt;&lt;b&gt;redirect URI&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="470" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Service: &lt;b&gt;familiarize&lt;br&gt;Community&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1250" y="1243" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="initialize CommunityTO" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="1203" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="define and offer&lt;br&gt;own TradingLevel Idea" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="1320" width="100" height="43" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="47" target="46" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="960" y="861" as="sourcePoint"/>
+                        <mxPoint x="260" y="831" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="40" value="response with public key of Community-B as OutputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="39" vertex="1" connectable="0">
+                    <mxGeometry x="0.0958" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="42" value="decrypt&amp;nbsp; previous received and kept community-key with given &lt;br&gt;public key" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="600" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" source="44" target="42" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1160" y="1061" as="sourcePoint"/>
+                        <mxPoint x="1160" y="391" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="44" value="&lt;span&gt;if decrypted key matches own community key&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="670" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="&lt;span&gt;store public key of Community-B&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="760" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="store public key of community-A" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="720" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Endpoint:&amp;nbsp;&lt;br&gt;&lt;b&gt;verify&lt;br&gt;OneTimeCode&lt;br&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="510" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" source="42" target="35" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1160" y="640" as="sourcePoint"/>
+                        <mxPoint x="1160" y="320" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="41" value="check one-time code" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="560" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="&lt;span&gt;encrypt community-key&amp;nbsp; of community-B with own private key&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="830" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="endArrow=classic;startArrow=none;html=1;fontSize=12;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;startFill=0;" parent="1" target="52" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="310" y="890" as="sourcePoint"/>
+                        <mxPoint x="970" y="890" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="51" value="request with own community key and encrypted community key of community-B as InputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="50" vertex="1" connectable="0">
+                    <mxGeometry x="0.1697" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-46" y="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="52" value="Service: &lt;br&gt;&lt;b&gt;open Communication&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="887" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="endArrow=none;html=1;fontSize=20;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;" parent="1" source="18" target="11" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1300" y="1213" as="sourcePoint"/>
+                        <mxPoint x="1300" y="1072" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="54" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=2;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="40" y="810" as="sourcePoint"/>
+                        <mxPoint x="1370" y="810" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="55" value="" style="endArrow=classic;html=1;fontSize=12;exitX=0;exitY=1;exitDx=0;exitDy=0;" parent="1" source="59" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1110" y="1200" as="sourcePoint"/>
+                        <mxPoint x="260" y="1167" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="56" value="response with JWT-Token as OutputData" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="55" vertex="1" connectable="0">
+                    <mxGeometry x="0.0958" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="57" value="search with community key the entry of community-A" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="937" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="decrypt with public key of community-A the given encrypted community-key" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="1007" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="&lt;span&gt;if decrypted key matches own community key generate JWT-Token&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="1077" width="100" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="Key-Provider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="Token-Provider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="Community-Endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1240" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=2;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="40.000000000000455" y="210.00000000000045" as="sourcePoint"/>
+                        <mxPoint x="1370" y="210.00000000000045" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="66" value="&lt;font style=&quot;font-size: 16px&quot;&gt;1. Sequence:&lt;br&gt;singular processing after community creation&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="210" width="140" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="&lt;font style=&quot;font-size: 16px&quot;&gt;2. Sequence:&lt;br&gt;recurrent processing to open community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="810" width="140" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=2;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="40" y="1190" as="sourcePoint"/>
+                        <mxPoint x="1370" y="1190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="69" value="&lt;font style=&quot;font-size: 16px&quot;&gt;3. Sequence:&lt;br&gt;community communication session&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1190" width="140" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=4;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="261" y="1580" as="sourcePoint"/>
+                        <mxPoint x="261" y="1480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=4;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1299.5" y="1580" as="sourcePoint"/>
+                        <mxPoint x="1299.5" y="1480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
