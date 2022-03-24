@@ -165,8 +165,10 @@ const createEmailOptIn = async (
   })
 
   if (emailOptIn) {
-    if (isOptInCodeValid(emailOptIn)) {
-      throw new Error(`email already sent less than ${printEmailCodeValidTime()} ago`)
+    if (isOptinValid(emailOptIn)) {
+      throw new Error(
+        `email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+      )
     }
     emailOptIn.updatedAt = new Date()
     emailOptIn.resendCount++
@@ -192,8 +194,10 @@ const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
 
   // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
   if (optInCode) {
-    if (isOptInCodeValid(optInCode)) {
-      throw new Error(`email already sent less than $(printEmailCodeValidTime()} minutes ago`)
+    if (isOptinValid(optInCode)) {
+      throw new Error(
+        `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
+      )
     }
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
@@ -505,8 +509,10 @@ export class UserResolver {
     })
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email was sent more than ${printEmailCodeValidTime()} ago`)
+    if (!isOptinValid(optInCode)) {
+      throw new Error(
+        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      )
     }
 
     // load user
@@ -584,8 +590,10 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email was sent more than $(printEmailCodeValidTime()} ago`)
+    if (!isOptinValid(optInCode)) {
+      throw new Error(
+        `email was sent more than $(printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      )
     }
     return true
   }
@@ -692,23 +700,32 @@ export class UserResolver {
   }
 }
 
-function isOptInCodeValid(optInCode: LoginEmailOptIn) {
-  const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-  return timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000
+const isTimeExpired = (optin: LoginEmailOptIn, duration: number): boolean => {
+  const timeElapsed = Date.now() - new Date(optin.updatedAt).getTime()
+  // time is given in minutes
+  return timeElapsed <= duration * 60 * 1000
 }
 
-const emailCodeValidTime = (): { hours?: number; minutes: number } => {
-  if (CONFIG.EMAIL_CODE_VALID_TIME > 60) {
+const isOptinValid = (optin: LoginEmailOptIn): boolean => {
+  return isTimeExpired(optin, CONFIG.EMAIL_CODE_VALID_TIME)
+}
+
+const canResendOptin = (optin: LoginEmailOptIn): boolean => {
+  return isTimeExpired(optin, CONFIG.EMAIL_CODE_REQUEST_TIME)
+}
+
+const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
+  if (time > 60) {
     return {
-      hours: Math.floor(CONFIG.EMAIL_CODE_VALID_TIME / 60),
-      minutes: CONFIG.EMAIL_CODE_VALID_TIME % 60,
+      hours: Math.floor(time / 60),
+      minutes: time % 60,
     }
   }
-  return { minutes: CONFIG.EMAIL_CODE_VALID_TIME }
+  return { minutes: time }
 }
 
-export const printEmailCodeValidTime = (): string => {
-  const time = emailCodeValidTime()
+export const printTimeDuration = (duration: number): string => {
+  const time = getTimeDurationObject(duration)
   const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
   if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
   return result
