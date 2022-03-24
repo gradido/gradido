@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2022-03-18',
+    EXPECTED: 'v2.2022-03-24',
     CURRENT: '',
   },
 }
@@ -73,6 +73,9 @@ const email = {
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
     : 1440,
+  EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
+    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
+    : 10,
 }
 
 const webhook = {
