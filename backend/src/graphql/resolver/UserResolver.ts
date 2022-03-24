@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
@@ -155,35 +155,29 @@ const newEmailOptIn = (userId: number): LoginEmailOptIn => {
   return emailOptIn
 }
 
-const createEmailOptIn = async (
+// needed by AdminResolver
+// checks if given code exists and can be resent
+// if optIn does not exits, it is created
+export const checkExistingOptInCode = (
+  optInCode: LoginEmailOptIn | undefined,
   userId: number,
-  queryRunner: QueryRunner,
-): Promise<LoginEmailOptIn> => {
-  let emailOptIn = await LoginEmailOptIn.findOne({
-    userId,
-    emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-  })
-
-  if (emailOptIn) {
-    if (isOptInValid(emailOptIn)) {
+): LoginEmailOptIn => {
+  if (optInCode) {
+    if (!canResendOptIn(optInCode)) {
       throw new Error(
-        `email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+        `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
       )
     }
-    emailOptIn.updatedAt = new Date()
-    emailOptIn.resendCount++
+    optInCode.updatedAt = new Date()
+    optInCode.resendCount++
   } else {
-    emailOptIn = new LoginEmailOptIn()
-    emailOptIn.verificationCode = random(64)
-    emailOptIn.userId = userId
-    emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+    optInCode = newEmailOptIn(userId)
   }
-  await queryRunner.manager.save(emailOptIn).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.log('Error while saving emailOptIn', error)
-    throw new Error('error saving email opt in')
-  })
-  return emailOptIn
+  return optInCode
+}
+
+export const activationLink = (optInCode: LoginEmailOptIn): string => {
+  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
 @Resolver()
@@ -388,50 +382,6 @@ export class UserResolver {
     return new User(dbUser)
   }
 
-  // This is used by the admin only - should we move it to the admin resolver?
-  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
-  @Mutation(() => Boolean)
-  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
-    email = email.trim().toLowerCase()
-    const user = await DbUser.findOneOrFail({ email: email })
-
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
-
-    try {
-      const emailOptIn = await createEmailOptIn(user.id, queryRunner)
-
-      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{optin}/g,
-        emailOptIn.verificationCode.toString(),
-      )
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email,
-      })
-
-      /*  uncomment this, when you need the activation link on the console
-      // In case EMails are disabled log the activation link for the user
-      if (!emailSent) {
-        // eslint-disable-next-line no-console
-        console.log(`Account confirmation link: ${activationLink}`)
-      }
-      */
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw e
-    } finally {
-      await queryRunner.release()
-    }
-    return true
-  }
-
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
@@ -443,29 +393,14 @@ export class UserResolver {
       userId: user.id,
     })
 
-    if (optInCode) {
-      if (!canResendOptIn(optInCode)) {
-        throw new Error(
-          `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
-        )
-      }
-      optInCode.updatedAt = new Date()
-      optInCode.resendCount++
-    } else {
-      optInCode = newEmailOptIn(user.id)
-    }
+    optInCode = checkExistingOptInCode(optInCode, user.id)
     // now it is RESET_PASSWORD
     optInCode.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await LoginEmailOptIn.save(optInCode)
 
-    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{optin}/g,
-      optInCode.verificationCode.toString(),
-    )
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmail({
-      link,
+      link: activationLink(optInCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -547,6 +482,7 @@ export class UserResolver {
         throw new Error('error saving user: ' + error)
       })
 
+      // why do we delete the code?
       // Delete Code
       await queryRunner.manager.remove(optInCode).catch((error) => {
         throw new Error('error deleting code: ' + error)

@@ -34,6 +34,8 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
+import { checkExistingOptInCode, activationLink } from './UserResolver'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -368,6 +370,40 @@ export class AdminResolver {
 
     const user = await dbUser.findOneOrFail({ id: userId })
     return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    const user = await dbUser.findOneOrFail({ email: email })
+
+    // can be both types: REGISTER and RESET_PASSWORD
+    let optInCode = await LoginEmailOptIn.findOne({
+      userId: user.id,
+    })
+
+    optInCode = checkExistingOptInCode(optInCode, user.id)
+    // keep the optin type (when newly created is is REGISTER)
+    await LoginEmailOptIn.save(optInCode)
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const emailSent = await sendAccountActivationEmail({
+      link: activationLink(optInCode),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+    })
+
+    /*  uncomment this, when you need the activation link on the console
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+    // eslint-disable-next-line no-console
+    console.log(`Account confirmation link: ${activationLink}`)
+    }
+    */
+
+    return true
   }
 }
 
