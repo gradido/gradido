@@ -112,7 +112,7 @@ describe('router', () => {
       })
 
       describe('thx', () => {
-        const thx = routes.find((r) => r.path === '/thx/:comingFrom')
+        const thx = routes.find((r) => r.path === '/thx/:comingFrom/:code?')
 
         it('loads the "Thx" page', async () => {
           const component = await thx.component()
@@ -177,7 +177,9 @@ describe('router', () => {
 
       describe('checkEmail', () => {
         it('loads the "CheckEmail" page', async () => {
-          const component = await routes.find((r) => r.path === '/checkEmail/:optin').component()
+          const component = await routes
+            .find((r) => r.path === '/checkEmail/:optin/:code?')
+            .component()
           expect(component.default.name).toBe('ResetPassword')
         })
       })
