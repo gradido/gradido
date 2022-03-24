@@ -96,6 +96,11 @@ Da es also mehrere Communities geben wird, benötigt jede Community ihren eigene
 
 Für die Verwaltung von Community-Mitgliedern werden entsprechende Verwaltungsprozesse wie Registrierung, Login mit Autentifizierung, eine Benutzerverwaltung für neue, bestehende und ausscheidende Mitgleider benötigt. Die Benutzerverwaltung stellt zusätzlich die Anforderung, dass ein Community-Mitglied eindeutig identifizierbar ist und das Community übergreifend. Das bedeutet es kann eine Person immer nur einmal existieren und darf auch niemals in mehreren Communities gleichzeitig Mitglied sein. Denn es muss sichergestellt werden, dass eine Person sich keine unerlaubte Vorteile durch zum Beispiel mehrfache Geldschöpfung in mehreren Communities verschafft.
 
+#### ToDo:
+
+Die oben beschriebene "global eindeutige Identifizierung" eines Mitglieds über alle Communities ist zunächst hier als grundlegend wünschenswertes Ziel aufgenommen. Da dies aber aktuell und vermutlich sogar in naher Zukunft technisch nicht möglich sein wird, gilt es Strategien zu entwerfen, die auf anderem Wege - z.B. Vertrauens- und Beziehungsgraphen auswerten und weitere SoftKriterien, die ein Mitglied identifizieren - eine quasi "übergreifende Identifzierung" per SoftSkills ermöglichen.
+
+
 Die Details der Mitgliederverwaltung werden beschrieben im Dokument [BenutzerVerwaltung](./BenutzerVerwaltung.md).
 
 ### Community-Netzwerk
@@ -348,6 +353,22 @@ Sobald diese Vorstellung des zukünftigen Austausches klar ist und die administr
 
 #### Ablauf
 
+##### PR-Kommentar:
+
+Ulf: 
+
+Das Teilnehmen an der Federation startet diesen Prozess
+
+Claus-Peter: 
+
+Nicht ganz, ja bei der Federation wird es einen Austausch des
+Trading-Levels geben. Dazu muss dieser aber vorher in den Communities
+insbesonderen der neu hinzugekommenen Community schon definiert bzw.
+konfiguriert sein. Und diese Konfiguration ist entweder in der Community
+schon abgeklärt oder es handelt sich lediglich um die
+Default-Konfiguration und muss im Laufe der Zeit aktualisierbar sein.
+
+
 Community-A startet den Prozess des Tradinglevel-aushandelns indem der Administrator die zuvor geschaffenen Vorraussetzungen entsprechend in der Community internen Datenbank erfasst. Ob dies per Configurationsdatei oder über ein Admin-Dialog umgesetzt wird, bleibt erst einmal offen.
 
 Um den eigentlichen fachlichen Request mit den vorhandenen Tradinglevel-Daten aufrufen zu können, muss zuerst die Kommunikation zwischen den Communities zur Authentifizierung mit dem Request *openCommunication* abgesetzt werden. Nach Erhalt eines gültigen JWT-Tokens wird dann die Anfrage von *Community-A* nach dem gewünschten Trading-Level mit *Community-B* über den Aufruf requestTradingLevel abgesetzt. Als direktes Ergebnis dieser Anfrage erhält Community-A nur die Information, ob Community-B die TradingLevel-Daten erfolgreich erhalten hat oder nicht.
@@ -355,6 +376,25 @@ Um den eigentlichen fachlichen Request mit den vorhandenen Tradinglevel-Daten au
 In *Community-A* selbst wird intern vermerkt, dass die TradingLevel-Anfrage an *Community-B* abgeschickt und offen ist.
 
 In *Community-B* sind die angefragten Tradinglevel-Daten von *Community-A* in der internen Community-Liste gespeichert und müssen nun die Community internen Abstimmungen und Vorbereitungen erfolgen. Diese kann durchaus über einen längeren Zeitraum von mehreren Tagen dauern.
+
+##### PR-Kommentar
+
+Ulf: 
+
+Das ist ein kontinuierlicher Prozess, da er einseitig erfolgt und nur das zutun einer Partei benötigt.
+
+Claus-Peter:
+
+Wenn dies ein kontinuierlicher Prozess ist, dann wird es auch auf beiden
+Seiten Änderungen geben können. Klar ist, dass eine Community-A den
+Trading-Level von Community-B abfragt. Die Abfrage wird ohne Zutun von
+Community-B Mitgliedern automatisch ablaufen. Aber die evtl. Änderungen,
+die vor einer Aktualisierungsabfrage passieren, werden aber in der
+Community unter den Mitgliedern oder zumindest unter den
+Support/Admins/Vorständen o.ä abgestimmt. Und diese Abstimmungsaufwände
+kosten bestimmt einige Zeit, bis diese in der Trading-Level-Konfig
+einpflegbar und dann auch von anderen Communities abfragbar sind.
+
 
 Sobald in *Community-B* das Abstimmungsprozedere und die Vorstellungen des zukünftigen Interagierens mit *Community-A* beendet und erfasst sind, startet *Community-B* selbst die Bestätigung der offenen Anfrage von *Community-A*. Dazu muss auch wieder erst die Kommunikation authentifiziert und eröffnet werden, um ein gültiges JWT-Token zu erhalten. Mit dem Token und den in *Community-B* abgestimmten TradingLevel-Daten erfolgt über *confirmTradingLevel* die Übertragung der Daten nach *Community-A*. Mit Erhalt und Speicherung der Daten erfolgt eine erste Auswertung für den direkten Response an *Community-B*. Dieses Ergebnis für *Community-B* kann folgende Konstellationen haben:
 
