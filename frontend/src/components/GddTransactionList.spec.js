@@ -3,10 +3,6 @@ import GddTransactionList from './GddTransactionList'
 
 const localVue = global.localVue
 
-const errorHandler = jest.fn()
-
-localVue.config.errorHandler = errorHandler
-
 const scrollToMock = jest.fn()
 
 global.scrollTo = scrollToMock

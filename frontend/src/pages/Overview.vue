@@ -22,6 +22,7 @@
         :transaction-count="transactionCount"
         :transactionLinkCount="transactionLinkCount"
         @update-transactions="updateTransactions"
+        v-on="$listeners"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
     </div>
