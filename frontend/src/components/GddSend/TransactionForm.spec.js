@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
+import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 
 const localVue = global.localVue
 
-describe('GddSend', () => {
+describe('TransactionForm', () => {
   let wrapper
 
   const mocks = {
@@ -25,7 +26,12 @@ describe('GddSend', () => {
   }
 
   const Wrapper = () => {
-    return mount(TransactionForm, { localVue, mocks, propsData })
+    return mount(TransactionForm, {
+      localVue,
+      mocks,
+      propsData,
+      provide: DashboardLayout.provide,
+    })
   }
 
   describe('mount', () => {

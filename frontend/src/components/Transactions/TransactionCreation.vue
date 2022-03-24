@@ -12,7 +12,7 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
+            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
 
             <!-- Nachricht Memo -->
             <memo-row :memo="memo" />
