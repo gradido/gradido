@@ -4,7 +4,6 @@ import flushPromises from 'flush-promises'
 import { SEND_TYPES } from '@/pages/Send.vue'
 import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 
-
 const localVue = global.localVue
 
 describe('TransactionForm', () => {
