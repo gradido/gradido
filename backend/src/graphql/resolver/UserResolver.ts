@@ -147,12 +147,20 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
   return message
 }
 
+const newEmailOptin = (userId: number): LoginEmailOptIn => {
+  const emailOptIn = new LoginEmailOptIn()
+  emailOptIn.verificationCode = random(64)
+  emailOptIn.userId = userId
+  emailOptIn.emailOptInTypeId = OptinType.EMAIL_OPT_IN_REGISTER
+  return emailOptIn
+}
+
 const createEmailOptIn = async (
-  loginUserId: number,
+  userId: number,
   queryRunner: QueryRunner,
 ): Promise<LoginEmailOptIn> => {
   let emailOptIn = await LoginEmailOptIn.findOne({
-    userId: loginUserId,
+    userId,
     emailOptInTypeId: OptinType.EMAIL_OPT_IN_REGISTER,
   })
 
@@ -165,7 +173,7 @@ const createEmailOptIn = async (
   } else {
     emailOptIn = new LoginEmailOptIn()
     emailOptIn.verificationCode = random(64)
-    emailOptIn.userId = loginUserId
+    emailOptIn.userId = userId
     emailOptIn.emailOptInTypeId = OptinType.EMAIL_OPT_IN_REGISTER
   }
   await queryRunner.manager.save(emailOptIn).catch((error) => {
@@ -363,9 +371,12 @@ export class UserResolver {
         throw new Error('error saving user')
       })
 
-      // Store EmailOptIn in DB
-      // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
+      const emailOptIn = newEmailOptin(dbUser.id)
+      await queryRunner.manager.save(emailOptIn).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('Error while saving emailOptIn', error)
+        throw new Error('error saving email opt in')
+      })
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{optin}/g,
