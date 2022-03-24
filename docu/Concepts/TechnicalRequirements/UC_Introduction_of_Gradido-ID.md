@@ -8,7 +8,7 @@ Additionally the Gradido-ID allows to administrade any user account data like ch
 
 ## Definition
 
-The definition of the Gradido-ID can be found in the document [BenutzerVerwaltung#Gradido-ID](../BusinessRequirements/BenutzerVerwaltung#Gradido-ID).
+The formalized definition of the Gradido-ID can be found in the document [BenutzerVerwaltung#Gradido-ID](../BusinessRequirements/BenutzerVerwaltung#Gradido-ID).
 
 ## Steps of Introduction
 
@@ -126,7 +126,7 @@ defines the address of a contact entry of type Phone
 
 ###### UsedChannel
 
-define the contact channel for which this entry is confirmed by the user e.g. main address (default), infomail, contracting, advertisings, ...
+define the contact channel for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ...
 
 ```
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
@@ -150,7 +150,7 @@ In a one-time migration read for each entry of the users table the users.id and 
 * UserId = users.Id
 * Email = users.email
 * Phone = null
-* UsedChannel = "main address"
+* UsedChannel = "main contact"
 
 and update the users entry with users.emailId = contact.Id
 
@@ -161,7 +161,6 @@ After this one-time migration the column users.email can be deleted.
 The following logic or business processes has to be adapted through introducing the Gradido-ID
 
 #### Read-Write Access of Users-Table especially Email
-
 
 #### Registration Process
 
