@@ -309,7 +309,7 @@ Die aller erste fachliche Kommunikation zwischen einer neu erstellten und einer 
 
 1. Community-Infrastruktur ist installiert und aktiv
 2. neue Community ist erzeugt und Daten in der Community-DB gespeichert
-3. der Hintergrundprozess *Federatio*n ist am Laufen
+3. der Hintergrundprozess *Federation* ist am Laufen
    * die initiale "newCommunity-Msg" mit den eigenen Community-Daten ist in den Public-Channel versendet
    * ein Listener lauscht am Public-Channel auf Antworten (*replyNewCommunity*-Msg) der schon existenten Communities
    * ein Listener lauscht am Public-Channel auf initiale "*newCommunity*-Msg" anderer neuer Communities
