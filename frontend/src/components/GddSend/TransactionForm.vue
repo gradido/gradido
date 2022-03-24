@@ -16,16 +16,15 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-show="selected === sendTypes.link">
+            <div class="mt-4" v-if="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div>
+            <div v-if="selected === sendTypes.send">
               <validation-provider
-                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
                   required: selected === sendTypes.send ? true : false,
@@ -62,9 +61,7 @@
               </validation-provider>
             </div>
 
-            <br />
-
-            <div>
+            <div class="mt-4 mb-4">
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
@@ -97,7 +94,7 @@
               </validation-provider>
             </div>
 
-            <div class="mt-4">
+            <div class="mb-4">
               <validation-provider
                 :rules="{
                   required: true,
@@ -125,7 +122,7 @@
                 </b-col>
               </validation-provider>
             </div>
-            <br />
+
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
             </div>
@@ -141,7 +138,6 @@
                 </b-button>
               </b-col>
             </b-row>
-
             <br />
           </b-form>
         </validation-observer>
