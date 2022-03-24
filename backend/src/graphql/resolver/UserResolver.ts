@@ -15,7 +15,7 @@ import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
-import { OptinType } from '@enum/OptinType'
+import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
@@ -147,11 +147,11 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
   return message
 }
 
-const newEmailOptin = (userId: number): LoginEmailOptIn => {
+const newEmailOptIn = (userId: number): LoginEmailOptIn => {
   const emailOptIn = new LoginEmailOptIn()
   emailOptIn.verificationCode = random(64)
   emailOptIn.userId = userId
-  emailOptIn.emailOptInTypeId = OptinType.EMAIL_OPT_IN_REGISTER
+  emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
   return emailOptIn
 }
 
@@ -161,11 +161,11 @@ const createEmailOptIn = async (
 ): Promise<LoginEmailOptIn> => {
   let emailOptIn = await LoginEmailOptIn.findOne({
     userId,
-    emailOptInTypeId: OptinType.EMAIL_OPT_IN_REGISTER,
+    emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
   })
 
   if (emailOptIn) {
-    if (isOptinValid(emailOptIn)) {
+    if (isOptInValid(emailOptIn)) {
       throw new Error(
         `email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
@@ -176,7 +176,7 @@ const createEmailOptIn = async (
     emailOptIn = new LoginEmailOptIn()
     emailOptIn.verificationCode = random(64)
     emailOptIn.userId = userId
-    emailOptIn.emailOptInTypeId = OptinType.EMAIL_OPT_IN_REGISTER
+    emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
   }
   await queryRunner.manager.save(emailOptIn).catch((error) => {
     // eslint-disable-next-line no-console
@@ -350,7 +350,7 @@ export class UserResolver {
         throw new Error('error saving user')
       })
 
-      const emailOptIn = newEmailOptin(dbUser.id)
+      const emailOptIn = newEmailOptIn(dbUser.id)
       await queryRunner.manager.save(emailOptIn).catch((error) => {
         // eslint-disable-next-line no-console
         console.log('Error while saving emailOptIn', error)
@@ -444,7 +444,7 @@ export class UserResolver {
     })
 
     if (optInCode) {
-      if (!canResendOptin(optInCode)) {
+      if (!canResendOptIn(optInCode)) {
         throw new Error(
           `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
         )
@@ -452,10 +452,10 @@ export class UserResolver {
       optInCode.updatedAt = new Date()
       optInCode.resendCount++
     } else {
-      optInCode = newEmailOptin(user.id)
+      optInCode = newEmailOptIn(user.id)
     }
     // now it is RESET_PASSWORD
-    optInCode.emailOptInTypeId = OptinType.EMAIL_OPT_IN_RESET_PASSWORD
+    optInCode.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await LoginEmailOptIn.save(optInCode)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
@@ -501,7 +501,7 @@ export class UserResolver {
     })
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptinValid(optInCode)) {
+    if (!isOptInValid(optInCode)) {
       throw new Error(
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -562,7 +562,7 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === OptinType.EMAIL_OPT_IN_REGISTER) {
+    if (optInCode.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
         await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
       } catch {
@@ -582,7 +582,7 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptinValid(optInCode)) {
+    if (!isOptInValid(optInCode)) {
       throw new Error(
         `email was sent more than $(printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -692,18 +692,18 @@ export class UserResolver {
   }
 }
 
-const isTimeExpired = (optin: LoginEmailOptIn, duration: number): boolean => {
-  const timeElapsed = Date.now() - new Date(optin.updatedAt).getTime()
+const isTimeExpired = (optIn: LoginEmailOptIn, duration: number): boolean => {
+  const timeElapsed = Date.now() - new Date(optIn.updatedAt).getTime()
   // time is given in minutes
   return timeElapsed <= duration * 60 * 1000
 }
 
-const isOptinValid = (optin: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optin, CONFIG.EMAIL_CODE_VALID_TIME)
+const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
+  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 
-const canResendOptin = (optin: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optin, CONFIG.EMAIL_CODE_REQUEST_TIME)
+const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
+  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
 const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
