@@ -11,13 +11,7 @@
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio
-                  v-model="selected"
-                  name="radios"
-                  :value="sendTypes.link"
-                  size="lg"
-                  @change="form.email = ''"
-                >
+                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
@@ -144,7 +138,6 @@
                 </b-button>
               </b-col>
             </b-row>
-
             <br />
           </b-form>
         </validation-observer>
