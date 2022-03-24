@@ -102,7 +102,7 @@
                 :rules="{
                   required: true,
                   min: 5,
-                  max: 150,
+                  max: 255,
                 }"
                 :name="$t('form.message')"
                 v-slot="{ errors }"
