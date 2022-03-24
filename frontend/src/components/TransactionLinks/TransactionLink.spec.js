@@ -76,6 +76,27 @@ describe('TransactionLink', () => {
       })
     })
 
+    describe('qr code modal', () => {
+      let spy
+
+      beforeEach(() => {
+        jest.clearAllMocks()
+      })
+
+      describe.only('with success', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
+          // spy.mockImplementation(() => Promise.resolve('some value'))
+          // mockAPIcall.mockResolvedValue()
+          await wrapper.findAll('button').at(1).trigger('click')
+        })
+
+        it('qr-code Modal if show', () => {
+          expect(spy).toBeCalled()
+        })
+      })
+    })
+
     describe('delete link', () => {
       let spy
 
@@ -88,7 +109,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockResolvedValue()
-          await wrapper.findAll('button').at(1).trigger('click')
+          await wrapper.findAll('button').at(2).trigger('click')
         })
 
         it('test Modal if confirm true', () => {
@@ -120,7 +141,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
-          await wrapper.findAll('button').at(1).trigger('click')
+          await wrapper.findAll('button').at(2).trigger('click')
         })
 
         it('toasts an error message', () => {
