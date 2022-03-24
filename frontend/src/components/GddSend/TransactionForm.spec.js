@@ -121,7 +121,7 @@ describe('TransactionForm', () => {
             await flushPromises()
             expect(wrapper.find('span.errors').text()).toBe('form.validation.is-not')
           })
-          
+
           it('trims the email after blur', async () => {
             await wrapper.find('#input-group-1').find('input').setValue('  valid@email.com  ')
             await wrapper.find('#input-group-1').find('input').trigger('blur')
