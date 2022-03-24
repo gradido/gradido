@@ -61,11 +61,8 @@ describe('TransactionForm', () => {
       })
     })
 
-    describe('is selected: "send"', () => {
+    describe('send GDD', () => {
       beforeEach(async () => {
-        // await wrapper.setData({
-        //   selected: 'send',
-        // })
         await wrapper.findAll('input[type="radio"]').at(0).setChecked()
       })
 
@@ -73,15 +70,18 @@ describe('TransactionForm', () => {
         beforeEach(() => {
           wrapper.setProps({ balance: 100.0 })
         })
+
         describe('transaction form show because balance 100,0 GDD', () => {
           it('has no warning message ', () => {
             expect(wrapper.find('.errors').exists()).toBeFalsy()
           })
+
           it('has a reset button', () => {
             expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(
               'reset',
             )
           })
+
           it('has a submit button', () => {
             expect(wrapper.find('.test-buttons').findAll('button').at(1).attributes('type')).toBe(
               'submit',
@@ -116,6 +116,12 @@ describe('TransactionForm', () => {
             expect(wrapper.find('span.errors').text()).toBe('validations.messages.email')
           })
 
+          it('flushes an error message when email is the email of logged in user', async () => {
+            await wrapper.find('#input-group-1').find('input').setValue('user@example.org')
+            await flushPromises()
+            expect(wrapper.find('span.errors').text()).toBe('form.validation.is-not')
+          })
+          
           it('trims the email after blur', async () => {
             await wrapper.find('#input-group-1').find('input').setValue('  valid@email.com  ')
             await wrapper.find('#input-group-1').find('input').trigger('blur')
@@ -190,6 +196,41 @@ describe('TransactionForm', () => {
             expect(wrapper.find('span.errors').text()).toBe('validations.messages.min')
           })
 
+          it('flushes an error message when memo is more than 255 characters', async () => {
+            await wrapper.find('#input-group-3').find('textarea').setValue(`
+Es ist ein König in Thule, der trinkt
+Champagner, es geht ihm nichts drüber;
+Und wenn er seinen Champagner trinkt,
+Dann gehen die Augen ihm über.
+
+Die Ritter sitzen um ihn her,
+Die ganze Historische Schule;
+Ihm aber wird die Zunge schwer,
+Es lallt der König von Thule:
+
+„Als Alexander, der Griechenheld,
+Mit seinem kleinen Haufen
+Erobert hatte die ganze Welt,
+Da gab er sich ans Saufen.
+
+Ihn hatten so durstig gemacht der Krieg
+Und die Schlachten, die er geschlagen;
+Er soff sich zu Tode nach dem Sieg,
+Er konnte nicht viel vertragen.
+
+Ich aber bin ein stärkerer Mann
+Und habe mich klüger besonnen:
+Wie jener endete, fang ich an,
+Ich hab mit dem Trinken begonnen.
+
+Im Rausche wird der Heldenzug
+Mir später weit besser gelingen;
+Dann werde ich, taumelnd von Krug zu Krug,
+Die ganze Welt bezwingen.“`)
+            await flushPromises()
+            expect(wrapper.find('span.errors').text()).toBe('validations.messages.max')
+          })
+
           it('flushes no error message when memo is valid', async () => {
             await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
             await flushPromises()
@@ -248,11 +289,8 @@ describe('TransactionForm', () => {
       })
     })
 
-    describe('is selected: "link"', () => {
+    describe('send link', () => {
       beforeEach(async () => {
-        // await wrapper.setData({
-        //   selected: 'link',
-        // })
         await wrapper.findAll('input[type="radio"]').at(1).setChecked()
       })
 
