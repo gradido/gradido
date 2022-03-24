@@ -1,8 +1,10 @@
 # Federation
 
-This document contains the concept and technical details for the *federation* of gradido communities. It base on the [ActivityPub specification](https://www.w3.org/TR/activitypub/ " ") and is extended for the gradido requirements.
+This document contains the concept and technical details for the *federation* of gradido communities. The first idea of federation was to base on the [ActivityPub specification](https://www.w3.org/TR/activitypub/ " ") and extend it for the gradido requirements.
 
-## ActivityPub
+But meanwhile the usage of a DHT like HyperSwarm promises more coverage of the gradido requirements out of the box. More details about HyperSwarm can be found here [@hyperswarm/dht](https://github.com/hyperswarm/dht).
+
+## ActivityPub (deprecated)
 
 The activity pub defines a server-to-server federation protocol to share information between decentralized instances and will be the main komponent for the gradido community federation.
 
@@ -25,8 +27,4 @@ The Variant A with an internal server contains the benefit to be as independent 
 
 The Varaint B with an external server contains the benefit to reduce the implementation efforts and the responsibility for an own ActivitPub-Server. But it will cause an additional dependency to a third party service provider and the growing hosting costs.
 
-
-
-## ActivityStream
-
-An ActivityStream includes all definitions and terms needed for community activities and content flow around the gradido community network.
+## HyperSwarm
