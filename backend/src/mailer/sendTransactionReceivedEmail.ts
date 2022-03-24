@@ -8,6 +8,7 @@ export const sendTransactionReceivedEmail = (data: {
   recipientFirstName: string
   recipientLastName: string
   email: string
+  senderEmail: string
   amount: Decimal
   memo: string
 }): Promise<boolean> => {
