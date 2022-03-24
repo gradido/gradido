@@ -186,31 +186,6 @@ const createEmailOptIn = async (
   return emailOptIn
 }
 
-const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
-  let optInCode = await LoginEmailOptIn.findOne({
-    userId: loginUserId,
-    emailOptInTypeId: OptinType.EMAIL_OPT_IN_RESET_PASSWORD,
-  })
-
-  // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
-  if (optInCode) {
-    if (isOptinValid(optInCode)) {
-      throw new Error(
-        `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
-      )
-    }
-    optInCode.updatedAt = new Date()
-    optInCode.resendCount++
-  } else {
-    optInCode = new LoginEmailOptIn()
-    optInCode.verificationCode = random(64)
-    optInCode.userId = loginUserId
-    optInCode.emailOptInTypeId = OptinType.EMAIL_OPT_IN_RESET_PASSWORD
-  }
-  await LoginEmailOptIn.save(optInCode)
-  return optInCode
-}
-
 @Resolver()
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
@@ -460,11 +435,28 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
-    // TODO: this has duplicate code with createUser
     email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email })
 
-    const optInCode = await getOptInCode(user.id)
+    // can be both types: REGISTER and RESET_PASSWORD
+    let optInCode = await LoginEmailOptIn.findOne({
+      userId: user.id,
+    })
+
+    if (optInCode) {
+      if (!canResendOptin(optInCode)) {
+        throw new Error(
+          `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
+        )
+      }
+      optInCode.updatedAt = new Date()
+      optInCode.resendCount++
+    } else {
+      optInCode = newEmailOptin(user.id)
+    }
+    // now it is RESET_PASSWORD
+    optInCode.emailOptInTypeId = OptinType.EMAIL_OPT_IN_RESET_PASSWORD
+    await LoginEmailOptIn.save(optInCode)
 
     const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
       /{optin}/g,
