@@ -165,7 +165,9 @@ export const checkExistingOptInCode = (
   if (optInCode) {
     if (!canResendOptIn(optInCode)) {
       throw new Error(
-        `email already sent less than $(printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`,
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
       )
     }
     optInCode.updatedAt = new Date()
@@ -520,7 +522,7 @@ export class UserResolver {
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isOptInValid(optInCode)) {
       throw new Error(
-        `email was sent more than $(printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
     return true
@@ -639,7 +641,7 @@ const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
 }
 
 const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
-  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
+  return !isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
 const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
