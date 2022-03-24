@@ -128,6 +128,7 @@ export default {
             })
             .then(() => {
               this.error = false
+              this.$emit('set-tunneled-email', null)
               this.updateTransactions({})
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
@@ -145,6 +146,7 @@ export default {
               variables: { amount: this.transactionData.amount, memo: this.transactionData.memo },
             })
             .then((result) => {
+              this.$emit('set-tunneled-email', null)
               this.code = result.data.createTransactionLink.code
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
               this.updateTransactions({})

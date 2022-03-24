@@ -160,6 +160,7 @@ export default {
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
   },
+  inject: ['getTunneledEmail'],
   data() {
     return {
       amountFocused: false,
@@ -207,6 +208,12 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
+    recipientEmail() {
+      return this.getTunneledEmail()
+    },
+  },
+  created() {
+    this.form.email = this.recipientEmail ? this.recipientEmail : ''
   },
 }
 </script>

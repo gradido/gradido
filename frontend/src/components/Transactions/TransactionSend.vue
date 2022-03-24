@@ -13,7 +13,7 @@
 
           <b-col cols="11">
             <!-- Amount / Name  -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
+            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
 
             <!-- Memo -->
             <memo-row :memo="memo" />

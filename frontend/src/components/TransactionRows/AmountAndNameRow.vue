@@ -10,7 +10,10 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-name">
-          {{ itemText }}
+          <b-link v-if="linkedUser && linkedUser.email" @click.stop="tunnelEmail">
+            {{ itemText }}
+          </b-link>
+          <span v-else>{{ itemText }}</span>
         </div>
       </b-col>
     </b-row>
@@ -31,6 +34,12 @@ export default {
     text: {
       type: String,
       required: false,
+    },
+  },
+  methods: {
+    tunnelEmail() {
+      this.$emit('set-tunneled-email', this.linkedUser.email)
+      this.$router.push({ path: '/send' })
     },
   },
   computed: {
