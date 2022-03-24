@@ -23,6 +23,15 @@
         </b-button>
         <br />
         <b-button
+          @click="$bvModal.show('modalPopover-' + id)"
+          class="p-2 mt-1"
+          size="sm"
+          variant="outline-success"
+        >
+          <b-img src="img/svg/qr-code.svg"></b-img>
+        </b-button>
+        <br />
+        <b-button
           class="p-2 mt-1"
           size="sm"
           variant="outline-danger"
@@ -31,23 +40,11 @@
         >
           <b-icon icon="trash"></b-icon>
         </b-button>
-        <br />
-        <b-button
-          @click="$bvModal.show('modalPopover-' + id)"
-          class="p-2 mt-1"
-          size="sm"
-          variant="outline-success"
-        >
-          <b-img src="img/svg/qr-code.svg"></b-img>
-        </b-button>
       </b-col>
     </b-row>
-    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only :hideHeaderClose="false">
+    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
       <div class="text-center">
-        <figure class="qrcode">
-          <vue-qrcode :value="link" type="image/png" class="qrbox"></vue-qrcode>
-          <img class="qrcode__image" src="img/gdd-coin.png" alt="GDD" />
-        </figure>
+        <figure-qr-code :text="link" />
         <p>{{ link }}</p>
       </div>
     </b-modal>
@@ -60,7 +57,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
-import VueQrcode from 'vue-qrcode'
+import FigureQrCode from '@/components/QrCode/FigureQrCode.vue'
 
 export default {
   name: 'TransactionLink',
@@ -70,7 +67,7 @@ export default {
     MemoRow,
     DateRow,
     DecayRow,
-    VueQrcode,
+    FigureQrCode,
   },
   props: {
     amount: { type: String, required: true },
@@ -79,11 +76,6 @@ export default {
     id: { type: Number, required: true },
     memo: { type: String, required: true },
     validUntil: { type: String, required: true },
-  },
-  data() {
-    return {
-      link: `${window.location.origin}/redeem/${this.code}`,
-    }
   },
   methods: {
     copy() {
@@ -120,30 +112,9 @@ export default {
     decay() {
       return `${this.amount - this.holdAvailableAmount}`
     },
+    link() {
+      return `${window.location.origin}/redeem/${this.code}`
+    },
   },
 }
 </script>
-<style scoped>
-.qrcode {
-  display: inline-block;
-  font-size: 0;
-  margin-bottom: 0;
-  position: relative;
-}
-.qrbox {
-  width: 400px;
-}
-.qrcode__image {
-  background-color: #fff;
-  border: 0.25rem solid #fff;
-  border-radius: 0.25rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.25);
-  height: 15%;
-  left: 50%;
-  overflow: hidden;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 15%;
-}
-</style>
