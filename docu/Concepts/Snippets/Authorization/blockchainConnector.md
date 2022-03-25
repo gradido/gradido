@@ -1,6 +1,19 @@
 # Authorization and BlockchainConnector
 Suggestions for removing most of cryptographic code from Apollo-Server
 
+## Node-Module in Apollo
+The Blockchain-Connector will be rewritten as node-module
+Every Crypto-Function will be executed as C-Module with js-Interface
+
+#### advantages:
+- no need for changing server setup, simply install via npm or yarn
+- no crypto code visible in Apollo source
+- transfer password only inside of server after received from frontend
+
+#### disadvantage:
+- apollo still need to save all user data needed for it
+
+
 ## Login-Server
 The Blockchain Connector inherit the mechanic of Login-Server
 - Login via Blockchain-Connector
@@ -36,7 +49,7 @@ easily without recompiling the Blockchain Connector
 I think the security gain is marginal 
 
 
-## Crypto in Frontend
+## Node-Module in Frontend
 The Blockchain-Connector will be rewritten as node-module
 Every Crypto-Function will be executed in webassembly (see for example https://www.npmjs.com/package/libsodium)
 Frontend gets encrypted password from Apollo and decrypt it with Blockchain-Connector Node-Module
@@ -48,4 +61,5 @@ Transaction will be signed in Frontend with Blockchain-Connector and can be even
 - not far away from Mobile-App which can stores the private key in secure storage of device
 
 #### disadvantage: 
-- logic in frontend 
+- logic in frontend
+- apollo still need to save all user data needed for it 
