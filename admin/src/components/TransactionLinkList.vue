@@ -41,7 +41,7 @@ export default {
         { key: 'memo', label: this.$t('transactionlist.memo') },
         {
           key: 'validUntil',
-          label: this.$t('transactionlink.expired'),
+          label: this.$t('transactionlink.valid_until'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },

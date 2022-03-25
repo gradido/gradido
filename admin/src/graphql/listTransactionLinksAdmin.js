@@ -11,6 +11,7 @@ export const listTransactionLinksAdmin = gql`
       createdAt
       validUntil
       redeemedAt
+      deletedAt
     }
   }
 `
