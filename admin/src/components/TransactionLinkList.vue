@@ -4,6 +4,14 @@
       {{ $t('transactionlink.form_header') }}
       <b-table striped hover :fields="fields" :items="items"></b-table>
     </div>
+    <b-pagination
+      pills
+      size="lg"
+      v-model="currentPage"
+      per-page="perPage"
+      :total-rows="rows"
+      align="center"
+    ></b-pagination>
   </div>
 </template>
 <script>
@@ -40,6 +48,9 @@ export default {
         },
       ],
       items: [],
+      rows: 0,
+      currentPage: 1,
+      perPage: 5,
     }
   },
   methods: {
@@ -48,12 +59,13 @@ export default {
         .query({
           query: listTransactionLinksAdmin,
           variables: {
-            currentPage: 1,
-            pageSize: 5,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
             userId: this.userId,
           },
         })
         .then((result) => {
+          // this.rows = result.data.length
           this.items = result.data.listTransactionLinksAdmin
         })
         .catch((error) => {
@@ -63,6 +75,11 @@ export default {
   },
   created() {
     this.getListTransactionLinks()
+  },
+  watch: {
+    currentPage() {
+      this.getListTransactionLinks()
+    },
   },
 }
 </script>
