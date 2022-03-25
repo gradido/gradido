@@ -15,13 +15,13 @@ with computer, as easy to use like paypal.
 For that role we have the Login-Server.
 It stores the private keys of the user encrypted with there email and password. 
 Additional it stores the passphrase which can be used to generate the private key,
-encryted with server admin public key. So only the server admin can access the keys
+encrypted with server admin (or better support) public key. So only the server admin (support) can access the keys
 with his private key. [not done yet]
-It is needed for passwort reset if a user has forgetten his password. 
+It is needed for password reset if a user has forgotten his password. 
 
 But for the entire concept Login-Server isn't the only way to store the private keys.
 For users which has more experience with computer and especially with crypto currencies
-it should be a way to keep there private keys by themselfs. 
+it should be a way to keep there private keys by themselves. 
 
 For example a Desktop- or Handy-App which store the keys locally maybe additional encrypted. 
 Maybe it is possible to use Stronghold from iota for that. 
