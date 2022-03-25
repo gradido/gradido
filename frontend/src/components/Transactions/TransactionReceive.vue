@@ -8,7 +8,11 @@
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <type-icon color="gradido-global-color-accent" icon="arrow-right-circle" />
+            <type-icon
+              color="gradido-global-color-accent"
+              icon="arrow-right-circle"
+              :transactionLinkId="transactionLinkId"
+            />
           </b-col>
 
           <b-col cols="11">
@@ -85,6 +89,10 @@ export default {
     decayStartBlock: {
       type: Date,
       required: true,
+    },
+    transactionLinkId: {
+      type: Number,
+      required: false,
     },
   },
   data() {
