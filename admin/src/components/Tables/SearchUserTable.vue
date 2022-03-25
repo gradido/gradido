@@ -69,10 +69,7 @@
                 : ''
             "
           />
-          <creation-transaction-list-formular
-            v-if="!row.item.deletedAt"
-            :userId="row.item.userId"
-          />
+          <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
           <transaction-link-list :userId="row.item.userId" />
 
           <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
@@ -84,7 +81,7 @@
 <script>
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
+import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 
@@ -93,7 +90,7 @@ export default {
   components: {
     CreationFormular,
     ConfirmRegisterMailFormular,
-    CreationTransactionListFormular,
+    CreationTransactionList,
     TransactionLinkList,
     DeletedUserFormular,
   },
