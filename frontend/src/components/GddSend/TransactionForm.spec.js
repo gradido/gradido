@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
+import { SEND_TYPES } from '@/pages/Send.vue'
 import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 
 const localVue = global.localVue
@@ -40,7 +41,7 @@ describe('TransactionForm', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.transaction-form').exists()).toBeTruthy()
+      expect(wrapper.find('div.transaction-form').exists()).toBe(true)
     })
 
     describe('transaction form disable because balance 0,0 GDD', () => {
@@ -57,13 +58,17 @@ describe('TransactionForm', () => {
         expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
       })
       it('has no reset button and no submit button ', () => {
-        expect(wrapper.find('.test-buttons').exists()).toBeFalsy()
+        expect(wrapper.find('.test-buttons').exists()).toBe(false)
       })
     })
 
     describe('send GDD', () => {
       beforeEach(async () => {
         await wrapper.findAll('input[type="radio"]').at(0).setChecked()
+      })
+
+      it('has SEND_TYPES = send', () => {
+        expect(wrapper.vm.selected).toBe(SEND_TYPES.send)
       })
 
       describe('transaction form', () => {
@@ -73,7 +78,7 @@ describe('TransactionForm', () => {
 
         describe('transaction form show because balance 100,0 GDD', () => {
           it('has no warning message ', () => {
-            expect(wrapper.find('.errors').exists()).toBeFalsy()
+            expect(wrapper.find('.errors').exists()).toBe(false)
           })
 
           it('has a reset button', () => {
@@ -171,13 +176,13 @@ describe('TransactionForm', () => {
           it('flushes no errors when amount is valid', async () => {
             await wrapper.find('#input-group-2').find('input').setValue('87.34')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBeFalsy()
+            expect(wrapper.find('span.errors').exists()).toBe(false)
           })
         })
 
         describe('message text box', () => {
           it('has an textarea field', () => {
-            expect(wrapper.find('#input-group-3').find('textarea').exists()).toBeTruthy()
+            expect(wrapper.find('#input-group-3').find('textarea').exists()).toBe(true)
           })
 
           it('has an chat-right-text icon', () => {
@@ -234,13 +239,13 @@ Die ganze Welt bezwingen.“`)
           it('flushes no error message when memo is valid', async () => {
             await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBeFalsy()
+            expect(wrapper.find('span.errors').exists()).toBe(false)
           })
         })
 
         describe('cancel button', () => {
           it('has a cancel button', () => {
-            expect(wrapper.find('button[type="reset"]').exists()).toBeTruthy()
+            expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
           })
 
           it('has the text "form.cancel"', () => {
@@ -289,13 +294,17 @@ Die ganze Welt bezwingen.“`)
       })
     })
 
-    describe('send link', () => {
+    describe('create transaction link', () => {
       beforeEach(async () => {
         await wrapper.findAll('input[type="radio"]').at(1).setChecked()
       })
 
+      it('has SEND_TYPES = link', () => {
+        expect(wrapper.vm.selected).toBe(SEND_TYPES.link)
+      })
+
       it('has no input field of id input-group-1', () => {
-        expect(wrapper.find('#input-group-1').isVisible()).toBeFalsy()
+        expect(wrapper.find('#input-group-1').exists()).toBe(false)
       })
     })
   })

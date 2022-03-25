@@ -88,6 +88,7 @@ export default {
             notActivated: this.filterCheckedEmails,
             isDeleted: this.filterDeletedUser,
           },
+          fetchPolicy: 'no-cache',
         })
         .then((result) => {
           this.rows = result.data.searchUsers.userCount
