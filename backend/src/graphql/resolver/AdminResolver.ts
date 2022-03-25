@@ -23,7 +23,7 @@ import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Transaction } from '@model/Transaction'
-import { TransactionLink } from '@model/TransactionLink'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
@@ -376,14 +376,14 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
-  @Query(() => [TransactionLink])
+  @Query(() => TransactionLinkResult)
   async listTransactionLinksAdmin(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Args()
     filters: TransactionLinkFilters,
     @Arg('userId', () => Int) userId: number,
-  ): Promise<TransactionLink[]> {
+  ): Promise<TransactionLinkResult> {
     const user = await dbUser.findOneOrFail({ id: userId })
     const where: {
       userId: number
@@ -394,7 +394,7 @@ export class AdminResolver {
     }
     if (!filters.withRedeemed) where.redeemedBy = null
     if (!filters.withExpired) where.validUntil = MoreThan(new Date())
-    const transactionLinks = await dbTransactionLink.find({
+    const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
       withDeleted: filters.withDeleted,
       order: {
@@ -403,7 +403,11 @@ export class AdminResolver {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-    return transactionLinks.map((tl) => new TransactionLink(tl, new User(user)))
+
+    return {
+      linkCount: count,
+      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    }
   }
 }
 
