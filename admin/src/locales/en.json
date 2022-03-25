@@ -75,8 +75,8 @@
   "text": "Text",
   "transactionlink": {
     "created": "Created",
-    "valid_until": "Valid until",
-    "form_header": "Transaction links"
+    "form_header": "Transaction links",
+    "valid_until": "Valid until"
   },
   "transactionlist": {
     "amount": "Amount",

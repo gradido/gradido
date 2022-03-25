@@ -75,8 +75,8 @@
   "text": "Text",
   "transactionlink": {
     "created": "Erstellt",
-    "valid_until": "Gültig bis",
-    "form_header": "Transaktion-Links"
+    "form_header": "Transaktion-Links",
+    "valid_until": "Gültig bis"
   },
   "transactionlist": {
     "amount": "Betrag",
