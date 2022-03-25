@@ -47,7 +47,7 @@
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
-  "open":"offen",
+  "open": "offen",
   "navbar": {
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
@@ -67,7 +67,7 @@
       "yes": "Ja, Schöpfung bestätigen und speichern!"
     }
   },
-  "redeemed":"eingelöst",
+  "redeemed": "eingelöst",
   "remove": "Entfernen",
   "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",

@@ -47,7 +47,7 @@
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
-  "open":"open",
+  "open": "open",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
@@ -67,7 +67,7 @@
       "yes": "Yes, confirm and save creation!"
     }
   },
-  "redeemed":"redeemed",
+  "redeemed": "redeemed",
   "remove": "Remove",
   "removeNotSelf": "As admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
