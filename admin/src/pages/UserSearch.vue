@@ -3,11 +3,11 @@
     <div class="user-search-first-div">
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
-        {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
+        {{ filterCheckedEmails ? $t('unregistered_emails') : $t('all_emails')}}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ filterDeletedUser ? $t('all_emails') : $t('deleted_user') }}
+        {{ filterDeletedUser ? $t('deleted_user') : $t('all_emails') }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -60,8 +60,8 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      filterCheckedEmails: false,
-      filterDeletedUser: false,
+      filterCheckedEmails: null,
+      filterDeletedUser: null,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -70,11 +70,11 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.filterCheckedEmails = !this.filterCheckedEmails
+      this.filterCheckedEmails = this.filterCheckedEmails ? null : true
       this.getUsers()
     },
     deletedUserSearch() {
-      this.filterDeletedUser = !this.filterDeletedUser
+      this.filterDeletedUser = this.filterDeletedUser ? null : true
       this.getUsers()
     },
     getUsers() {
