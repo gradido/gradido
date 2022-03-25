@@ -58,7 +58,7 @@ export class AdminResolver {
 
     const filterCriteria: ObjectLiteral[] = []
     if (notActivated !== null) {
-      filterCriteria.push({ emailChecked: notActivated })
+      filterCriteria.push({ emailChecked: !notActivated })
     }
 
     if (isDeleted !== null) {
