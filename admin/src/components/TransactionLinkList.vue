@@ -50,9 +50,15 @@ export default {
           key: 'status',
           label: 'status',
           formatter: (value, key, item) => {
+            // deleted
             if (item.deletedAt) return this.$t('deleted') + ': ' + this.$d(new Date(item.deletedAt))
+            // redeemed
             if (item.redeemedAt)
               return this.$t('redeemed') + ': ' + this.$d(new Date(item.redeemedAt))
+            // expired
+            if (new Date() < new Date(item.validUntil))
+              return this.$t('expired') + ': ' + this.$d(new Date(item.validUntil))
+            // open
             return this.$t('open')
           },
         },
