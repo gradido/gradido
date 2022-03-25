@@ -1,0 +1,22 @@
+<mxfile host="65bd71144e">
+    <diagram id="jqy9GLoHfEna4h-l2pXZ" name="Seite-1">
+        <mxGraphModel dx="1074" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;div&gt;&lt;span&gt;existing Community-A&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- uuidA&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- publickeyA&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- privatekeyA&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- urlA&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;align=left;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="40" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="dht-node" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="100" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="&lt;div&gt;&lt;span&gt;new Community-B&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- uuidB&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- publickeyB&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- privatekeyB&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;- urlB&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;" vertex="1" parent="1">
+                    <mxGeometry x="640" y="40" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="dht-node" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#0050ef;fontColor=#ffffff;strokeColor=#001DBC;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="100" width="150" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
