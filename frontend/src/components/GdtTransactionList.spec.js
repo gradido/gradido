@@ -167,5 +167,25 @@ describe('GdtTransactionList ', () => {
         )
       })
     })
+
+    describe.only('pagination buttons', () => {
+      it('shows the pagination buttons if transactionCount > 25', () => {
+        beforeEach(async () => {
+          await wrapper.setProps({
+            transactionGdtCount: 42,
+          })
+        })
+        expect(wrapper.find('div.pagination')).toBeTruthy()
+      })
+
+      it('shows no the pagination buttons if transactionCount < 25', () => {
+        beforeEach(async () => {
+          await wrapper.setProps({
+            transactionGdtCount: 2,
+          })
+        })
+        expect(wrapper.find('div.pagination').exists()).toBe(false)
+      })
+    })
   })
 })
