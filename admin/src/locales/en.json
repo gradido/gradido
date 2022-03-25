@@ -28,6 +28,7 @@
   "enabled": "enabled",
   "error": "Error",
   "e_mail": "E-mail",
+  "expired":"expired",
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
