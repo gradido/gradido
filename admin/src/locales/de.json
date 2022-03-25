@@ -75,7 +75,7 @@
   "text": "Text",
   "transactionlink": {
     "created": "Erstellt",
-    "expired": "Gültig bis",
+    "valid_until": "Gültig bis",
     "form_header": "Transaktion-Links"
   },
   "transactionlist": {
