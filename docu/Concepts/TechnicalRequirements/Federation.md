@@ -32,3 +32,5 @@ The Varaint B with an external server contains the benefit to reduce the impleme
 The decision to switch from ActivityPub to HyperSwarm base on the arguments, that the *hyperswarm/dht* library will satify the most federation requirements out of the box. It is now to design the business requirements of the [gradido community communication](../BusinessRequirements/CommunityVerwaltung.md#UC-createCommunity) in a technical conception.
 
 At first the following diagramm shows the pure logical handshake between an existing community-A and a new created community-B and the data exchange for buildup an authenticated relationship.
+
+![FederationHyperSwarm.png](./image/FederationHyperSwarm.png)
