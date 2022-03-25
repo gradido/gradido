@@ -3,7 +3,7 @@
     <div class="user-search-first-div">
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
-        {{ filterCheckedEmails ? $t('unregistered_emails') : $t('all_emails')}}
+        {{ filterCheckedEmails ? $t('unregistered_emails') : $t('all_emails') }}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
