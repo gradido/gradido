@@ -1,14 +1,14 @@
 <template>
   <div class="transaction-link-list">
     <div v-if="items.length > 0">
-      {{ $t('transactionlink.form_header') }}
+      <div class="h3">{{ $t('transactionlink.form_header') }}</div>
       <b-table striped hover :fields="fields" :items="items"></b-table>
     </div>
     <b-pagination
       pills
       size="lg"
       v-model="currentPage"
-      per-page="perPage"
+      :per-page="perPage"
       :total-rows="rows"
       align="center"
     ></b-pagination>
@@ -46,6 +46,16 @@ export default {
             return this.$d(new Date(value))
           },
         },
+        {
+          key: 'status',
+          label: 'status',
+          formatter: (value, key, item) => {
+            if (item.deletedAt) return this.$t('deleted') + ': ' + this.$d(new Date(item.deletedAt))
+            if (item.redeemedAt)
+              return this.$t('redeemed') + ': ' + this.$d(new Date(item.redeemedAt))
+            return this.$t('open')
+          },
+        },
       ],
       items: [],
       rows: 0,
@@ -65,8 +75,8 @@ export default {
           },
         })
         .then((result) => {
-          // this.rows = result.data.length
-          this.items = result.data.listTransactionLinksAdmin
+          this.rows = result.data.listTransactionLinksAdmin.linkCount
+          this.items = result.data.listTransactionLinksAdmin.linkList
         })
         .catch((error) => {
           this.toastError(error.message)
