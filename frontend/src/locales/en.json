@@ -116,6 +116,7 @@
     "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
+    "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account"
   },
