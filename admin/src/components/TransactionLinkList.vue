@@ -56,7 +56,7 @@ export default {
             if (item.redeemedAt)
               return this.$t('redeemed') + ': ' + this.$d(new Date(item.redeemedAt))
             // expired
-            if (new Date() < new Date(item.validUntil))
+            if (new Date() > new Date(item.validUntil))
               return this.$t('expired') + ': ' + this.$d(new Date(item.validUntil))
             // open
             return this.$t('open')
