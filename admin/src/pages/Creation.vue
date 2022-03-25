@@ -1,83 +1,93 @@
 <template>
   <div class="creation">
     <b-row>
-      <b-col cols="12" lg="5">
-        <label>Usersuche</label>
-        <b-input
-          type="text"
-          v-model="criteria"
-          class="shadow p-3 mb-5 bg-white rounded"
-          placeholder="User suche"
-        ></b-input>
-        <user-table
+      <b-col cols="12" lg="6">
+        <label>{{ $t('user_search') }}</label>
+        <b-input-group>
+          <b-form-input
+            type="text"
+            class="test-input-criteria"
+            v-model="criteria"
+            :placeholder="$t('user_search')"
+          ></b-form-input>
+
+          <b-input-group-append class="test-click-clear-criteria" @click="criteria = ''">
+            <b-input-group-text class="pointer">
+              <b-icon icon="x" />
+            </b-input-group-text>
+          </b-input-group-append>
+        </b-input-group>
+        <select-users-table
           v-if="itemsList.length > 0"
-          type="UserListSearch"
-          :itemsUser="itemsList"
-          :fieldsTable="Searchfields"
-          :criteria="criteria"
-          :creation="creation"
-          @update-item="updateItem"
+          :items="itemsList"
+          :fields="Searchfields"
+          @push-item="pushItem"
         />
+        <b-pagination
+          pills
+          v-model="currentPage"
+          per-page="perPage"
+          :total-rows="rows"
+          align="center"
+        ></b-pagination>
       </b-col>
-      <b-col cols="12" lg="7" class="shadow p-3 mb-5 rounded bg-info">
-        <user-table
-          v-show="itemsMassCreation.length > 0"
-          class="shadow p-3 mb-5 bg-white rounded"
-          type="UserListMassCreation"
-          :itemsUser="itemsMassCreation"
-          :fieldsTable="fields"
-          :criteria="null"
-          :creation="creation"
-          @update-item="updateItem"
-        />
+      <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">
+        <div v-show="itemsMassCreation.length > 0">
+          <div class="text-right pr-4 mb-1">
+            <b-button @click="removeAllBookmarks()" variant="light">
+              <b-icon icon="x" scale="2" variant="danger"></b-icon>
+
+              {{ $t('remove_all') }}
+            </b-button>
+          </div>
+          <selected-users-table
+            class="shadow p-3 mb-5 bg-white rounded"
+            :items="itemsMassCreation"
+            :fields="fields"
+            @remove-item="removeItem"
+          />
+        </div>
         <div v-if="itemsMassCreation.length === 0">
-          Bitte wähle ein oder Mehrere Mitglieder aus für die du Schöpfen möchtest
+          {{ $t('multiple_creation_text') }}
         </div>
         <creation-formular
           v-else
           type="massCreation"
           :creation="creation"
           :items="itemsMassCreation"
-          @remove-all-bookmark="removeAllBookmark"
+          @remove-all-bookmark="removeAllBookmarks"
+          @toast-failed-creations="toastFailedCreations"
         />
-        {{ itemsMassCreation }}
       </b-col>
     </b-row>
   </div>
 </template>
 <script>
 import CreationFormular from '../components/CreationFormular.vue'
-import UserTable from '../components/UserTable.vue'
+import SelectUsersTable from '../components/Tables/SelectUsersTable.vue'
+import SelectedUsersTable from '../components/Tables/SelectedUsersTable.vue'
 import { searchUsers } from '../graphql/searchUsers'
+import { creationMonths } from '../mixins/creationMonths'
 
 export default {
   name: 'Creation',
+  mixins: [creationMonths],
   components: {
     CreationFormular,
-    UserTable,
+    SelectUsersTable,
+    SelectedUsersTable,
   },
   data() {
     return {
       showArrays: false,
-      Searchfields: [
-        { key: 'bookmark', label: 'merken' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'email', label: 'Email' },
-      ],
-      fields: [
-        { key: 'email', label: 'Email' },
-        { key: 'firstName', label: 'Firstname' },
-        { key: 'lastName', label: 'Lastname' },
-        { key: 'creation', label: 'Creation' },
-        { key: 'bookmark', label: 'löschen' },
-      ],
       itemsList: [],
-      itemsMassCreation: [],
+      itemsMassCreation: this.$store.state.userSelectedInMassCreation,
       radioSelectedMass: '',
       criteria: '',
-      creation: [null, null, null],
+      rows: 0,
+      currentPage: 1,
+      perPage: 25,
+      now: Date.now(),
     }
   },
   async created() {
@@ -90,55 +100,95 @@ export default {
           query: searchUsers,
           variables: {
             searchText: this.criteria,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
           },
+          fetchPolicy: 'network-only',
         })
         .then((result) => {
-          this.itemsList = result.data.searchUsers.map((user) => {
+          this.rows = result.data.searchUsers.userCount
+          this.itemsList = result.data.searchUsers.userList.map((user) => {
             return {
               ...user,
               showDetails: false,
             }
           })
+          if (this.itemsMassCreation.length !== 0) {
+            const selectedIndices = this.itemsMassCreation.map((item) => item.userId)
+            this.itemsList = this.itemsList.filter((item) => !selectedIndices.includes(item.userId))
+          }
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
-    updateItem(e, event) {
-      let index = 0
-      let findArr = {}
-
-      switch (event) {
-        case 'push':
-          findArr = this.itemsList.find((arr) => arr.id === e.id)
-          index = this.itemsList.indexOf(findArr)
-          this.itemsList.splice(index, 1)
-          this.itemsMassCreation.push(e)
-          break
-        case 'remove':
-          findArr = this.itemsMassCreation.find((arr) => arr.id === e.id)
-          index = this.itemsMassCreation.indexOf(findArr)
-          this.itemsMassCreation.splice(index, 1)
-          this.itemsList.push(e)
-          break
-        default:
-          throw new Error(event)
-      }
+    pushItem(selectedItem) {
+      this.itemsMassCreation = [
+        this.itemsList.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsMassCreation,
+      ]
+      this.itemsList = this.itemsList.filter((item) => selectedItem.userId !== item.userId)
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
     },
-
-    // updateRadioSelected(obj) {
-    //  this.radioSelectedMass = obj[0]
-    // },
-
-    removeAllBookmark() {
-      alert('remove all bookmarks')
-      const index = 0
-      let i = 0
-
-      for (i; i < this.itemsMassCreation.length; i++) {
-        this.itemsList.push(this.itemsMassCreation[i])
-      }
-      this.itemsMassCreation.splice(index, this.itemsMassCreation.length)
+    removeItem(selectedItem) {
+      this.itemsList = [
+        this.itemsMassCreation.find((item) => selectedItem.userId === item.userId),
+        ...this.itemsList,
+      ]
+      this.itemsMassCreation = this.itemsMassCreation.filter(
+        (item) => selectedItem.userId !== item.userId,
+      )
+      this.$store.commit('setUserSelectedInMassCreation', this.itemsMassCreation)
+    },
+    removeAllBookmarks() {
+      this.itemsMassCreation = []
+      this.$store.commit('setUserSelectedInMassCreation', [])
+      this.getUsers()
+    },
+    toastFailedCreations(failedCreations) {
+      failedCreations.forEach((email) =>
+        this.toastError(this.$t('creation_form.creation_failed', { email })),
+      )
+    },
+  },
+  computed: {
+    Searchfields() {
+      return [
+        { key: 'bookmark', label: 'bookmark' },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'email', label: this.$t('e_mail') },
+      ]
+    },
+    fields() {
+      return [
+        { key: 'email', label: this.$t('e_mail') },
+        { key: 'firstName', label: this.$t('firstname') },
+        { key: 'lastName', label: this.$t('lastname') },
+        {
+          key: 'creation',
+          label: this.creationLabel,
+          formatter: (value, key, item) => {
+            return value.join(' | ')
+          },
+        },
+        { key: 'bookmark', label: this.$t('remove') },
+      ]
+    },
+  },
+  watch: {
+    currentPage() {
+      this.getUsers()
+    },
+    criteria() {
+      this.getUsers()
     },
   },
 }

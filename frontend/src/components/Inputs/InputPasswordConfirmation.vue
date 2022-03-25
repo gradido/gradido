@@ -24,8 +24,12 @@
     <b-row class="mb-2">
       <b-col>
         <input-password
-          :rules="{ samePassword: value.password }"
+          :rules="{
+            required: true,
+            samePassword: value.password,
+          }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
+          :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           v-model="passwordRepeat"

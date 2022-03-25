@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm'
-import { LoginUser } from '../LoginUser'
+import { LoginUser } from './LoginUser'
 
 @Entity('login_user_backups')
 export class LoginUserBackup extends BaseEntity {

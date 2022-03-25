@@ -29,4 +29,4 @@ yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${
 
 # generate changelog
 cd ${PROJECT_DIR}
-auto-changelog --latest-version ${VERSION}
+auto-changelog --commit-limit 0 --latest-version ${VERSION}

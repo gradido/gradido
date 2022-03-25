@@ -1,16 +1,10 @@
+/* MIGRATION TO ADD USER SETTINGS
+ *
+ * This migration adds the table `user_setting` in order to store all sorts of user configuration data
+ */
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* FIRST MIGRATION
- *
- * This migration is special since it takes into account that
- * the database can be setup already but also may not be.
- * Therefore you will find all `CREATE TABLE` statements with
- * a `IF NOT EXISTS`, all `INSERT` with an `IGNORE` and in the
- * downgrade function all `DROP TABLE` with a `IF EXISTS`.
- * This ensures compatibility for existing or non-existing
- * databases.
- */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`

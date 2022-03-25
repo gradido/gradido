@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import EditCreationFormular from './EditCreationFormular.vue'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -7,26 +8,21 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
     updatePendingCreation: {
       creation: [0, 0, 0],
+      amount: 500,
       date: new Date(),
-      memo: 'qwertzuiopasdfghjkl',
+      memo: 'Test Schöpfung 2',
       moderator: 0,
     },
   },
 })
 
 const stateCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
 
 const mocks = {
-  $moment: jest.fn(() => {
-    return {
-      format: jest.fn((m) => m),
-      subtract: jest.fn(() => {
-        return {
-          format: jest.fn((m) => m),
-        }
-      }),
-    }
+  $t: jest.fn((t) => t),
+  $d: jest.fn((d) => {
+    const date = new Date(d)
+    return date.toISOString().split('T')[0]
   }),
   $apollo: {
     mutate: apolloMutateMock,
@@ -40,15 +36,25 @@ const mocks = {
     },
     commit: stateCommitMock,
   },
-  $toasted: {
-    error: toastedErrorMock,
-  },
+}
+
+const now = new Date(Date.now())
+const getCreationDate = (sub) => {
+  const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
+  return date.toISOString().split('T')[0]
 }
 
 const propsData = {
-  type: '',
-  creation: [],
-  itemsMassCreation: {},
+  creation: [200, 400, 600],
+  creationUserData: {
+    memo: 'Test schöpfung 1',
+    amount: 100,
+    date: getCreationDate(0),
+  },
+  item: {
+    id: 0,
+    email: 'bob@baumeister.de',
+  },
 }
 
 describe('EditCreationFormular', () => {
@@ -67,123 +73,84 @@ describe('EditCreationFormular', () => {
       expect(wrapper.find('.component-edit-creation-formular').exists()).toBeTruthy()
     })
 
-    describe('radio buttons to selcet month', () => {
+    describe('radio buttons to select month', () => {
       it('has three radio buttons', () => {
         expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
       })
 
-      describe('with single creation', () => {
+      it('has the third radio button checked', () => {
+        expect(wrapper.findAll('input[type="radio"]').at(0).element.checked).toBeFalsy()
+        expect(wrapper.findAll('input[type="radio"]').at(1).element.checked).toBeFalsy()
+        expect(wrapper.findAll('input[type="radio"]').at(2).element.checked).toBeTruthy()
+      })
+
+      it('has rangeMax of 700', () => {
+        expect(wrapper.find('input[type="number"]').attributes('max')).toBe('700')
+      })
+
+      describe('change and save memo and value with success', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-          await wrapper.setData({ rangeMin: 180 })
-          await wrapper.setData({ text: 'Test create coins' })
-          await wrapper.setData({ value: 90 })
+          await wrapper.find('input[type="number"]').setValue(500)
+          await wrapper.find('textarea').setValue('Test Schöpfung 2')
+          await wrapper.find('.test-submit').trigger('click')
         })
 
-        describe('first radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-          })
-
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
-
-          it('sets rangeMax to 200', () => {
-            expect(wrapper.vm.rangeMax).toBe(200)
-          })
-
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    amount: 90,
-                    creationDate: 'YYYY-MM-01',
-                    email: undefined,
-                    id: undefined,
-                    memo: 'Test create coins',
-                    moderator: 0,
-                  },
-                }),
-              )
-            })
-          })
+        it('calls the API', () => {
+          expect(apolloMutateMock).toBeCalledWith(
+            expect.objectContaining({
+              variables: {
+                id: 0,
+                email: 'bob@baumeister.de',
+                creationDate: getCreationDate(0),
+                amount: 500,
+                memo: 'Test Schöpfung 2',
+                moderator: 0,
+              },
+            }),
+          )
         })
 
-        describe('second radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          })
-
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
-
-          it('sets rangeMax to 400', () => {
-            expect(wrapper.vm.rangeMax).toBe(400)
-          })
-
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    amount: 90,
-                    creationDate: 'YYYY-MM-01',
-                    email: undefined,
-                    id: undefined,
-                    memo: 'Test create coins',
-                    moderator: 0,
-                  },
-                }),
-              )
-            })
-          })
+        it('emits update-user-data', () => {
+          expect(wrapper.emitted('update-user-data')).toEqual([
+            [
+              {
+                id: 0,
+                email: 'bob@baumeister.de',
+              },
+              [0, 0, 0],
+            ],
+          ])
         })
 
-        describe('third radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
-          })
+        it('emits update-creation-data', () => {
+          expect(wrapper.emitted('update-creation-data')).toEqual([
+            [
+              {
+                amount: 500,
+                date: expect.any(Date),
+                memo: 'Test Schöpfung 2',
+                moderator: 0,
+                row: expect.any(Object),
+              },
+            ],
+          ])
+        })
 
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_update')
+        })
+      })
 
-          it('sets rangeMax to 400', () => {
-            expect(wrapper.vm.rangeMax).toBe(600)
-          })
+      describe('change and save memo and value with error', () => {
+        beforeEach(async () => {
+          apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
+          await wrapper.find('input[type="number"]').setValue(500)
+          await wrapper.find('textarea').setValue('Test Schöpfung 2')
+          await wrapper.find('.test-submit').trigger('click')
+        })
 
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends ... to apollo', () => {
-              expect(apolloMutateMock).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    amount: 90,
-                    creationDate: 'YYYY-MM-DD',
-                    email: undefined,
-                    id: undefined,
-                    memo: 'Test create coins',
-                    moderator: 0,
-                  },
-                }),
-              )
-            })
-          })
+        it('toasts an error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })

@@ -12,6 +12,7 @@ module.exports = {
     '\\.(css|less)$': 'identity-obj-proxy',
     '\\.(scss)$': '<rootDir>/src/assets/mocks/styleMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@test/(.*)$': '<rootDir>/test/$1',
   },
   transform: {
     '^.+\\.vue$': 'vue-jest',
@@ -22,4 +23,5 @@ module.exports = {
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
+  testEnvironment: 'jest-environment-jsdom-sixteen',
 }

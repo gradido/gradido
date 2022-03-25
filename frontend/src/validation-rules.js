@@ -1,12 +1,13 @@
 import { configure, extend } from 'vee-validate'
 // eslint-disable-next-line camelcase
 import { required, email, min, max, is_not } from 'vee-validate/dist/rules'
-import { checkUsername } from './graphql/queries'
 
 export const loadAllRules = (i18nCallback) => {
   configure({
     defaultMessage: (field, values) => {
+      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
       values._field_ = i18nCallback.t(`fields.${field}`)
+      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
       return i18nCallback.t(`validations.messages.${values._rule_}`, values)
     },
     classes: {
@@ -18,21 +19,25 @@ export const loadAllRules = (i18nCallback) => {
 
   extend('email', {
     ...email,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.email', values),
   })
 
   extend('required', {
     ...required,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.required', values),
   })
 
   extend('min', {
     ...min,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.min', values),
   })
 
   extend('max', {
     ...max,
+    // eslint-disable-next-line  @intlify/vue-i18n/no-missing-keys
     message: (_, values) => i18nCallback.t('validations.messages.max', values),
   })
 
@@ -47,32 +52,6 @@ export const loadAllRules = (i18nCallback) => {
       values.max = i18nCallback.n(values.max, 'ungroupedDecimal')
       return i18nCallback.t('form.validation.gddSendAmount', values)
     },
-  })
-
-  extend('gddUsernameUnique', {
-    async validate(value) {
-      this.$apollo
-        .query({
-          query: checkUsername,
-          variables: {
-            username: value,
-          },
-        })
-        .then((result) => {
-          return result.data.checkUsername
-        })
-        .catch(() => {
-          return false
-        })
-    },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-unique', values),
-  })
-
-  extend('gddUsernameRgex', {
-    validate(value) {
-      return !!value.match(/^[a-zA-Z][-_a-zA-Z0-9]{2,}$/)
-    },
-    message: (_, values) => i18nCallback.t('form.validation.usernmae-regex', values),
   })
 
   // eslint-disable-next-line camelcase

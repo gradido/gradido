@@ -1,1 +1,99 @@
-{}
+{
+  "all_emails": "Alle Nutzer",
+  "back": "zurück",
+  "creation": "Schöpfung",
+  "creation_form": {
+    "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
+    "creation_for": "Aktives Grundeinkommen für",
+    "enter_text": "Text eintragen",
+    "form": "Schöpfungsformular",
+    "min_characters": "Mindestens 10 Zeichen eingeben",
+    "reset": "Zurücksetzen",
+    "select_month": "Monat auswählen",
+    "select_value": "Betrag auswählen",
+    "submit_creation": "Schöpfung einreichen",
+    "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
+    "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
+    "toasted_delete": "Offene Schöpfung wurde gelöscht",
+    "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
+    "update_creation": "Schöpfung aktualisieren"
+  },
+  "creation_for_month": "Schöpfung für Monat",
+  "date": "Datum",
+  "delete": "Löschen",
+  "deleted": "gelöscht",
+  "deleted_user": "Alle gelöschten Nutzer",
+  "delete_user": "Nutzer löschen",
+  "edit": "Bearbeiten",
+  "enabled": "aktiviert",
+  "error": "Fehler",
+  "e_mail": "E-Mail",
+  "firstname": "Vorname",
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido Akademie Adminkonsole",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "GDD": "GDD",
+  "hide_details": "Details verbergen",
+  "lastname": "Nachname",
+  "math": {
+    "exclaim": "!",
+    "pipe": "|"
+  },
+  "moderator": "Moderator",
+  "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
+  "name": "Name",
+  "navbar": {
+    "logout": "Abmelden",
+    "multi_creation": "Mehrfachschöpfung",
+    "my-account": "Mein Konto",
+    "open_creation": "Offene Schöpfungen",
+    "overview": "Übersicht",
+    "user_search": "Nutzersuche"
+  },
+  "not_open_creations": "Keine offenen Schöpfungen",
+  "open_creations": "Offene Schöpfungen",
+  "overlay": {
+    "confirm": {
+      "cancel": "Abbrechen",
+      "question": "Willst du diese vorgespeicherte Schöpfung wirklich vollziehen und endgültig speichern?",
+      "text": "Nach dem Speichern ist der Datensatz nicht mehr änderbar und kann auch nicht mehr gelöscht werden. Bitte überprüfe genau, dass alles stimmt.",
+      "title": "Schöpfung bestätigen!",
+      "yes": "Ja, Schöpfung bestätigen und speichern!"
+    }
+  },
+  "remove": "Entfernen",
+  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
+  "remove_all": "alle Nutzer entfernen",
+  "save": "Speichern",
+  "status": "Status",
+  "success": "Erfolg",
+  "text": "Text",
+  "transactionlist": {
+    "amount": "Betrag",
+    "balanceDate": "Schöpfungsdatum",
+    "community": "Gemeinschaft",
+    "date": "Datum",
+    "memo": "Nachricht",
+    "title": "Alle geschöpften Transaktionen für den Nutzer"
+  },
+  "undelete_user": "Nutzer wiederherstellen",
+  "unregistered_emails": "Nur unregistrierte Nutzer",
+  "unregister_mail": {
+    "button": "Registrierungs-Email bestätigen, jetzt senden",
+    "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
+    "info": "Email bestätigen, wiederholt senden an:",
+    "never_sent": "Es scheint so, als ob wir nie eine E-Mail an {email} geschickt haben",
+    "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
+    "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
+    "text_true": " Die Email wurde bestätigt."
+  },
+  "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
+  "user_deleted": "Nutzer ist gelöscht.",
+  "user_recovered": "Nutzer ist wiederhergestellt.",
+  "user_search": "Nutzer-Suche"
+}

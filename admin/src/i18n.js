@@ -4,7 +4,7 @@ import VueI18n from 'vue-i18n'
 Vue.use(VueI18n)
 
 const loadLocaleMessages = () => {
-  const locales = require.context('./locales', true, /[A-Za-z0-9-_,\s]+\.json$/i)
+  const locales = require.context('./locales/', true, /[A-Za-z0-9-_,\s]+\.json$/i)
   const messages = {}
   locales.keys().forEach((key) => {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i)
@@ -54,11 +54,20 @@ const dateTimeFormats = {
     },
     long: {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
-      weekday: 'short',
+      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
     },
   },
   de: {
@@ -69,11 +78,20 @@ const dateTimeFormats = {
     },
     long: {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
-      weekday: 'short',
+      weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
     },
   },
 }

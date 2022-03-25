@@ -68,9 +68,6 @@ services:
     image: gradido/database:test_up
     build:
       target: test_up
-    #networks:
-    #  - external-net
-    #  - internal-net
     environment:
       - NODE_ENV="development"
     volumes:
@@ -80,45 +77,6 @@ services:
       - database_build:/app/build
       # bind the local folder to the docker to allow live reload
       - ./database:/app
-
-  #########################################################
-  ## LOGIN SERVER #########################################
-  #########################################################
-  login-server:
-    build:
-      dockerfile: Dockerfiles/ubuntu/Dockerfile.debug
-    networks:
-      - external-net
-      - internal-net
-    security_opt:
-      - seccomp:unconfined
-    cap_add:
-      - SYS_PTRACE
-    volumes:
-      - ./logs:/var/log/grd_login 
-      - ./login_server/src:/code/src
-      - ./login_server/dependencies:/code/dependencies
-      - ./login_server/scripts:/code/scripts
-      - ./configs/login_server:/etc/grd_login
-      - login_build_ubuntu_3.1:/code/build
-
-
-  #########################################################
-  ## COMMUNITY SERVER (cakephp with php-fpm) ##############
-  #########################################################
-  community-server:
-    build: 
-      context: .
-      target: community_server
-      dockerfile: ./community_server/Dockerfile
-    depends_on: 
-      - mariadb
-    networks: 
-      - internal-net
-      - external-net
-    volumes:
-      - ./community_server/config/php-fpm/php-ini-overrides.ini:/etc/php/7.4/fpm/conf.d/99-overrides.ini
-      - ./community_server/src:/var/www/cakephp/src
 
   #########################################################
   ## MARIADB ##############################################
@@ -132,10 +90,6 @@ services:
   ## NGINX ################################################
   #########################################################
   nginx:
-    depends_on:
-      - frontend 
-      - community-server
-      - login-server
     volumes: 
       - ./logs/nginx:/var/log/nginx 
   
@@ -163,4 +117,3 @@ volumes:
   backend_database_build:
   database_node_modules:
   database_build:
-  login_build_ubuntu_3.1:

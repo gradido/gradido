@@ -1,7 +1,7 @@
-import { EntityRepository, Repository } from 'typeorm'
+import { EntityRepository, Repository } from '@dbTools/typeorm'
 import { UserSetting } from '@entity/UserSetting'
-import { Setting } from '../../graphql/enum/Setting'
-import { isStringBoolean } from '../../util/validate'
+import { Setting } from '@enum/Setting'
+import { isStringBoolean } from '@/util/validate'
 
 @EntityRepository(UserSetting)
 export class UserSettingRepository extends Repository<UserSetting> {

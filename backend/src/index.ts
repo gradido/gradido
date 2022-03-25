@@ -13,7 +13,7 @@ async function main() {
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
     if (CONFIG.GRAPHIQL) {
       // eslint-disable-next-line no-console
-      console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}/graphql`)
+      console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
 }
