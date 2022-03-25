@@ -405,78 +405,23 @@ describe('GddTransactionList', () => {
       })
     })
 
-    describe('pagination buttons', () => {
-      const transactions = Array.from({ length: 42 }, (_, idx) => {
-        return {
-          amount: '3.14',
-          balanceDate: '2021-04-29T17:26:40+00:00',
-          decay: {},
-          memo: 'Kreiszahl PI',
-          linkedUser: {
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            __typename: 'User',
-          },
-          id: idx + 1,
-          typeId: 'RECEIVE',
-        }
-      })
-
-      let paginationButtons
-
-      beforeEach(async () => {
-        await wrapper.setProps({
-          transactions,
-          transactionCount: 42,
-          showPagination: true,
-          decayStartBlock: new Date(),
+    describe.only('pagination buttons', () => {
+      it('shows the pagination buttons if transactionCount > 25', () => {
+        beforeEach(async () => {
+          await wrapper.setProps({
+            transactionCount: 42,
+          })
         })
-        paginationButtons = wrapper.find('div.pagination-buttons')
+        expect(wrapper.find('div.pagination')).toBeTruthy()
       })
 
-      it('shows the pagination buttons', () => {
-        expect(paginationButtons.exists()).toBeTruthy()
-      })
-
-      it('has the previous button disabled', () => {
-        expect(paginationButtons.find('button.previous-page').attributes('disabled')).toBe(
-          'disabled',
-        )
-      })
-
-      it('shows the text "1 / 2"', () => {
-        expect(paginationButtons.find('p.text-center').text()).toBe('1 math.div 2')
-      })
-
-      it('emits update-transactions when next button is clicked', async () => {
-        await paginationButtons.find('button.next-page').trigger('click')
-        expect(wrapper.emitted('update-transactions')[1]).toEqual([
-          { currentPage: 2, pageSize: 25 },
-        ])
-      })
-
-      it('shows text "2 / 2" when next button is clicked', async () => {
-        await paginationButtons.find('button.next-page').trigger('click')
-        expect(paginationButtons.find('p.text-center').text()).toBe('2 math.div 2')
-      })
-
-      it('has next-button disabled when next button is clicked', async () => {
-        await paginationButtons.find('button.next-page').trigger('click')
-        expect(paginationButtons.find('button.next-page').attributes('disabled')).toBe('disabled')
-      })
-
-      it('scrolls to top after loading next page', async () => {
-        await paginationButtons.find('button.next-page').trigger('click')
-        expect(scrollToMock).toBeCalled()
-      })
-
-      it('emits update-transactions when preivous button is clicked after next buton', async () => {
-        await paginationButtons.find('button.next-page').trigger('click')
-        await paginationButtons.find('button.previous-page').trigger('click')
-        expect(wrapper.emitted('update-transactions')[2]).toEqual([
-          { currentPage: 1, pageSize: 25 },
-        ])
-        expect(scrollToMock).toBeCalled()
+      it('shows no the pagination buttons if transactionCount < 25', () => {
+        beforeEach(async () => {
+          await wrapper.setProps({
+            transactionCount: 2,
+          })
+        })
+        expect(wrapper.find('div.pagination').exists()).toBe(false)
       })
     })
   })
