@@ -10,8 +10,10 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-name">
-          <b-link v-if="linkedUser && linkedUser.email" @click.stop="tunnelEmail">
-            {{ itemText }}
+          <div v-if="linkedUser && linkedUser.email">
+            <b-link @click.stop="tunnelEmail">
+              {{ itemText }}
+            </b-link>
             <span v-if="transactionLinkId">
               {{ $t('via_link') }}
               <b-icon
@@ -21,7 +23,7 @@
                 :title="$t('gdd_per_link.redeemed-title')"
               />
             </span>
-          </b-link>
+          </div>
           <span v-else>{{ itemText }}</span>
         </div>
       </b-col>
