@@ -13,7 +13,7 @@
           <b-link v-if="linkedUser && linkedUser.email" @click.stop="tunnelEmail">
             {{ itemText }}
             <span v-if="transactionLinkId">
-              , {{ $t('via_link') }}
+              {{ $t('via_link') }}
               <b-icon
                 icon="link45deg"
                 variant="muted"
