@@ -12,6 +12,7 @@
           :show-pagination="true"
           :decayStartBlock="decayStartBlock"
           @update-transactions="updateTransactions"
+          v-on="$listeners"
         />
       </b-tab>
 
