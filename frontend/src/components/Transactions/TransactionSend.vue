@@ -8,16 +8,17 @@
         <b-row>
           <!-- ICON  -->
           <b-col cols="1">
-            <type-icon
-              color="text-danger"
-              icon="arrow-left-circle"
-              :transactionLinkId="transactionLinkId"
-            />
+            <type-icon color="text-danger" icon="arrow-left-circle" />
           </b-col>
 
           <b-col cols="11">
             <!-- Amount / Name  -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
+            <amount-and-name-row
+              :amount="amount"
+              :linkedUser="linkedUser"
+              v-on="$listeners"
+              :transactionLinkId="transactionLinkId"
+            />
 
             <!-- Memo -->
             <memo-row :memo="memo" />
