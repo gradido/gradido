@@ -60,13 +60,12 @@
                 </b-col>
               </validation-provider>
             </div>
-
             <div class="mt-4 mb-4">
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
                   required: true,
-                  gddSendAmount: [0.01, balance],
+                  gddSendAmount: [0.01, maxSendBalance],
                 }"
                 v-slot="{ errors, valid }"
               >
@@ -210,6 +209,11 @@ export default {
     },
     recipientEmail() {
       return this.getTunneledEmail()
+    },
+    maxSendBalance() {
+      return this.balance < this.balance.toFixed(2)
+        ? (this.balance - 0.01).toFixed(2)
+        : this.balance
     },
   },
   created() {
