@@ -5,7 +5,7 @@ import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
 import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Transaction, Transaction as dbTransaction } from '@entity/Transaction'
+import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { GdtResolver } from './GdtResolver'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -25,7 +25,7 @@ export class BalanceResolver {
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
-      : await Transaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
+      : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
 
     // No balance found
     if (!lastTransaction) {
