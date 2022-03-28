@@ -486,12 +486,6 @@ export class UserResolver {
         throw new Error('error saving user: ' + error)
       })
 
-      // why do we delete the code?
-      // Delete Code
-      await queryRunner.manager.remove(optInCode).catch((error) => {
-        throw new Error('error deleting code: ' + error)
-      })
-
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
