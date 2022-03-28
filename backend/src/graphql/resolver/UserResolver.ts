@@ -158,10 +158,11 @@ const newEmailOptIn = (userId: number): LoginEmailOptIn => {
 // needed by AdminResolver
 // checks if given code exists and can be resent
 // if optIn does not exits, it is created
-export const checkExistingOptInCode = (
+export const checkOptInCode = async (
   optInCode: LoginEmailOptIn | undefined,
   userId: number,
-): LoginEmailOptIn => {
+  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
+): Promise<LoginEmailOptIn> => {
   if (optInCode) {
     if (!canResendOptIn(optInCode)) {
       throw new Error(
@@ -175,6 +176,10 @@ export const checkExistingOptInCode = (
   } else {
     optInCode = newEmailOptIn(userId)
   }
+  optInCode.emailOptInTypeId = optInType
+  await LoginEmailOptIn.save(optInCode).catch(() => {
+    throw new Error('Unable to save optin code.')
+  })
   return optInCode
 }
 
@@ -395,10 +400,7 @@ export class UserResolver {
       userId: user.id,
     })
 
-    optInCode = checkExistingOptInCode(optInCode, user.id)
-    // now it is RESET_PASSWORD
-    optInCode.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
-    await LoginEmailOptIn.save(optInCode)
+    optInCode = await checkOptInCode(optInCode, user.id, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmail({

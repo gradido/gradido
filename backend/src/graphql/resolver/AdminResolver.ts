@@ -34,7 +34,7 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
-import { checkExistingOptInCode, activationLink } from './UserResolver'
+import { checkOptInCode, activationLink } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -380,12 +380,11 @@ export class AdminResolver {
 
     // can be both types: REGISTER and RESET_PASSWORD
     let optInCode = await LoginEmailOptIn.findOne({
-      userId: user.id,
+      where: { userId: user.id },
+      order: { updatedAt: 'DESC' },
     })
 
-    optInCode = checkExistingOptInCode(optInCode, user.id)
-    // keep the optin type (when newly created is is REGISTER)
-    await LoginEmailOptIn.save(optInCode)
+    optInCode = await checkOptInCode(optInCode, user.id)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
