@@ -70,6 +70,7 @@ export const transactionsQuery = gql`
         linkedUser {
           email
         }
+        transactionLinkId
       }
     }
   }
