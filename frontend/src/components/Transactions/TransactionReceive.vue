@@ -14,9 +14,9 @@
           <b-col cols="11">
             <!-- Amount / Name || Text -->
             <amount-and-name-row
+              v-on="$listeners"
               :amount="amount"
               :linkedUser="linkedUser"
-              v-on="$listeners"
               :transactionLinkId="transactionLinkId"
             />
 
