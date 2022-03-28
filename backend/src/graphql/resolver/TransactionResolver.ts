@@ -34,6 +34,9 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 import Decimal from 'decimal.js-light'
 import { calculateDecay } from '@/util/decay'
 
+const MEMO_MAX_CHARS = 255
+const MEMO_MIN_CHARS = 5
+
 export const executeTransaction = async (
   amount: Decimal,
   memo: string,
@@ -43,6 +46,14 @@ export const executeTransaction = async (
 ): Promise<boolean> => {
   if (sender.id === recipient.id) {
     throw new Error('Sender and Recipient are the same.')
+  }
+
+  if (memo.length > MEMO_MAX_CHARS) {
+    throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+  }
+
+  if (memo.length < MEMO_MIN_CHARS) {
+    throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
   }
 
   // validate amount
