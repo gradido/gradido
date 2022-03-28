@@ -12,6 +12,11 @@ Decimal.set({
 const constants = {
   DB_VERSION: '0033-add_referrer_id',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  CONFIG_VERSION: {
+    DEFAULT: 'DEFAULT',
+    EXPECTED: 'v2.2022-03-24',
+    CURRENT: '',
+  },
 }
 
 const server = {
@@ -62,14 +67,19 @@ const email = {
   EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL || 'gmail.com',
   EMAIL_SMTP_PORT: process.env.EMAIL_SMTP_PORT || '587',
   EMAIL_LINK_VERIFICATION:
-    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{code}',
+    process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
-    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{code}',
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
   EMAIL_LINK_FORGOTPASSWORD:
     process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
+  // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
     : 1440,
+  // time in minutes that must pass to request a new optin code
+  EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
+    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
+    : 10,
 }
 
 const webhook = {
@@ -79,6 +89,18 @@ const webhook = {
 
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
+
+// Check config version
+constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
+if (
+  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
+    constants.CONFIG_VERSION.CURRENT,
+  )
+) {
+  throw new Error(
+    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
+  )
+}
 
 const CONFIG = {
   ...constants,

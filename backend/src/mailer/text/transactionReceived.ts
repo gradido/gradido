@@ -9,6 +9,7 @@ export const transactionReceived = {
       recipientFirstName: string
       recipientLastName: string
       email: string
+      senderEmail: string
       amount: Decimal
       memo: string
     }): string =>
@@ -16,7 +17,7 @@ export const transactionReceived = {
 
 Du hast soeben ${data.amount.toFixed(2).replace('.', ',')} GDD von ${data.senderFirstName} ${
         data.senderLastName
-      } erhalten.
+      } (${data.senderEmail}) erhalten.
 ${data.senderFirstName} ${data.senderLastName} schreibt:
 
 ${data.memo}

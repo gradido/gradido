@@ -31,7 +31,7 @@
 </template>
 <script>
 export default {
-  name: 'TransactionResultSend',
+  name: 'TransactionResultSendError',
   props: {
     error: { type: Boolean, default: false },
     errorResult: { type: String, default: '' },

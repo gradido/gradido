@@ -140,14 +140,6 @@ describe('DashboardLayoutGdd', () => {
         })
       })
 
-      describe('update balance', () => {
-        it('updates the amount correctelly', async () => {
-          await wrapper.findComponent({ ref: 'router-view' }).vm.$emit('update-balance', 5)
-          await flushPromises()
-          expect(wrapper.vm.balance).toBe(-5)
-        })
-      })
-
       describe('update transactions', () => {
         beforeEach(async () => {
           apolloMock.mockResolvedValue({
@@ -282,6 +274,15 @@ describe('DashboardLayoutGdd', () => {
             'http://localhost/admin/authenticate?token=valid-token',
           )
         })
+      })
+    })
+
+    describe('set tunneled email', () => {
+      it('updates tunneled email', async () => {
+        await wrapper
+          .findComponent({ ref: 'router-view' })
+          .vm.$emit('set-tunneled-email', 'bibi@bloxberg.de')
+        expect(wrapper.vm.tunneledEmail).toBe('bibi@bloxberg.de')
       })
     })
   })
