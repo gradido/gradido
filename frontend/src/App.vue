@@ -1,39 +1,18 @@
 <template>
-  <div id="app" class="font-sans text-gray-800">
-    <div>
-      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
-    </div>
+  <div id="app" :class="$route.meta.requiresAuth ? 'font-sans text-gray-800' : ''">
+    <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthTemplate'" />
   </div>
 </template>
 
 <script>
-import icon from './icon.js'
 import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
-import AuthLayoutGDD from '@/layouts/AuthLayout_gdd.vue'
+import AuthTemplate from '@/layouts/AuthTemplate.vue'
 
 export default {
   name: 'app',
   components: {
     DashboardLayout,
-    AuthLayoutGDD,
-  },
-  data() {
-    return {
-      config: {
-        num: [1, 7],
-        rps: 15,
-        radius: [5, 50],
-        life: [6.5, 15],
-        v: [1, 1],
-        tha: [-40, 40],
-        body: icon,
-        alpha: [0.6, 0],
-        scale: [0.1, 0.4],
-        position: 'all',
-        cross: 'dead',
-        random: 2,
-      },
-    }
+    AuthTemplate,
   },
 }
 </script>
