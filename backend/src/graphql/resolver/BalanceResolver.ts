@@ -21,7 +21,7 @@ export class BalanceResolver {
     const now = new Date()
 
     const gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtSum(context)
+    const balanceGDT = await gdtResolver.gdtBalance(context)
 
     const lastTransaction = await Transaction.findOne(
       { userId: user.id },

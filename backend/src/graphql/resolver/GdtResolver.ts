@@ -33,9 +33,9 @@ export class GdtResolver {
     }
   }
 
-  @Authorized([RIGHTS.GDT_SUM])
+  @Authorized([RIGHTS.GDT_BALANCE])
   @Query(() => Number)
-  async gdtSum(@Ctx() context: any): Promise<number | null> {
+  async gdtBalance(@Ctx() context: any): Promise<number | null> {
     const { user } = context
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
@@ -48,7 +48,7 @@ export class GdtResolver {
     } catch (err: any) {
       // eslint-disable-next-line no-console
       console.log('Could not query GDT Server', err)
-      return 0
+      return null
     }
   }
 

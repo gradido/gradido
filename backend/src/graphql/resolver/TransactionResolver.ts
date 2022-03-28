@@ -156,7 +156,7 @@ export class TransactionResolver {
 
     // get GDT
     const gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtSum(context)
+    const balanceGDT = await gdtResolver.gdtBalance(context)
 
     if (!lastTransaction) {
       return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)
