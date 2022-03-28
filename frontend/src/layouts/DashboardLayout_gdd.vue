@@ -27,8 +27,8 @@
               :transactionLinkCount="transactionLinkCount"
               :pending="pending"
               :decayStartBlock="decayStartBlock"
-              @update-balance="updateBalance"
               @update-transactions="updateTransactions"
+              @set-tunneled-email="setTunneledEmail"
             ></router-view>
           </fade-transition>
         </div>
@@ -64,6 +64,12 @@ export default {
       pending: true,
       visible: false,
       decayStartBlock: new Date(),
+      tunneledEmail: null,
+    }
+  },
+  provide() {
+    return {
+      getTunneledEmail: () => this.tunneledEmail,
     }
   },
   methods: {
@@ -112,15 +118,15 @@ export default {
           // what to do when loading balance fails?
         })
     },
-    updateBalance(ammount) {
-      this.balance -= ammount
-    },
     admin() {
       window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', this.$store.state.token))
       this.$store.dispatch('logout') // logout without redirect
     },
     setVisible(bool) {
       this.visible = bool
+    },
+    setTunneledEmail(email) {
+      this.tunneledEmail = email
     },
   },
   computed: {

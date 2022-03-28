@@ -3,6 +3,7 @@ import Send, { SEND_TYPES } from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
+import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 
 const apolloMutationMock = jest.fn()
 apolloMutationMock.mockResolvedValue('success')
@@ -17,9 +18,7 @@ describe('Send', () => {
   const propsData = {
     balance: 123.45,
     GdtBalance: 1234.56,
-    transactions: [{ balance: 0.1 }],
     pending: true,
-    currentTransactionStep: TRANSACTION_STEPS.transactionConfirmationSend,
   }
 
   const mocks = {
@@ -33,10 +32,18 @@ describe('Send', () => {
     $apollo: {
       mutate: apolloMutationMock,
     },
+    $route: {
+      query: {},
+    },
   }
 
   const Wrapper = () => {
-    return mount(Send, { localVue, mocks, propsData })
+    return mount(Send, {
+      localVue,
+      mocks,
+      propsData,
+      provide: DashboardLayout.provide,
+    })
   }
 
   describe('mount', () => {
@@ -45,11 +52,10 @@ describe('Send', () => {
     })
 
     it('has a send field', () => {
-      expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdd-send').exists()).toBe(true)
     })
 
-    /* SEND */
-    describe('transaction form send', () => {
+    describe('fill transaction form for send coins', () => {
       beforeEach(async () => {
         wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           email: 'user@example.org',
@@ -58,86 +64,93 @@ describe('Send', () => {
           selected: SEND_TYPES.send,
         })
       })
+
       it('steps forward in the dialog', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmationSend' }).exists()).toBe(true)
       })
-    })
 
-    describe('confirm transaction if selected: SEND_TYPES.send', () => {
-      beforeEach(() => {
-        wrapper.setData({
-          currentTransactionStep: TRANSACTION_STEPS.transactionConfirmationSend,
-          transactionData: {
-            email: 'user@example.org',
-            amount: 23.45,
-            memo: 'Make the best of it!',
-            selected: SEND_TYPES.send,
-          },
-        })
-      })
+      describe('confirm transaction view', () => {
+        describe('cancel confirmation', () => {
+          beforeEach(async () => {
+            await wrapper
+              .findComponent({ name: 'TransactionConfirmationSend' })
+              .vm.$emit('on-reset')
+          })
 
-      it('resets the transaction process when on-reset is emitted', async () => {
-        await wrapper.findComponent({ name: 'TransactionConfirmationSend' }).vm.$emit('on-reset')
-        expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBeTruthy()
-        expect(wrapper.vm.transactionData).toEqual({
-          email: 'user@example.org',
-          amount: 23.45,
-          memo: 'Make the best of it!',
-          selected: SEND_TYPES.send,
-        })
-      })
+          it('shows the transaction formular again', () => {
+            expect(wrapper.findComponent({ name: 'TransactionForm' }).exists()).toBe(true)
+          })
 
-      describe('transaction is confirmed and server response is success', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper
-            .findComponent({ name: 'TransactionConfirmationSend' })
-            .vm.$emit('send-transaction')
+          it('restores the previous data in the formular', () => {
+            /* expect(wrapper.find('#input-group-1').find('input').vm.$el.value).toBe(
+              'user@example.org',
+            )
+            */
+            expect(wrapper.find('#input-group-2').find('input').vm.$el.value).toBe('23.45')
+            expect(wrapper.find('#input-group-3').find('textarea').vm.$el.value).toBe(
+              'Make the best of it!',
+            )
+          })
         })
 
-        it('calls the API when send-transaction is emitted', async () => {
-          expect(apolloMutationMock).toBeCalledWith(
-            expect.objectContaining({
-              mutation: sendCoins,
-              variables: {
-                email: 'user@example.org',
-                amount: 23.45,
-                memo: 'Make the best of it!',
-                selected: SEND_TYPES.send,
-              },
-            }),
-          )
+        describe('confirm transaction with server succees', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            await wrapper
+              .findComponent({ name: 'TransactionConfirmationSend' })
+              .vm.$emit('send-transaction')
+          })
+
+          it('calls the API when send-transaction is emitted', async () => {
+            expect(apolloMutationMock).toBeCalledWith(
+              expect.objectContaining({
+                mutation: sendCoins,
+                variables: {
+                  email: 'user@example.org',
+                  amount: 23.45,
+                  memo: 'Make the best of it!',
+                  selected: SEND_TYPES.send,
+                },
+              }),
+            )
+          })
+
+          it('emits update transactions', () => {
+            expect(wrapper.emitted('update-transactions')).toBeTruthy()
+            expect(wrapper.emitted('update-transactions')).toEqual(expect.arrayContaining([[{}]]))
+          })
+
+          it('shows the success page', () => {
+            expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_success')
+          })
         })
 
-        it('emits update-balance', () => {
-          expect(wrapper.emitted('update-balance')).toBeTruthy()
-          expect(wrapper.emitted('update-balance')).toEqual([[23.45]])
-        })
+        describe('confirm transaction with server error', () => {
+          beforeEach(async () => {
+            jest.clearAllMocks()
+            apolloMutationMock.mockRejectedValue({ message: 'recipient not known' })
+            await wrapper
+              .findComponent({ name: 'TransactionConfirmationSend' })
+              .vm.$emit('send-transaction')
+          })
 
-        it('shows the success page', () => {
-          expect(wrapper.find('div.card-body').text()).toContain('form.send_transaction_success')
-        })
-      })
+          it('has a component TransactionResultSendError', () => {
+            expect(wrapper.findComponent({ name: 'TransactionResultSendError' }).exists()).toBe(
+              true,
+            )
+          })
 
-      describe('transaction is confirmed and server response is error', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          apolloMutationMock.mockRejectedValue({ message: 'recipient not known' })
-          await wrapper
-            .findComponent({ name: 'TransactionConfirmationSend' })
-            .vm.$emit('send-transaction')
-        })
+          it('has an standard error text', () => {
+            expect(wrapper.find('.test-send_transaction_error').text()).toContain(
+              'form.send_transaction_error',
+            )
+          })
 
-        it('shows the error page', () => {
-          expect(wrapper.find('.test-send_transaction_error').text()).toContain(
-            'form.send_transaction_error',
-          )
-        })
-
-        it('shows recipient not found', () => {
-          expect(wrapper.find('.test-receiver-not-found').text()).toContain(
-            'transaction.receiverNotFound',
-          )
+          it('shows recipient not found', () => {
+            expect(wrapper.find('.test-receiver-not-found').text()).toContain(
+              'transaction.receiverNotFound',
+            )
+          })
         })
       })
     })
@@ -151,10 +164,11 @@ describe('Send', () => {
         })
         await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
           amount: 56.78,
-          memo: 'Make the best of it link!',
+          memo: 'Make the best of the link!',
           selected: SEND_TYPES.link,
         })
       })
+
       it('steps forward in the dialog', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmationLink' }).exists()).toBe(true)
       })
@@ -173,18 +187,18 @@ describe('Send', () => {
               mutation: createTransactionLink,
               variables: {
                 amount: 56.78,
-                memo: 'Make the best of it link!',
+                memo: 'Make the best of the link!',
               },
             }),
           )
         })
 
-        it.skip('emits update-balance', () => {
-          expect(wrapper.emitted('update-balance')).toBeTruthy()
-          expect(wrapper.emitted('update-balance')).toEqual([[56.78]])
+        it('emits update-transactions', () => {
+          expect(wrapper.emitted('update-transactions')).toBeTruthy()
+          expect(wrapper.emitted('update-transactions')).toEqual(expect.arrayContaining([[{}]]))
         })
 
-        it('find components ClipBoard', () => {
+        it('finds the clip board component', () => {
           expect(wrapper.findComponent({ name: 'ClipboardCopy' }).exists()).toBe(true)
         })
 
@@ -196,7 +210,7 @@ describe('Send', () => {
           expect(wrapper.find('div.card-body').text()).toContain('form.close')
         })
 
-        describe('Copy link to Clipboard', () => {
+        describe('copy link to clipboard', () => {
           const navigatorClipboard = navigator.clipboard
           beforeAll(() => {
             delete navigator.clipboard
@@ -249,6 +263,40 @@ describe('Send', () => {
         it('toasts an error message', () => {
           expect(toastErrorSpy).toBeCalledWith({ message: 'OUCH!' })
         })
+      })
+    })
+
+    describe('no field selected on send transaction', () => {
+      const errorHandler = localVue.config.errorHandler
+
+      beforeAll(() => {
+        localVue.config.errorHandler = jest.fn()
+      })
+
+      afterAll(() => {
+        localVue.config.errorHandler = errorHandler
+      })
+
+      beforeEach(async () => {
+        await wrapper.setData({
+          currentTransactionStep: TRANSACTION_STEPS.transactionConfirmationSend,
+          transactionData: {
+            email: 'user@example.org',
+            amount: 23.45,
+            memo: 'Make the best of it!',
+            selected: 'not-valid',
+          },
+        })
+      })
+
+      it('throws an error', async () => {
+        try {
+          await wrapper
+            .findComponent({ name: 'TransactionConfirmationSend' })
+            .vm.$emit('send-transaction')
+        } catch (error) {
+          expect(error).toBe('undefined transactionData.selected : not-valid')
+        }
       })
     })
   })

@@ -13,7 +13,12 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
+            <amount-and-name-row
+              v-on="$listeners"
+              :amount="amount"
+              :linkedUser="linkedUser"
+              :transactionLinkId="transactionLinkId"
+            />
 
             <!-- Nachricht Memo -->
             <memo-row :memo="memo" />
@@ -85,6 +90,10 @@ export default {
     decayStartBlock: {
       type: Date,
       required: true,
+    },
+    transactionLinkId: {
+      type: Number,
+      required: false,
     },
   },
   data() {

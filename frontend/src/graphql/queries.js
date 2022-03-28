@@ -67,6 +67,10 @@ export const transactionsQuery = gql`
           end
           duration
         }
+        linkedUser {
+          email
+        }
+        transactionLinkId
       }
     }
   }

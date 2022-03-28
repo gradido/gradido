@@ -16,16 +16,15 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-show="selected === sendTypes.link">
+            <div class="mt-4" v-if="selected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div>
+            <div v-if="selected === sendTypes.send">
               <validation-provider
-                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
                   required: selected === sendTypes.send ? true : false,
@@ -62,9 +61,7 @@
               </validation-provider>
             </div>
 
-            <br />
-
-            <div>
+            <div class="mt-4 mb-4">
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
@@ -97,12 +94,12 @@
               </validation-provider>
             </div>
 
-            <div class="mt-4">
+            <div class="mb-4">
               <validation-provider
                 :rules="{
                   required: true,
                   min: 5,
-                  max: 150,
+                  max: 255,
                 }"
                 :name="$t('form.message')"
                 v-slot="{ errors }"
@@ -125,7 +122,7 @@
                 </b-col>
               </validation-provider>
             </div>
-            <br />
+
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
             </div>
@@ -141,7 +138,6 @@
                 </b-button>
               </b-col>
             </b-row>
-
             <br />
           </b-form>
         </validation-observer>
@@ -160,15 +156,19 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
+    email: { type: String, default: '' },
+    amount: { type: Number, default: 0 },
+    memo: { type: String, default: '' },
   },
+  inject: ['getTunneledEmail'],
   data() {
     return {
       amountFocused: false,
       emailFocused: false,
       form: {
-        email: '',
-        amount: '',
-        memo: '',
+        email: this.email,
+        amount: this.amount ? String(this.amount) : '',
+        memo: this.memo,
         amountValue: 0.0,
       },
       selected: SEND_TYPES.send,
@@ -208,6 +208,12 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
+    recipientEmail() {
+      return this.getTunneledEmail()
+    },
+  },
+  created() {
+    this.form.email = this.recipientEmail ? this.recipientEmail : ''
   },
 }
 </script>
