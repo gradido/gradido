@@ -23,7 +23,35 @@ export default {
   },
   data() {
     return {
-      fields: [
+      items: [],
+      rows: 0,
+      currentPage: 1,
+      perPage: 5,
+    }
+  },
+  methods: {
+    getListTransactionLinks() {
+      this.$apollo
+        .query({
+          query: listTransactionLinksAdmin,
+          variables: {
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
+            userId: this.userId,
+          },
+        })
+        .then((result) => {
+          this.rows = result.data.listTransactionLinksAdmin.linkCount
+          this.items = result.data.listTransactionLinksAdmin.linkList
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
+  },
+  computed: {
+    fields() {
+      return [
         {
           key: 'createdAt',
           label: this.$t('transactionlink.created'),
@@ -62,31 +90,7 @@ export default {
             return this.$t('open')
           },
         },
-      ],
-      items: [],
-      rows: 0,
-      currentPage: 1,
-      perPage: 5,
-    }
-  },
-  methods: {
-    getListTransactionLinks() {
-      this.$apollo
-        .query({
-          query: listTransactionLinksAdmin,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            userId: this.userId,
-          },
-        })
-        .then((result) => {
-          this.rows = result.data.listTransactionLinksAdmin.linkCount
-          this.items = result.data.listTransactionLinksAdmin.linkList
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+      ]
     },
   },
   created() {

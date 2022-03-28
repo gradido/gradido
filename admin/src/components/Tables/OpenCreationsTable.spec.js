@@ -117,11 +117,11 @@ describe('OpenCreationsTable', () => {
         await wrapper.findAll('tr').at(1).find('.bi-pencil-square').trigger('click')
       })
 
-      it('has a component element with name EditCreationFormular', () => {
+      it.skip('has a component element with name EditCreationFormular', () => {
         expect(wrapper.findComponent({ name: 'EditCreationFormular' }).exists()).toBe(true)
       })
 
-      it('renders the component component-edit-creation-formular', () => {
+      it.skip('renders the component component-edit-creation-formular', () => {
         expect(wrapper.find('div.component-edit-creation-formular').exists()).toBeTruthy()
       })
     })
