@@ -30,9 +30,8 @@ import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
-import { calculateDecay } from '@/util/decay'
 
-import { GdtResolver } from './GdtResolver'
+import { BalanceResolver } from './BalanceResolver'
 
 const MEMO_MAX_CHARS = 255
 const MEMO_MIN_CHARS = 5
@@ -154,12 +153,11 @@ export class TransactionResolver {
       { order: { balanceDate: 'DESC' } },
     )
 
-    // get GDT
-    const gdtResolver = new GdtResolver()
-    const balanceGDT = await gdtResolver.gdtBalance(context)
+    const balanceResolver = new BalanceResolver()
+    context.lastTransaction = lastTransaction
 
     if (!lastTransaction) {
-      return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)
+      return new TransactionList(await balanceResolver.balance(context), [])
     }
 
     // find transactions
@@ -172,6 +170,7 @@ export class TransactionResolver {
       offset,
       order,
     )
+    context.count = userTransactionsCount
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
@@ -194,6 +193,8 @@ export class TransactionResolver {
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkRepository.summary(user.id, now)
+    context.linkCount = transactionLinkcount
+    context.sumHoldAvailableAmount = sumHoldAvailableAmount
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
@@ -226,15 +227,7 @@ export class TransactionResolver {
     })
 
     // Construct Result
-    return new TransactionList(
-      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
-        sumHoldAvailableAmount.toString(),
-      ),
-      transactions,
-      userTransactionsCount,
-      transactionLinkcount,
-      balanceGDT,
-    )
+    return new TransactionList(await balanceResolver.balance(context), transactions)
   }
 
   @Authorized([RIGHTS.SEND_COINS])

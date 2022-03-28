@@ -23,10 +23,9 @@ export class BalanceResolver {
     const gdtResolver = new GdtResolver()
     const balanceGDT = await gdtResolver.gdtBalance(context)
 
-    const lastTransaction = await Transaction.findOne(
-      { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
-    )
+    const lastTransaction = context.lastTransaction
+      ? context.lastTransaction
+      : await Transaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
 
     // No balance found
     if (!lastTransaction) {
@@ -40,17 +39,25 @@ export class BalanceResolver {
       })
     }
 
-    const count = await dbTransaction.count({ where: { userId: user.id } })
-    const linkCount = await dbTransactionLink.count({
-      where: {
-        userId: user.id,
-        redeemedAt: null,
-        validUntil: MoreThan(new Date()),
-      },
-    })
+    const count =
+      context.count || context.count === 0
+        ? context.count
+        : await dbTransaction.count({ where: { userId: user.id } })
+    const linkCount =
+      context.linkCount || context.linkCount === 0
+        ? context.linkCount
+        : await dbTransactionLink.count({
+            where: {
+              userId: user.id,
+              redeemedAt: null,
+              validUntil: MoreThan(new Date()),
+            },
+          })
 
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(user.id, now)
+    const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
+      ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
+      : await transactionLinkRepository.summary(user.id, now)
 
     const calculatedDecay = calculateDecay(
       lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
