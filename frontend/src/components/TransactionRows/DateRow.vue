@@ -2,7 +2,9 @@
   <div class="date-row">
     <b-row>
       <b-col cols="5">
-        <div class="text-right">{{ diffNow ? $t('gdd_per_link.expired') : $t('form.date') }}</div>
+        <div class="text-right">
+          {{ diffNow ? $t('gdd_per_link.valid_until') : $t('form.date') }}
+        </div>
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-date">

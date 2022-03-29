@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import CreationTransactionListFormular from './CreationTransactionListFormular.vue'
+import CreationTransactionList from './CreationTransactionList.vue'
 import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -46,11 +46,11 @@ const propsData = {
   fields: ['date', 'balance', 'name', 'memo', 'decay'],
 }
 
-describe('CreationTransactionListFormular', () => {
+describe('CreationTransactionList', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(CreationTransactionListFormular, { localVue, mocks, propsData })
+    return mount(CreationTransactionList, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
