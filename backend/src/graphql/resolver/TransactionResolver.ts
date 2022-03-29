@@ -170,7 +170,7 @@ export class TransactionResolver {
       offset,
       order,
     )
-    context.count = userTransactionsCount
+    context.transactionCount = userTransactionsCount
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]

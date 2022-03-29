@@ -40,8 +40,8 @@ export class BalanceResolver {
     }
 
     const count =
-      context.count || context.count === 0
-        ? context.count
+      context.transactionCount || context.transactionCount === 0
+        ? context.transactionCount
         : await dbTransaction.count({ where: { userId: user.id } })
     const linkCount =
       context.linkCount || context.linkCount === 0
