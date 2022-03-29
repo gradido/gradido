@@ -221,10 +221,6 @@ describe('UserResolver', () => {
         expect(newUser[0].password).toEqual('3917921995996627700')
       })
 
-      it('removes the optin', async () => {
-        await expect(LoginEmailOptIn.find()).resolves.toHaveLength(0)
-      })
-
       /*
       it('calls the klicktipp API', () => {
         expect(klicktippSignIn).toBeCalledWith(
