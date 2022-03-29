@@ -1,6 +1,6 @@
 <template>
   <div class="component-creation-transaction-list">
-    {{ $t('transactionlist.title') }}
+    <div class="h3">{{ $t('transactionlist.title') }}</div>
     <b-table striped hover :fields="fields" :items="items"></b-table>
   </div>
 </template>
