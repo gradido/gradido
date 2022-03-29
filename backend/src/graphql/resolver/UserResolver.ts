@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection, getCustomRepository, QueryRunner } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
@@ -15,17 +15,15 @@ import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
+import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_ADMIN } from '@/auth/ROLES'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { ServerUser } from '@entity/ServerUser'
-
-const EMAIL_OPT_IN_RESET_PASSWORD = 2
-const EMAIL_OPT_IN_REGISTER = 1
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -148,55 +146,45 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 
   return message
 }
-const createEmailOptIn = async (
-  loginUserId: number,
-  queryRunner: QueryRunner,
-): Promise<LoginEmailOptIn> => {
-  let emailOptIn = await LoginEmailOptIn.findOne({
-    userId: loginUserId,
-    emailOptInTypeId: EMAIL_OPT_IN_REGISTER,
-  })
-  if (emailOptIn) {
-    if (isOptInCodeValid(emailOptIn)) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
-    }
-    emailOptIn.updatedAt = new Date()
-    emailOptIn.resendCount++
-  } else {
-    emailOptIn = new LoginEmailOptIn()
-    emailOptIn.verificationCode = random(64)
-    emailOptIn.userId = loginUserId
-    emailOptIn.emailOptInTypeId = EMAIL_OPT_IN_REGISTER
-  }
-  await queryRunner.manager.save(emailOptIn).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.log('Error while saving emailOptIn', error)
-    throw new Error('error saving email opt in')
-  })
+
+const newEmailOptIn = (userId: number): LoginEmailOptIn => {
+  const emailOptIn = new LoginEmailOptIn()
+  emailOptIn.verificationCode = random(64)
+  emailOptIn.userId = userId
+  emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
   return emailOptIn
 }
 
-const getOptInCode = async (loginUserId: number): Promise<LoginEmailOptIn> => {
-  let optInCode = await LoginEmailOptIn.findOne({
-    userId: loginUserId,
-    emailOptInTypeId: EMAIL_OPT_IN_RESET_PASSWORD,
-  })
-
-  // Check for `CONFIG.EMAIL_CODE_VALID_TIME` minute delay
+// needed by AdminResolver
+// checks if given code exists and can be resent
+// if optIn does not exits, it is created
+export const checkOptInCode = async (
+  optInCode: LoginEmailOptIn | undefined,
+  userId: number,
+  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
+): Promise<LoginEmailOptIn> => {
   if (optInCode) {
-    if (isOptInCodeValid(optInCode)) {
-      throw new Error(`email already sent less than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+    if (!canResendOptIn(optInCode)) {
+      throw new Error(
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
+      )
     }
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
   } else {
-    optInCode = new LoginEmailOptIn()
-    optInCode.verificationCode = random(64)
-    optInCode.userId = loginUserId
-    optInCode.emailOptInTypeId = EMAIL_OPT_IN_RESET_PASSWORD
+    optInCode = newEmailOptIn(userId)
   }
-  await LoginEmailOptIn.save(optInCode)
+  optInCode.emailOptInTypeId = optInType
+  await LoginEmailOptIn.save(optInCode).catch(() => {
+    throw new Error('Unable to save optin code.')
+  })
   return optInCode
+}
+
+export const activationLink = (optInCode: LoginEmailOptIn): string => {
+  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
 @Resolver()
@@ -363,9 +351,12 @@ export class UserResolver {
         throw new Error('error saving user')
       })
 
-      // Store EmailOptIn in DB
-      // TODO: this has duplicate code with sendResetPasswordEmail
-      const emailOptIn = await createEmailOptIn(dbUser.id, queryRunner)
+      const emailOptIn = newEmailOptIn(dbUser.id)
+      await queryRunner.manager.save(emailOptIn).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log('Error while saving emailOptIn', error)
+        throw new Error('error saving email opt in')
+      })
 
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{optin}/g,
@@ -378,6 +369,7 @@ export class UserResolver {
         firstName,
         lastName,
         email,
+        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
 
       /* uncomment this, when you need the activation link on the console
@@ -398,70 +390,26 @@ export class UserResolver {
     return new User(dbUser)
   }
 
-  // THis is used by the admin only - should we move it to the admin resolver?
-  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
-  @Mutation(() => Boolean)
-  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
-    email = email.trim().toLowerCase()
-    const user = await DbUser.findOneOrFail({ email: email })
-
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
-
-    try {
-      const emailOptIn = await createEmailOptIn(user.id, queryRunner)
-
-      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{optin}/g,
-        emailOptIn.verificationCode.toString(),
-      )
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email,
-      })
-
-      /*  uncomment this, when you need the activation link on the console
-      // In case EMails are disabled log the activation link for the user
-      if (!emailSent) {
-        // eslint-disable-next-line no-console
-        console.log(`Account confirmation link: ${activationLink}`)
-      }
-      */
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw e
-    } finally {
-      await queryRunner.release()
-    }
-    return true
-  }
-
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Query(() => Boolean)
   async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
-    // TODO: this has duplicate code with createUser
     email = email.trim().toLowerCase()
     const user = await DbUser.findOneOrFail({ email })
 
-    const optInCode = await getOptInCode(user.id)
+    // can be both types: REGISTER and RESET_PASSWORD
+    let optInCode = await LoginEmailOptIn.findOne({
+      userId: user.id,
+    })
 
-    const link = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{optin}/g,
-      optInCode.verificationCode.toString(),
-    )
+    optInCode = await checkOptInCode(optInCode, user.id, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmail({
-      link,
+    const emailSent = await sendResetPasswordEmailMailer({
+      link: activationLink(optInCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
+      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console
@@ -494,8 +442,10 @@ export class UserResolver {
     })
 
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email already more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+    if (!isOptInValid(optInCode)) {
+      throw new Error(
+        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      )
     }
 
     // load user
@@ -538,11 +488,6 @@ export class UserResolver {
         throw new Error('error saving user: ' + error)
       })
 
-      // Delete Code
-      await queryRunner.manager.remove(optInCode).catch((error) => {
-        throw new Error('error deleting code: ' + error)
-      })
-
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -553,7 +498,7 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === EMAIL_OPT_IN_REGISTER) {
+    if (optInCode.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
         await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
       } catch {
@@ -573,8 +518,10 @@ export class UserResolver {
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInCodeValid(optInCode)) {
-      throw new Error(`email was sent more than $(CONFIG.EMAIL_CODE_VALID_TIME} minutes ago`)
+    if (!isOptInValid(optInCode)) {
+      throw new Error(
+        `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
+      )
     }
     return true
   }
@@ -680,7 +627,34 @@ export class UserResolver {
     return hasElopageBuys(userEntity.email)
   }
 }
-function isOptInCodeValid(optInCode: LoginEmailOptIn) {
-  const timeElapsed = Date.now() - new Date(optInCode.updatedAt).getTime()
-  return timeElapsed <= CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000
+
+const isTimeExpired = (optIn: LoginEmailOptIn, duration: number): boolean => {
+  const timeElapsed = Date.now() - new Date(optIn.updatedAt).getTime()
+  // time is given in minutes
+  return timeElapsed <= duration * 60 * 1000
+}
+
+const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
+  return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
+}
+
+const canResendOptIn = (optIn: LoginEmailOptIn): boolean => {
+  return !isTimeExpired(optIn, CONFIG.EMAIL_CODE_REQUEST_TIME)
+}
+
+const getTimeDurationObject = (time: number): { hours?: number; minutes: number } => {
+  if (time > 60) {
+    return {
+      hours: Math.floor(time / 60),
+      minutes: time % 60,
+    }
+  }
+  return { minutes: time }
+}
+
+export const printTimeDuration = (duration: number): string => {
+  const time = getTimeDurationObject(duration)
+  const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
+  if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
+  return result
 }

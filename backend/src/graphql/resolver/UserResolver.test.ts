@@ -11,6 +11,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { printTimeDuration } from './UserResolver'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -133,6 +134,7 @@ describe('UserResolver', () => {
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
+          duration: expect.any(String),
         })
       })
     })
@@ -218,10 +220,6 @@ describe('UserResolver', () => {
 
       it('updates the password', () => {
         expect(newUser[0].password).toEqual('3917921995996627700')
-      })
-
-      it('removes the optin', async () => {
-        await expect(LoginEmailOptIn.find()).resolves.toHaveLength(0)
       })
 
       /*
@@ -413,5 +411,19 @@ describe('UserResolver', () => {
         )
       })
     })
+  })
+})
+
+describe('printTimeDuration', () => {
+  it('works with 10 minutes', () => {
+    expect(printTimeDuration(10)).toBe('10 minutes')
+  })
+
+  it('works with 1440 minutes', () => {
+    expect(printTimeDuration(1440)).toBe('24 hours')
+  })
+
+  it('works with 1410 minutes', () => {
+    expect(printTimeDuration(1410)).toBe('23 hours and 30 minutes')
   })
 })

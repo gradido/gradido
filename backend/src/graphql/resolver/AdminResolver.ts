@@ -39,6 +39,9 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
+import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -55,19 +58,19 @@ export class AdminResolver {
       searchText,
       currentPage = 1,
       pageSize = 25,
-      notActivated = false,
-      isDeleted = false,
+      notActivated = null,
+      isDeleted = null,
     }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (notActivated) {
-      filterCriteria.push({ emailChecked: false })
+    if (notActivated !== null) {
+      filterCriteria.push({ emailChecked: !notActivated })
     }
 
-    if (isDeleted) {
-      filterCriteria.push({ deletedAt: Not(IsNull()) })
+    if (isDeleted !== null) {
+      filterCriteria.push({ deletedAt: isDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
@@ -373,6 +376,40 @@ export class AdminResolver {
 
     const user = await dbUser.findOneOrFail({ id: userId })
     return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    const user = await dbUser.findOneOrFail({ email: email })
+
+    // can be both types: REGISTER and RESET_PASSWORD
+    let optInCode = await LoginEmailOptIn.findOne({
+      where: { userId: user.id },
+      order: { updatedAt: 'DESC' },
+    })
+
+    optInCode = await checkOptInCode(optInCode, user.id)
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const emailSent = await sendAccountActivationEmail({
+      link: activationLink(optInCode),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+    })
+
+    /*  uncomment this, when you need the activation link on the console
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+    // eslint-disable-next-line no-console
+    console.log(`Account confirmation link: ${activationLink}`)
+    }
+    */
+
+    return true
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
