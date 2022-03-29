@@ -101,7 +101,7 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              notActivated: null,
+              notActivated: true,
               isDeleted: null,
             },
           }),
@@ -122,7 +122,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               notActivated: null,
-              isDeleted: null,
+              isDeleted: true,
             },
           }),
         )
