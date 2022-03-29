@@ -17,6 +17,10 @@ export default {
 }
 </script>
 <style>
+#app {
+  height: 100%;
+}
+
 .pointer {
   cursor: pointer;
 }
