@@ -169,7 +169,7 @@ describe('GdtTransactionList ', () => {
     })
 
     describe('pagination buttons', () => {
-      it('shows the pagination buttons if transactionCount > 25', () => {
+      it('shows the pagination buttons if transactionCount > pageSize', () => {
         beforeEach(async () => {
           await wrapper.setProps({
             transactionGdtCount: 42,
