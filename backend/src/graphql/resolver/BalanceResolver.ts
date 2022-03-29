@@ -66,9 +66,9 @@ export class BalanceResolver {
     )
 
     return new Balance({
-      balance: calculatedDecay.balance,
-      decay: calculatedDecay.decay,
-      lastBookedBalance: lastTransaction.balance,
+      balance: calculatedDecay.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
+      decay: calculatedDecay.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR), // round towards - infinity
+      lastBookedBalance: lastTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
       balanceGDT,
       count,
       linkCount,
