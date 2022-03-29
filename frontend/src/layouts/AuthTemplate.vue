@@ -1,14 +1,16 @@
 <template>
-  <div class="auth-template container-fluid h-100 w-100">
+  <div class="auth-template h-100 w-100">
     <auth-header />
-    <b-row class="auth-template-box">
+    <b-row class="auth-template-">
       <b-col lg="6" md="none" sm="none">
         <div class="bg-img-box d-none d-lg-block">
-          <b-img-lazy class="bg-img" src="/img/template/Foto_01.jpg"></b-img-lazy>
+          <!-- <b-img class="bg-img" src="/img/template/Foto_01.jpg"></b-img>-->
         </div>
-        <div>
-          <h1 class="text-danger">{{ $t('site.login.heading') }}</h1>
-          <div>{{ $t('site.login.community') }}</div>
+        <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
+          <div class="text-light h0">Dankbarkeit</div>
+          <div class="text-light h1">Die neue Währung</div>
+          <div class="text-light h2 text-uppercase">Für Einander, Für alle, Für die Natur</div>
+          <b-button variant="gradido">Erfahre mehr...</b-button>
         </div>
       </b-col>
       <b-col lg="6" md="12" sm="12">
@@ -48,6 +50,16 @@ export default {
   bottom: 0px;
   min-width: 600px;
   max-width: 800px;
+  background-color: bisque;
+  border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
+}
+.bg-txt-box {
+  position: inherit;
+  padding-top: 40%;
+  height: auto;
+}
+.bg-txt-box > .h0 {
+  font-size: 4em;
 }
 
 .bg-img {
