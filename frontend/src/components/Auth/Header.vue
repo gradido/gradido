@@ -2,43 +2,27 @@
   <div class="auth-header">
     <b-navbar toggleable="lg" class="p-0">
       <div class="g-logo-radius bg-white p-3">
-        <img :src="logo" height="40" alt="..." />
+        <b-img :src="logo" height="40" alt="..." />
       </div>
-      <b-img-lazy
-        class="header-img d-block d-lg-none"
-        src="/img/template/Blaetter.png"
-      ></b-img-lazy>
+      <b-img class="header-img d-block d-lg-none" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item-dropdown text="über Gradido">
-            <b-dropdown-item href="#">EN</b-dropdown-item>
-            <b-dropdown-item href="#">ES</b-dropdown-item>
-            <b-dropdown-item href="#">RU</b-dropdown-item>
-            <b-dropdown-item href="#">FA</b-dropdown-item>
-          </b-nav-item-dropdown>
+          <b-nav-item-dropdown text="über Gradido"></b-nav-item-dropdown>
 
-          <b-nav-item-dropdown text="Great Cooperation">
-            <b-dropdown-item href="#">EN</b-dropdown-item>
-            <b-dropdown-item href="#">ES</b-dropdown-item>
-            <b-dropdown-item href="#">RU</b-dropdown-item>
-            <b-dropdown-item href="#">FA</b-dropdown-item>
-          </b-nav-item-dropdown>
+          <b-nav-item-dropdown text="Great Cooperation"></b-nav-item-dropdown>
 
-          <b-nav-item href="#">Podcast</b-nav-item>
+          <b-nav-item href="#!">Podcast</b-nav-item>
 
-          <b-nav-item-dropdown text="Presse">
-            <b-dropdown-item href="#">EN</b-dropdown-item>
-            <b-dropdown-item href="#">ES</b-dropdown-item>
-            <b-dropdown-item href="#">RU</b-dropdown-item>
-            <b-dropdown-item href="#">FA</b-dropdown-item>
-          </b-nav-item-dropdown>
+          <b-nav-item-dropdown text="Presse"></b-nav-item-dropdown>
 
           <b-nav-item href="#">Kontakt</b-nav-item>
 
-          <b-nav-item href="#">Anmelden | Registrieen</b-nav-item>
+          <b-nav-item href="#">Anmelden</b-nav-item>
+
+          <b-nav-item href="#">Registrieren</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -50,6 +34,7 @@ export default {
   data() {
     return {
       logo: 'img/brand/green.png',
+      sheet: 'img/template/Blaetter.png',
     }
   },
 }
@@ -60,10 +45,10 @@ export default {
 }
 
 .header-img {
-  position: absolute;
-  bottom: -180%;
-  right: 0px;
-  width: 70%;
+  position: fixed;
+  top: -359px;
+  right: 13%;
+  width: 385px;
 }
 
 .g-logo-radius {
