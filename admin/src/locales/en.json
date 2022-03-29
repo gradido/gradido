@@ -27,6 +27,7 @@
   "edit": "Edit",
   "enabled": "enabled",
   "error": "Error",
+  "expired": "expired",
   "e_mail": "E-mail",
   "firstname": "Firstname",
   "footer": {
@@ -56,6 +57,7 @@
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
+  "open": "open",
   "open_creations": "Open creations",
   "overlay": {
     "confirm": {
@@ -66,6 +68,7 @@
       "yes": "Yes, confirm and save creation!"
     }
   },
+  "redeemed": "redeemed",
   "remove": "Remove",
   "removeNotSelf": "As admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
@@ -73,6 +76,11 @@
   "status": "Status",
   "success": "Success",
   "text": "Text",
+  "transactionlink": {
+    "created": "Created",
+    "form_header": "Transaction links",
+    "valid_until": "Valid until"
+  },
   "transactionlist": {
     "amount": "Amount",
     "balanceDate": "Creation date",
