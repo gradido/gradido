@@ -178,7 +178,7 @@ describe('GdtTransactionList ', () => {
         expect(wrapper.find('div.pagination').exists()).toBe(true)
       })
 
-      it('shows no the pagination buttons if transactionCount < 25', () => {
+      it('shows no the pagination buttons if transactionCount < pageSize', () => {
         beforeEach(async () => {
           await wrapper.setProps({
             transactionGdtCount: 2,
