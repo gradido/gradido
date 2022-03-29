@@ -124,14 +124,14 @@
             <div class="text-center mt-5">
               <div class="text-center">
                 <router-link class="test-button-back" to="/login">
-                  <b-button variant="outline-secondary" class="mr-4">
+                  <b-button variant="outline-gradido" class="mr-4">
                     {{ $t('back') }}
                   </b-button>
                 </router-link>
                 <b-button
                   :disabled="disabled"
                   type="submit"
-                  :variant="disabled ? 'outline-light' : 'primary'"
+                  :variant="disabled ? 'outline-light' : 'gradido'"
                 >
                   {{ $t('signup') }}
                 </b-button>

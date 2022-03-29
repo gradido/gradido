@@ -20,7 +20,7 @@
               v-model="form.password"
             ></input-password>
             <div class="text-center mt-4">
-              <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
+              <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
             </div>
           </b-form>
         </validation-observer>
