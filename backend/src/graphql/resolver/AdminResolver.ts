@@ -9,6 +9,8 @@ import {
   ObjectLiteral,
   getConnection,
   In,
+  MoreThan,
+  FindOperator,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { PendingCreation } from '@model/PendingCreation'
@@ -21,6 +23,8 @@ import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Transaction } from '@model/Transaction'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
@@ -32,6 +36,7 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
+import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
 
@@ -368,6 +373,41 @@ export class AdminResolver {
 
     const user = await dbUser.findOneOrFail({ id: userId })
     return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinksAdmin(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Args()
+    filters: TransactionLinkFilters,
+    @Arg('userId', () => Int) userId: number,
+  ): Promise<TransactionLinkResult> {
+    const user = await dbUser.findOneOrFail({ id: userId })
+    const where: {
+      userId: number
+      redeemedBy?: number | null
+      validUntil?: FindOperator<Date> | null
+    } = {
+      userId,
+    }
+    if (!filters.withRedeemed) where.redeemedBy = null
+    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
+    const [transactionLinks, count] = await dbTransactionLink.findAndCount({
+      where,
+      withDeleted: filters.withDeleted,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      linkCount: count,
+      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    }
   }
 }
 
