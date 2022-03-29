@@ -1,4 +1,8 @@
- /* Navbar  */
+html, body {
+    height:100%; /*both html and body*/
+}
+
+/* Navbar  */
  .navbar-light .navbar-nav .nav-link {
     color: #047006;
   }
@@ -9,9 +13,10 @@
     background-size: auto;
     background-position: 0% 0%;
     background-repeat: repeat;
-    border-radius: 40px 40px 40px 40px;
+    border-radius: 24.8pt;
     border-style: none;
   }
+
   .btn-gradido:hover {
     color: #212529;
   }
@@ -19,8 +24,17 @@
   .btn-outline-gradido {
       color: rgb(248,161,27);
       border: 1px solid #F5B805;
-      border-radius: 40px 40px 40px 40px;
+      border-radius: 24.8pt;
   }
+  
+  .form-control, .custom-select {
+    border-radius: 24.8pt;
+  }
+
+  .rounded-right {
+    border-top-right-radius: 24.8pt !important;
+    border-bottom-right-radius: 24.8pt !important;
+}
  
  .alert-success {
     background-color: #d4edda;
@@ -136,6 +150,7 @@
   
   .gradido-custom-background {
     background-color: #ebebeba3 !important;
+    border-radius: 25pt;
   }
   
   .gradido-max-width {
