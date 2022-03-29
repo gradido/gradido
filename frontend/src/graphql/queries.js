@@ -45,11 +45,16 @@ export const logout = gql`
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      balanceGDT
-      count
-      linkCount
-      balance
-      decayStartBlock
+      balance {
+        balance
+        decay
+        lastBookedBalance
+        balanceGDT
+        count
+        linkCount
+        decayStartBlock
+        lastBookedDate
+      }
       transactions {
         id
         typeId
@@ -70,6 +75,7 @@ export const transactionsQuery = gql`
         linkedUser {
           email
         }
+        transactionLinkId
       }
     }
   }
