@@ -15,7 +15,15 @@
       </b-col>
       <b-col lg="6" md="12" sm="12">
         <auth-login />
+        <br />
+        <br />
         <auth-register />
+        <br />
+        <br />
+        <auth-forgot-password />
+        <br />
+        <br />
+        <auth-reset-password />
       </b-col>
     </b-row>
     <!-- <auth-layout-gdd />-->
@@ -25,6 +33,9 @@
 import AuthHeader from '@/components/Auth/Header.vue'
 import AuthLogin from '@/components/Auth/Login.vue'
 import AuthRegister from '@/components/Auth/Register.vue'
+import AuthForgotPassword from '@/components/Auth/ForgotPassword.vue'
+import AuthResetPassword from '@/components/Auth/ResetPassword.vue'
+
 // import AuthLayoutGdd from '@/layouts/AuthLayout_gdd.vue'
 
 export default {
@@ -33,6 +44,8 @@ export default {
     AuthHeader,
     AuthLogin,
     AuthRegister,
+    AuthForgotPassword,
+    AuthResetPassword,
     // AuthLayoutGdd,
   },
 }
