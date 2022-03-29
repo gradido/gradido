@@ -5,7 +5,7 @@ import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
 import CONFIG from '@/config'
 import { GdtEntryList } from '@model/GdtEntryList'
 import Paginated from '@arg/Paginated'
-import { apiGet } from '@/apis/HttpRequest'
+import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { Order } from '@enum/Order'
 import { RIGHTS } from '@/auth/RIGHTS'
 
@@ -13,13 +13,11 @@ import { RIGHTS } from '@/auth/RIGHTS'
 export class GdtResolver {
   @Authorized([RIGHTS.LIST_GDT_ENTRIES])
   @Query(() => GdtEntryList)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listGDTEntries(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: any,
   ): Promise<GdtEntryList> {
-    // load user
     const userEntity = context.user
 
     try {
@@ -32,6 +30,25 @@ export class GdtResolver {
       return new GdtEntryList(resultGDT.data)
     } catch (err: any) {
       throw new Error('GDT Server is not reachable.')
+    }
+  }
+
+  @Authorized([RIGHTS.GDT_BALANCE])
+  @Query(() => Number)
+  async gdtBalance(@Ctx() context: any): Promise<number | null> {
+    const { user } = context
+    try {
+      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
+        email: user.email,
+      })
+      if (!resultGDTSum.success) {
+        throw new Error('Call not successful')
+      }
+      return Number(resultGDTSum.data.sum) || 0
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.log('Could not query GDT Server', err)
+      return null
     }
   }
 
