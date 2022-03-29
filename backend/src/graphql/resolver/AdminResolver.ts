@@ -39,8 +39,9 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
-import { checkOptInCode, activationLink } from './UserResolver'
+import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -397,6 +398,7 @@ export class AdminResolver {
       firstName: user.firstName,
       lastName: user.lastName,
       email,
+      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console

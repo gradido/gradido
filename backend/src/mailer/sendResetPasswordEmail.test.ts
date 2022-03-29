@@ -15,6 +15,7 @@ describe('sendResetPasswordEmail', () => {
       firstName: 'Peter',
       lastName: 'Lustig',
       email: 'peter@lustig.de',
+      duration: '23 hours and 30 minutes',
     })
   })
 
@@ -22,7 +23,10 @@ describe('sendResetPasswordEmail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Peter Lustig <peter@lustig.de>`,
       subject: 'Gradido: Passwort zurücksetzen',
-      text: expect.stringContaining('Hallo Peter Lustig') && expect.stringContaining('resetLink'),
+      text:
+        expect.stringContaining('Hallo Peter Lustig') &&
+        expect.stringContaining('resetLink') &&
+        expect.stringContaining('23 Stunden und 30 Minuten'),
     })
   })
 })

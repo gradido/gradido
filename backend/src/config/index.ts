@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2022-03-24',
+    EXPECTED: 'v3.2022-03-29',
     CURRENT: '',
   },
 }
@@ -70,6 +70,8 @@ const email = {
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
     process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
+  EMAIL_LINK_FORGOTPASSWORD:
+    process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440

@@ -17,7 +17,7 @@ import { UserSettingRepository } from '@repository/UserSettingRepository'
 import { Setting } from '@enum/Setting'
 import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -369,6 +369,7 @@ export class UserResolver {
         firstName,
         lastName,
         email,
+        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
 
       /* uncomment this, when you need the activation link on the console
@@ -403,11 +404,12 @@ export class UserResolver {
     optInCode = await checkOptInCode(optInCode, user.id, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmail({
+    const emailSent = await sendResetPasswordEmailMailer({
       link: activationLink(optInCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
+      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console
