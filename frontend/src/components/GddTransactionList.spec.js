@@ -412,7 +412,7 @@ describe('GddTransactionList', () => {
             transactionCount: 42,
           })
         })
-        expect(wrapper.find('div.pagination')).toBeTruthy()
+        expect(wrapper.find('div.pagination').exists()).toBe(true)
       })
 
       it('shows no pagination buttons if transactionCount < pageSize', () => {
