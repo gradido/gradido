@@ -20,9 +20,11 @@
 
           <b-nav-item href="#">Kontakt</b-nav-item>
 
-          <b-nav-item href="#">Anmelden</b-nav-item>
+          <b-nav-item href="#!" @click="$emit('setAuthItem', 'AUTH_LOGIN')">Anmelden</b-nav-item>
 
-          <b-nav-item href="#">Registrieren</b-nav-item>
+          <b-nav-item href="#!" @click="$emit('setAuthItem', 'AUTH_REGISTER')">
+            Registrieren
+          </b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>

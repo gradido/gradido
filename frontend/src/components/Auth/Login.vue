@@ -29,14 +29,14 @@
 
     <b-row class="mt-3">
       <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
-        <router-link to="/forgot-password" class="mt-3">
+        <b-link href="#!" class="mt-3" @click="$emit('setAuthItem', 'AUTH_FORGOT_PASSWORD')">
           {{ $t('settings.password.forgot_pwd') }}
-        </router-link>
+        </b-link>
       </b-col>
       <b-col cols="6" class="text-center text-sm-right col-12 col-sm-6">
-        <router-link to="/register" class="mt-3">
+        <b-link href="#!" class="mt-3" @click="$emit('setAuthItem', 'AUTH_REGISTER')">
           {{ $t('site.login.new_wallet') }}
-        </router-link>
+        </b-link>
       </b-col>
     </b-row>
   </div>
