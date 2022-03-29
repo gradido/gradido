@@ -100,7 +100,6 @@
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
-    "expired": "Expired",
     "has-account": "You already have a Gradido account",
     "header": "Send Gradidos via link",
     "link-copied": "Link copied to clipboard",
@@ -118,7 +117,8 @@
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
     "to-login": "Log in",
-    "to-register": "Register a new account"
+    "to-register": "Register a new account",
+    "valid_until": "Valid until"
   },
   "gdt": {
     "calculation": "Calculation of GradidoTransform",

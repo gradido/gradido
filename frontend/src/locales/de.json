@@ -100,7 +100,6 @@
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
-    "expired": "Abgelaufen",
     "has-account": "Du besitzt bereits ein Gradido Konto",
     "header": "Gradidos versenden per Link",
     "link-copied": "Link wurde in die Zwischenablage kopiert",
@@ -118,7 +117,8 @@
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
-    "to-register": "Registriere ein neues Konto"
+    "to-register": "Registriere ein neues Konto",
+    "valid_until": "Gültig bis"
   },
   "gdt": {
     "calculation": "Berechnung der GradidoTransform",
