@@ -1,5 +1,5 @@
 <template>
-  <div class="component-open-creations-table">
+  <div class="open-creations-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
       <template #cell(bookmark)="row">
         <b-button
