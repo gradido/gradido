@@ -28,7 +28,7 @@
       </div>
     </div>
     <b-pagination
-      v-if="transactionGdtCount > 25"
+      v-if="transactionGdtCount > pageSize"
       class="mt-3"
       pills
       size="lg"
