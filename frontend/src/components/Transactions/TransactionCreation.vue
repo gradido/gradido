@@ -47,7 +47,7 @@ import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
-  name: 'slot-creation',
+  name: 'TransactionCreation',
   components: {
     CollapseIcon,
     TypeIcon,
@@ -84,6 +84,10 @@ export default {
     },
     decayStartBlock: {
       type: Date,
+      required: true,
+    },
+    previousBookedBalance: {
+      type: String,
       required: true,
     },
   },
