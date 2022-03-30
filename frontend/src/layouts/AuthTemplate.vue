@@ -13,7 +13,7 @@
           <b-button variant="gradido">Erfahre mehr...</b-button>
         </div>
       </b-col>
-      <b-col lg="6" md="12" sm="12">
+      <b-col lg="6" md="12" sm="12" class="pr-5">
         <auth-item :type="itemType">
           <template #AUTH_LOGIN>
             <auth-login @setAuthItem="setAuthItem" />
@@ -97,7 +97,7 @@ export default {
 }
 .bg-txt-box {
   position: inherit;
-  padding-top: 40%;
+  padding-top: 30%;
   height: auto;
 }
 .bg-txt-box > .h0 {
