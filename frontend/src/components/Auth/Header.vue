@@ -14,17 +14,15 @@
 
           <b-nav-item-dropdown text="Great Cooperation"></b-nav-item-dropdown>
 
-          <b-nav-item href="#!">Podcast</b-nav-item>
+          <b-nav-item>Podcast</b-nav-item>
 
           <b-nav-item-dropdown text="Presse"></b-nav-item-dropdown>
 
-          <b-nav-item href="#">Kontakt</b-nav-item>
+          <b-nav-item>Kontakt</b-nav-item>
 
-          <b-nav-item href="#!" @click="$emit('setAuthItem', 'AUTH_LOGIN')">Anmelden</b-nav-item>
+          <b-nav-item to="/login">Anmelden</b-nav-item>
 
-          <b-nav-item href="#!" @click="$emit('setAuthItem', 'AUTH_REGISTER')">
-            Registrieren
-          </b-nav-item>
+          <b-nav-item to="/register">Registrieren</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
