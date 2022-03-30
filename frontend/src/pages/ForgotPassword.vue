@@ -69,6 +69,7 @@ export default {
           this.$router.push('/thx/forgotPassword')
         })
         .catch(() => {
+          this.toastError(this.$t('error.email-already-sent'))
           this.$router.push('/thx/forgotPassword')
         })
     },

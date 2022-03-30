@@ -2,6 +2,8 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import ForgotPassword from './ForgotPassword'
 
+import { toastErrorSpy } from '@test/testSetup'
+
 const mockAPIcall = jest.fn()
 
 const localVue = global.localVue
@@ -114,6 +116,10 @@ describe('ForgotPassword', () => {
               })
               await form.trigger('submit')
               await flushPromises()
+            })
+
+            it('toasts a standard error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
             })
 
             it('pushes to "/thx/forgotPassword"', () => {
