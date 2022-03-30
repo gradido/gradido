@@ -1,44 +1,79 @@
 <template>
   <div class="auth-login">
-    <b-card no-body class="border-0 mb-0 gradido-custom-background">
+    <div class="h1 mt-7">Willkommen</div>
+    <div class="h1">Communities World Wide</div>
+    <div>1000 Dank, weil du bei uns bist!</div>
+    <b-card no-body class="border-0 mt-4 gradido-custom-background">
+      <b-row class="p-4">
+        <b-col>
+          <div>
+            <span>{{ $t('settings.language.de') }}</span>
+            |
+            <span>{{ $t('settings.language.en') }}</span>
+          </div>
+        </b-col>
+        <b-col class="text-right">
+          A
+          <span class="h1">A</span>
+        </b-col>
+      </b-row>
+      <div class="p-4">Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!</div>
       <b-card-body class="p-4">
-        <div class="text-center mb-4 test-communitydata">
+        <!-- <div class="text-center mb-4 test-communitydata">
           <b>{{ $store.state.community.name }}</b>
           <p class="text-lead">
             {{ $store.state.community.description }}
           </p>
           {{ $t('login') }}
-        </div>
+        </div> -->
+        <label>Wähle deine Community</label>
+        <b-form-select
+          v-model="selected"
+          :options="options"
+          class="selectedLanguage mb-3"
+        ></b-form-select>
 
         <validation-observer ref="observer" v-slot="{ handleSubmit }">
           <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-            <input-email v-model="form.email"></input-email>
-            <input-password
-              :label="$t('form.password')"
-              :placeholder="$t('form.password')"
-              :name="$t('form.password')"
-              v-model="form.password"
-            ></input-password>
-            <div class="text-center mt-4">
+            <b-row>
+              <b-col><input-email v-model="form.email"></input-email></b-col>
+              <b-col>
+                <input-password
+                  :label="$t('form.password')"
+                  :placeholder="$t('form.password')"
+                  :name="$t('form.password')"
+                  v-model="form.password"
+                ></input-password>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col>
+                <b-form-checkbox
+                  v-model="status"
+                  name="checkbox-1"
+                  value="saved"
+                  unchecked-value="not_saved"
+                >
+                  Anmeldung speichern
+                </b-form-checkbox>
+              </b-col>
+              <b-col>
+                <b-link
+                  href="#!"
+                  class="mt-3"
+                  @click="$emit('setAuthItem', 'AUTH_FORGOT_PASSWORD')"
+                >
+                  {{ $t('settings.password.forgot_pwd') }}
+                </b-link>
+              </b-col>
+            </b-row>
+            <div class="mt-4">
               <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
             </div>
           </b-form>
         </validation-observer>
       </b-card-body>
     </b-card>
-
-    <b-row class="mt-3">
-      <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
-        <b-link href="#!" class="mt-3" @click="$emit('setAuthItem', 'AUTH_FORGOT_PASSWORD')">
-          {{ $t('settings.password.forgot_pwd') }}
-        </b-link>
-      </b-col>
-      <b-col cols="6" class="text-center text-sm-right col-12 col-sm-6">
-        <b-link href="#!" class="mt-3" @click="$emit('setAuthItem', 'AUTH_REGISTER')">
-          {{ $t('site.login.new_wallet') }}
-        </b-link>
-      </b-col>
-    </b-row>
   </div>
 </template>
 <script>
@@ -61,6 +96,8 @@ export default {
         password: '',
       },
       passwordVisible: false,
+      selected: '01',
+      options: [{ value: '01', text: this.$store.state.community.name }],
     }
   },
   methods: {
