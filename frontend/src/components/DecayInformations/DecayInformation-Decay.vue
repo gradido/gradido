@@ -13,7 +13,7 @@
       </b-col>
       <b-col cols="6">
         <div>
-          {{ (Number(balance) - Number(decay)) | GDD }}
+          {{ previousBookedBalance | GDD }}
           {{ decay | GDD }} {{ $t('math.equal') }}
           <b>{{ balance | GDD }}</b>
         </div>
@@ -30,6 +30,10 @@ export default {
       required: true,
     },
     decay: {
+      type: String,
+      required: true,
+    },
+    previousBookedBalance: {
       type: String,
       required: true,
     },
