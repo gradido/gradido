@@ -37,7 +37,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
-  name: 'slot-decay',
+  name: 'TransactionDecay',
   components: {
     CollapseIcon,
     TypeIcon,

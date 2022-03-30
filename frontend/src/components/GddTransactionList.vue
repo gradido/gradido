@@ -27,6 +27,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
           </template>
@@ -36,6 +37,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
           </template>
@@ -45,6 +47,7 @@
               class="list-group-item"
               v-bind="transactions[index]"
               :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
           </template>
@@ -116,7 +119,7 @@ export default {
     },
     previousBookedBalance(idx) {
       if (this.transactions[idx + 1]) return this.transactions[idx + 1].balance
-      return 0
+      return '0'
     },
   },
   watch: {
