@@ -81,12 +81,6 @@ export const transactionsQuery = gql`
   }
 `
 
-export const sendResetPasswordEmail = gql`
-  query($email: String!) {
-    sendResetPasswordEmail(email: $email)
-  }
-`
-
 export const listGDTEntriesQuery = gql`
   query($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {

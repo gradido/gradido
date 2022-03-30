@@ -30,6 +30,7 @@
   "delete": "Löschen",
   "em-dash": "—",
   "error": {
+    "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
     "error": "Fehler!",
     "no-account": "Leider konnten wir keinen Account mit diesen Daten finden.",
