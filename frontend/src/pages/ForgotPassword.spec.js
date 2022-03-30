@@ -21,7 +21,7 @@ const createMockObject = (comingFrom) => {
         push: mockRouterPush,
       },
       $apollo: {
-        query: mockAPIcall,
+        mutate: mockAPIcall,
       },
       $route: {
         params: {
