@@ -184,7 +184,8 @@ export default {
         memo: this.form.memo,
       })
     },
-    onReset() {
+    onReset(event) {
+      event.preventDefault()
       this.form.email = ''
       this.form.amount = ''
       this.form.memo = ''
@@ -212,7 +213,6 @@ export default {
     },
   },
   created() {
-    this.onReset()
     this.form.email = this.recipientEmail ? this.recipientEmail : ''
   },
 }
