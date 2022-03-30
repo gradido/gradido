@@ -103,12 +103,14 @@ export default {
             data: { transactionList },
           } = result
           this.GdtBalance =
-            transactionList.balanceGDT === null ? null : Number(transactionList.balanceGDT)
+            transactionList.balance.balanceGDT === null
+              ? null
+              : Number(transactionList.balance.balanceGDT)
           this.transactions = transactionList.transactions
-          this.balance = Number(transactionList.balance)
-          this.transactionCount = transactionList.count
-          this.transactionLinkCount = transactionList.linkCount
-          this.decayStartBlock = new Date(transactionList.decayStartBlock)
+          this.balance = Number(transactionList.balance.balance)
+          this.transactionCount = transactionList.balance.count
+          this.transactionLinkCount = transactionList.balance.linkCount
+          this.decayStartBlock = new Date(transactionList.balance.decayStartBlock)
           this.pending = false
         })
         .catch((error) => {

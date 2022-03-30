@@ -9,6 +9,8 @@ import {
   ObjectLiteral,
   getConnection,
   In,
+  MoreThan,
+  FindOperator,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { PendingCreation } from '@model/PendingCreation'
@@ -21,6 +23,8 @@ import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Transaction } from '@model/Transaction'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
@@ -32,8 +36,12 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
+import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
+import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -50,19 +58,19 @@ export class AdminResolver {
       searchText,
       currentPage = 1,
       pageSize = 25,
-      notActivated = false,
-      isDeleted = false,
+      notActivated = null,
+      isDeleted = null,
     }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (notActivated) {
-      filterCriteria.push({ emailChecked: false })
+    if (notActivated !== null) {
+      filterCriteria.push({ emailChecked: !notActivated })
     }
 
-    if (isDeleted) {
-      filterCriteria.push({ deletedAt: Not(IsNull()) })
+    if (isDeleted !== null) {
+      filterCriteria.push({ deletedAt: isDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
@@ -368,6 +376,75 @@ export class AdminResolver {
 
     const user = await dbUser.findOneOrFail({ id: userId })
     return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+  }
+
+  @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
+  @Mutation(() => Boolean)
+  async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
+    email = email.trim().toLowerCase()
+    const user = await dbUser.findOneOrFail({ email: email })
+
+    // can be both types: REGISTER and RESET_PASSWORD
+    let optInCode = await LoginEmailOptIn.findOne({
+      where: { userId: user.id },
+      order: { updatedAt: 'DESC' },
+    })
+
+    optInCode = await checkOptInCode(optInCode, user.id)
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const emailSent = await sendAccountActivationEmail({
+      link: activationLink(optInCode),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email,
+      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+    })
+
+    /*  uncomment this, when you need the activation link on the console
+    // In case EMails are disabled log the activation link for the user
+    if (!emailSent) {
+    // eslint-disable-next-line no-console
+    console.log(`Account confirmation link: ${activationLink}`)
+    }
+    */
+
+    return true
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinksAdmin(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Args()
+    filters: TransactionLinkFilters,
+    @Arg('userId', () => Int) userId: number,
+  ): Promise<TransactionLinkResult> {
+    const user = await dbUser.findOneOrFail({ id: userId })
+    const where: {
+      userId: number
+      redeemedBy?: number | null
+      validUntil?: FindOperator<Date> | null
+    } = {
+      userId,
+    }
+    if (!filters.withRedeemed) where.redeemedBy = null
+    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
+    const [transactionLinks, count] = await dbTransactionLink.findAndCount({
+      where,
+      withDeleted: filters.withDeleted,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      linkCount: count,
+      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    }
   }
 }
 
