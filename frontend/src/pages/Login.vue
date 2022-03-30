@@ -1,62 +1,55 @@
 <template>
-  <div class="login-form">
-    <!-- Header -->
-    <div class="p-3">
-      <b-container>
-        <div class="text-center mb-7 header">
-          <b-row class="justify-content-center">
-            <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('site.login.heading') }}</h1>
-              <p class="text-lead">{{ $t('site.login.community') }}</p>
-            </b-col>
-          </b-row>
-        </div>
-      </b-container>
-    </div>
-    <b-container class="mt--8">
-      <b-row class="justify-content-center">
-        <b-col lg="5" md="7">
-          <b-card no-body class="border-0 mb-0 gradido-custom-background">
-            <b-card-body class="p-4">
-              <div class="text-center text-muted mb-4 test-communitydata">
-                <b>{{ $store.state.community.name }}</b>
-                <p class="text-lead">
-                  {{ $store.state.community.description }}
-                </p>
-                {{ $t('login') }}
-              </div>
+  <div class="login-form p-4">
+    <div class="pb-5">Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!</div>
+    <!-- <div class="text-center mb-4 test-communitydata">
+          <b>{{ $store.state.community.name }}</b>
+          <p class="text-lead">
+            {{ $store.state.community.description }}
+          </p>
+          {{ $t('login') }}
+        </div> -->
+    <label>Wähle deine Community</label>
+    <b-form-select
+      v-model="selected"
+      :options="options"
+      class="selectedLanguage mb-3"
+    ></b-form-select>
 
-              <validation-observer ref="observer" v-slot="{ handleSubmit }">
-                <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-                  <input-email v-model="form.email"></input-email>
-                  <input-password
-                    :label="$t('form.password')"
-                    :placeholder="$t('form.password')"
-                    :name="$t('form.password')"
-                    v-model="form.password"
-                  ></input-password>
-                  <div class="text-center mt-4">
-                    <b-button type="submit" variant="primary">{{ $t('login') }}</b-button>
-                  </div>
-                </b-form>
-              </validation-observer>
-            </b-card-body>
-          </b-card>
-          <b-row class="mt-3">
-            <b-col cols="6" class="text-center text-sm-left col-12 col-sm-6 pb-5">
-              <router-link to="/forgot-password" class="mt-3">
-                {{ $t('settings.password.forgot_pwd') }}
-              </router-link>
-            </b-col>
-            <b-col cols="6" class="text-center text-sm-right col-12 col-sm-6">
-              <router-link to="/register" class="mt-3">
-                {{ $t('site.login.new_wallet') }}
-              </router-link>
-            </b-col>
-          </b-row>
-        </b-col>
-      </b-row>
-    </b-container>
+    <validation-observer ref="observer" v-slot="{ handleSubmit }">
+      <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
+        <b-row>
+          <b-col><input-email v-model="form.email"></input-email></b-col>
+          <b-col>
+            <input-password
+              :label="$t('form.password')"
+              :placeholder="$t('form.password')"
+              :name="$t('form.password')"
+              v-model="form.password"
+            ></input-password>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col>
+            <b-form-checkbox
+              v-model="status"
+              name="checkbox-1"
+              value="saved"
+              unchecked-value="not_saved"
+            >
+              Anmeldung speichern
+            </b-form-checkbox>
+          </b-col>
+          <b-col>
+            <router-link to="/forgot-password" class="mt-3">
+              {{ $t('settings.password.forgot_pwd') }}
+            </router-link>
+          </b-col>
+        </b-row>
+        <div class="mt-4">
+          <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
+        </div>
+      </b-form>
+    </validation-observer>
   </div>
 </template>
 <script>
@@ -79,6 +72,9 @@ export default {
         password: '',
       },
       passwordVisible: false,
+      selected: '01',
+      options: [{ value: '01', text: this.$store.state.community.name }],
+      status: false,
     }
   },
   methods: {
