@@ -21,7 +21,11 @@
       </div>
 
       <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information-decay :balance="balance" :decay="decay.decay" />
+        <decay-information-decay
+          :balance="balance"
+          :decay="decay.decay"
+          :previousBookedBalance="previousBookedBalance"
+        />
       </b-collapse>
     </div>
   </div>
@@ -51,6 +55,10 @@ export default {
     },
     decay: {
       type: Object,
+      required: true,
+    },
+    previousBookedBalance: {
+      type: String,
       required: true,
     },
   },
