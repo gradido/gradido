@@ -40,6 +40,14 @@ export default {
 }
 </script>
 <style lang="scss">
+.navbar-collapse {
+  margin-left: 20px;
+}
+.navbar-collapse li {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 .auth-header {
   position: sticky;
 }

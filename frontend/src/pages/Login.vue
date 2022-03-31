@@ -1,5 +1,5 @@
 <template>
-  <div class="login-form p-4">
+  <div class="login-form">
     <div class="pb-5">Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!</div>
     <!-- <div class="text-center mb-4 test-communitydata">
           <b>{{ $store.state.community.name }}</b>
@@ -18,8 +18,8 @@
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
         <b-row>
-          <b-col><input-email v-model="form.email"></input-email></b-col>
-          <b-col>
+          <b-col sm="12" md="6"><input-email v-model="form.email"></input-email></b-col>
+          <b-col sm="12" md="6">
             <input-password
               :label="$t('form.password')"
               :placeholder="$t('form.password')"

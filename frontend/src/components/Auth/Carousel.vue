@@ -45,8 +45,6 @@
         </p>
       </b-carousel-slide>
     </b-carousel>
-
-
   </div>
 </template>
 
@@ -70,9 +68,9 @@ export default {
 </script>
 <style>
 .carousel {
-    position: relative;
-    height: 100%;
-    border-radius: 0% 50% 70% 0%/50% 70% 70% 50%;
+  position: relative;
+  height: 100%;
+  border-radius: 0% 50% 70% 0%/50% 70% 70% 50%;
 }
 .carousel-inner {
   height: 100%;

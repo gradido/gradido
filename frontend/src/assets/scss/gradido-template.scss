@@ -8,12 +8,15 @@ html, body {
   }
 
   /* Button */
+  .btn {
+    border-radius: 24.8pt;
+  }
+
   .btn-gradido {
     background-image: linear-gradient(146deg, rgba(249,205,105,1) 50%, rgba(197,141,56,1) 100%);
     background-size: auto;
     background-position: 0% 0%;
     background-repeat: repeat;
-    border-radius: 24.8pt;
     border-style: none;
   }
   
@@ -24,7 +27,6 @@ html, body {
   .btn-outline-gradido {
       color: rgb(248,161,27);
       border: 1px solid #F5B805;
-      border-radius: 24.8pt;
   }
 
   .form-control, .custom-select {

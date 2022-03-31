@@ -1,5 +1,5 @@
 <template>
-  <div class="resetpwd-form p-4">
+  <div class="resetpwd-form">
     <div class="pb-5">Trage bitte dein Passwort ein und wiederhole es.</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">

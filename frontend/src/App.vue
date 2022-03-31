@@ -19,6 +19,7 @@ export default {
 <style>
 #app {
   height: 100%;
+  min-width: 500px;
 }
 
 .pointer {

@@ -1,12 +1,12 @@
 <template>
-  <div id="registerform p-4">
+  <div id="registerform">
     <div class="pb-5">
       Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.
     </div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <b-row>
-          <b-col>
+          <b-col sm="12" md="6">
             <validation-provider
               :name="$t('form.firstname')"
               :rules="{ required: true, min: 3 }"
@@ -32,7 +32,7 @@
               </b-form-group>
             </validation-provider>
           </b-col>
-          <b-col>
+          <b-col sm="12" md="6">
             <validation-provider
               :name="$t('form.lastname')"
               :rules="{ required: true, min: 2 }"
@@ -56,8 +56,8 @@
           </b-col>
         </b-row>
         <b-row>
-          <b-col><input-email v-model="form.email"></input-email></b-col>
-          <b-col>
+          <b-col sm="12" md="6"><input-email v-model="form.email"></input-email></b-col>
+          <b-col sm="12" md="6">
             <label>{{ $t('language') }}</label>
             <language-switch-select @update-language="updateLanguage" />
           </b-col>

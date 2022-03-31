@@ -1,14 +1,13 @@
 <template>
-  <div class="forgot-password p-4">
+  <div class="forgot-password">
     <div class="pb-5">Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist.</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-email v-model="form.email"></input-email>
-        <div class="text-center">
-          <b-button type="submit" variant="gradido">
-            {{ $t('settings.password.send_now') }}
-          </b-button>
-        </div>
+
+        <b-button type="submit" variant="gradido" class="mt-4">
+          {{ $t('settings.password.send_now') }}
+        </b-button>
       </b-form>
     </validation-observer>
 
