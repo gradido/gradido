@@ -53,7 +53,7 @@ import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
-  name: 'slot-receive',
+  name: 'TransactionReceive',
   components: {
     CollapseIcon,
     TypeIcon,
@@ -94,6 +94,10 @@ export default {
     transactionLinkId: {
       type: Number,
       required: false,
+    },
+    previousBookedBalance: {
+      type: String,
+      required: true,
     },
   },
   data() {
