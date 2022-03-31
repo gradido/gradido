@@ -39,7 +39,7 @@
   </div>
 </template>
 <script>
-import { sendResetPasswordEmail } from '@/graphql/queries'
+import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'
 
 export default {
@@ -59,8 +59,8 @@ export default {
   methods: {
     async onSubmit() {
       this.$apollo
-        .query({
-          query: sendResetPasswordEmail,
+        .mutate({
+          mutation: forgotPassword,
           variables: {
             email: this.form.email,
           },
@@ -69,6 +69,7 @@ export default {
           this.$router.push('/thx/forgotPassword')
         })
         .catch(() => {
+          this.toastError(this.$t('error.email-already-sent'))
           this.$router.push('/thx/forgotPassword')
         })
     },

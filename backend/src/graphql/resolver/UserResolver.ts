@@ -391,10 +391,11 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
-  @Query(() => Boolean)
-  async sendResetPasswordEmail(@Arg('email') email: string): Promise<boolean> {
+  @Mutation(() => Boolean)
+  async forgotPassword(@Arg('email') email: string): Promise<boolean> {
     email = email.trim().toLowerCase()
-    const user = await DbUser.findOneOrFail({ email })
+    const user = await DbUser.findOne({ email })
+    if (!user) return true
 
     // can be both types: REGISTER and RESET_PASSWORD
     let optInCode = await LoginEmailOptIn.findOne({
