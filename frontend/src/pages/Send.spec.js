@@ -269,7 +269,7 @@ describe('Send', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith({ message: 'OUCH!' })
+          expect(toastErrorSpy).toBeCalledWith('OUCH!')
         })
       })
     })

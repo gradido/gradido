@@ -132,8 +132,8 @@ export default {
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
-            .catch((err) => {
-              this.errorResult = err.message
+            .catch((error) => {
+              this.errorResult = error.message
               this.error = true
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
@@ -152,7 +152,7 @@ export default {
               this.updateTransactions({})
             })
             .catch((error) => {
-              this.toastError(error)
+              this.toastError(error.message)
             })
           break
         default:
