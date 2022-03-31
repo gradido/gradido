@@ -155,8 +155,6 @@ describe('Send', () => {
       })
     })
 
-    /* LINK */
-
     describe('transaction form link', () => {
       beforeEach(async () => {
         apolloMutationMock.mockResolvedValue({
@@ -261,7 +259,7 @@ describe('Send', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith({ message: 'OUCH!' })
+          expect(toastErrorSpy).toBeCalledWith('OUCH!')
         })
       })
     })
