@@ -24,7 +24,6 @@
         <template #transactionConfirmationLink>
           <transaction-confirmation-link
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"

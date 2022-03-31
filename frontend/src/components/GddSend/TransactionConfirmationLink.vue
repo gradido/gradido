@@ -33,7 +33,7 @@
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">{{ $t('math.aprox') }} {{ TotalBalance | GDD }}</b-col>
+        <b-col class="text-right">{{ $t('math.aprox') }} {{ totalBalance | GDD }}</b-col>
       </b-row>
     </b-container>
 
@@ -58,16 +58,14 @@ export default {
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
     loading: { type: Boolean, required: true },
-    selected: { type: String, required: true },
   },
-
   computed: {
-    TotalBalance() {
-      return this.balance - this.amount - this.amount * 0.028
+    totalBalance() {
+      return this.balance - this.amount * 1.028
     },
     disabled() {
       if (this.TotalBalance < 0) {
-        return 'disabled'
+        return true
       }
       return this.loading
     },
