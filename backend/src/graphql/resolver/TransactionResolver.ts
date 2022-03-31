@@ -199,7 +199,12 @@ export class TransactionResolver {
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
       transactions.push(
-        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
+        virtualDecayTransaction(
+          lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
+          lastTransaction.balanceDate,
+          now,
+          self,
+        ),
       )
       // virtual transaction for pending transaction-links sum
       if (sumHoldAvailableAmount.greaterThan(0)) {
