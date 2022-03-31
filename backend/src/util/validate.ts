@@ -34,7 +34,7 @@ async function calculateBalance(
   const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
   const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
 
-  // If we want to redeem a link we need to make sure that the link amount is not calculated as blocked
+  // If we want to redeem a link we need to make sure that the link amount is not considered as blocked
   // else we cannot redeem links which are more or equal to half of what an account actually owns
   const sumHoldAvailableAmountMinusTransactionLink = transactionLink
     ? sumHoldAvailableAmount.minus(transactionLink.amount.toString())
