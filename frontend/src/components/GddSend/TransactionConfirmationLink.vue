@@ -60,7 +60,6 @@ export default {
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
     loading: { type: Boolean, required: true },
-    selected: { type: String, required: true },
   },
 }
 </script>
