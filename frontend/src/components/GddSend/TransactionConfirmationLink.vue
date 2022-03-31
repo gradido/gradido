@@ -33,9 +33,7 @@
       </b-row>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
-        <b-col class="text-right">
-          {{ $t('math.aprox') }} {{ (balance - amount - amount * 0.028) | GDD }}
-        </b-col>
+        <b-col class="text-right">{{ $t('math.aprox') }} {{ TotalBalance | GDD }}</b-col>
       </b-row>
     </b-container>
 
@@ -44,7 +42,7 @@
         <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
       </b-col>
       <b-col class="text-right">
-        <b-button variant="success" :disabled="loading" @click="$emit('send-transaction')">
+        <b-button variant="success" :disabled="disabled" @click="$emit('send-transaction')">
           {{ $t('form.generate_now') }}
         </b-button>
       </b-col>
@@ -61,6 +59,18 @@ export default {
     memo: { type: String, required: true },
     loading: { type: Boolean, required: true },
     selected: { type: String, required: true },
+  },
+
+  computed: {
+    TotalBalance() {
+      return this.balance - this.amount - this.amount * 0.028
+    },
+    disabled() {
+      if (this.TotalBalance < 0) {
+        return 'disabled'
+      }
+      return this.loading
+    },
   },
 }
 </script>
