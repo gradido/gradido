@@ -419,6 +419,7 @@ describe('GddTransactionList', () => {
           },
           id: idx + 1,
           typeId: 'RECEIVE',
+          balance: '33.33',
         }
       })
 
