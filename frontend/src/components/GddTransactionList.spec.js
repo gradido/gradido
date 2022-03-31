@@ -406,7 +406,7 @@ describe('GddTransactionList', () => {
     })
 
     describe('pagination buttons', () => {
-      const transactions = Array.from({ length: 42 }, (_, idx) => {
+      /* const transactions = Array.from({ length: 42 }, (_, idx) => {
         return {
           amount: '3.14',
           balanceDate: '2021-04-29T17:26:40+00:00',
@@ -422,6 +422,7 @@ describe('GddTransactionList', () => {
           balance: '33.33',
         }
       })
+      */
 
       it('shows no pagination buttons if transactionCount < pageSize', () => {
         beforeEach(async () => {
