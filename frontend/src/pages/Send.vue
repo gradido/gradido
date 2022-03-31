@@ -12,11 +12,9 @@
         <template #transactionConfirmationSend>
           <transaction-confirmation-send
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
-            :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
           ></transaction-confirmation-send>
