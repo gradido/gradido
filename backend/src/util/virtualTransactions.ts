@@ -59,6 +59,7 @@ const virtualDecayTransaction = (
   balanceDate: Date,
   time: Date = new Date(),
   user: User,
+  holdAvailabeAmount: Decimal,
 ): Transaction => {
   const decay = calculateDecay(balance, balanceDate, time)
   // const balance = decay.balance.minus(lastTransaction.balance)
@@ -67,10 +68,12 @@ const virtualDecayTransaction = (
     userId: -1,
     previous: -1,
     typeId: TransactionTypeId.DECAY,
-    amount: decay.decay ? decay.decay : new Decimal(0), // new Decimal(0), // this kinda is wrong, but helps with the frontend query
-    balance: decay.balance,
+    amount: decay.decay ? decay.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR) : new Decimal(0), // new Decimal(0), // this kinda is wrong, but helps with the frontend query
+    balance: decay.balance
+      .minus(holdAvailabeAmount.toString())
+      .toDecimalPlaces(2, Decimal.ROUND_DOWN),
     balanceDate: time,
-    decay: decay.decay ? decay.decay : new Decimal(0),
+    decay: decay.decay ? decay.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR) : new Decimal(0),
     decayStart: decay.start,
     memo: '',
     creationDate: null,

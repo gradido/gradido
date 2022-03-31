@@ -201,7 +201,13 @@ export class TransactionResolver {
       // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
       // since the decay is substantially different when the amount is less
       transactions.push(
-        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
+        virtualDecayTransaction(
+          lastTransaction.balance,
+          lastTransaction.balanceDate,
+          now,
+          self,
+          sumHoldAvailableAmount,
+        ),
       )
       // virtual transaction for pending transaction-links sum
       if (sumHoldAvailableAmount.greaterThan(0)) {
