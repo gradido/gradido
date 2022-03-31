@@ -6,9 +6,9 @@
       <div class="mb-3 text-center">
         <div class="mt-3">
           {{ $t('gdd_per_link.no-redeem') }}
-          <a to="/transactions" href="#!">
+          <b-link to="/transactions">
             <b>{{ $t('gdd_per_link.link-overview') }}</b>
-          </a>
+          </b-link>
         </div>
       </div>
     </b-jumbotron>
