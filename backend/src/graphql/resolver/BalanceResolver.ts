@@ -54,19 +54,23 @@ export class BalanceResolver {
             },
           })
 
+    // The decay is always calculated on the last booked transaction
+    const calculatedDecay = calculateDecay(
+      lastTransaction.balance,
+      lastTransaction.balanceDate,
+      now,
+    )
+
+    // The final balance is reduced by the link amount withheld
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkRepository.summary(user.id, now)
 
-    const calculatedDecay = calculateDecay(
-      lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
-      lastTransaction.balanceDate,
-      now,
-    )
-
     return new Balance({
-      balance: calculatedDecay.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
+      balance: calculatedDecay.balance
+        .minus(sumHoldAvailableAmount.toString())
+        .toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
       decay: calculatedDecay.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR), // round towards - infinity
       lastBookedBalance: lastTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
       balanceGDT,
