@@ -405,33 +405,22 @@ describe('GddTransactionList', () => {
       })
     })
 
-    describe('pagination buttons', () => {
-      /* const transactions = Array.from({ length: 42 }, (_, idx) => {
-        return {
-          amount: '3.14',
-          balanceDate: '2021-04-29T17:26:40+00:00',
-          decay: {},
-          memo: 'Kreiszahl PI',
-          linkedUser: {
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            __typename: 'User',
-          },
-          id: idx + 1,
-          typeId: 'RECEIVE',
-          balance: '33.33',
-        }
-      })
-      */
+    // describe('pagination buttons', () => {
+    //  describe('updates transaction count < 25', () => {
+    //    beforeEach(async () => {
+    //      await wrapper.setProps({
+    //        transactionCount: 2,
+    //      })
+    //    })
 
-      it('shows no pagination buttons if transactionCount < pageSize', () => {
-        beforeEach(async () => {
-          await wrapper.setProps({
-            transactionCount: 2,
-          })
-        })
-        expect(wrapper.find('div.pagination').exists()).toBe(false)
-      })
-    })
+    //    it('updates transaction count', () => {
+    //      expect(wrapper.vm.transactionCount).toBe(2)
+    //    })
+
+    //    it('shows no pagination buttons if transactionCount < pageSize', () => {
+    //      expect(wrapper.find('div.pagination').exists()).toBe(false)
+    //    })
+    //  })
+    // })
   })
 })

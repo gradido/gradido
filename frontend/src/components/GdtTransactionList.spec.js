@@ -166,25 +166,41 @@ describe('GdtTransactionList ', () => {
           }),
         )
       })
-    })
 
-    describe('pagination buttons', () => {
-      it('shows the pagination buttons if transactionCount > pageSize', () => {
-        beforeEach(async () => {
-          await wrapper.setProps({
-            transactionGdtCount: 42,
+      describe('pagination buttons', () => {
+        describe('with transactionCount > pageSize', () => {
+          beforeEach(async () => {
+            apolloMock.mockResolvedValue({
+              data: {
+                listGDTEntries: {
+                  count: 42,
+                  gdtEntries: [],
+                },
+              },
+            })
+            wrapper = Wrapper()
+          })
+          it('shows the pagination buttons', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(true)
           })
         })
-        expect(wrapper.find('div.pagination').exists()).toBe(true)
-      })
 
-      it('shows no the pagination buttons if transactionCount < pageSize', () => {
-        beforeEach(async () => {
-          await wrapper.setProps({
-            transactionGdtCount: 2,
+        describe('with transactionCount < pageSize', () => {
+          beforeEach(async () => {
+            apolloMock.mockResolvedValue({
+              data: {
+                listGDTEntries: {
+                  count: 2,
+                  gdtEntries: [],
+                },
+              },
+            })
+            wrapper = Wrapper()
+          })
+          it('shows no pagination buttons', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(false)
           })
         })
-        expect(wrapper.find('div.pagination').exists()).toBe(false)
       })
     })
   })
