@@ -61,7 +61,7 @@
         <b-button
           variant="success"
           :disabled="disabled"
-          @click="$emit('send-transaction'), (disabled = 'disabled')"
+          @click="$emit('send-transaction'), (disabled = true)"
         >
           {{ $t('form.send_now') }}
         </b-button>
@@ -77,12 +77,10 @@ export default {
     email: { type: String, required: false, default: '' },
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
-    loading: { type: Boolean, required: true },
-    selected: { type: String, required: true },
   },
   data() {
     return {
-      disabled: this.loading,
+      disabled: false,
     }
   },
 }
