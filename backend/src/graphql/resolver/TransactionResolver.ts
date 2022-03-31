@@ -57,7 +57,12 @@ export const executeTransaction = async (
 
   // validate amount
   const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(sender.id, amount.mul(-1), receivedCallDate)
+  const sendBalance = await calculateBalance(
+    sender.id,
+    amount.mul(-1),
+    receivedCallDate,
+    transactionLink,
+  )
   if (!sendBalance) {
     throw new Error("user hasn't enough GDD or amount is < 0")
   }
