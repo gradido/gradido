@@ -36,7 +36,7 @@ async function calculateBalance(
 
   // If we want to redeem a link we need to make sure that the link amount is not considered as blocked
   // else we cannot redeem links which are more or equal to half of what an account actually owns
-  const releasedLinkAmount = transactionLink ? transactionLink.amount : new Decimal(0)
+  const releasedLinkAmount = transactionLink ? transactionLink.holdAvailableAmount : new Decimal(0)
 
   if (
     balance.minus(sumHoldAvailableAmount.toString()).plus(releasedLinkAmount.toString()).lessThan(0)
