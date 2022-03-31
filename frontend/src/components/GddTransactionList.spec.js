@@ -405,22 +405,30 @@ describe('GddTransactionList', () => {
       })
     })
 
-    // describe('pagination buttons', () => {
-    //  describe('updates transaction count < 25', () => {
-    //    beforeEach(async () => {
-    //      await wrapper.setProps({
-    //        transactionCount: 2,
-    //      })
-    //    })
+    describe('change of currentPage', () => {
+      beforeEach(async () => {
+        wrapper.setData({ currentPage: 2 })
+      })
 
-    //    it('updates transaction count', () => {
-    //      expect(wrapper.vm.transactionCount).toBe(2)
-    //    })
-
-    //    it('shows no pagination buttons if transactionCount < pageSize', () => {
-    //      expect(wrapper.find('div.pagination').exists()).toBe(false)
-    //    })
-    //  })
-    // })
+      describe('pagination buttons', () => {
+        describe('updates transaction count < 25', () => {
+          beforeEach(async () => {
+            const decayStartBlock = new Date(2001, 8, 9)
+            await wrapper.setProps({
+              transactions: [],
+              transactionCount: 26,
+              decayStartBlock,
+              pageSize: 25,
+            })
+          })
+          it('updates transaction transactionCount', () => {
+            expect(wrapper.vm.transactionCount).toBe(26)
+          })
+          it('shows pagination buttons if transactionCount > pageSize', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(true)
+          })
+        })
+      })
+    })
   })
 })
