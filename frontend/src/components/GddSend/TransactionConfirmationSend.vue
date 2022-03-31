@@ -58,11 +58,7 @@
         <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
       </b-col>
       <b-col class="text-right">
-        <b-button
-          variant="success"
-          :disabled="disabled"
-          @click="$emit('send-transaction'), (disabled = 'disabled')"
-        >
+        <b-button variant="success" :disabled="loading" @click="$emit('send-transaction')">
           {{ $t('form.send_now') }}
         </b-button>
       </b-col>
@@ -79,11 +75,6 @@ export default {
     memo: { type: String, required: true },
     loading: { type: Boolean, required: true },
     selected: { type: String, required: true },
-  },
-  data() {
-    return {
-      disabled: this.loading,
-    }
   },
 }
 </script>
