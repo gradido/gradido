@@ -38,7 +38,9 @@ async function calculateBalance(
   // else we cannot redeem links which are more or equal to half of what an account actually owns
   const releasedLinkAmount = transactionLink ? transactionLink.amount : new Decimal(0)
 
-  if (balance.minus(sumHoldAvailableAmount.toString()).plus(releasedLinkAmount.toString()).lessThan(0)) {
+  if (
+    balance.minus(sumHoldAvailableAmount.toString()).plus(releasedLinkAmount.toString()).lessThan(0)
+  ) {
     return null
   }
   return { balance, lastTransactionId: lastTransaction.id, decay }
