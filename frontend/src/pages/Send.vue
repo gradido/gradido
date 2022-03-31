@@ -134,7 +134,7 @@ export default {
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
             .catch((err) => {
-              this.errorResult = err.message
+              this.errorResult = err[0].message
               this.error = true
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
