@@ -54,17 +54,18 @@ export class BalanceResolver {
             },
           })
 
-    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
-    const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
-      ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
-      : await transactionLinkRepository.summary(user.id, now)
-
     // The decay is always calculated on the last booked transaction
     const calculatedDecay = calculateDecay(
       lastTransaction.balance,
       lastTransaction.balanceDate,
       now,
     )
+
+    // The final balance is reduced by the link amount withheld
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
+      ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
+      : await transactionLinkRepository.summary(user.id, now)
 
     return new Balance({
       balance: calculatedDecay.balance
