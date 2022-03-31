@@ -6,8 +6,13 @@ import { login } from '@/seeds/graphql/queries'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from '@entity/User'
+import { Transaction } from '@entity/Transaction'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 // import CONFIG from '@/config/index'
+
+export const nMonthsBefore = (date: Date, months = 1): string => {
+  return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
+}
 
 export const creationFactory = async (
   client: ApolloServerTestClient,
@@ -34,5 +39,21 @@ export const creationFactory = async (
     })
 
     await mutate({ mutation: confirmPendingCreation, variables: { id: pendingCreation.id } })
+
+    if (creation.moveCreationDate) {
+      const transaction = await Transaction.findOneOrFail({
+        where: { userId: user.id, creationDate: new Date(creation.creationDate) },
+        order: { balanceDate: 'DESC' },
+      })
+      if (transaction.decay.equals(0) && transaction.creationDate) {
+        transaction.creationDate = new Date(
+          nMonthsBefore(transaction.creationDate, creation.moveCreationDate),
+        )
+        transaction.balanceDate = new Date(
+          nMonthsBefore(transaction.balanceDate, creation.moveCreationDate),
+        )
+        await transaction.save()
+      }
+    }
   }
 }
