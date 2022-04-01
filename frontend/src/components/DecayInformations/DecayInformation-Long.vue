@@ -2,7 +2,7 @@
   <div class="decayinformation-long">
     <div class="d-flex">
       <div class="text-center pb-3 gradido-max-width">
-        <b-icon icon="droplet-half" height="12" class="mb-2" />
+        <b-icon icon="droplet-half" class="mr-2" />
         <b>{{ $t('decay.calculation_decay') }}</b>
       </div>
     </div>
