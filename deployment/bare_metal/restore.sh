@@ -30,6 +30,11 @@ pm2 stop gradido-backend
 # Backup data
 mysqldump --databases --single-transaction --quick --hex-blob --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-restore-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
 
+# Drop Database
+mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
+    DROP DATABASE $DB_DATABASE
+EOFMYSQL
+
 # Restore Data
 mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
     source $BACKUP_FILE
