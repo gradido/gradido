@@ -12,8 +12,8 @@ export class Transaction {
     this.user = user
     this.previous = transaction.previous
     this.typeId = transaction.typeId
-    this.amount = transaction.amount
-    this.balance = transaction.balance
+    this.amount = transaction.amount.toDecimalPlaces(2, Decimal.ROUND_DOWN)
+    this.balance = transaction.balance.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
     this.balanceDate = transaction.balanceDate
     if (!transaction.decayStart) {
       this.decay = new Decay(transaction.balance, new Decimal(0), null, null, null)
