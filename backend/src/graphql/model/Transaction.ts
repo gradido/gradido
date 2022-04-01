@@ -13,7 +13,7 @@ export class Transaction {
     this.previous = transaction.previous
     this.typeId = transaction.typeId
     this.amount = transaction.amount.toDecimalPlaces(2, Decimal.ROUND_DOWN)
-    this.balance = transaction.balance.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
+    this.balance = transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
     this.balanceDate = transaction.balanceDate
     if (!transaction.decayStart) {
       // TODO: hot fix, we should separate decay calculation from decay graphql model
