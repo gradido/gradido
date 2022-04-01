@@ -38,6 +38,7 @@ apolloQueryMock.mockResolvedValue({
 
 const mocks = {
   $t: jest.fn((t, obj = null) => (obj ? [t, obj.date].join('; ') : t)),
+  $d: jest.fn((d) => d.toISOString()),
   $store: {
     state: {
       token: null,
