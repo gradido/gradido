@@ -16,11 +16,18 @@ export class Transaction {
     this.balance = transaction.balance.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
     this.balanceDate = transaction.balanceDate
     if (!transaction.decayStart) {
-      this.decay = new Decay(transaction.balance, new Decimal(0), null, null, null)
+      // TODO: hot fix, we should separate decay calculation from decay graphql model
+      this.decay = new Decay(
+        transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+        new Decimal(0),
+        null,
+        null,
+        null,
+      )
     } else {
       this.decay = new Decay(
-        transaction.balance,
-        transaction.decay,
+        transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+        transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
         transaction.decayStart,
         transaction.balanceDate,
         Math.round((transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000),
