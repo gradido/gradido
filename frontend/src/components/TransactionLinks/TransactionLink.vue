@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-link gradido-custom-background">
+  <div class="transaction-link">
     <b-row class="mb-2 pt-2 pb-2">
       <b-col cols="2">
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
@@ -99,3 +99,14 @@ export default {
   },
 }
 </script>
+<style>
+.transaction-link {
+  background: rgb(255, 255, 255);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.365983893557423) 72%,
+    rgba(245, 206, 36, 0.4472163865546218) 100%
+  );
+}
+</style>

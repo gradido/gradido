@@ -115,3 +115,14 @@ export default {
   },
 }
 </script>
+<style>
+.transaction-slot-link {
+  background: rgb(249, 223, 163);
+  background: linear-gradient(
+    90deg,
+    rgba(249, 223, 163, 1) 0%,
+    rgba(218, 184, 97, 0.365983893557423) 72%,
+    rgba(137, 162, 0, 0.4864320728291317) 100%
+  );
+}
+</style>
