@@ -11,7 +11,7 @@ export class Decay {
     duration: number | null,
   ) {
     this.balance = balance
-    this.decay = decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR)
+    this.decay = decay
     this.start = start
     this.end = end
     this.duration = duration
