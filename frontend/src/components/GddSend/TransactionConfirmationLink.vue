@@ -28,7 +28,7 @@
           <strong>{{ $t('gdd_per_link.decay-14-day') }}</strong>
         </b-col>
         <b-col class="text-right borderbottom">
-          <strong>{{ $t('math.aprox') }} {{ (amount * 0.028 * -1) | GDD }}</strong>
+          <strong>{{ $t('math.aprox') }} {{ (amount * -0.028) | GDD }}</strong>
         </b-col>
       </b-row>
       <b-row class="pr-3">
@@ -64,7 +64,7 @@ export default {
       return this.balance - this.amount * 1.028
     },
     disabled() {
-      if (this.TotalBalance < 0) {
+      if (this.totalBalance < 0) {
         return true
       }
       return this.loading
