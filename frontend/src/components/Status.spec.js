@@ -26,8 +26,8 @@ describe('Status', () => {
     })
 
     describe('balance is pending', () => {
-      it('it displays an en-dash', () => {
-        expect(wrapper.find('div.gdd-status-div').text()).toEqual('em-dash GDD')
+      it('it displays an animation icon test-pending-icon', () => {
+        expect(wrapper.find('.test-pending-icon').exists()).toBe(true)
       })
     })
 
@@ -36,6 +36,9 @@ describe('Status', () => {
         wrapper.setProps({
           pending: false,
         })
+      })
+      it('it no displays an animation icon test-pending-icon', () => {
+        expect(wrapper.find('.test-pending-icon').exists()).toBe(false)
       })
 
       it('it displays the ammount of GDD', () => {
