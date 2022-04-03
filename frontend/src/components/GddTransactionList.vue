@@ -3,14 +3,12 @@
     <div class="list-group">
       <div v-if="!transactions" class="test-no-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
-        null nix da
         <small>
           {{ $t('error.no-transactionlist') }}
         </small>
       </div>
       <div v-if="transactionCount < 0" class="test-empty-transactionlist text-right">
         <b-icon icon="exclamation-triangle" class="mr-2" variant="danger"></b-icon>
-        nix da
         <small>{{ $t('error.empty-transactionlist') }}</small>
       </div>
 
