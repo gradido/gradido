@@ -70,8 +70,7 @@
       :total-rows="transactionCount"
     ></pagination-buttons>
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
-     
-       <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
+      <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
       <div v-else>{{ $t('transaction.nullTransactions') }}</div>
     </div>
   </div>
