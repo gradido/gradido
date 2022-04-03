@@ -129,12 +129,12 @@
             <b-row v-else class="test-buttons">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.reset') }}
+                  {{ $t('form.cancel') }}
                 </b-button>
               </b-col>
               <b-col class="text-right">
-                <b-button type="submit" variant="success">
-                  {{ selected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now') }}
+                <b-button type="submit" variant="primary">
+                  {{ $t('form.check_now') }}
                 </b-button>
               </b-col>
             </b-row>

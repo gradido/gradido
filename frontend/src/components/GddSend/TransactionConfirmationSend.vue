@@ -55,11 +55,11 @@
 
     <b-row class="mt-4">
       <b-col>
-        <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
+        <b-button @click="$emit('on-reset')">{{ $t('form.edit') }}</b-button>
       </b-col>
       <b-col class="text-right">
         <b-button
-          variant="success"
+          variant="primary"
           :disabled="disabled"
           @click="$emit('send-transaction'), (disabled = true)"
         >
