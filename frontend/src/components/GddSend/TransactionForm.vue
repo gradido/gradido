@@ -213,7 +213,7 @@ export default {
     },
   },
   created() {
-    this.form.email = this.recipientEmail ? this.recipientEmail : ''
+    this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
   },
 }
 </script>
