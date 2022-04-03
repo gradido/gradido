@@ -12,11 +12,9 @@
         <template #transactionConfirmationSend>
           <transaction-confirmation-send
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
-            :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
           ></transaction-confirmation-send>
@@ -24,7 +22,6 @@
         <template #transactionConfirmationLink>
           <transaction-confirmation-link
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
@@ -133,8 +130,8 @@ export default {
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
-            .catch((err) => {
-              this.errorResult = err.message
+            .catch((error) => {
+              this.errorResult = error.message
               this.error = true
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
@@ -153,7 +150,7 @@ export default {
               this.updateTransactions({})
             })
             .catch((error) => {
-              this.toastError(error)
+              this.toastError(error.message)
             })
           break
         default:
