@@ -68,7 +68,7 @@ describe('TransactionForm', () => {
       })
 
       it('has SEND_TYPES = send', () => {
-        expect(wrapper.vm.selected).toBe(SEND_TYPES.send)
+        expect(wrapper.vm.radio_selected).toBe(SEND_TYPES.send)
       })
 
       describe('transaction form', () => {
@@ -300,7 +300,7 @@ Die ganze Welt bezwingen.“`)
       })
 
       it('has SEND_TYPES = link', () => {
-        expect(wrapper.vm.selected).toBe(SEND_TYPES.link)
+        expect(wrapper.vm.radio_selected).toBe(SEND_TYPES.link)
       })
 
       it('has no input field of id input-group-1', () => {
