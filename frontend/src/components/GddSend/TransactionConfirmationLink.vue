@@ -39,10 +39,10 @@
 
     <b-row class="mt-4">
       <b-col>
-        <b-button @click="$emit('on-reset')">{{ $t('form.cancel') }}</b-button>
+        <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
       </b-col>
       <b-col class="text-right">
-        <b-button variant="success" :disabled="disabled" @click="$emit('send-transaction')">
+        <b-button variant="primary" :disabled="disabled" @click="$emit('send-transaction')">
           {{ $t('form.generate_now') }}
         </b-button>
       </b-col>
