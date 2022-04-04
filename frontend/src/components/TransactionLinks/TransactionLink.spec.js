@@ -58,10 +58,14 @@ describe('TransactionLink', () => {
           navigatorClipboardMock.mockResolvedValue()
           await wrapper.findAll('button').at(0).trigger('click')
         })
-
-        it('toasts success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+        it('should call clipboard.writeText', () => {
+          expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+            'http://localhost/redeem/c00000000c000000c0000',
+          )
         })
+        // it('toasts success message', () => {
+        //   expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+        // })
       })
 
       describe('copy with error', () => {
