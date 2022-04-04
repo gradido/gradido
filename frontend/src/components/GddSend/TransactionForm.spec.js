@@ -300,7 +300,7 @@ Die ganze Welt bezwingen.“`)
       })
 
       it('has SEND_TYPES = link', () => {
-        expect(wrapper.vm.radio_selected).toBe(SEND_TYPES.link)
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
       })
 
       it('has no input field of id input-group-1', () => {
