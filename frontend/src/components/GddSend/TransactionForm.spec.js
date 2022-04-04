@@ -68,7 +68,7 @@ describe('TransactionForm', () => {
       })
 
       it('has SEND_TYPES = send', () => {
-        expect(wrapper.vm.radio_selected).toBe(SEND_TYPES.send)
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
       })
 
       describe('transaction form', () => {
