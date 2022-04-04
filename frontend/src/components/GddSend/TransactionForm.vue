@@ -7,7 +7,7 @@
             <b-row>
               <b-col>
                 <b-form-radio
-                  v-model="radio_selected"
+                  v-model="radioSelected"
                   name="radios"
                   :value="sendTypes.send"
                   size="lg"
@@ -17,7 +17,7 @@
               </b-col>
               <b-col>
                 <b-form-radio
-                  v-model="radio_selected"
+                  v-model="radioSelected"
                   name="radios"
                   :value="sendTypes.link"
                   size="lg"
@@ -26,18 +26,18 @@
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-if="radio_selected === sendTypes.link">
+            <div class="mt-4" v-if="radioSelected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div v-if="radio_selected === sendTypes.send">
+            <div v-if="radioSelected === sendTypes.send">
               <validation-provider
                 name="Email"
                 :rules="{
-                  required: radio_selected === sendTypes.send ? true : false,
+                  required: radioSelected === sendTypes.send ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
@@ -145,7 +145,7 @@
               <b-col class="text-right">
                 <b-button type="submit" variant="success">
                   {{
-                    radio_selected === sendTypes.send
+                    radioSelected === sendTypes.send
                       ? $t('form.send_now')
                       : $t('form.generate_now')
                   }}
@@ -186,14 +186,14 @@ export default {
         memo: this.memo,
         amountValue: 0.0,
       },
-      radio_selected: this.selected,
+      radioSelected: this.selected,
     }
   },
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
       this.$emit('set-transaction', {
-        selected: this.radio_selected,
+        selected: this.radioSelected,
         email: this.form.email,
         amount: this.form.amountValue,
         memo: this.form.memo,
