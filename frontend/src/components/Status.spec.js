@@ -26,7 +26,7 @@ describe('Status', () => {
     })
 
     describe('balance is pending', () => {
-      it('it displays an animation icon test-pending-icon', () => {
+      it('displays an animation icon test-pending-icon', () => {
         expect(wrapper.find('.test-pending-icon').exists()).toBe(true)
       })
     })
