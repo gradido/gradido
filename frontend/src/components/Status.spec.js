@@ -37,7 +37,8 @@ describe('Status', () => {
           pending: false,
         })
       })
-      it('it no displays an animation icon test-pending-icon', () => {
+
+      it('does not display an animation icon test-pending-icon', () => {
         expect(wrapper.find('.test-pending-icon').exists()).toBe(false)
       })
 
