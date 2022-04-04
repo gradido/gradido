@@ -55,7 +55,7 @@
 
     <b-row class="mt-4">
       <b-col>
-        <b-button @click="$emit('on-reset')">{{ $t('form.edit') }}</b-button>
+        <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
       </b-col>
       <b-col class="text-right">
         <b-button
