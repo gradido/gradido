@@ -87,7 +87,7 @@ describe('TransactionLink', () => {
         jest.clearAllMocks()
       })
 
-      describe.only('with success', () => {
+      describe('with success', () => {
         beforeEach(async () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
           // spy.mockImplementation(() => Promise.resolve('some value'))
