@@ -145,9 +145,7 @@
               <b-col class="text-right">
                 <b-button type="submit" variant="success">
                   {{
-                    radioSelected === sendTypes.send
-                      ? $t('form.send_now')
-                      : $t('form.generate_now')
+                    radioSelected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now')
                   }}
                 </b-button>
               </b-col>
