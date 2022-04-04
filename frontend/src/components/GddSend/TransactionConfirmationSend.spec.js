@@ -53,7 +53,7 @@ describe('GddSend confirm', () => {
 
         describe('single click', () => {
           beforeEach(async () => {
-            await wrapper.find('button.btn-success').trigger('click')
+            await wrapper.find('button.btn-primary').trigger('click')
           })
 
           it('emits send transaction one time', () => {
@@ -63,8 +63,8 @@ describe('GddSend confirm', () => {
 
         describe('double click', () => {
           beforeEach(async () => {
-            await wrapper.find('button.btn-success').trigger('click')
-            await wrapper.find('button.btn-success').trigger('click')
+            await wrapper.find('button.btn-primary').trigger('click')
+            await wrapper.find('button.btn-primary').trigger('click')
           })
 
           it('emits send transaction one time', () => {

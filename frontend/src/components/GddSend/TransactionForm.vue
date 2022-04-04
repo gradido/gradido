@@ -6,28 +6,38 @@
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-row>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" :value="sendTypes.send" size="lg">
+                <b-form-radio
+                  v-model="radioSelected"
+                  name="radios"
+                  :value="sendTypes.send"
+                  size="lg"
+                >
                   {{ $t('send_gdd') }}
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
+                <b-form-radio
+                  v-model="radioSelected"
+                  name="radios"
+                  :value="sendTypes.link"
+                  size="lg"
+                >
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-if="selected === sendTypes.link">
+            <div class="mt-4" v-if="radioSelected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div v-if="selected === sendTypes.send">
+            <div v-if="radioSelected === sendTypes.send">
               <validation-provider
                 name="Email"
                 :rules="{
-                  required: selected === sendTypes.send ? true : false,
+                  required: radioSelected === sendTypes.send ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
@@ -129,12 +139,12 @@
             <b-row v-else class="test-buttons">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.reset') }}
+                  {{ $t('form.cancel') }}
                 </b-button>
               </b-col>
               <b-col class="text-right">
-                <b-button type="submit" variant="success">
-                  {{ selected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now') }}
+                <b-button type="submit" variant="primary">
+                  {{ $t('form.check_now') }}
                 </b-button>
               </b-col>
             </b-row>
@@ -159,6 +169,7 @@ export default {
     email: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
+    selected: { type: String, default: 'send' },
   },
   inject: ['getTunneledEmail'],
   data() {
@@ -171,14 +182,14 @@ export default {
         memo: this.memo,
         amountValue: 0.0,
       },
-      selected: SEND_TYPES.send,
+      radioSelected: this.selected,
     }
   },
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
       this.$emit('set-transaction', {
-        selected: this.selected,
+        selected: this.radioSelected,
         email: this.form.email,
         amount: this.form.amountValue,
         memo: this.form.memo,

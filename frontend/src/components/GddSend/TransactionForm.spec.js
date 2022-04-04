@@ -68,7 +68,7 @@ describe('TransactionForm', () => {
       })
 
       it('has SEND_TYPES = send', () => {
-        expect(wrapper.vm.selected).toBe(SEND_TYPES.send)
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
       })
 
       describe('transaction form', () => {
@@ -249,7 +249,7 @@ Die ganze Welt bezwingen.“`)
           })
 
           it('has the text "form.cancel"', () => {
-            expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
+            expect(wrapper.find('button[type="reset"]').text()).toBe('form.cancel')
           })
 
           it('clears all fields on click', async () => {
@@ -300,7 +300,7 @@ Die ganze Welt bezwingen.“`)
       })
 
       it('has SEND_TYPES = link', () => {
-        expect(wrapper.vm.selected).toBe(SEND_TYPES.link)
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
       })
 
       it('has no input field of id input-group-1', () => {
