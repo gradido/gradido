@@ -63,9 +63,9 @@ describe('TransactionLink', () => {
             'http://localhost/redeem/c00000000c000000c0000',
           )
         })
-        // it('toasts success message', () => {
-        //   expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
-        // })
+        it('toasts success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+        })
       })
 
       describe('copy with error', () => {
