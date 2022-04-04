@@ -405,13 +405,13 @@ describe('GddTransactionList', () => {
       })
     })
 
-    describe('change of currentPage', () => {
+    describe('change of 2 currentPage', () => {
       beforeEach(async () => {
         wrapper.setData({ currentPage: 2 })
       })
 
       describe('pagination buttons', () => {
-        describe('updates transaction count < 25', () => {
+        describe('updates transactionCount > 25', () => {
           beforeEach(async () => {
             const decayStartBlock = new Date(2001, 8, 9)
             await wrapper.setProps({
@@ -419,13 +419,41 @@ describe('GddTransactionList', () => {
               transactionCount: 26,
               decayStartBlock,
               pageSize: 25,
+              showPagination: true,
             })
           })
           it('updates transaction transactionCount', () => {
             expect(wrapper.vm.transactionCount).toBe(26)
           })
-          it('shows pagination buttons if transactionCount > pageSize', () => {
+          it('shows pagination buttons if showPagination = true', () => {
             expect(wrapper.find('ul.pagination').exists()).toBe(true)
+          })
+        })
+      })
+    })
+
+    describe('change of 1 currentPage', () => {
+      beforeEach(async () => {
+        wrapper.setData({ currentPage: 1 })
+      })
+
+      describe('pagination buttons', () => {
+        describe('updates transactionCount < 25', () => {
+          beforeEach(async () => {
+            const decayStartBlock = new Date(2001, 8, 9)
+            await wrapper.setProps({
+              transactions: [],
+              transactionCount: 2,
+              decayStartBlock,
+              pageSize: 25,
+              showPagination: false,
+            })
+          })
+          it('updates transaction transactionCount', () => {
+            expect(wrapper.vm.transactionCount).toBe(2)
+          })
+          it('shows pagination buttons if showPagination = true', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(false)
           })
         })
       })
