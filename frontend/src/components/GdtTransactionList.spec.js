@@ -155,8 +155,8 @@ describe('GdtTransactionList ', () => {
     describe('change of currentPage', () => {
       it('calls the API after currentPage changes', async () => {
         jest.clearAllMocks()
-        wrapper.setData({ currentPage: 2 })
-        await wrapper.vm.$nextTick()
+        await wrapper.setData({ transactionGdtCount: 42 })
+        await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
         expect(apolloMock).toBeCalledWith(
           expect.objectContaining({
             variables: {
@@ -165,6 +165,44 @@ describe('GdtTransactionList ', () => {
             },
           }),
         )
+      })
+
+      describe('pagination buttons', () => {
+        describe('with transactionCount > pageSize', () => {
+          beforeEach(async () => {
+            apolloMock.mockResolvedValue({
+              data: {
+                listGDTEntries: {
+                  count: 42,
+                  gdtEntries: [],
+                },
+              },
+            })
+            wrapper = Wrapper()
+          })
+
+          it('shows the pagination buttons', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(true)
+          })
+        })
+
+        describe('with transactionCount < pageSize', () => {
+          beforeEach(async () => {
+            apolloMock.mockResolvedValue({
+              data: {
+                listGDTEntries: {
+                  count: 2,
+                  gdtEntries: [],
+                },
+              },
+            })
+            wrapper = Wrapper()
+          })
+
+          it('shows no pagination buttons', () => {
+            expect(wrapper.find('ul.pagination').exists()).toBe(false)
+          })
+        })
       })
     })
   })
