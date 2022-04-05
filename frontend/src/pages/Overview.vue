@@ -21,6 +21,7 @@
         :decayStartBlock="decayStartBlock"
         :transaction-count="transactionCount"
         :transactionLinkCount="transactionLinkCount"
+        :pending="pending"
         @update-transactions="updateTransactions"
         v-on="$listeners"
       />
