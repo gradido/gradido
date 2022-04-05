@@ -23,6 +23,8 @@ describe('GddTransactionList', () => {
     return mount(GddTransactionList, { localVue, mocks })
   }
 
+  const decayStartBlock = new Date(2001, 8, 9)
+
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
@@ -84,7 +86,6 @@ describe('GddTransactionList', () => {
 
     describe('with transactions', () => {
       beforeEach(async () => {
-        const decayStartBlock = new Date(2001, 8, 9)
         await wrapper.setProps({
           transactions: [
             {
@@ -405,57 +406,59 @@ describe('GddTransactionList', () => {
       })
     })
 
-    describe('change of 2 currentPage', () => {
+    describe('pagination buttons', () => {
       beforeEach(async () => {
-        wrapper.setData({ currentPage: 2 })
+        await wrapper.setProps({
+          transactions: Array.from({ length: 42 }, (_, idx) => {
+            return {
+              amount: '3.14',
+              balanceDate: '2021-04-29T17:26:40+00:00',
+              decay: {},
+              memo: 'Kreiszahl PI',
+              linkedUser: {
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                __typename: 'User',
+              },
+              id: idx + 1,
+              typeId: 'RECEIVE',
+              balance: '33.33',
+            }
+          }),
+          transactionCount: 42,
+          decayStartBlock,
+          pageSize: 25,
+          showPagination: true,
+        })
       })
 
-      describe('pagination buttons', () => {
-        describe('updates transactionCount > 25', () => {
-          beforeEach(async () => {
-            const decayStartBlock = new Date(2001, 8, 9)
-            await wrapper.setProps({
-              transactions: [],
-              transactionCount: 26,
-              decayStartBlock,
-              pageSize: 25,
-              showPagination: true,
-            })
-          })
-          it('updates transaction transactionCount', () => {
-            expect(wrapper.vm.transactionCount).toBe(26)
-          })
-          it('shows pagination buttons if showPagination = true', () => {
-            expect(wrapper.find('ul.pagination').exists()).toBe(true)
-          })
+      describe('next page button clicked', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
+        })
+
+        it('emits update transactions', () => {
+          expect(wrapper.emitted('update-transactions')).toEqual(
+            expect.arrayContaining([[{ currentPage: 2, pageSize: 25 }]]),
+          )
         })
       })
     })
 
-    describe('change of 1 currentPage', () => {
+    describe('show no pagination', () => {
       beforeEach(async () => {
-        wrapper.setData({ currentPage: 1 })
+        await wrapper.setProps({
+          transactions: [],
+          transactionCount: 2,
+          decayStartBlock,
+          pageSize: 25,
+          showPagination: false,
+        })
       })
 
-      describe('pagination buttons', () => {
-        describe('updates transactionCount < 25', () => {
-          beforeEach(async () => {
-            const decayStartBlock = new Date(2001, 8, 9)
-            await wrapper.setProps({
-              transactions: [],
-              transactionCount: 2,
-              decayStartBlock,
-              pageSize: 25,
-              showPagination: false,
-            })
-          })
-          it('updates transaction transactionCount', () => {
-            expect(wrapper.vm.transactionCount).toBe(2)
-          })
-          it('shows pagination buttons if showPagination = true', () => {
-            expect(wrapper.find('ul.pagination').exists()).toBe(false)
-          })
-        })
+      it('shows no pagination buttons', () => {
+        expect(wrapper.find('ul.pagination').exists()).toBe(false)
       })
     })
   })
