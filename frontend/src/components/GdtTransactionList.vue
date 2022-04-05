@@ -27,23 +27,26 @@
         ></transaction>
       </div>
     </div>
-    <pagination-buttons
+    <b-pagination
+      v-if="transactionGdtCount > pageSize"
+      class="mt-3"
+      pills
+      size="lg"
       v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
-    ></pagination-buttons>
+      align="center"
+    ></b-pagination>
   </div>
 </template>
 
 <script>
 import { listGDTEntriesQuery } from '@/graphql/queries'
-import PaginationButtons from '@/components/PaginationButtons'
 import Transaction from '@/components/Transaction.vue'
 
 export default {
   name: 'gdt-transaction-list',
   components: {
-    PaginationButtons,
     Transaction,
   },
   data() {
