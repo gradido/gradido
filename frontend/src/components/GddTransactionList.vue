@@ -63,12 +63,17 @@
         </transaction-list-item>
       </div>
     </div>
-    <pagination-buttons
+    <b-pagination
       v-if="showPagination"
+      class="mt-3"
+      pills
+      size="lg"
       v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionCount"
-    ></pagination-buttons>
+      align="center"
+    ></b-pagination>
+
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
       <div v-else>{{ $t('transaction.nullTransactions') }}</div>
@@ -78,7 +83,6 @@
 
 <script>
 import TransactionListItem from '@/components/TransactionListItem'
-import PaginationButtons from '@/components/PaginationButtons'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionSend from '@/components/Transactions/TransactionSend'
 import TransactionReceive from '@/components/Transactions/TransactionReceive'
@@ -89,7 +93,6 @@ export default {
   name: 'gdd-transaction-list',
   components: {
     TransactionListItem,
-    PaginationButtons,
     TransactionDecay,
     TransactionSend,
     TransactionReceive,
