@@ -101,7 +101,7 @@ describe('Send', () => {
             jest.clearAllMocks()
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .find('button.btn-success')
+              .find('button.btn-primary')
               .trigger('click')
           })
 
@@ -135,7 +135,7 @@ describe('Send', () => {
             apolloMutationMock.mockRejectedValue({ message: 'recipient not known' })
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .find('button.btn-success')
+              .find('button.btn-primary')
               .trigger('click')
           })
 
@@ -182,7 +182,7 @@ describe('Send', () => {
           jest.clearAllMocks()
           await wrapper
             .findComponent({ name: 'TransactionConfirmationLink' })
-            .find('button.btn-success')
+            .find('button.btn-primary')
             .trigger('click')
         })
 
@@ -264,7 +264,7 @@ describe('Send', () => {
           apolloMutationMock.mockRejectedValue({ message: 'OUCH!' })
           await wrapper
             .findComponent({ name: 'TransactionConfirmationLink' })
-            .find('button.btn-success')
+            .find('button.btn-primary')
             .trigger('click')
         })
 

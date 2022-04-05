@@ -249,7 +249,7 @@ Die ganze Welt bezwingen.“`)
           })
 
           it('has the text "form.cancel"', () => {
-            expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
+            expect(wrapper.find('button[type="reset"]').text()).toBe('form.cancel')
           })
 
           it('clears all fields on click', async () => {
