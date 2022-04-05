@@ -85,10 +85,9 @@ describe('Send', () => {
           })
 
           it('restores the previous data in the formular', () => {
-            /* expect(wrapper.find('#input-group-1').find('input').vm.$el.value).toBe(
+            expect(wrapper.find('#input-group-1').find('input').vm.$el.value).toBe(
               'user@example.org',
             )
-            */
             expect(wrapper.find('#input-group-2').find('input').vm.$el.value).toBe('23.45')
             expect(wrapper.find('#input-group-3').find('textarea').vm.$el.value).toBe(
               'Make the best of it!',
