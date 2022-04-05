@@ -100,7 +100,7 @@ export default {
       if (this.linkData.deletedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
-          date: this.linkData.deletedAt,
+          date: this.$d(new Date(this.linkData.deletedAt), 'long'),
         })
         return `TEXT`
       }
@@ -108,7 +108,7 @@ export default {
       if (new Date(this.linkData.validUntil) < new Date()) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
-          date: this.linkData.validUntil,
+          date: this.$d(new Date(this.linkData.validUntil), 'long'),
         })
         return `TEXT`
       }
@@ -117,7 +117,7 @@ export default {
       if (this.linkData.redeemedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
-          date: this.linkData.redeemedAt,
+          date: this.$d(new Date(this.linkData.redeemedAt), 'long'),
         })
         return `TEXT`
       }

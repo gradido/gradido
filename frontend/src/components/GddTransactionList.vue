@@ -75,7 +75,8 @@
     ></b-pagination>
 
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
-      <span>{{ $t('transaction.nullTransactions') }}</span>
+      <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
+      <div v-else>{{ $t('transaction.nullTransactions') }}</div>
     </div>
   </div>
 </template>
@@ -111,6 +112,7 @@ export default {
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
+    pending: { type: Boolean },
   },
   methods: {
     updateTransactions() {

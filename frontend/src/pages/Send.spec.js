@@ -4,6 +4,7 @@ import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
+import flushPromises from 'flush-promises'
 
 const apolloMutationMock = jest.fn()
 apolloMutationMock.mockResolvedValue('success')
@@ -57,12 +58,13 @@ describe('Send', () => {
 
     describe('fill transaction form for send coins', () => {
       beforeEach(async () => {
-        wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
-          email: 'user@example.org',
-          amount: 23.45,
-          memo: 'Make the best of it!',
-          selected: SEND_TYPES.send,
-        })
+        const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
+        await transactionForm.findAll('input[type="radio"]').at(0).setChecked()
+        await transactionForm.find('input[type="email"]').setValue('user@example.org')
+        await transactionForm.find('input[type="text"]').setValue('23.45')
+        await transactionForm.find('textarea').setValue('Make the best of it!')
+        await transactionForm.find('form').trigger('submit')
+        await flushPromises()
       })
 
       it('steps forward in the dialog', () => {
@@ -74,7 +76,8 @@ describe('Send', () => {
           beforeEach(async () => {
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .vm.$emit('on-reset')
+              .find('button.btn-secondary')
+              .trigger('click')
           })
 
           it('shows the transaction formular again', () => {
@@ -98,7 +101,8 @@ describe('Send', () => {
             jest.clearAllMocks()
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .vm.$emit('send-transaction')
+              .find('button.btn-primary')
+              .trigger('click')
           })
 
           it('calls the API when send-transaction is emitted', async () => {
@@ -131,7 +135,8 @@ describe('Send', () => {
             apolloMutationMock.mockRejectedValue({ message: 'recipient not known' })
             await wrapper
               .findComponent({ name: 'TransactionConfirmationSend' })
-              .vm.$emit('send-transaction')
+              .find('button.btn-primary')
+              .trigger('click')
           })
 
           it('has a component TransactionResultSendError', () => {
@@ -155,18 +160,17 @@ describe('Send', () => {
       })
     })
 
-    /* LINK */
-
     describe('transaction form link', () => {
       beforeEach(async () => {
         apolloMutationMock.mockResolvedValue({
           data: { createTransactionLink: { code: '0123456789' } },
         })
-        await wrapper.findComponent({ name: 'TransactionForm' }).vm.$emit('set-transaction', {
-          amount: 56.78,
-          memo: 'Make the best of the link!',
-          selected: SEND_TYPES.link,
-        })
+        const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
+        await transactionForm.findAll('input[type="radio"]').at(1).setChecked()
+        await transactionForm.find('input[type="text"]').setValue('56.78')
+        await transactionForm.find('textarea').setValue('Make the best of the link!')
+        await transactionForm.find('form').trigger('submit')
+        await flushPromises()
       })
 
       it('steps forward in the dialog', () => {
@@ -178,7 +182,8 @@ describe('Send', () => {
           jest.clearAllMocks()
           await wrapper
             .findComponent({ name: 'TransactionConfirmationLink' })
-            .vm.$emit('send-transaction')
+            .find('button.btn-primary')
+            .trigger('click')
         })
 
         it('calls the API when send-transaction is emitted', async () => {
@@ -254,14 +259,17 @@ describe('Send', () => {
         })
       })
 
-      describe('send apollo if transaction link with error', () => {
-        beforeEach(() => {
+      describe('apollo call returns error', () => {
+        beforeEach(async () => {
           apolloMutationMock.mockRejectedValue({ message: 'OUCH!' })
-          wrapper.find('button.btn-success').trigger('click')
+          await wrapper
+            .findComponent({ name: 'TransactionConfirmationLink' })
+            .find('button.btn-primary')
+            .trigger('click')
         })
 
         it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith({ message: 'OUCH!' })
+          expect(toastErrorSpy).toBeCalledWith('OUCH!')
         })
       })
     })

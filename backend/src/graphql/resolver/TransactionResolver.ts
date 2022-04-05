@@ -57,7 +57,12 @@ export const executeTransaction = async (
 
   // validate amount
   const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(sender.id, amount.mul(-1), receivedCallDate)
+  const sendBalance = await calculateBalance(
+    sender.id,
+    amount.mul(-1),
+    receivedCallDate,
+    transactionLink,
+  )
   if (!sendBalance) {
     throw new Error("user hasn't enough GDD or amount is < 0")
   }
@@ -198,12 +203,15 @@ export class TransactionResolver {
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
+      // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
+      // since the decay is substantially different when the amount is less
       transactions.push(
         virtualDecayTransaction(
-          lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
+          lastTransaction.balance,
           lastTransaction.balanceDate,
           now,
           self,
+          sumHoldAvailableAmount,
         ),
       )
       // virtual transaction for pending transaction-links sum

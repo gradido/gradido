@@ -10,7 +10,10 @@
       </div>
 
       <b-navbar-nav class="ml-auto" is-nav>
-        <b-nav-item>{{ pending ? $t('em-dash') : balance | amount }} {{ $t('GDD') }}</b-nav-item>
+        <b-nav-item>
+          <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
+          <div v-else>{{ pending ? $t('em-dash') : balance | amount }} {{ $t('GDD') }}</div>
+        </b-nav-item>
         <b-nav-item to="/profile" right class="d-none d-sm-none d-md-none d-lg-flex shadow-lg">
           <small>
             {{ $store.state.firstName }} {{ $store.state.lastName }}

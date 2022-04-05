@@ -79,14 +79,6 @@ describe('Thx', () => {
     it('renders the thanks text', () => {
       expect(wrapper.find('p.h4').text()).toBe('site.thx.register')
     })
-
-    it('renders the thanks redirect button', () => {
-      expect(wrapper.find('a.btn').text()).toBe('site.login.signin')
-    })
-
-    it('links the redirect button to /login', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
-    })
   })
 
   describe('coming from /login', () => {
