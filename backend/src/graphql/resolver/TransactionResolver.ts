@@ -263,6 +263,9 @@ export class TransactionResolver {
     if (recipientUser.deletedAt) {
       throw new Error('The recipient account was deleted')
     }
+    if (!recipientUser.emailChecked) {
+      throw new Error('The recipient account is not activated')
+    }
     if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
       throw new Error('invalid recipient public key')
     }
