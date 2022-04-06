@@ -3,6 +3,7 @@ import Decimal from 'decimal.js-light'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
 import CONFIG from '@/config'
+
 @ObjectType()
 export class TransactionLink {
   constructor(transactionLink: dbTransactionLink, user: User, redeemedBy: User | null = null) {
