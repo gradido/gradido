@@ -49,30 +49,41 @@
 
       <template #row-details="row">
         <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-          <creation-formular
-            v-if="!row.item.deletedAt"
-            type="singleCreation"
-            pagetype="singleCreation"
-            :creation="row.item.creation"
-            :item="row.item"
-            :creationUserData="creationUserData"
-            @update-user-data="updateUserData"
-          />
-          <div v-else>{{ $t('userIsDeleted') }}</div>
-          <confirm-register-mail-formular
-            v-if="!row.item.deletedAt"
-            :checked="row.item.emailChecked"
-            :email="row.item.email"
-            :dateLastSend="
-              row.item.emailConfirmationSend
-                ? $d(new Date(row.item.emailConfirmationSend), 'long')
-                : ''
-            "
-          />
-          <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
-          <transaction-link-list :userId="row.item.userId" />
-
-          <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+          <b-tabs content-class="mt-3">
+            <b-tab title="Creations" active :disabled="row.item.deletedAt">
+              <creation-formular
+                v-if="!row.item.deletedAt"
+                type="singleCreation"
+                pagetype="singleCreation"
+                :creation="row.item.creation"
+                :item="row.item"
+                :creationUserData="creationUserData"
+                @update-user-data="updateUserData"
+              />
+              <div v-else>{{ $t('userIsDeleted') }}</div>
+            </b-tab>
+            <b-tab title="Email" :disabled="row.item.deletedAt">
+              <confirm-register-mail-formular
+                v-if="!row.item.deletedAt"
+                :checked="row.item.emailChecked"
+                :email="row.item.email"
+                :dateLastSend="
+                  row.item.emailConfirmationSend
+                    ? $d(new Date(row.item.emailConfirmationSend), 'long')
+                    : ''
+                "
+              />
+            </b-tab>
+            <b-tab title="ListCreations" :disabled="row.item.deletedAt">
+              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </b-tab>
+            <b-tab title="ListLinks" :disabled="row.item.deletedAt">
+              <transaction-link-list :userId="row.item.userId" />
+            </b-tab>
+            <b-tab title="Delete">
+              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+            </b-tab>
+          </b-tabs>
         </b-card>
       </template>
     </b-table>
