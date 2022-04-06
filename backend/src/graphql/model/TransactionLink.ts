@@ -2,7 +2,7 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
-
+import CONFIG from '@/config'
 @ObjectType()
 export class TransactionLink {
   constructor(transactionLink: dbTransactionLink, user: User, redeemedBy: User | null = null) {
@@ -11,7 +11,7 @@ export class TransactionLink {
     this.amount = transactionLink.amount
     this.holdAvailableAmount = transactionLink.holdAvailableAmount
     this.memo = transactionLink.memo
-    this.code = transactionLink.code
+    this.code = CONFIG.COMMUNITY_URL + 'redeem/' + transactionLink.code
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.deletedAt = transactionLink.deletedAt
