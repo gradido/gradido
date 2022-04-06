@@ -18,7 +18,7 @@ export default {
   },
   data() {
     return {
-      url: `${window.location.origin}/redeem/${this.code}`,
+      url: `${this.code}`,
     }
   },
   methods: {
