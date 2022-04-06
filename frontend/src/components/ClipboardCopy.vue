@@ -14,11 +14,11 @@
 export default {
   name: 'ClipboardCopy',
   props: {
-    code: { type: String, required: true },
+    link: { type: String, required: true },
   },
   data() {
     return {
-      url: `${this.code}`,
+      url: `${this.link}`,
     }
   },
   methods: {

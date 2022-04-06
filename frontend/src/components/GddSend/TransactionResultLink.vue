@@ -5,7 +5,7 @@
         <b-card class="p-0 gradido-custom-background">
           <div class="p-4">
             <div class="h3 mb-5">{{ $t('gdd_per_link.created') }}</div>
-            <clipboard-copy :code="code" />
+            <clipboard-copy :link="link" />
           </div>
           <p class="text-center mt-3">
             <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
@@ -24,7 +24,7 @@ export default {
     ClipboardCopy,
   },
   props: {
-    code: {
+    link: {
       type: String,
       required: true,
     },

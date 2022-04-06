@@ -12,12 +12,13 @@ export class TransactionLink {
     this.amount = transactionLink.amount
     this.holdAvailableAmount = transactionLink.holdAvailableAmount
     this.memo = transactionLink.memo
-    this.code = CONFIG.COMMUNITY_URL + 'redeem/' + transactionLink.code
+    this.code = transactionLink.code
     this.createdAt = transactionLink.createdAt
     this.validUntil = transactionLink.validUntil
     this.deletedAt = transactionLink.deletedAt
     this.redeemedAt = transactionLink.redeemedAt
     this.redeemedBy = redeemedBy
+    this.link = CONFIG.COMMUNITY_REDEEM_URL + this.code
   }
 
   @Field(() => Number)
@@ -52,6 +53,9 @@ export class TransactionLink {
 
   @Field(() => User, { nullable: true })
   redeemedBy: User | null
+
+  @Field(() => String)
+  link: string
 }
 
 @ObjectType()
