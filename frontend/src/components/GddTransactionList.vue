@@ -26,7 +26,6 @@
             <transaction-send
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
@@ -36,7 +35,6 @@
             <transaction-receive
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
@@ -46,7 +44,6 @@
             <transaction-creation
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
             />
@@ -105,7 +102,6 @@ export default {
     }
   },
   props: {
-    decayStartBlock: { type: Date },
     transactions: { default: () => [] },
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
