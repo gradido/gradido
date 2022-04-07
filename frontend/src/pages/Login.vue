@@ -1,7 +1,7 @@
 <template>
   <div class="login-form">
-    <div class="pb-5">Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!</div>
-    <label>Wähle deine Community</label>
+    <div class="pb-5">{{ $t('site.login.heading') }}</div>
+    <label>{{ $t('site.login.community') }}</label>
     <b-form-select
       v-model="selected"
       :options="options"
@@ -29,7 +29,7 @@
               value="saved"
               unchecked-value="not_saved"
             >
-              Anmeldung speichern
+              {{ $t('site.login.saveLogin') }}
             </b-form-checkbox>
           </b-col>
           <b-col>

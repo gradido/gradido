@@ -22,7 +22,7 @@
 
           <b-nav-item to="/login">{{ $t('signup') }}</b-nav-item>
 
-          <b-nav-item to="/register">{{ $t('site.login.signin') }}</b-nav-item>
+          <b-nav-item to="/register">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>

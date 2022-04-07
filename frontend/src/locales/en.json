@@ -219,12 +219,12 @@
     }
   },
   "signup": "Sign up",
+  "signin": "Sign in",
   "site": {
     "login": {
-      "community": "A thousand thanks for being with us!",
-      "heading": "Gradido",
-      "new_wallet": "Create new account",
-      "signin": "Sign in"
+      "community": "Choose your community",
+      "heading": "Log in with your access data. Keep them safe!",
+      "saveLogin":"Save login"
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
