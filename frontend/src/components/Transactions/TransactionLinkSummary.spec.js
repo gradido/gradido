@@ -155,6 +155,7 @@ describe('TransactionLinkSummary', () => {
               {
                 amount: '76',
                 code: 'ce28664b5308c17f931c0367',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                 createdAt: '2022-03-16T14:22:40.000Z',
                 holdAvailableAmount: '5.13109484759482747111',
                 id: 87,
@@ -166,6 +167,7 @@ describe('TransactionLinkSummary', () => {
               {
                 amount: '86',
                 code: 'ce28664b5308c17f931c0367',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                 createdAt: '2022-03-16T14:22:40.000Z',
                 holdAvailableAmount: '5.13109484759482747111',
                 id: 108,
@@ -177,6 +179,7 @@ describe('TransactionLinkSummary', () => {
               {
                 amount: '96',
                 code: 'ce28664b5308c17f931c0367',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                 createdAt: '2022-03-16T14:22:40.000Z',
                 holdAvailableAmount: '5.13109484759482747111',
                 id: 93,
@@ -188,6 +191,7 @@ describe('TransactionLinkSummary', () => {
               {
                 amount: '150',
                 code: 'ce28664b5308c17f931c0367',
+                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                 createdAt: '2022-03-16T14:22:40.000Z',
                 holdAvailableAmount: '5.13109484759482747111',
                 id: 17,
