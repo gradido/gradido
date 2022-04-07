@@ -104,16 +104,7 @@
         </b-row>
 
         <b-row>
-          <b-col cols="3">
-            <b-button
-              :disabled="disabled"
-              type="submit"
-              :variant="disabled ? 'outline-light' : 'gradido'"
-            >
-              {{ $t('signup') }}
-            </b-button>
-          </b-col>
-          <b-col cols="9">
+          <b-col class="mb-4 mb-md-0">
             <b-form-checkbox
               id="registerCheckbox"
               v-model="form.agree"
@@ -122,6 +113,16 @@
               <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
               <span class="text-muted" v-html="$t('site.signup.agree')"></span>
             </b-form-checkbox>
+          </b-col>
+
+          <b-col>
+            <b-button
+              :disabled="disabled"
+              type="submit"
+              :variant="disabled ? 'outline-light' : 'gradido'"
+            >
+              {{ $t('signup') }}
+            </b-button>
           </b-col>
         </b-row>
       </b-form>

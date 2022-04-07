@@ -52,13 +52,6 @@ export default {
   position: sticky;
 }
 
-.header-img {
-  position: fixed;
-  top: -359px;
-  right: 13%;
-  width: 385px;
-}
-
 .g-logo-radius {
   -webkit-border-top-right-radius: 77px;
   -webkit-border-bottom-right-radius: 137px;
@@ -69,5 +62,26 @@ export default {
   border-top-right-radius: 77px;
   border-bottom-right-radius: 137px;
   border-bottom-left-radius: 0px;
+  z-index: 1;
+}
+
+.header-img {
+  position: absolute;
+  top: -11px;
+  right: 7%;
+  max-width: 64%;
+}
+
+@media screen and (max-width: 450px) {
+  .header-img {
+    position: absolute;
+    top: -15px;
+    right: 0%;
+    max-width: 61%;
+  }
+}
+
+.navbar-toggler {
+  z-index: 1;
 }
 </style>

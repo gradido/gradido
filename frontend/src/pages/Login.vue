@@ -1,13 +1,6 @@
 <template>
   <div class="login-form">
     <div class="pb-5">Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!</div>
-    <!-- <div class="text-center mb-4 test-communitydata">
-          <b>{{ $store.state.community.name }}</b>
-          <p class="text-lead">
-            {{ $store.state.community.description }}
-          </p>
-          {{ $t('login') }}
-        </div> -->
     <label>Wähle deine Community</label>
     <b-form-select
       v-model="selected"
