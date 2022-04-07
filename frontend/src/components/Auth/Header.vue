@@ -10,19 +10,19 @@
       <b-collapse id="nav-collapse" is-nav>
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item-dropdown text="über Gradido"></b-nav-item-dropdown>
+          <b-nav-item>{{ $t('auth.navbar.overGradido') }}</b-nav-item>
 
-          <b-nav-item-dropdown text="Great Cooperation"></b-nav-item-dropdown>
+          <b-nav-item>{{ $t('auth.navbar.greatCooperation') }}</b-nav-item>
 
-          <b-nav-item>Podcast</b-nav-item>
+          <b-nav-item>{{ $t('auth.navbar.podcast') }}</b-nav-item>
 
-          <b-nav-item-dropdown text="Presse"></b-nav-item-dropdown>
+          <b-nav-item>{{ $t('auth.navbar.press') }}</b-nav-item>
 
-          <b-nav-item>Kontakt</b-nav-item>
+          <b-nav-item>{{ $t('auth.navbar.contact') }}</b-nav-item>
 
-          <b-nav-item to="/login">Anmelden</b-nav-item>
+          <b-nav-item to="/login">{{ $t('signup') }}</b-nav-item>
 
-          <b-nav-item to="/register">Registrieren</b-nav-item>
+          <b-nav-item to="/register">{{ $t('site.login.signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>

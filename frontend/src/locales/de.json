@@ -8,6 +8,14 @@
       "newCurrency":"Die neue Währung",
       "oneAnotherNature":"Für Einander, Für alle, Für die Natur",
       "learnMore":"Erfahre mehr..."
+    },
+    "navbar": {
+      "overGradido":"Über Gradido",
+      "greatCooperation":"Gute Zusammenarbeit",
+      "podcast":"Podcast",
+      "press":"Presse",
+      "contact":"Kontakt"
+
     }
   },
   "back": "Zurück",

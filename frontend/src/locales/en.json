@@ -8,6 +8,14 @@
       "newCurrency":"The new currency",
       "oneAnotherNature":"For One Another, For All, For Nature",
       "learnMore":"Learn more..."
+    },
+    "navbar": {
+      "overGradido":"Over Gradido",
+      "greatCooperation":"Great Cooperation",
+      "podcast":"Podcast",
+      "press":"Press",
+      "contact":"Contact"
+
     }
   },
   "back": "Back",
