@@ -19,7 +19,13 @@ export default {
 <style>
 #app {
   height: 100%;
-  min-width: 500px;
+  min-width: 360p;
+  font-size: 1rem;
+}
+@media screen and (max-width: 500px) {
+  #app {
+    font-size: 0.85rem;
+  }
 }
 
 .pointer {
