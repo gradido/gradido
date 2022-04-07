@@ -87,7 +87,7 @@
                   </span>
                   {{ $t('|') }}
                   <span>
-                    <router-link to="register">{{ $t('site.login.signin') }}</router-link>
+                    <router-link to="register">{{ $t('signin') }}</router-link>
                   </span>
                 </div>
               </b-col>
