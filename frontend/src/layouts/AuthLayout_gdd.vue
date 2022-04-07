@@ -1,6 +1,7 @@
 <template>
   <div class="auth-template">
     <div v-if="mobilStart" class="mobil-start-box d-inline d-sm-inline d-md-inline d-lg-none">
+      <b-img id="img0" src="img/template/logo-header.png" alt="start background image"></b-img>
       <b-img
         fluid
         height="100%"
@@ -8,16 +9,23 @@
         src="img/template/background-start-mobil.png"
         alt="start background image"
       ></b-img>
-      <b-img id="img2" src="img/template/logo-header.png" alt="start background image"></b-img>
+      <b-img
+        id="img2"
+        src="img/template/gradido_background_header.png"
+        alt="start background image"
+      ></b-img>
       <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
       <div class="mobil-start-box-text text-center">
         <b-button variant="gradido" @click="linkRouter('/register')">Registrieren</b-button>
-        <div>
+        <div class="mt-3 h3">
           Du hast schon einen Account?
-          <router-link @click="linkRouter('/login')">Hier Anmelden</router-link>
+          <span @click="mobilStart = false">
+            <b-link to="/login" class="text-gradido">Hier Anmelden</b-link>
+          </span>
         </div>
       </div>
     </div>
+
     <div>
       <auth-header />
       <b-row class="auth-template-content">
@@ -33,8 +41,8 @@
             <b-button variant="gradido">Erfahre mehr...</b-button>
           </div>
         </b-col>
-        <b-col lg="6" md="12" sm="12" class="pl-5 pr-5">
-          <b-row class="mt-5">
+        <b-col lg="6" md="12" sm="12" class="pl-2 pr-2 pl-md-5 pr-md-5">
+          <b-row class="mt-5 pl-2 pl-md-0">
             <b-col>
               <div class="h1">Willkommen</div>
               <div class="h1">Communities World Wide</div>
@@ -114,10 +122,6 @@ export default {
     setTextSize(size) {
       alert('set page text size of: ' + size + '%')
     },
-    linkRouter(to) {
-      this.mobilStart = false
-      this.$router.push(to)
-    },
   },
 }
 </script>
@@ -127,6 +131,12 @@ export default {
   height: 100%;
   z-index: 1000;
 }
+.mobil-start-box-text {
+  position: fixed;
+  z-index: 10000;
+  bottom: 65px;
+  width: 100%;
+}
 .mobil-start-box #img1 {
   position: absolute;
   overflow: hidden;
@@ -134,17 +144,20 @@ export default {
   width: 100%;
   z-index: 10;
 }
-.mobil-start-box #img2 {
-  width: 61%;
+.mobil-start-box #img0 {
   position: absolute;
-  z-index: 2;
+  z-index: 1000;
+  width: 33%;
+}
+.mobil-start-box #img2 {
+  position: absolute;
+  width: 49%;
+  height: 14%;
+  z-index: 1;
 }
 .mobil-start-box #img3 {
-  width: 100%;
-}
-.mobil-start-box-text {
+  width: 115%;
   position: relative;
-  z-index: 10;
 }
 
 .auth-template {
@@ -192,5 +205,44 @@ export default {
   width: 100%;
   border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
   overflow: hidden;
+}
+
+@media screen and (min-width: 992px) {
+  .mobil-start-box #img3 {
+    width: 150%;
+    top: -148px;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .mobil-start-box #img3 {
+    width: 100%;
+    top: -148px;
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .mobil-start-box #img3 {
+    top: 66px;
+    width: 115%;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .mobil-start-box #img3 {
+    width: 160%;
+    left: -71px;
+    top: 35px;
+    min-width: 360px;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .mobil-start-box #img3 {
+    width: 145%;
+    left: -94px;
+    top: 24px;
+    min-width: 360px;
+  }
 }
 </style>
