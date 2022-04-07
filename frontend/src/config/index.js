@@ -7,7 +7,7 @@ const pkg = require('../../package')
 const constants = {
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2022-03-18',
+    EXPECTED: 'v2.2022-04-07',
     CURRENT: '',
   },
 }
@@ -25,6 +25,19 @@ const environment = {
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
   DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID || 2896,
   PORT: process.env.PORT || 3000,
+}
+
+const endpoints = {
+  GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost/graphql',
+  ADMIN_AUTH_URL: process.env.ADMIN_AUTH_URL || 'http://localhost/admin/authenticate?token={token}',
+}
+
+const community = {
+  COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
+  COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
+  COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
+  COMMUNITY_DESCRIPTION:
+    process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
 
 const meta = {
@@ -46,11 +59,6 @@ const meta = {
   META_AUTHOR: process.env.META_AUTHOR || 'Bernd Hückstädt - Gradido-Akademie',
 }
 
-const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URI || 'http://localhost/graphql',
-  ADMIN_AUTH_URL: process.env.ADMIN_AUTH_URL || 'http://localhost/admin/authenticate?token={token}',
-}
-
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -68,6 +76,7 @@ const CONFIG = {
   ...version,
   ...environment,
   ...endpoints,
+  ...community,
   ...meta,
 }
 
