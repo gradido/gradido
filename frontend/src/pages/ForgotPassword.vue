@@ -1,6 +1,6 @@
 <template>
   <div class="forgot-password">
-    <div class="pb-5">Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist.</div>
+    <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-email v-model="form.email"></input-email>

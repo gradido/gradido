@@ -1,7 +1,7 @@
 <template>
   <div id="registerform">
     <div class="pb-5">
-      Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.
+      {{ $t('site.signup.heading') }}
     </div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">

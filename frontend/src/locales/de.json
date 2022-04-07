@@ -15,7 +15,6 @@
       "podcast":"Podcast",
       "press":"Presse",
       "contact":"Kontakt"
-
     }
   },
   "back": "Zurück",
@@ -227,6 +226,7 @@
       "saveLogin":"Anmeldung speichern"
     },
     "signup": {
+      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
@@ -234,9 +234,10 @@
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
       "one_number": "Zahl erforderlich.",
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
-      "subtitle": "Werde Teil der Gemeinschaft!",
-      "title": "Erstelle dein Gradido-Konto",
       "uppercase": "Großbuchstabe erforderlich."
+    },
+    "forgotPassword": {
+      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
     },
     "thx": {
       "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite.",

@@ -227,6 +227,7 @@
       "saveLogin":"Save login"
     },
     "signup": {
+      "heading": "Register by entering all data completely and in the correct fields.",
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",
       "lowercase": "One lowercase letter required.",
@@ -234,9 +235,10 @@
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
       "special-char": "One special character required (e.g. _ or ä)",
-      "subtitle": "Become a part of the community!",
-      "title": "Create your Gradido account",
       "uppercase": "One uppercase letter required."
+    },
+    "forgotPassword": {
+      "heading": "Please enter the email address by which you're registered here."
     },
     "thx": {
       "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link or order a new activation link over the password reset page.",
