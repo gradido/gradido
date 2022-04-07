@@ -6,6 +6,14 @@ html, body {
  .navbar-light .navbar-nav .nav-link {
     color: #047006;
   }
+  
+  .text-gradido {
+    color: rgba(249,205,105,1)
+  }
+
+  .gradient-gradido {
+    background-image: linear-gradient(146deg, rgba(249,205,105,1) 50%, rgba(197,141,56,1) 100%);
+  }
 
   /* Button */
   .btn {
