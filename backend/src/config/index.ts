@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v3.2022-03-29',
+    EXPECTED: 'v4.2022-04-05',
     CURRENT: '',
   },
 }
@@ -22,7 +22,7 @@ const constants = {
 const server = {
   PORT: process.env.PORT || 4000,
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '30m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
