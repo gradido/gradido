@@ -241,6 +241,12 @@ export default {
   }
 }
 
+@media screen and (max-height: 740px) {
+  .mobil-start-box #img3 {
+    width: 115%;
+  }
+}
+
 @media screen and (max-width: 300px) {
   .mobil-start-box #img3 {
     width: 145%;
