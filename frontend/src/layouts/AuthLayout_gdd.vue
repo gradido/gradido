@@ -16,11 +16,11 @@
       ></b-img>
       <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
       <div class="mobil-start-box-text text-center">
-        <b-button variant="gradido" @click="linkRouter('/register')">Registrieren</b-button>
+        <b-button variant="gradido" @click="linkRouter('/register')">{{ $t('signup') }}</b-button>
         <div class="mt-3 h3">
-          Du hast schon einen Account?
+          {{ $t('auth.left.hasAccount') }}
           <span @click="mobilStart = false">
-            <b-link to="/login" class="text-gradido">Hier Anmelden</b-link>
+            <b-link to="/login" class="text-gradido">{{ $t('auth.left.hereLogin') }}</b-link>
           </span>
         </div>
       </div>
@@ -35,18 +35,18 @@
             <carousel class="d-block w-100 h-100" />
           </div>
           <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
-            <div class="h0">Dankbarkeit</div>
-            <div class="h1">Die neue Währung</div>
-            <div class="h2 text-uppercase">Für Einander, Für alle, Für die Natur</div>
-            <b-button variant="gradido">Erfahre mehr...</b-button>
+            <div class="h0">{{ $t('auth.left.gratitude') }}</div>
+            <div class="h1">{{ $t('auth.left.newCurrency') }}</div>
+            <div class="h2 text-uppercase">{{ $t('auth.left.oneAnotherNature') }}</div>
+            <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
           </div>
         </b-col>
         <b-col lg="6" md="12" sm="12" class="pl-2 pr-2 pl-md-5 pr-md-5">
           <b-row class="mt-5 pl-2 pl-md-0">
             <b-col>
-              <div class="h1">Willkommen</div>
-              <div class="h1">Communities World Wide</div>
-              <div>1000 Dank, weil du bei uns bist!</div>
+              <div class="h1">{{ $t('welcome') }}</div>
+              <div class="h1">{{ $t('communitiesWorldWide') }}</div>
+              <div>{{ $t('1000thanks') }}</div>
             </b-col>
             <b-col class="text-right d-none d-sm-none d-md-inline">
               <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
@@ -59,8 +59,8 @@
               </b-col>
               <b-col cols="2" class="text-right">
                 <div id="popover-target-1" class="pointer">
-                  <span>A</span>
-                  <span class="h1">A</span>
+                  <span>{{ $t('A') }}</span>
+                  <span class="h1">{{ $t('A') }}</span>
                 </div>
                 <b-popover
                   target="popover-target-1"
@@ -69,11 +69,11 @@
                   variant="dark"
                 >
                   <div class="text-light">
-                    <span class="pointer" @click="setTextSize(85)">85%</span>
-                    |
-                    <span class="pointer" @click="setTextSize(100)">100%</span>
-                    |
-                    <span class="pointer" @click="setTextSize(125)">125%</span>
+                    <span class="pointer" @click="setTextSize(85)">{{ $t('85') }}</span>
+                    {{ $t('|') }}
+                    <span class="pointer" @click="setTextSize(100)">{{ $t('100') }}</span>
+                    {{ $t('|') }}
+                    <span class="pointer" @click="setTextSize(125)">{{ $t('125') }}</span>
                   </div>
                 </b-popover>
               </b-col>
@@ -82,9 +82,13 @@
               <b-col class="text-center">
                 <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                 <div>
-                  <span><router-link to="login">Anmelden</router-link></span>
-                  |
-                  <span><router-link to="register">Registrieren</router-link></span>
+                  <span>
+                    <router-link to="login">{{ $t('signup') }}</router-link>
+                  </span>
+                  {{ $t('|') }}
+                  <span>
+                    <router-link to="register">{{ $t('site.login.signin') }}</router-link>
+                  </span>
                 </div>
               </b-col>
             </b-row>

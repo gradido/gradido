@@ -1,5 +1,15 @@
 {
   "advanced-calculation": "Vorausberechnung",
+  "auth": {
+    "left": {
+      "hasAccount":"Du hast schon einen Account?",
+      "hereLogin": "Hier Anmelden",
+      "gratitude":"Dankbarkeit",
+      "newCurrency":"Die neue Währung",
+      "oneAnotherNature":"Für Einander, Für alle, Für die Natur",
+      "learnMore":"Erfahre mehr..."
+    }
+  },
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -252,5 +262,13 @@
   "transaction-link": {
     "send_you": "sendet dir"
   },
-  "via_link": "über einen Link"
+  "via_link": "über einen Link",
+  "welcome":"Willkommen",
+  "communitiesWorldWide":"Gemeinden in aller Welt",
+  "1000thanks":"1000 Dank, weil du bei uns bist!",
+  "A":"A",
+  "|":" | ",
+  "85":"85%",
+  "100":"100%",
+  "125":"125%"
 }
