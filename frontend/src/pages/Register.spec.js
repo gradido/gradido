@@ -2,20 +2,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import Register from './Register'
 
-import { toastErrorSpy } from '@test/testSetup'
-
 const localVue = global.localVue
-
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getCommunityInfo: {
-      name: 'test12',
-      description: 'test community 12',
-      url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/register',
-    },
-  },
-})
 
 const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
@@ -37,7 +24,6 @@ describe('Register', () => {
     },
     $apollo: {
       mutate: registerUserMutationMock,
-      query: apolloQueryMock,
     },
     $store: {
       commit: mockStoreCommit,
@@ -85,19 +71,6 @@ describe('Register', () => {
       })
     })
 
-    describe('communities gives back error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Failed to get communities',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
-      })
-    })
-
     describe('Community data already loaded', () => {
       beforeEach(() => {
         jest.clearAllMocks()
@@ -118,10 +91,6 @@ describe('Register', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
-      })
-
-      it('does not call community data update', () => {
-        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 

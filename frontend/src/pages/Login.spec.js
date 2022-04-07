@@ -6,17 +6,7 @@ import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getCommunityInfo: {
-      name: 'test12',
-      description: 'test community 12',
-      url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/register',
-    },
-  },
-})
-
+const apolloQueryMock = jest.fn()
 const mockStoreDispach = jest.fn()
 const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
@@ -55,9 +45,6 @@ describe('Login', () => {
     $route: {
       params: {},
     },
-    $apollo: {
-      query: apolloQueryMock,
-    },
   }
 
   const stubs = {
@@ -86,19 +73,6 @@ describe('Login', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
 
-    describe('communities gives back error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Failed to get communities',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
-      })
-    })
-
     describe('Login header', () => {
       it('has a welcome message', () => {
         expect(wrapper.find('div.header').text()).toBe('site.login.heading site.login.community')
@@ -125,10 +99,6 @@ describe('Login', () => {
         expect(wrapper.find('.test-communitydata p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
-      })
-
-      it('does not call community data update', () => {
-        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 
