@@ -31,7 +31,6 @@
       <b-row class="auth-template-content">
         <b-col lg="6" md="none" sm="none">
           <div class="bg-img-box d-none d-lg-block">
-            <!-- <b-img class="bg-img" src="/img/template/Foto_01.jpg"></b-img>-->
             <carousel class="d-block w-100 h-100" />
           </div>
           <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
@@ -41,8 +40,8 @@
             <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
           </div>
         </b-col>
-        <b-col lg="6" md="12" sm="12" class="pl-2 pr-2 pl-md-5 pr-md-5">
-          <b-row class="mt-5 pl-2 pl-md-0">
+        <b-col lg="6" md="12" sm="12" class="ml-2 ml-md-0 ml-lg-0 pl-2 pr-2 pl-md-5 pr-md-5">
+          <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
             <b-col>
               <div class="h1">{{ $t('welcome') }}</div>
               <div class="h1">{{ $t('communitiesWorldWide') }}</div>
@@ -164,9 +163,6 @@ export default {
   position: relative;
 }
 
-.auth-template {
-  height: 92%;
-}
 .auth-template-content {
   height: 100%;
 }
