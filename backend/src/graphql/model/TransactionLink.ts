@@ -18,7 +18,7 @@ export class TransactionLink {
     this.deletedAt = transactionLink.deletedAt
     this.redeemedAt = transactionLink.redeemedAt
     this.redeemedBy = redeemedBy
-    this.link = CONFIG.COMMUNITY_REDEEM_URL + this.code
+    this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
   }
 
   @Field(() => Number)
