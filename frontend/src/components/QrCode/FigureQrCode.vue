@@ -1,45 +1,51 @@
 <template>
   <div class="figure-qr-code">
-    <figure class="qrcode">
-      <vue-qrcode :value="text" type="image/png" class="qrbox"></vue-qrcode>
-      <img class="qrcode__image" src="img/gdd-coin.png" alt="GDD" />
-    </figure>
+    <div class="qrbox">
+      <q-r-canvas :options="options" class="canvas" />
+    </div>
   </div>
 </template>
 <script>
-import VueQrcode from 'vue-qrcode'
+import { QRCanvas } from 'qrcanvas-vue'
 
 export default {
   name: 'FigureQrCode',
   components: {
-    VueQrcode,
+    QRCanvas,
   },
   props: {
     text: { type: String, required: true },
   },
+  data() {
+    return {
+      options: {
+        cellSize: 8,
+        correctLevel: 'H',
+        data: this.text,
+      },
+    }
+  },
+  created() {
+    const image = new Image()
+    image.src = 'img/gdd-coin.png'
+    image.onload = () => {
+      this.options = {
+        ...this.options,
+        logo: {
+          image,
+        },
+      }
+    }
+  },
 }
 </script>
 <style scoped>
-.qrcode {
-  display: inline-block;
-  font-size: 0;
-  margin-bottom: 0;
-  position: relative;
-}
 .qrbox {
-  width: 400px;
-}
-.qrcode__image {
+  padding: 20px;
   background-color: #fff;
-  border: 0.25rem solid #fff;
-  border-radius: 0.25rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.25);
-  height: 15%;
-  left: 50%;
-  overflow: hidden;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 15%;
+}
+.canvas {
+  width: 90%;
+  max-width: 350px;
 }
 </style>
