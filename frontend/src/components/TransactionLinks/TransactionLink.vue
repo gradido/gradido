@@ -1,17 +1,31 @@
 <template>
   <div class="transaction-link gradido-custom-background">
     <b-row class="mb-2 pt-2 pb-2">
-      <b-col cols="2">
+      <b-col lg="2">
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
       </b-col>
-      <b-col cols="9">
-        <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
-        <memo-row :memo="memo" />
-        <date-row :date="validUntil" :diffNow="true" />
-        <decay-row :decay="decay" />
+      <b-col lg="9" md="9">
+        <b-row>
+          <b-col lg="11" md="10">
+            <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
+            <memo-row :memo="memo" />
+            <date-row :date="validUntil" :diffNow="true" />
+            <decay-row :decay="decay" />
+          </b-col>
+          <b-col lg="1" md="2" class="text-center text-lg-left qr-button">
+            <b-button
+              @click="$bvModal.show('modalPopover-' + id)"
+              class="p-2"
+              size="sm"
+              variant="outline-success"
+            >
+              <b-img src="img/svg/qr-code.svg" width="60"></b-img>
+            </b-button>
+          </b-col>
+        </b-row>
       </b-col>
 
-      <b-col cols="1" class="text-right">
+      <b-col lg="1" md="1" class="text-center text-lg-right">
         <b-button
           class="p-2"
           size="sm"
@@ -23,16 +37,7 @@
         </b-button>
         <br />
         <b-button
-          @click="$bvModal.show('modalPopover-' + id)"
-          class="p-2 mt-1"
-          size="sm"
-          variant="outline-success"
-        >
-          <b-img src="img/svg/qr-code.svg"></b-img>
-        </b-button>
-        <br />
-        <b-button
-          class="p-2 mt-1"
+          class="p-2"
           size="sm"
           variant="outline-danger"
           @click="deleteLink()"
@@ -118,3 +123,9 @@ export default {
   },
 }
 </script>
+<style>
+.qr-button {
+  position: relative;
+  right: 20px;
+}
+</style>
