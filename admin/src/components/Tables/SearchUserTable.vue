@@ -50,7 +50,7 @@
       <template #row-details="row">
         <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
           <b-tabs content-class="mt-3">
-            <b-tab title="Creations" active :disabled="row.item.deletedAt">
+            <b-tab title="Creations" active :disabled="row.item.deletedAt !== null">
               <creation-formular
                 v-if="!row.item.deletedAt"
                 type="singleCreation"
@@ -62,7 +62,7 @@
               />
               <div v-else>{{ $t('userIsDeleted') }}</div>
             </b-tab>
-            <b-tab title="Email" :disabled="row.item.deletedAt">
+            <b-tab title="Email" :disabled="row.item.deletedAt !== null">
               <confirm-register-mail-formular
                 v-if="!row.item.deletedAt"
                 :checked="row.item.emailChecked"
@@ -74,10 +74,10 @@
                 "
               />
             </b-tab>
-            <b-tab title="ListCreations" :disabled="row.item.deletedAt">
+            <b-tab title="ListCreations" :disabled="row.item.deletedAt !== null">
               <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
-            <b-tab title="ListLinks" :disabled="row.item.deletedAt">
+            <b-tab title="ListLinks" :disabled="row.item.deletedAt !== null">
               <transaction-link-list :userId="row.item.userId" />
             </b-tab>
             <b-tab title="Delete">
