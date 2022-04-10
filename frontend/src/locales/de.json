@@ -123,7 +123,6 @@
     "valid_until": "Gültig bis"
   },
   "gdt": {
-    "gdt":"Gradido Transform",
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
     "conversion": "Umrechnung",
@@ -132,6 +131,7 @@
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
+    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
     "not-reachable": "Der GDT Server ist nicht erreichbar.",
