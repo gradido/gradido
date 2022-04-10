@@ -13,6 +13,7 @@ const mocks = {
     locale: 'en',
   },
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $tc: jest.fn((tc) => tc),
   $apollo: {
     mutate: mockAPIcall,
