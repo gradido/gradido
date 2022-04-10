@@ -104,7 +104,7 @@
     "deleted": "The link was deleted!",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
-    "isFree":"Gradido is free of charge worldwide.",
+    "isFree": "Gradido is free of charge worldwide.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
