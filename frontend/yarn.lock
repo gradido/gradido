@@ -12108,10 +12108,10 @@ q@^1.1.2:
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
 
-qrcanvas-vue@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/qrcanvas-vue/-/qrcanvas-vue-3.0.0.tgz#4bdba09b8050bcc0880d8859b5835cc4b2919248"
-  integrity sha512-B7LgAyOEJWf8Bz0y2J8M0OXE77uNWcH7PWr6q8ihyuQE5NP9zopY9wJGTZIT6Mu7oEOczPHMLDedZqFCT2Qxdw==
+qrcanvas-vue@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/qrcanvas-vue/-/qrcanvas-vue-2.1.1.tgz#27b449f99eaf46f324b300215469bfdf8ef77d88"
+  integrity sha512-86NMjOJ5XJGrrqrD2t+zmZxZKNuW1Is7o88UOiM8qFxDBjuTyfq9VJE9/2rN5XxThsjBuY4bRrQqL9blVwnI9w==
   dependencies:
     "@babel/runtime" "^7.16.0"
     qrcanvas "^3.1.2"
@@ -14646,6 +14646,11 @@ vue-qrcode-reader@^2.3.16:
     core-js "^3.6.5"
     vue "^2.6.11"
     webrtc-adapter "7.7.0"
+
+vue-qrcode@0.3.5:
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/vue-qrcode/-/vue-qrcode-0.3.5.tgz#d95bd81fea0c7f007f4e69244203d0eee2d573a5"
+  integrity sha512-AZJ+HzhOFokHuMVVwUIjG1FCWT1vJqn/Ro8XnQbyNlZTlQ8l4040JawVqUvTql3AdjJnI9bXaCTPplN502SnFw==
 
 vue-router@^3.0.6:
   version "3.5.1"
