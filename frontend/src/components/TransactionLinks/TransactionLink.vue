@@ -15,7 +15,7 @@
           <b-col lg="1" md="2" class="text-center text-lg-left qr-button">
             <b-button
               @click="$bvModal.show('modalPopover-' + id)"
-              class="p-2"
+              class="p-2 test-qr-code"
               size="sm"
               variant="outline-success"
             >
@@ -27,7 +27,7 @@
 
       <b-col lg="1" md="1" class="text-center text-lg-right">
         <b-button
-          class="p-2"
+          class="p-2 test-copy-link"
           size="sm"
           variant="outline-primary"
           @click="copy"
@@ -37,7 +37,7 @@
         </b-button>
         <br />
         <b-button
-          class="p-2"
+          class="p-2 test-delete-link"
           size="sm"
           variant="outline-danger"
           @click="deleteLink()"

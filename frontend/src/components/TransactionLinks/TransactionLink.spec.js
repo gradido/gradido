@@ -24,8 +24,9 @@ const propsData = {
   code: 'c00000000c000000c0000',
   holdAvailableAmount: '5.13109484759482747111',
   id: 12,
-  memo: 'Wie schön hier etwas Quatsch zu lesen!',
+  memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
   validUntil: '2022-03-30T14:22:40.000Z',
+  writeText: '',
 }
 
 describe('TransactionLink', () => {
@@ -56,7 +57,7 @@ describe('TransactionLink', () => {
       describe('copy with success', () => {
         beforeEach(async () => {
           navigatorClipboardMock.mockResolvedValue()
-          await wrapper.findAll('button').at(0).trigger('click')
+          await wrapper.find('.test-copy-link').trigger('click')
         })
         it('should call clipboard.writeText', () => {
           expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
@@ -71,7 +72,7 @@ describe('TransactionLink', () => {
       describe('copy with error', () => {
         beforeEach(async () => {
           navigatorClipboardMock.mockRejectedValue()
-          await wrapper.findAll('button').at(0).trigger('click')
+          await wrapper.find('.test-copy-link').trigger('click')
         })
 
         it('toasts error message', () => {
@@ -92,7 +93,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
           // spy.mockImplementation(() => Promise.resolve('some value'))
           // mockAPIcall.mockResolvedValue()
-          await wrapper.findAll('button').at(1).trigger('click')
+          await wrapper.find('.test-qr-code').trigger('click')
         })
 
         it('qr-code Modal if show', () => {
@@ -113,7 +114,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockResolvedValue()
-          await wrapper.findAll('button').at(2).trigger('click')
+          await wrapper.find('.test-delete-link').trigger('click')
         })
 
         it('test Modal if confirm true', () => {
@@ -145,7 +146,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve('some value'))
           mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
-          await wrapper.findAll('button').at(2).trigger('click')
+          await wrapper.find('.test-delete-link').trigger('click')
         })
 
         it('toasts an error message', () => {
