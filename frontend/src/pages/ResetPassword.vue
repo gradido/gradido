@@ -1,6 +1,6 @@
 <template>
   <div class="resetpwd-form">
-    <div class="pb-5">Trage bitte dein Passwort ein und wiederhole es.</div>
+    <div class="pb-5">{{ $t('site.resetPassword.heading') }}</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-password-confirmation v-model="form" />

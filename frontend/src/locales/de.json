@@ -1,23 +1,29 @@
 {
+  "100": "100%",
+  "1000thanks": "1000 Dank, weil du bei uns bist!",
+  "125": "125%",
+  "85": "85%",
+  "A": "A",
   "advanced-calculation": "Vorausberechnung",
   "auth": {
     "left": {
-      "hasAccount":"Du hast schon einen Account?",
+      "gratitude": "Dankbarkeit",
+      "hasAccount": "Du hast schon einen Account?",
       "hereLogin": "Hier Anmelden",
-      "gratitude":"Dankbarkeit",
-      "newCurrency":"Die neue Währung",
-      "oneAnotherNature":"Für Einander, Für alle, Für die Natur",
-      "learnMore":"Erfahre mehr..."
+      "learnMore": "Erfahre mehr...",
+      "newCurrency": "Die neue Währung",
+      "oneAnotherNature": "Für Einander, Für alle, Für die Natur"
     },
     "navbar": {
-      "overGradido":"Über Gradido",
-      "greatCooperation":"Gute Zusammenarbeit",
-      "podcast":"Podcast",
-      "press":"Presse",
-      "contact":"Kontakt"
+      "contact": "Kontakt",
+      "greatCooperation": "Gute Zusammenarbeit",
+      "overGradido": "Über Gradido",
+      "podcast": "Podcast",
+      "press": "Presse"
     }
   },
   "back": "Zurück",
+  "communitiesWorldWide": "Gemeinden in aller Welt",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
@@ -217,27 +223,30 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     }
   },
-  "signup": "Registrieren",
   "signin": "Anmelden",
+  "signup": "Registrieren",
   "site": {
+    "forgotPassword": {
+      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
+    },
     "login": {
       "community": "Wähle deine Gemeinschaft",
       "heading": "Melde dich mit deinen Zugangsdaten an. Bewahre sie stet's sicher auf!",
-      "saveLogin":"Anmeldung speichern"
+      "saveLogin": "Anmeldung speichern"
+    },
+    "resetPassword": {
+      "heading": "Trage bitte dein Passwort ein und wiederhole es."
     },
     "signup": {
-      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",
+      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
       "one_number": "Zahl erforderlich.",
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
       "uppercase": "Großbuchstabe erforderlich."
-    },
-    "forgotPassword": {
-      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
     },
     "thx": {
       "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite.",
@@ -272,12 +281,6 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome":"Willkommen",
-  "communitiesWorldWide":"Gemeinden in aller Welt",
-  "1000thanks":"1000 Dank, weil du bei uns bist!",
-  "A":"A",
-  "|":" | ",
-  "85":"85%",
-  "100":"100%",
-  "125":"125%"
+  "welcome": "Willkommen",
+  "|": " | "
 }

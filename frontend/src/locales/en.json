@@ -1,24 +1,29 @@
 {
+  "100": "100%",
+  "1000thanks": "1000 thanks for being with us!",
+  "125": "125%",
+  "85": "85%",
+  "A": "A",
   "advanced-calculation": "Advanced calculation",
   "auth": {
     "left": {
-      "hasAccount":"You already have an account?",
+      "gratitude": "Gratitude",
+      "hasAccount": "You already have an account?",
       "hereLogin": "Log in here",
-      "gratitude":"Gratitude",
-      "newCurrency":"The new currency",
-      "oneAnotherNature":"For One Another, For All, For Nature",
-      "learnMore":"Learn more..."
+      "learnMore": "Learn more...",
+      "newCurrency": "The new currency",
+      "oneAnotherNature": "For One Another, For All, For Nature"
     },
     "navbar": {
-      "overGradido":"Over Gradido",
-      "greatCooperation":"Great Cooperation",
-      "podcast":"Podcast",
-      "press":"Press",
-      "contact":"Contact"
-
+      "contact": "Contact",
+      "greatCooperation": "Great Cooperation",
+      "overGradido": "Over Gradido",
+      "podcast": "Podcast",
+      "press": "Press"
     }
   },
   "back": "Back",
+  "communitiesWorldWide": "Communities World Wide",
   "community": {
     "choose-another-community": "Choose another community",
     "community": "Community",
@@ -218,27 +223,30 @@
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
-  "signup": "Sign up",
   "signin": "Sign in",
+  "signup": "Sign up",
   "site": {
+    "forgotPassword": {
+      "heading": "Please enter the email address by which you're registered here."
+    },
     "login": {
       "community": "Choose your community",
       "heading": "Log in with your access data. Keep them safe!",
-      "saveLogin":"Save login"
+      "saveLogin": "Save login"
+    },
+    "resetPassword": {
+      "heading": "Please enter your password and repeat it."
     },
     "signup": {
-      "heading": "Register by entering all data completely and in the correct fields.",
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",
+      "heading": "Register by entering all data completely and in the correct fields.",
       "lowercase": "One lowercase letter required.",
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
-    },
-    "forgotPassword": {
-      "heading": "Please enter the email address by which you're registered here."
     },
     "thx": {
       "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link or order a new activation link over the password reset page.",
@@ -273,12 +281,6 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome":"Welcome",
-  "communitiesWorldWide":"Communities World Wide",
-  "1000thanks":"1000 thanks for being with us!",
-  "A":"A",
-  "|":" | ",
-  "85":"85%",
-  "100":"100%",
-  "125":"125%"
+  "welcome": "Welcome",
+  "|": " | "
 }
