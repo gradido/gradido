@@ -1,19 +1,6 @@
 <template>
   <div>
     <div class="container-fluid">
-      <b-row class="ml-1 mr-1 mb-2">
-        <b-col class="col-6 p-3 g-border">
-          <status class="gdd-status-gdd" :pending="pending" :balance="balance" status-text="GDD" />
-        </b-col>
-        <b-col class="col-6 p-3 text-right g-border">
-          <status
-            class="gdd-status-gdt"
-            :pending="pending"
-            :balance="GdtBalance"
-            status-text="GDT"
-          />
-        </b-col>
-      </b-row>
       <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"
@@ -30,14 +17,12 @@
   </div>
 </template>
 <script>
-import Status from '@/components/Status.vue'
 import GddTransactionList from '@/components/GddTransactionList.vue'
 import GddTransactionListFooter from '@/components/GddTransactionListFooter.vue'
 
 export default {
   name: 'Overview',
   components: {
-    Status,
     GddTransactionList,
     GddTransactionListFooter,
   },
@@ -48,7 +33,6 @@ export default {
   },
   props: {
     balance: { type: Number, default: 0 },
-    GdtBalance: { type: Number, default: 0 },
     decayStartBlock: { type: Date },
     transactions: {
       default: () => [],
