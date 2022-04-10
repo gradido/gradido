@@ -30,9 +30,7 @@ export default {
   },
   computed: {
     dateString() {
-      return this.diffNow
-        ? this.$moment(this.date).locale(this.$i18n.locale).fromNow()
-        : this.$d(new Date(this.date), 'long')
+      return this.$d(new Date(this.date), 'long')
     },
   },
 }
