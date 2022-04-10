@@ -1,7 +1,11 @@
 <template>
   <div class="pb-4">
     <b-tabs content-class="" justified>
-      <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
+      <b-tab
+        :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
+        class="px-4"
+        @click="showGdtBalance(false)"
+      >
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
@@ -16,10 +20,7 @@
         />
       </b-tab>
 
-      <b-tab
-        :title="`Gradido Transform  (${GdtBalance === null ? '—' : $n(GdtBalance, 'decimal')} GDT)`"
-        class="px-4"
-      >
+      <b-tab :title="titel_gdt" class="px-4" @click="showGdtBalance(true)">
         <p class="">{{ $t('transaction.gdt-text') }}</p>
 
         <gdt-transaction-list />
@@ -50,11 +51,21 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
+      titel_gdt: this.$t('gdt.gdt'),
     }
   },
   methods: {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+    showGdtBalance(Boolean) {
+      if (Boolean) {
+        this.titel_gdt += `( ${
+          this.GdtBalance === null ? '—' : this.$n(this.GdtBalance, 'decimal')
+        } GDT)`
+      } else {
+        this.titel_gdt = this.$t('gdt.gdt')
+      }
     },
   },
 }
