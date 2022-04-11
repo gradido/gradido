@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-template">
+  <div class="auth-template page-font-size">
     <div v-if="mobilStart" class="mobil-start-box d-inline d-sm-inline d-md-inline d-lg-none">
       <b-img id="img0" src="img/template/logo-header.png" alt="start background image"></b-img>
       <b-img
@@ -68,11 +68,11 @@
                   variant="dark"
                 >
                   <div class="text-light">
-                    <span class="pointer" @click="setTextSize(85)">{{ $t('85') }}</span>
+                    <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
                     {{ $t('|') }}
-                    <span class="pointer" @click="setTextSize(100)">{{ $t('100') }}</span>
+                    <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
                     {{ $t('|') }}
-                    <span class="pointer" @click="setTextSize(125)">{{ $t('125') }}</span>
+                    <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
                   </div>
                 </b-popover>
               </b-col>
@@ -123,12 +123,15 @@ export default {
   },
   methods: {
     setTextSize(size) {
-      alert('set page text size of: ' + size + '%')
+      document.querySelector('.page-font-size').style.fontSize = size + 'rem'
     },
   },
 }
 </script>
 <style lang="scss">
+.page-font-size {
+  font-size: 1rem;
+}
 .mobil-start-box {
   position: fixed;
   height: 100%;
