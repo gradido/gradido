@@ -51,7 +51,7 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      titel_gdt: this.$t('gdt.gdt'),
+      titelGdt: this.$t('gdt.gdt'),
     }
   },
   methods: {
