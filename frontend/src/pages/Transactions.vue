@@ -58,7 +58,7 @@ export default {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
-    showGdtBalance(Boolean) {
+    showGdtBalance(boolean) {
       if (Boolean) {
         this.titel_gdt += `( ${
           this.GdtBalance === null ? '—' : this.$n(this.GdtBalance, 'decimal')
