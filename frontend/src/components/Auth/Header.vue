@@ -1,6 +1,6 @@
 <template>
   <div class="auth-header">
-    <b-navbar toggleable="lg" class="p-0">
+    <b-navbar :toggleable="toggleable" class="p-0">
       <div class="g-logo-radius bg-white p-3">
         <b-img :src="logo" height="40" alt="..." />
       </div>
@@ -35,7 +35,25 @@ export default {
     return {
       logo: 'img/brand/green.png',
       sheet: 'img/template/Blaetter.png',
+      windowWidth: window.innerWidth,
+      toggleable: false,
     }
+  },
+  watch: {
+    windowWidth() {
+      this.toggleable = false
+      if (this.windowWidth < 1458) this.toggleable = true
+    },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      window.addEventListener('resize', this.onResize)
+    })
+  },
+  methods: {
+    onResize() {
+      this.windowWidth = window.innerWidth
+    },
   },
 }
 </script>
