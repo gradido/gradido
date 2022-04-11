@@ -10,19 +10,25 @@
       <b-collapse id="nav-collapse" is-nav>
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item>{{ $t('auth.navbar.overGradido') }}</b-nav-item>
+          <b-nav-item @click="$emit('set-iframe-url', 'https://gradido.net/de/', true)">
+            {{ $t('auth.navbar.overGradido') }}
+          </b-nav-item>
 
-          <b-nav-item>{{ $t('auth.navbar.greatCooperation') }}</b-nav-item>
+          <!-- <b-nav-item>{{ $t('auth.navbar.greatCooperation') }}</b-nav-item>
 
           <b-nav-item>{{ $t('auth.navbar.podcast') }}</b-nav-item>
 
           <b-nav-item>{{ $t('auth.navbar.press') }}</b-nav-item>
 
           <b-nav-item>{{ $t('auth.navbar.contact') }}</b-nav-item>
+          -->
+          <b-nav-item to="/register" @click="$emit('set-iframe-url', '', false)">
+            {{ $t('signup') }}
+          </b-nav-item>
 
-          <b-nav-item to="/login">{{ $t('signup') }}</b-nav-item>
-
-          <b-nav-item to="/register">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item to="/login" @click="$emit('set-iframe-url', '', false)">
+            {{ $t('signin') }}
+          </b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -42,7 +48,7 @@ export default {
   watch: {
     windowWidth() {
       this.toggleable = false
-      if (this.windowWidth < 1458) this.toggleable = true
+      // if (this.windowWidth < 1458) this.toggleable = true
     },
   },
   mounted() {

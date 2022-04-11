@@ -27,8 +27,11 @@
     </div>
 
     <div>
-      <auth-header />
-      <b-row class="auth-template-content">
+      <auth-header @set-iframe-url="setIframeUrl" />
+      <b-row v-if="iframe" class="auth-iframe-content">
+        <iframe-component :url="iframeUrl"></iframe-component>
+      </b-row>
+      <b-row v-else class="auth-template-content">
         <b-col lg="6" md="none" sm="none">
           <div class="bg-img-box d-none d-lg-block">
             <carousel class="d-block w-100 h-100" />
@@ -107,6 +110,7 @@ import ContentFooter from '@/components/ContentFooter.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
 import AuthHeader from '@/components/Auth/Header.vue'
 import Carousel from '@/components/Auth/Carousel.vue'
+import IframeComponent from '@/components/Iframe.vue'
 
 export default {
   name: 'AuthTemplate',
@@ -115,15 +119,23 @@ export default {
     LanguageSwitch,
     AuthHeader,
     Carousel,
+    IframeComponent,
   },
   data() {
     return {
       mobilStart: true,
+      iframe: false,
+      iframeUrl: '',
     }
   },
   methods: {
     setTextSize(size) {
       document.querySelector('.page-font-size').style.fontSize = size + 'rem'
+    },
+    setIframeUrl(url, bool) {
+      // console.log('setIframeUrl', url)
+      this.iframe = bool
+      this.iframeUrl = url
     },
   },
 }
