@@ -1,4 +1,4 @@
-import { Context } from '@/server/context'
+import { Context, getUser } from '@/server/context'
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -38,8 +38,7 @@ export class TransactionLinkResolver {
     @Args() { amount, memo }: TransactionLinkArgs,
     @Ctx() context: Context,
   ): Promise<TransactionLink> {
-    const { user } = context
-    if (!user) throw new Error('No user given!')
+    const user = getUser(context)
 
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
@@ -73,8 +72,7 @@ export class TransactionLinkResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const { user } = context
-    if (!user) throw new Error('No user given!')
+    const user = getUser(context)
 
     const transactionLink = await dbTransactionLink.findOne({ id })
     if (!transactionLink) {
@@ -115,8 +113,7 @@ export class TransactionLinkResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: Context,
   ): Promise<TransactionLink[]> {
-    const { user } = context
-    if (!user) throw new Error('No user given!')
+    const user = getUser(context)
     // const now = new Date()
     const transactionLinks = await dbTransactionLink.find({
       where: {
@@ -139,8 +136,7 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const { user } = context
-    if (!user) throw new Error('No user given!')
+    const user = getUser(context)
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 

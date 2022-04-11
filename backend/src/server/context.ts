@@ -23,4 +23,9 @@ const context = (args: any): Context => {
   return context
 }
 
+export const getUser = (context: Context): dbUser => {
+  if (context.user) return context.user
+  throw new Error('No user given in context!')
+}
+
 export default context

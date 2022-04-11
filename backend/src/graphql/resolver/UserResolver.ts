@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { Context } from '@/server/context'
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '@/config'
@@ -192,8 +192,7 @@ export class UserResolver {
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     // TODO refactor and do not have duplicate code with login(see below)
-    const userEntity = context.user
-    if (!userEntity) throw new Error('No user given!')
+    const userEntity = getUser(context)
     const user = new User(userEntity)
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
@@ -541,8 +540,7 @@ export class UserResolver {
     }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const userEntity = context.user
-    if (!userEntity) throw new Error('No user given!')
+    const userEntity = getUser(context)
 
     if (firstName) {
       userEntity.firstName = firstName

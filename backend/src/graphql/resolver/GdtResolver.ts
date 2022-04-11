@@ -1,4 +1,4 @@
-import { Context } from '@/server/context'
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Ctx, Authorized, Arg } from 'type-graphql'
 import CONFIG from '@/config'
 import { GdtEntryList } from '@model/GdtEntryList'
@@ -16,8 +16,7 @@ export class GdtResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: Context,
   ): Promise<GdtEntryList> {
-    const userEntity = context.user
-    if (!userEntity) throw new Error('No user given!')
+    const userEntity = getUser(context)
 
     try {
       const resultGDT = await apiGet(
@@ -35,8 +34,7 @@ export class GdtResolver {
   @Authorized([RIGHTS.GDT_BALANCE])
   @Query(() => Number)
   async gdtBalance(@Ctx() context: Context): Promise<number | null> {
-    const { user } = context
-    if (!user) throw new Error('No user given!')
+    const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
         email: user.email,
