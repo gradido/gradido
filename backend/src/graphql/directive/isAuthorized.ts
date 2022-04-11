@@ -9,6 +9,7 @@ import { getCustomRepository } from '@dbTools/typeorm'
 import { UserRepository } from '@repository/User'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { ServerUser } from '@entity/ServerUser'
+import { Context } from '@/server/context'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
