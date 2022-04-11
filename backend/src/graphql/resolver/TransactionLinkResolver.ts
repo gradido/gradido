@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Context } from '@/server/context'
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 import { TransactionLink } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -38,9 +36,10 @@ export class TransactionLinkResolver {
   @Mutation(() => TransactionLink)
   async createTransactionLink(
     @Args() { amount, memo }: TransactionLinkArgs,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<TransactionLink> {
     const { user } = context
+    if (!user) throw new Error('No user given!')
 
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
@@ -72,9 +71,10 @@ export class TransactionLinkResolver {
   @Mutation(() => Boolean)
   async deleteTransactionLink(
     @Arg('id', () => Int) id: number,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<boolean> {
     const { user } = context
+    if (!user) throw new Error('No user given!')
 
     const transactionLink = await dbTransactionLink.findOne({ id })
     if (!transactionLink) {
@@ -113,9 +113,10 @@ export class TransactionLinkResolver {
   async listTransactionLinks(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<TransactionLink[]> {
     const { user } = context
+    if (!user) throw new Error('No user given!')
     // const now = new Date()
     const transactionLinks = await dbTransactionLink.find({
       where: {
@@ -136,9 +137,10 @@ export class TransactionLinkResolver {
   @Mutation(() => Boolean)
   async redeemTransactionLink(
     @Arg('code', () => String) code: string,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<boolean> {
     const { user } = context
+    if (!user) throw new Error('No user given!')
     const transactionLink = await dbTransactionLink.findOneOrFail({ code })
     const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
 
