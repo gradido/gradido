@@ -18,6 +18,8 @@ import 'vue-loading-overlay/dist/vue-loading.css'
 
 import VueApollo from 'vue-apollo'
 
+import VueMeta from 'vue-meta'
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -29,5 +31,9 @@ export default {
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
+    Vue.use(VueMeta, {
+      // optional pluginOptions
+      refreshOnceOnNavigation: true,
+    })
   },
 }
