@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
 import { calculateDecay } from '@/util/decay'
@@ -16,8 +14,8 @@ import { TransactionLinkRepository } from '@repository/TransactionLink'
 export class BalanceResolver {
   @Authorized([RIGHTS.BALANCE])
   @Query(() => Balance)
-  async balance(@Ctx() context: any): Promise<Balance> {
-    const { user } = context
+  async balance(@Ctx() context: Context): Promise<Balance> {
+    const user = getUser(context)
     const now = new Date()
 
     const gdtResolver = new GdtResolver()
