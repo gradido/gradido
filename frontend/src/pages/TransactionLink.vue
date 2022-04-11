@@ -33,6 +33,10 @@ import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'TransactionLink',
+  metaInfo: {
+    title: 'GDD einloesen',
+    titleTemplate: `%s | this.memo`,
+  },
   components: {
     TransactionLinkItem,
     RedeemLoggedOut,
