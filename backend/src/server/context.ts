@@ -2,12 +2,19 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Role } from '@/auth/Role'
 import { User as dbUser } from '@entity/User'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
 
 export interface Context {
   token: string | null
   setHeaders: { key: string; value: string }[]
   role?: Role
   user?: dbUser
+  // hack to use less DB calls for Balance Resolver
+  lastTransaction?: dbTransaction
+  transactionCount?: number
+  linkCount?: number
+  sumHoldAvailableAmount?: Decimal
 }
 
 const context = (args: any): Context => {
