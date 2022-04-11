@@ -5,7 +5,7 @@ import { User as dbUser } from '@entity/User'
 
 export interface Context {
   token: string | null
-  setHeaders: { key: string, value: string }[]
+  setHeaders: { key: string; value: string }[]
   role?: Role
   user?: dbUser
 }
