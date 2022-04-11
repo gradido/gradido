@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Role } from '@/auth/Role'
 import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
+import { ExpressContext } from 'apollo-server-express'
 
 export interface Context {
   token: string | null
@@ -17,7 +16,7 @@ export interface Context {
   sumHoldAvailableAmount?: Decimal
 }
 
-const context = (args: any): Context => {
+const context = (args: ExpressContext): Context => {
   const authorization = args.req.headers.authorization
   let token: string | null = null
   if (authorization) {
