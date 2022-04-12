@@ -110,7 +110,7 @@
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
-    "links_sum": "Summe deiner versendeten Gradidos",
+    "links_sum": "Offene Links und QR-Codes",
     "no-account": "Du besitzt noch kein Gradido Konto?",
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Konnte den Link nicht kopieren: {err}",
