@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import CONFIG from '@/config'
+
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
@@ -125,7 +127,7 @@ export const executeTransaction = async (
   }
 
   // send notification email
-  const overviewURL = new URL('/overview' /* , XXX CONFIG.CLIENT_URI */) // http://localhost/overview
+  const overviewURL = new URL('/overview', CONFIG.EMAIL_CLIENT_URI)
   // TODO: translate
   await sendTransactionReceivedEmail({
     senderFirstName: sender.firstName,

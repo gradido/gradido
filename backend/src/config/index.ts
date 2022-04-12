@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v4.2022-04-05',
+    EXPECTED: 'v5.2022-04-12',
     CURRENT: '',
   },
 }
@@ -80,6 +80,7 @@ const email = {
   EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
     ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
     : 10,
+  EMAIL_CLIENT_URI: process.env.EMAIL_CLIENT_URI || 'http://localhost',
 }
 
 const webhook = {
