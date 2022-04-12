@@ -16,10 +16,10 @@
         />
       </b-tab>
 
-      <b-tab :title="titel_gdt" class="px-4">
+      <b-tab :title="titelGdt" class="px-4">
         <b-row class="mb-3">
           <b-col>{{ $t('transaction.gdt-text') }}</b-col>
-          <b-col class="text-right">{{ $n(GdtBalance, 'decimal') }} GDT</b-col>
+          <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
         </b-row>
         <gdt-transaction-list />
       </b-tab>
