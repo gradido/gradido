@@ -52,7 +52,6 @@ export const transactionsQuery = gql`
         balanceGDT
         count
         linkCount
-        decayStartBlock
         lastBookedDate
       }
       transactions {

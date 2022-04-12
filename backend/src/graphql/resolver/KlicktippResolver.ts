@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
 import {
   getKlickTippUser,
