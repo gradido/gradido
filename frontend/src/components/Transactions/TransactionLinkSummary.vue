@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-slot-link">
+  <div class="transaction-slot-link gradido-shadow-inset">
     <div>
       <div @click="visible = !visible">
         <!-- Collaps Icon  -->
