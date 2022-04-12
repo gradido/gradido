@@ -4,6 +4,7 @@ import Decimal from 'decimal.js-light'
 interface DecayInterface {
   balance: Decimal
   decay: Decimal
+  roundedDecay: Decimal
   start: Date | null
   end: Date | null
   duration: number | null
@@ -14,6 +15,7 @@ export class Decay {
   constructor(data: DecayInterface) {
     this.balance = data.balance
     this.decay = data.decay
+    this.roundedDecay = data.roundedDecay
     this.start = data.start
     this.end = data.end
     this.duration = data.duration
@@ -24,6 +26,9 @@ export class Decay {
 
   @Field(() => Decimal)
   decay: Decimal
+
+  @Field(() => Decimal)
+  roundedDecay: Decimal
 
   @Field(() => Date, { nullable: true })
   start: Date | null

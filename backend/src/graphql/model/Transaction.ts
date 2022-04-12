@@ -20,6 +20,7 @@ export class Transaction {
       this.decay = new Decay({
         balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
         decay: new Decimal(0),
+        roundedDecay: new Decimal(0),
         start: null,
         end: null,
         duration: null,
@@ -28,6 +29,8 @@ export class Transaction {
       this.decay = new Decay({
         balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
         decay: transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+        // TODO
+        roundedDecay: new Decimal(0),
         start: transaction.decayStart,
         end: transaction.balanceDate,
         duration: Math.round(
