@@ -1,6 +1,5 @@
 import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
-import CONFIG from '@/config'
 
 @ObjectType()
 export class Balance {
@@ -11,7 +10,6 @@ export class Balance {
     balanceGDT: number | null
     count: number
     linkCount: number
-    decayStartBlock?: Date
     lastBookedDate?: Date | null
   }) {
     this.balance = data.balance
@@ -20,7 +18,6 @@ export class Balance {
     this.balanceGDT = data.balanceGDT || null
     this.count = data.count
     this.linkCount = data.linkCount
-    this.decayStartBlock = data.decayStartBlock || CONFIG.DECAY_START_TIME
     this.lastBookedDate = data.lastBookedDate || null
   }
 
@@ -45,9 +42,6 @@ export class Balance {
   // the count of transaction links
   @Field(() => Number)
   linkCount: number
-
-  @Field(() => Date)
-  decayStartBlock: Date
 
   // may be null as there may be no transaction
   @Field(() => Date, { nullable: true })
