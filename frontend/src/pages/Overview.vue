@@ -18,7 +18,6 @@
         :transactions="transactions"
         :pageSize="5"
         :timestamp="timestamp"
-        :decayStartBlock="decayStartBlock"
         :transaction-count="transactionCount"
         :transactionLinkCount="transactionLinkCount"
         :pending="pending"
@@ -49,7 +48,6 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
-    decayStartBlock: { type: Date },
     transactions: {
       default: () => [],
     },

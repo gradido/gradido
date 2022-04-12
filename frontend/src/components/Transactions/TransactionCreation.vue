@@ -27,12 +27,7 @@
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information
-          :typeId="typeId"
-          :decay="decay"
-          :amount="amount"
-          :decayStartBlock="decayStartBlock"
-        />
+        <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
       </b-collapse>
     </div>
   </div>
@@ -80,10 +75,6 @@ export default {
     },
     typeId: {
       type: String,
-      required: true,
-    },
-    decayStartBlock: {
-      type: Date,
       required: true,
     },
     previousBookedBalance: {
