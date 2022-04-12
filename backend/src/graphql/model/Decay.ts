@@ -1,20 +1,22 @@
 import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
+interface DecayInterface {
+  balance: Decimal
+  decay: Decimal
+  start: Date | null
+  end: Date | null
+  duration: number | null
+}
+
 @ObjectType()
 export class Decay {
-  constructor(
-    balance: Decimal,
-    decay: Decimal,
-    start: Date | null,
-    end: Date | null,
-    duration: number | null,
-  ) {
-    this.balance = balance
-    this.decay = decay
-    this.start = start
-    this.end = end
-    this.duration = duration
+  constructor(data: DecayInterface) {
+    this.balance = data.balance
+    this.decay = data.decay
+    this.start = data.start
+    this.end = data.end
+    this.duration = data.duration
   }
 
   @Field(() => Decimal)

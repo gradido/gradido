@@ -17,21 +17,23 @@ export class Transaction {
     this.balanceDate = transaction.balanceDate
     if (!transaction.decayStart) {
       // TODO: hot fix, we should separate decay calculation from decay graphql model
-      this.decay = new Decay(
-        transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-        new Decimal(0),
-        null,
-        null,
-        null,
-      )
+      this.decay = new Decay({
+        balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+        decay: new Decimal(0),
+        start: null,
+        end: null,
+        duration: null,
+      })
     } else {
-      this.decay = new Decay(
-        transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-        transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-        transaction.decayStart,
-        transaction.balanceDate,
-        Math.round((transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000),
-      )
+      this.decay = new Decay({
+        balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+        decay: transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+        start: transaction.decayStart,
+        end: transaction.balanceDate,
+        duration: Math.round(
+          (transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000,
+        ),
+      })
     }
     this.memo = transaction.memo
     this.creationDate = transaction.creationDate
