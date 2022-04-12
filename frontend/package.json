@@ -48,7 +48,6 @@
     "portal-vue": "^2.1.7",
     "prettier": "^2.2.1",
     "qrcanvas-vue": "2.1.1",
-    "qrcode": "^1.4.4",
     "regenerator-runtime": "^0.13.7",
     "vee-validate": "^3.4.5",
     "vue": "2.6.12",
