@@ -1,7 +1,9 @@
 <template>
   <div class="userdata-card">
     <b-card class="bg-transparent border-0">
-      <div class="w-100 text-center">firstName + lastName</div>
+      <div class="w-100 text-center">
+        <b-avatar variant="primary" :text="avatar" size="6rem"></b-avatar>
+      </div>
 
       <b-container class="d-flex justify-content-center mt-md-5">
         <b-row>
@@ -36,6 +38,11 @@ export default {
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
+  },
+  computed: {
+    avatar() {
+      return `${this.$store.state.firstName[0]}  ${this.$store.state.lastName[0]}`
+    },
   },
 }
 </script>

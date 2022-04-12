@@ -11,7 +11,8 @@ describe('UserCard', () => {
     $n: jest.fn((n) => String(n)),
     $store: {
       state: {
-        email: 'user@example.org',
+        firstName: 'Bibi',
+        lastName: 'Bloxberg',
       },
     },
   }
@@ -27,6 +28,13 @@ describe('UserCard', () => {
 
     it('renders the Div Element ".userdata-card"', () => {
       expect(wrapper.find('div.userdata-card').exists()).toBeTruthy()
+    })
+    it('renders the SPAN Element ".b-avatar"', () => {
+      expect(wrapper.find('span.b-avatar').exists()).toBeTruthy()
+    })
+
+    it('find the first letters of the firstName and lastName', () => {
+      expect(wrapper.find('span.b-avatar').text()).toBe('B  B')
     })
   })
 })
