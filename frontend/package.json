@@ -58,7 +58,6 @@
     "vue-jest": "^3.0.7",
     "vue-loading-overlay": "^3.4.2",
     "vue-moment": "^4.1.0",
-    "vue-qrcode": "0.3.5",
     "vue-router": "^3.0.6",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
