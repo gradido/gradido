@@ -1,11 +1,7 @@
 <template>
   <div class="pb-4">
     <b-tabs content-class="" justified>
-      <b-tab
-        :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
-        class="px-4"
-        @click="showGdtBalance(false)"
-      >
+      <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
@@ -20,9 +16,11 @@
         />
       </b-tab>
 
-      <b-tab :title="titel_gdt" class="px-4" @click="showGdtBalance(true)">
-        <p class="">{{ $t('transaction.gdt-text') }}</p>
-
+      <b-tab :title="titel_gdt" class="px-4">
+        <b-row class="mb-3">
+          <b-col>{{ $t('transaction.gdt-text') }}</b-col>
+          <b-col class="text-right">{{ $n(GdtBalance, 'decimal') }} GDT</b-col>
+        </b-row>
         <gdt-transaction-list />
       </b-tab>
     </b-tabs>
@@ -58,6 +56,7 @@ export default {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
+<<<<<<< HEAD
     showGdtBalance(boolean) {
       if (Boolean) {
         this.titel_gdt += `( ${
@@ -67,6 +66,8 @@ export default {
         this.titel_gdt = this.$t('gdt.gdt')
       }
     },
+=======
+>>>>>>> 183eb0bbf (remove function from tab)
   },
 }
 </script>
