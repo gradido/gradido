@@ -1,13 +1,7 @@
 <template>
   <div class="userdata-card">
     <b-card class="bg-transparent border-0">
-      <div class="w-100 text-center">
-        <vue-qrcode
-          v-if="$store.state.email"
-          :value="$store.state.email"
-          type="image/png"
-        ></vue-qrcode>
-      </div>
+      <div class="w-100 text-center">firstName + lastName</div>
 
       <b-container class="d-flex justify-content-center mt-md-5">
         <b-row>
@@ -37,13 +31,8 @@
   </div>
 </template>
 <script>
-import VueQrcode from 'vue-qrcode'
-
 export default {
   name: 'UserCard',
-  components: {
-    VueQrcode,
-  },
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },

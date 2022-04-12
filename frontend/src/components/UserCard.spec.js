@@ -28,9 +28,5 @@ describe('UserCard', () => {
     it('renders the Div Element ".userdata-card"', () => {
       expect(wrapper.find('div.userdata-card').exists()).toBeTruthy()
     })
-
-    it('renders the Div Element "vue-qrcode"', () => {
-      expect(wrapper.find('vue-qrcode'))
-    })
   })
 })
