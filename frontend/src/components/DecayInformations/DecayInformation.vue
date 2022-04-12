@@ -14,6 +14,7 @@
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
 import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
+import CONFIG from '@/config'
 
 export default {
   components: {
@@ -34,14 +35,10 @@ export default {
       type: String,
       required: true,
     },
-    decayStartBlock: {
-      type: Date,
-      required: true,
-    },
   },
   computed: {
     isStartBlock() {
-      return new Date(this.decay.start).getTime() === this.decayStartBlock.getTime()
+      return new Date(this.decay.start).getTime() === CONFIG.DECAY_START_TIME.getTime()
     },
   },
 }
