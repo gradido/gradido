@@ -15,12 +15,12 @@
         />
       </b-tab>
 
-      <b-tab :title="titelGdt" class="px-4">
+      <b-tab :title="titelGdt" class="px-4" @click="$refs.childComponentRef.updateGdt()">
         <b-row class="mb-3">
           <b-col>{{ $t('transaction.gdt-text') }}</b-col>
           <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
         </b-row>
-        <gdt-transaction-list />
+        <gdt-transaction-list ref="childComponentRef" />
       </b-tab>
     </b-tabs>
   </div>
