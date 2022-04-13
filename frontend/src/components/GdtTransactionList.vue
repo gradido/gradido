@@ -81,9 +81,6 @@ export default {
         })
     },
   },
-  mounted() {
-    this.updateGdt()
-  },
   watch: {
     currentPage() {
       this.updateGdt()
