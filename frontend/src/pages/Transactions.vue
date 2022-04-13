@@ -10,7 +10,6 @@
           :transactionLinkCount="transactionLinkCount"
           :transactions="transactions"
           :show-pagination="true"
-          :decayStartBlock="decayStartBlock"
           @update-transactions="updateTransactions"
           v-on="$listeners"
         />
@@ -45,7 +44,6 @@ export default {
     },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
-    decayStartBlock: { type: Date },
   },
   data() {
     return {
