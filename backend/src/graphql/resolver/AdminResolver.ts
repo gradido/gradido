@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
   getCustomRepository,
@@ -137,7 +135,7 @@ export class AdminResolver {
   @Mutation(() => Date, { nullable: true })
   async deleteUser(
     @Arg('userId', () => Int) userId: number,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
@@ -145,7 +143,7 @@ export class AdminResolver {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
-    const moderatorUser = context.user
+    const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
       throw new Error('Moderator can not delete his own account!')
     }
@@ -309,10 +307,10 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async confirmPendingCreation(
     @Arg('id', () => Int) id: number,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<boolean> {
     const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
-    const moderatorUser = context.user
+    const moderatorUser = getUser(context)
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
 

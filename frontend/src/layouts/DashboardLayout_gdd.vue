@@ -26,7 +26,6 @@
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
               :pending="pending"
-              :decayStartBlock="decayStartBlock"
               @update-transactions="updateTransactions"
               @set-tunneled-email="setTunneledEmail"
             ></router-view>
@@ -63,7 +62,6 @@ export default {
       transactionLinkCount: 0,
       pending: true,
       visible: false,
-      decayStartBlock: new Date(),
       tunneledEmail: null,
     }
   },
@@ -110,7 +108,6 @@ export default {
           this.balance = Number(transactionList.balance.balance)
           this.transactionCount = transactionList.balance.count
           this.transactionLinkCount = transactionList.balance.linkCount
-          this.decayStartBlock = new Date(transactionList.balance.decayStartBlock)
           this.pending = false
         })
         .catch((error) => {
