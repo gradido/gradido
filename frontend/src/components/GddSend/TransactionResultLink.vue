@@ -1,27 +1,21 @@
 <template>
-  <b-container>
-    <b-row>
-      <b-col>
-        <b-card class="p-0 gradido-custom-background">
-          <div class="p-4">
-            <div class="h3">{{ $t('gdd_per_link.created') }}</div>
-          </div>
-          <b-row>
-            <b-col class="text-center">
-              <figure-qr-code :text="link" />
-            </b-col>
-          </b-row>
-          <div class="p-4">
-            <clipboard-copy :code="code" />
-          </div>
+  <b-row>
+    <b-col>
+      <b-card class="p-0 gradido-custom-background">
+        <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
 
-          <p class="text-center mt-3">
-            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
-  </b-container>
+        <clipboard-copy :text="link" />
+
+        <div class="text-center">
+          <figure-qr-code :text="link" />
+
+          <b-button variant="success" @click="$emit('on-reset')" class="mt-4">
+            {{ $t('form.close') }}
+          </b-button>
+        </div>
+      </b-card>
+    </b-col>
+  </b-row>
 </template>
 <script>
 import ClipboardCopy from '../ClipboardCopy.vue'

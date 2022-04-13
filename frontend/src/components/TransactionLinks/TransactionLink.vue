@@ -17,9 +17,8 @@
               @click="$bvModal.show('modalPopover-' + id)"
               class="p-2 test-qr-code"
               size="sm"
-              variant="outline-success"
             >
-              <b-img src="img/svg/qr-code.svg" width="60"></b-img>
+              <b-img src="img/svg/qr-code.svg" width="60" class="filter"></b-img>
             </b-button>
           </b-col>
         </b-row>
@@ -28,7 +27,7 @@
       <b-col lg="1" md="1" class="text-center text-lg-right">
         <b-button
           class="p-2 test-copy-link"
-          size="sm"
+          size="lg"
           variant="outline-primary"
           @click="copy"
           :title="$t('gdd_per_link.copy')"
@@ -37,9 +36,8 @@
         </b-button>
         <br />
         <b-button
-          class="p-2 test-delete-link"
+          class="p-2 mt-3 test-delete-link"
           size="sm"
-          variant="outline-danger"
           @click="deleteLink()"
           :title="$t('delete')"
         >
@@ -127,5 +125,8 @@ export default {
 .qr-button {
   position: relative;
   right: 20px;
+}
+.filter {
+  filter: opacity(0.6);
 }
 </style>

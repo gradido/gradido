@@ -27,7 +27,7 @@ export default {
   },
   created() {
     const image = new Image()
-    image.src = 'img/gdd-coin.png'
+    image.src = 'img/gdd-coin-sw.png'
     image.onload = () => {
       this.options = {
         ...this.options,
@@ -46,6 +46,6 @@ export default {
 }
 .canvas {
   width: 90%;
-  max-width: 350px;
+  max-width: 300px;
 }
 </style>

@@ -27,7 +27,6 @@ const propsData = {
   id: 12,
   memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
   validUntil: '2022-03-30T14:22:40.000Z',
-  writeText: '',
 }
 
 describe('TransactionLink', () => {
@@ -67,17 +66,6 @@ describe('TransactionLink', () => {
         })
         it('toasts success message', () => {
           expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
-        })
-      })
-
-      describe.skip('copy with error', () => {
-        beforeEach(async () => {
-          navigatorClipboardMock.mockRejectedValue()
-          await wrapper.find('.test-copy-link').trigger('click')
-        })
-
-        it('toasts error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
         })
       })
     })
@@ -160,7 +148,7 @@ describe('TransactionLink', () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(false))
           mockAPIcall.mockResolvedValue()
-          await wrapper.findAll('button').at(2).trigger('click')
+          await wrapper.find('.test-delete-link').trigger('click')
         })
 
         it('does not call the API', () => {
