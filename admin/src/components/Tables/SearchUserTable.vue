@@ -81,7 +81,7 @@
               :title="$t('transactionlink.form_header')"
               :disabled="row.item.deletedAt !== null"
             >
-              <transaction-link-list :userId="row.item.userId" />
+              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
             <b-tab :title="$t('delete_user')">
               <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
