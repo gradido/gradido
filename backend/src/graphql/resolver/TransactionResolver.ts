@@ -126,7 +126,6 @@ export const executeTransaction = async (
   }
 
   // send notification email
-  const overviewURL = new URL('/overview', CONFIG.EMAIL_CLIENT_URI)
   // TODO: translate
   await sendTransactionReceivedEmail({
     senderFirstName: sender.firstName,
@@ -137,7 +136,7 @@ export const executeTransaction = async (
     senderEmail: sender.email,
     amount,
     memo,
-    overviewURL: overviewURL.toString(),
+    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
 
   return true

@@ -34,7 +34,7 @@ describe('sendTransactionReceivedEmail', () => {
         expect.stringContaining('Bibi Bloxberg') &&
         expect.stringContaining('(bibi@bloxberg.de)') &&
         expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!') &&
-        expect.stringContaining('<a href="http://localhost/overview">'),
+        expect.stringContaining('http://localhost/overview'),
     })
   })
 })

@@ -29,6 +29,6 @@ Mit freundlichen Grüßen,
 dein Gradido-Team
 
 
-Link zur Übersicht: <a href="${data.overviewURL}">Deine Übersicht</a>`,
+Link zu deiner Übersicht: ${data.overviewURL}`,
   },
 }

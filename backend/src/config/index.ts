@@ -72,6 +72,7 @@ const email = {
     process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
   EMAIL_LINK_FORGOTPASSWORD:
     process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
+  EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW || 'http://localhost/overview',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
@@ -80,7 +81,6 @@ const email = {
   EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
     ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
     : 10,
-  EMAIL_CLIENT_URI: process.env.EMAIL_CLIENT_URI || 'http://localhost',
 }
 
 const webhook = {
