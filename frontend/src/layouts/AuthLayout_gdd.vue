@@ -95,7 +95,7 @@
               <router-view></router-view>
             </b-card-body>
           </b-card>
-          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+          <auth-footer v-if="!$route.meta.hideFooter"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->
@@ -103,18 +103,18 @@
   </div>
 </template>
 <script>
-import ContentFooter from '@/components/ContentFooter.vue'
-import LanguageSwitch from '@/components/LanguageSwitch2'
 import AuthHeader from '@/components/Auth/Header.vue'
 import Carousel from '@/components/Auth/Carousel.vue'
+import LanguageSwitch from '@/components/LanguageSwitch2'
+import AuthFooter from '@/components/Auth/Footer.vue'
 
 export default {
   name: 'AuthTemplate',
   components: {
-    ContentFooter,
-    LanguageSwitch,
     AuthHeader,
     Carousel,
+    LanguageSwitch,
+    AuthFooter,
   },
   data() {
     return {
@@ -131,6 +131,16 @@ export default {
 <style lang="scss">
 .page-font-size {
   font-size: 1rem;
+}
+.auth-template {
+  overflow-x: hidden;
+}
+.auth-template,
+.auth-template-content {
+  height: 100%;
+}
+.auth-header {
+  z-index: 999;
 }
 .mobil-start-box {
   position: fixed;
@@ -166,30 +176,23 @@ export default {
   position: relative;
 }
 
-.auth-template-content {
-  height: 100%;
-}
-.auth-header {
-  z-index: 999;
-}
-
 .bg-img-box {
-  margin-top: -178px;
-  /* margin-left: -80px; */
+  margin-top: -308px;
+  margin-left: -118px;
   position: absolute;
-  top: 0px;
-  bottom: 0px;
+  top: 33px;
+  bottom: -228px;
   min-width: 86%;
-  /* max-width: 800px; */
-  background-color: bisque;
-  border-radius: 0% 50% 70% 0%/50% 70% 70% 50%;
+  max-width: 800px;
+  /* background-color: bisque; */
+  /* border-radius: 0% 48% 74% 0%/59% 70% 73% 47%; */
 }
 .bg-txt-box {
   position: relative;
-  margin-top: 300px;
-  padding-bottom: 20px;
-
+  margin-top: 317px;
+  /* padding-bottom: 20px; */
   text-shadow: 2px 2px 8px #000000;
+  max-width: 733px;
 }
 .bg-txt-box > .h0 {
   font-size: 4em;

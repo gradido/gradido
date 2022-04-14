@@ -10,19 +10,13 @@
       <b-collapse id="nav-collapse" is-nav>
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item>{{ $t('auth.navbar.overGradido') }}</b-nav-item>
+          <b-nav-item to="https://gradido.net/de/" target="_blank">
+            {{ $t('auth.navbar.overGradido') }}
+          </b-nav-item>
 
-          <b-nav-item>{{ $t('auth.navbar.greatCooperation') }}</b-nav-item>
+          <b-nav-item to="/register">{{ $t('signup') }}</b-nav-item>
 
-          <b-nav-item>{{ $t('auth.navbar.podcast') }}</b-nav-item>
-
-          <b-nav-item>{{ $t('auth.navbar.press') }}</b-nav-item>
-
-          <b-nav-item>{{ $t('auth.navbar.contact') }}</b-nav-item>
-
-          <b-nav-item to="/login">{{ $t('signup') }}</b-nav-item>
-
-          <b-nav-item to="/register">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item to="/login">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -58,6 +52,9 @@ export default {
 }
 </script>
 <style lang="scss">
+.auth-header {
+  font-family: 'Open Sans';
+}
 .navbar-collapse {
   margin-left: 20px;
 }
