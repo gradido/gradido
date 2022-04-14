@@ -111,7 +111,7 @@
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Open links and QR codes",
-    "no-account": "You don't have a Gradido account yet",
+    "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Could not copy link: {err}",
     "redeem": "Redeem",
@@ -120,7 +120,7 @@
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
     "to-login": "Log in",
-    "to-register": "Register a new account",
+    "to-register": "Register a new account.",
     "valid_until": "Valid until"
   },
   "gdt": {
