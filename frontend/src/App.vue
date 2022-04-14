@@ -21,6 +21,11 @@ export default {
   height: 100%;
   min-width: 360p;
   font-size: 1rem;
+  font-family: 'WorkSans';
+}
+@font-face {
+  font-family: 'WorkSans';
+  src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
 }
 @media screen and (max-width: 500px) {
   #app {
