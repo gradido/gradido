@@ -2,6 +2,7 @@
   "all_emails": "All users",
   "back": "back",
   "creation": "Creation",
+  "creationList":"Creation list",
   "creation_form": {
     "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
