@@ -2,7 +2,7 @@
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "creation": "Schöpfung",
-  "creationList":"Schöpfungsliste",
+  "creationList": "Schöpfungsliste",
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
