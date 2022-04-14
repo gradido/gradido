@@ -60,6 +60,7 @@
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "session-expired": "The session was closed for security reasons."
   },
+  "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
     "copyright": {

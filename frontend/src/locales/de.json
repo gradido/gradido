@@ -60,6 +60,7 @@
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
   },
+  "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
     "copyright": {
