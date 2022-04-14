@@ -27,7 +27,7 @@ export default {
   },
   created() {
     const image = new Image()
-    image.src = 'img/gdd-coin-sw.png'
+    image.src = 'img/gdd-coin.png'
     image.onload = () => {
       this.options = {
         ...this.options,
