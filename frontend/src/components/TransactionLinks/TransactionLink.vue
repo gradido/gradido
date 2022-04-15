@@ -1,20 +1,33 @@
 <template>
   <div class="transaction-link gradido-custom-background">
     <b-row class="mb-2 pt-2 pb-2">
-      <b-col cols="2">
+      <b-col lg="2">
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
       </b-col>
-      <b-col cols="9">
-        <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
-        <memo-row :memo="memo" />
-        <date-row :date="validUntil" :diffNow="true" />
-        <decay-row :decay="decay" />
+      <b-col lg="9" md="9">
+        <b-row>
+          <b-col lg="11" md="10">
+            <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
+            <memo-row :memo="memo" />
+            <date-row :date="validUntil" :diffNow="true" />
+            <decay-row :decay="decay" />
+          </b-col>
+          <b-col lg="1" md="2" class="text-center text-lg-left qr-button">
+            <b-button
+              @click="$bvModal.show('modalPopover-' + id)"
+              class="p-2 test-qr-code"
+              size="sm"
+            >
+              <b-img src="img/svg/qr-code.svg" width="60" class="filter"></b-img>
+            </b-button>
+          </b-col>
+        </b-row>
       </b-col>
 
-      <b-col cols="1" class="text-right">
+      <b-col lg="1" md="1" class="text-center text-lg-right">
         <b-button
-          class="p-2"
-          size="sm"
+          class="p-2 test-copy-link"
+          size="lg"
           variant="outline-primary"
           @click="copy"
           :title="$t('gdd_per_link.copy')"
@@ -23,9 +36,8 @@
         </b-button>
         <br />
         <b-button
-          class="p-2 mt-3"
+          class="p-2 mt-3 test-delete-link"
           size="sm"
-          variant="outline-danger"
           @click="deleteLink()"
           :title="$t('delete')"
         >
@@ -33,6 +45,12 @@
         </b-button>
       </b-col>
     </b-row>
+    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
+      <div class="text-center">
+        <figure-qr-code :text="link" />
+        <p>{{ link }}</p>
+      </div>
+    </b-modal>
   </div>
 </template>
 <script>
@@ -42,6 +60,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
+import FigureQrCode from '@/components/QrCode/FigureQrCode.vue'
 
 export default {
   name: 'TransactionLink',
@@ -51,6 +70,7 @@ export default {
     MemoRow,
     DateRow,
     DecayRow,
+    FigureQrCode,
   },
   props: {
     amount: { type: String, required: true },
@@ -62,9 +82,8 @@ export default {
   },
   methods: {
     copy() {
-      const link = `${window.location.origin}/redeem/${this.code}`
       navigator.clipboard
-        .writeText(link)
+        .writeText(this.link)
         .then(() => {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
@@ -96,6 +115,18 @@ export default {
     decay() {
       return `${this.amount - this.holdAvailableAmount}`
     },
+    link() {
+      return `${window.location.origin}/redeem/${this.code}`
+    },
   },
 }
 </script>
+<style>
+.qr-button {
+  position: relative;
+  right: 20px;
+}
+.filter {
+  filter: opacity(0.6);
+}
+</style>
