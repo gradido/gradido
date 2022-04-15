@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="jqy9GLoHfEna4h-l2pXZ" name="Seite-1">
-        <mxGraphModel dx="2893" dy="1778" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+        <mxGraphModel dx="1302" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -140,9 +140,9 @@
                         <mxPoint x="1045" y="601" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="50" value="&lt;b&gt;&amp;nbsp; request: &lt;/b&gt;http://&amp;lt;url_A&amp;gt;/&amp;lt;apiVer_A&amp;gt;//&lt;b&gt;openConnectionRedirect&lt;/b&gt;(&lt;font color=&quot;#ff00ff&quot;&gt;&lt;b&gt;onetimeCode&lt;/b&gt;&lt;/font&gt;, url_B, encrypted &lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;redirect_URL&lt;/b&gt;&lt;/font&gt;)&amp;nbsp;&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" parent="49" vertex="1" connectable="0">
+                <mxCell id="50" value="&lt;b&gt;&amp;nbsp; request: &lt;/b&gt;http://&amp;lt;url_A&amp;gt;/&amp;lt;apiVer_A&amp;gt;//&lt;b&gt;openConnectionRedirect&lt;/b&gt;(&lt;font color=&quot;#ff00ff&quot;&gt;&lt;b&gt;onetimeCode&lt;/b&gt;&lt;/font&gt;, url_B, encrypted and signed&amp;nbsp;&lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;redirect_URL&lt;/b&gt;&lt;/font&gt;)&amp;nbsp;&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;" parent="49" vertex="1" connectable="0">
                     <mxGeometry x="0.255" y="2" relative="1" as="geometry">
-                        <mxPoint x="72" y="-3" as="offset"/>
+                        <mxPoint x="97" y="-1" as="offset"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="132" style="edgeStyle=none;html=1;fontColor=#FF0000;startArrow=none;startFill=0;endArrow=none;endFill=0;dashed=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" parent="1" source="51" edge="1">
@@ -158,7 +158,7 @@
                         <Array as="points"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="53" value="&lt;font color=&quot;#009900&quot;&gt;pubkey_A of url_A&lt;/font&gt;&lt;br&gt;==&amp;nbsp;&lt;font color=&quot;#ff0000&quot;&gt;pubkey_A&lt;/font&gt;?" style="rhombus;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                <mxCell id="53" value="&lt;span style=&quot;color: rgb(0 , 153 , 0)&quot;&gt;url_A of&amp;nbsp;&lt;/span&gt;&lt;font color=&quot;#009900&quot;&gt;pubkey_A&lt;/font&gt;&lt;br&gt;==&amp;nbsp;&lt;font color=&quot;#ff0000&quot;&gt;url_A&lt;/font&gt;?" style="rhombus;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="1998.14" y="880.25" width="150" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="55" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;span&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;existing infrastructure Community-A&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;align=left;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" parent="1" vertex="1">
@@ -246,7 +246,7 @@
                         <Array as="points"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="100" value="encrypt redirect_URL&amp;nbsp;&amp;nbsp;&lt;br&gt;with &lt;font color=&quot;#009900&quot;&gt;publickey_A&lt;/font&gt; + sign with &lt;font color=&quot;#009900&quot;&gt;privatKey_B&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" parent="1" vertex="1">
+                <mxCell id="100" value="encrypt redirect_URL (inc. apiVersion)&amp;nbsp;&amp;nbsp;&lt;br&gt;with &lt;font color=&quot;#009900&quot;&gt;publickey_A&lt;/font&gt; + sign with &lt;font color=&quot;#009900&quot;&gt;privatKey_B&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" parent="1" vertex="1">
                     <mxGeometry x="1406.8600000000001" y="951" width="276.28" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="101" value="" style="endArrow=classic;html=1;fontSize=14;fontColor=#FF8000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=none;startFill=0;endFill=1;" parent="1" source="83" target="100" edge="1">
@@ -300,7 +300,7 @@
                         <mxPoint x="2325" y="1330" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="120" value="search &lt;font color=&quot;#ff0000&quot;&gt;&lt;b&gt;url_A&lt;/b&gt;&lt;/font&gt;&amp;nbsp;in &lt;br&gt;local Community-List" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" parent="1" vertex="1">
+                <mxCell id="120" value="search &lt;font color=&quot;#ff0000&quot;&gt;&lt;b&gt;pubKey_A&lt;/b&gt;&lt;/font&gt;&amp;nbsp;in &lt;br&gt;local Community-List" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;" parent="1" vertex="1">
                     <mxGeometry x="1613.14" y="896" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="121" value="" style="endArrow=classic;html=1;fontSize=14;fontColor=#FF8000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;endFill=1;" parent="1" source="51" target="120" edge="1">

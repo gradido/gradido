@@ -221,13 +221,49 @@ For the first federation release the DHT-node will be part of the apollo server,
 
 ### Stage2 - Authentication
 
-The 2nd stage of federation is called authentication, because during the 1st stage the hyperswarm dht only ensures the knowledge that one node is the owner of its keypairs pubkey and private key. The exchanged data between two nodes during the *direct exchange* on the hyperswarm dht channel must be verified, means ensure if the proclaimed url and apiversion of a node is the correct address to reach the same node outside the hyperswarm infrastructure.
+The 2nd stage of federation is called *authentication*, because during the 1st stage the *hyperswarm dht* only ensures the knowledge that one node is the owner of its keypairs *pubkKy* and *privateKey*. The exchanged data between two nodes during the *direct exchange* on the *hyperswarm dht channel* must be verified, means ensure if the proclaimed *url(s)* and *apiversion(s)* of a node is the correct address to reach the same node outside the hyperswarm infrastructure.
 
-As mentioned the DHT-node invokes the authentication stage on apollo server with the received data from *direct exchange*.
+As mentioned before the *DHT-node* invokes the *authentication* stage on *apollo server* *graphQL* with the previous stored data of the foreign node. 
 
-#### Sequence
+#### Sequence - view of existing Community
+
+1. the authentication stage starts by reading for the *foreignNode* from the previous federation step all necessary data
+   1. select with the *foreignNode.pubKey* from the tables *CommunityFederation* and *CommunityApiVersion* where *CommunityApiVersion.validFrom* <= NOW
+   2. the resultSet will be a list of data with the following attributes
+      * foreignNode.pubKey
+      * foreignNode.url
+      * foreignNode.apiVersion
+2. read the own keypair and uuid by `select uuid, privateKey, pubKey from CommunityFederation cf where cf.foreign = FALSE`
+3. for each entry of the resultSet do
+   1. encryptedURL = encrypting the foreignNode.url and foreignNode.apiVersion with the foreignNode.pubKey
+   2. signedAndEncryptedURL = sign the result of the encryption with the own privateKey
+   3. invoke the request `https://<foreignNode.url>/<foreignNode.apiVersion/openConnection(own.pubKey, signedAndEncryptedURL )`
+   4. the foreign node will response immediately with an empty response OK, otherwise break the authentication stage with en error
+4. the foreign node will process the request on its side - see [description below](#Sequence - view of new Community) - and invokes a redirect request base on the previous exchanged data during stage1 - Federation. This could be more than one redirect request depending on the amount of supported urls and apiversions we propagate to the foreignNode before.
+5. for each received request `https://<own.url>/<own.apiVersion/openConnectionRedirect(onetimecode, foreignNode.url, encryptedRedirectURL )` do
+   1. with the given parameter the following steps will be done
+      1. search for the foreignNode.pubKey by `select cf.pubKey from CommunityApiVersion cav, CommunityFederation cf where cav.url = foreignNode.url and cav.communityFederationID = cf.id`
+      2. decrypt with the `own.privateKey` the received `encryptedRedirectURL` parameter, which contains a full qualified url inc. apiversion and route
+      3. verify signature of `encryptedRedirectURL` with the previous found foreignNode.pubKey from the own database
+      4. if the decryption and signature verification are successful then encrypt the own.uuid with the own.privateKey
+      5. invoke the redirect request with https://`<redirect.URL>(onetimecode, encryptedOwnUUID)`  and
+      6. wait for the response with the `encryptedForeignUUID`
+      7. decrypt the `encrpytedForeignUUID` with the foreignNode.pubKey
+      8. write the encrypted foreignNode.UUID in the database by updating the CommunityFederation table per `update CommunityFederation cf set values (cf.uuid = foreignNode.UUID, cf.pubKeyVerifiedAt = NOW) where cf.pubKey = foreignNode.pubkey`
+
+After all redirect requests are process, all relevant authentication data of the new community are well know here and stored in the database.
+
+
+#### Sequence - view of new Community {Sequence - view of new Community}
+
+ongoing
+
+
 
 ### Stage3 - Autorized Business Communication
+
+ongoing
+
 
 # Review von Ulf
 
