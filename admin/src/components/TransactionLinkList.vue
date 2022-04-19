@@ -1,7 +1,7 @@
 <template>
   <div class="transaction-link-list">
     <div v-if="items.length > 0">
-      <div class="h3">{{ $t('transactionlink.form_header') }}</div>
+      <div class="h3">{{ $t('transactionlink.name') }}</div>
       <b-table striped hover :fields="fields" :items="items"></b-table>
     </div>
     <b-pagination
