@@ -1,6 +1,6 @@
 <template>
   <div class="pb-4">
-    <b-tabs content-class="" justified>
+    <b-tabs v-model="tabIndex" content-class="" justified>
       <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
@@ -53,11 +53,11 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      titleGdt: this.$t('gdt.gdt'),
       transactionsGdt: [],
       transactionGdtCount: 0,
       currentPage: 1,
       pageSize: 25,
+      tabIndex: 0,
     }
   },
   methods: {
@@ -85,6 +85,13 @@ export default {
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+  },
+  computed: {
+    titleGdt(boolean) {
+      if (this.tabIndex === 1)
+        return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
+      return this.$t('gdt.gdt')
     },
   },
   watch: {
