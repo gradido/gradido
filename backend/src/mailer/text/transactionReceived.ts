@@ -29,6 +29,6 @@ Mit freundlichen Grüßen,
 dein Gradido-Team
 
 
-Link zu deiner Übersicht: ${data.overviewURL}`,
+Link zu deinem Konto: ${data.overviewURL}`,
   },
 }
