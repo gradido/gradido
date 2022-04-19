@@ -30,18 +30,4 @@ yarn dev_down
 ```
 yarn dev_reset
 ```
-
-## Seed DB
-```
-yarn seed
-```
-
-## Seeded Users
-
-| email                  | password   | admin   |
-|------------------------|------------|---------|
-| peter@lustig.de        | `Aa12345_` | `true`  |
-| bibi@bloxberg.de       | `Aa12345_` | `false` |
-| raeuber@hotzenplotz.de | `Aa12345_` | `false` |
-| bob@baumeister.de      | `Aa12345_` | `false` |
  
