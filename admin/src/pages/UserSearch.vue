@@ -85,7 +85,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            notActivated: this.filterCheckedEmails,
+            isEmailChecked: !this.filterCheckedEmails,  // Wolle: has this boolean really to be negated as well?
             isDeleted: this.filterDeletedUser,
           },
           fetchPolicy: 'no-cache',

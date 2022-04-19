@@ -56,15 +56,15 @@ export class AdminResolver {
       searchText,
       currentPage = 1,
       pageSize = 25,
-      notActivated = null,
+      isEmailChecked = null,
       isDeleted = null,
     }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (notActivated !== null) {
-      filterCriteria.push({ emailChecked: !notActivated })
+    if (isEmailChecked !== null) {
+      filterCriteria.push({ emailChecked: isEmailChecked })
     }
 
     if (isDeleted !== null) {
