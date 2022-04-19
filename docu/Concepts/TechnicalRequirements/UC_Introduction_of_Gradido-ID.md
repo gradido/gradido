@@ -20,152 +20,122 @@ The second step is to decribe all concerning business logic processes, which hav
 
 #### Users-Table
 
-##### new Columns
+The entity users has to be changed by adding the following columns.
 
-The database entity *Users* has to be extended by the new columns:
+| Column                   | Type   | Description                                                                            |
+| ------------------------ | ------ | -------------------------------------------------------------------------------------- |
+| gradidoID                | String | technical unique key of the user as UUID (version 4)                                   |
+| alias                    | String | a business unique key of the user                                                      |
+| passphraseEncryptionType | int    | defines the type of encrypting the passphrase: 1 = email (default), 2 = gradidoID, ... |
+| emailID                  | int    | technical foreign key to the new entity Contact                                        |
 
-###### Gradido-ID
+##### Email vs emailID
 
-the technical key of the user as UUID
+The existing column `email`, will now be changed to the primary email contact, which will be stored as a contact entry in the new `UserContacts` table. It is necessary to decide if the content of the `email `will be changed to the foreign key `emailID `to the contact entry with the email address or if the email itself will be kept as a denormalized and duplicate value in the `users `table.
 
-```
-@Column({ length: 36, unique: true, nullable: false })
-  Gradido-ID: string
-```
+The preferred and proper solution will be to add a new column `Users.emailId `as foreign key to the `UsersContact `entry and delete the `Users.email` column after the migration of the email address in the `UsersContact `table.
 
-###### Alias
+#### new UserContacts-Table
 
-an alias as business key of the user
+A new entity `UserContacts `is introduced to store several contacts of different types like email, telephone or other kinds of contact addresses.
 
-```
-@Column({ length: 255, unique: true, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  alias: string
-```
-
-###### Passphrase_Encryption_Type
-
-defines the type of encrypting the passphrase: 1 = email (default), 2 = gradidoID, ...
-
-```
-@Column({ type: 'int', default: 1, unique: false, nullable: false })
-passphrase_encryption_type: int
-```
-
-##### changed Columns
-
-###### Email
-
-the existing column email, will now be changed to the primary email contact, which will be stored as a contact entry in the new contact table. It is necessary to decide if the content of this column will be changed to a foreign key to the contact entry with the email address or if the email itself will be kept as a denormalized and duplicate value in the users table.
-
-The preferred and proper solution will be to add a new column emailId as foreign key to the contact entry and delete the email column after the migration of the email address in the contact table.
-
-```
-  @Column({ name: 'eamil_id', unsigned: true, nullable: false })
-  emailId: number
-
-replaces the following column:
-
-  @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  email: string
-
-```
-
-#### new Contact-Table
-
-A new entity is introduced to store several contacts of different types like email, telephone or other kinds of contact addresses.
-
-```
-@Entity('user_contacts', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
-export class UserContacts extends BaseEntity {
-```
-
-###### Id
-
-the technical key of a contact entity
-
-```
-@PrimaryGeneratedColumn('increment', { unsigned: true })
-id: number
-```
-
-###### Type
-
-Defines the type of contact entry as enum: Email, Phone, etc
-
-```
-  @Column({ name: 'type', unsigned: true, nullable: false })
-  type: number
-```
-
-###### UserId
-
-Defines the foreign key to the users table
-
-```
-  @Column({ name: 'user_id', unsigned: true, nullable: false })
-  userId: number
-```
-
-###### Email
-
-defines the address of a contact entry of type Email
-
-```
-  @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  email: string
-```
-
-###### Phone
-
-defines the address of a contact entry of type Phone
-
-```
-  @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  phone: string
-```
-
-###### UsedChannel
-
-define the contact channel for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ...
-
-```
-  @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  usedChannel: string
-```
+| Column          | Type   | Description                                                                                                                                                            |
+| --------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id              | int    | the technical key of a contact entity                                                                                                                                  |
+| type            | int    | Defines the type of contact entry as enum: Email, Phone, etc                                                                                                           |
+| userID          | int    | Defines the foreign key to the `Users` table                                                                                                                         |
+| email           | String | defines the address of a contact entry of type Email                                                                                                                   |
+| phone           | String | defines the address of a contact entry of type Phone                                                                                                                   |
+| contactChannels | String | define the contact channel as comma separated list for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ... |
 
 ### Database-Migration
 
-After the adaption of the database schema and to keep valid data there must be several steps of data migration to initialize the new and changed columns and tables.
+After the adaption of the database schema and to keep valid consistent data, there must be several steps of data migration to initialize the new and changed columns and tables.
 
 #### Initialize GradidoID
 
-In a one-time migration create for each entry of the users tabel an unique UUID (version4).
+In a one-time migration create for each entry of the `Users `tabel an unique UUID (version4).
 
 #### Primary Email Contact
 
-In a one-time migration read for each entry of the users table the users.id and users.email and create for it a new entry in the contact table, by initializing the contact-values with:
+In a one-time migration read for each entry of the `Users `table the `Users.id` and `Users.email` and create for it a new entry in the `UsersContact `table, by initializing the contact-values with:
 
-* Id = new technical key
-* Type = Email
-* UserId = users.Id
-* Email = users.email
-* Phone = null
-* UsedChannel = "main contact"
+* id = new technical key
+* type = Enum-Email
+* userID = `Users.id`
+* email = `Users.email`
+* phone = null
+* usedChannel = Enum-"main contact"
 
-and update the users entry with users.emailId = contact.Id
+and update the `Users `entry with `Users.emailId = UsersContact.Id` and `Users.passphraseEncryptionType = 1`
 
-After this one-time migration the column users.email can be deleted.
+After this one-time migration the column `Users.email` can be deleted.
 
 ### Adaption of BusinessLogic
 
-The following logic or business processes has to be adapted through introducing the Gradido-ID
+The following logic or business processes has to be adapted for introducing the Gradido-ID
 
 #### Read-Write Access of Users-Table especially Email
 
+The ORM mapping has to be adapted to the changed and new database schema.
+
 #### Registration Process
+
+The logic of the registration process has to be adapted by
+
+* initializing the `Users.userID` with a unique UUID
+* creating a new `UsersContact `entry with the given email address and *maincontact* as `usedChannel `
+* set `emailID `in the `Users `table as foreign key to the new `UsersContact `entry
+* set `Users.passphraseEncrpytionType = 2` and encrypt the passphrase with the `Users.userID` instead of the `UsersContact.email`
 
 #### Login Process
 
+The logic of the login process has to be adapted by
+
+* search the users data by reading the `Users `and the `UsersContact` table with the email (or alias as soon as the user can maintain his profil with an alias)   as input
+* depending on the `Users.passphraseEncryptionType` decrypt the stored password
+  * = 1 :  with the email
+  * = 2 : with the userID
+
 #### Password En/Decryption
 
+The logic of the password en/decryption has to be adapted by encapsulate the logic to be controlled with an input parameter. The input parameter can be the email or the userID.
+
+#### Change Password Process
+
+The logic of change password has to be adapted by
+
+* if the `Users.passphraseEncryptionType` = 1, then
+
+  * read the users email address from the `UsersContact `table
+  * give the email address as input for the password decryption of the existing password
+  * use the `Users.userID` as input for the password encryption fo the new password
+  * change the `Users.passphraseEnrycptionType` to the new value =2
+* if the `Users.passphraseEncryptionType` = 2, then
+
+  * give the `Users.userID` as input for the password decryption of the existing password
+  * use the `Users.userID` as input for the password encryption fo the new password
+
+#### Search- and Access Logic
+
+A new logic has to be introduced to search the user identity per different input values. That means searching the user data must be possible by
+
+* searching per email (only with maincontact as contactchannel)
+* searching per userID
+* searching per alias
+
 #### Identity-Mapping
+
+A new mapping logic will be necessary to allow using unmigrated APIs like GDT-servers api. So it must be possible to give this identity-mapping logic the following input to get the respective output:
+
+* email -> userID
+* email -> alias
+* userID -> email
+* userID -> alias
+* alias -> email
+* alias -> userID
+
+
+#### GDT-Access
+
+To use the GDT-servers api the used identifier for GDT has to be switch from email to userID.
