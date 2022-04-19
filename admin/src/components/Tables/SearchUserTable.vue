@@ -60,7 +60,6 @@
                 :creationUserData="creationUserData"
                 @update-user-data="updateUserData"
               />
-              <div v-else>{{ $t('userIsDeleted') }}</div>
             </b-tab>
             <b-tab :title="$t('e_mail')" :disabled="row.item.deletedAt !== null">
               <confirm-register-mail-formular
@@ -77,10 +76,7 @@
             <b-tab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
               <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
-            <b-tab
-              :title="$t('transactionlink.form_header')"
-              :disabled="row.item.deletedAt !== null"
-            >
+            <b-tab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
               <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
             <b-tab :title="$t('delete_user')">

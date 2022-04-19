@@ -79,7 +79,7 @@
   "text": "Text",
   "transactionlink": {
     "created": "Erstellt",
-    "form_header": "Transaktion-Links",
+    "name": "Transaktion-Links",
     "valid_until": "Gültig bis"
   },
   "transactionlist": {
@@ -101,7 +101,6 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
-  "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
   "user_search": "Nutzer-Suche"
