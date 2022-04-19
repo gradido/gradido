@@ -15,12 +15,17 @@
         />
       </b-tab>
 
-      <b-tab :title="titelGdt" class="px-4" @click="$refs.childComponentRef.updateGdt()">
+      <b-tab :title="titleGdt" class="px-4" @click="updateGdt()">
         <b-row class="mb-3">
           <b-col>{{ $t('transaction.gdt-text') }}</b-col>
           <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
         </b-row>
-        <gdt-transaction-list ref="childComponentRef" />
+        <gdt-transaction-list
+          v-model="currentPage"
+          :transactionsGdt="transactionsGdt"
+          :transactionGdtCount="transactionGdtCount"
+          :pageSize="pageSize"
+        />
       </b-tab>
     </b-tabs>
   </div>
@@ -28,6 +33,7 @@
 <script>
 import GddTransactionList from '@/components/GddTransactionList.vue'
 import GdtTransactionList from '@/components/GdtTransactionList.vue'
+import { listGDTEntriesQuery } from '@/graphql/queries'
 
 export default {
   name: 'Transactions',
@@ -47,12 +53,43 @@ export default {
   data() {
     return {
       timestamp: Date.now(),
-      titelGdt: this.$t('gdt.gdt'),
+      titleGdt: this.$t('gdt.gdt'),
+      transactionsGdt: [],
+      transactionGdtCount: 0,
+      currentPage: 1,
+      pageSize: 25,
     }
   },
   methods: {
+    async updateGdt() {
+      this.$apollo
+        .query({
+          query: listGDTEntriesQuery,
+          variables: {
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          },
+        })
+        .then((result) => {
+          const {
+            data: { listGDTEntries },
+          } = result
+          this.transactionsGdt = listGDTEntries.gdtEntries
+          this.transactionGdtCount = listGDTEntries.count
+          window.scrollTo(0, 0)
+        })
+        .catch((error) => {
+          this.transactionGdtCount = -1
+          this.toastError(error.message)
+        })
+    },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+  },
+  watch: {
+    currentPage() {
+      this.updateGdt()
     },
   },
 }
