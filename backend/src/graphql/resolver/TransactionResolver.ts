@@ -1,6 +1,8 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import CONFIG from '@/config'
+
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
@@ -134,6 +136,7 @@ export const executeTransaction = async (
     senderEmail: sender.email,
     amount,
     memo,
+    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
 
   return true

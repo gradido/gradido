@@ -20,6 +20,7 @@ describe('sendTransactionReceivedEmail', () => {
       senderEmail: 'bibi@bloxberg.de',
       amount: new Decimal(42.0),
       memo: 'Vielen herzlichen Dank für den neuen Hexenbesen!',
+      overviewURL: 'http://localhost/overview',
     })
   })
 
@@ -32,7 +33,8 @@ describe('sendTransactionReceivedEmail', () => {
         expect.stringContaining('42,00 GDD') &&
         expect.stringContaining('Bibi Bloxberg') &&
         expect.stringContaining('(bibi@bloxberg.de)') &&
-        expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!'),
+        expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!') &&
+        expect.stringContaining('http://localhost/overview'),
     })
   })
 })
