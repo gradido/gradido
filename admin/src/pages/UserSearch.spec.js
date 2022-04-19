@@ -101,7 +101,7 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              isEmailChecked: false,
+              isEmailChecked: true,
               isDeleted: null,
             },
           }),
