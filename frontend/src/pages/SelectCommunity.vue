@@ -5,9 +5,9 @@
 
       <div v-if="!pending">
         <b-card class="border-0 mb-0" bg-variant="primary">
-          <b>{{ $store.state.community.name }}</b>
+          <b>{{ CONFIG.COMMUNITY_NAME }}</b>
           <br />
-          <p>{{ $store.state.community.description }}</p>
+          <p>{{ CONFIG.COMMUNITY_DESCRIPTION }}</p>
           <br />
           <router-link to="/register">
             <b-button variant="outline-secondary">
@@ -49,7 +49,7 @@
 </template>
 <script>
 import { communities } from '@/graphql/queries'
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   name: 'SelectCommunity',
@@ -57,9 +57,9 @@ export default {
     return {
       communities: [],
       pending: true,
+      CONFIG,
     }
   },
-  mixins: [getCommunityInfoMixin],
   methods: {
     async getCommunities() {
       const loader = this.$loading.show({
@@ -72,7 +72,7 @@ export default {
         })
         .then((response) => {
           this.communities = response.data.communities.filter(
-            (c) => c.name !== this.$store.state.community.name,
+            (c) => c.name !== CONFIG.COMMUNITY_NAME,
           )
         })
         .catch((error) => {
