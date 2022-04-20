@@ -1,19 +1,27 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="header py-7 py-lg-8 pt-lg-9">
+    <div class="header py-lg-6">
       <b-container>
         <div class="header-body text-center mb-7">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h1">{{ $t(displaySetup.headline) }}</p>
+          <p class="h1 test-message-headline">{{ $t(displaySetup.headline) }}</p>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h4">{{ $t(displaySetup.subtitle) }}</p>
+          <p class="h4 test-message-subtitle">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
-          <b-button v-if="$route.params.code" :to="`/login/${$route.params.code}`">
+          <b-button
+            v-if="$route.params.code"
+            class="test-message-button"
+            :to="`/login/${$route.params.code}`"
+          >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
-          <b-button v-else-if="displaySetup.linkTo" :to="displaySetup.linkTo">
+          <b-button
+            v-else-if="displaySetup.linkTo"
+            class="test-message-button"
+            :to="displaySetup.linkTo"
+          >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
@@ -26,13 +34,19 @@
 
 <script>
 const textFields = {
-  forgotPassword: {
+  'forgot-password-success': {
     headline: 'site.thx.title',
     subtitle: 'site.thx.email',
     button: 'login',
     linkTo: '/login',
   },
-  resetPassword: {
+  'forgot-password-error': {
+    headline: 'site.thx.errorTitle',
+    subtitle: 'error.email-already-sent',
+    button: 'login',
+    linkTo: '/login',
+  },
+  'reset-password': {
     headline: 'site.thx.title',
     subtitle: 'site.thx.reset',
     button: 'login',
@@ -44,7 +58,7 @@ const textFields = {
     button: 'site.login.signin',
     // linkTo: '/login',
   },
-  checkEmail: {
+  'check-email': {
     headline: 'site.thx.title',
     subtitle: 'site.thx.checkEmail',
     button: 'login',
@@ -65,7 +79,7 @@ export default {
   },
   data() {
     return {
-      displaySetup: textFields[this.kind]
+      displaySetup: textFields[this.kind],
     }
   },
 }

@@ -118,20 +118,25 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('toasts a standard error message', () => {
-              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
+            // Wolle it('toasts a standard error message', () => {
+            //   expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
+            // })
+            it('shows error message', () => {
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
-            })
+            // Wolle it('pushes to "/thx/forgotPassword"', () => {
+            //   expect(mockAPIcall).toBeCalledWith(
+            //     expect.objectContaining({
+            //       variables: {
+            //         email: 'user@example.org',
+            //       },
+            //     }),
+            //   )
+            //   expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            // })
           })
 
           describe('success', () => {
@@ -147,15 +152,20 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            // it('pushes to "/thx/forgotPassword"', () => {
+            //   expect(mockAPIcall).toBeCalledWith(
+            //     expect.objectContaining({
+            //       variables: {
+            //         email: 'user@example.org',
+            //       },
+            //     }),
+            //   )
+            //   expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            // })
+            it('shows thx', () => {
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
           })
         })

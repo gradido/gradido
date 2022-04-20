@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container class="mt--8 p-1">
+    <b-container v-if="!showPageMessage" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0 gradido-custom-background">
@@ -36,8 +36,8 @@
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
-    <b-container class="mt--8 p-1">
-      <message kind="forgotPassword" />
+    <b-container v-else class="mt--8 p-1">
+      <message :kind="success ? 'forgot-password-success' : 'forgot-password-error'" />
     </b-container>
   </div>
 </template>
@@ -54,11 +54,13 @@ export default {
   },
   data() {
     return {
-      disable: 'disabled',
+      // Wolle disable: 'disabled',
       form: {
         email: '',
       },
       subtitle: 'settings.password.subtitle',
+      showPageMessage: false,
+      success: null,
     }
   },
   methods: {
@@ -71,15 +73,17 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/forgotPassword')
+          this.showPageMessage = true
+          this.success = true
         })
         .catch(() => {
-          this.toastError(this.$t('error.email-already-sent'))
-          this.$router.push('/thx/forgotPassword')
+          this.showPageMessage = true
+          this.success = false
         })
     },
   },
   created() {
+    // Wolle: what shall happen here? change needed?
     if (this.$route.params.comingFrom) {
       this.subtitle = 'settings.password.resend_subtitle'
     }
