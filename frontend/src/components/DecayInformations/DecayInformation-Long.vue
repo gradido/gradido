@@ -1,15 +1,17 @@
 <template>
   <div class="decayinformation-long">
     <b-row>
-      <b-col cols="1"></b-col>
-      <b-col cols="11">
-        <div class="d-flex">
-          <div class="text-center pb-3 gradido-max-width">
+      <b-col>
+        <div>
+          <div class="text-center pb-3">
             <b-icon icon="droplet-half" class="mr-2" />
             <b>{{ $t('decay.calculation_decay') }}</b>
           </div>
         </div>
-
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col offset="1" cols="11">
         <b-row>
           <b-col cols="5" class="text-right">
             <div>{{ $t('decay.last_transaction') }}</div>
@@ -22,14 +24,7 @@
             </div>
           </b-col>
         </b-row>
-        <b-row>
-          <b-col cols="5" class="text-right">
-            <div>{{ $t('decay.past_time') }}</div>
-          </b-col>
-          <b-col cols="7">
-            <span v-if="duration">{{ durationText }}</span>
-          </b-col>
-        </b-row>
+        <duration-row :decayStart="decay.start" :decayEnd="decay.end" />
 
         <!-- Decay-->
         <b-row>
@@ -38,13 +33,17 @@
           </b-col>
           <b-col cols="7">{{ decay.decay | GDD }}</b-col>
         </b-row>
-        <hr class="mt-2 mb-2" />
-        <b-row>
-          <b-col class="text-center pt-3 pb-2">
-            <b>{{ $t('decay.calculation_total') }}</b>
-          </b-col>
-        </b-row>
-        <!-- Type-->
+      </b-col>
+    </b-row>
+    <hr class="mt-3 mb-3" />
+    <b-row>
+      <b-col class="text-center pb-3">
+        <b>{{ $t('decay.calculation_total') }}</b>
+      </b-col>
+    </b-row>
+    <!-- Type-->
+    <b-row>
+      <b-col offset="1" cols="11">
         <b-row>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <b-col cols="5" class="text-right">{{ $t(`decay.types.${typeId.toLowerCase()}`) }}</b-col>
@@ -69,8 +68,13 @@
   </div>
 </template>
 <script>
+import DurationRow from '@/components/TransactionRows/DurationRow.vue'
+
 export default {
   name: 'DecayInformation-Long',
+  components: {
+    DurationRow,
+  },
   props: {
     amount: { type: String, default: '0' },
     typeId: { type: String, default: '' },
