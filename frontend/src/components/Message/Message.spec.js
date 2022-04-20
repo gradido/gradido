@@ -1,101 +1,117 @@
 import { mount } from '@vue/test-utils'
-import Thx from './Message'
+import Message from './Message'
 
 const localVue = global.localVue
 
-const createMockObject = (comingFrom) => {
-  return {
-    $t: jest.fn((t) => t),
-    $route: {
-      params: {
-        comingFrom,
-      },
-    },
-  }
+const propsData = {
+  kind: 'forgot-password-success',
+}
+
+// Wolle const createMockObject = () => {
+//   return {
+//     $t: jest.fn((t) => t),
+//     $route: {
+//       params: {
+//         comingFrom,
+//       },
+//     },
+//   }
+// }
+const mocks = {
+  $t: jest.fn((t) => t),
 }
 
 describe('Message', () => {
   let wrapper
 
-  const Wrapper = (mocks) => {
-    return mount(Thx, { localVue, mocks })
+  const Wrapper = () => {
+    return mount(Message, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper(createMockObject('forgotPassword'))
+      wrapper = Wrapper()
     })
 
-    it('renders the thx page', () => {
+    it('renders the component', () => {
       expect(wrapper.find('div.header').exists()).toBeTruthy()
     })
 
-    it('renders the title', () => {
-      expect(wrapper.find('p.h1').text()).toBe('site.thx.title')
-    })
-  })
-
-  describe('coming from /forgot-password', () => {
-    beforeEach(() => {
-      wrapper = Wrapper(createMockObject('forgotPassword'))
-    })
-
-    it('renders the thanks text', () => {
-      expect(wrapper.find('p.h4').text()).toBe('site.thx.email')
-    })
-
-    it('renders the thanks redirect button', () => {
-      expect(wrapper.find('a.btn').text()).toBe('login')
+    it('renders title, subtitle, and button text', () => {
+      expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+      expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+      expect(wrapper.find('.test-message-button').text()).toBe('login')
     })
 
     it('links the redirect button to /login', () => {
+      // Wolle console.log(wrapper.html())
       expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
     })
   })
 
-  describe('coming from /reset-password', () => {
-    beforeEach(() => {
-      wrapper = Wrapper(createMockObject('resetPassword'))
-    })
+  // Wolle: test 'code' prop and have a look if there is other important stuff uncommented below
 
-    it('renders the thanks text', () => {
-      expect(wrapper.find('p.h4').text()).toBe('site.thx.reset')
-    })
+  // Wolle describe('coming from /forgot-password', () => {
+  //   beforeEach(() => {
+  //     wrapper = Wrapper(createMockObject('forgotPassword'))
+  //   })
 
-    it('renders the thanks redirect button', () => {
-      expect(wrapper.find('a.btn').text()).toBe('login')
-    })
+  //   it('renders the thanks text', () => {
+  //     expect(wrapper.find('p.h4').text()).toBe('site.thx.email')
+  //   })
 
-    it('links the redirect button to /login', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
-    })
-  })
+  //   it('renders the thanks redirect button', () => {
+  //     expect(wrapper.find('a.btn').text()).toBe('login')
+  //   })
 
-  describe('coming from /register', () => {
-    beforeEach(() => {
-      wrapper = Wrapper(createMockObject('register'))
-    })
+  //   it('links the redirect button to /login', () => {
+  //     expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+  //   })
+  // })
 
-    it('renders the thanks text', () => {
-      expect(wrapper.find('p.h4').text()).toBe('site.thx.register')
-    })
-  })
+  // describe('coming from /reset-password', () => {
+  //   beforeEach(() => {
+  //     wrapper = Wrapper(createMockObject('resetPassword'))
+  //   })
 
-  describe('coming from /login', () => {
-    beforeEach(() => {
-      wrapper = Wrapper(createMockObject('login'))
-    })
+  //   it('renders the thanks text', () => {
+  //     expect(wrapper.find('p.h4').text()).toBe('site.thx.reset')
+  //   })
 
-    it('renders the thanks text', () => {
-      expect(wrapper.find('p.h4').text()).toBe('site.thx.activateEmail')
-    })
+  //   it('renders the thanks redirect button', () => {
+  //     expect(wrapper.find('a.btn').text()).toBe('login')
+  //   })
 
-    it('renders the thanks redirect button', () => {
-      expect(wrapper.find('a.btn').text()).toBe('settings.password.reset')
-    })
+  //   it('links the redirect button to /login', () => {
+  //     expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+  //   })
+  // })
 
-    it('links the redirect button to /forgot-password', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/forgot-password')
-    })
-  })
+  // describe('coming from /register', () => {
+  //   beforeEach(() => {
+  //     wrapper = Wrapper(createMockObject('register'))
+  //   })
+
+  //   it('renders the thanks text', () => {
+  //     expect(wrapper.find('p.h4').text()).toBe('site.thx.register')
+  //   })
+  // })
+
+  // describe('coming from /login', () => {
+  //   beforeEach(() => {
+  //     wrapper = Wrapper(createMockObject('login'))
+  //   })
+
+  //   it('renders the thanks text', () => {
+  //     expect(wrapper.find('p.h4').text()).toBe('site.thx.activateEmail')
+  //   })
+
+  //   it('renders the thanks redirect button', () => {
+  //     expect(wrapper.find('a.btn').text()).toBe('settings.password.reset')
+  //   })
+
+  //   it('links the redirect button to /forgot-password', () => {
+  //     expect(wrapper.find('a.btn').attributes('href')).toBe('/forgot-password')
+  //   })
+  // })
 })

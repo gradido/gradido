@@ -10,17 +10,9 @@
           <p class="h4 test-message-subtitle">{{ $t(displaySetup.subtitle) }}</p>
           <hr />
           <b-button
-            v-if="$route.params.code"
+            v-if="displaySetup.linkTo"
             class="test-message-button"
-            :to="`/login/${$route.params.code}`"
-          >
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-            {{ $t(displaySetup.button) }}
-          </b-button>
-          <b-button
-            v-else-if="displaySetup.linkTo"
-            class="test-message-button"
-            :to="displaySetup.linkTo"
+            :to="displaySetup.linkTo + (code ? `/${code}` : '')"
           >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
@@ -56,7 +48,7 @@ const textFields = {
     headline: 'site.thx.title',
     subtitle: 'site.thx.register',
     button: 'site.login.signin',
-    // linkTo: '/login',
+    linkTo: '/login',
   },
   'check-email': {
     headline: 'site.thx.title',
@@ -76,6 +68,7 @@ export default {
   name: 'Message',
   props: {
     kind: { type: String, required: true },
+    code: { type: String, default: '' },
   },
   data() {
     return {
