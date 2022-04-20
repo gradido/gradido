@@ -25,6 +25,12 @@ yarn down
 yarn dev_down
 ```
 
+## Reset database
+```
+yarn dev_reset
+```
+Runs all down migrations and after this all up migrations.
+
 
 ## Reset DB
 ```
