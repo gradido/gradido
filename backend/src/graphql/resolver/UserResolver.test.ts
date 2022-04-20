@@ -100,6 +100,7 @@ describe('UserResolver', () => {
               emailChecked: false,
               passphrase: expect.any(String),
               language: 'de',
+              isAdmin: false,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
