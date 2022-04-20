@@ -17,6 +17,7 @@
           <b-col cols="7">
             <div>
               {{ previousBookedBalance | GDD }}
+              {{ decay === '0' ? $t('math.minus') : '' }}
               {{ decay | GDD }} {{ $t('math.equal') }}
               <b>{{ balance | GDD }}</b>
             </div>

@@ -53,11 +53,9 @@ export default {
   },
   data() {
     return {
-      logo: 'img/brand/green.png',
       balance: 0,
       GdtBalance: 0,
       transactions: [],
-      bookedBalance: 0,
       transactionCount: 0,
       transactionLinkCount: 0,
       pending: true,

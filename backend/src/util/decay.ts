@@ -29,6 +29,7 @@ function calculateDecay(
   const decay: Decay = {
     balance: amount,
     decay: new Decimal(0),
+    roundedDecay: new Decimal(0),
     start: null,
     end: null,
     duration: null,
@@ -52,6 +53,10 @@ function calculateDecay(
   decay.end = to
   decay.balance = decayFormula(amount, decay.duration)
   decay.decay = decay.balance.minus(amount)
+  decay.roundedDecay = amount
+    .toDecimalPlaces(2, Decimal.ROUND_DOWN)
+    .minus(decay.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN).toString())
+    .mul(-1)
   return decay
 }
 

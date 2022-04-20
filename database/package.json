@@ -40,11 +40,9 @@
     "crypto": "^1.0.1",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
-    "faker": "^5.5.3",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
-    "typeorm": "^0.2.38",
-    "typeorm-seeding": "^1.6.1"
+    "typeorm": "^0.2.38"
   }
 }
