@@ -1,7 +1,7 @@
 <template>
   <div class="transaction-slot-link gradido-shadow-inset">
     <div>
-      <div @click="visible = !visible">
+      <div class="transaction-link-details" @click="showTransactionLinks()">
         <!-- Collaps Icon  -->
         <collapse-icon class="text-right" :visible="visible" />
         <div>
@@ -79,6 +79,14 @@ export default {
     }
   },
   methods: {
+    showTransactionLinks() {
+      if (this.visible) {
+        this.visible = false
+      } else {
+        this.updateListTransactionLinks()
+        this.visible = true
+      }
+    },
     async updateListTransactionLinks() {
       if (this.currentPage === 0) {
         this.transactionLinks = []
@@ -109,9 +117,6 @@ export default {
     currentPage() {
       this.updateListTransactionLinks()
     },
-  },
-  created() {
-    this.updateListTransactionLinks()
   },
 }
 </script>
