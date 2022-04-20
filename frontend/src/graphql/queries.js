@@ -95,17 +95,6 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
-    }
-  }
-`
-
 export const communities = gql`
   query {
     communities {
