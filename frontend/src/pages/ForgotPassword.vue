@@ -37,7 +37,22 @@
       </div>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <message :kind="success ? 'forgot-password-success' : 'forgot-password-error'" />
+      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
+      <message
+        v-if="success"
+        :headline="$t('site.thx.title')"
+        :subtitle="$t('site.thx.email')"
+        buttonText="login"
+        linkTo="/login"
+      />
+      <message
+        v-else
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="$t('error.email-already-sent')"
+        buttonText="login"
+        linkTo="/login"
+      />
+      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
   </div>
 </template>

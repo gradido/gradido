@@ -5,17 +5,17 @@
       <b-container>
         <div class="header-body text-center mb-7">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h1 test-message-headline">{{ $t(displaySetup.headline) }}</p>
+          <p class="h1 test-message-headline">{{ $t(headline) }}</p>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h4 test-message-subtitle">{{ $t(displaySetup.subtitle) }}</p>
+          <p class="h4 test-message-subtitle">{{ $t(subtitle) }}</p>
           <hr />
           <b-button
-            v-if="displaySetup.linkTo"
+            v-if="buttonText"
             class="test-message-button"
-            :to="displaySetup.linkTo + (code ? `/${code}` : '')"
+            :to="linkTo + (code ? `/${code}` : '')"
           >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-            {{ $t(displaySetup.button) }}
+            {{ $t(buttonText) }}
           </b-button>
         </div>
       </b-container>
@@ -25,55 +25,14 @@
 </template>
 
 <script>
-const textFields = {
-  'forgot-password-success': {
-    headline: 'site.thx.title',
-    subtitle: 'site.thx.email',
-    button: 'login',
-    linkTo: '/login',
-  },
-  'forgot-password-error': {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'error.email-already-sent',
-    button: 'login',
-    linkTo: '/login',
-  },
-  'reset-password': {
-    headline: 'site.thx.title',
-    subtitle: 'site.thx.reset',
-    button: 'login',
-    linkTo: '/login',
-  },
-  register: {
-    headline: 'site.thx.title',
-    subtitle: 'site.thx.register',
-    button: 'site.login.signin',
-    linkTo: '/login',
-  },
-  'check-email': {
-    headline: 'site.thx.title',
-    subtitle: 'site.thx.checkEmail',
-    button: 'login',
-    linkTo: '/login',
-  },
-  login: {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail',
-    button: 'settings.password.reset',
-    linkTo: '/forgot-password',
-  },
-}
-
 export default {
   name: 'Message',
   props: {
-    kind: { type: String, required: true },
-    code: { type: String, default: '' },
-  },
-  data() {
-    return {
-      displaySetup: textFields[this.kind],
-    }
+    headline: { type: String, required: true },
+    subtitle: { type: String, required: true },
+    buttonText: { type: String, required: false, default: null },
+    linkTo: { type: String, required: false, default: null },
+    code: { type: String, required: false, default: null },
   },
 }
 </script>

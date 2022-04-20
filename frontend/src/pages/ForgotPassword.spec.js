@@ -116,10 +116,14 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('shows error message', () => {
+            it('shows error title, subtitle, login button', () => {
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
+            })
+
+            it('button link redirects to /login', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
           })
 
@@ -136,10 +140,14 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('shows thx, email, send, login button', () => {
+            it('shows success title, subtitle, login button', () => {
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
+            })
+
+            it('button link redirects to /login', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
           })
         })

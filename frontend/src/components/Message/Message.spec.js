@@ -4,19 +4,12 @@ import Message from './Message'
 const localVue = global.localVue
 
 const propsData = {
-  kind: 'forgot-password-success',
+  headline: 'site.thx.title',
+  subtitle: 'site.thx.email',
+  buttonText: 'login',
+  linkTo: '/login',
 }
 
-// Wolle const createMockObject = () => {
-//   return {
-//     $t: jest.fn((t) => t),
-//     $route: {
-//       params: {
-//         comingFrom,
-//       },
-//     },
-//   }
-// }
 const mocks = {
   $t: jest.fn((t) => t),
 }
@@ -43,7 +36,7 @@ describe('Message', () => {
       expect(wrapper.find('.test-message-button').text()).toBe('login')
     })
 
-    it('links the redirect button to /login', () => {
+    it('button link redirects to /login', () => {
       // Wolle console.log(wrapper.html())
       expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
     })
