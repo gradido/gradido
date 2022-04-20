@@ -23,7 +23,7 @@ describe('GddTransactionList', () => {
     return mount(GddTransactionList, { localVue, mocks })
   }
 
-  const decayStartBlock = new Date(2001, 8, 9)
+  const decayStartBlock = new Date('2021-05-13 17:46:31-0000')
 
   describe('mount', () => {
     beforeEach(() => {
@@ -413,12 +413,16 @@ describe('GddTransactionList', () => {
             return {
               amount: '3.14',
               balanceDate: '2021-04-29T17:26:40+00:00',
-              decay: {},
+              decay: {
+                decay: '-477.01',
+                start: '2021-05-13T17:46:31.000Z',
+                end: '2022-04-20T06:51:25.000Z',
+                duration: 29509494,
+              },
               memo: 'Kreiszahl PI',
               linkedUser: {
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
-                __typename: 'User',
               },
               id: idx + 1,
               typeId: 'RECEIVE',
@@ -435,6 +439,7 @@ describe('GddTransactionList', () => {
       describe('next page button clicked', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
+          // await wrapper.vm.$nextTick()
           await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
         })
 
