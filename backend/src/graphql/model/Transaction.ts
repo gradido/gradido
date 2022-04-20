@@ -29,7 +29,7 @@ export class Transaction {
       this.decay = new Decay({
         balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
         decay: transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-        // TODO
+        // TODO: add correct value when decay must be rounded in transaction context
         roundedDecay: new Decimal(0),
         start: transaction.decayStart,
         end: transaction.balanceDate,

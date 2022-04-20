@@ -68,7 +68,7 @@ const virtualDecayTransaction = (
     userId: -1,
     previous: -1,
     typeId: TransactionTypeId.DECAY,
-    amount: decay.decay ? decay.roundedDecay : new Decimal(0), // this kinda is wrong, but helps with the frontend query
+    amount: decay.decay ? decay.roundedDecay : new Decimal(0),
     balance: decay.balance
       .minus(holdAvailabeAmount.toString())
       .toDecimalPlaces(2, Decimal.ROUND_DOWN),
