@@ -81,6 +81,11 @@ sudo certbot
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
 # Note: this will throw an error regarding not beeing able to identify the nginx corresponding
 #       config but produce the required certificate - thats perfectly fine this way
+# Troubleshoot: to manually renew a certificate with running nginx use the following command:
+#               (this might be required once to properly have things setup for the cron to autorenew)
+# sudo certbot --nginx -d example.com -d www.example.com
+# Troubleshoot: to check ut if things working you can use
+# sudo certbot renew --dry-run
 
 # Install logrotate
 sudo apt-get install -y logrotate
