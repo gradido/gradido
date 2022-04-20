@@ -82,22 +82,5 @@ export default {
       type: Object,
     },
   },
-  computed: {
-    duration() {
-      return this.$moment.duration(new Date(this.decay.end) - new Date(this.decay.start))._data
-    },
-    durationText() {
-      const order = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
-      const result = []
-      order.forEach((timeSpan) => {
-        if (this.duration[timeSpan] > 0) {
-          // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-          const locale = this.$t(`time.${timeSpan}`)
-          result.push(`${this.duration[timeSpan]} ${locale}`)
-        }
-      })
-      return result.join(', ')
-    },
-  },
 }
 </script>
