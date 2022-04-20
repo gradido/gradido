@@ -5,7 +5,7 @@
 const pkg = require('../../package')
 
 const constants = {
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
     EXPECTED: 'v1.2022-03-18',
