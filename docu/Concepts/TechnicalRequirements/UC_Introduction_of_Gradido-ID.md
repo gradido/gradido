@@ -43,7 +43,7 @@ A new entity `UserContacts `is introduced to store several contacts of different
 | --------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | id              | int    | the technical key of a contact entity                                                                                                                                  |
 | type            | int    | Defines the type of contact entry as enum: Email, Phone, etc                                                                                                           |
-| userID          | int    | Defines the foreign key to the `Users` table                                                                                                                         |
+| usersID         | int    | Defines the foreign key to the `Users` table                                                                                                                         |
 | email           | String | defines the address of a contact entry of type Email                                                                                                                   |
 | phone           | String | defines the address of a contact entry of type Phone                                                                                                                   |
 | contactChannels | String | define the contact channel as comma separated list for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ... |
@@ -134,7 +134,6 @@ A new mapping logic will be necessary to allow using unmigrated APIs like GDT-se
 * userID -> alias
 * alias -> email
 * alias -> userID
-
 
 #### GDT-Access
 
