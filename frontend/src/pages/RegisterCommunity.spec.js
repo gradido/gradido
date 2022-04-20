@@ -37,15 +37,6 @@ describe('RegisterCommunity', () => {
       wrapper = Wrapper()
     })
 
-    it('commits the community info to the store', () => {
-      expect(mockStoreCommit).toBeCalledWith('community', {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
-      })
-    })
-
     it('renders the Div Element "#register-community"', () => {
       expect(wrapper.find('div#register-community').exists()).toBeTruthy()
     })

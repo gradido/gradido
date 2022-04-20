@@ -29,10 +29,6 @@ describe('Login', () => {
       dispatch: mockStoreDispach,
       commit: mockStoreCommit,
       state: {
-        community: {
-          name: '',
-          description: '',
-        },
         publisherId: 12345,
       },
     },
@@ -60,15 +56,6 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
-    it('commits the community info to the store', () => {
-      expect(mockStoreCommit).toBeCalledWith('community', {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
-      })
-    })
-
     it('renders the Login form', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
     })
@@ -79,27 +66,14 @@ describe('Login', () => {
       })
     })
 
-    describe('Community data already loaded', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        mocks.$store.state.community = {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        }
-        wrapper = Wrapper()
-      })
+    it('has a Community name', () => {
+      expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+    })
 
-      it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-      })
-
-      it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
-      })
+    it('has a Community description', () => {
+      expect(wrapper.find('.test-communitydata p').text()).toBe(
+        'Die lokale Entwicklungsumgebung von Gradido.',
+      )
     })
 
     describe('links', () => {
