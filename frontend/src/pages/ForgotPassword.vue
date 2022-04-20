@@ -36,16 +36,21 @@
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
+    <b-container class="mt--8 p-1">
+      <message kind="forgotPassword" />
+    </b-container>
   </div>
 </template>
 <script>
 import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'
+import Message from '@/components/Message/Message'
 
 export default {
   name: 'ForgotPassword',
   components: {
     InputEmail,
+    Message,
   },
   data() {
     return {
