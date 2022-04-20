@@ -147,6 +147,7 @@
     "aprox": "~",
     "equal": "=",
     "exclaim": "!",
+    "minus": "−",
     "pipe": "|"
   },
   "navigation": {

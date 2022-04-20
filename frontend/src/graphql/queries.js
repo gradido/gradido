@@ -47,12 +47,9 @@ export const transactionsQuery = gql`
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       balance {
         balance
-        decay
-        lastBookedBalance
         balanceGDT
         count
         linkCount
-        lastBookedDate
       }
       transactions {
         id
@@ -94,17 +91,6 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
-    }
-  }
-`
-
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
     }
   }
 `

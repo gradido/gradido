@@ -6,12 +6,12 @@
         <div class="text-center mb-7 header">
           <b-row class="justify-content-center">
             <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $store.state.community.name }}</h1>
+              <h1>{{ CONFIG.COMMUNITY_NAME }}</h1>
               <p class="text-lead">
-                {{ $store.state.community.description }}
+                {{ CONFIG.COMMUNITY_DESCRIPTION }}
               </p>
               <p class="text-lead community-location">
-                {{ $store.state.community.url }}
+                {{ CONFIG.COMMUNITY_URL }}
               </p>
             </b-col>
           </b-row>
@@ -49,10 +49,14 @@
   </div>
 </template>
 <script>
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   name: 'RegisterCommunity',
-  mixins: [getCommunityInfoMixin],
+  data() {
+    return {
+      CONFIG,
+    }
+  },
 }
 </script>
