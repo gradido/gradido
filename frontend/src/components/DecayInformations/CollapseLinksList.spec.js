@@ -9,6 +9,7 @@ const mocks = {
   },
   $tc: jest.fn((tc) => tc),
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
 }
 
 const propsData = {

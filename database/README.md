@@ -25,23 +25,9 @@ yarn down
 yarn dev_down
 ```
 
-
-## Reset DB
+## Reset database
 ```
 yarn dev_reset
 ```
+Runs all down migrations and after this all up migrations.
 
-## Seed DB
-```
-yarn seed
-```
-
-## Seeded Users
-
-| email                  | password   | admin   |
-|------------------------|------------|---------|
-| peter@lustig.de        | `Aa12345_` | `true`  |
-| bibi@bloxberg.de       | `Aa12345_` | `false` |
-| raeuber@hotzenplotz.de | `Aa12345_` | `false` |
-| bob@baumeister.de      | `Aa12345_` | `false` |
- 

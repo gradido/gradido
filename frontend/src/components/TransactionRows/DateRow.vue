@@ -8,7 +8,7 @@
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-date">
-          {{ dateString }}
+          {{ $d(new Date(this.date), 'long') }}
         </div>
       </b-col>
     </b-row>
@@ -26,13 +26,6 @@ export default {
       type: Boolean,
       required: false,
       default: false,
-    },
-  },
-  computed: {
-    dateString() {
-      return this.diffNow
-        ? this.$moment(this.date).locale(this.$i18n.locale).fromNow()
-        : this.$d(new Date(this.date), 'long')
     },
   },
 }

@@ -50,7 +50,6 @@ export default {
   name: 'DecayInformation-StartBlock',
   props: {
     balanceDate: { type: String },
-    decayStartBlock: { type: Date },
     amount: {
       type: String,
     },

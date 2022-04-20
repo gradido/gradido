@@ -47,13 +47,9 @@ export const transactionsQuery = gql`
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       balance {
         balance
-        decay
-        lastBookedBalance
         balanceGDT
         count
         linkCount
-        decayStartBlock
-        lastBookedDate
       }
       transactions {
         id
