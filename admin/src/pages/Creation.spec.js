@@ -72,7 +72,7 @@ describe('Creation', () => {
               currentPage: 1,
               pageSize: 25,
               emailChecked: true,
-              isDeleted: false,
+              deletedAt: false,
             },
           }),
         )
@@ -272,7 +272,7 @@ describe('Creation', () => {
                 currentPage: 1,
                 pageSize: 25,
                 emailChecked: true,
-                isDeleted: false,
+                deletedAt: false,
               },
             }),
           )
@@ -289,7 +289,7 @@ describe('Creation', () => {
                   currentPage: 1,
                   pageSize: 25,
                   emailChecked: true,
-                  isDeleted: false,
+                  deletedAt: false,
                 },
               }),
             )
@@ -306,7 +306,7 @@ describe('Creation', () => {
               currentPage: 2,
               pageSize: 25,
               emailChecked: true,
-              isDeleted: false,
+              deletedAt: false,
             },
           }),
         )

@@ -103,7 +103,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             emailChecked: true,
-            isDeleted: false,
+            deletedAt: false,
           },
           fetchPolicy: 'network-only',
         })

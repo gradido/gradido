@@ -15,5 +15,5 @@ export default class SearchUsersArgs {
   emailChecked?: boolean | null
 
   @Field(() => Boolean, { nullable: true })
-  isDeleted?: boolean | null
+  deletedAt?: boolean | null
 }

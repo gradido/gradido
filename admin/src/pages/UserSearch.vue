@@ -86,7 +86,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             emailChecked: this.filterCheckedEmails,
-            isDeleted: this.filterDeletedUser,
+            deletedAt: this.filterDeletedUser,
           },
           fetchPolicy: 'no-cache',
         })

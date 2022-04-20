@@ -6,14 +6,14 @@ export const searchUsers = gql`
     $currentPage: Int
     $pageSize: Int
     $emailChecked: Boolean
-    $isDeleted: Boolean
+    $deletedAt: Boolean
   ) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage
       pageSize: $pageSize
       emailChecked: $emailChecked
-      isDeleted: $isDeleted
+      deletedAt: $deletedAt
     ) {
       userCount
       userList {

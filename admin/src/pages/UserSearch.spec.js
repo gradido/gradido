@@ -83,7 +83,7 @@ describe('UserSearch', () => {
             currentPage: 1,
             pageSize: 25,
             emailChecked: null,
-            isDeleted: null,
+            deletedAt: null,
           },
         }),
       )
@@ -102,7 +102,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               emailChecked: true,
-              isDeleted: null,
+              deletedAt: null,
             },
           }),
         )
@@ -122,7 +122,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               emailChecked: null,
-              isDeleted: true,
+              deletedAt: true,
             },
           }),
         )
@@ -142,7 +142,7 @@ describe('UserSearch', () => {
               currentPage: 2,
               pageSize: 25,
               emailChecked: null,
-              isDeleted: null,
+              deletedAt: null,
             },
           }),
         )
@@ -162,7 +162,7 @@ describe('UserSearch', () => {
               currentPage: 1,
               pageSize: 25,
               emailChecked: null,
-              isDeleted: null,
+              deletedAt: null,
             },
           }),
         )
@@ -179,7 +179,7 @@ describe('UserSearch', () => {
                 currentPage: 1,
                 pageSize: 25,
                 emailChecked: null,
-                isDeleted: null,
+                deletedAt: null,
               },
             }),
           )
