@@ -12,7 +12,7 @@ export default class SearchUsersArgs {
   pageSize?: number
 
   @Field(() => Boolean, { nullable: true })
-  isEmailChecked?: boolean | null
+  emailChecked?: boolean | null
 
   @Field(() => Boolean, { nullable: true })
   isDeleted?: boolean | null

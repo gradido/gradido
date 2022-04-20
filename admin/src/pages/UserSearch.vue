@@ -85,7 +85,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            isEmailChecked: this.filterCheckedEmails,
+            emailChecked: this.filterCheckedEmails,
             isDeleted: this.filterDeletedUser,
           },
           fetchPolicy: 'no-cache',

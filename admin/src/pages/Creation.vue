@@ -102,7 +102,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            isEmailChecked: true,
+            emailChecked: true,
             isDeleted: false,
           },
           fetchPolicy: 'network-only',
