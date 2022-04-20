@@ -41,6 +41,9 @@ describe('Login', () => {
     $route: {
       params: {},
     },
+    $apollo: {
+      query: apolloQueryMock,
+    },
   }
 
   const stubs = {
@@ -141,13 +144,13 @@ describe('Login', () => {
           await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
           apolloQueryMock.mockResolvedValue({
             data: {
               login: 'token',
             },
           })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
         })
 
         it('calls the API with the given data', () => {
@@ -199,58 +202,64 @@ describe('Login', () => {
             })
           })
         })
+      })
 
-        describe('login fails', () => {
-          beforeEach(() => {
+      describe('login fails', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+          await flushPromises()
+          apolloQueryMock.mockRejectedValue({
+            message: '..No user with this credentials',
+          })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('hides the spinner', () => {
+          expect(spinnerHideMock).toBeCalled()
+        })
+
+        it('toasts an error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('error.no-account')
+        })
+
+        describe('login fails with "User email not validated"', () => {
+          beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: '..No user with this credentials',
+              message: 'User email not validated',
             })
+            wrapper = Wrapper()
+            jest.clearAllMocks()
+            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+            await flushPromises()
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
 
-          it('hides the spinner', () => {
-            expect(spinnerHideMock).toBeCalled()
+          it('redirects to /thx/login', () => {
+            expect(mockRouterPush).toBeCalledWith('/thx/login')
+          })
+        })
+
+        describe('login fails with "User has no password set yet"', () => {
+          beforeEach(async () => {
+            apolloQueryMock.mockRejectedValue({
+              message: 'User has no password set yet',
+            })
+            wrapper = Wrapper()
+            jest.clearAllMocks()
+            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+            await flushPromises()
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
 
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('error.no-account')
-          })
-
-          describe('login fails with "User email not validated"', () => {
-            beforeEach(async () => {
-              apolloQueryMock.mockRejectedValue({
-                message: 'User email not validated',
-              })
-              wrapper = Wrapper()
-              jest.clearAllMocks()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-              await flushPromises()
-              await wrapper.find('form').trigger('submit')
-              await flushPromises()
-            })
-
-            it('redirects to /thx/login', () => {
-              expect(mockRouterPush).toBeCalledWith('/thx/login')
-            })
-          })
-
-          describe('login fails with "User has no password set yet"', () => {
-            beforeEach(async () => {
-              apolloQueryMock.mockRejectedValue({
-                message: 'User has no password set yet',
-              })
-              wrapper = Wrapper()
-              jest.clearAllMocks()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-              await flushPromises()
-              await wrapper.find('form').trigger('submit')
-              await flushPromises()
-            })
-
-            it('redirects to /reset-password/login', () => {
-              expect(mockRouterPush).toBeCalledWith('/reset-password/login')
-            })
+          it('redirects to /reset-password/login', () => {
+            expect(mockRouterPush).toBeCalledWith('/reset-password/login')
           })
         })
       })
