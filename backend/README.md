@@ -9,6 +9,8 @@ yarn install
 ```
 yarn seed
 ```
+Deletes all data in database. Then seeds data in database.
+
 
 ## Seeded Users
 
