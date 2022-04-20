@@ -6,8 +6,32 @@ add isAdmin COLUMN to users TABLE */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('ALTER TABLE `users` ADD COLUMN `is_admin` boolean DEFAULT false AFTER `language`;')
+
+  await queryFn(
+    'UPDATE `users` SET `is_admin` = true WHERE `email` IN (SELECT `email` FROM `server_users`);',
+  )
+
+  await queryFn('DROP TABLE `server_users`;')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  await queryFn(`
+    CREATE TABLE IF NOT EXISTS \`server_users\` (
+      \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
+      \`username\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+      \`password\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+      \`email\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+      \`role\` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
+      \`activated\` tinyint(4) NOT NULL DEFAULT '0',
+      \`last_login\` datetime DEFAULT NULL,
+      \`created\` datetime NOT NULL,
+      \`modified\` datetime NOT NULL,
+      PRIMARY KEY (\`id\`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
+
+  await queryFn(
+    'INSERT INTO `server_users` (`email`, `username`, `password`, `created`, `modified`) SELECT `email`, `first_name`, `password`, `created`, `created` FROM `users` WHERE `is_admin` = true;',
+  )
+
   await queryFn('ALTER TABLE `users` DROP COLUMN `is_admin`;')
 }
