@@ -31,9 +31,3 @@ yarn dev_reset
 ```
 Runs all down migrations and after this all up migrations.
 
-
-## Reset DB
-```
-yarn dev_reset
-```
- 
