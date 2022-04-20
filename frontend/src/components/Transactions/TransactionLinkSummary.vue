@@ -1,7 +1,7 @@
 <template>
   <div class="transaction-slot-link gradido-shadow-inset">
     <div>
-      <div @click="showTransactionLinks()">
+      <div class="transaction-link-details" @click="showTransactionLinks()">
         <!-- Collaps Icon  -->
         <collapse-icon class="text-right" :visible="visible" />
         <div>
