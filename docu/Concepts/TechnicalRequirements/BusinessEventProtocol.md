@@ -2,7 +2,7 @@
 
 With the business event protocol the gradido application will capture and persist business information for future reports and statistics. The idea is to design and implement general functionality to capture and store business events. Each business event will be defined as a separate event type with its own business attributes. Each event type extends a basic event type to ensure a type safetiness with its mandatory and optional attributes.
 
-## EventType - Enum {EventType-Enum}
+## EventType - Enum
 
 The different event types will be defined as Enum. The following list is a first draft and will grow with further event types in the future.
 
@@ -30,54 +30,49 @@ The different event types will be defined as Enum. The following list is a first
 | ContribConfirmEvent         | 61    | the user confirms a contribution of an other user (for future multi confirmation from several users) |
 |                             |       |                                                                                                      |
 
-
-
 ## EventProtocol - Entity
 
 The business events will be stored in database in the new table `EventProtocol`. The tabel will have the following attributes:
 
-| Attribute    | Type      | Description                                                                                      |
-| ------------ | --------- | ------------------------------------------------------------------------------------------------ |
-| id           | int       | technical unique key (from db sequence)                                                          |
-| type         | enum      | type of event                                                                                    |
-| createdAt    | timestamp | timestamp the event occurs (not the time of writing)                                             |
-| userID       | string    | the user ID, who invokes the event                                                               |
-| XuserID      | string    | the cross user ID, who is involved in the process like a tx-sender, contrib-receiver, ...        |
-| XcommunityID | string    | the cross community ID, which is involved in the process like a tx-sender, contrib-receiver, ... |
-| txID         | int       | the technical key of the transaction, which triggers the event                                   |
-| contribID    | int       | the technical key of the contribution, which triggers the event                                  |
-| amount       | digital   | the amount of gradido transferred by transaction, creation or redeem                             |
-
-
+| Attribute     | Type      | Description                                                                                      |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------ |
+| id            | int       | technical unique key (from db sequence)                                                          |
+| type          | enum      | type of event                                                                                    |
+| createdAt     | timestamp | timestamp the event occurs (not the time of writing)                                             |
+| userID        | string    | the user ID, who invokes the event                                                               |
+| XuserID       | string    | the cross user ID, who is involved in the process like a tx-sender, contrib-receiver, ...        |
+| XcommunityID  | string    | the cross community ID, which is involved in the process like a tx-sender, contrib-receiver, ... |
+| transactionID | int       | the technical key of the transaction, which triggers the event                                   |
+| contribID     | int       | the technical key of the contribution, which triggers the event                                  |
+| amount        | digital   | the amount of gradido transferred by transaction, creation or redeem                             |
 
 ## Event Types
 
 The following table lists for each event type the mandatory attributes, which have to be initialized at event occurence and to be written in the database event protocol table:
 
-| EventType                   | id | type | createdAt | userID | XuserID | XCommunityID | txID | contribID | amount |
-| :-------------------------- | :-: | :--: | :-------: | :----: | :-----: | :----------: | :--: | :-------: | :----: |
-| BasicEvent                  | x |  x  |     x     |       |         |             |     |           |       |
-| VisitGradidoEvent           | x |  x  |     x     |       |         |             |     |           |       |
-| RegisterEvent               | x |  x  |     x     |   x   |         |             |     |           |       |
-| RedeemRegisterEvent         | x |  x  |     x     |   x   |         |             |     |           |       |
-| InActiveAccountEvent        | x |  x  |     x     |   x   |         |             |     |           |       |
-| SendConfirmEmailEvent       | x |  x  |     x     |   x   |         |             |     |           |       |
-| ConfirmEmailEvent           | x |  x  |     x     |   x   |         |             |     |           |       |
-| RegisterEmailKlickTippEvent | x |  x  |     x     |   x   |         |             |     |           |       |
-| LoginEvent                  | x |  x  |     x     |   x   |         |             |     |           |       |
-| RedeemLoginEvent            | x |  x  |     x     |   x   |         |             |     |           |       |
-| ActivateAccountEvent        | x |  x  |     x     |   x   |         |             |     |           |       |
-| PasswordChangeEvent         | x |  x  |     x     |   x   |         |             |     |           |       |
-| TxSendEvent                 | x |  x  |     x     |   x   |    x    |      x      |  x  |           |   x   |
-| TxSendRedeemEvent           | x |  x  |     x     |   x   |    x    |      x      |  x  |           |   x   |
-| TxRepeateRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |  x  |           |   x   |
-| TxCreationEvent             | x |  x  |     x     |   x   |         |             |  x  |           |   x   |
-| TxReceiveEvent              | x |  x  |     x     |   x   |    x    |      x      |  x  |           |   x   |
-| TxReceiveRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |  x  |           |   x   |
-| ContribCreateEvent          | x |  x  |     x     |   x   |         |             |     |     x     |       |
-| ContribConfirmEvent         | x |  x  |     x     |   x   |    x    |      x      |     |     x     |       |
-|                             |   |     |           |       |         |             |     |           |       |
-
+| EventType                   | id | type | createdAt | userID | XuserID | XCommunityID | transactionID | contribID | amount |
+| :-------------------------- | :-: | :--: | :-------: | :----: | :-----: | :----------: | :-----------: | :-------: | :----: |
+| BasicEvent                  | x |  x  |     x     |       |         |             |               |           |       |
+| VisitGradidoEvent           | x |  x  |     x     |       |         |             |               |           |       |
+| RegisterEvent               | x |  x  |     x     |   x   |         |             |               |           |       |
+| RedeemRegisterEvent         | x |  x  |     x     |   x   |         |             |               |           |       |
+| InActiveAccountEvent        | x |  x  |     x     |   x   |         |             |               |           |       |
+| SendConfirmEmailEvent       | x |  x  |     x     |   x   |         |             |               |           |       |
+| ConfirmEmailEvent           | x |  x  |     x     |   x   |         |             |               |           |       |
+| RegisterEmailKlickTippEvent | x |  x  |     x     |   x   |         |             |               |           |       |
+| LoginEvent                  | x |  x  |     x     |   x   |         |             |               |           |       |
+| RedeemLoginEvent            | x |  x  |     x     |   x   |         |             |               |           |       |
+| ActivateAccountEvent        | x |  x  |     x     |   x   |         |             |               |           |       |
+| PasswordChangeEvent         | x |  x  |     x     |   x   |         |             |               |           |       |
+| TxSendEvent                 | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
+| TxSendRedeemEvent           | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
+| TxRepeateRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
+| TxCreationEvent             | x |  x  |     x     |   x   |         |             |       x       |           |   x   |
+| TxReceiveEvent              | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
+| TxReceiveRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
+| ContribCreateEvent          | x |  x  |     x     |   x   |         |             |               |     x     |       |
+| ContribConfirmEvent         | x |  x  |     x     |   x   |    x    |      x      |               |     x     |       |
+|                             |   |     |           |       |         |             |               |           |       |
 
 ## Event creation
 
