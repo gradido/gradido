@@ -98,7 +98,6 @@ export default {
     },
   },
   created() {
-    // Wolle: what shall happen here? change needed?
     if (this.$route.params.comingFrom) {
       this.subtitle = 'settings.password.resend_subtitle'
     }
