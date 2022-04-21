@@ -139,7 +139,6 @@ export const listTransactionLinks = gql`
       amount
       holdAvailableAmount
       memo
-      code
       link
       createdAt
       validUntil
