@@ -23,9 +23,9 @@
           <b-card no-body class="border-0 gradido-custom-background">
             <b-card-body class="p-4">
               <div class="text-center text-muted mb-4 test-communitydata">
-                <b>{{ $store.state.community.name }}</b>
+                <b>{{ CONFIG.COMMUNITY_NAME }}</b>
                 <p class="text-lead">
-                  {{ $store.state.community.description }}
+                  {{ CONFIG.COMMUNITY_DESCRIPTION }}
                 </p>
                 <div>{{ $t('signup') }}</div>
               </div>
@@ -192,12 +192,11 @@
 import InputEmail from '@/components/Inputs/InputEmail.vue'
 import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
 import { createUser } from '@/graphql/mutations'
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   components: { InputEmail, LanguageSwitchSelect },
   name: 'Register',
-  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -213,6 +212,7 @@ export default {
       register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
+      CONFIG,
     }
   },
   methods: {
