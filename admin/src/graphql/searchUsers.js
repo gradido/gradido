@@ -5,15 +5,15 @@ export const searchUsers = gql`
     $searchText: String!
     $currentPage: Int
     $pageSize: Int
-    $emailChecked: Boolean
-    $deletedAt: Boolean
+    $withActivated: Boolean
+    $withDeleted: Boolean
   ) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage
       pageSize: $pageSize
-      emailChecked: $emailChecked
-      deletedAt: $deletedAt
+      withActivated: $withActivated
+      withDeleted: $withDeleted
     ) {
       userCount
       userList {
@@ -22,10 +22,10 @@ export const searchUsers = gql`
         lastName
         email
         creation
-        emailChecked
         hasElopage
         emailConfirmationSend
-        deletedAt
+        withActivated
+        withDeleted
       }
     }
   }
