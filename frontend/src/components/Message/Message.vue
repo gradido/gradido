@@ -5,9 +5,9 @@
       <b-container>
         <div class="header-body text-center mb-7">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h1 test-message-headline">{{ $t(headline) }}</p>
+          <p class="h1 test-message-headline">{{ headline }}</p>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-          <p class="h4 test-message-subtitle">{{ $t(subtitle) }}</p>
+          <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
           <b-button
             v-if="buttonText"
@@ -15,7 +15,7 @@
             :to="linkTo + (code ? `/${code}` : '')"
           >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-            {{ $t(buttonText) }}
+            {{ buttonText }}
           </b-button>
         </div>
       </b-container>
