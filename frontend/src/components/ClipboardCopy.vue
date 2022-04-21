@@ -7,7 +7,7 @@
           {{ $t('gdd_per_link.copy') }}
         </b-button>
         <b-button variant="outline-info" @click="$emit('show-qr-code-button')">
-          <b-img src="img/svg/qr-code.svg" width="19" ></b-img>
+          <b-img src="img/svg/qr-code.svg" width="19"></b-img>
         </b-button>
       </b-input-group-append>
     </b-input-group>
