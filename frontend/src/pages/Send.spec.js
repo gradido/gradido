@@ -164,7 +164,6 @@ describe('Send', () => {
         apolloMutationMock.mockResolvedValue({
           data: {
             createTransactionLink: {
-              code: '0123456789',
               link: 'http://localhost/redeem/0123456789',
             },
           },
