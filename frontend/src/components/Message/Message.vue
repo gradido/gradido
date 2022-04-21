@@ -2,7 +2,7 @@
   <div>
     <!-- Header -->
     <div class="header py-lg-6">
-      <b-container>
+      <b-container class="w-50">
         <div class="header-body text-center mb-7">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h1 test-message-headline">{{ headline }}</p>

@@ -230,7 +230,8 @@
       "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "resetPassword": "Den Code den Du genutzt hast ist zu alt bitte fordere ein neuen über die Passwort Reset Seite an.",
-      "title": "Danke!"
+      "title": "Danke!",
+      "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
     }
   },
   "success": "Erfolg",

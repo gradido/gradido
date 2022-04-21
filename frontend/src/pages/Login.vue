@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container class="mt--8">
+    <b-container v-if="!showPageMessage" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0 gradido-custom-background">
@@ -57,11 +57,31 @@
         </b-col>
       </b-row>
     </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
+      <message
+        v-if="errorReason === 'email-unvalidated'"
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="$t('site.thx.activateEmail')"
+        :buttonText="$t('settings.password.reset')"
+        linkTo="/forgot-password"
+      />
+      <message
+        v-else-if="errorReason === 'password-unset'"
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="$t('site.thx.unsetPassword')"
+        :buttonText="$t('settings.password.reset')"
+        linkTo="/reset-password/login"
+      />
+      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
+    </b-container>
   </div>
 </template>
+
 <script>
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
+import Message from '@/components/Message/Message'
 import { login } from '@/graphql/queries'
 import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
 
@@ -70,6 +90,7 @@ export default {
   components: {
     InputPassword,
     InputEmail,
+    Message,
   },
   mixins: [getCommunityInfoMixin],
   data() {
@@ -79,6 +100,8 @@ export default {
         password: '',
       },
       passwordVisible: false,
+      showPageMessage: false,
+      errorReason: null,
     }
   },
   methods: {
@@ -111,9 +134,11 @@ export default {
         .catch((error) => {
           this.toastError(this.$t('error.no-account'))
           if (error.message.includes('User email not validated')) {
-            this.$router.push('/thx/login')
+            this.showPageMessage = true
+            this.errorReason = 'email-unvalidated'
           } else if (error.message.includes('User has no password set yet')) {
-            this.$router.push('/reset-password/login')
+            this.showPageMessage = true
+            this.errorReason = 'password-unset'
           }
           loader.hide()
         })
