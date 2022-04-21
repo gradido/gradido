@@ -132,6 +132,27 @@ describe('TransactionLinkSummary', () => {
         it('has no component CollapseLinksList', () => {
           expect(wrapper.findComponent({ name: 'CollapseLinksList' }).isVisible()).toBe(false)
         })
+
+        describe('reopen transaction link details', () => {
+          beforeEach(() => {
+            jest.clearAllMocks()
+            wrapper.find('div.transaction-link-details').trigger('click')
+          })
+
+          it('calls the API to get the list transaction links', () => {
+            expect(apolloQueryMock).toBeCalledWith({
+              query: listTransactionLinks,
+              variables: {
+                currentPage: 1,
+              },
+              fetchPolicy: 'network-only',
+            })
+          })
+
+          it('has four transactionLinks', () => {
+            expect(wrapper.vm.transactionLinks).toHaveLength(4)
+          })
+        })
       })
 
       describe('load more transaction links', () => {
