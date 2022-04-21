@@ -249,7 +249,7 @@ describe('Send', () => {
 
         describe('close button click', () => {
           beforeEach(async () => {
-            await wrapper.findAll('button').at(1).trigger('click')
+            await wrapper.findAll('button').at(2).trigger('click')
           })
 
           it('Shows the TransactionForm', () => {
