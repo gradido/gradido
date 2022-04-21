@@ -58,8 +58,8 @@ export class User extends BaseEntity {
   @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci', nullable: false })
   language: string
 
-  @Column({ name: 'is_admin', type: 'bool', nullable: false, default: false })
-  isAdmin: boolean
+  @Column({ name: 'is_admin', type: 'datetime', nullable: true, default: null })
+  isAdmin: Date | null
 
   @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
