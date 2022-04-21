@@ -22,10 +22,10 @@ export const searchUsers = gql`
         lastName
         email
         creation
+        emailChecked
         hasElopage
         emailConfirmationSend
-        filterByActivated
-        filterByDeleted
+        deletedAt
       }
     }
   }
