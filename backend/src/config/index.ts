@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v5.2022-04-12',
+    EXPECTED: 'v6.2022-04-21',
     CURRENT: '',
   },
 }
