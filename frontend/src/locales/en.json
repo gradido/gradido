@@ -33,7 +33,7 @@
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error!",
-    "no-account": "Unfortunately we could not find an account to the given data!",
+    "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "session-expired": "The session was closed for security reasons."
   },

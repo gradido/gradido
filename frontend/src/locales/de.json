@@ -33,8 +33,8 @@
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
     "error": "Fehler!",
-    "no-account": "Leider konnten wir keinen Account mit diesen Daten finden.",
-    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt",
+    "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
+    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
   },
   "footer": {
