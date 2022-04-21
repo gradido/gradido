@@ -285,8 +285,20 @@ describe('Login', () => {
               await flushPromises()
             })
 
-            it('redirects to /thx/login', () => {
-              expect(mockRouterPush).toBeCalledWith('/thx/login')
+            // Wolle: it('redirects to /thx/login', () => {
+            //   expect(mockRouterPush).toBeCalledWith('/thx/login')
+            // })
+
+            it('shows error title, subtitle, login button', () => {
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
+              expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+            })
+
+            it('button link directs to /login', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+                '/forgot-password',
+              )
             })
           })
 
@@ -304,8 +316,20 @@ describe('Login', () => {
               await flushPromises()
             })
 
-            it('redirects to /reset-password/login', () => {
-              expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+            // Wolle: it('redirects to /reset-password/login', () => {
+            //   expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+            // })
+
+            it('shows error title, subtitle, login button', () => {
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
+              expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+            })
+
+            it('button link directs to /login', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+                '/reset-password/login',
+              )
             })
           })
         })

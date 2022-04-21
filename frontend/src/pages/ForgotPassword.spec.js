@@ -118,11 +118,11 @@ describe('ForgotPassword', () => {
 
             it('shows error title, subtitle, login button', () => {
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-              expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('settings.password.reset')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
-            it('button link redirects to /login', () => {
+            it('button link directs to /login', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
           })
