@@ -16,7 +16,6 @@
       </b-card>
     </b-col>
   </b-row>
-
 </template>
 <script>
 import ClipboardCopy from '../ClipboardCopy.vue'
