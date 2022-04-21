@@ -87,7 +87,6 @@ export default {
       errorResult: '',
       currentTransactionStep: TRANSACTION_STEPS.transactionForm,
       loading: false,
-      code: null,
       link: null,
     }
   },
@@ -145,7 +144,6 @@ export default {
             })
             .then((result) => {
               this.$emit('set-tunneled-email', null)
-              this.code = result.data.createTransactionLink.code
               this.link = result.data.createTransactionLink.link
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
