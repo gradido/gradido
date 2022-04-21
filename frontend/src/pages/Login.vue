@@ -19,9 +19,9 @@
           <b-card no-body class="border-0 mb-0 gradido-custom-background">
             <b-card-body class="p-4">
               <div class="text-center text-muted mb-4 test-communitydata">
-                <b>{{ $store.state.community.name }}</b>
+                <b>{{ CONFIG.COMMUNITY_NAME }}</b>
                 <p class="text-lead">
-                  {{ $store.state.community.description }}
+                  {{ CONFIG.COMMUNITY_DESCRIPTION }}
                 </p>
                 {{ $t('login') }}
               </div>
@@ -83,7 +83,7 @@ import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { login } from '@/graphql/queries'
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   name: 'Login',
@@ -92,7 +92,6 @@ export default {
     InputEmail,
     Message,
   },
-  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -102,6 +101,7 @@ export default {
       passwordVisible: false,
       showPageMessage: false,
       errorReason: null,
+      CONFIG,
     }
   },
   methods: {

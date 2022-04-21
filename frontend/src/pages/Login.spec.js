@@ -6,17 +6,7 @@ import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getCommunityInfo: {
-      name: 'test12',
-      description: 'test community 12',
-      url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/register',
-    },
-  },
-})
-
+const apolloQueryMock = jest.fn()
 const mockStoreDispach = jest.fn()
 const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
@@ -39,10 +29,6 @@ describe('Login', () => {
       dispatch: mockStoreDispach,
       commit: mockStoreCommit,
       state: {
-        community: {
-          name: '',
-          description: '',
-        },
         publisherId: 12345,
       },
     },
@@ -73,30 +59,8 @@ describe('Login', () => {
       wrapper = Wrapper()
     })
 
-    it('commits the community info to the store', () => {
-      expect(mockStoreCommit).toBeCalledWith('community', {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
-      })
-    })
-
     it('renders the Login form', () => {
       expect(wrapper.find('div.login-form').exists()).toBeTruthy()
-    })
-
-    describe('communities gives back error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Failed to get communities',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
-      })
     })
 
     describe('Login header', () => {
@@ -105,31 +69,14 @@ describe('Login', () => {
       })
     })
 
-    describe('Community data already loaded', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        mocks.$store.state.community = {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        }
-        wrapper = Wrapper()
-      })
+    it('has a Community name', () => {
+      expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
+    })
 
-      it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-      })
-
-      it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
-      })
-
-      it('does not call community data update', () => {
-        expect(apolloQueryMock).not.toBeCalled()
-      })
+    it('has a Community description', () => {
+      expect(wrapper.find('.test-communitydata p').text()).toBe(
+        'Die lokale Entwicklungsumgebung von Gradido.',
+      )
     })
 
     describe('links', () => {
@@ -197,13 +144,13 @@ describe('Login', () => {
           await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
           apolloQueryMock.mockResolvedValue({
             data: {
               login: 'token',
             },
           })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
         })
 
         it('calls the API with the given data', () => {
@@ -255,82 +202,86 @@ describe('Login', () => {
             })
           })
         })
+      })
 
-        describe('login fails', () => {
-          beforeEach(() => {
+      describe('login fails', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+          await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+          await flushPromises()
+          apolloQueryMock.mockRejectedValue({
+            message: '..No user with this credentials',
+          })
+          await wrapper.find('form').trigger('submit')
+          await flushPromises()
+        })
+
+        it('hides the spinner', () => {
+          expect(spinnerHideMock).toBeCalled()
+        })
+
+        it('toasts an error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('error.no-account')
+        })
+
+        describe('login fails with "User email not validated"', () => {
+          beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: '..No user with this credentials',
+              message: 'User email not validated',
             })
+            wrapper = Wrapper()
+            jest.clearAllMocks()
+            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+            await flushPromises()
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
 
-          it('hides the spinner', () => {
-            expect(spinnerHideMock).toBeCalled()
+          // Wolle: it('redirects to /thx/login', () => {
+          //   expect(mockRouterPush).toBeCalledWith('/thx/login')
+          // })
+
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('error.no-account')
+          it('button link directs to /login', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
+          })
+        })
+
+        describe('login fails with "User has no password set yet"', () => {
+          beforeEach(async () => {
+            apolloQueryMock.mockRejectedValue({
+              message: 'User has no password set yet',
+            })
+            wrapper = Wrapper()
+            jest.clearAllMocks()
+            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
+            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
+            await flushPromises()
+            await wrapper.find('form').trigger('submit')
+            await flushPromises()
           })
 
-          describe('login fails with "User email not validated"', () => {
-            beforeEach(async () => {
-              apolloQueryMock.mockRejectedValue({
-                message: 'User email not validated',
-              })
-              wrapper = Wrapper()
-              jest.clearAllMocks()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-              await flushPromises()
-              await wrapper.find('form').trigger('submit')
-              await flushPromises()
-            })
+          // Wolle: it('redirects to /reset-password/login', () => {
+          //   expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+          // })
 
-            // Wolle: it('redirects to /thx/login', () => {
-            //   expect(mockRouterPush).toBeCalledWith('/thx/login')
-            // })
-
-            it('shows error title, subtitle, login button', () => {
-              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
-              expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
-            })
-
-            it('button link directs to /login', () => {
-              expect(wrapper.find('.test-message-button').attributes('href')).toBe(
-                '/forgot-password',
-              )
-            })
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 
-          describe('login fails with "User has no password set yet"', () => {
-            beforeEach(async () => {
-              apolloQueryMock.mockRejectedValue({
-                message: 'User has no password set yet',
-              })
-              wrapper = Wrapper()
-              jest.clearAllMocks()
-              await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-              await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-              await flushPromises()
-              await wrapper.find('form').trigger('submit')
-              await flushPromises()
-            })
-
-            // Wolle: it('redirects to /reset-password/login', () => {
-            //   expect(mockRouterPush).toBeCalledWith('/reset-password/login')
-            // })
-
-            it('shows error title, subtitle, login button', () => {
-              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
-              expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
-            })
-
-            it('button link directs to /login', () => {
-              expect(wrapper.find('.test-message-button').attributes('href')).toBe(
-                '/reset-password/login',
-              )
-            })
+          it('button link directs to /login', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+              '/reset-password/login',
+            )
           })
         })
       })
