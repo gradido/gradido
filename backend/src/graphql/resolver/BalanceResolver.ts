@@ -29,8 +29,6 @@ export class BalanceResolver {
     if (!lastTransaction) {
       return new Balance({
         balance: new Decimal(0),
-        decay: new Decimal(0),
-        lastBookedBalance: new Decimal(0),
         balanceGDT,
         count: 0,
         linkCount: 0,
@@ -69,12 +67,9 @@ export class BalanceResolver {
       balance: calculatedDecay.balance
         .minus(sumHoldAvailableAmount.toString())
         .toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
-      decay: calculatedDecay.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR), // round towards - infinity
-      lastBookedBalance: lastTransaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
       balanceGDT,
       count,
       linkCount,
-      lastBookedDate: lastTransaction.balanceDate,
     })
   }
 }
