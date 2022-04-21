@@ -13,7 +13,13 @@
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ filterDeletedUser ? $t('deleted_user') : $t('all_emails') }}
+        {{
+          filterByDeleted === null
+            ? $t('all_emails')
+            : filterByDeleted === true
+            ? $t('deleted_user')
+            : ''
+        }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -67,7 +73,7 @@ export default {
       massCreation: [],
       criteria: '',
       filterByActivated: null,
-      filterDeletedUser: null,
+      filterByDeleted: null,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -80,7 +86,7 @@ export default {
       this.getUsers()
     },
     deletedUserSearch() {
-      this.filterDeletedUser = this.filterDeletedUser ? null : true
+      this.filterByDeleted = this.filterByDeleted === null ? true : null
       this.getUsers()
     },
     getUsers() {
@@ -92,7 +98,7 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             filterByActivated: this.filterByActivated,
-            filterByDeleted: this.filterDeletedUser,
+            filterByDeleted: this.filterByDeleted,
           },
           fetchPolicy: 'no-cache',
         })
