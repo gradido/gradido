@@ -5,10 +5,10 @@ add isAdmin COLUMN to users TABLE */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('ALTER TABLE `users` ADD COLUMN `is_admin` boolean DEFAULT false AFTER `language`;')
+  await queryFn('ALTER TABLE `users` ADD COLUMN `is_admin` datetime DEFAULT NULL AFTER `language`;')
 
   await queryFn(
-    'UPDATE `users` SET `is_admin` = true WHERE `email` IN (SELECT `email` FROM `server_users`);',
+    'UPDATE `users` AS `users`, (SELECT  * FROM `server_users`) AS `server_users` SET users.`is_admin` = server_users.`modified` WHERE users.`email` IN (SELECT email from `server_users`);',
   )
 
   await queryFn('DROP TABLE `server_users`;')
@@ -30,7 +30,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
   await queryFn(
-    'INSERT INTO `server_users` (`email`, `username`, `password`, `created`, `modified`) SELECT `email`, `first_name`, `password`, `created`, `created` FROM `users` WHERE `is_admin` = true;',
+    'INSERT INTO `server_users` (`email`, `username`, `password`, `created`, `modified`) SELECT `email`, `first_name`, `password`, `is_admin`, `is_admin` FROM `users` WHERE `is_admin` IS NOT NULL;',
   )
 
   await queryFn('ALTER TABLE `users` DROP COLUMN `is_admin`;')
