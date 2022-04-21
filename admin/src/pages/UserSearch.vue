@@ -3,8 +3,13 @@
     <div class="user-search-first-div">
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
-        <!-- Wolle: check logic -->
-        {{ filterCheckedEmails ? $t('unregistered_emails') : $t('all_emails') }}
+        {{
+          filterByActivated === null
+            ? $t('all_emails')
+            : filterByActivated === false
+            ? $t('unregistered_emails')
+            : ''
+        }}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
@@ -61,7 +66,7 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      filterCheckedEmails: null,
+      filterByActivated: null,
       filterDeletedUser: null,
       rows: 0,
       currentPage: 1,
@@ -71,7 +76,7 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.filterCheckedEmails = this.filterCheckedEmails ? null : true
+      this.filterByActivated = this.filterByActivated === null ? false : null
       this.getUsers()
     },
     deletedUserSearch() {
@@ -86,7 +91,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filterByActivated: this.filterCheckedEmails, // Wolle: check logic
+            filterByActivated: this.filterByActivated,
             filterByDeleted: this.filterDeletedUser,
           },
           fetchPolicy: 'no-cache',
