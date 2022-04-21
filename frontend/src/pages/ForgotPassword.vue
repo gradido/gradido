@@ -42,14 +42,14 @@
         v-if="success"
         :headline="$t('site.thx.title')"
         :subtitle="$t('site.thx.email')"
-        buttonText="login"
+        :buttonText="$t('login')"
         linkTo="/login"
       />
       <message
         v-else
         :headline="$t('site.thx.errorTitle')"
         :subtitle="$t('error.email-already-sent')"
-        buttonText="login"
+        :buttonText="$t('login')"
         linkTo="/login"
       />
       <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
