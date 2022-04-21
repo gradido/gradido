@@ -92,6 +92,7 @@ export default {
           this.success = true
         })
         .catch(() => {
+          this.toastError(this.$t('error.email-already-sent'))
           this.showPageMessage = true
           this.success = false
         })
