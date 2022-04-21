@@ -9,13 +9,17 @@
           <b-col>
             <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
             <memo-row :memo="memo" />
-            <date-row :date="validUntil" :diffNow="true" />
+            <date-row :date="validUntil" :diffNow="true" :validLink="validLink" />
             <decay-row :decay="decay" />
           </b-col>
-          <b-col cols="12" lg="1" md="1" class="text-center text-md-right">
-            <b-dropdown right class="ml--5">
-              <b-dropdown-item v-if="validLink" class="test-copy-link" size="lg" @click="copy">
-                <b-icon icon="clipboard" font-scale="2"></b-icon>
+          <b-col cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
+            <b-dropdown no-caret right aria-expanded="false" size="sm">
+              <template #button-content>
+                <b-icon icon="three-dots-vertical"></b-icon>
+              </template>
+
+              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copy">
+                <b-icon icon="clipboard" font-scale="1"></b-icon>
                 {{ $t('gdd_per_link.copy') }}
               </b-dropdown-item>
               <b-dropdown-item
@@ -23,11 +27,11 @@
                 @click="$bvModal.show('modalPopover-' + id)"
                 class="pt-3 test-qr-code"
               >
-                <b-img src="img/svg/qr-code.svg" width="30" class="filter"></b-img>
+                <b-img src="img/svg/qr-code.svg" width="18" class="filter"></b-img>
                 {{ $t('qrCode') }}
               </b-dropdown-item>
               <b-dropdown-item class="pt-3 test-delete-link" @click="deleteLink()">
-                <b-icon icon="trash" font-scale="2"></b-icon>
+                <b-icon icon="trash" font-scale="1"></b-icon>
                 {{ $t('delete') }}
               </b-dropdown-item>
             </b-dropdown>
