@@ -1,48 +1,38 @@
 <template>
   <div class="transaction-link gradido-custom-background">
-    <b-row class="mb-2 pt-2 pb-2">
-      <b-col lg="2">
+    <b-row :class="validLink ? '' : 'bg-muted text-light'" class="mb-2 pt-2 pb-2">
+      <b-col cols="1">
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
       </b-col>
-      <b-col lg="9" md="9">
+      <b-col cols="11">
         <b-row>
-          <b-col lg="11" md="10">
+          <b-col>
             <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
             <memo-row :memo="memo" />
             <date-row :date="validUntil" :diffNow="true" />
             <decay-row :decay="decay" />
           </b-col>
-          <b-col lg="1" md="2" class="text-center text-lg-left qr-button">
-            <b-button
-              @click="$bvModal.show('modalPopover-' + id)"
-              class="p-2 test-qr-code"
-              size="sm"
-            >
-              <b-img src="img/svg/qr-code.svg" width="60" class="filter"></b-img>
-            </b-button>
+          <b-col cols="12" lg="1" md="1" class="text-center text-md-right">
+            <b-dropdown right class="ml--5">
+              <b-dropdown-item v-if="validLink" class="test-copy-link" size="lg" @click="copy">
+                <b-icon icon="clipboard" font-scale="2"></b-icon>
+                {{ $t('gdd_per_link.copy') }}
+              </b-dropdown-item>
+              <b-dropdown-item
+                v-if="validLink"
+                @click="$bvModal.show('modalPopover-' + id)"
+                class="pt-3 test-qr-code"
+              >
+                <b-img src="img/svg/qr-code.svg" width="30" class="filter"></b-img>
+                {{ $t('qrCode') }}
+              </b-dropdown-item>
+              <b-dropdown-item class="pt-3 test-delete-link" @click="deleteLink()">
+                <b-icon icon="trash" font-scale="2"></b-icon>
+                {{ $t('delete') }}
+              </b-dropdown-item>
+            </b-dropdown>
           </b-col>
         </b-row>
-      </b-col>
-
-      <b-col lg="1" md="1" class="text-center text-lg-right">
-        <b-button
-          class="p-2 test-copy-link"
-          size="lg"
-          variant="outline-primary"
-          @click="copy"
-          :title="$t('gdd_per_link.copy')"
-        >
-          <b-icon icon="clipboard"></b-icon>
-        </b-button>
-        <br />
-        <b-button
-          class="p-2 mt-3 test-delete-link"
-          size="sm"
-          @click="deleteLink()"
-          :title="$t('delete')"
-        >
-          <b-icon icon="trash"></b-icon>
-        </b-button>
       </b-col>
     </b-row>
     <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
@@ -117,6 +107,9 @@ export default {
     },
     link() {
       return `${window.location.origin}/redeem/${this.code}`
+    },
+    validLink() {
+      return new Date(this.validUntil) > new Date()
     },
   },
 }
