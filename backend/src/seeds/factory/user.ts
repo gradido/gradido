@@ -30,7 +30,7 @@ export const userFactory = async (
 
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
-    if (user.isAdmin) dbUser.isAdmin = user.isAdmin
+    if (user.isAdmin) dbUser.isAdmin = new Date()
     await dbUser.save()
   }
 }

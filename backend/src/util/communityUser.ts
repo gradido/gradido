@@ -17,7 +17,7 @@ const communityDbUser: dbUser = {
   createdAt: new Date(),
   emailChecked: false,
   language: '',
-  isAdmin: false,
+  isAdmin: null,
   publisherId: 0,
   passphrase: '',
   settings: [],

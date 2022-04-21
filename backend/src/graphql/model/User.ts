@@ -58,8 +58,8 @@ export class User {
 
   // `passphrase` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 
-  @Field(() => Boolean)
-  isAdmin: boolean
+  @Field(() => Date, { nullable: true })
+  isAdmin: Date | null
 
   // TODO this is a bit inconsistent with what we query from the database
   // therefore all those fields are now nullable with default value null
