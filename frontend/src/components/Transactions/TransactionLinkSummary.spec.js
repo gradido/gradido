@@ -12,6 +12,7 @@ const mocks = {
     locale: 'en',
   },
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $tc: jest.fn((tc) => tc),
   $apollo: {
     query: apolloQueryMock,
@@ -44,7 +45,6 @@ describe('TransactionLinkSummary', () => {
             {
               amount: '75',
               code: 'ce28664b5308c17f931c0367',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 86,
@@ -56,7 +56,6 @@ describe('TransactionLinkSummary', () => {
             {
               amount: '85',
               code: 'ce28664b5308c17f931c0367',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 107,
@@ -67,7 +66,6 @@ describe('TransactionLinkSummary', () => {
             {
               amount: '95',
               code: 'ce28664b5308c17f931c0367',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 92,
@@ -79,7 +77,6 @@ describe('TransactionLinkSummary', () => {
             {
               amount: '150',
               code: 'ce28664b5308c17f931c0367',
-              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 16,
@@ -103,18 +100,113 @@ describe('TransactionLinkSummary', () => {
       expect(wrapper.findComponent({ name: 'CollapseLinksList' }).exists()).toBe(true)
     })
 
-    it('calls the API to get the list transaction links', () => {
-      expect(apolloQueryMock).toBeCalledWith({
-        query: listTransactionLinks,
-        variables: {
-          currentPage: 1,
-        },
-        fetchPolicy: 'network-only',
+    describe('click on transaction links', () => {
+      beforeEach(() => {
+        wrapper.find('div.transaction-link-details').trigger('click')
       })
-    })
 
-    it('has four transactionLinks', () => {
-      expect(wrapper.vm.transactionLinks).toHaveLength(4)
+      it('calls the API to get the list transaction links', () => {
+        expect(apolloQueryMock).toBeCalledWith({
+          query: listTransactionLinks,
+          variables: {
+            currentPage: 1,
+          },
+          fetchPolicy: 'network-only',
+        })
+      })
+
+      it('has four transactionLinks', () => {
+        expect(wrapper.vm.transactionLinks).toHaveLength(4)
+      })
+
+      describe('close transaction link details', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+          wrapper.find('div.transaction-link-details').trigger('click')
+        })
+
+        it('does not call the API', () => {
+          expect(apolloQueryMock).not.toBeCalled()
+        })
+
+        it('has no component CollapseLinksList', () => {
+          expect(wrapper.findComponent({ name: 'CollapseLinksList' }).isVisible()).toBe(false)
+        })
+      })
+
+      describe('load more transaction links', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloQueryMock.mockResolvedValue({
+            data: {
+              listTransactionLinks: [
+                {
+                  amount: '76',
+                  code: 'ce28664b5308c17f931c0367',
+                  createdAt: '2022-03-16T14:22:40.000Z',
+                  holdAvailableAmount: '5.13109484759482747111',
+                  id: 87,
+                  memo:
+                    'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
+                  redeemedAt: null,
+                  validUntil: '2022-03-30T14:22:40.000Z',
+                },
+                {
+                  amount: '86',
+                  code: 'ce28664b5308c17f931c0367',
+                  createdAt: '2022-03-16T14:22:40.000Z',
+                  holdAvailableAmount: '5.13109484759482747111',
+                  id: 108,
+                  memo:
+                    'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
+                  redeemedAt: null,
+                  validUntil: '2022-03-30T14:22:40.000Z',
+                },
+                {
+                  amount: '96',
+                  code: 'ce28664b5308c17f931c0367',
+                  createdAt: '2022-03-16T14:22:40.000Z',
+                  holdAvailableAmount: '5.13109484759482747111',
+                  id: 93,
+                  memo:
+                    'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
+                  redeemedAt: null,
+                  validUntil: '2022-03-30T14:22:40.000Z',
+                },
+                {
+                  amount: '150',
+                  code: 'ce28664b5308c17f931c0367',
+                  createdAt: '2022-03-16T14:22:40.000Z',
+                  holdAvailableAmount: '5.13109484759482747111',
+                  id: 17,
+                  memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
+                  redeemedAt: null,
+                  validUntil: '2022-03-30T14:22:40.000Z',
+                },
+              ],
+            },
+          })
+          await wrapper.setData({
+            currentPage: 2,
+            pending: false,
+            pageSize: 5,
+          })
+        })
+
+        it('has eight transactionLinks', () => {
+          expect(wrapper.vm.transactionLinks).toHaveLength(8)
+        })
+
+        it('loads more transaction links', () => {
+          expect(apolloQueryMock).toBeCalledWith({
+            query: listTransactionLinks,
+            variables: {
+              currentPage: 2,
+            },
+            fetchPolicy: 'network-only',
+          })
+        })
+      })
     })
 
     describe('reset transaction links', () => {
@@ -146,88 +238,10 @@ describe('TransactionLinkSummary', () => {
       })
     })
 
-    describe('load more transaction links', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            listTransactionLinks: [
-              {
-                amount: '76',
-                code: 'ce28664b5308c17f931c0367',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 87,
-                memo:
-                  'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '86',
-                code: 'ce28664b5308c17f931c0367',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 108,
-                memo:
-                  'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '96',
-                code: 'ce28664b5308c17f931c0367',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 93,
-                memo:
-                  'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '150',
-                code: 'ce28664b5308c17f931c0367',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 17,
-                memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-            ],
-          },
-        })
-        await wrapper.setData({
-          currentPage: 2,
-          pending: false,
-          pageSize: 5,
-        })
-      })
-
-      it('has eight transactionLinks', () => {
-        expect(wrapper.vm.transactionLinks).toHaveLength(8)
-      })
-
-      it('loads more transaction links', () => {
-        expect(apolloQueryMock).toBeCalledWith({
-          query: listTransactionLinks,
-          variables: {
-            currentPage: 2,
-          },
-          fetchPolicy: 'network-only',
-        })
-      })
-    })
-
     describe('loads transaction links with error', () => {
       beforeEach(() => {
         apolloQueryMock.mockRejectedValue({ message: 'OUCH!' })
-        wrapper = Wrapper()
+        wrapper.find('div.transaction-link-details').trigger('click')
       })
 
       it('toasts an error message', () => {

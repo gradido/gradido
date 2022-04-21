@@ -1,9 +1,24 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Role } from '@/auth/Role'
+import { User as dbUser } from '@entity/User'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import Decimal from 'decimal.js-light'
+import { ExpressContext } from 'apollo-server-express'
 
-const context = (args: any) => {
+export interface Context {
+  token: string | null
+  setHeaders: { key: string; value: string }[]
+  role?: Role
+  user?: dbUser
+  // hack to use less DB calls for Balance Resolver
+  lastTransaction?: dbTransaction
+  transactionCount?: number
+  linkCount?: number
+  sumHoldAvailableAmount?: Decimal
+}
+
+const context = (args: ExpressContext): Context => {
   const authorization = args.req.headers.authorization
-  let token = null
+  let token: string | null = null
   if (authorization) {
     token = authorization.replace(/^Bearer /, '')
   }
@@ -12,6 +27,11 @@ const context = (args: any) => {
     setHeaders: [],
   }
   return context
+}
+
+export const getUser = (context: Context): dbUser => {
+  if (context.user) return context.user
+  throw new Error('No user given in context!')
 }
 
 export default context

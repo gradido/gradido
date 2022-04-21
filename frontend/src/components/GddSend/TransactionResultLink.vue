@@ -1,27 +1,32 @@
 <template>
-  <b-container>
-    <b-row>
-      <b-col>
-        <b-card class="p-0 gradido-custom-background">
-          <div class="p-4">
-            <div class="h3 mb-5">{{ $t('gdd_per_link.created') }}</div>
-            <clipboard-copy :link="link" />
-          </div>
-          <p class="text-center mt-3">
-            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
-          </p>
-        </b-card>
-      </b-col>
-    </b-row>
-  </b-container>
+  <b-row>
+    <b-col>
+      <b-card class="p-0 gradido-custom-background">
+        <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
+
+        <clipboard-copy :link="link" />
+
+        <div class="text-center">
+          <figure-qr-code :text="link" />
+
+          <b-button variant="success" @click="$emit('on-reset')" class="mt-4">
+            {{ $t('form.close') }}
+          </b-button>
+        </div>
+      </b-card>
+    </b-col>
+  </b-row>
+
 </template>
 <script>
 import ClipboardCopy from '../ClipboardCopy.vue'
+import FigureQrCode from '../QrCode/FigureQrCode.vue'
 
 export default {
   name: 'TransactionResultLink',
   components: {
     ClipboardCopy,
+    FigureQrCode,
   },
   props: {
     link: {
