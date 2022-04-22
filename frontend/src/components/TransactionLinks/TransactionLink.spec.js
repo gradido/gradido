@@ -62,7 +62,7 @@ describe('TransactionLink', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
         await wrapper.setProps({
-          validUntil: '2022-05-30T14:22:40.000Z',
+          validUntil: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2),
         })
       })
 
