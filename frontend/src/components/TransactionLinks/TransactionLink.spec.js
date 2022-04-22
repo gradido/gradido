@@ -49,7 +49,7 @@ describe('TransactionLink', () => {
         expect(wrapper.find('.test-copy-link').exists()).toBe(false)
       })
 
-      it('find no Qr-Code Button ', () => {
+      it('has no Qr-Code Button ', () => {
         expect(wrapper.find('.test-qr-code').exists()).toBe(false)
       })
 
