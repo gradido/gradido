@@ -45,7 +45,7 @@ describe('TransactionLink', () => {
     })
 
     describe('Link validUntil Date is not valid', () => {
-      it('find no link copy button', () => {
+      it('has no copy link button', () => {
         expect(wrapper.find('.test-copy-link').exists()).toBe(false)
       })
 
