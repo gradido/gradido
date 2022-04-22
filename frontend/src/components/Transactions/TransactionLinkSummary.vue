@@ -83,6 +83,7 @@ export default {
       if (this.visible) {
         this.visible = false
       } else {
+        this.transactionLinks = []
         this.updateListTransactionLinks()
         this.visible = true
       }
