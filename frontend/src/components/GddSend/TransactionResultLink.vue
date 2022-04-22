@@ -4,7 +4,7 @@
       <b-card class="p-0 gradido-custom-background">
         <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
 
-        <clipboard-copy :text="link" />
+        <clipboard-copy :link="link" />
 
         <div class="text-center">
           <figure-qr-code :text="link" />
@@ -28,14 +28,9 @@ export default {
     FigureQrCode,
   },
   props: {
-    code: {
+    link: {
       type: String,
       required: true,
-    },
-  },
-  computed: {
-    link() {
-      return `${window.location.origin}/redeem/${this.code}`
     },
   },
 }

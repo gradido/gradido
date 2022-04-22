@@ -22,7 +22,7 @@ const mocks = {
 
 const propsData = {
   amount: '75',
-  code: 'c00000000c000000c0000',
+  link: 'http://localhost/redeem/c00000000c000000c0000',
   holdAvailableAmount: '5.13109484759482747111',
   id: 12,
   memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
