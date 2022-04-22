@@ -25,12 +25,12 @@
               <b-dropdown-item
                 v-if="validLink"
                 @click="$bvModal.show('modalPopover-' + id)"
-                class="pt-3 test-qr-code"
+                class="pt-3 pb-3 test-qr-code"
               >
                 <b-img src="img/svg/qr-code.svg" width="18" class="filter"></b-img>
                 {{ $t('qrCode') }}
               </b-dropdown-item>
-              <b-dropdown-item class="pt-3 test-delete-link" @click="deleteLink()">
+              <b-dropdown-item class="test-delete-link" @click="deleteLink()">
                 <b-icon icon="trash"></b-icon>
                 {{ $t('delete') }}
               </b-dropdown-item>
