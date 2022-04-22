@@ -3,7 +3,6 @@
     <b-col>
       <b-card class="p-0 gradido-custom-background">
         <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
-
         <clipboard-copy :text="link" @show-qr-code-button="showQrCodeButton" />
 
         <div class="text-center">
@@ -28,7 +27,7 @@ export default {
     FigureQrCode,
   },
   props: {
-    code: {
+    link: {
       type: String,
       required: true,
     },
