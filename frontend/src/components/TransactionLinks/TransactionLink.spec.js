@@ -129,7 +129,7 @@ describe('TransactionLink', () => {
             await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
           })
 
-          it('test Modal if confirm true', () => {
+          it('opens the modal ', () => {
             expect(spy).toBeCalled()
           })
 
