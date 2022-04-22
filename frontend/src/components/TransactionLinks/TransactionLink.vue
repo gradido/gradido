@@ -79,7 +79,7 @@ export default {
   },
   props: {
     amount: { type: String, required: true },
-    code: { type: String, required: true },
+    link: { type: String, required: true },
     holdAvailableAmount: { type: String, required: true },
     id: { type: Number, required: true },
     memo: { type: String, required: true },
@@ -119,9 +119,6 @@ export default {
   computed: {
     decay() {
       return `${this.amount - this.holdAvailableAmount}`
-    },
-    link() {
-      return `${window.location.origin}/redeem/${this.code}`
     },
   },
 }
