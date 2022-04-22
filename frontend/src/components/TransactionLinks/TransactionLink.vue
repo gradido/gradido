@@ -19,7 +19,7 @@
               </template>
 
               <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copy">
-                <b-icon icon="clipboard" font-scale="1"></b-icon>
+                <b-icon icon="clipboard"></b-icon>
                 {{ $t('gdd_per_link.copy') }}
               </b-dropdown-item>
               <b-dropdown-item
