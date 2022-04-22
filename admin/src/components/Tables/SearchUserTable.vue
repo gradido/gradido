@@ -49,31 +49,40 @@
 
       <template #row-details="row">
         <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
-          <creation-formular
-            v-if="!row.item.deletedAt"
-            type="singleCreation"
-            pagetype="singleCreation"
-            :creation="row.item.creation"
-            :item="row.item"
-            :creationUserData="creationUserData"
-            @update-user-data="updateUserData"
-          />
-          <div v-else>{{ $t('userIsDeleted') }}</div>
-          <confirm-register-mail-formular
-            v-if="!row.item.deletedAt"
-            :checked="row.item.emailChecked"
-            :email="row.item.email"
-            :dateLastSend="
-              row.item.emailConfirmationSend
-                ? $d(new Date(row.item.emailConfirmationSend), 'long')
-                : ''
-            "
-          />
-          <creation-transaction-list-formular
-            v-if="!row.item.deletedAt"
-            :userId="row.item.userId"
-          />
-          <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+          <b-tabs content-class="mt-3">
+            <b-tab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
+              <creation-formular
+                v-if="!row.item.deletedAt"
+                type="singleCreation"
+                pagetype="singleCreation"
+                :creation="row.item.creation"
+                :item="row.item"
+                :creationUserData="creationUserData"
+                @update-user-data="updateUserData"
+              />
+            </b-tab>
+            <b-tab :title="$t('e_mail')" :disabled="row.item.deletedAt !== null">
+              <confirm-register-mail-formular
+                v-if="!row.item.deletedAt"
+                :checked="row.item.emailChecked"
+                :email="row.item.email"
+                :dateLastSend="
+                  row.item.emailConfirmationSend
+                    ? $d(new Date(row.item.emailConfirmationSend), 'long')
+                    : ''
+                "
+              />
+            </b-tab>
+            <b-tab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
+              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </b-tab>
+            <b-tab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
+              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </b-tab>
+            <b-tab :title="$t('delete_user')">
+              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+            </b-tab>
+          </b-tabs>
         </b-card>
       </template>
     </b-table>
@@ -82,7 +91,8 @@
 <script>
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
+import CreationTransactionList from '../CreationTransactionList.vue'
+import TransactionLinkList from '../TransactionLinkList.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 export default {
@@ -90,7 +100,8 @@ export default {
   components: {
     CreationFormular,
     ConfirmRegisterMailFormular,
-    CreationTransactionListFormular,
+    CreationTransactionList,
+    TransactionLinkList,
     DeletedUserFormular,
   },
   props: {

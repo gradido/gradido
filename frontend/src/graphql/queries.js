@@ -45,11 +45,12 @@ export const logout = gql`
 export const transactionsQuery = gql`
   query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      balanceGDT
-      count
-      linkCount
-      balance
-      decayStartBlock
+      balance {
+        balance
+        balanceGDT
+        count
+        linkCount
+      }
       transactions {
         id
         typeId
@@ -70,14 +71,9 @@ export const transactionsQuery = gql`
         linkedUser {
           email
         }
+        transactionLinkId
       }
     }
-  }
-`
-
-export const sendResetPasswordEmail = gql`
-  query($email: String!) {
-    sendResetPasswordEmail(email: $email)
   }
 `
 
@@ -95,17 +91,6 @@ export const listGDTEntriesQuery = gql`
         gdt
       }
       gdtSum
-    }
-  }
-`
-
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
     }
   }
 `
@@ -154,7 +139,7 @@ export const listTransactionLinks = gql`
       amount
       holdAvailableAmount
       memo
-      code
+      link
       createdAt
       validUntil
       redeemedAt

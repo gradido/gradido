@@ -11,6 +11,7 @@ export const sendTransactionReceivedEmail = (data: {
   senderEmail: string
   amount: Decimal
   memo: string
+  overviewURL: string
 }): Promise<boolean> => {
   return sendEMail({
     to: `${data.recipientFirstName} ${data.recipientLastName} <${data.email}>`,

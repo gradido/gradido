@@ -1,40 +1,75 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
 import { calculateDecay } from '@/util/decay'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Transaction } from '@entity/Transaction'
+import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
+import { GdtResolver } from './GdtResolver'
+import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { MoreThan, getCustomRepository } from '@dbTools/typeorm'
+import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 @Resolver()
 export class BalanceResolver {
   @Authorized([RIGHTS.BALANCE])
   @Query(() => Balance)
-  async balance(@Ctx() context: any): Promise<Balance> {
-    // load user and balance
-    const { user } = context
+  async balance(@Ctx() context: Context): Promise<Balance> {
+    const user = getUser(context)
     const now = new Date()
 
-    const lastTransaction = await Transaction.findOne(
-      { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
-    )
+    const gdtResolver = new GdtResolver()
+    const balanceGDT = await gdtResolver.gdtBalance(context)
+
+    const lastTransaction = context.lastTransaction
+      ? context.lastTransaction
+      : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
 
     // No balance found
     if (!lastTransaction) {
       return new Balance({
         balance: new Decimal(0),
-        decay: new Decimal(0),
-        decay_date: now.toString(),
+        balanceGDT,
+        count: 0,
+        linkCount: 0,
       })
     }
 
+    const count =
+      context.transactionCount || context.transactionCount === 0
+        ? context.transactionCount
+        : await dbTransaction.count({ where: { userId: user.id } })
+    const linkCount =
+      context.linkCount || context.linkCount === 0
+        ? context.linkCount
+        : await dbTransactionLink.count({
+            where: {
+              userId: user.id,
+              redeemedAt: null,
+              validUntil: MoreThan(new Date()),
+            },
+          })
+
+    // The decay is always calculated on the last booked transaction
+    const calculatedDecay = calculateDecay(
+      lastTransaction.balance,
+      lastTransaction.balanceDate,
+      now,
+    )
+
+    // The final balance is reduced by the link amount withheld
+    const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
+    const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
+      ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
+      : await transactionLinkRepository.summary(user.id, now)
+
     return new Balance({
-      balance: lastTransaction.balance,
-      decay: calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance,
-      decay_date: now.toString(),
+      balance: calculatedDecay.balance
+        .minus(sumHoldAvailableAmount.toString())
+        .toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
+      balanceGDT,
+      count,
+      linkCount,
     })
   }
 }

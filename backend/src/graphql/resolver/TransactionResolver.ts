@@ -1,12 +1,12 @@
 /* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import CONFIG from '@/config'
+
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import CONFIG from '@/config'
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
@@ -24,7 +24,6 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 
-import { apiPost } from '@/apis/HttpRequest'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { calculateBalance, isHexPublicKey } from '@/util/validate'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -32,7 +31,11 @@ import { User } from '@model/User'
 import { communityUser } from '@/util/communityUser'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 import Decimal from 'decimal.js-light'
-import { calculateDecay } from '@/util/decay'
+
+import { BalanceResolver } from './BalanceResolver'
+
+const MEMO_MAX_CHARS = 255
+const MEMO_MIN_CHARS = 5
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -45,9 +48,22 @@ export const executeTransaction = async (
     throw new Error('Sender and Recipient are the same.')
   }
 
+  if (memo.length > MEMO_MAX_CHARS) {
+    throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+  }
+
+  if (memo.length < MEMO_MIN_CHARS) {
+    throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+  }
+
   // validate amount
   const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(sender.id, amount.mul(-1), receivedCallDate)
+  const sendBalance = await calculateBalance(
+    sender.id,
+    amount.mul(-1),
+    receivedCallDate,
+    transactionLink,
+  )
   if (!sendBalance) {
     throw new Error("user hasn't enough GDD or amount is < 0")
   }
@@ -120,6 +136,7 @@ export const executeTransaction = async (
     senderEmail: sender.email,
     amount,
     memo,
+    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
 
   return true
@@ -132,10 +149,10 @@ export class TransactionResolver {
   async transactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<TransactionList> {
     const now = new Date()
-    const user = context.user
+    const user = getUser(context)
 
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
@@ -143,23 +160,11 @@ export class TransactionResolver {
       { order: { balanceDate: 'DESC' } },
     )
 
-    // get GDT
-    let balanceGDT = null
-    try {
-      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.email,
-      })
-      if (!resultGDTSum.success) {
-        throw new Error('Call not successful')
-      }
-      balanceGDT = Number(resultGDTSum.data.sum) || 0
-    } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.log('Could not query GDT Server', err)
-    }
+    const balanceResolver = new BalanceResolver()
+    context.lastTransaction = lastTransaction
 
     if (!lastTransaction) {
-      return new TransactionList(new Decimal(0), [], 0, 0, balanceGDT)
+      return new TransactionList(await balanceResolver.balance(context), [])
     }
 
     // find transactions
@@ -172,6 +177,7 @@ export class TransactionResolver {
       offset,
       order,
     )
+    context.transactionCount = userTransactionsCount
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
@@ -194,11 +200,21 @@ export class TransactionResolver {
     const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkRepository.summary(user.id, now)
+    context.linkCount = transactionLinkcount
+    context.sumHoldAvailableAmount = sumHoldAvailableAmount
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
+      // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
+      // since the decay is substantially different when the amount is less
       transactions.push(
-        virtualDecayTransaction(lastTransaction.balance, lastTransaction.balanceDate, now, self),
+        virtualDecayTransaction(
+          lastTransaction.balance,
+          lastTransaction.balanceDate,
+          now,
+          self,
+          sumHoldAvailableAmount,
+        ),
       )
       // virtual transaction for pending transaction-links sum
       if (sumHoldAvailableAmount.greaterThan(0)) {
@@ -226,25 +242,17 @@ export class TransactionResolver {
     })
 
     // Construct Result
-    return new TransactionList(
-      calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now).balance.minus(
-        sumHoldAvailableAmount.toString(),
-      ),
-      transactions,
-      userTransactionsCount,
-      transactionLinkcount,
-      balanceGDT,
-    )
+    return new TransactionList(await balanceResolver.balance(context), transactions)
   }
 
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => String)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<boolean> {
     // TODO this is subject to replay attacks
-    const senderUser = context.user
+    const senderUser = getUser(context)
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }
@@ -256,6 +264,9 @@ export class TransactionResolver {
     }
     if (recipientUser.deletedAt) {
       throw new Error('The recipient account was deleted')
+    }
+    if (!recipientUser.emailChecked) {
+      throw new Error('The recipient account is not activated')
     }
     if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
       throw new Error('invalid recipient public key')

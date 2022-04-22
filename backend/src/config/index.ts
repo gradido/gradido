@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2022-03-18',
+    EXPECTED: 'v6.2022-04-21',
     CURRENT: '',
   },
 }
@@ -22,7 +22,7 @@ const constants = {
 const server = {
   PORT: process.env.PORT || 4000,
   JWT_SECRET: process.env.JWT_SECRET || 'secret123',
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '30m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
@@ -50,6 +50,7 @@ const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
   COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
+  COMMUNITY_REDEEM_URL: process.env.COMMUNITY_REDEEM_URL || 'http://localhost/redeem/{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }
@@ -70,8 +71,16 @@ const email = {
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
     process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
+  EMAIL_LINK_FORGOTPASSWORD:
+    process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
+  EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW || 'http://localhost/overview',
+  // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
-    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 10
+    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440
+    : 1440,
+  // time in minutes that must pass to request a new optin code
+  EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
+    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) || 10
     : 10,
 }
 

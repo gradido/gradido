@@ -1,7 +1,7 @@
 <template>
   <div class="clipboard-copy">
     <b-input-group size="lg" class="mb-3" prepend="Link">
-      <b-form-input v-model="url" type="text" readonly></b-form-input>
+      <b-form-input :value="link" type="text" readonly></b-form-input>
       <b-input-group-append>
         <b-button size="sm" text="Button" variant="success" @click="CopyLink">
           {{ $t('gdd_per_link.copy') }}
@@ -14,17 +14,12 @@
 export default {
   name: 'ClipboardCopy',
   props: {
-    code: { type: String, required: true },
-  },
-  data() {
-    return {
-      url: `${window.location.origin}/redeem/${this.code}`,
-    }
+    link: { type: String, required: true },
   },
   methods: {
     CopyLink() {
       navigator.clipboard
-        .writeText(this.url)
+        .writeText(this.link)
         .then(() => {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })

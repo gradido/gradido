@@ -26,7 +26,6 @@
               :transactionCount="transactionCount"
               :transactionLinkCount="transactionLinkCount"
               :pending="pending"
-              :decayStartBlock="decayStartBlock"
               @update-transactions="updateTransactions"
               @set-tunneled-email="setTunneledEmail"
             ></router-view>
@@ -54,16 +53,13 @@ export default {
   },
   data() {
     return {
-      logo: 'img/brand/green.png',
       balance: 0,
       GdtBalance: 0,
       transactions: [],
-      bookedBalance: 0,
       transactionCount: 0,
       transactionLinkCount: 0,
       pending: true,
       visible: false,
-      decayStartBlock: new Date(),
       tunneledEmail: null,
     }
   },
@@ -103,12 +99,13 @@ export default {
             data: { transactionList },
           } = result
           this.GdtBalance =
-            transactionList.balanceGDT === null ? null : Number(transactionList.balanceGDT)
+            transactionList.balance.balanceGDT === null
+              ? null
+              : Number(transactionList.balance.balanceGDT)
           this.transactions = transactionList.transactions
-          this.balance = Number(transactionList.balance)
-          this.transactionCount = transactionList.count
-          this.transactionLinkCount = transactionList.linkCount
-          this.decayStartBlock = new Date(transactionList.decayStartBlock)
+          this.balance = Number(transactionList.balance.balance)
+          this.transactionCount = transactionList.balance.count
+          this.transactionLinkCount = transactionList.balance.linkCount
           this.pending = false
         })
         .catch((error) => {

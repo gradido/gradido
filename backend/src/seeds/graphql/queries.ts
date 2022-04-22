@@ -59,7 +59,6 @@ export const transactionsQuery = gql`
       balanceGDT
       count
       balance
-      decayStartBlock
       transactions {
         id
         typeId

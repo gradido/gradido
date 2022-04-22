@@ -18,6 +18,12 @@ export const setPassword = gql`
   }
 `
 
+export const forgotPassword = gql`
+  mutation($email: String!) {
+    forgotPassword(email: $email)
+  }
+`
+
 export const updateUserInfos = gql`
   mutation(
     $firstName: String
@@ -69,7 +75,7 @@ export const sendCoins = gql`
 export const createTransactionLink = gql`
   mutation($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
-      code
+      link
     }
   }
 `

@@ -13,6 +13,6 @@ const amount = (value) => {
 const GDD = (value) => {
   value = amount(value)
   if (value === '') return ''
-  if (!value.match(/^− /)) value = '+ ' + value
+  if (!value.match(/^− /) && !value.match(/^0[.,]00$/)) value = '+ ' + value
   return value + ' GDD'
 }

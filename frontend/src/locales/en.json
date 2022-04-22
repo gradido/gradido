@@ -30,6 +30,7 @@
   "delete": "Delete",
   "em-dash": "—",
   "error": {
+    "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error!",
     "no-account": "Unfortunately we could not find an account to the given data!",
@@ -51,6 +52,7 @@
     "amount": "Amount",
     "at": "at",
     "cancel": "Cancel",
+    "check_now": "Check now",
     "close": "Close",
     "current_balance": "Current Balance",
     "date": "Date",
@@ -100,36 +102,39 @@
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
-    "expired": "Expired",
-    "has-account": "You already have a Gradido account",
+    "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
-    "link-copied": "Link copied to clipboard",
+    "isFree": "Gradido is free of charge worldwide.",
+    "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
     "link-overview": "Link overview",
     "links_count": "Active links",
-    "links_sum": "Total of your sent Gradidos",
-    "no-account": "You don't have a Gradido account yet",
+    "links_sum": "Open links and QR codes",
+    "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Could not copy link: {err}",
     "redeem": "Redeem",
     "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
+    "redeemed-title": "redeemed",
     "to-login": "Log in",
-    "to-register": "Register a new account"
+    "to-register": "Register a new account.",
+    "valid_until": "Valid until"
   },
   "gdt": {
-    "calculation": "Calculation of GradidoTransform",
+    "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
     "conversion": "Conversion",
-    "conversion-gdt-euro": "Conversion Euro / GradidoTransform (GDT)",
+    "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "credit": "Credit",
     "factor": "Factor",
     "formula": "Calculation formula",
     "funding": "To the funding contributions",
-    "gdt-received": "GradidoTransform (GDT) received",
-    "no-transactions": "You do not have GradidoTransform (GDT) yet.",
+    "gdt": "Gradido Transform",
+    "gdt-received": "Gradido Transform (GDT) received",
+    "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
@@ -140,9 +145,9 @@
   "login": "Login",
   "math": {
     "aprox": "~",
-    "div": "/",
     "equal": "=",
     "exclaim": "!",
+    "minus": "−",
     "pipe": "|"
   },
   "navigation": {
@@ -159,6 +164,7 @@
     "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID:"
   },
+  "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "settings": {
@@ -249,5 +255,6 @@
   },
   "transaction-link": {
     "send_you": "wants to send you"
-  }
+  },
+  "via_link": "via Link"
 }

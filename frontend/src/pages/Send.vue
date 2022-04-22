@@ -12,11 +12,9 @@
         <template #transactionConfirmationSend>
           <transaction-confirmation-send
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
-            :loading="loading"
             @send-transaction="sendTransaction"
             @on-reset="onReset"
           ></transaction-confirmation-send>
@@ -24,7 +22,6 @@
         <template #transactionConfirmationLink>
           <transaction-confirmation-link
             :balance="balance"
-            :selected="transactionData.selected"
             :email="transactionData.email"
             :amount="transactionData.amount"
             :memo="transactionData.memo"
@@ -44,7 +41,7 @@
           ></transaction-result-send-error>
         </template>
         <template #transactionResultLink>
-          <transaction-result-link :code="code" @on-reset="onReset"></transaction-result-link>
+          <transaction-result-link :link="link" @on-reset="onReset"></transaction-result-link>
         </template>
       </gdd-send>
       <hr />
@@ -90,7 +87,7 @@ export default {
       errorResult: '',
       currentTransactionStep: TRANSACTION_STEPS.transactionForm,
       loading: false,
-      code: null,
+      link: null,
     }
   },
   props: {
@@ -133,8 +130,8 @@ export default {
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
             })
-            .catch((err) => {
-              this.errorResult = err.message
+            .catch((error) => {
+              this.errorResult = error.message
               this.error = true
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
             })
@@ -147,12 +144,13 @@ export default {
             })
             .then((result) => {
               this.$emit('set-tunneled-email', null)
-              this.code = result.data.createTransactionLink.code
+              this.link = result.data.createTransactionLink.link
+              this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
               this.updateTransactions({})
             })
             .catch((error) => {
-              this.toastError(error)
+              this.toastError(error.message)
             })
           break
         default:

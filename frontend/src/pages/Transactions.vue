@@ -1,6 +1,6 @@
 <template>
   <div class="pb-4">
-    <b-tabs content-class="" justified>
+    <b-tabs v-model="tabIndex" content-class="" justified>
       <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
@@ -10,19 +10,22 @@
           :transactionLinkCount="transactionLinkCount"
           :transactions="transactions"
           :show-pagination="true"
-          :decayStartBlock="decayStartBlock"
           @update-transactions="updateTransactions"
           v-on="$listeners"
         />
       </b-tab>
 
-      <b-tab
-        :title="`Gradido Transform  (${GdtBalance === null ? '—' : $n(GdtBalance, 'decimal')} GDT)`"
-        class="px-4"
-      >
-        <p class="">{{ $t('transaction.gdt-text') }}</p>
-
-        <gdt-transaction-list />
+      <b-tab :title="titleGdt" class="px-4" @click="updateGdt()">
+        <b-row class="mb-3">
+          <b-col>{{ $t('transaction.gdt-text') }}</b-col>
+          <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
+        </b-row>
+        <gdt-transaction-list
+          v-model="currentPage"
+          :transactionsGdt="transactionsGdt"
+          :transactionGdtCount="transactionGdtCount"
+          :pageSize="pageSize"
+        />
       </b-tab>
     </b-tabs>
   </div>
@@ -30,6 +33,7 @@
 <script>
 import GddTransactionList from '@/components/GddTransactionList.vue'
 import GdtTransactionList from '@/components/GdtTransactionList.vue'
+import { listGDTEntriesQuery } from '@/graphql/queries'
 
 export default {
   name: 'Transactions',
@@ -45,16 +49,54 @@ export default {
     },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
-    decayStartBlock: { type: Date },
   },
   data() {
     return {
       timestamp: Date.now(),
+      transactionsGdt: [],
+      transactionGdtCount: 0,
+      currentPage: 1,
+      pageSize: 25,
+      tabIndex: 0,
     }
   },
   methods: {
+    async updateGdt() {
+      this.$apollo
+        .query({
+          query: listGDTEntriesQuery,
+          variables: {
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          },
+        })
+        .then((result) => {
+          const {
+            data: { listGDTEntries },
+          } = result
+          this.transactionsGdt = listGDTEntries.gdtEntries
+          this.transactionGdtCount = listGDTEntries.count
+          window.scrollTo(0, 0)
+        })
+        .catch((error) => {
+          this.transactionGdtCount = -1
+          this.toastError(error.message)
+        })
+    },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+  },
+  computed: {
+    titleGdt(boolean) {
+      if (this.tabIndex === 1)
+        return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
+      return this.$t('gdt.gdt')
+    },
+  },
+  watch: {
+    currentPage() {
+      this.updateGdt()
     },
   },
 }
