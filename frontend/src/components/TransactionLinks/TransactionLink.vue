@@ -50,7 +50,7 @@
         <template #header>
           <h6 class="mb-0">{{ $t('qrCode') }}</h6>
         </template>
-        <b-card-text><figure-qr-code class="text-center" :text="link" /></b-card-text>
+        <b-card-text><figure-qr-code class="text-center" :link="link" /></b-card-text>
         <template #footer>
           <em>{{ link }}</em>
         </template>
