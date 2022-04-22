@@ -53,7 +53,7 @@ describe('TransactionLink', () => {
         expect(wrapper.find('.test-qr-code').exists()).toBe(false)
       })
 
-      it('find only Link Löschen Button ', () => {
+      it('has  delete link button ', () => {
         expect(wrapper.find('.test-delete-link').exists()).toBe(true)
       })
     })
