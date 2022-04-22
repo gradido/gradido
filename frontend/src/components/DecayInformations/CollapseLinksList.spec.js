@@ -17,6 +17,7 @@ const propsData = {
     {
       amount: '5',
       code: 'ce28664b5308c17f931c0367',
+      link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
       createdAt: '2022-03-16T14:22:40.000Z',
       holdAvailableAmount: '5.13109484759482747111',
       id: 87,
@@ -27,6 +28,7 @@ const propsData = {
     {
       amount: '6',
       code: 'ce28664b5308c17f931c0367',
+      link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
       createdAt: '2022-03-16T14:22:40.000Z',
       holdAvailableAmount: '5.13109484759482747111',
       id: 86,
