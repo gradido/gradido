@@ -109,9 +109,6 @@ export default {
     decay() {
       return `${this.amount - this.holdAvailableAmount}`
     },
-    link() {
-      return `${window.location.origin}/redeem/${this.code}`
-    },
     validLink() {
       return new Date(this.validUntil) > new Date()
     },
