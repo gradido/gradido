@@ -109,7 +109,7 @@ describe('TransactionLink', () => {
             await wrapper.find('.test-qr-code .dropdown-item').trigger('click')
           })
 
-          it('qr-code Modal if show', () => {
+          it('opens the qr-code Modal', () => {
             expect(spy).toBeCalled()
           })
         })
