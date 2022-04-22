@@ -8,7 +8,7 @@
         <div class="text-center">
           <figure-qr-code v-if="showQrcode" :link="link" />
 
-          <b-button variant="success" @click="$emit('on-reset')" class="mt-4">
+          <b-button variant="secondary" @click="$emit('on-reset')" class="mt-4">
             {{ $t('form.close') }}
           </b-button>
         </div>
