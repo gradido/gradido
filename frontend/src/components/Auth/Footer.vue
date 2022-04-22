@@ -1,7 +1,7 @@
 <template>
   <footer class="footer bg-transparent">
     <b-row class="mt-4">
-      <b-col class="col-12 col-md-12 col-lg-6 ">
+      <b-col class="col-12 col-md-12 col-lg-6">
         <b-nav class="nav-footer justify-content-center">
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
             {{ $t('footer.imprint') }}
@@ -11,7 +11,7 @@
           </b-nav-item>
         </b-nav>
       </b-col>
-      <b-col class="col-12 col-md-12 col-lg-6 mt-4 mb-4  mt-lg-0 mb-lg-0">
+      <b-col class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
         <div class="text-center text-lg-right">
           {{ $t('followUs') }}
           <b-icon-facebook class="ml-3 mr-3" font-scale="1"></b-icon-facebook>
