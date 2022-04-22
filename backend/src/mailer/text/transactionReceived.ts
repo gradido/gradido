@@ -12,6 +12,7 @@ export const transactionReceived = {
       senderEmail: string
       amount: Decimal
       memo: string
+      overviewURL: string
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName}
 
@@ -25,6 +26,9 @@ ${data.memo}
 Bitte antworte nicht auf diese E-Mail!
 
 Mit freundlichen Grüßen,
-dein Gradido-Team`,
+dein Gradido-Team
+
+
+Link zu deinem Konto: ${data.overviewURL}`,
   },
 }

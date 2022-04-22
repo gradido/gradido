@@ -133,12 +133,11 @@
 import InputEmail from '@/components/Inputs/InputEmail.vue'
 import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
 import { createUser } from '@/graphql/mutations'
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   components: { InputEmail, LanguageSwitchSelect },
   name: 'Register',
-  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -154,6 +153,7 @@ export default {
       register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
+      CONFIG,
     }
   },
   methods: {

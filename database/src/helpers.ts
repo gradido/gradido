@@ -1,6 +1,5 @@
 import CONFIG from './config'
 import { createPool, PoolConfig } from 'mysql'
-import { useSeeding, runSeeder } from 'typeorm-seeding'
 import { Migration } from 'ts-mysql-migrate'
 import path from 'path'
 
@@ -32,17 +31,4 @@ const resetDB = async (closePool = false): Promise<void> => {
   if (closePool) pool.end()
 }
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-const runSeeds = async (seeds: any[]): Promise<void> => {
-  if (seeds.length > 0) {
-    await useSeeding({
-      root: process.cwd(),
-      configName: 'ormconfig.js',
-    })
-    for (let i = 0; i < seeds.length; i++) {
-      await runSeeder(seeds[i])
-    }
-  }
-}
-
-export { resetDB, pool, migration, initialize, runSeeds }
+export { resetDB, pool, migration, initialize }

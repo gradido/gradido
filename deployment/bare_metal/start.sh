@@ -106,7 +106,6 @@ yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
   yarn dev_reset
-  yarn seed 
 else
   yarn up
 fi
@@ -118,6 +117,9 @@ cd $PROJECT_ROOT/backend
 unset NODE_ENV
 yarn install
 yarn build
+if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+  yarn seed
+fi
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-backend

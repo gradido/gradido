@@ -49,7 +49,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import { login } from '@/graphql/queries'
-import { getCommunityInfoMixin } from '@/mixins/getCommunityInfo'
+import CONFIG from '@/config'
 
 export default {
   name: 'Login',
@@ -57,7 +57,6 @@ export default {
     InputPassword,
     InputEmail,
   },
-  mixins: [getCommunityInfoMixin],
   data() {
     return {
       form: {
@@ -66,7 +65,7 @@ export default {
       },
       passwordVisible: false,
       selected: '01',
-      options: [{ value: '01', text: this.$store.state.community.name }],
+      options: [{ value: '01', text: CONFIG.COMMUNITY_NAME }],
       status: false,
     }
   },

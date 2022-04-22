@@ -1,8 +1,9 @@
 /* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import CONFIG from '@/config'
+
+import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
@@ -135,6 +136,7 @@ export const executeTransaction = async (
     senderEmail: sender.email,
     amount,
     memo,
+    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
 
   return true
@@ -147,10 +149,10 @@ export class TransactionResolver {
   async transactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<TransactionList> {
     const now = new Date()
-    const user = context.user
+    const user = getUser(context)
 
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
@@ -247,10 +249,10 @@ export class TransactionResolver {
   @Mutation(() => String)
   async sendCoins(
     @Args() { email, amount, memo }: TransactionSendArgs,
-    @Ctx() context: any,
+    @Ctx() context: Context,
   ): Promise<boolean> {
     // TODO this is subject to replay attacks
-    const senderUser = context.user
+    const senderUser = getUser(context)
     if (senderUser.pubKey.length !== 32) {
       throw new Error('invalid sender public key')
     }

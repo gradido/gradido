@@ -3,12 +3,12 @@
     <b-row>
       <b-col cols="5">
         <div class="text-right">
-          {{ diffNow ? $t('gdd_per_link.valid_until') : $t('form.date') }}
+          {{ text }}
         </div>
       </b-col>
       <b-col cols="7">
         <div class="gdd-transaction-list-item-date">
-          {{ dateString }}
+          {{ $d(new Date(this.date), 'long') }}
         </div>
       </b-col>
     </b-row>
@@ -27,12 +27,19 @@ export default {
       required: false,
       default: false,
     },
+    validLink: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
-    dateString() {
-      return this.diffNow
-        ? this.$moment(this.date).locale(this.$i18n.locale).fromNow()
-        : this.$d(new Date(this.date), 'long')
+    text() {
+      if (this.diffNow)
+        return this.validLink
+          ? this.$t('gdd_per_link.validUntil')
+          : this.$t('gdd_per_link.expiredOn')
+      return this.$t('form.date')
     },
   },
 }
