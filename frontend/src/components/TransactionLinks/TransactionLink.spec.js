@@ -53,7 +53,7 @@ describe('TransactionLink', () => {
         expect(wrapper.find('.test-qr-code').exists()).toBe(false)
       })
 
-      it('has  delete link button ', () => {
+      it('has delete link button ', () => {
         expect(wrapper.find('.test-delete-link').exists()).toBe(true)
       })
     })
@@ -63,7 +63,7 @@ describe('TransactionLink', () => {
         const now = new Date()
         jest.clearAllMocks()
         await wrapper.setProps({
-          validUntil: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2),
+          validUntil: `${new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2)}`,
         })
       })
 
