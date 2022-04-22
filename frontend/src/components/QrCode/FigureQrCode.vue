@@ -14,14 +14,14 @@ export default {
     QRCanvas,
   },
   props: {
-    text: { type: String, required: true },
+    link: { type: String, required: true },
   },
   data() {
     return {
       options: {
         cellSize: 8,
         correctLevel: 'H',
-        data: this.text,
+        data: this.link,
       },
     }
   },

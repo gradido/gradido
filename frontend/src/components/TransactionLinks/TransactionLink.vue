@@ -47,7 +47,7 @@
     </b-row>
     <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
       <div class="text-center">
-        <figure-qr-code :text="link" />
+        <figure-qr-code :link="link" />
         <p>{{ link }}</p>
       </div>
     </b-modal>
