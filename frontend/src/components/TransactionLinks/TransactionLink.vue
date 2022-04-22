@@ -45,11 +45,16 @@
         </b-button>
       </b-col>
     </b-row>
-    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
-      <div class="text-center">
-        <figure-qr-code :link="link" />
-        <p>{{ link }}</p>
-      </div>
+    <b-modal :id="'modalPopover-' + id" ok-only hide-header-close>
+      <b-card header-tag="header" footer-tag="footer">
+        <template #header>
+          <h6 class="mb-0">{{ $t('qrCode') }}</h6>
+        </template>
+        <b-card-text><figure-qr-code class="text-center" :link="link" /></b-card-text>
+        <template #footer>
+          <em>{{ link }}</em>
+        </template>
+      </b-card>
     </b-modal>
   </div>
 </template>
