@@ -31,7 +31,7 @@
                 {{ $t('qrCode') }}
               </b-dropdown-item>
               <b-dropdown-item class="pt-3 test-delete-link" @click="deleteLink()">
-                <b-icon icon="trash" font-scale="1"></b-icon>
+                <b-icon icon="trash"></b-icon>
                 {{ $t('delete') }}
               </b-dropdown-item>
             </b-dropdown>
