@@ -1,6 +1,6 @@
 <template>
   <div class="auth-header">
-    <b-navbar :toggleable="toggleable" class="p-0">
+    <b-navbar toggleable="lg" class="p-0">
       <div class="g-logo-radius bg-white p-3">
         <b-img :src="logo" height="40" alt="..." />
       </div>
@@ -10,7 +10,7 @@
       <b-collapse id="nav-collapse" is-nav>
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item to="https://gradido.net/de/" target="_blank">
+          <b-nav-item href="https://gradido.net/de/" target="_blank">
             {{ $t('auth.navbar.overGradido') }}
           </b-nav-item>
 
@@ -30,7 +30,6 @@ export default {
       logo: 'img/brand/green.png',
       sheet: 'img/template/Blaetter.png',
       windowWidth: window.innerWidth,
-      toggleable: false,
     }
   },
 }
