@@ -251,8 +251,6 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      // TODO: Check if we can use updateUserInfos
-      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
       dbUser.publisherId = publisherId
       DbUser.save(dbUser)
     }
