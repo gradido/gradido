@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword } from '@/seeds/graphql/mutations'
+import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
 import { login, logout, verifyLogin } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { printTimeDuration } from './UserResolver'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { printTimeDuration, activationLink } from './UserResolver'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -19,6 +20,13 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('@/mailer/sendResetPasswordEmail', () => {
+  return {
+    __esModule: true,
+    sendResetPasswordEmail: jest.fn(),
   }
 })
 
@@ -477,6 +485,57 @@ describe('UserResolver', () => {
               },
             }),
           )
+        })
+      })
+    })
+  })
+
+  describe('forgotPassword', () => {
+    const variables = { email: 'bibi@bloxberg.de' }
+    describe('user is not in DB', () => {
+      it('returns true', async () => {
+        await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              forgotPassword: true,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('user exists in DB', () => {
+      let result: any
+      let loginEmailOptIn: LoginEmailOptIn[]
+
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await resetEntity(LoginEmailOptIn)
+        result = await mutate({ mutation: forgotPassword, variables })
+        loginEmailOptIn = await LoginEmailOptIn.find()
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true', async () => {
+        await expect(result).toEqual(
+          expect.objectContaining({
+            data: {
+              forgotPassword: true,
+            },
+          }),
+        )
+      })
+
+      it('sends reset password email', () => {
+        expect(sendResetPasswordEmail).toBeCalledWith({
+          link: activationLink(loginEmailOptIn[0]),
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          email: 'bibi@bloxberg.de',
+          duration: expect.any(String),
         })
       })
     })
