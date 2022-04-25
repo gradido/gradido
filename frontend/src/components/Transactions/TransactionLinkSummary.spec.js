@@ -44,7 +44,7 @@ describe('TransactionLinkSummary', () => {
           listTransactionLinks: [
             {
               amount: '75',
-              code: 'ce28664b5308c17f931c0367',
+              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 86,
@@ -55,7 +55,7 @@ describe('TransactionLinkSummary', () => {
             },
             {
               amount: '85',
-              code: 'ce28664b5308c17f931c0367',
+              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 107,
@@ -65,7 +65,7 @@ describe('TransactionLinkSummary', () => {
             },
             {
               amount: '95',
-              code: 'ce28664b5308c17f931c0367',
+              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 92,
@@ -76,7 +76,7 @@ describe('TransactionLinkSummary', () => {
             },
             {
               amount: '150',
-              code: 'ce28664b5308c17f931c0367',
+              link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
               createdAt: '2022-03-16T14:22:40.000Z',
               holdAvailableAmount: '5.13109484759482747111',
               id: 16,
@@ -132,6 +132,27 @@ describe('TransactionLinkSummary', () => {
         it('has no component CollapseLinksList', () => {
           expect(wrapper.findComponent({ name: 'CollapseLinksList' }).isVisible()).toBe(false)
         })
+
+        describe('reopen transaction link details', () => {
+          beforeEach(() => {
+            jest.clearAllMocks()
+            wrapper.find('div.transaction-link-details').trigger('click')
+          })
+
+          it('calls the API to get the list transaction links', () => {
+            expect(apolloQueryMock).toBeCalledWith({
+              query: listTransactionLinks,
+              variables: {
+                currentPage: 1,
+              },
+              fetchPolicy: 'network-only',
+            })
+          })
+
+          it('has four transactionLinks', () => {
+            expect(wrapper.vm.transactionLinks).toHaveLength(4)
+          })
+        })
       })
 
       describe('load more transaction links', () => {
@@ -142,7 +163,7 @@ describe('TransactionLinkSummary', () => {
               listTransactionLinks: [
                 {
                   amount: '76',
-                  code: 'ce28664b5308c17f931c0367',
+                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                   createdAt: '2022-03-16T14:22:40.000Z',
                   holdAvailableAmount: '5.13109484759482747111',
                   id: 87,
@@ -153,7 +174,7 @@ describe('TransactionLinkSummary', () => {
                 },
                 {
                   amount: '86',
-                  code: 'ce28664b5308c17f931c0367',
+                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                   createdAt: '2022-03-16T14:22:40.000Z',
                   holdAvailableAmount: '5.13109484759482747111',
                   id: 108,
@@ -164,7 +185,7 @@ describe('TransactionLinkSummary', () => {
                 },
                 {
                   amount: '96',
-                  code: 'ce28664b5308c17f931c0367',
+                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                   createdAt: '2022-03-16T14:22:40.000Z',
                   holdAvailableAmount: '5.13109484759482747111',
                   id: 93,
@@ -175,7 +196,7 @@ describe('TransactionLinkSummary', () => {
                 },
                 {
                   amount: '150',
-                  code: 'ce28664b5308c17f931c0367',
+                  link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
                   createdAt: '2022-03-16T14:22:40.000Z',
                   holdAvailableAmount: '5.13109484759482747111',
                   id: 17,

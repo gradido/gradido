@@ -102,6 +102,7 @@
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
+    "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Gradidos versenden per Link",
     "isFree": "Gradido ist weltweit kostenfrei.",
@@ -121,7 +122,7 @@
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "valid_until": "Gültig bis"
+    "validUntil": "Gültig bis"
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
@@ -164,6 +165,7 @@
     "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
     "publisherId": "Publisher-Id:"
   },
+  "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "settings": {

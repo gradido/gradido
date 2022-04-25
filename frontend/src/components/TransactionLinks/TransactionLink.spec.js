@@ -22,7 +22,7 @@ const mocks = {
 
 const propsData = {
   amount: '75',
-  code: 'c00000000c000000c0000',
+  link: 'http://localhost/redeem/c00000000c000000c0000',
   holdAvailableAmount: '5.13109484759482747111',
   id: 12,
   memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
@@ -44,115 +44,140 @@ describe('TransactionLink', () => {
       expect(wrapper.find('div.transaction-link').exists()).toBeTruthy()
     })
 
-    describe('Copy link to Clipboard', () => {
-      const navigatorClipboard = navigator.clipboard
-      beforeAll(() => {
-        delete navigator.clipboard
-        navigator.clipboard = { writeText: navigatorClipboardMock }
-      })
-      afterAll(() => {
-        navigator.clipboard = navigatorClipboard
+    describe('Link validUntil Date is not valid', () => {
+      it('has no copy link button', () => {
+        expect(wrapper.find('.test-copy-link').exists()).toBe(false)
       })
 
-      describe('copy with success', () => {
-        beforeEach(async () => {
-          navigatorClipboardMock.mockResolvedValue()
-          await wrapper.find('.test-copy-link').trigger('click')
-        })
-        it('should call clipboard.writeText', () => {
-          expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-            'http://localhost/redeem/c00000000c000000c0000',
-          )
-        })
-        it('toasts success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
-        })
+      it('has no Qr-Code Button ', () => {
+        expect(wrapper.find('.test-qr-code').exists()).toBe(false)
+      })
+
+      it('has delete link button ', () => {
+        expect(wrapper.find('.test-delete-link').exists()).toBe(true)
       })
     })
 
-    describe('qr code modal', () => {
-      let spy
-
-      beforeEach(() => {
+    describe('Link validUntil Date is valid ', () => {
+      beforeEach(async () => {
+        const now = new Date()
         jest.clearAllMocks()
+        await wrapper.setProps({
+          validUntil: `${new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2)}`,
+        })
       })
 
-      describe('with success', () => {
+      describe('Copy link to Clipboard', () => {
+        const navigatorClipboard = navigator.clipboard
+        beforeAll(() => {
+          delete navigator.clipboard
+          navigator.clipboard = { writeText: navigatorClipboardMock }
+        })
+        afterAll(() => {
+          navigator.clipboard = navigatorClipboard
+        })
+
+        describe('copy with success', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockResolvedValue()
+            await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
+          })
+
+          it('should call clipboard.writeText', () => {
+            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+              'http://localhost/redeem/c00000000c000000c0000',
+            )
+          })
+          it('toasts success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+          })
+        })
+      })
+
+      describe('qr code modal', () => {
+        let spy
+
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
-          // spy.mockImplementation(() => Promise.resolve('some value'))
-          // mockAPIcall.mockResolvedValue()
-          await wrapper.find('.test-qr-code').trigger('click')
+          jest.clearAllMocks()
         })
 
-        it('qr-code Modal if show', () => {
-          expect(spy).toBeCalled()
+        describe('with success', () => {
+          beforeEach(async () => {
+            spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
+            // spy.mockImplementation(() => Promise.resolve('some value'))
+            // mockAPIcall.mockResolvedValue()
+            await wrapper.find('.test-qr-code .dropdown-item').trigger('click')
+          })
+
+          it('opens the qr-code Modal', () => {
+            expect(spy).toBeCalled()
+          })
         })
       })
-    })
 
-    describe('delete link', () => {
-      let spy
+      describe('delete link', () => {
+        let spy
 
-      beforeEach(() => {
-        jest.clearAllMocks()
-      })
-
-      describe('with success', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
-          mockAPIcall.mockResolvedValue()
-          await wrapper.find('.test-delete-link').trigger('click')
+          jest.clearAllMocks()
         })
 
-        it('test Modal if confirm true', () => {
-          expect(spy).toBeCalled()
+        describe('with success', () => {
+          beforeEach(async () => {
+            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+            spy.mockImplementation(() => Promise.resolve('some value'))
+            mockAPIcall.mockResolvedValue()
+            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
+          })
+
+          it('opens the modal ', () => {
+            expect(spy).toBeCalled()
+          })
+
+          it('calls the API', () => {
+            expect(mockAPIcall).toBeCalledWith(
+              expect.objectContaining({
+                mutation: deleteTransactionLink,
+                variables: {
+                  id: 12,
+                },
+              }),
+            )
+          })
+
+          it('toasts a success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.deleted')
+          })
+
+          it('emits reset transaction link list', () => {
+            expect(wrapper.emitted('reset-transaction-link-list')).toBeTruthy()
+          })
         })
 
-        it('calls the API', () => {
-          expect(mockAPIcall).toBeCalledWith(
-            expect.objectContaining({
-              mutation: deleteTransactionLink,
-              variables: {
-                id: 12,
-              },
-            }),
-          )
+        describe('with error', () => {
+          beforeEach(async () => {
+            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+            spy.mockImplementation(() => Promise.resolve('some value'))
+            mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
+            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
+          })
+
+          it('toasts an error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('Something went wrong :(')
+          })
         })
 
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.deleted')
-        })
+        describe('cancel delete', () => {
+          beforeEach(async () => {
+            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+            spy.mockImplementation(() => Promise.resolve(false))
+            mockAPIcall.mockResolvedValue()
+            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
+          })
 
-        it('emits reset transaction link list', () => {
-          expect(wrapper.emitted('reset-transaction-link-list')).toBeTruthy()
-        })
-      })
-
-      describe('with error', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
-          mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
-          await wrapper.find('.test-delete-link').trigger('click')
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Something went wrong :(')
-        })
-      })
-
-      describe('cancel delete', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(false))
-          mockAPIcall.mockResolvedValue()
-          await wrapper.find('.test-delete-link').trigger('click')
-        })
-
-        it('does not call the API', () => {
-          expect(mockAPIcall).not.toBeCalled()
+          it('does not call the API', () => {
+            expect(mockAPIcall).not.toBeCalled()
+          })
         })
       })
     })

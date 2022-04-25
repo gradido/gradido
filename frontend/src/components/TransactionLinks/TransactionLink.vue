@@ -1,55 +1,54 @@
 <template>
   <div class="transaction-link gradido-custom-background">
-    <b-row class="mb-2 pt-2 pb-2">
-      <b-col lg="2">
+    <b-row :class="validLink ? '' : 'bg-muted text-light'" class="mb-2 pt-2 pb-2">
+      <b-col cols="1">
         <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
       </b-col>
-      <b-col lg="9" md="9">
+      <b-col cols="11">
         <b-row>
-          <b-col lg="11" md="10">
+          <b-col>
             <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
             <memo-row :memo="memo" />
-            <date-row :date="validUntil" :diffNow="true" />
+            <date-row :date="validUntil" :diffNow="true" :validLink="validLink" />
             <decay-row :decay="decay" />
           </b-col>
-          <b-col lg="1" md="2" class="text-center text-lg-left qr-button">
-            <b-button
-              @click="$bvModal.show('modalPopover-' + id)"
-              class="p-2 test-qr-code"
-              size="sm"
-            >
-              <b-img src="img/svg/qr-code.svg" width="60" class="filter"></b-img>
-            </b-button>
+          <b-col cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
+            <b-dropdown no-caret right aria-expanded="false" size="sm">
+              <template #button-content>
+                <b-icon icon="three-dots-vertical"></b-icon>
+              </template>
+
+              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copy">
+                <b-icon icon="clipboard"></b-icon>
+                {{ $t('gdd_per_link.copy') }}
+              </b-dropdown-item>
+              <b-dropdown-item
+                v-if="validLink"
+                @click="$bvModal.show('modalPopover-' + id)"
+                class="pt-3 pb-3 test-qr-code"
+              >
+                <b-img src="img/svg/qr-code.svg" width="18" class="filter"></b-img>
+                {{ $t('qrCode') }}
+              </b-dropdown-item>
+              <b-dropdown-item class="test-delete-link" @click="deleteLink()">
+                <b-icon icon="trash"></b-icon>
+                {{ $t('delete') }}
+              </b-dropdown-item>
+            </b-dropdown>
           </b-col>
         </b-row>
       </b-col>
-
-      <b-col lg="1" md="1" class="text-center text-lg-right">
-        <b-button
-          class="p-2 test-copy-link"
-          size="lg"
-          variant="outline-primary"
-          @click="copy"
-          :title="$t('gdd_per_link.copy')"
-        >
-          <b-icon icon="clipboard"></b-icon>
-        </b-button>
-        <br />
-        <b-button
-          class="p-2 mt-3 test-delete-link"
-          size="sm"
-          @click="deleteLink()"
-          :title="$t('delete')"
-        >
-          <b-icon icon="trash"></b-icon>
-        </b-button>
-      </b-col>
     </b-row>
-    <b-modal :id="'modalPopover-' + id" title="QR-Code" ok-only hide-header-close>
-      <div class="text-center">
-        <figure-qr-code :text="link" />
-        <p>{{ link }}</p>
-      </div>
+    <b-modal :id="'modalPopover-' + id" ok-only hide-header-close>
+      <b-card header-tag="header" footer-tag="footer">
+        <template #header>
+          <h6 class="mb-0">{{ $t('qrCode') }}</h6>
+        </template>
+        <b-card-text><figure-qr-code class="text-center" :link="link" /></b-card-text>
+        <template #footer>
+          <em>{{ link }}</em>
+        </template>
+      </b-card>
     </b-modal>
   </div>
 </template>
@@ -74,7 +73,7 @@ export default {
   },
   props: {
     amount: { type: String, required: true },
-    code: { type: String, required: true },
+    link: { type: String, required: true },
     holdAvailableAmount: { type: String, required: true },
     id: { type: Number, required: true },
     memo: { type: String, required: true },
@@ -115,8 +114,8 @@ export default {
     decay() {
       return `${this.amount - this.holdAvailableAmount}`
     },
-    link() {
-      return `${window.location.origin}/redeem/${this.code}`
+    validLink() {
+      return new Date(this.validUntil) > new Date()
     },
   },
 }
