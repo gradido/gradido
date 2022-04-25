@@ -1,9 +1,10 @@
-import { User } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
+import Decimal from 'decimal.js-light'
+import { User } from '@entity/User'
 
 @ObjectType()
 export class UserAdmin {
-  constructor(user: User, creation: number[], hasElopage: boolean, emailConfirmationSend: string) {
+  constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
     this.userId = user.id
     this.email = user.email
     this.firstName = user.firstName
@@ -27,8 +28,8 @@ export class UserAdmin {
   @Field(() => String)
   lastName: string
 
-  @Field(() => [Number])
-  creation: number[]
+  @Field(() => [Decimal])
+  creation: Decimal[]
 
   @Field(() => Boolean)
   emailChecked: boolean
