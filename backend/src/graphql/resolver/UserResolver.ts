@@ -245,8 +245,6 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      // TODO: Check if we can use updateUserInfos
-      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
       dbUser.publisherId = publisherId
       DbUser.save(dbUser)
     }
@@ -519,15 +517,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
-    {
-      firstName,
-      lastName,
-      language,
-      publisherId,
-      password,
-      passwordNew,
-      coinanimation,
-    }: UpdateUserInfosArgs,
+    { firstName, lastName, language, password, passwordNew, coinanimation }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const userEntity = getUser(context)
@@ -569,11 +559,6 @@ export class UserResolver {
       // Save new password hash and newly encrypted private key
       userEntity.password = newPasswordHash[0].readBigUInt64LE()
       userEntity.privKey = encryptedPrivkey
-    }
-
-    // Save publisherId only if Elopage is not yet registered
-    if (publisherId && !(await this.hasElopage(context))) {
-      userEntity.publisherId = publisherId
     }
 
     const queryRunner = getConnection().createQueryRunner()

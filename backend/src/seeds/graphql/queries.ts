@@ -43,6 +43,12 @@ export const logout = gql`
   }
 `
 
+export const queryOptIn = gql`
+  query ($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
 export const transactionsQuery = gql`
   query (
     $currentPage: Int = 1
