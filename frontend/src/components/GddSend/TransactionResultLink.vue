@@ -3,13 +3,12 @@
     <b-col>
       <b-card class="p-0 gradido-custom-background">
         <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
-
-        <clipboard-copy :link="link" />
+        <clipboard-copy :link="link" @show-qr-code-button="showQrCodeButton" />
 
         <div class="text-center">
-          <figure-qr-code :text="link" />
+          <figure-qr-code v-if="showQrcode" :link="link" />
 
-          <b-button variant="success" @click="$emit('on-reset')" class="mt-4">
+          <b-button variant="secondary" @click="$emit('on-reset')" class="mt-4">
             {{ $t('form.close') }}
           </b-button>
         </div>
@@ -31,6 +30,16 @@ export default {
     link: {
       type: String,
       required: true,
+    },
+  },
+  data() {
+    return {
+      showQrcode: false,
+    }
+  },
+  methods: {
+    showQrCodeButton() {
+      this.showQrcode = !this.showQrcode
     },
   },
 }

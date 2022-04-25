@@ -102,6 +102,7 @@
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
+    "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
@@ -121,7 +122,7 @@
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "valid_until": "Valid until"
+    "validUntil": "Valid until"
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
@@ -164,6 +165,7 @@
     "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
     "publisherId": "PublisherID:"
   },
+  "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "settings": {

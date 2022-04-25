@@ -3,7 +3,7 @@
     <b-row>
       <b-col cols="5">
         <div class="text-right">
-          {{ diffNow ? $t('gdd_per_link.valid_until') : $t('form.date') }}
+          {{ text }}
         </div>
       </b-col>
       <b-col cols="7">
@@ -26,6 +26,20 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    validLink: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+  },
+  computed: {
+    text() {
+      if (this.diffNow)
+        return this.validLink
+          ? this.$t('gdd_per_link.validUntil')
+          : this.$t('gdd_per_link.expiredOn')
+      return this.$t('form.date')
     },
   },
 }
