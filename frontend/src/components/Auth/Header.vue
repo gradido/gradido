@@ -33,22 +33,6 @@ export default {
       toggleable: false,
     }
   },
-  watch: {
-    windowWidth() {
-      this.toggleable = false
-      if (this.windowWidth < 1458) this.toggleable = true
-    },
-  },
-  mounted() {
-    this.$nextTick(() => {
-      window.addEventListener('resize', this.onResize)
-    })
-  },
-  methods: {
-    onResize() {
-      this.windowWidth = window.innerWidth
-    },
-  },
 }
 </script>
 <style lang="scss">
