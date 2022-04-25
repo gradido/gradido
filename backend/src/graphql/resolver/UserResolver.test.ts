@@ -108,6 +108,7 @@ describe('UserResolver', () => {
               emailChecked: false,
               passphrase: expect.any(String),
               language: 'de',
+              isAdmin: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -344,7 +345,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: false,
+                isAdmin: null,
                 klickTipp: {
                   newsletterState: false,
                 },
