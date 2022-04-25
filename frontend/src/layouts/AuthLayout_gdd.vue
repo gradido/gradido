@@ -39,7 +39,7 @@
 
     <div>
       <auth-header />
-      <b-row class="auth-template-content">
+      <b-row class="auth-template-content ml-1 mr-1 mr-md-0 ml-md-0">
         <b-col lg="6" md="none" sm="none">
           <div class="bg-img-box d-none d-lg-block">
             <carousel class="d-block w-100 h-100" />
@@ -69,13 +69,12 @@
               </b-col>
               <b-col cols="2" class="text-right">
                 <div id="popover-target-1" class="pointer">
-                  <span>{{ $t('A') }}</span>
-                  <span class="h1">{{ $t('A') }}</span>
+                  <b-img src="img/svg/type.svg" width="19" class="svg"></b-img>
                 </div>
                 <b-popover
                   target="popover-target-1"
-                  triggers="hover"
-                  placement="topleft"
+                  triggers="click"
+                  placement="top"
                   variant="dark"
                 >
                   <div class="text-light">
