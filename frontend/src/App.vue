@@ -19,7 +19,7 @@ export default {
 <style>
 #app {
   height: 100%;
-  min-width: 360p;
+  min-width: 360px;
   font-size: 1rem;
   font-family: 'WorkSans';
 }
