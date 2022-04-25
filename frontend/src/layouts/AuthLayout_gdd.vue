@@ -1,6 +1,13 @@
 <template>
   <div class="auth-template page-font-size">
     <div v-if="mobilStart" class="mobil-start-box d-inline d-sm-inline d-md-inline d-lg-none">
+      <div class="position-absolute h1 text-white zindex1000 w-100 text-center mt-8">
+        {{ $t('auth.left.gratitude') }}
+      </div>
+      <div class="position-absolute h2 text-white zindex1000 w-100 text-center mt-9">
+        {{ $t('auth.left.newCurrency') }}
+      </div>
+      <img src="img/template/Blaetter.png" class="header-img d-block d-lg-none zindex1000" />
       <b-img id="img0" src="img/template/logo-header.png" alt="start background image"></b-img>
       <b-img
         fluid
@@ -16,11 +23,15 @@
       ></b-img>
       <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
       <div class="mobil-start-box-text text-center">
-        <b-button variant="gradido" @click="linkRouter('/register')">{{ $t('signup') }}</b-button>
-        <div class="mt-3 h3">
+        <b-button variant="gradido" class="text-white" @click="linkRouter('/register')">
+          {{ $t('signup') }}
+        </b-button>
+        <div class="mt-3 h3 text-white">
           {{ $t('auth.left.hasAccount') }}
           <span @click="mobilStart = false">
-            <b-link to="/login" class="text-gradido">{{ $t('auth.left.hereLogin') }}</b-link>
+            <b-link to="/login" class="text-gradido gradido-global-color-0E79BC">
+              {{ $t('auth.left.hereLogin') }}
+            </b-link>
           </span>
         </div>
       </div>
