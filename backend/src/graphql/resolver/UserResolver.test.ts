@@ -5,7 +5,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/help
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
-import { login, logout } from '@/seeds/graphql/queries'
+import { login, logout, verifyLogin } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
@@ -409,6 +409,75 @@ describe('UserResolver', () => {
             errors: undefined,
           }),
         )
+      })
+    })
+  })
+
+  describe('verifyLogin', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(query({ query: verifyLogin })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('user exists but is not logged in', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('throws an error', async () => {
+        resetToken()
+        await expect(query({ query: verifyLogin })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+
+      describe('authenticated', () => {
+        const variables = {
+          email: 'bibi@bloxberg.de',
+          password: 'Aa12345_',
+        }
+
+        beforeAll(async () => {
+          await query({ query: login, variables })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('returns user object', async () => {
+          await expect(query({ query: verifyLogin })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                verifyLogin: {
+                  email: 'bibi@bloxberg.de',
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  language: 'de',
+                  coinanimation: true,
+                  klickTipp: {
+                    newsletterState: false,
+                  },
+                  hasElopage: false,
+                  publisherId: 1234,
+                  isAdmin: false,
+                },
+              },
+            }),
+          )
+        })
       })
     })
   })
