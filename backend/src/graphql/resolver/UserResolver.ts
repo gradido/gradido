@@ -19,9 +19,7 @@ import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { ROLE_ADMIN } from '@/auth/ROLES'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { ServerUser } from '@entity/ServerUser'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -207,7 +205,6 @@ export class UserResolver {
       })
     user.coinanimation = coinanimation
 
-    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
@@ -243,9 +240,6 @@ export class UserResolver {
     }
 
     const user = new User(dbUser)
-    // user.email = email
-    // user.pubkey = dbUser.pubKey.toString('hex')
-    user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
@@ -265,10 +259,6 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-
-    // context.role is not set to the actual role yet on login
-    const countServerUsers = await ServerUser.count({ email: user.email })
-    user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
       key: 'token',
