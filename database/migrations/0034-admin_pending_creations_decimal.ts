@@ -1,4 +1,7 @@
-/* MIGRATION TO CHANGE `amount` FIELD TYPE TO `Decimal` ON `admin_pending_creations` */
+/* MIGRATION TO CHANGE SEVERAL FIELDS ON `admin_pending_creations`
+ * - `amount` FIELD TYPE TO `Decimal`
+ * - `memo` FIELD TYPE TO `varchar(255)`, collate `utf8mb4_unicode_ci`
+ */
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -18,9 +21,15 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
   // drop `amount_bitint` column
   await queryFn('ALTER TABLE `admin_pending_creations` DROP COLUMN `amount_bigint`;')
+
+  // change `memo` to varchar(255), collate utf8mb4_unicode_ci
+  await queryFn(
+    'ALTER TABLE `admin_pending_creations` MODIFY COLUMN `memo` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL;',
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  await queryFn('ALTER TABLE `admin_pending_creations` MODIFY COLUMN `memo` text DEFAULT NULL;')
   await queryFn(
     'ALTER TABLE `admin_pending_creations` ADD COLUMN `amount_bigint` bigint(20) DEFAULT NULL AFTER `amount`;',
   )

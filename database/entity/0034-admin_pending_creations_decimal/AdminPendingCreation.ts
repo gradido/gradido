@@ -16,7 +16,7 @@ export class AdminPendingCreation extends BaseEntity {
   @Column({ type: 'datetime', nullable: false })
   date: Date
 
-  @Column({ length: 256, nullable: true, default: null })
+  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({
