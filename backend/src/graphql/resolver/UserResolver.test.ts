@@ -481,7 +481,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  isAdmin: false,
+                  isAdmin: null,
                 },
               },
             }),
