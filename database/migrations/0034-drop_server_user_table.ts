@@ -8,7 +8,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn('ALTER TABLE `users` ADD COLUMN `is_admin` datetime DEFAULT NULL AFTER `language`;')
 
   await queryFn(
-    'UPDATE `users` AS `users`, (SELECT  * FROM `server_users`) AS `server_users` SET users.`is_admin` = server_users.`modified` WHERE users.`email` IN (SELECT email from `server_users`);',
+    'UPDATE users AS users INNER JOIN server_users AS server_users ON users.email = server_users.email  SET users.is_admin = server_users.modified WHERE users.email IN (SELECT email from server_users);',
   )
 
   await queryFn('DROP TABLE `server_users`;')
