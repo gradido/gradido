@@ -5,7 +5,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } fro
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin } from '@/seeds/graphql/queries'
+import { login, logout, verifyLogin, queryOptIn } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
@@ -537,6 +537,63 @@ describe('UserResolver', () => {
           email: 'bibi@bloxberg.de',
           duration: expect.any(String),
         })
+      })
+
+      describe('request reset password again', () => {
+        it('thows an error', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('queryOptIn', () => {
+    let loginEmailOptIn: LoginEmailOptIn[]
+
+    beforeAll(async () => {
+      await userFactory(testEnv, bibiBloxberg)
+      loginEmailOptIn = await LoginEmailOptIn.find()
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    describe('wrong optin code', () => {
+      it('throws an error', async () => {
+        await expect(
+          query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              // keep Whitspace in error message!
+              new GraphQLError(`Could not find any entity of type "LoginEmailOptIn" matching: {
+    "verificationCode": "not-valid"
+}`),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('correct optin code', () => {
+      it('returns true', async () => {
+        await expect(
+          query({
+            query: queryOptIn,
+            variables: { optIn: loginEmailOptIn[0].verificationCode.toString() },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              queryOptIn: true,
+            },
+          }),
+        )
       })
     })
   })
