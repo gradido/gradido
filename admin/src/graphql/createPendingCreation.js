@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 export const createPendingCreation = gql`
   mutation (
     $email: String!
-    $amount: Float!
+    $amount: Decimal!
     $memo: String!
     $creationDate: String!
     $moderator: Int!
