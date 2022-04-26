@@ -43,6 +43,7 @@ const resetEntity = async (entity: any) => {
 const run = async () => {
   const server = await createServer(context)
   const seedClient = createTestClient(server.apollo)
+  console.log(seedClient)
   const { con } = server
   await cleanDB()
 
