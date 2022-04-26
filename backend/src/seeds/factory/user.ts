@@ -2,7 +2,7 @@ import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { UserInterface } from '@/seeds/users/UserInterface'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing/dist/createTestClient'
 
 export const userFactory = async (
   client: ApolloServerTestClient,
