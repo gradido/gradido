@@ -2,7 +2,7 @@ import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { UserInterface } from '@/seeds/users/UserInterface'
-import { ApolloServerTestClient } from 'apollo-server-testing/dist/createTestClient'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 export const userFactory = async (
   client: ApolloServerTestClient,
@@ -10,8 +10,6 @@ export const userFactory = async (
 ): Promise<void> => {
   const { mutate } = client
 
-  console.log(client)
-  
   const {
     data: {
       createUser: { id },
