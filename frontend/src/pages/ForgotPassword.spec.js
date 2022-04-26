@@ -122,8 +122,13 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
-            it('button link directs to /login', () => {
+            it('button link directs to "/login"', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+            })
+
+            // Wolle
+            it.skip('click redirects to "/login"', () => {
+              // expect(mockRouterPush).toBeCalledWith('/login')
             })
           })
 
@@ -146,8 +151,13 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
-            it('button link redirects to /login', () => {
+            it('button link redirects to "/login"', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+            })
+
+            // Wolle
+            it.skip('click redirects to "/login"', () => {
+              // expect(mockRouterPush).toBeCalledWith('/login')
             })
           })
         })
