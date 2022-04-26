@@ -10,9 +10,10 @@
           <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
           <b-button
-            v-if="buttonText"
+            v-if="buttonText && (linkTo || callback)"
             class="test-message-button"
-            :to="linkTo + (code ? `/${code}` : '')"
+            :to="linkTo ? linkTo + (code ? `/${code}` : '') : null"
+            @click="callback()"
           >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ buttonText }}
@@ -32,7 +33,8 @@ export default {
     subtitle: { type: String, required: true },
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
-    code: { type: String, required: false, default: null },
+    callback: { type: Function, required: false, default: () => {} },
+    code: { type: String, required: false, default: null }, // Wolle: to be removed by adding it directly to the "linkTo"
   },
 }
 </script>

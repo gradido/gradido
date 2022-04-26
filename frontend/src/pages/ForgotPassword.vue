@@ -69,7 +69,6 @@ export default {
   },
   data() {
     return {
-      // Wolle disable: 'disabled',
       form: {
         email: '',
       },

@@ -15,7 +15,7 @@
     </div>
 
     <!-- Page content -->
-    <b-container class="mt--8 p-1">
+    <b-container v-if="!showPageMessage" class="mt--8 p-1">
       <!-- Table -->
 
       <b-row class="justify-content-center">
@@ -177,6 +177,23 @@
         </b-col>
       </b-row>
     </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
+      <message
+        v-if="success"
+        :headline="$t('site.thx.title')"
+        :subtitle="$t('site.thx.register')"
+        :buttonText="$t('site.login.signin')"
+      />
+      <message
+        v-else
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="messageError"
+        :buttonText="$t('site.register.message-button-text')"
+        :callback="solveError"
+      />
+      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
+    </b-container>
     <!--
     <div class="text-center pt-4">
       <router-link class="test-button-another-community" to="/select-community">
@@ -189,13 +206,18 @@
   </div>
 </template>
 <script>
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'
+import InputEmail from '@/components/Inputs/InputEmail.vue'
+import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
+import Message from '@/components/Message/Message'
 
 export default {
-  components: { InputEmail, LanguageSwitchSelect },
+  components: {
+    InputEmail,
+    LanguageSwitchSelect,
+    Message,
+  },
   name: 'Register',
   data() {
     return {
@@ -206,6 +228,7 @@ export default {
         agree: false,
       },
       language: '',
+      showPageMessage: false,
       submitted: false,
       showError: false,
       messageError: '',
@@ -240,19 +263,42 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/register')
+          // Wolle: this.$router.push('/thx/register')
+          this.showPageMessage = true
+          this.success = true
         })
         .catch((error) => {
+          this.showPageMessage = true
+          this.success = false
           this.showError = true
-          this.messageError = error.message
+          switch (error.message) {
+            case 'GraphQL error: User already exists.':
+              this.messageError = this.$t('error.user-already-exists')
+              break
+            default:
+              this.messageError = this.$t('error.unknown-error') + error.message
+              break
+          }
+          // Wolle: this.toastError(this.$t('error.email-already-sent'))
+          // Wolle: shall the alert be replaced by a toaster or shall only the page message be shown?
         })
     },
+    // Wolle: remove this?
     closeAlert() {
       this.showError = false
       this.messageError = ''
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
+    },
+    solveError() {
+      this.showPageMessage = false
+      this.showError = false
+      this.messageError = ''
+      this.form.email = ''
+      this.form.firstname = ''
+      this.form.lastname = ''
+      this.form.agree = false
     },
   },
   computed: {
