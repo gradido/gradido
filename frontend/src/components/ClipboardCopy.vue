@@ -36,7 +36,7 @@ export default {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
         .catch(() => {
-          this.noCopy = true
+          this.canCopyLink = false
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
     },
