@@ -87,11 +87,6 @@ export default {
     memo: { type: String, required: true },
     validUntil: { type: String, required: true },
   },
-  data() {
-    return {
-      noCopy: true,
-    }
-  },
   methods: {
     copy() {
       navigator.clipboard
