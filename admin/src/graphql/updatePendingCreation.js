@@ -4,7 +4,7 @@ export const updatePendingCreation = gql`
   mutation (
     $id: Int!
     $email: String!
-    $amount: Float!
+    $amount: Decimal!
     $memo: String!
     $creationDate: String!
     $moderator: Int!

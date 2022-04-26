@@ -162,7 +162,11 @@ describe('Send', () => {
     describe('transaction form link', () => {
       beforeEach(async () => {
         apolloMutationMock.mockResolvedValue({
-          data: { createTransactionLink: { code: '0123456789' } },
+          data: {
+            createTransactionLink: {
+              link: 'http://localhost/redeem/0123456789',
+            },
+          },
         })
         const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
         await transactionForm.findAll('input[type="radio"]').at(1).setChecked()
@@ -249,7 +253,7 @@ describe('Send', () => {
 
         describe('close button click', () => {
           beforeEach(async () => {
-            await wrapper.findAll('button').at(1).trigger('click')
+            await wrapper.findAll('button').at(2).trigger('click')
           })
 
           it('Shows the TransactionForm', () => {

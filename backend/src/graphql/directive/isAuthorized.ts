@@ -8,7 +8,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { UserRepository } from '@repository/User'
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
-import { ServerUser } from '@entity/ServerUser'
 
 const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
@@ -36,8 +35,7 @@ const isAuthorized: AuthChecker<any> = async ({ context }, rights) => {
   try {
     const user = await userRepository.findByPubkeyHex(context.pubKey)
     context.user = user
-    const countServerUsers = await ServerUser.count({ email: user.email })
-    context.role = countServerUsers > 0 ? ROLE_ADMIN : ROLE_USER
+    context.role = user.isAdmin ? ROLE_ADMIN : ROLE_USER
   } catch {
     // in case the database query fails (user deleted)
     throw new Error('401 Unauthorized')

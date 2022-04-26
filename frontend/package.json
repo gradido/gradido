@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
@@ -10,7 +10,7 @@
     "analyse-bundle": "yarn build && webpack-bundle-analyzer dist/webpack.stats.json",
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "test": "TZ=UTC jest --coverage",
+    "test": "cross-env TZ=UTC jest --coverage",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
@@ -72,6 +72,7 @@
     "babel-eslint": "^10.1.0",
     "babel-plugin-component": "^1.1.0",
     "babel-plugin-transform-require-context": "^0.1.1",
+    "cross-env": "^7.0.3",
     "dotenv-webpack": "^7.0.3",
     "postcss": "^8.4.8",
     "postcss-html": "^1.3.0",

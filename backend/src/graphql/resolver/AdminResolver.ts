@@ -43,7 +43,7 @@ import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
-const MAX_CREATION_AMOUNT = 1000
+const MAX_CREATION_AMOUNT = new Decimal(1000)
 const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
 
 @Resolver()
@@ -170,7 +170,7 @@ export class AdminResolver {
   @Mutation(() => [Number])
   async createPendingCreation(
     @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
-  ): Promise<number[]> {
+  ): Promise<Decimal[]> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -186,7 +186,7 @@ export class AdminResolver {
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
       adminPendingCreation.userId = user.id
-      adminPendingCreation.amount = BigInt(amount)
+      adminPendingCreation.amount = amount
       adminPendingCreation.created = new Date()
       adminPendingCreation.date = creationDateObj
       adminPendingCreation.memo = memo
@@ -251,14 +251,14 @@ export class AdminResolver {
     if (!isCreationValid(creations, amount, creationDateObj)) {
       throw new Error('Creation is not valid')
     }
-    pendingCreationToUpdate.amount = BigInt(amount)
+    pendingCreationToUpdate.amount = amount
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
     pendingCreationToUpdate.moderator = moderator
 
     await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
-    result.amount = parseInt(amount.toString())
+    result.amount = amount
     result.memo = pendingCreationToUpdate.memo
     result.date = pendingCreationToUpdate.date
     result.moderator = pendingCreationToUpdate.moderator
@@ -286,7 +286,7 @@ export class AdminResolver {
 
       return {
         ...pendingCreation,
-        amount: Number(pendingCreation.amount.toString()),
+        amount: pendingCreation.amount,
         firstName: user ? user.firstName : '',
         lastName: user ? user.lastName : '',
         email: user ? user.email : '',
@@ -318,7 +318,7 @@ export class AdminResolver {
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
     const creations = await getUserCreation(pendingCreation.userId, false)
-    if (!isCreationValid(creations, Number(pendingCreation.amount), pendingCreation.date)) {
+    if (!isCreationValid(creations, pendingCreation.amount, pendingCreation.date)) {
       throw new Error('Creation is not valid!!')
     }
 
@@ -448,10 +448,10 @@ export class AdminResolver {
 
 interface CreationMap {
   id: number
-  creations: number[]
+  creations: Decimal[]
 }
 
-async function getUserCreation(id: number, includePending = true): Promise<number[]> {
+async function getUserCreation(id: number, includePending = true): Promise<Decimal[]> {
   const creations = await getUserCreations([id], includePending)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
@@ -493,30 +493,30 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
           (raw: { month: string; id: string; creation: number[] }) =>
             parseInt(raw.month) === month && parseInt(raw.id) === id,
         )
-        return MAX_CREATION_AMOUNT - (creation ? Number(creation.sum) : 0)
+        return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
     }
   })
 }
 
-function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
+function updateCreations(creations: Decimal[], pendingCreation: AdminPendingCreation): Decimal[] {
   const index = getCreationIndex(pendingCreation.date.getMonth())
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-  creations[index] += parseInt(pendingCreation.amount.toString())
+  creations[index] = creations[index].plus(pendingCreation.amount)
   return creations
 }
 
-function isCreationValid(creations: number[], amount: number, creationDate: Date) {
+function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
     throw new Error(`No Creation found!`)
   }
 
-  if (amount > creations[index]) {
+  if (amount.greaterThan(creations[index])) {
     throw new Error(
       `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
     )

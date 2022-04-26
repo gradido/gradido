@@ -1,4 +1,5 @@
-import { ArgsType, Field, Float, InputType, Int } from 'type-graphql'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
+import Decimal from 'decimal.js-light'
 
 @InputType()
 @ArgsType()
@@ -6,8 +7,8 @@ export default class CreatePendingCreationArgs {
   @Field(() => String)
   email: string
 
-  @Field(() => Float)
-  amount: number
+  @Field(() => Decimal)
+  amount: Decimal
 
   @Field(() => String)
   memo: string

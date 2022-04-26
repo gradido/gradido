@@ -70,6 +70,7 @@ const virtualDecayTransaction = (
     typeId: TransactionTypeId.DECAY,
     amount: decay.decay ? decay.roundedDecay : new Decimal(0),
     balance: decay.balance
+      .toDecimalPlaces(2, Decimal.ROUND_DOWN)
       .minus(holdAvailabeAmount.toString())
       .toDecimalPlaces(2, Decimal.ROUND_DOWN),
     balanceDate: time,
