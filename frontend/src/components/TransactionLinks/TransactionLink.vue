@@ -50,6 +50,14 @@
         </template>
       </b-card>
     </b-modal>
+    <b-modal :id="'modalPopoverCopyError' + id" ok-only hide-header-close>
+      <b-card header-tag="header" footer-tag="footer">
+        <b-card-text>
+          <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
+          <div class="alert-muted h3 p-3">{{ link }}</div>
+        </b-card-text>
+      </b-card>
+    </b-modal>
   </div>
 </template>
 <script>
@@ -87,6 +95,7 @@ export default {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
         .catch(() => {
+          this.$bvModal.show('modalPopoverCopyError' + this.id)
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
     },
