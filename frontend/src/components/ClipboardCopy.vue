@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      noCopy: false,
+      canCopyLink: true,
     }
   },
   methods: {
