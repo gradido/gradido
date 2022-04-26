@@ -117,6 +117,7 @@ describe('ForgotPassword', () => {
             })
 
             it('shows error title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBeTruthy()
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
@@ -127,8 +128,10 @@ describe('ForgotPassword', () => {
             })
 
             // Wolle
-            it.skip('click redirects to "/login"', () => {
-              // expect(mockRouterPush).toBeCalledWith('/login')
+            it.skip('click redirects to "/login"', async () => {
+              // wrapper.find('.test-message-button').trigger('click')
+              // await wrapper.vm.$nextTick()
+              expect(mockRouterPush).toBeCalledWith('/login')
             })
           })
 
@@ -146,6 +149,7 @@ describe('ForgotPassword', () => {
             })
 
             it('shows success title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBeTruthy()
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
               expect(wrapper.find('.test-message-button').text()).toBe('login')

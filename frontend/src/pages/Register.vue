@@ -105,6 +105,7 @@
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
+                  <!-- Wolle: remove this? or shall the alert or a toaster be shown? -->
                   <b-alert
                     v-if="showError"
                     show
@@ -183,7 +184,6 @@
         v-if="success"
         :headline="$t('site.thx.title')"
         :subtitle="$t('site.thx.register')"
-        :buttonText="$t('site.login.signin')"
       />
       <message
         v-else

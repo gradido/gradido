@@ -221,41 +221,59 @@ describe('Register', () => {
 
       describe('server sends back error', () => {
         beforeEach(async () => {
-          registerUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
+          registerUserMutationMock.mockRejectedValue({
+            message: 'GraphQL error: User already exists.',
+          })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
         })
 
-        it('shows error message', () => {
-          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text()).toContain('error.error')
-          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
+        // Wolle: remove?
+        // it('shows error message', () => {
+        //   expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
+        //   expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
+        //   expect(wrapper.find('span.alert-text').text()).toContain('error.error')
+        //   expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
+        // })
+
+        // it('button to dismisses error message is present', () => {
+        //   expect(wrapper.find('button.close').exists()).toBeTruthy()
+        // })
+
+        // it('dismisses error message', async () => {
+        //   await wrapper.find('button.close').trigger('click')
+        //   await flushPromises()
+        //   expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+        // })
+
+        it('shows success title, subtitle, login button', () => {
+          expect(wrapper.vm.showPageMessage).toBeTruthy()
+          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
+          expect(wrapper.find('.test-message-button').text()).toBe(
+            'site.register.message-button-text',
+          )
         })
 
-        it('button to dismisses error message is present', () => {
-          expect(wrapper.find('button.close').exists()).toBeTruthy()
-        })
-
-        it('dismisses error message', async () => {
-          await wrapper.find('button.close').trigger('click')
-          await flushPromises()
-          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+        it('click calls "solveError"', async () => {
+          wrapper.find('.test-message-button').trigger('click')
+          await wrapper.vm.$nextTick()
+          expect(wrapper.vm.showPageMessage).not.toBeTruthy()
         })
       })
 
       describe('server sends back success', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
           registerUserMutationMock.mockResolvedValue({
             data: {
               create: 'success',
             },
           })
-        })
-
-        it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        })
+
+        it('submit sends apollo mutate', () => {
           expect(registerUserMutationMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
@@ -267,7 +285,16 @@ describe('Register', () => {
               },
             }),
           )
-          expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
+        })
+
+        it('shows success title, subtitle', () => {
+          expect(wrapper.vm.showPageMessage).toBeTruthy()
+          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
+        })
+
+        it('button is not present', () => {
+          expect(wrapper.find('.test-message-button')).toBeTruthy()
         })
       })
     })

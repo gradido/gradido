@@ -240,12 +240,13 @@ describe('Login', () => {
           })
 
           it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBeTruthy()
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 
-          it('button link directs to "/forgot-password', () => {
+          it('button link directs to "/forgot-password"', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
           })
 
@@ -270,12 +271,13 @@ describe('Login', () => {
           })
 
           it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBeTruthy()
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 
-          it('button link directs to "/reset-password/login', () => {
+          it('button link directs to "/reset-password/login"', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe(
               '/reset-password/login',
             )
