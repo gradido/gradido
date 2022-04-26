@@ -10,6 +10,8 @@ export const userFactory = async (
 ): Promise<void> => {
   const { mutate } = client
 
+  console.log(client)
+  
   const {
     data: {
       createUser: { id },
