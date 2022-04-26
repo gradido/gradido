@@ -11,7 +11,7 @@
         </b-button>
       </b-input-group-append>
     </b-input-group>
-    <div v-if="noCopy">
+    <div v-else>
       <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
       <div class="alert-muted h3 p-3">{{ link }}</div>
     </div>
