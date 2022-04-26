@@ -1,6 +1,6 @@
 <template>
   <div class="clipboard-copy">
-    <b-input-group size="lg" class="mb-3" prepend="Link">
+    <b-input-group v-if="!noCopy" size="lg" class="mb-3" prepend="Link">
       <b-form-input :value="link" type="text" readonly></b-form-input>
       <b-input-group-append>
         <b-button size="sm" text="Button" variant="primary" @click="CopyLink">
@@ -11,6 +11,10 @@
         </b-button>
       </b-input-group-append>
     </b-input-group>
+    <div v-if="noCopy">
+      <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
+      <div class="alert-muted h3 p-3">{{ link }}</div>
+    </div>
   </div>
 </template>
 <script>
@@ -18,6 +22,11 @@ export default {
   name: 'ClipboardCopy',
   props: {
     link: { type: String, required: true },
+  },
+  data() {
+    return {
+      noCopy: false,
+    }
   },
   methods: {
     CopyLink() {
@@ -27,6 +36,7 @@ export default {
           this.toastSuccess(this.$t('gdd_per_link.link-copied'))
         })
         .catch(() => {
+          this.noCopy = true
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
     },

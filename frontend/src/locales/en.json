@@ -114,7 +114,7 @@
     "links_sum": "Open links and QR codes",
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
-    "not-copied": "Could not copy link: {err}",
+    "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "redeem": "Redeem",
     "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
