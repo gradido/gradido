@@ -5,13 +5,11 @@ import { UserInterface } from '@/seeds/users/UserInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 export const userFactory = async (
-  client: ApolloServerTestClient,
+  client: any,
   user: UserInterface,
 ): Promise<void> => {
   const { mutate } = client
 
-  console.log(user)
-  
   const {
     data: {
       createUser: { id },
