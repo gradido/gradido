@@ -5,7 +5,7 @@ import { UserInterface } from '@/seeds/users/UserInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 export const userFactory = async (
-  client: any,
+  client: ApolloServerTestClient,
   user: UserInterface,
 ): Promise<void> => {
   const { mutate } = client
