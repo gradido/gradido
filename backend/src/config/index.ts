@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0033-add_referrer_id',
+  DB_VERSION: '0035-admin_pending_creations_decimal',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',

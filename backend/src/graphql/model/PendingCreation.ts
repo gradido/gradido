@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from 'type-graphql'
+import Decimal from 'decimal.js-light'
 
 @ObjectType()
 export class PendingCreation {
@@ -23,12 +24,12 @@ export class PendingCreation {
   @Field(() => String)
   memo: string
 
-  @Field(() => Number)
-  amount: number
+  @Field(() => Decimal)
+  amount: Decimal
 
   @Field(() => Number)
   moderator: number
 
-  @Field(() => [Number])
-  creation: number[]
+  @Field(() => [Decimal])
+  creation: Decimal[]
 }

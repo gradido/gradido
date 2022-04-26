@@ -18,6 +18,12 @@ export const setPassword = gql`
   }
 `
 
+export const forgotPassword = gql`
+  mutation ($email: String!) {
+    forgotPassword(email: $email)
+  }
+`
+
 export const updateUserInfos = gql`
   mutation (
     $firstName: String
