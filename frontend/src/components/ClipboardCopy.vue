@@ -1,6 +1,6 @@
 <template>
   <div class="clipboard-copy">
-    <b-input-group v-if="!noCopy" size="lg" class="mb-3" prepend="Link">
+    <b-input-group v-if="canCopyLink" size="lg" class="mb-3" prepend="Link">
       <b-form-input :value="link" type="text" readonly></b-form-input>
       <b-input-group-append>
         <b-button size="sm" text="Button" variant="primary" @click="CopyLink">
