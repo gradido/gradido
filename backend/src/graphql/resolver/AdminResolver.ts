@@ -307,8 +307,11 @@ export class AdminResolver {
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const entity = await AdminPendingCreation.findOneOrFail(id)
-    const res = await AdminPendingCreation.delete(entity)
+    const pendingCreation = await AdminPendingCreation.findOne(id)
+    if (!pendingCreation) {
+      throw new Error('Creation not found to given id.')
+    }
+    const res = await AdminPendingCreation.delete(pendingCreation)
     return !!res
   }
 
@@ -318,7 +321,10 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
+    const pendingCreation = await AdminPendingCreation.findOne(id)
+    if (!pendingCreation) {
+      throw new Error('Creation not found to given id.')
+    }
     const moderatorUser = getUser(context)
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
@@ -349,8 +355,7 @@ export class AdminResolver {
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
     transaction.previous = lastTransaction ? lastTransaction.id : null
-    // TODO pending creations decimal
-    transaction.amount = new Decimal(Number(pendingCreation.amount))
+    transaction.amount = pendingCreation.amount
     transaction.creationDate = pendingCreation.date
     transaction.balance = newBalance
     transaction.balanceDate = receivedCallDate

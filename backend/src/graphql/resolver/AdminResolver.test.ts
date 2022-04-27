@@ -14,6 +14,8 @@ import {
   createPendingCreation,
   createPendingCreations,
   updatePendingCreation,
+  deletePendingCreation,
+  confirmPendingCreation,
 } from '@/seeds/graphql/mutations'
 import { getPendingCreations, login } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
@@ -22,6 +24,7 @@ import { User } from '@entity/User'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { Transaction as DbTransaction } from '@entity/Transaction'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -326,6 +329,40 @@ describe('AdminResolver', () => {
           )
         })
       })
+
+      describe('deletePendingCreation', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: deletePendingCreation,
+              variables: {
+                id: 1,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('confirmPendingCreation', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: confirmPendingCreation,
+              variables: {
+                id: 1,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
     })
 
     describe('authenticated', () => {
@@ -394,6 +431,40 @@ describe('AdminResolver', () => {
             await expect(
               query({
                 query: getPendingCreations,
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('deletePendingCreation', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({
+                mutation: deletePendingCreation,
+                variables: {
+                  id: 1,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('confirmPendingCreation', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({
+                mutation: confirmPendingCreation,
+                variables: {
+                  id: 1,
+                },
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -855,6 +926,126 @@ describe('AdminResolver', () => {
                 },
               }),
             )
+          })
+        })
+
+        describe('deletePendingCreation', () => {
+          describe('creation id does not exist', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: deletePendingCreation,
+                  variables: {
+                    id: -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Creation not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('creation id does exist', () => {
+            it('returns true', async () => {
+              await expect(
+                mutate({
+                  mutation: deletePendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: { deletePendingCreation: true },
+                }),
+              )
+            })
+          })
+        })
+
+        describe('confirmPendingCreation', () => {
+          describe('creation does not exits', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: confirmPendingCreation,
+                  variables: {
+                    id: -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Creation not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('confirm own creation', () => {
+            beforeAll(async () => {
+              const now = new Date()
+              creation = await creationFactory(testEnv, {
+                email: 'peter@lustig.de',
+                amount: 400,
+                memo: 'Herzlich Willkommen bei Gradido!',
+                creationDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+              })
+            })
+
+            it('thows an error', async () => {
+              await expect(
+                mutate({
+                  mutation: confirmPendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Moderator can not confirm own pending creation')],
+                }),
+              )
+            })
+          })
+
+          describe('creation of other user', () => {
+            beforeAll(async () => {
+              const now = new Date()
+              creation = await creationFactory(testEnv, {
+                email: 'bibi@bloxberg.de',
+                amount: 450,
+                memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+              })
+            })
+
+            it('returns true', async () => {
+              await expect(
+                mutate({
+                  mutation: confirmPendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: { confirmPendingCreation: true },
+                }),
+              )
+            })
+
+            it('creates a transaction', async () => {
+              const transaction = await DbTransaction.find()
+              expect(transaction[0].amount.toString()).toBe('450')
+              expect(transaction[0].memo).toBe('Herzlich Willkommen bei Gradido liebe Bibi!')
+              expect(transaction[0].linkedTransactionId).toEqual(null)
+              expect(transaction[0].transactionLinkId).toEqual(null)
+              expect(transaction[0].previous).toEqual(null)
+              expect(transaction[0].linkedUserId).toEqual(null)
+              expect(transaction[0].typeId).toEqual(1)
+            })
           })
         })
       })
