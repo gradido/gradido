@@ -84,20 +84,8 @@ export const createTransactionLink = gql`
 // from admin interface
 
 export const createPendingCreation = gql`
-  mutation (
-    $email: String!
-    $amount: Decimal!
-    $memo: String!
-    $creationDate: String!
-    $moderator: Int!
-  ) {
-    createPendingCreation(
-      email: $email
-      amount: $amount
-      memo: $memo
-      creationDate: $creationDate
-      moderator: $moderator
-    )
+  mutation ($email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    createPendingCreation(email: $email, amount: $amount, memo: $memo, creationDate: $creationDate)
   }
 `
 
