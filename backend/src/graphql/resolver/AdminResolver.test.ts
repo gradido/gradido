@@ -3,6 +3,7 @@
 
 import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
+import { creationFactory } from '@/seeds/factory/creation'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -12,6 +13,7 @@ import {
   unDeleteUser,
   createPendingCreation,
   createPendingCreations,
+  updatePendingCreation,
 } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
@@ -19,6 +21,7 @@ import { User } from '@entity/User'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { login } from '@/seeds/graphql/queries'
 import Decimal from 'decimal.js-light'
+import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -40,12 +43,13 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await cleanDB()
+  // await cleanDB()
   await con.close()
 })
 
 let admin: User
 let user: User
+let creation: AdminPendingCreation | void
 
 describe('AdminResolver', () => {
   describe('delete user', () => {
@@ -287,6 +291,27 @@ describe('AdminResolver', () => {
           )
         })
       })
+
+      describe('updatePendingCreation', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: updatePendingCreation,
+              variables: {
+                id: 1,
+                email: 'bibi@bloxberg.de',
+                amount: new Decimal(300),
+                memo: 'Danke Bibi!',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
     })
 
     describe('authenticated', () => {
@@ -328,6 +353,27 @@ describe('AdminResolver', () => {
             )
           })
         })
+
+        describe('updatePendingCreation', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({
+                mutation: updatePendingCreation,
+                variables: {
+                  id: 1,
+                  email: 'bibi@bloxberg.de',
+                  amount: new Decimal(300),
+                  memo: 'Danke Bibi!',
+                  creationDate: new Date().toString(),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
       })
 
       describe('with admin rights', () => {
@@ -340,11 +386,21 @@ describe('AdminResolver', () => {
         })
 
         afterAll(async () => {
-          await cleanDB()
+          // await cleanDB()
           resetToken()
         })
 
         describe('createPendingCreation', () => {
+          beforeAll(async () => {
+            const now = new Date()
+            creation = await creationFactory(testEnv, {
+              email: 'peter@lustig.de',
+              amount: 400,
+              memo: 'Herzlich Willkommen bei Gradido!',
+              creationDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+            })
+          })
+
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
               await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
@@ -488,47 +544,223 @@ describe('AdminResolver', () => {
               })
             })
           })
+        })
 
-          describe('createPendingCreations', () => {
-            // at this point we have this data in DB:
-            // bibi@bloxberg.de: [1000, 1000, 800]
-            // peter@lustig.de: [1000, 1000, 1000]
-            // stephen@hawking.uk: [1000, 1000, 1000] - deleted
-            // garrick@ollivander.com: [1000, 1000, 1000] - not activated
+        describe('createPendingCreations', () => {
+          // at this point we have this data in DB:
+          // bibi@bloxberg.de: [1000, 1000, 800]
+          // peter@lustig.de: [1000, 600, 1000]
+          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
+          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
 
-            const massCreationVariables = [
-              'bibi@bloxberg.de',
-              'peter@lustig.de',
-              'stephen@hawking.uk',
-              'garrick@ollivander.com',
-              'bob@baumeister.de',
-            ].map((email) => {
-              return {
-                email,
-                amount: new Decimal(1000),
-                memo: 'Grundeinkommen',
-                creationDate: new Date().toString(),
-              }
-            })
+          const massCreationVariables = [
+            'bibi@bloxberg.de',
+            'peter@lustig.de',
+            'stephen@hawking.uk',
+            'garrick@ollivander.com',
+            'bob@baumeister.de',
+          ].map((email) => {
+            return {
+              email,
+              amount: new Decimal(500),
+              memo: 'Grundeinkommen',
+              creationDate: new Date().toString(),
+            }
+          })
 
-            it('returns success, one successful creation and four failed creations', async () => {
+          it('returns success, two successful creation and three failed creations', async () => {
+            await expect(
+              mutate({
+                mutation: createPendingCreations,
+                variables: { pendingCreations: massCreationVariables },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  createPendingCreations: {
+                    success: true,
+                    successfulCreation: ['bibi@bloxberg.de', 'peter@lustig.de'],
+                    failedCreation: [
+                      'stephen@hawking.uk',
+                      'garrick@ollivander.com',
+                      'bob@baumeister.de',
+                    ],
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('updatePendingCreation', () => {
+          // at this I expect to have this data in DB:
+          // bibi@bloxberg.de: [1000, 1000, 300]
+          // peter@lustig.de: [1000, 600, 500]
+          // stephen@hawking.uk: [1000, 1000, 1000] - deleted
+          // garrick@ollivander.com: [1000, 1000, 1000] - not activated
+
+          describe('user for creation to update does not exist', () => {
+            it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: createPendingCreations,
-                  variables: { pendingCreations: massCreationVariables },
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: 1,
+                    email: 'bob@baumeister.de',
+                    amount: new Decimal(300),
+                    memo: 'Danke Bibi!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Could not find user with email: bob@baumeister.de')],
+                }),
+              )
+            })
+          })
+
+          describe('user for creation to update is deleted', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: 1,
+                    email: 'stephen@hawking.uk',
+                    amount: new Decimal(300),
+                    memo: 'Danke Bibi!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('User was deleted (stephen@hawking.uk)')],
+                }),
+              )
+            })
+          })
+
+          describe('creation does not exist', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: -1,
+                    email: 'bibi@bloxberg.de',
+                    amount: new Decimal(300),
+                    memo: 'Danke Bibi!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('No creation found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('user email does not match creation user', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                    email: 'bibi@bloxberg.de',
+                    amount: new Decimal(300),
+                    memo: 'Danke Bibi!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [
+                    new GraphQLError(
+                      'user of the pending creation and send user does not correspond',
+                    ),
+                  ],
+                }),
+              )
+            })
+          })
+
+          describe('creation update is not valid', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                    email: 'peter@lustig.de',
+                    amount: new Decimal(1900),
+                    memo: 'Danke Peter!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [
+                    new GraphQLError(
+                      'The amount (1900 GDD) to be created exceeds the available amount (500 GDD) for this month.',
+                    ),
+                  ],
+                }),
+              )
+            })
+          })
+
+          describe('creation update is successful changing month', () => {
+            it('returns update creation object', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                    email: 'peter@lustig.de',
+                    amount: new Decimal(300),
+                    memo: 'Danke Peter!',
+                    creationDate: new Date().toString(),
+                  },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
-                    createPendingCreations: {
-                      success: true,
-                      successfulCreation: ['peter@lustig.de'],
-                      failedCreation: [
-                        'bibi@bloxberg.de',
-                        'stephen@hawking.uk',
-                        'garrick@ollivander.com',
-                        'bob@baumeister.de',
-                      ],
+                    updatePendingCreation: {
+                      date: expect.any(String),
+                      memo: 'Danke Peter!',
+                      amount: '300',
+                      creation: ['1000', '1000', '200'],
+                    },
+                  },
+                }),
+              )
+            })
+          })
+
+          describe('creation update is successful without changing month', () => {
+            it('returns update creation object', async () => {
+              await expect(
+                mutate({
+                  mutation: updatePendingCreation,
+                  variables: {
+                    id: creation ? creation.id : -1,
+                    email: 'peter@lustig.de',
+                    amount: new Decimal(200),
+                    memo: 'Das war leider zu Viel!',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    updatePendingCreation: {
+                      date: expect.any(String),
+                      memo: 'Das war leider zu Viel!',
+                      amount: '200',
+                      creation: ['1000', '1000', '300'],
                     },
                   },
                 }),

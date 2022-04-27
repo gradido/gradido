@@ -243,7 +243,11 @@ export class AdminResolver {
 
     const moderator = getUser(context)
 
-    const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
+    const pendingCreationToUpdate = await AdminPendingCreation.findOne({ id })
+
+    if (!pendingCreationToUpdate) {
+      throw new Error('No creation found to given id.')
+    }
 
     if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
@@ -255,9 +259,8 @@ export class AdminResolver {
       creations = updateCreations(creations, pendingCreationToUpdate)
     }
 
-    if (!isCreationValid(creations, amount, creationDateObj)) {
-      throw new Error('Creation is not valid')
-    }
+    // all possible cases not to be true are thrown in this function
+    isCreationValid(creations, amount, creationDateObj)
     pendingCreationToUpdate.amount = amount
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
@@ -510,7 +513,7 @@ function updateCreations(creations: Decimal[], pendingCreation: AdminPendingCrea
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-  creations[index] = creations[index].plus(pendingCreation.amount)
+  creations[index] = creations[index].plus(pendingCreation.amount.toString())
   return creations
 }
 
