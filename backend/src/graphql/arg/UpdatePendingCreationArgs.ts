@@ -17,7 +17,4 @@ export default class UpdatePendingCreationArgs {
 
   @Field(() => String)
   creationDate: string
-
-  @Field(() => Int)
-  moderator: number
 }

@@ -230,7 +230,8 @@ export class AdminResolver {
   @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
-    @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
+    @Args() { id, email, amount, memo, creationDate }: UpdatePendingCreationArgs,
+    @Ctx() context: Context,
   ): Promise<UpdatePendingCreation> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
@@ -239,6 +240,8 @@ export class AdminResolver {
     if (user.deletedAt) {
       throw new Error(`User was deleted (${email})`)
     }
+
+    const moderator = getUser(context)
 
     const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
 
@@ -258,14 +261,13 @@ export class AdminResolver {
     pendingCreationToUpdate.amount = amount
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
-    pendingCreationToUpdate.moderator = moderator
+    pendingCreationToUpdate.moderator = moderator.id
 
     await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
     result.amount = amount
     result.memo = pendingCreationToUpdate.memo
     result.date = pendingCreationToUpdate.date
-    result.moderator = pendingCreationToUpdate.moderator
 
     result.creation = await getUserCreation(user.id)
 
