@@ -16,6 +16,8 @@ import VueMoment from 'vue-moment'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
+import VueClipboards from 'vue-clipboards'
+
 import VueApollo from 'vue-apollo'
 
 export default {
@@ -28,6 +30,7 @@ export default {
     Vue.use(PortalVue)
     Vue.use(FlatPickr)
     Vue.use(Loading)
+    Vue.use(VueClipboards)
     Vue.use(VueApollo)
   },
 }
