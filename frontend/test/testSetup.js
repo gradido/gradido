@@ -19,6 +19,8 @@ import { loadAllRules } from '../src/validation-rules'
 import { loadFilters } from '@/filters/amount'
 
 import { toasters } from '@/mixins/toaster'
+
+import VueClipboards from 'vue-clipboards'
 export const toastErrorSpy = jest.spyOn(toasters.methods, 'toastError')
 export const toastSuccessSpy = jest.spyOn(toasters.methods, 'toastSuccess')
 
@@ -46,6 +48,7 @@ global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
 global.localVue.use(VueMoment)
+global.localVue.use(VueClipboards)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)

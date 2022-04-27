@@ -9,7 +9,7 @@
           variant="primary"
           v-clipboard="link"
           @success="toastSuccess($t('gdd_per_link.link-copied'))"
-          @error="CopyLink"
+          @error="copyLink"
         >
           {{ $t('gdd_per_link.copy') }}
         </b-button>
@@ -36,7 +36,7 @@ export default {
     }
   },
   methods: {
-    CopyLink() {
+    copyLink() {
       navigator.clipboard
         .writeText(this.link)
         .then(() => {

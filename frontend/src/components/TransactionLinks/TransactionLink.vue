@@ -23,7 +23,7 @@
                 class="test-copy-link"
                 v-clipboard="link"
                 @success="toastSuccess($t('gdd_per_link.link-copied'))"
-                @error="CopyLink"
+                @error="copyLink"
               >
                 <b-icon icon="clipboard"></b-icon>
                 {{ $t('gdd_per_link.copy') }}
@@ -94,7 +94,7 @@ export default {
     validUntil: { type: String, required: true },
   },
   methods: {
-    CopyLink() {
+    copyLink() {
       navigator.clipboard
         .writeText(this.link)
         .then(() => {
