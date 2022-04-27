@@ -13,6 +13,9 @@ import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
 import { entities } from '@entity/index'
+import CONFIG from '@/config'
+
+CONFIG.EMAIL = false
 
 const context = {
   token: '',
