@@ -112,3 +112,9 @@ export const deleteUser = gql`
     deleteUser(userId: $userId)
   }
 `
+
+export const unDeleteUser = gql`
+  mutation ($userId: Int!) {
+    unDeleteUser(userId: $userId)
+  }
+`
