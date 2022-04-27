@@ -211,7 +211,7 @@ describe('Login', () => {
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
           apolloQueryMock.mockRejectedValue({
-            message: '..No user with this credentials',
+            message: '...No user with this credentials',
           })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
@@ -222,7 +222,9 @@ describe('Login', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('error.no-account')
+          expect(toastErrorSpy).toBeCalledWith(
+            'error.unknown-error...No user with this credentials',
+          )
         })
 
         describe('login fails with "User email not validated"', () => {

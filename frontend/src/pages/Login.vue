@@ -60,18 +60,10 @@
     <b-container v-else class="mt--8 p-1">
       <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
-        v-if="errorReason === 'email-unvalidated'"
         :headline="$t('site.thx.errorTitle')"
-        :subtitle="$t('site.thx.activateEmail')"
+        :subtitle="errorSubtitle"
         :buttonText="$t('settings.password.reset')"
-        linkTo="/forgot-password"
-      />
-      <message
-        v-else-if="errorReason === 'password-unset'"
-        :headline="$t('site.thx.errorTitle')"
-        :subtitle="$t('site.thx.unsetPassword')"
-        :buttonText="$t('settings.password.reset')"
-        linkTo="/reset-password/login"
+        :linkTo="errorLinkTo"
       />
       <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
@@ -101,6 +93,8 @@ export default {
       passwordVisible: false,
       showPageMessage: false,
       errorReason: null,
+      errorSubtitle: '',
+      errorLinkTo: '',
       CONFIG,
     }
   },
@@ -132,13 +126,23 @@ export default {
           }
         })
         .catch((error) => {
-          this.toastError(this.$t('error.no-account'))
           if (error.message.includes('User email not validated')) {
+            this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
-            this.errorReason = 'email-unvalidated'
+            this.errorSubtitle = this.$t('site.thx.activateEmail')
+            this.errorLinkTo = '/forgot-password'
           } else if (error.message.includes('User has no password set yet')) {
+            this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
-            this.errorReason = 'password-unset'
+            this.errorSubtitle = this.$t('site.thx.unsetPassword')
+            this.errorLinkTo = '/reset-password/login'
+          } else {
+            // appeared errors: 'GraphQL error: No user with this credentials'
+            const errorMessage = this.$t('error.unknown-error') + error.message
+            this.toastError(errorMessage)
+            this.showPageMessage = true
+            this.errorSubtitle = errorMessage
+            this.errorLinkTo = '/forgot-password'
           }
           loader.hide()
         })
