@@ -133,3 +133,9 @@ export const updatePendingCreation = gql`
     }
   }
 `
+
+export const deletePendingCreation = gql`
+  mutation ($id: Int!) {
+    deletePendingCreation(id: $id)
+  }
+`
