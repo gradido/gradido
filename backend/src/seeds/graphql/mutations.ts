@@ -106,3 +106,9 @@ export const confirmPendingCreation = gql`
     confirmPendingCreation(id: $id)
   }
 `
+
+export const deleteUser = gql`
+  mutation ($userId: Int!) {
+    deleteUser(userId: $userId)
+  }
+`
