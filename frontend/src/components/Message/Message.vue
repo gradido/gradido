@@ -13,7 +13,7 @@
             v-if="buttonText && (linkTo || callback)"
             class="test-message-button"
             :to="linkTo ? linkTo + (code ? `/${code}` : '') : null"
-            @click="callback()"
+            @click="optionalCallback()"
           >
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ buttonText }}
@@ -35,6 +35,13 @@ export default {
     linkTo: { type: String, required: false, default: null },
     callback: { type: Function, required: false, default: null },
     code: { type: String, required: false, default: null }, // Wolle: to be removed by adding it directly to the "linkTo"
+  },
+  methods: {
+    optionalCallback() {
+      if (this.callback) {
+        this.callback()
+      }
+    },
   },
 }
 </script>
