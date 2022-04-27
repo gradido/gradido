@@ -170,7 +170,8 @@ export class AdminResolver {
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
-    @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
+    @Args() { email, amount, memo, creationDate }: CreatePendingCreationArgs,
+    @Ctx() context: Context,
   ): Promise<Decimal[]> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
@@ -182,6 +183,7 @@ export class AdminResolver {
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
+    const moderator = getUser(context)
     const creations = await getUserCreation(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
@@ -191,7 +193,7 @@ export class AdminResolver {
       adminPendingCreation.created = new Date()
       adminPendingCreation.date = creationDateObj
       adminPendingCreation.memo = memo
-      adminPendingCreation.moderator = moderator
+      adminPendingCreation.moderator = moderator.id
 
       await AdminPendingCreation.save(adminPendingCreation)
     }
@@ -203,12 +205,13 @@ export class AdminResolver {
   async createPendingCreations(
     @Arg('pendingCreations', () => [CreatePendingCreationArgs])
     pendingCreations: CreatePendingCreationArgs[],
+    @Ctx() context: Context,
   ): Promise<CreatePendingCreations> {
     let success = false
     const successfulCreation: string[] = []
     const failedCreation: string[] = []
     for (const pendingCreation of pendingCreations) {
-      await this.createPendingCreation(pendingCreation)
+      await this.createPendingCreation(pendingCreation, context)
         .then(() => {
           successfulCreation.push(pendingCreation.email)
           success = true
