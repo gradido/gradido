@@ -1,7 +1,6 @@
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { Migration } from './Migration'
-import { ServerUser } from './ServerUser'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
@@ -13,7 +12,6 @@ export const entities = [
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,
-  ServerUser,
   Transaction,
   TransactionLink,
   User,
