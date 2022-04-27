@@ -15,11 +15,11 @@ import {
   createPendingCreations,
   updatePendingCreation,
 } from '@/seeds/graphql/mutations'
+import { getPendingCreations, login } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { login } from '@/seeds/graphql/queries'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 
@@ -43,7 +43,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  // await cleanDB()
+  await cleanDB()
   await con.close()
 })
 
@@ -312,6 +312,20 @@ describe('AdminResolver', () => {
           )
         })
       })
+
+      describe('getPendingCreations', () => {
+        it('returns an error', async () => {
+          await expect(
+            query({
+              query: getPendingCreations,
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
     })
 
     describe('authenticated', () => {
@@ -374,6 +388,20 @@ describe('AdminResolver', () => {
             )
           })
         })
+
+        describe('getPendingCreations', () => {
+          it('returns an error', async () => {
+            await expect(
+              query({
+                query: getPendingCreations,
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
       })
 
       describe('with admin rights', () => {
@@ -386,7 +414,7 @@ describe('AdminResolver', () => {
         })
 
         afterAll(async () => {
-          // await cleanDB()
+          await cleanDB()
           resetToken()
         })
 
@@ -766,6 +794,67 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+          })
+        })
+
+        describe('getPendingCreations', () => {
+          it('returns four pending creations', async () => {
+            await expect(
+              query({
+                query: getPendingCreations,
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  getPendingCreations: expect.arrayContaining([
+                    {
+                      id: expect.any(Number),
+                      firstName: 'Peter',
+                      lastName: 'Lustig',
+                      email: 'peter@lustig.de',
+                      date: expect.any(String),
+                      memo: 'Das war leider zu Viel!',
+                      amount: '200',
+                      moderator: admin.id,
+                      creation: ['1000', '1000', '300'],
+                    },
+                    {
+                      id: expect.any(Number),
+                      firstName: 'Peter',
+                      lastName: 'Lustig',
+                      email: 'peter@lustig.de',
+                      date: expect.any(String),
+                      memo: 'Grundeinkommen',
+                      amount: '500',
+                      moderator: admin.id,
+                      creation: ['1000', '1000', '300'],
+                    },
+                    {
+                      id: expect.any(Number),
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      email: 'bibi@bloxberg.de',
+                      date: expect.any(String),
+                      memo: 'Grundeinkommen',
+                      amount: '500',
+                      moderator: admin.id,
+                      creation: ['1000', '1000', '300'],
+                    },
+                    {
+                      id: expect.any(Number),
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      email: 'bibi@bloxberg.de',
+                      date: expect.any(String),
+                      memo: 'Vielen Dank für den Zaubertrank!',
+                      amount: '200',
+                      moderator: admin.id,
+                      creation: ['1000', '1000', '300'],
+                    },
+                  ]),
+                },
+              }),
+            )
           })
         })
       })
