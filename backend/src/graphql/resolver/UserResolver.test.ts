@@ -10,6 +10,7 @@ import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
+import { ERRORS } from '@/config/errors'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
@@ -152,7 +153,7 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('User already exists.')],
+            errors: [new GraphQLError(ERRORS[ERRORS.ERR_USER_ALREADY_EXISTS])],
           }),
         )
       })

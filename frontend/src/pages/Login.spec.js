@@ -1,5 +1,6 @@
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { ERRORS } from '@/config/errors'
 import Login from './Login'
 
 import { toastErrorSpy } from '@test/testSetup'
@@ -25,6 +26,7 @@ describe('Login', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $te: jest.fn((te) => true),
     $store: {
       dispatch: mockStoreDispach,
       commit: mockStoreCommit,
@@ -211,7 +213,7 @@ describe('Login', () => {
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
           apolloQueryMock.mockRejectedValue({
-            message: '...No user with this credentials',
+            message: 'error.unknown-error...No user with this credentials',
           })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
@@ -230,7 +232,7 @@ describe('Login', () => {
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: 'User email not validated',
+              message: ERRORS.ERR_EMAIL_NOT_VALIDATED,
             })
             wrapper = Wrapper()
             jest.clearAllMocks()
@@ -261,7 +263,7 @@ describe('Login', () => {
         describe('login fails with "User has no password set yet"', () => {
           beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: 'User has no password set yet',
+              message: ERRORS.ERR_USER_HAS_NO_PASSWORD,
             })
             wrapper = Wrapper()
             jest.clearAllMocks()

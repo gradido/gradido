@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { ERRORS } from '@/config/errors'
 import Register from './Register'
 
 const localVue = global.localVue
@@ -16,6 +17,7 @@ describe('Register', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
+    $te: jest.fn((te) => true),
     $router: {
       push: routerPushMock,
     },
@@ -222,7 +224,7 @@ describe('Register', () => {
       describe('server sends back error', () => {
         beforeEach(async () => {
           registerUserMutationMock.mockRejectedValue({
-            message: 'GraphQL error: User already exists.',
+            message: 'GraphQL error: ' + ERRORS.ERR_USER_ALREADY_EXISTS,
           })
           await wrapper.find('form').trigger('submit')
           await flushPromises()

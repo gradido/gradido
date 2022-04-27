@@ -3,6 +3,7 @@ import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository } from '@dbTools/typeorm'
 import CONFIG from '@/config'
+import { ERRORS } from '@/config/errors'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -223,11 +224,11 @@ export class UserResolver {
       throw new Error('This user was permanently deleted. Contact support for questions.')
     }
     if (!dbUser.emailChecked) {
-      throw new Error('User email not validated')
+      throw new Error(ERRORS[ERRORS.ERR_EMAIL_NOT_VALIDATED])
     }
     if (dbUser.password === BigInt(0)) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new Error('User has no password set yet')
+      throw new Error(ERRORS[ERRORS.ERR_USER_HAS_NO_PASSWORD])
     }
     if (!dbUser.pubKey || !dbUser.privKey) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
@@ -297,7 +298,7 @@ export class UserResolver {
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     if (userFound) {
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      throw new Error(`User already exists.`)
+      throw new Error(ERRORS[ERRORS.ERR_USER_ALREADY_EXISTS])
     }
 
     const passphrase = PassphraseGenerate()

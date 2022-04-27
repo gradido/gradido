@@ -4,9 +4,7 @@
     <div class="header py-lg-6">
       <b-container class="w-50">
         <div class="header-body text-center mb-7">
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h1 test-message-headline">{{ headline }}</p>
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
           <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
           <b-button
@@ -15,7 +13,6 @@
             :to="linkTo ? linkTo + (code ? `/${code}` : '') : null"
             @click="optionalCallback()"
           >
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ buttonText }}
           </b-button>
         </div>

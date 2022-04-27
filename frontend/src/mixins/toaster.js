@@ -1,3 +1,5 @@
+import { errorMessageRemoveGraphQl } from './errors'
+
 export const toasters = {
   methods: {
     toastSuccess(message) {
@@ -13,7 +15,7 @@ export const toasters = {
       })
     },
     toast(message, options) {
-      if (message.replace) message = message.replace(/^GraphQL error: /, '')
+      if (message.replace) message = errorMessageRemoveGraphQl(message)
       this.$root.$bvToast.toast(message, {
         autoHideDelay: 5000,
         appendToast: true,

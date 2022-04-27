@@ -58,24 +58,24 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         :headline="$t('site.thx.errorTitle')"
         :subtitle="errorSubtitle"
         :buttonText="$t('settings.password.reset')"
         :linkTo="errorLinkTo"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
   </div>
 </template>
 
 <script>
+import { login } from '@/graphql/queries'
+import CONFIG from '@/config'
+import { ERRORS } from '@/config/errors'
+import { errorMessageRemoveGraphQl, errors } from '@/mixins/errors'
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login } from '@/graphql/queries'
-import CONFIG from '@/config'
 
 export default {
   name: 'Login',
@@ -84,6 +84,7 @@ export default {
     InputEmail,
     Message,
   },
+  mixins: [errors],
   data() {
     return {
       form: {
@@ -126,19 +127,19 @@ export default {
           }
         })
         .catch((error) => {
-          if (error.message.includes('User email not validated')) {
+          if (errorMessageRemoveGraphQl(error.message) === ERRORS.ERR_EMAIL_NOT_VALIDATED) {
             this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
             this.errorSubtitle = this.$t('site.thx.activateEmail')
             this.errorLinkTo = '/forgot-password'
-          } else if (error.message.includes('User has no password set yet')) {
+          } else if (errorMessageRemoveGraphQl(error.message) === ERRORS.ERR_USER_HAS_NO_PASSWORD) {
             this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
             this.errorSubtitle = this.$t('site.thx.unsetPassword')
             this.errorLinkTo = '/reset-password/login'
           } else {
-            // appeared errors: 'GraphQL error: No user with this credentials'
-            const errorMessage = this.$t('error.unknown-error') + error.message
+            // appeared errors: 'GraphQL error: No user with this credentials', 'Network error: JSON.parse: unexpected character at line 1 column 1 of the JSON data'
+            const errorMessage = this.translateErrorMessage(error.message)
             this.toastError(errorMessage)
             this.showPageMessage = true
             this.errorSubtitle = errorMessage
