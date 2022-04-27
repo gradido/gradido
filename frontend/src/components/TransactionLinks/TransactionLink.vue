@@ -18,7 +18,13 @@
                 <b-icon icon="three-dots-vertical"></b-icon>
               </template>
 
-              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copy">
+              <b-dropdown-item
+                v-if="validLink"
+                class="test-copy-link"
+                v-clipboard="link"
+                @success="toastSuccess($t('gdd_per_link.link-copied'))"
+                @error="CopyLink"
+              >
                 <b-icon icon="clipboard"></b-icon>
                 {{ $t('gdd_per_link.copy') }}
               </b-dropdown-item>
@@ -88,7 +94,7 @@ export default {
     validUntil: { type: String, required: true },
   },
   methods: {
-    copy() {
+    CopyLink() {
       navigator.clipboard
         .writeText(this.link)
         .then(() => {

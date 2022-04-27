@@ -3,7 +3,14 @@
     <b-input-group v-if="canCopyLink" size="lg" class="mb-3" prepend="Link">
       <b-form-input :value="link" type="text" readonly></b-form-input>
       <b-input-group-append>
-        <b-button size="sm" text="Button" variant="primary" @click="CopyLink">
+        <b-button
+          size="sm"
+          text="Button"
+          variant="primary"
+          v-clipboard="link"
+          @success="toastSuccess($t('gdd_per_link.link-copied'))"
+          @error="CopyLink"
+        >
           {{ $t('gdd_per_link.copy') }}
         </b-button>
         <b-button variant="primary" class="text-light" @click="$emit('show-qr-code-button')">
