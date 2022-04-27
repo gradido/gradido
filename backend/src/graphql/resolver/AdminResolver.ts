@@ -157,11 +157,12 @@ export class AdminResolver {
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
-    // user exists ?
     if (!user) {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
-    // recover user account
+    if (!user.deletedAt) {
+      throw new Error('User already deleted')
+    }
     await user.recover()
     return null
   }

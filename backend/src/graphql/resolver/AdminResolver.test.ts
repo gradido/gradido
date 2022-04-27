@@ -5,7 +5,7 @@ import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { deleteUser } from '@/seeds/graphql/mutations'
+import { deleteUser, unDeleteUser } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -139,6 +139,104 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [new GraphQLError(`Could not find user with userId: ${user.id}`)],
+                }),
+              )
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('unDelete user', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(mutate({ mutation: unDeleteUser, variables: { userId: 1 } })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('with user rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: unDeleteUser, variables: { userId: user.id + 1 } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user to undelete user does not exist', () => {
+          it('throws an error', async () => {
+            await expect(
+              mutate({ mutation: unDeleteUser, variables: { userId: admin.id + 1 } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+              }),
+            )
+          })
+        })
+
+        describe('user to undelete is not deleted', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          it('throws an error', async () => {
+            await expect(
+              mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('User already deleted')],
+              }),
+            )
+          })
+
+          describe('undelete deleted user', () => {
+            beforeAll(async () => {
+              await mutate({ mutation: deleteUser, variables: { userId: user.id } })
+            })
+
+            it('returns null', async () => {
+              await expect(
+                mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: { unDeleteUser: null },
                 }),
               )
             })
