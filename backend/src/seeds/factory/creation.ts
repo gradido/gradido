@@ -17,7 +17,7 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<void> => {
+): Promise<AdminPendingCreation | void> => {
   const { mutate, query } = client
 
   await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
@@ -27,12 +27,12 @@ export const creationFactory = async (
   // get User
   const user = await User.findOneOrFail({ where: { email: creation.email } })
 
-  if (creation.confirmed) {
-    const pendingCreation = await AdminPendingCreation.findOneOrFail({
-      where: { userId: user.id },
-      order: { created: 'DESC' },
-    })
+  const pendingCreation = await AdminPendingCreation.findOneOrFail({
+    where: { userId: user.id },
+    order: { created: 'DESC' },
+  })
 
+  if (creation.confirmed) {
     await mutate({ mutation: confirmPendingCreation, variables: { id: pendingCreation.id } })
 
     if (creation.moveCreationDate) {
@@ -50,5 +50,7 @@ export const creationFactory = async (
         await transaction.save()
       }
     }
+  } else {
+    return pendingCreation
   }
 }
