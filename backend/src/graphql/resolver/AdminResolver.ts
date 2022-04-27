@@ -333,8 +333,7 @@ export class AdminResolver {
       decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, receivedCallDate)
       newBalance = decay.balance
     }
-    // TODO pending creations decimal
-    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
+    newBalance = newBalance.add(pendingCreation.amount.toString())
 
     const transaction = new DbTransaction()
     transaction.typeId = TransactionTypeId.CREATION
@@ -516,7 +515,7 @@ function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Da
     throw new Error(`No Creation found!`)
   }
 
-  if (amount.greaterThan(creations[index])) {
+  if (amount.greaterThan(creations[index].toString())) {
     throw new Error(
       `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
     )
