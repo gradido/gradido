@@ -105,7 +105,8 @@ yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
-  yarn dev_reset
+# As de_reset is not running properly (0019-replace_login_user_id_with_state_user_id)  
+# yarn dev_reset
 else
   yarn up
 fi
