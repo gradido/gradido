@@ -148,3 +148,21 @@ export const queryTransactionLink = gql`
     }
   }
 `
+
+// from admin interface
+
+export const getPendingCreations = gql`
+  query {
+    getPendingCreations {
+      id
+      firstName
+      lastName
+      email
+      amount
+      memo
+      date
+      moderator
+      creation
+    }
+  }
+`

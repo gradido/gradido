@@ -7,7 +7,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 export const userFactory = async (
   client: ApolloServerTestClient,
   user: UserInterface,
-): Promise<void> => {
+): Promise<User> => {
   const { mutate } = client
 
   const {
@@ -24,13 +24,15 @@ export const userFactory = async (
     })
   }
 
-  if (user.createdAt || user.deletedAt || user.isAdmin) {
-    // get user from database
-    const dbUser = await User.findOneOrFail({ id })
+  // get user from database
+  const dbUser = await User.findOneOrFail({ id })
 
+  if (user.createdAt || user.deletedAt || user.isAdmin) {
     if (user.createdAt) dbUser.createdAt = user.createdAt
     if (user.deletedAt) dbUser.deletedAt = user.deletedAt
     if (user.isAdmin) dbUser.isAdmin = new Date()
     await dbUser.save()
   }
+
+  return dbUser
 }

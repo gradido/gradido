@@ -12,9 +12,6 @@ export class UpdatePendingCreation {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => Number)
-  moderator: number
-
   @Field(() => [Decimal])
   creation: Decimal[]
 }
