@@ -16,6 +16,8 @@ import router from './routes/router'
 
 import { apolloProvider } from './plugins/apolloProvider'
 
+import 'clipboard-polyfill/overwrite-globals'
+
 // plugin setup
 Vue.use(DashboardPlugin)
 Vue.config.productionTip = false
