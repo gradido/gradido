@@ -225,7 +225,7 @@ describe('Login', () => {
 
         it('toasts an error message', () => {
           expect(toastErrorSpy).toBeCalledWith(
-            'error.unknown-error...No user with this credentials',
+            'error.backend.error.unknown-error...No user with this credentials',
           )
         })
 
@@ -279,7 +279,9 @@ describe('Login', () => {
           it('shows error title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBeTruthy()
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe(
+              'error.backend.ERR_USER_HAS_NO_PASSWORD',
+            )
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 
