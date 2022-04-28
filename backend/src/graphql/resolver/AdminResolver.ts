@@ -64,11 +64,11 @@ export class AdminResolver {
 
     const filterCriteria: ObjectLiteral[] = []
     if (filterByActivated !== null) {
-      filterCriteria.push({ filterByActivated: filterByActivated })
+      filterCriteria.push({ emailChecked: filterByActivated })
     }
 
     if (filterByDeleted !== null) {
-      filterCriteria.push({ filterByDeleted: filterByDeleted ? Not(IsNull()) : IsNull() })
+      filterCriteria.push({ deletedAt: filterByDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
