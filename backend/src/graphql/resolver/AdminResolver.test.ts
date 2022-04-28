@@ -1010,7 +1010,7 @@ describe('AdminResolver', () => {
             })
           })
 
-          describe('creation of other user', () => {
+          describe('confirm creation for other user', () => {
             beforeAll(async () => {
               const now = new Date()
               creation = await creationFactory(testEnv, {
