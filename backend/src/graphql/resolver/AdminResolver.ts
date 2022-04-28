@@ -56,19 +56,19 @@ export class AdminResolver {
       searchText,
       currentPage = 1,
       pageSize = 25,
-      notActivated = null,
-      isDeleted = null,
+      filterByActivated = null,
+      filterByDeleted = null,
     }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (notActivated !== null) {
-      filterCriteria.push({ emailChecked: !notActivated })
+    if (filterByActivated !== null) {
+      filterCriteria.push({ emailChecked: filterByActivated })
     }
 
-    if (isDeleted !== null) {
-      filterCriteria.push({ deletedAt: isDeleted ? Not(IsNull()) : IsNull() })
+    if (filterByDeleted !== null) {
+      filterCriteria.push({ deletedAt: filterByDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
