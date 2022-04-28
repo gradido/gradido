@@ -106,7 +106,7 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        describe('user to be delete does not exist', () => {
+        describe('user to be deleted does not exist', () => {
           it('throws an error', async () => {
             await expect(
               mutate({ mutation: deleteUser, variables: { userId: admin.id + 1 } }),
