@@ -274,7 +274,7 @@ export default {
           this.showError = true
           switch (errorMessageRemoveGraphQl(error.message)) {
             case ERRORS.ERR_USER_ALREADY_EXISTS:
-              this.messageError = this.$t('error.user-already-exists')
+              this.messageError = this.translateErrorMessage(error.message)
               break
             default:
               this.messageError = this.translateErrorMessage(error.message)

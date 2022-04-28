@@ -246,7 +246,9 @@ describe('Login', () => {
           it('shows error title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBeTruthy()
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe(
+              'error.backend.ERR_EMAIL_NOT_VALIDATED',
+            )
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
 

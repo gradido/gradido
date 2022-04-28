@@ -7,12 +7,14 @@ export const errorMessageRemoveGraphQl = (message) => {
 export const errors = {
   methods: {
     translateErrorMessage(message) {
-      let errorMessage = errorMessageRemoveGraphQl(message)
-      if (this.$te(errorMessage)) {
+      let errorMessage
+      const errorCode = errorMessageRemoveGraphQl(message)
+      const localesIdentifier = 'error.backend.' + errorCode
+      if (this.$te(localesIdentifier)) {
         // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-        errorMessage = this.$t(errorMessage)
-      } else if (Object.prototype.hasOwnProperty.call(ERRORS_DESCRIPTION, errorMessage)) {
-        errorMessage = this.$t('error.unknown-error') + ERRORS_DESCRIPTION[errorMessage]
+        errorMessage = this.$t(localesIdentifier)
+      } else if (Object.prototype.hasOwnProperty.call(ERRORS_DESCRIPTION, errorCode)) {
+        errorMessage = this.$t('error.unknown-error') + ERRORS_DESCRIPTION[errorCode]
       } else {
         errorMessage = this.$t('error.unknown-error') + message
       }

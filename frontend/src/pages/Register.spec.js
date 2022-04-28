@@ -251,7 +251,9 @@ describe('Register', () => {
         it('shows success title, subtitle, login button', () => {
           expect(wrapper.vm.showPageMessage).toBeTruthy()
           expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-          expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe(
+            'error.backend.ERR_USER_ALREADY_EXISTS',
+          )
           expect(wrapper.find('.test-message-button').text()).toBe(
             'site.register.message-button-text',
           )

@@ -51,7 +51,7 @@ const textFields = {
   },
   login: {
     headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail',
+    subtitle: 'error.backend.ERR_EMAIL_NOT_VALIDATED',
     button: 'settings.password.reset',
     linkTo: '/forgot-password',
   },

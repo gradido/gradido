@@ -127,18 +127,19 @@ export default {
           }
         })
         .catch((error) => {
-          if (errorMessageRemoveGraphQl(error.message) === ERRORS.ERR_EMAIL_NOT_VALIDATED) {
+          const errorCode = errorMessageRemoveGraphQl(error.message)
+          if (errorCode === ERRORS.ERR_EMAIL_NOT_VALIDATED) {
             this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
-            this.errorSubtitle = this.$t('site.thx.activateEmail')
+            this.errorSubtitle = this.translateErrorMessage(error.message)
             this.errorLinkTo = '/forgot-password'
-          } else if (errorMessageRemoveGraphQl(error.message) === ERRORS.ERR_USER_HAS_NO_PASSWORD) {
+          } else if (errorCode === ERRORS.ERR_USER_HAS_NO_PASSWORD) {
             this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
-            this.errorSubtitle = this.$t('site.thx.unsetPassword')
+            this.errorSubtitle = this.translateErrorMessage(error.message)
             this.errorLinkTo = '/reset-password/login'
           } else {
-            // appeared errors: 'GraphQL error: No user with this credentials', 'Network error: JSON.parse: unexpected character at line 1 column 1 of the JSON data'
+            // appeared errors while manual testing: 'GraphQL error: No user with this credentials', 'Network error: JSON.parse: unexpected character at line 1 column 1 of the JSON data'
             const errorMessage = this.translateErrorMessage(error.message)
             this.toastError(errorMessage)
             this.showPageMessage = true

@@ -96,7 +96,7 @@ describe('Message', () => {
   //   })
 
   //   it('renders the thanks text', () => {
-  //     expect(wrapper.find('p.h4').text()).toBe('site.thx.activateEmail')
+  //     expect(wrapper.find('p.h4').text()).toBe('error.backend.ERR_EMAIL_NOT_VALIDATED')
   //   })
 
   //   it('renders the thanks redirect button', () => {
