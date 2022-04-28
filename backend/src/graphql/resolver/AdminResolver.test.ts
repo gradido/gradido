@@ -214,7 +214,7 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        describe('user to undelete user does not exist', () => {
+        describe('user to be undelete does not exist', () => {
           it('throws an error', async () => {
             await expect(
               mutate({ mutation: unDeleteUser, variables: { userId: admin.id + 1 } }),
