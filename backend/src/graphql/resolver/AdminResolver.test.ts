@@ -236,7 +236,7 @@ describe('AdminResolver', () => {
               mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('User already deleted')],
+                errors: [new GraphQLError('User is not deleted')],
               }),
             )
           })
@@ -265,7 +265,7 @@ describe('AdminResolver', () => {
     const variables = {
       email: 'bibi@bloxberg.de',
       amount: new Decimal(2000),
-      memo: 'Vielen Dank für den Zaubertrank!',
+      memo: 'Aktives Grundeinkommen',
       creationDate: 'not-valid',
     }
 
@@ -552,7 +552,7 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No Creation found!')],
+                    errors: [new GraphQLError('No information for available creations for the given date')],
                   }),
                 )
               })
@@ -570,7 +570,7 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No Creation found!')],
+                    errors: [new GraphQLError('No information for available creations for the given date')],
                   }),
                 )
               })
@@ -588,7 +588,7 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No Creation found!')],
+                    errors: [new GraphQLError('No information for available creations for the given date')],
                   }),
                 )
               })
@@ -603,7 +603,7 @@ describe('AdminResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the available amount (1000 GDD) for this month.',
+                        'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -635,7 +635,7 @@ describe('AdminResolver', () => {
                   expect.objectContaining({
                     errors: [
                       new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the available amount (800 GDD) for this month.',
+                        'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
                       ),
                     ],
                   }),
@@ -803,7 +803,7 @@ describe('AdminResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the available amount (500 GDD) for this month.',
+                      'The amount (1900 GDD) to be created exceeds the amount (500 GDD) still available for this month.',
                     ),
                   ],
                 }),
@@ -917,7 +917,7 @@ describe('AdminResolver', () => {
                       lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
                       date: expect.any(String),
-                      memo: 'Vielen Dank für den Zaubertrank!',
+                      memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
                       creation: ['1000', '1000', '300'],
@@ -941,7 +941,7 @@ describe('AdminResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation not found to given id.')],
+                  errors: [new GraphQLError('Creation not found for given id.')],
                 }),
               )
             })

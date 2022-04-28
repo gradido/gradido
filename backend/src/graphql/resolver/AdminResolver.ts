@@ -161,7 +161,7 @@ export class AdminResolver {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     if (!user.deletedAt) {
-      throw new Error('User already deleted')
+      throw new Error('User is not deleted')
     }
     await user.recover()
     return null
@@ -309,7 +309,7 @@ export class AdminResolver {
   async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
     const pendingCreation = await AdminPendingCreation.findOne(id)
     if (!pendingCreation) {
-      throw new Error('Creation not found to given id.')
+      throw new Error('Creation not found for given id.')
     }
     const res = await AdminPendingCreation.delete(pendingCreation)
     return !!res
@@ -526,12 +526,12 @@ function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Da
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
-    throw new Error(`No Creation found!`)
+    throw new Error('No information for available creations for the given date')
   }
 
   if (amount.greaterThan(creations[index].toString())) {
     throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
     )
   }
 
