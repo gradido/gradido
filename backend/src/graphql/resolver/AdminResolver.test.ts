@@ -175,7 +175,7 @@ describe('AdminResolver', () => {
     })
 
     describe('authenticated', () => {
-      describe('with user rights', () => {
+      describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
           await query({
