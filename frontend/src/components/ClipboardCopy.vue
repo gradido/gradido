@@ -18,6 +18,8 @@
   </div>
 </template>
 <script>
+import 'clipboard-polyfill/overwrite-globals'
+
 export default {
   name: 'ClipboardCopy',
   props: {

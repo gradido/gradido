@@ -61,6 +61,7 @@
   </div>
 </template>
 <script>
+import 'clipboard-polyfill/overwrite-globals'
 import { deleteTransactionLink } from '@/graphql/mutations'
 import TypeIcon from '../TransactionRows/TypeIcon'
 import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
