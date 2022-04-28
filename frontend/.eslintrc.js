@@ -45,8 +45,9 @@ module.exports = {
         extensions: ['.js', '.vue'],
         // TODO: remove ignores
         ignores: [
-          '/site.thx./',
+          '/error.backend./',
           '/form./',
+          '/site.thx./',
           '/time./',
           '/decay.types./',
           'settings.password.resend_subtitle',
