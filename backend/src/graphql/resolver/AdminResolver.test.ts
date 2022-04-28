@@ -552,7 +552,9 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No information for available creations for the given date')],
+                    errors: [
+                      new GraphQLError('No information for available creations for the given date'),
+                    ],
                   }),
                 )
               })
@@ -570,7 +572,9 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No information for available creations for the given date')],
+                    errors: [
+                      new GraphQLError('No information for available creations for the given date'),
+                    ],
                   }),
                 )
               })
@@ -588,7 +592,9 @@ describe('AdminResolver', () => {
                   mutate({ mutation: createPendingCreation, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [new GraphQLError('No information for available creations for the given date')],
+                    errors: [
+                      new GraphQLError('No information for available creations for the given date'),
+                    ],
                   }),
                 )
               })
