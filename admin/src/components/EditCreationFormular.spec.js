@@ -11,7 +11,6 @@ const apolloMutateMock = jest.fn().mockResolvedValue({
       amount: 500,
       date: new Date(),
       memo: 'Test Schöpfung 2',
-      moderator: 0,
     },
   },
 })
@@ -28,12 +27,6 @@ const mocks = {
     mutate: apolloMutateMock,
   },
   $store: {
-    state: {
-      moderator: {
-        id: 0,
-        name: 'test moderator',
-      },
-    },
     commit: stateCommitMock,
   },
 }
@@ -104,7 +97,6 @@ describe('EditCreationFormular', () => {
                 creationDate: getCreationDate(0),
                 amount: 500,
                 memo: 'Test Schöpfung 2',
-                moderator: 0,
               },
             }),
           )
@@ -129,7 +121,6 @@ describe('EditCreationFormular', () => {
                 amount: 500,
                 date: expect.any(Date),
                 memo: 'Test Schöpfung 2',
-                moderator: 0,
                 row: expect.any(Object),
               },
             ],
