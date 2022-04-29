@@ -105,20 +105,6 @@
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
-                  <!-- Wolle: remove this? or shall the alert or a toaster be shown? -->
-                  <b-alert
-                    v-if="showError"
-                    show
-                    dismissible
-                    variant="danger"
-                    @dismissed="closeAlert"
-                  >
-                    <span class="alert-icon"><i class="ni ni-point"></i></span>
-                    <span class="alert-text">
-                      <strong>{{ $t('error.error') }}</strong>
-                      {{ messageError }}
-                    </span>
-                  </b-alert>
 
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
@@ -228,9 +214,7 @@ export default {
       language: '',
       showPageMessage: false,
       submitted: false,
-      showError: false,
       messageError: '',
-      register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
       CONFIG,
@@ -267,7 +251,6 @@ export default {
         .catch((error) => {
           this.showPageMessage = true
           this.success = false
-          this.showError = true
           switch (error.message) {
             case 'GraphQL error: User already exists.':
               this.messageError = this.$t('error.user-already-exists')
@@ -279,17 +262,8 @@ export default {
           this.toastError(this.messageError)
         })
     },
-    // Wolle: remove this?
-    closeAlert() {
-      this.showError = false
-      this.messageError = ''
-      this.form.email = ''
-      this.form.firstname = ''
-      this.form.lastname = ''
-    },
     solveError() {
       this.showPageMessage = false
-      this.showError = false
       this.messageError = ''
       this.form.email = ''
       this.form.firstname = ''
