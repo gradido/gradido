@@ -19,9 +19,7 @@ import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { ROLE_ADMIN } from '@/auth/ROLES'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { ServerUser } from '@entity/ServerUser'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -207,7 +205,6 @@ export class UserResolver {
       })
     user.coinanimation = coinanimation
 
-    user.isAdmin = context.role === ROLE_ADMIN
     return user
   }
 
@@ -243,16 +240,11 @@ export class UserResolver {
     }
 
     const user = new User(dbUser)
-    // user.email = email
-    // user.pubkey = dbUser.pubKey.toString('hex')
-    user.language = dbUser.language
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
-      // TODO: Check if we can use updateUserInfos
-      // await this.updateUserInfos({ publisherId }, { pubKey: loginUser.pubKey })
       dbUser.publisherId = publisherId
       DbUser.save(dbUser)
     }
@@ -265,10 +257,6 @@ export class UserResolver {
         throw new Error(error)
       })
     user.coinanimation = coinanimation
-
-    // context.role is not set to the actual role yet on login
-    const countServerUsers = await ServerUser.count({ email: user.email })
-    user.isAdmin = countServerUsers > 0
 
     context.setHeaders.push({
       key: 'token',
@@ -529,15 +517,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
-    {
-      firstName,
-      lastName,
-      language,
-      publisherId,
-      password,
-      passwordNew,
-      coinanimation,
-    }: UpdateUserInfosArgs,
+    { firstName, lastName, language, password, passwordNew, coinanimation }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const userEntity = getUser(context)
@@ -579,11 +559,6 @@ export class UserResolver {
       // Save new password hash and newly encrypted private key
       userEntity.password = newPasswordHash[0].readBigUInt64LE()
       userEntity.privKey = encryptedPrivkey
-    }
-
-    // Save publisherId only if Elopage is not yet registered
-    if (publisherId && !(await this.hasElopage(context))) {
-      userEntity.publisherId = publisherId
     }
 
     const queryRunner = getConnection().createQueryRunner()

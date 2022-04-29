@@ -17,27 +17,22 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<void> => {
+): Promise<AdminPendingCreation | void> => {
   const { mutate, query } = client
 
-  // login as Peter Lustig (admin) and get his user ID
-  const {
-    data: {
-      login: { id },
-    },
-  } = await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
 
-  await mutate({ mutation: createPendingCreation, variables: { ...creation, moderator: id } })
+  // TODO it would be nice to have this mutation return the id
+  await mutate({ mutation: createPendingCreation, variables: { ...creation } })
 
-  // get User
   const user = await User.findOneOrFail({ where: { email: creation.email } })
 
-  if (creation.confirmed) {
-    const pendingCreation = await AdminPendingCreation.findOneOrFail({
-      where: { userId: user.id },
-      order: { created: 'DESC' },
-    })
+  const pendingCreation = await AdminPendingCreation.findOneOrFail({
+    where: { userId: user.id, amount: creation.amount },
+    order: { created: 'DESC' },
+  })
 
+  if (creation.confirmed) {
     await mutate({ mutation: confirmPendingCreation, variables: { id: pendingCreation.id } })
 
     if (creation.moveCreationDate) {
@@ -55,5 +50,7 @@ export const creationFactory = async (
         await transaction.save()
       }
     }
+  } else {
+    return pendingCreation
   }
 }

@@ -120,7 +120,6 @@ export default {
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
-            moderator: Number(this.$store.state.moderator.id),
           },
         })
         .then((result) => {
@@ -129,7 +128,6 @@ export default {
             amount: Number(result.data.updatePendingCreation.amount),
             date: result.data.updatePendingCreation.date,
             memo: result.data.updatePendingCreation.memo,
-            moderator: Number(result.data.updatePendingCreation.moderator),
             row: this.row,
           })
           this.toastSuccess(
