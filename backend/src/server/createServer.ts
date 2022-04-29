@@ -1,5 +1,7 @@
 import 'reflect-metadata'
 
+import { createLogger, format, transports } from 'winston'
+
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express } from 'express'
 
@@ -21,11 +23,27 @@ import schema from '@/graphql/schema'
 // webhooks
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
+const { combine, timestamp, label, printf } = format
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
+
+const myFormat = printf(({ level, message, label, timestamp }) => {
+  return `${timestamp} [${label}] ${level}:\n ${message}`
+})
+
+const logger = createLogger({
+  format: combine(
+    label({ label: 'apollo' }),
+    timestamp(),
+    myFormat,
+    // testFilter(),
+    // format.json(),
+  ),
+  transports: [new transports.Console({ level: 'debug' })],
+})
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServer = async (context: any = serverContext): Promise<ServerDef> => {
@@ -62,6 +80,7 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
     introspection: CONFIG.GRAPHIQL,
     context,
     plugins,
+    logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
   return { apollo, app, con }

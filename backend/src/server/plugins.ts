@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { ApolloLogPlugin, LogMutateData } from 'apollo-log'
-import cloneDeep from 'lodash.clonedeep'
+// import { ApolloLogPlugin, LogMutateData } from 'apollo-log'
+// import cloneDeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
   requestDidStart() {
@@ -22,6 +22,24 @@ const setHeadersPlugin = {
   },
 }
 
+const logPlugin = {
+  requestDidStart(requestContext: any) {
+    const logger = requestContext.logger
+    logger.log('debug', requestContext.request.query)
+    logger.log('debug', JSON.stringify(requestContext.request.variables, null, 2))
+    // logger.log('debug', JSON.stringify(requestContext.request, null, 2))
+    return {
+      willSendResponse(requestContext: any) {
+        // console.log(requestContext)
+        logger.log('debug', JSON.stringify(requestContext.response.errors, null, 2))
+        logger.log('debug', JSON.stringify(requestContext.response.data, null, 2))
+        return requestContext
+      },
+    }
+  },
+}
+
+/*
 const apolloLogPlugin = ApolloLogPlugin({
   mutate: (data: LogMutateData) => {
     // We need to deep clone the object in order to not modify the actual request
@@ -38,8 +56,9 @@ const apolloLogPlugin = ApolloLogPlugin({
     return dataCopy
   },
 })
+*/
 
 const plugins =
-  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, apolloLogPlugin]
+  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin] // , apolloLogPlugin
 
 export default plugins
