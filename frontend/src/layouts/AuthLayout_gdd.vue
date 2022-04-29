@@ -23,16 +23,18 @@
       ></b-img>
       <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
       <div class="mobil-start-box-text text-center">
-        <b-button variant="gradido" class="text-white" @click="linkRouter('/register')">
+        <b-button variant="gradido" class="text-white" to="/register" @click="mobilStart = false">
           {{ $t('signup') }}
         </b-button>
         <div class="mt-3 h3 text-white">
           {{ $t('auth.left.hasAccount') }}
-          <span @click="mobilStart = false">
-            <b-link to="/login" class="text-gradido gradido-global-color-0E79BC">
-              {{ $t('auth.left.hereLogin') }}
-            </b-link>
-          </span>
+          <b-link
+            to="/login"
+            class="text-gradido gradido-global-color-0E79BC"
+            @click="mobilStart = false"
+          >
+            {{ $t('auth.left.hereLogin') }}
+          </b-link>
         </div>
       </div>
     </div>

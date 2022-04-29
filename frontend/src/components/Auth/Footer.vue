@@ -51,6 +51,6 @@ export default {
 </script>
 <style>
 .bi-telegram {
-  margin-top: -15px;
+  margin-top: -5px;
 }
 </style>
