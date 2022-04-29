@@ -59,6 +59,7 @@
 <script>
 import { setPassword } from '@/graphql/mutations'
 import { queryOptIn } from '@/graphql/queries'
+import { errors } from '@/mixins/errors'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import Message from '@/components/Message/Message'
 
@@ -84,6 +85,7 @@ const textFields = {
 
 export default {
   name: 'ResetPassword',
+  mixins: [errors],
   components: {
     InputPasswordConfirmation,
     Message,

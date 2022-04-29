@@ -158,14 +158,15 @@ describe('ResetPassword', () => {
             await flushPromises()
           })
 
+          // Wolle: remove
+          // it('router pushes to /forgot-password/resetPassword', () => {
+          //   expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
+          // })
+
           it('toasts an error message', () => {
             expect(toastErrorSpy).toHaveBeenCalledWith(
               '...email was sent more than 23 hours and 10 minutes ago',
             )
-          })
-
-          it('router pushes to /forgot-password/resetPassword', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
         })
 

@@ -2,9 +2,7 @@ import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { ERRORS } from '@/config/errors'
 import Login from './Login'
-
 import { toastErrorSpy } from '@test/testSetup'
-import Login from './Login'
 
 const localVue = global.localVue
 
@@ -208,28 +206,6 @@ describe('Login', () => {
       })
 
       describe('login fails', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-          await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-          await flushPromises()
-          apolloQueryMock.mockRejectedValue({
-            message: 'error.unknown-error...No user with this credentials',
-          })
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
-        })
-
-        it('hides the spinner', () => {
-          expect(spinnerHideMock).toBeCalled()
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith(
-            'error.backend.error.unknown-error...No user with this credentials',
-          )
-        })
-
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
