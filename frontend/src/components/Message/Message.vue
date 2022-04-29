@@ -29,6 +29,7 @@ export default {
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
     callback: { type: Function, required: false, default: null },
+    code: { type: String, required: false, default: null }, // Wolle: to be removed by adding it directly to the "linkTo"
   },
   methods: {
     optionalCallback() {

@@ -168,6 +168,11 @@ describe('ResetPassword', () => {
               '...email was sent more than 23 hours and 10 minutes ago',
             )
           })
+
+          // Wolle
+          it.skip('click redirects to "/forgot-password/resetPassword"', () => {
+            // expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
+          })
         })
 
         describe('server response with error', () => {
