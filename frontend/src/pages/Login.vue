@@ -58,14 +58,12 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         :headline="$t('site.thx.errorTitle')"
         :subtitle="errorSubtitle"
         :buttonText="$t('settings.password.reset')"
         :linkTo="errorLinkTo"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
   </div>
 </template>

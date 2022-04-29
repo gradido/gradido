@@ -179,7 +179,6 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         v-if="success"
         :headline="$t('site.thx.title')"
@@ -192,7 +191,6 @@
         :buttonText="$t('site.register.message-button-text')"
         :callback="solveError"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
     <!--
     <div class="text-center pt-4">
@@ -263,7 +261,6 @@ export default {
           },
         })
         .then(() => {
-          // Wolle: this.$router.push('/thx/register')
           this.showPageMessage = true
           this.success = true
         })
@@ -279,8 +276,7 @@ export default {
               this.messageError = this.$t('error.unknown-error') + error.message
               break
           }
-          // Wolle: this.toastError(this.$t('error.email-already-sent'))
-          // Wolle: shall the alert be replaced by a toaster or shall only the page message be shown?
+          this.toastError(this.messageError)
         })
     },
     // Wolle: remove this?
