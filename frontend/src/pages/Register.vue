@@ -116,7 +116,7 @@
                     <span class="alert-icon"><i class="ni ni-point"></i></span>
                     <span class="alert-text">
                       <strong>{{ $t('error.error') }}</strong>
-                      {{ errorMessage }}
+                      {{ messageError }}
                     </span>
                   </b-alert>
 
@@ -187,7 +187,7 @@
       <message
         v-else
         :headline="$t('site.thx.errorTitle')"
-        :subtitle="errorMessage"
+        :subtitle="messageError"
         :buttonText="$t('site.register.message-button-text')"
         :callback="solveError"
       />
@@ -232,7 +232,7 @@ export default {
       showPageMessage: false,
       submitted: false,
       showError: false,
-      errorMessage: '',
+      messageError: '',
       register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
@@ -274,10 +274,10 @@ export default {
           this.showError = true
           switch (errorMessageRemoveGraphQl(error.message)) {
             case ERRORS.ERR_USER_ALREADY_EXISTS:
-              this.errorMessage = this.translateErrorMessage(error.message)
+              this.messageError = this.translateErrorMessage(error.message)
               break
             default:
-              this.errorMessage = this.translateErrorMessage(error.message)
+              this.messageError = this.translateErrorMessage(error.message)
               break
           }
           // Wolle: this.toastError(this.$t('error.email-already-sent'))
@@ -287,7 +287,7 @@ export default {
     // Wolle: remove this?
     closeAlert() {
       this.showError = false
-      this.errorMessage = ''
+      this.messageError = ''
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
@@ -295,7 +295,7 @@ export default {
     solveError() {
       this.showPageMessage = false
       this.showError = false
-      this.errorMessage = ''
+      this.messageError = ''
       this.form.email = ''
       this.form.firstname = ''
       this.form.lastname = ''
