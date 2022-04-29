@@ -1,6 +1,5 @@
 .dbeaver
 .project
-.vscode
 *.log
 /node_modules/*
 messages.pot
