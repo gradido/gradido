@@ -128,6 +128,7 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
 
+            // Wolle
             it.skip('click redirects to "/login"', async () => {
               // wrapper.find('.test-message-button').trigger('click')
               // await wrapper.vm.$nextTick()
@@ -163,6 +164,7 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
 
+            // Wolle
             it.skip('click redirects to "/login"', () => {
               // expect(mockRouterPush).toBeCalledWith('/login')
             })

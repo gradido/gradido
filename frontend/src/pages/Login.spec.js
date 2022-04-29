@@ -233,6 +233,7 @@ describe('Login', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
           })
 
+          // Wolle
           it.skip('click redirects to "/forgot-password"', () => {
             // expect(mockRouterPush).toBeCalledWith('/thx/login')
           })
@@ -269,6 +270,7 @@ describe('Login', () => {
             )
           })
 
+          // Wolle
           it.skip('click redirects to "/reset-password/login"', () => {
             // expect(mockRouterPush).toBeCalledWith('/reset-password/login')
           })
