@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-// import { ApolloLogPlugin, LogMutateData } from 'apollo-log'
-// import cloneDeep from 'lodash.clonedeep'
-
 const setHeadersPlugin = {
   requestDidStart() {
     return {
@@ -25,40 +22,21 @@ const setHeadersPlugin = {
 const logPlugin = {
   requestDidStart(requestContext: any) {
     const logger = requestContext.logger
-    logger.log('debug', requestContext.request.query)
-    logger.log('debug', JSON.stringify(requestContext.request.variables, null, 2))
+    logger.debug(requestContext.request.query)
+    logger.debug(JSON.stringify(requestContext.request.variables, null, 2))
     // logger.log('debug', JSON.stringify(requestContext.request, null, 2))
     return {
       willSendResponse(requestContext: any) {
         // console.log(requestContext)
-        logger.log('debug', JSON.stringify(requestContext.response.errors, null, 2))
-        logger.log('debug', JSON.stringify(requestContext.response.data, null, 2))
+        logger.debug(JSON.stringify(requestContext.response.errors, null, 2))
+        logger.debug(JSON.stringify(requestContext.response.data, null, 2))
         return requestContext
       },
     }
   },
 }
 
-/*
-const apolloLogPlugin = ApolloLogPlugin({
-  mutate: (data: LogMutateData) => {
-    // We need to deep clone the object in order to not modify the actual request
-    const dataCopy = cloneDeep(data)
-
-    // mask password if part of the query
-    if (dataCopy.context.request.variables && dataCopy.context.request.variables.password) {
-      dataCopy.context.request.variables.password = '***'
-    }
-
-    // mask token at all times
-    dataCopy.context.context.token = '***'
-
-    return dataCopy
-  },
-})
-*/
-
 const plugins =
-  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin] // , apolloLogPlugin
+  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
 
 export default plugins
