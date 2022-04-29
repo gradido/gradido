@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
     <div class="header py-lg-6">
       <b-container class="w-50">
         <div class="header-body text-center mb-7">
@@ -18,7 +17,6 @@
         </div>
       </b-container>
     </div>
-    <!-- Page content -->
   </div>
 </template>
 

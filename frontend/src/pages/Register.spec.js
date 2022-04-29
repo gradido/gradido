@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { toastErrorSpy } from '@test/testSetup'
 import Register from './Register'
 
 const localVue = global.localVue
@@ -235,6 +236,10 @@ describe('Register', () => {
           expect(wrapper.find('.test-message-button').text()).toBe(
             'site.register.message-button-text',
           )
+        })
+
+        it('toasts the error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
         })
 
         it('click calls "solveError"', async () => {
