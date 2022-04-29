@@ -78,7 +78,7 @@ const textFields = {
   // Wolle: seems unused
   login: {
     headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail', // Wolle: error.backend.ERR_EMAIL_NOT_VALIDATED
+    subtitle: 'site.thx.activateEmail',
   },
 }
 
