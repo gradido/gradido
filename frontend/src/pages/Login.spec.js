@@ -4,6 +4,7 @@ import { ERRORS } from '@/config/errors'
 import Login from './Login'
 
 import { toastErrorSpy } from '@test/testSetup'
+import Login from './Login'
 
 const localVue = global.localVue
 
@@ -243,6 +244,10 @@ describe('Login', () => {
             await flushPromises()
           })
 
+          it('hides the spinner', () => {
+            expect(spinnerHideMock).toBeCalled()
+          })
+
           it('shows error title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBeTruthy()
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
@@ -259,6 +264,10 @@ describe('Login', () => {
           // Wolle
           it.skip('click redirects to "/forgot-password"', () => {
             // expect(mockRouterPush).toBeCalledWith('/thx/login')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
         })
 
@@ -294,6 +303,10 @@ describe('Login', () => {
           // Wolle
           it.skip('click redirects to "/reset-password/login"', () => {
             // expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
         })
       })

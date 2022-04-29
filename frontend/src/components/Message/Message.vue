@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
     <div class="header py-lg-6">
       <b-container class="w-50">
         <div class="header-body text-center mb-7">
@@ -18,7 +17,6 @@
         </div>
       </b-container>
     </div>
-    <!-- Page content -->
   </div>
 </template>
 
@@ -31,7 +29,6 @@ export default {
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
     callback: { type: Function, required: false, default: null },
-    code: { type: String, required: false, default: null }, // Wolle: to be removed by adding it directly to the "linkTo"
   },
   methods: {
     optionalCallback() {

@@ -1,6 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { ERRORS } from '@/config/errors'
+import { toastErrorSpy } from '@test/testSetup'
 import Register from './Register'
 
 const localVue = global.localVue
@@ -230,24 +231,6 @@ describe('Register', () => {
           await flushPromises()
         })
 
-        // Wolle: remove?
-        // it('shows error message', () => {
-        //   expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
-        //   expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
-        //   expect(wrapper.find('span.alert-text').text()).toContain('error.error')
-        //   expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
-        // })
-
-        // it('button to dismisses error message is present', () => {
-        //   expect(wrapper.find('button.close').exists()).toBeTruthy()
-        // })
-
-        // it('dismisses error message', async () => {
-        //   await wrapper.find('button.close').trigger('click')
-        //   await flushPromises()
-        //   expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
-        // })
-
         it('shows success title, subtitle, login button', () => {
           expect(wrapper.vm.showPageMessage).toBeTruthy()
           expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
@@ -257,6 +240,10 @@ describe('Register', () => {
           expect(wrapper.find('.test-message-button').text()).toBe(
             'site.register.message-button-text',
           )
+        })
+
+        it('toasts the error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
         })
 
         it('click calls "solveError"', async () => {

@@ -135,9 +135,11 @@ export default {
             this.errorLinkTo = '/forgot-password'
           } else if (errorCode === ERRORS.ERR_USER_HAS_NO_PASSWORD) {
             this.toastError(this.$t('error.no-account'))
+          } else if (error.message.includes('User has no password set yet')) {
             this.showPageMessage = true
             this.errorSubtitle = this.translateErrorMessage(error.message)
             this.errorLinkTo = '/reset-password/login'
+            this.toastError(this.$t('error.no-account'))
           } else {
             // appeared errors while manual testing: 'GraphQL error: No user with this credentials', 'Network error: JSON.parse: unexpected character at line 1 column 1 of the JSON data'
             const errorMessage = this.translateErrorMessage(error.message)
@@ -145,6 +147,7 @@ export default {
             this.showPageMessage = true
             this.errorSubtitle = errorMessage
             this.errorLinkTo = '/forgot-password'
+            this.toastError(errorMessage)
           }
           loader.hide()
         })
