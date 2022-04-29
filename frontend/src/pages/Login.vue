@@ -58,14 +58,12 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         :headline="$t('site.thx.errorTitle')"
         :subtitle="errorSubtitle"
         :buttonText="$t('settings.password.reset')"
         :linkTo="errorLinkTo"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
   </div>
 </template>
@@ -127,22 +125,22 @@ export default {
         })
         .catch((error) => {
           if (error.message.includes('User email not validated')) {
-            this.toastError(this.$t('error.no-account'))
             this.showPageMessage = true
             this.errorSubtitle = this.$t('site.thx.activateEmail')
             this.errorLinkTo = '/forgot-password'
-          } else if (error.message.includes('User has no password set yet')) {
             this.toastError(this.$t('error.no-account'))
+          } else if (error.message.includes('User has no password set yet')) {
             this.showPageMessage = true
             this.errorSubtitle = this.$t('site.thx.unsetPassword')
             this.errorLinkTo = '/reset-password/login'
+            this.toastError(this.$t('error.no-account'))
           } else {
             // appeared errors: 'GraphQL error: No user with this credentials'
             const errorMessage = this.$t('error.unknown-error') + error.message
-            this.toastError(errorMessage)
             this.showPageMessage = true
             this.errorSubtitle = errorMessage
             this.errorLinkTo = '/forgot-password'
+            this.toastError(errorMessage)
           }
           loader.hide()
         })

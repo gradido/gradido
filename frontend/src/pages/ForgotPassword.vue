@@ -37,7 +37,6 @@
       </div>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         v-if="success"
         :headline="$t('site.thx.title')"
@@ -52,7 +51,6 @@
         :buttonText="$t('login')"
         linkTo="/login"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
   </div>
 </template>
@@ -91,9 +89,9 @@ export default {
           this.success = true
         })
         .catch(() => {
-          this.toastError(this.$t('error.email-already-sent'))
           this.showPageMessage = true
           this.success = false
+          this.toastError(this.$t('error.email-already-sent'))
         })
     },
   },

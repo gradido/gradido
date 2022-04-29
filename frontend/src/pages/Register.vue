@@ -105,20 +105,6 @@
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
-                  <!-- Wolle: remove this? or shall the alert or a toaster be shown? -->
-                  <b-alert
-                    v-if="showError"
-                    show
-                    dismissible
-                    variant="danger"
-                    @dismissed="closeAlert"
-                  >
-                    <span class="alert-icon"><i class="ni ni-point"></i></span>
-                    <span class="alert-text">
-                      <strong>{{ $t('error.error') }}</strong>
-                      {{ messageError }}
-                    </span>
-                  </b-alert>
 
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
@@ -179,7 +165,6 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys-->
       <message
         v-if="success"
         :headline="$t('site.thx.title')"
@@ -192,7 +177,6 @@
         :buttonText="$t('site.register.message-button-text')"
         :callback="solveError"
       />
-      <!-- eslint-enable @intlify/vue-i18n/no-dynamic-keys-->
     </b-container>
     <!--
     <div class="text-center pt-4">
@@ -230,9 +214,7 @@ export default {
       language: '',
       showPageMessage: false,
       submitted: false,
-      showError: false,
       messageError: '',
-      register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
       CONFIG,
@@ -263,14 +245,12 @@ export default {
           },
         })
         .then(() => {
-          // Wolle: this.$router.push('/thx/register')
           this.showPageMessage = true
           this.success = true
         })
         .catch((error) => {
           this.showPageMessage = true
           this.success = false
-          this.showError = true
           switch (error.message) {
             case 'GraphQL error: User already exists.':
               this.messageError = this.$t('error.user-already-exists')
@@ -279,21 +259,11 @@ export default {
               this.messageError = this.$t('error.unknown-error') + error.message
               break
           }
-          // Wolle: this.toastError(this.$t('error.email-already-sent'))
-          // Wolle: shall the alert be replaced by a toaster or shall only the page message be shown?
+          this.toastError(this.messageError)
         })
-    },
-    // Wolle: remove this?
-    closeAlert() {
-      this.showError = false
-      this.messageError = ''
-      this.form.email = ''
-      this.form.firstname = ''
-      this.form.lastname = ''
     },
     solveError() {
       this.showPageMessage = false
-      this.showError = false
       this.messageError = ''
       this.form.email = ''
       this.form.firstname = ''

@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { toastErrorSpy } from '@test/testSetup'
 import ForgotPassword from './ForgotPassword'
 
 const mockAPIcall = jest.fn()
@@ -127,11 +128,14 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
 
-            // Wolle
             it.skip('click redirects to "/login"', async () => {
               // wrapper.find('.test-message-button').trigger('click')
               // await wrapper.vm.$nextTick()
               expect(mockRouterPush).toBeCalledWith('/login')
+            })
+
+            it('toasts a standard error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
             })
           })
 
@@ -159,7 +163,6 @@ describe('ForgotPassword', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
 
-            // Wolle
             it.skip('click redirects to "/login"', () => {
               // expect(mockRouterPush).toBeCalledWith('/login')
             })

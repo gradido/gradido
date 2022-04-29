@@ -1,8 +1,7 @@
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import Login from './Login'
-
 import { toastErrorSpy } from '@test/testSetup'
+import Login from './Login'
 
 const localVue = global.localVue
 
@@ -205,32 +204,10 @@ describe('Login', () => {
       })
 
       describe('login fails', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-          await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-          await flushPromises()
-          apolloQueryMock.mockRejectedValue({
-            message: '...No user with this credentials',
-          })
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
-        })
-
-        it('hides the spinner', () => {
-          expect(spinnerHideMock).toBeCalled()
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith(
-            'error.unknown-error...No user with this credentials',
-          )
-        })
-
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: 'User email not validated',
+              message: 'GraphQL error: User email not validated',
             })
             wrapper = Wrapper()
             jest.clearAllMocks()
@@ -239,6 +216,10 @@ describe('Login', () => {
             await flushPromises()
             await wrapper.find('form').trigger('submit')
             await flushPromises()
+          })
+
+          it('hides the spinner', () => {
+            expect(spinnerHideMock).toBeCalled()
           })
 
           it('shows error title, subtitle, login button', () => {
@@ -252,16 +233,19 @@ describe('Login', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
           })
 
-          // Wolle
           it.skip('click redirects to "/forgot-password"', () => {
             // expect(mockRouterPush).toBeCalledWith('/thx/login')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
         })
 
         describe('login fails with "User has no password set yet"', () => {
           beforeEach(async () => {
             apolloQueryMock.mockRejectedValue({
-              message: 'User has no password set yet',
+              message: 'GraphQL error: User has no password set yet',
             })
             wrapper = Wrapper()
             jest.clearAllMocks()
@@ -285,9 +269,12 @@ describe('Login', () => {
             )
           })
 
-          // Wolle
           it.skip('click redirects to "/reset-password/login"', () => {
             // expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
         })
       })
