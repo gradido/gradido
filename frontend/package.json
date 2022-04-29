@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
@@ -25,6 +25,7 @@
     "babel-preset-vue": "^2.0.2",
     "bootstrap": "^4.5.3",
     "bootstrap-vue": "^2.21.2",
+    "clipboard-polyfill": "^4.0.0-rc1",
     "es6-promise": "^4.1.1",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.1.0",

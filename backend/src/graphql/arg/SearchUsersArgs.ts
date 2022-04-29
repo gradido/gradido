@@ -12,8 +12,8 @@ export default class SearchUsersArgs {
   pageSize?: number
 
   @Field(() => Boolean, { nullable: true })
-  notActivated?: boolean | null
+  filterByActivated?: boolean | null
 
   @Field(() => Boolean, { nullable: true })
-  isDeleted?: boolean | null
+  filterByDeleted?: boolean | null
 }

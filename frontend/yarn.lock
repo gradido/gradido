@@ -4856,6 +4856,11 @@ cli-width@^2.0.0:
   resolved "https://registry.yarnpkg.com/cli-width/-/cli-width-2.2.1.tgz#b0433d0b4e9c847ef18868a4ef16fd5fc8271c48"
   integrity sha512-GRMWDxpOB6Dgk2E5Uo+3eEBvtOOlimMmpbFiKuLFnQzYDavtLFY3K5ona41jgN/WdRZtG7utuVSVTL4HbZHGkw==
 
+clipboard-polyfill@^4.0.0-rc1:
+  version "4.0.0-rc1"
+  resolved "https://registry.yarnpkg.com/clipboard-polyfill/-/clipboard-polyfill-4.0.0-rc1.tgz#a000ab25b1f582bca03667dc572854f1c8d92b04"
+  integrity sha512-Cel03Es9ZgP6pYA2JT9cZ2VgvOH2/EHgB7jji84FpINBJWqfMEwiI1Y3LstVL+E43cm3CnCrLL2vwb9DMbr28A==
+
 clipboardy@^2.0.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/clipboardy/-/clipboardy-2.3.0.tgz#3c2903650c68e46a91b388985bc2774287dba290"
