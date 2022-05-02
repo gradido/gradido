@@ -221,31 +221,64 @@ describe('Register', () => {
       })
 
       describe('server sends back error', () => {
-        beforeEach(async () => {
+        const createError = async (errorMessage) => {
           registerUserMutationMock.mockRejectedValue({
-            message: 'GraphQL error: User already exists.',
+            message: errorMessage,
           })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        }
+
+        describe('server sends back error "User already exists."', () => {
+          beforeEach(async () => {
+            await createError('GraphQL error: User already exists.')
+          })
+
+          it('shows success title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
+            expect(wrapper.find('.test-message-button').text()).toBe(
+              'site.register.message-button-text',
+            )
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
+          })
+
+          it('click calls "solveError"', async () => {
+            wrapper.find('.test-message-button').trigger('click')
+            await wrapper.vm.$nextTick()
+            expect(wrapper.vm.showPageMessage).not.toBeTruthy()
+          })
         })
 
-        it('shows success title, subtitle, login button', () => {
-          expect(wrapper.vm.showPageMessage).toBeTruthy()
-          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-          expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
-          expect(wrapper.find('.test-message-button').text()).toBe(
-            'site.register.message-button-text',
-          )
-        })
+        describe('server sends back error "Unknown error"', () => {
+          beforeEach(async () => {
+            await createError(' – Unknown error.')
+          })
 
-        it('toasts the error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
-        })
+          it('shows success title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe(
+              'error.unknown-error – Unknown error.',
+            )
+            expect(wrapper.find('.test-message-button').text()).toBe(
+              'site.register.message-button-text',
+            )
+          })
 
-        it('click calls "solveError"', async () => {
-          wrapper.find('.test-message-button').trigger('click')
-          await wrapper.vm.$nextTick()
-          expect(wrapper.vm.showPageMessage).not.toBeTruthy()
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknown error.')
+          })
+
+          it('click calls "solveError"', async () => {
+            wrapper.find('.test-message-button').trigger('click')
+            await wrapper.vm.$nextTick()
+            expect(wrapper.vm.showPageMessage).not.toBeTruthy()
+          })
         })
       })
 
