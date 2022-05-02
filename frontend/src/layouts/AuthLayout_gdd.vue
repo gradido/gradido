@@ -53,7 +53,12 @@
             <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
           </div>
         </b-col>
-        <b-col lg="6" md="12" sm="12" class="ml-2 ml-md-0 ml-lg-0 pl-2 pr-2 pl-md-5 pr-md-5">
+        <b-col
+          lg="6"
+          md="12"
+          sm="12"
+          class="ml-2 ml-md-0 ml-lg-0 pl-2 pl-md-5 pr-2 pr-md-5 pr-md-5"
+        >
           <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
             <b-col>
               <div class="h1">{{ $t('welcome') }}</div>
