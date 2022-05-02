@@ -29,7 +29,6 @@ export default {
     return {
       logo: 'img/brand/green.png',
       sheet: 'img/template/Blaetter.png',
-      windowWidth: window.innerWidth,
     }
   },
 }
