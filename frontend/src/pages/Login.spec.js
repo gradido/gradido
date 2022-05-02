@@ -237,8 +237,11 @@ describe('Login', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
           })
 
-          it.skip('click redirects to "/forgot-password"', () => {
-            // expect(mockRouterPush).toBeCalledWith('/thx/login')
+          it.skip('click redirects to "/forgot-password"', async () => {
+            // wrapper.find('.test-message-button').trigger('click')
+            // await flushPromises()
+            // await wrapper.vm.$nextTick()
+            // expect(mockRouterPush).toBeCalledWith('/forgot-password')
           })
 
           it('toasts the error message', () => {
