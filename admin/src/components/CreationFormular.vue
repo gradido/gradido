@@ -154,7 +154,6 @@ export default {
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
-            moderator: Number(this.$store.state.moderator.id),
           })
         })
         this.$apollo
@@ -188,7 +187,6 @@ export default {
           creationDate: this.selected.date,
           amount: Number(this.value),
           memo: this.text,
-          moderator: Number(this.$store.state.moderator.id),
         }
         this.$apollo
           .mutate({
