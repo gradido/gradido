@@ -35,20 +35,6 @@
     </b-row>
   </footer>
 </template>
-<script>
-import CONFIG from '@/config'
-
-export default {
-  data() {
-    return {
-      year: new Date().getFullYear(),
-      version: CONFIG.APP_VERSION,
-      hash: CONFIG.BUILD_COMMIT,
-      shortHash: CONFIG.BUILD_COMMIT_SHORT,
-    }
-  },
-}
-</script>
 <style>
 .bi-telegram {
   margin-top: -5px;
