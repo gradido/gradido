@@ -59,7 +59,7 @@ describe('Login', () => {
     })
 
     it('renders the Login form', () => {
-      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
+      expect(wrapper.find('div.login-form').exists()).toBe(true)
     })
 
     describe('Login header', () => {
@@ -102,19 +102,19 @@ describe('Login', () => {
 
     describe('Login form', () => {
       it('has a login form', () => {
-        expect(wrapper.find('form').exists()).toBeTruthy()
+        expect(wrapper.find('form').exists()).toBe(true)
       })
 
       it('has an Email input field', () => {
-        expect(wrapper.find('input[placeholder="Email"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[placeholder="Email"]').exists()).toBe(true)
       })
 
       it('has an Password input field', () => {
-        expect(wrapper.find('input[placeholder="form.password"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[placeholder="form.password"]').exists()).toBe(true)
       })
 
       it('has a Submit button', () => {
-        expect(wrapper.find('button[type="submit"]').exists()).toBeTruthy()
+        expect(wrapper.find('button[type="submit"]').exists()).toBe(true)
       })
     })
 
@@ -227,7 +227,7 @@ describe('Login', () => {
           })
 
           it('shows error title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(true)
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.activateEmail')
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
@@ -255,7 +255,7 @@ describe('Login', () => {
           })
 
           it('shows error title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(true)
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.unsetPassword')
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
@@ -282,7 +282,7 @@ describe('Login', () => {
           })
 
           it('shows error title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(true)
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe(
               'error.unknown-error – Unknow error',

@@ -50,7 +50,7 @@ describe('Register', () => {
     })
 
     it('renders the Register form', () => {
-      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
+      expect(wrapper.find('div#registerform').exists()).toBe(true)
     })
 
     describe('Register header', () => {
@@ -94,22 +94,22 @@ describe('Register', () => {
 
     describe('Register form', () => {
       it('has a register form', () => {
-        expect(wrapper.find('form').exists()).toBeTruthy()
+        expect(wrapper.find('form').exists()).toBe(true)
       })
 
       it('has firstname input fields', () => {
-        expect(wrapper.find('#registerFirstname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerFirstname').exists()).toBe(true)
       })
       it('has lastname input fields', () => {
-        expect(wrapper.find('#registerLastname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerLastname').exists()).toBe(true)
       })
 
       it('has email input fields', () => {
-        expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
+        expect(wrapper.find('#Email-input-field').exists()).toBe(true)
       })
 
       it('has Language selected field', () => {
-        expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
+        expect(wrapper.find('.selectedLanguage').exists()).toBe(true)
       })
 
       it('selects Language value en', async () => {
@@ -118,7 +118,7 @@ describe('Register', () => {
       })
 
       it('has 1 checkbox input fields', () => {
-        expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
+        expect(wrapper.find('#registerCheckbox').exists()).toBe(true)
       })
 
       it('has PublisherId input fields', () => {
@@ -235,7 +235,7 @@ describe('Register', () => {
           })
 
           it('shows success title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(true)
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
             expect(wrapper.find('.test-message-button').text()).toBe(
@@ -250,7 +250,7 @@ describe('Register', () => {
           it('click calls "solveError"', async () => {
             wrapper.find('.test-message-button').trigger('click')
             await wrapper.vm.$nextTick()
-            expect(wrapper.vm.showPageMessage).not.toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(false)
           })
         })
 
@@ -260,7 +260,7 @@ describe('Register', () => {
           })
 
           it('shows success title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(true)
             expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe(
               'error.unknown-error – Unknown error.',
@@ -277,7 +277,7 @@ describe('Register', () => {
           it('click calls "solveError"', async () => {
             wrapper.find('.test-message-button').trigger('click')
             await wrapper.vm.$nextTick()
-            expect(wrapper.vm.showPageMessage).not.toBeTruthy()
+            expect(wrapper.vm.showPageMessage).toBe(false)
           })
         })
       })
@@ -308,13 +308,13 @@ describe('Register', () => {
         })
 
         it('shows success title, subtitle', () => {
-          expect(wrapper.vm.showPageMessage).toBeTruthy()
+          expect(wrapper.vm.showPageMessage).toBe(true)
           expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
           expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
         })
 
         it('button is not present', () => {
-          expect(wrapper.find('.test-message-button')).toBeTruthy()
+          expect(wrapper.find('.test-message-button').exists()).toBe(false)
         })
       })
     })

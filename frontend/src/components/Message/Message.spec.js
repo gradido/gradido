@@ -27,7 +27,7 @@ describe('Message', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.header').exists()).toBeTruthy()
+      expect(wrapper.find('div.header').exists()).toBe(true)
     })
 
     it('renders title, subtitle, and button text', () => {
