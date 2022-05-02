@@ -4,8 +4,8 @@ import Message from './Message'
 const localVue = global.localVue
 
 const propsData = {
-  headline: 'site.thx.title',
-  subtitle: 'site.thx.email',
+  headline: 'Headline text',
+  subtitle: 'Subtitle text',
   buttonText: 'login',
   linkTo: '/login',
 }
@@ -31,8 +31,8 @@ describe('Message', () => {
     })
 
     it('renders title, subtitle, and button text', () => {
-      expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-      expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+      expect(wrapper.find('.test-message-headline').text()).toBe('Headline text')
+      expect(wrapper.find('.test-message-subtitle').text()).toBe('Subtitle text')
       expect(wrapper.find('.test-message-button').text()).toBe('login')
     })
 
