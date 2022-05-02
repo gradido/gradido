@@ -26,10 +26,15 @@ html, body {
     background-position: 0% 0%;
     background-repeat: repeat;
     border-style: none;
+    box-shadow: 10px 10px 50px 10px rgba(56, 56, 56, 0.31);
   }
   
   .btn-gradido:hover {
     color: #212529;
+  }
+
+  .btn-gradido:focus {
+    outline: none;
   }
 
   .btn-outline-gradido {
