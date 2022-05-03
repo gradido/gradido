@@ -8,7 +8,9 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // rename `amount` to `amount_bigint`
-  await queryFn('ALTER TABLE `admin_pending_creations` RENAME COLUMN `amount` TO `amount_bigint`;')
+  await queryFn(
+    'ALTER TABLE `admin_pending_creations` CHANGE COLUMN `amount` `amount_bigint` bigint(20);',
+  )
   // add `amount` (decimal)
   await queryFn(
     'ALTER TABLE `admin_pending_creations` ADD COLUMN `amount` DECIMAL(40,20) DEFAULT NULL AFTER `amount_bigint`;',

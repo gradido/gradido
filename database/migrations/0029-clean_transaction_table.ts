@@ -13,35 +13,39 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // Delete columns
 
   // delete column `amount`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `amount`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `amount`;')
   // delete column `send_sender_final_balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `send_sender_final_balance`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `send_sender_final_balance`;')
   // delete column `balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `balance`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `balance`;')
   // delete column `temp_dec_send_sender_final_balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `temp_dec_send_sender_final_balance`;')
+  await queryFn(
+    'ALTER TABLE `transactions` DROP COLUMN IF EXISTS `temp_dec_send_sender_final_balance`;',
+  )
   // delete column `temp_dec_diff_send_sender_final_balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `temp_dec_diff_send_sender_final_balance`;')
+  await queryFn(
+    'ALTER TABLE `transactions` DROP COLUMN IF EXISTS `temp_dec_diff_send_sender_final_balance`;',
+  )
   // delete column `temp_dec_old_balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `temp_dec_old_balance`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `temp_dec_old_balance`;')
   // delete column `temp_dec_diff_balance`
-  await queryFn('ALTER TABLE `transactions` DROP COLUMN `temp_dec_diff_balance`;')
+  await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `temp_dec_diff_balance`;')
 
   // Rename columns
 
   // rename column `dec_amount` to `amount`
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `dec_amount` to `amount`;')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `dec_amount` `amount` DECIMAL(40,20);')
 
   // rename column `dec_balance` to `balance`
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `dec_balance` to `balance`;')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `dec_balance` `balance` DECIMAL(40,20);')
 
   // rename column `dec_decay` to `decay`
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `dec_decay` to `decay`;')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `dec_decay` `decay` DECIMAL(40,20);')
 
   // Drop tables
 
   // drop `state_balances`
-  await queryFn('DROP TABLE `state_balances`;')
+  await queryFn('DROP TABLE IF EXISTS `state_balances`;')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
