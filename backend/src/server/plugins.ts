@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import clonedeep from 'lodash.clonedeep'
+
 const setHeadersPlugin = {
   requestDidStart() {
     return {
@@ -19,20 +21,27 @@ const setHeadersPlugin = {
   },
 }
 
-// const requestDidStartLog = (requestContext: any): void => {
-
-// }
+const filterVariables = (variables: any) => {
+  const vars = clonedeep(variables)
+  if (vars.password) vars.password = '***'
+  if (vars.passwordNew) vars.passwordNew = '***'
+  return vars
+}
 
 const logPlugin = {
   requestDidStart(requestContext: any) {
-    const logger = requestContext.logger
-    logger.trace('Request:' + JSON.stringify(requestContext.request.variables, null, 2))
-    // logger.log('debug', JSON.stringify(requestContext.request, null, 2))
+    const { logger } = requestContext
+    const { query, mutation, variables } = requestContext.request
+    logger.trace(`Request:
+${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     return {
       willSendResponse(requestContext: any) {
-        // console.log(requestContext)
-        logger.trace('Response-Data:' + JSON.stringify(requestContext.response.errors, null, 2))
-        logger.trace('Response-Errors:' + JSON.stringify(requestContext.response.data, null, 2))
+        if (requestContext.response.data)
+          logger.trace(`Response-Data:
+${JSON.stringify(requestContext.response.data, null, 2)}`)
+        if (requestContext.response.errors)
+          logger.trace(`Response-Errors:
+${JSON.stringify(requestContext.response.errors, null, 2)}`)
         return requestContext
       },
     }
