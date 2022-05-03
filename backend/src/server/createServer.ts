@@ -38,7 +38,6 @@ logger.error('This little thing had roast beef')
 logger.fatal('This little thing had none')
 logger.trace('and this little thing went wee, wee, wee, all the way home.')
 
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServer = async (context: any = serverContext): Promise<ServerDef> => {
   // open mysql connection

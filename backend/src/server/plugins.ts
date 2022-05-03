@@ -21,8 +21,6 @@ const setHeadersPlugin = {
 
 // const requestDidStartLog = (requestContext: any): void => {
 
-
-
 // }
 
 const logPlugin = {
@@ -33,8 +31,8 @@ const logPlugin = {
     return {
       willSendResponse(requestContext: any) {
         // console.log(requestContext)
-		logger.trace('Response-Data:' + JSON.stringify(requestContext.response.errors, null, 2))
-		logger.trace('Response-Errors:' + JSON.stringify(requestContext.response.data, null, 2))
+        logger.trace('Response-Data:' + JSON.stringify(requestContext.response.errors, null, 2))
+        logger.trace('Response-Errors:' + JSON.stringify(requestContext.response.data, null, 2))
         return requestContext
       },
     }
