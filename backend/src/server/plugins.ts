@@ -27,16 +27,14 @@ const setHeadersPlugin = {
 
 const logPlugin = {
   requestDidStart(requestContext: any) {
-    const { logger } = requestContext
-    logger.debug(requestContext.request.query)
-    logger.debug(JSON.stringify(requestContext.request.variables, null, 2))
+    const logger = requestContext.logger
+    logger.trace('Request:' + JSON.stringify(requestContext.request.variables, null, 2))
     // logger.log('debug', JSON.stringify(requestContext.request, null, 2))
     return {
       willSendResponse(requestContext: any) {
         // console.log(requestContext)
-        logger.debug(JSON.stringify(requestContext.response.errors, null, 2))
-        logger.debug(JSON.stringify(requestContext.response.data, null, 2))
-        logger.debug(JSON.stringify(requestContext.context, null, 2))
+		logger.trace('Response-Data:' + JSON.stringify(requestContext.response.errors, null, 2))
+		logger.trace('Response-Errors:' + JSON.stringify(requestContext.response.data, null, 2))
         return requestContext
       },
     }

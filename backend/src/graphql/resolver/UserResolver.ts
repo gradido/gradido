@@ -1,4 +1,6 @@
 import fs from 'fs'
+import log4js from 'log4js'
+
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository } from '@dbTools/typeorm'
@@ -20,6 +22,10 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+
+log4js.configure(CONFIG.LOG4JS_CONFIG)
+const logger = log4js.getLogger('graphql.resolver.UserResolver')
+
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -217,25 +223,31 @@ export class UserResolver {
   ): Promise<User> {
     email = email.trim().toLowerCase()
     const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
+	  logger.error('User does not exists with this email=' + email)
       throw new Error('No user with this credentials')
     })
     if (dbUser.deletedAt) {
+	  logger.error('The User was permanently deleted in database. email=' + email)
       throw new Error('This user was permanently deleted. Contact support for questions.')
     }
     if (!dbUser.emailChecked) {
+	  logger.error('The Users email is not validate yet. email=' + email)
       throw new Error('User email not validated')
     }
     if (dbUser.password === BigInt(0)) {
+	  logger.error('The User has not set a password yet. email=' + email)
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no password set yet')
     }
     if (!dbUser.pubKey || !dbUser.privKey) {
+	  logger.error('The User has no private or publicKey. email=' + email)
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no private or publicKey')
     }
     const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     const loginUserPassword = BigInt(dbUser.password.toString())
     if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+	  logger.error('The User has no valid credentials. email=' + email)
       throw new Error('No user with this credentials')
     }
 

@@ -29,8 +29,15 @@ import { Connection } from '@dbTools/typeorm'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const logger = log4js.getLogger()
-logger.level = 'debug'
+log4js.configure(CONFIG.LOG4JS_CONFIG)
+
+const logger = log4js.getLogger('backend')
+logger.debug('This little thing went to market')
+logger.info('This little thing stayed at home')
+logger.error('This little thing had roast beef')
+logger.fatal('This little thing had none')
+logger.trace('and this little thing went wee, wee, wee, all the way home.')
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServer = async (context: any = serverContext): Promise<ServerDef> => {
