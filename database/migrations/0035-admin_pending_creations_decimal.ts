@@ -39,6 +39,8 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     'ALTER TABLE `admin_pending_creations` MODIFY COLUMN `amount_bigint` bigint(20) NOT NULL;',
   )
-  await queryFn('ALTER TABLE `admin_pending_creations` DROP COLUMN `amount`;')
-  await queryFn('ALTER TABLE `admin_pending_creations` RENAME COLUMN `amount_bigint` TO `amount`;')
+  await queryFn('ALTER TABLE `admin_pending_creations` DROP COLUMN IF EXISTS `amount`;')
+  await queryFn(
+    'ALTER TABLE `admin_pending_creations` CHANGE COLUMN `amount_bigint` `amount` bigint(20);',
+  )
 }
