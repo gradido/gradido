@@ -19,9 +19,15 @@ const setHeadersPlugin = {
   },
 }
 
+// const requestDidStartLog = (requestContext: any): void => {
+
+
+
+// }
+
 const logPlugin = {
   requestDidStart(requestContext: any) {
-    const logger = requestContext.logger
+    const { logger } = requestContext
     logger.debug(requestContext.request.query)
     logger.debug(JSON.stringify(requestContext.request.variables, null, 2))
     // logger.log('debug', JSON.stringify(requestContext.request, null, 2))
@@ -30,6 +36,7 @@ const logPlugin = {
         // console.log(requestContext)
         logger.debug(JSON.stringify(requestContext.response.errors, null, 2))
         logger.debug(JSON.stringify(requestContext.response.data, null, 2))
+        logger.debug(JSON.stringify(requestContext.context, null, 2))
         return requestContext
       },
     }
