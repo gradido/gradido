@@ -70,9 +70,9 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     LEFT JOIN transactions ON t.uid = transactions.user_id AND t.date = transactions.balance_date;
   `)
 
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `decay` to `dec_decay`;')
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `balance` to `dec_balance`;')
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN `amount` to `dec_amount`;')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `decay` `dec_decay` DECIMAL(40,20);')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `balance` `dec_balance` DECIMAL(40,20);')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN `amount` `dec_amount` DECIMAL(40,20);')
 
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `temp_dec_diff_balance` decimal(40,20) DEFAULT NULL AFTER linked_transaction_id;',
