@@ -149,7 +149,7 @@ export class AdminResolver {
     }
     // soft-delete user
     await user.softRemove()
-    const newUser = await dbUser.findOne({ id: userId }, { withDeleted: true })
+    const newUser = await dbUser.findOne({ id: userId }, { filterByDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
@@ -444,7 +444,7 @@ export class AdminResolver {
     if (!filters.withExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.withDeleted,
+      withDeleted: filters.filterByDeleted,
       order: {
         createdAt: order,
       },
