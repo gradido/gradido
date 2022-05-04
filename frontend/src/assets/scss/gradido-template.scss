@@ -44,12 +44,13 @@ html, body {
   }
 
   .form-control, .custom-select {
-    border-radius: 24.8pt;
+    border-radius: 17px;
+    height: 50px;
   }
 
   .rounded-right {
-    border-top-right-radius: 24.8pt !important;
-    border-bottom-right-radius: 24.8pt !important;
+    border-top-right-radius: 17pt !important;
+    border-bottom-right-radius: 17pt !important;
 }
  
  .alert-success {
