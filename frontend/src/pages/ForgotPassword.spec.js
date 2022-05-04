@@ -51,13 +51,13 @@ describe('ForgotPassword', () => {
       expect(wrapper.find('div.forgot-password').exists()).toBeTruthy()
     })
 
-    it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
-    })
+    // it('has a title', () => {
+    //   expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
+    // })
 
-    it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
-    })
+    // it('has a subtitle', () => {
+    //   expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
+    // })
 
     describe('back button', () => {
       it('has a "back" button', () => {
@@ -162,14 +162,14 @@ describe('ForgotPassword', () => {
       })
     })
 
-    describe('comingFrom login', () => {
-      beforeEach(() => {
-        wrapper = Wrapper(createMockObject('resetPassword'))
-      })
+    // describe('comingFrom login', () => {
+    //   beforeEach(() => {
+    //     wrapper = Wrapper(createMockObject('resetPassword'))
+    //   })
 
-      it('has another subtitle', () => {
-        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
-      })
-    })
+    //   it('has another subtitle', () => {
+    //     expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
+    //   })
+    // })
   })
 })
