@@ -6,7 +6,6 @@
 			"type": "dateFile",
 			"filename": "../logs/backend/access.log",
 			"pattern": "%d %p %c %f:%l %m%n",
-			"compress" : true,
 			"keepFileExt" : true,
 			"fileNameSep" : "_" 
 		},
@@ -15,18 +14,16 @@
 			"type": "dateFile",
 			"filename": "../logs/backend/apollo.log",
 			"pattern": "%d %p %c %f:%l %m%n",
-			"compress" : true,
 			"keepFileExt" : true,
-			"fileNameSep" : "_" 
+      "fileNameSep" : "_" 
 		},
 		"errorFile": 
 		{
 			"type": "dateFile",
 			"filename": "../logs/backend/errors.log",
 			"pattern": "%d %p %c %f:%l %m%n",
-			"compress" : true,
 			"keepFileExt" : true,
-			"fileNameSep" : "_" 
+      "fileNameSep" : "_" 
 		},
 		"errors": 
 		{

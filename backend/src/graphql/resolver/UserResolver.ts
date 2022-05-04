@@ -1,5 +1,6 @@
 import fs from 'fs'
-import log4js from 'log4js'
+// import log4js from 'log4js'
+
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
@@ -23,13 +24,15 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 
-log4js.configure(CONFIG.LOG4JS_CONFIG)
-const logger = log4js.getLogger('graphql.resolver.UserResolver')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
+
+const log4js = require("log4js");
+log4js.configure(CONFIG.LOG4JS_CONFIG)
+const logger = log4js.getLogger('graphql.UserResolver')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
@@ -48,6 +51,7 @@ const WORDS = fs
   .toString()
   .split(',')
 const PassphraseGenerate = (): string[] => {
+  logger.trace('PassphraseGenerate...')
   const result = []
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
     result.push(WORDS[sodium.randombytes_random() % 2048])
@@ -56,6 +60,7 @@ const PassphraseGenerate = (): string[] => {
 }
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
+  logger.trace('KeyPairEd25519Create...')
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
     throw new Error('passphrase empty or to short')
   }
@@ -89,6 +94,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 }
 
 const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
+  logger.trace('SecretKeyCryptographyCreateKey...')
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
@@ -124,12 +130,14 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
 }
 
 const getEmailHash = (email: string): Buffer => {
+  logger.trace('getEmailHash...')
   const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
   sodium.crypto_generichash(emailHash, Buffer.from(email))
   return emailHash
 }
 
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
+  logger.trace('SecretKeyCryptographyEncrypt...')
   const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
@@ -139,6 +147,7 @@ const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): B
 }
 
 const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
+  logger.trace('SecretKeyCryptographyDecrypt...')
   const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
@@ -149,6 +158,7 @@ const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: B
 }
 
 const newEmailOptIn = (userId: number): LoginEmailOptIn => {
+  logger.trace('newEmailOptIn...')
   const emailOptIn = new LoginEmailOptIn()
   emailOptIn.verificationCode = random(64)
   emailOptIn.userId = userId
@@ -164,6 +174,7 @@ export const checkOptInCode = async (
   userId: number,
   optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
 ): Promise<LoginEmailOptIn> => {
+  logger.trace('checkOptInCode...')
   if (optInCode) {
     if (!canResendOptIn(optInCode)) {
       throw new Error(
@@ -185,6 +196,7 @@ export const checkOptInCode = async (
 }
 
 export const activationLink = (optInCode: LoginEmailOptIn): string => {
+  logger.trace('activationLink...')
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
@@ -194,6 +206,8 @@ export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
+    const logger = log4js.getLogger('graphql.UserResolver')
+    logger.trace('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
     const user = new User(userEntity)
@@ -220,6 +234,8 @@ export class UserResolver {
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
+    const logger = log4js.getLogger('graphql.UserResolver')
+    logger.trace('Login(' + email + ', ***, ' + publisherId)
     email = email.trim().toLowerCase()
     const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
       logger.error('User does not exists with this email=' + email)
@@ -249,11 +265,14 @@ export class UserResolver {
       logger.error('The User has no valid credentials. email=' + email)
       throw new Error('No user with this credentials')
     }
+    logger.info('successfull login with ' + email + ', ***, ' + publisherId)
 
     const user = new User(dbUser)
-
+    logger.debug('user=' + user)
+    
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
+    logger.info('user.hasElopage=' + user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       dbUser.publisherId = publisherId
@@ -273,7 +292,7 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
-
+    logger.info('successful Login:' + user)
     return user
   }
 
@@ -285,6 +304,7 @@ export class UserResolver {
     // The functionality is fully client side - the client just needs to delete his token with the current implementation.
     // we could try to force this by sending `token: null` or `token: ''` with this call. But since it bares no real security
     // we should just return true for now.
+    logger.info('Logout...')
     return true
   }
 
@@ -294,6 +314,13 @@ export class UserResolver {
     @Args()
     { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
+    const logger = log4js.getLogger('graphql.resolver.UserResolver')
+    logger.trace('createUser(email=' + email +
+                          ', firstName=' + firstName +
+                          ', lastName=' + lastName +
+                          ', language=' + language +
+                          ', publisherId=' + publisherId +
+                          ', redeemCode =' + redeemCode)
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -306,7 +333,9 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
+    logger.info('DbUser.findOne(email=' + email + ') = ' + userFound)
     if (userFound) {
+      logger.error('User already exists with this email=' + email)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
       throw new Error(`User already exists.`)
     }
@@ -325,8 +354,10 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
+    logger.info('new dbUser=' + dbUser)
     if (redeemCode) {
       const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+      logger.info('redeemCode found transactionLink='+ transactionLink)
       if (transactionLink) {
         dbUser.referrerId = transactionLink.userId
       }
@@ -345,6 +376,7 @@ export class UserResolver {
       await queryRunner.manager.save(dbUser).catch((error) => {
         // eslint-disable-next-line no-console
         console.log('Error while saving dbUser', error)
+        logger.error('Error while saving dbUser', error)
         throw new Error('error saving user')
       })
 
@@ -352,6 +384,7 @@ export class UserResolver {
       await queryRunner.manager.save(emailOptIn).catch((error) => {
         // eslint-disable-next-line no-console
         console.log('Error while saving emailOptIn', error)
+        logger.error('Error while saving emailOptIn', error)
         throw new Error('error saving email opt in')
       })
 
@@ -368,7 +401,7 @@ export class UserResolver {
         email,
         duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
-
+      logger.info('sendAccountActivationEmail=' + emailSent)
       /* uncomment this, when you need the activation link on the console
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -384,6 +417,7 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
+    logger.info('successful createUser()=' + dbUser)
     return new User(dbUser)
   }
 
