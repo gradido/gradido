@@ -35,6 +35,12 @@
     </b-row>
   </footer>
 </template>
+<script>
+export default {
+  name: 'AuthFooter',
+}
+</script>
+
 <style>
 .bi-telegram {
   margin-top: -5px;

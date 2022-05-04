@@ -40,7 +40,7 @@
     </div>
 
     <div>
-      <auth-header />
+      <auth-header class="auth-header" />
       <b-row class="auth-template-content ml-1 mr-1 mr-md-0 ml-md-0">
         <b-col lg="6" md="none" sm="none">
           <div class="bg-img-box d-none d-lg-block">

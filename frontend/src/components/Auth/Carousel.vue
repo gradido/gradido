@@ -19,6 +19,7 @@
 
 <script>
 export default {
+  name: 'AuthCarousel',
   data() {
     return {
       slide: 0,
