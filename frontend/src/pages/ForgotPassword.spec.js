@@ -51,14 +51,6 @@ describe('ForgotPassword', () => {
       expect(wrapper.find('div.forgot-password').exists()).toBeTruthy()
     })
 
-    // it('has a title', () => {
-    //   expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
-    // })
-
-    // it('has a subtitle', () => {
-    //   expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
-    // })
-
     describe('back button', () => {
       it('has a "back" button', () => {
         expect(wrapper.findComponent(RouterLinkStub).text()).toEqual('back')
@@ -161,15 +153,5 @@ describe('ForgotPassword', () => {
         })
       })
     })
-
-    // describe('comingFrom login', () => {
-    //   beforeEach(() => {
-    //     wrapper = Wrapper(createMockObject('resetPassword'))
-    //   })
-
-    //   it('has another subtitle', () => {
-    //     expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
-    //   })
-    // })
   })
 })
