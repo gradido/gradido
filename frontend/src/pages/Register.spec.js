@@ -52,45 +52,6 @@ describe('Register', () => {
       expect(wrapper.find('div#registerform').exists()).toBeTruthy()
     })
 
-    describe('Register header', () => {
-      it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('site.signup.title site.signup.subtitle')
-      })
-    })
-
-    describe('Community data already loaded', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        mocks.$store.state.community = {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        }
-        wrapper = Wrapper()
-      })
-
-      it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-      })
-
-      it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
-      })
-    })
-
-    describe('links', () => {
-      it('has a link "Back"', () => {
-        expect(wrapper.find('.test-button-back').text()).toEqual('back')
-      })
-
-      it('links to /login when clicking "Back"', () => {
-        expect(wrapper.find('.test-button-back').props().to).toBe('/login')
-      })
-    })
-
     describe('Register form', () => {
       it('has a register form', () => {
         expect(wrapper.find('form').exists()).toBeTruthy()
@@ -153,20 +114,6 @@ describe('Register', () => {
         )
       })
     })
-
-    /*
-    describe('link Choose another community', () => {
-      it('has a link "Choose another community"', () => {
-        expect(wrapper.find('.test-button-another-community').text()).toEqual(
-          'community.choose-another-community',
-        )
-      })
-
-      it('links to /select-community when clicking "Choose another community"', () => {
-        expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
-      })
-    })
-    */
 
     describe('API calls when form is missing input', () => {
       beforeEach(() => {
