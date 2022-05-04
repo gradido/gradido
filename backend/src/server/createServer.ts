@@ -46,7 +46,6 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
 
   // start DHT hyperswarm when DHT_TOPIC is set in .env
   if (CONFIG.DHT_TOPIC) {
-    console.log('Starting hyperswarm DHT')
     await startDHT(con, CONFIG.DHT_TOPIC)
   }
 

@@ -8,5 +8,7 @@ const ANNOUNCETIME = 30000
 
 export const startDHT = async (connection: Connection, topic: string): Promise<void> => {
   console.log('topic', topic, typeof topic)
-  // const TOPIC = DHT.hash(Buffer.from(topic))
+  const buffer = Buffer.from(topic)
+
+  const TOPIC = DHT.hash(buffer)
 }
