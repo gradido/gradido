@@ -1,6 +1,5 @@
 import fs from 'fs'
-// import log4js from 'log4js'
-
+import log4js from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
@@ -24,14 +23,11 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
 
-const log4js = require("log4js");
-log4js.configure(CONFIG.LOG4JS_CONFIG)
 const logger = log4js.getLogger('graphql.UserResolver')
 
 // We will reuse this for changePassword
@@ -269,7 +265,7 @@ export class UserResolver {
 
     const user = new User(dbUser)
     logger.debug('user=' + user)
-    
+
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage=' + user.hasElopage)
@@ -315,12 +311,20 @@ export class UserResolver {
     { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
     const logger = log4js.getLogger('graphql.resolver.UserResolver')
-    logger.trace('createUser(email=' + email +
-                          ', firstName=' + firstName +
-                          ', lastName=' + lastName +
-                          ', language=' + language +
-                          ', publisherId=' + publisherId +
-                          ', redeemCode =' + redeemCode)
+    logger.trace(
+      'createUser(email=' +
+        email +
+        ', firstName=' +
+        firstName +
+        ', lastName=' +
+        lastName +
+        ', language=' +
+        language +
+        ', publisherId=' +
+        publisherId +
+        ', redeemCode =' +
+        redeemCode,
+    )
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -357,7 +361,7 @@ export class UserResolver {
     logger.info('new dbUser=' + dbUser)
     if (redeemCode) {
       const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-      logger.info('redeemCode found transactionLink='+ transactionLink)
+      logger.info('redeemCode found transactionLink=' + transactionLink)
       if (transactionLink) {
         dbUser.referrerId = transactionLink.userId
       }

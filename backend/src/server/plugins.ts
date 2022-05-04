@@ -36,6 +36,7 @@ const logPlugin = {
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     return {
       willSendResponse(requestContext: any) {
+        if (requestContext.context.user) logger.trace(`User ID: ${requestContext.context.user.id}`)
         if (requestContext.response.data)
           logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)

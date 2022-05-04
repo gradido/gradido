@@ -1,7 +1,5 @@
 import 'reflect-metadata'
 
-import log4js from 'log4js'
-
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express } from 'express'
 
@@ -24,16 +22,14 @@ import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
+import log4js from './logger'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-log4js.configure(CONFIG.LOG4JS_CONFIG)
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServer = async (context: any = serverContext): Promise<ServerDef> => {
-
   const logger = log4js.getLogger('server.createServer')
   logger.debug('This little thing went to market')
   logger.info('This little thing stayed at home')

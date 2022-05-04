@@ -1,8 +1,6 @@
 import axios from 'axios'
-import log4js from 'log4js'
-import CONFIG from '@/config'
+import log4js from '@/server/logger'
 
-log4js.configure(CONFIG.LOG4JS_CONFIG)
 const logger = log4js.getLogger('http')
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
