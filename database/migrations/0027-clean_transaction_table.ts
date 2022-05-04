@@ -41,9 +41,9 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   // - creation_ident_hash (null)
 
   await queryFn(
-    'ALTER TABLE `transactions` RENAME COLUMN linked_transaction_id TO linked_state_user_transaction_id;',
+    'ALTER TABLE `transactions` CHANGE COLUMN linked_transaction_id linked_state_user_transaction_id int(10);',
   )
-  await queryFn('ALTER TABLE `transactions` RENAME COLUMN type_id TO transaction_type_id;')
+  await queryFn('ALTER TABLE `transactions` CHANGE COLUMN type_id transaction_type_id int(10);')
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `creation_ident_hash` binary(32) DEFAULT NULL AFTER `linked_state_user_transaction_id`;',
   )

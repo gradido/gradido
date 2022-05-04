@@ -216,5 +216,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn('ALTER TABLE `state_user_transactions` DROP COLUMN `memo`;')
   await queryFn('ALTER TABLE `state_user_transactions` DROP COLUMN `send_sender_final_balance`;')
   await queryFn('ALTER TABLE `state_user_transactions` DROP COLUMN `amount`;')
-  await queryFn('ALTER TABLE `state_user_transactions` RENAME COLUMN user_id TO state_user_id;')
+  await queryFn(
+    'ALTER TABLE `state_user_transactions` CHANGE COLUMN user_id state_user_id int(10);',
+  )
 }
