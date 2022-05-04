@@ -2,6 +2,9 @@
 # This assums you have root access via ssh to your cleanly setup server
 # Furthermore this assumes you have debian (11 64bit) running
 
+# Check your (Sub-)Domain with your Provider.
+# In this document gddhost.tld refers to your chosen domain
+
 > ssh root@gddhost.tld
 
 # change root default shell
@@ -92,4 +95,5 @@
 > nano .env
 >> Adjust values accordingly
 # TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
+# The Github Secret is Created on Github in Settimgs -> Webhooks
 > ./install.sh
