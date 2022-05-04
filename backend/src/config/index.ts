@@ -14,7 +14,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2022-04-21',
+    EXPECTED: 'v7.2022-05-04',
     CURRENT: '',
   },
 }
@@ -104,6 +104,10 @@ if (
   )
 }
 
+const federation = {
+  DHT_TOPIC: process.env.DHT_TOPIC || null,
+}
+
 const CONFIG = {
   ...constants,
   ...server,
@@ -113,6 +117,7 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...webhook,
+  ...federation,
 }
 
 export default CONFIG
