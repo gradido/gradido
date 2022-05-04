@@ -242,7 +242,7 @@ describe('TransactionLinkSummary', () => {
               expect(apolloQueryMock).toBeCalledTimes(1)
             })
 
-            it('calls the API with curren page one', () => {
+            it('calls the API with current page one', () => {
               expect(apolloQueryMock).toBeCalledWith({
                 query: listTransactionLinks,
                 variables: {
