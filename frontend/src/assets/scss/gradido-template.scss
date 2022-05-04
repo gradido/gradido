@@ -12,7 +12,7 @@ html, body {
   }
 
   .gradient-gradido {
-    background-image: linear-gradient(146deg, rgba(249,205,105,1) 50%, rgba(197,141,56,1) 100%);
+    background-image: linear-gradient(146deg, rgb(220, 167, 44) 50%, rgba(197,141,56,1) 100%);
   }
 
   /* Button */
@@ -21,12 +21,13 @@ html, body {
   }
 
   .btn-gradido {
-    background-image: linear-gradient(146deg, rgba(249,205,105,1) 50%, rgba(197,141,56,1) 100%);
+    background-image: linear-gradient(146deg, rgb(220, 167, 44) 50%, rgba(197,141,56,1) 100%);
     background-size: auto;
     background-position: 0% 0%;
     background-repeat: repeat;
     border-style: none;
     box-shadow: 10px 10px 50px 10px rgba(56, 56, 56, 0.31);
+    color: #fff;
   }
   
   .btn-gradido:hover {

@@ -2,7 +2,7 @@
   <footer class="footer bg-transparent">
     <b-row class="mt-4">
       <b-col class="col-12 col-md-12 col-lg-6">
-        <b-nav class="nav-footer justify-content-center">
+        <b-nav class="nav-footer">
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
             {{ $t('footer.imprint') }}
           </b-nav-item>

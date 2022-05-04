@@ -23,7 +23,7 @@
       ></b-img>
       <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
       <div class="mobil-start-box-text text-center">
-        <b-button variant="gradido" class="text-white" to="/register" @click="mobilStart = false">
+        <b-button variant="gradido" to="/register" @click="mobilStart = false">
           {{ $t('signup') }}
         </b-button>
         <div class="mt-3 h3 text-white">
