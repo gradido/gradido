@@ -1,61 +1,61 @@
 {
-	"appenders": 
-	{
-		"access": 
-		{
-			"type": "dateFile",
-			"filename": "../logs/backend/access.log",
-			"pattern": "%d %p %c %f:%l %m%n",
-			"keepFileExt" : true,
-			"fileNameSep" : "_" 
-		},
-		"apollo": 
-		{
-			"type": "dateFile",
-			"filename": "../logs/backend/apollo.log",
-			"pattern": "%d %p %c %f:%l %m%n",
-			"keepFileExt" : true,
+  "appenders": 
+  {
+    "access": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/access.log",
+      "pattern": "%d %p %c %f:%l %m%n",
+      "keepFileExt" : true,
       "fileNameSep" : "_" 
-		},
-		"errorFile": 
-		{
-			"type": "dateFile",
-			"filename": "../logs/backend/errors.log",
-			"pattern": "%d %p %c %f:%l %m%n",
-			"keepFileExt" : true,
+    },
+    "apollo": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/apollo.log",
+      "pattern": "%d %p %c %f:%l %m%n",
+      "keepFileExt" : true,
       "fileNameSep" : "_" 
-		},
-		"errors": 
-		{
-			"type": "logLevelFilter",
-			"level": "error",
-			"appender": "errorFile"
-		},
-		"out": 
-		{
-			"type": "stdout"
-		}
-	},
-	"categories": 
-	{
-		"default": 
-		{
-			"appenders": 
-			[
-				"out",
-				"apollo",
-				"errors"
-			],
-			"level": "all",
-			"enableCallStack": true
-		},
-		"http": 
-		{
-			"appenders": 
-			[
-				"access"
-			],
-			"level": "info"
-		}
-	}
+    },
+    "errorFile": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/errors.log",
+      "pattern": "%d %p %c %f:%l %m%n",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "errors": 
+    {
+      "type": "logLevelFilter",
+      "level": "error",
+      "appender": "errorFile"
+    },
+    "out": 
+    {
+      "type": "stdout"
+    }
+  },
+  "categories": 
+  {
+    "default": 
+    {
+      "appenders": 
+      [
+        "out",
+        "apollo",
+        "errors"
+      ],
+      "level": "all",
+      "enableCallStack": true
+    },
+    "http": 
+    {
+      "appenders": 
+      [
+        "access"
+      ],
+      "level": "info"
+    }
+  }
 }
