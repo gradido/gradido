@@ -90,10 +90,10 @@
 
 # Adjust .env
 # NOTE ';' can not be part of any value
+# The Github Secret is Created on Github in Settimgs -> Webhooks
 > cd gradido/deployment/bare_metal
 > cp .env.dist .env
 > nano .env
 >> Adjust values accordingly
 # TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
-# The Github Secret is Created on Github in Settimgs -> Webhooks
 > ./install.sh
