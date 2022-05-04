@@ -22,6 +22,9 @@ import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
+// DHT
+import { startDHT } from '@/federation/index'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
@@ -39,6 +42,12 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
   const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
   if (!dbVersion) {
     throw new Error('Fatal: Database Version incorrect')
+  }
+
+  // start DHT hyperswarm when DHT_TOPIC is set in .env
+  if (CONFIG.DHT_TOPIC) {
+    console.log('Starting hyperswarm DHT')
+    await startDHT(con, CONFIG.DHT_TOPIC)
   }
 
   // Express Server
