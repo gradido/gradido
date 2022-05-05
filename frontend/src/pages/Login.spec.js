@@ -221,7 +221,7 @@ describe('Login', () => {
 
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
-            await createError('GraphQL error: User email not validated.')
+            await createError('GraphQL error: ' + ERRORS.ERR_EMAIL_NOT_VALIDATED)
           })
 
           it('hides the spinner', () => {
@@ -255,7 +255,7 @@ describe('Login', () => {
 
         describe('login fails with "User has no password set yet"', () => {
           beforeEach(async () => {
-            await createError('GraphQL error: User has no password set yet.')
+            await createError('GraphQL error: ' + ERRORS.ERR_USER_HAS_NO_PASSWORD)
           })
 
           it('shows error title, subtitle, login button', () => {
@@ -315,6 +315,7 @@ describe('Login', () => {
           })
 
           it('toasts the error message', () => {
+            // Wolle: why this ist not working because of $te gives back true in "frontend/src/mixins/errors.js" in "this.translateErrorMessage"
             expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknow error')
           })
         })
