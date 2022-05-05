@@ -23,14 +23,13 @@ export default {
     subtitle: { type: String, required: true },
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
-    code: { type: String, required: false, default: null },
   },
   methods: {
     showButton() {
       return this.buttonText && this.linkTo
     },
     buttonLinkTo() {
-      return this.linkTo ? this.linkTo + (this.code ? `/${this.code}` : '') : null
+      return this.linkTo ? this.linkTo : null
     },
   },
 }
