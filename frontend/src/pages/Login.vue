@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container v-if="!showPageMessage" class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0 gradido-custom-background">
@@ -136,6 +136,7 @@ export default {
             this.toastError(this.$t('error.no-account'))
           } else {
             // appeared errors: 'GraphQL error: No user with this credentials'
+            // Wolle: avoid this error message! may be avoid in general?
             const errorMessage = this.$t('error.unknown-error') + error.message
             this.showPageMessage = true
             this.errorSubtitle = errorMessage
@@ -144,6 +145,11 @@ export default {
           }
           loader.hide()
         })
+    },
+  },
+  computed: {
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }

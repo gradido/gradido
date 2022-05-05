@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container v-if="!showPageMessage" class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0 gradido-custom-background">
@@ -75,6 +75,11 @@ export default {
       success: null,
     }
   },
+  created() {
+    if (this.$route.params.comingFrom) {
+      this.subtitle = 'settings.password.resend_subtitle'
+    }
+  },
   methods: {
     async onSubmit() {
       this.$apollo
@@ -95,10 +100,10 @@ export default {
         })
     },
   },
-  created() {
-    if (this.$route.params.comingFrom) {
-      this.subtitle = 'settings.password.resend_subtitle'
-    }
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
   },
 }
 </script>

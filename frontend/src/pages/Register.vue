@@ -15,7 +15,7 @@
     </div>
 
     <!-- Page content -->
-    <b-container v-if="!showPageMessage" class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <!-- Table -->
 
       <b-row class="justify-content-center">
@@ -285,6 +285,9 @@ export default {
     },
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
+    },
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }
