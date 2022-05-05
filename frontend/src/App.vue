@@ -9,7 +9,7 @@ import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
 import AuthLayoutGDD from '@/layouts/AuthLayout_gdd.vue'
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
     DashboardLayout,
     AuthLayoutGDD,

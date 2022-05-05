@@ -45,6 +45,7 @@ import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
 
 export default {
+  name: 'DashboardTemplate',
   components: {
     Navbar,
     Sidebar,
