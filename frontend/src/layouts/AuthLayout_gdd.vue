@@ -59,59 +59,61 @@
           sm="12"
           class="ml-2 ml-md-0 ml-lg-0 pl-2 pl-md-5 pr-2 pr-md-5 pr-md-5"
         >
-          <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
-            <b-col>
-              <div class="h1">{{ $t('welcome') }}</div>
-              <div class="h1">{{ $t('communitiesWorldWide') }}</div>
-              <div>{{ $t('1000thanks') }}</div>
-            </b-col>
-            <b-col class="text-right d-none d-sm-none d-md-inline">
-              <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-            </b-col>
-          </b-row>
-          <b-card no-body class="border-0 mt-4 gradido-custom-background">
-            <b-row class="p-4">
-              <b-col cols="10">
-                <language-switch />
+          <div class="right-content-box">
+            <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
+              <b-col>
+                <div class="h1">{{ $t('welcome') }}</div>
+                <div class="h1">{{ $t('communitiesWorldWide') }}</div>
+                <div>{{ $t('1000thanks') }}</div>
               </b-col>
-              <b-col cols="2" class="text-right">
-                <div id="popover-target-1" class="pointer">
-                  <b-img src="img/svg/type.svg" width="19" class="svg"></b-img>
-                </div>
-                <b-popover
-                  target="popover-target-1"
-                  triggers="click"
-                  placement="top"
-                  variant="dark"
-                >
-                  <div class="text-light">
-                    <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
-                    {{ $t('|') }}
-                    <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
-                    {{ $t('|') }}
-                    <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
-                  </div>
-                </b-popover>
-              </b-col>
-            </b-row>
-            <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
-              <b-col class="text-center">
+              <b-col class="text-right d-none d-sm-none d-md-inline">
                 <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-                <div>
-                  <span>
-                    <router-link to="login">{{ $t('signup') }}</router-link>
-                  </span>
-                  {{ $t('|') }}
-                  <span>
-                    <router-link to="register">{{ $t('signin') }}</router-link>
-                  </span>
-                </div>
               </b-col>
             </b-row>
-            <b-card-body class="">
-              <router-view></router-view>
-            </b-card-body>
-          </b-card>
+            <b-card no-body class="border-0 mt-4 gradido-custom-background">
+              <b-row class="p-4">
+                <b-col cols="10">
+                  <language-switch />
+                </b-col>
+                <b-col cols="2" class="text-right">
+                  <div id="popover-target-1" class="pointer">
+                    <b-img src="img/svg/type.svg" width="19" class="svg"></b-img>
+                  </div>
+                  <b-popover
+                    target="popover-target-1"
+                    triggers="click"
+                    placement="top"
+                    variant="dark"
+                  >
+                    <div class="text-light">
+                      <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
+                      {{ $t('|') }}
+                      <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
+                      {{ $t('|') }}
+                      <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
+                    </div>
+                  </b-popover>
+                </b-col>
+              </b-row>
+              <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
+                <b-col class="text-center">
+                  <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
+                  <div>
+                    <span>
+                      <router-link to="login">{{ $t('signup') }}</router-link>
+                    </span>
+                    {{ $t('|') }}
+                    <span>
+                      <router-link to="register">{{ $t('signin') }}</router-link>
+                    </span>
+                  </div>
+                </b-col>
+              </b-row>
+              <b-card-body class="">
+                <router-view></router-view>
+              </b-card-body>
+            </b-card>
+          </div>
           <auth-footer v-if="!$route.meta.hideFooter"></auth-footer>
         </b-col>
       </b-row>
@@ -146,6 +148,9 @@ export default {
 }
 </script>
 <style lang="scss">
+.right-content-box {
+  max-width: 640px;
+}
 .page-font-size {
   font-size: 1rem;
 }
