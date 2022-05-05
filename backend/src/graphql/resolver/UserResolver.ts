@@ -125,9 +125,9 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
   sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
-  logger.trace("SecretKeyCryptographyCreateKey...successful");
-  logger.trace("encryptionKeyHash= " + ${encryptionKeyHash});
-  logger.trace("encryptionKey=" + ${encryptionKey});
+  logger.trace("SecretKeyCryptographyCreateKey...successful")
+  logger.trace(`encryptionKeyHash= ${encryptionKeyHash}`)
+  logger.trace(`encryptionKey= ${encryptionKey}`)
   return [encryptionKeyHash, encryptionKey]
 }
 
