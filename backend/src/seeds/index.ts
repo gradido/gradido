@@ -4,7 +4,7 @@
 import createServer from '../server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 
-import { name, internet, random } from 'faker'
+import { name, internet, datatype } from 'faker'
 
 import { users } from './users/index'
 import { creations } from './creation/index'
@@ -13,6 +13,9 @@ import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
 import { entities } from '@entity/index'
+import CONFIG from '@/config'
+
+CONFIG.EMAIL = false
 
 const context = {
   token: '',
@@ -57,7 +60,7 @@ const run = async () => {
       firstName: name.firstName(),
       lastName: name.lastName(),
       email: internet.email(),
-      language: random.boolean() ? 'en' : 'de',
+      language: datatype.boolean() ? 'en' : 'de',
     })
   }
 
