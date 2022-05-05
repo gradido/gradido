@@ -234,23 +234,16 @@ describe('Register', () => {
             await createError('GraphQL error: User already exists.')
           })
 
-          it('shows success title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe('error.user-already-exists')
-            expect(wrapper.find('.test-message-button').text()).toBe(
-              'site.register.message-button-text',
-            )
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
           })
 
           it('toasts the error message', () => {
             expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
-          })
-
-          it('click calls "solveError"', async () => {
-            wrapper.find('.test-message-button').trigger('click')
-            await wrapper.vm.$nextTick()
-            expect(wrapper.vm.showPageMessage).toBe(false)
           })
         })
 
@@ -259,25 +252,16 @@ describe('Register', () => {
             await createError(' – Unknown error.')
           })
 
-          it('shows success title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe(
-              'error.unknown-error – Unknown error.',
-            )
-            expect(wrapper.find('.test-message-button').text()).toBe(
-              'site.register.message-button-text',
-            )
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
           })
 
           it('toasts the error message', () => {
             expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknown error.')
-          })
-
-          it('click calls "solveError"', async () => {
-            wrapper.find('.test-message-button').trigger('click')
-            await wrapper.vm.$nextTick()
-            expect(wrapper.vm.showPageMessage).toBe(false)
           })
         })
       })

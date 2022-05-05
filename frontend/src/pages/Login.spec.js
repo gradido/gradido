@@ -219,7 +219,7 @@ describe('Login', () => {
 
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
-            await createError('GraphQL error: User email not validated')
+            await createError('GraphQL error: User email not validated.')
           })
 
           it('hides the spinner', () => {
@@ -251,7 +251,7 @@ describe('Login', () => {
 
         describe('login fails with "User has no password set yet"', () => {
           beforeEach(async () => {
-            await createError('GraphQL error: User has no password set yet')
+            await createError('GraphQL error: User has no password set yet.')
           })
 
           it('shows error title, subtitle, login button', () => {
@@ -277,26 +277,35 @@ describe('Login', () => {
           })
         })
 
+        describe('login fails with "No user with this credentials"', () => {
+          beforeEach(async () => {
+            await createError('GraphQL error: No user with this credentials.')
+          })
+
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-user')
+          })
+        })
+
         describe('login fails with an unknow error', () => {
           beforeEach(async () => {
             await createError(' – Unknow error')
           })
 
-          it('shows error title, subtitle, login button', () => {
-            expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe(
-              'error.unknown-error – Unknow error',
-            )
-            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
-          })
-
-          it('button link directs to "/forgot-password"', () => {
-            expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
-          })
-
-          it.skip('click redirects to "/forgot-password"', () => {
-            // expect(mockRouterPush).toBeCalledWith('/forgot-password')
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
           })
 
           it('toasts the error message', () => {

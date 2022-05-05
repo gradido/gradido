@@ -15,7 +15,7 @@
     </div>
 
     <!-- Page content -->
-    <b-container v-if="!showPageMessage" class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <!-- Table -->
 
       <b-row class="justify-content-center">
@@ -165,18 +165,7 @@
       </b-row>
     </b-container>
     <b-container v-else class="mt--8 p-1">
-      <message
-        v-if="success"
-        :headline="$t('site.thx.title')"
-        :subtitle="$t('site.thx.register')"
-      />
-      <message
-        v-else
-        :headline="$t('site.thx.errorTitle')"
-        :subtitle="messageError"
-        :buttonText="$t('site.register.message-button-text')"
-        :callback="solveError"
-      />
+      <message :headline="$t('site.thx.title')" :subtitle="$t('site.thx.register')" />
     </b-container>
     <!--
     <div class="text-center pt-4">
@@ -214,7 +203,6 @@ export default {
       language: '',
       showPageMessage: false,
       submitted: false,
-      messageError: '',
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
       CONFIG,
@@ -246,29 +234,20 @@ export default {
         })
         .then(() => {
           this.showPageMessage = true
-          this.success = true
         })
         .catch((error) => {
-          this.showPageMessage = true
-          this.success = false
+          // don't show any error on the page! against boots
+          let errorMessage
           switch (error.message) {
             case 'GraphQL error: User already exists.':
-              this.messageError = this.$t('error.user-already-exists')
+              errorMessage = this.$t('error.user-already-exists')
               break
             default:
-              this.messageError = this.$t('error.unknown-error') + error.message
+              errorMessage = this.$t('error.unknown-error') + error.message
               break
           }
-          this.toastError(this.messageError)
+          this.toastError(errorMessage)
         })
-    },
-    solveError() {
-      this.showPageMessage = false
-      this.messageError = ''
-      this.form.email = ''
-      this.form.firstname = ''
-      this.form.lastname = ''
-      this.form.agree = false
     },
   },
   computed: {
@@ -285,6 +264,9 @@ export default {
     },
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
+    },
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }

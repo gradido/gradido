@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container v-if="!showPageMessage" class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0 gradido-custom-background">
@@ -134,16 +134,20 @@ export default {
             this.errorSubtitle = this.$t('site.thx.unsetPassword')
             this.errorLinkTo = '/reset-password/login'
             this.toastError(this.$t('error.no-account'))
+          } else if (error.message.includes('No user with this credentials')) {
+            // don't show any error on the page! against boots
+            this.toastError(this.$t('error.no-user'))
           } else {
-            // appeared errors: 'GraphQL error: No user with this credentials'
-            const errorMessage = this.$t('error.unknown-error') + error.message
-            this.showPageMessage = true
-            this.errorSubtitle = errorMessage
-            this.errorLinkTo = '/forgot-password'
-            this.toastError(errorMessage)
+            // don't show any error on the page! against boots
+            this.toastError(this.$t('error.unknown-error') + error.message)
           }
           loader.hide()
         })
+    },
+  },
+  computed: {
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }
