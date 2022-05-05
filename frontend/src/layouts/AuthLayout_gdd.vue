@@ -30,7 +30,7 @@
           {{ $t('auth.left.hasAccount') }}
           <b-link
             to="/login"
-            class="text-gradido gradido-global-color-0E79BC"
+            class="text-gradido gradido-global-color-blue"
             @click="mobilStart = false"
           >
             {{ $t('auth.left.hereLogin') }}

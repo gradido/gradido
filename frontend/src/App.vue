@@ -17,16 +17,17 @@ export default {
 }
 </script>
 <style>
+@font-face {
+  font-family: 'WorkSans', sans-serif !important;
+  src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
+}
 #app {
   height: 100%;
   min-width: 360px;
   font-size: 1rem;
-  font-family: 'WorkSans';
+  font-family: 'WorkSans', sans-serif !important;
 }
-@font-face {
-  font-family: 'WorkSans';
-  src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
-}
+
 @media screen and (max-width: 500px) {
   #app {
     font-size: 0.85rem;

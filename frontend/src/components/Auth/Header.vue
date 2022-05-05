@@ -35,7 +35,8 @@ export default {
 </script>
 <style lang="scss">
 .auth-header {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans', sans-serif !important;
+  position: sticky;
 }
 .navbar-collapse {
   margin-left: 20px;
@@ -43,10 +44,6 @@ export default {
 .navbar-collapse li {
   padding-top: 10px;
   padding-bottom: 10px;
-}
-
-.auth-header {
-  position: sticky;
 }
 
 .g-logo-radius {
