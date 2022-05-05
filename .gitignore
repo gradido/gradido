@@ -11,3 +11,4 @@ package-lock.json
 /deployment/bare_metal/nginx/update-page/updating.html
 /deployment/bare_metal/log
 /deployment/bare_metal/backup
+/.nvmrc

@@ -4,8 +4,8 @@ import Message from './Message'
 const localVue = global.localVue
 
 const propsData = {
-  headline: 'site.thx.title',
-  subtitle: 'site.thx.email',
+  headline: 'Headline text',
+  subtitle: 'Subtitle text',
   buttonText: 'login',
   linkTo: '/login',
 }
@@ -27,17 +27,37 @@ describe('Message', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.header').exists()).toBeTruthy()
+      expect(wrapper.find('div.header').exists()).toBe(true)
     })
 
-    it('renders title, subtitle, and button text', () => {
-      expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-      expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
-      expect(wrapper.find('.test-message-button').text()).toBe('login')
+    describe('with button', () => {
+      it('renders title, subtitle, and button text', () => {
+        expect(wrapper.find('.test-message-headline').text()).toBe('Headline text')
+        expect(wrapper.find('.test-message-subtitle').text()).toBe('Subtitle text')
+        expect(wrapper.find('.test-message-button').text()).toBe('login')
+      })
+
+      it('button link redirects to /login', () => {
+        expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+      })
     })
 
-    it('button link redirects to /login', () => {
-      expect(wrapper.find('a.btn').attributes('href')).toBe('/login')
+    describe('without button', () => {
+      beforeEach(() => {
+        wrapper.setProps({
+          buttonText: null,
+          linkTo: null,
+        })
+      })
+
+      it('renders title, subtitle, and button text', () => {
+        expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+        expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+      })
+
+      it('button is not shown', () => {
+        expect(wrapper.find('.test-message-button').exists()).toBe(false)
+      })
     })
   })
 })

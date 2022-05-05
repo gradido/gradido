@@ -6,12 +6,7 @@
           <p class="h1 test-message-headline">{{ headline }}</p>
           <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
-          <b-button
-            v-if="buttonText && (linkTo || callback)"
-            class="test-message-button"
-            :to="linkTo ? linkTo + (code ? `/${code}` : '') : null"
-            @click="optionalCallback()"
-          >
+          <b-button v-if="showButton" class="test-message-button" :to="buttonLinkTo">
             {{ buttonText }}
           </b-button>
         </div>
@@ -28,14 +23,14 @@ export default {
     subtitle: { type: String, required: true },
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
-    callback: { type: Function, required: false, default: null },
     code: { type: String, required: false, default: null }, // Wolle: to be removed by adding it directly to the "linkTo"
   },
-  methods: {
-    optionalCallback() {
-      if (this.callback) {
-        this.callback()
-      }
+  computed: {
+    showButton() {
+      return this.buttonText && this.linkTo
+    },
+    buttonLinkTo() {
+      return this.linkTo ? this.linkTo + (this.code ? `/${this.code}` : '') : null
     },
   },
 }

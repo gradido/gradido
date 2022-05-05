@@ -47,7 +47,7 @@ describe('ForgotPassword', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.forgot-password').exists()).toBeTruthy()
+      expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
     it('has a title', () => {
@@ -84,7 +84,7 @@ describe('ForgotPassword', () => {
       })
 
       it('has a submit button', () => {
-        expect(form.find('button[type="submit"]').exists()).toBeTruthy()
+        expect(form.find('button[type="submit"]').exists()).toBe(true)
       })
 
       describe('invalid Email', () => {
@@ -118,7 +118,7 @@ describe('ForgotPassword', () => {
             })
 
             it('shows error title, subtitle, login button', () => {
-              expect(wrapper.vm.showPageMessage).toBeTruthy()
+              expect(wrapper.vm.showPageMessage).toBe(true)
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
@@ -154,7 +154,7 @@ describe('ForgotPassword', () => {
             })
 
             it('shows success title, subtitle, login button', () => {
-              expect(wrapper.vm.showPageMessage).toBeTruthy()
+              expect(wrapper.vm.showPageMessage).toBe(true)
               expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
               expect(wrapper.find('.test-message-button').text()).toBe('login')

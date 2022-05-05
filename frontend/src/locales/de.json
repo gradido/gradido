@@ -40,6 +40,7 @@
     "error": "Fehler!",
     "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
+    "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekanter Fehler: "
   },
@@ -218,9 +219,6 @@
       "heading": "Gradido",
       "new_wallet": "Neues Konto erstellen",
       "signin": "Anmelden"
-    },
-    "register": {
-      "message-button-text": "Alles klar"
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",

@@ -48,10 +48,10 @@
     </div>
     <div v-else>
       <message
-        :headline="$t('site.thx.errorTitle')"
-        :subtitle="errorMessage"
-        :buttonText="$t('settings.password.reset')"
-        linkTo="/forgot-password/resetPassword"
+        :headline="messageHeadline"
+        :subtitle="messageSubtitle"
+        :buttonText="messageButtonText"
+        :linkTo="messageButtonLinktTo"
       />
     </div>
   </div>
@@ -98,7 +98,10 @@ export default {
       },
       displaySetup: {},
       showPageMessage: false,
-      errorMessage: '',
+      messageHeadline: null,
+      messageSubtitle: null,
+      messageButtonText: null,
+      messageButtonLinktTo: null,
     }
   },
   methods: {
@@ -115,11 +118,14 @@ export default {
           this.form.password = ''
           if (this.$route.path.includes('checkEmail')) {
             if (this.$route.params.code) {
+              // Wolle: refactor
               this.$router.push('/thx/checkEmail/' + this.$route.params.code)
             } else {
+              // Wolle: refactor
               this.$router.push('/thx/checkEmail')
             }
           } else {
+            // Wolle: refactor
             this.$router.push('/thx/resetPassword')
           }
         })
@@ -137,8 +143,11 @@ export default {
             errorMessage = error.message
           }
           this.showPageMessage = true
+          this.messageHeadline = this.$t('site.thx.errorTitle')
+          this.messageSubtitle = errorMessage
+          this.messageButtonText = this.$t('settings.password.reset')
+          this.messageButtonLinktTo = '/forgot-password/resetPassword'
           this.toastError(errorMessage)
-          this.errorSubtitle = errorMessage
         })
     },
     checkOptInCode() {
