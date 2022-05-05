@@ -125,7 +125,11 @@ export default {
   },
   computed: {
     isPaginationVisible() {
-      return this.showPagination && this.pageSize < this.transactions.length
+      // Wolle: console.log('this.showPagination: ', this.showPagination)
+      // console.log('this.pageSize: ', this.pageSize)
+      // console.log('this.transactions.length: ', this.transactions.length)
+      // console.log('this.transactionCount: ', this.transactionCount)
+      return this.showPagination && this.pageSize < this.transactionCount
     },
   },
   watch: {
