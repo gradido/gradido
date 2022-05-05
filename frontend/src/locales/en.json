@@ -216,9 +216,6 @@
       "new_wallet": "Create new account",
       "signin": "Sign in"
     },
-    "register": {
-      "message-button-text": "Okay"
-    },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",

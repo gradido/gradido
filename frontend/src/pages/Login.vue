@@ -135,8 +135,10 @@ export default {
             this.errorLinkTo = '/reset-password/login'
             this.toastError(this.$t('error.no-account'))
           } else if (error.message.includes('No user with this credentials')) {
+            // don't show any error on the page! against boots
             this.toastError(this.$t('error.no-user'))
           } else {
+            // don't show any error on the page! against boots
             this.toastError(this.$t('error.unknown-error') + error.message)
           }
           loader.hide()

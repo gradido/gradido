@@ -282,6 +282,7 @@ describe('Login', () => {
           })
 
           it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
             expect(wrapper.vm.showPageMessage).toBe(false)
             expect(wrapper.find('.test-message-headline').exists()).toBe(false)
             expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
@@ -299,6 +300,7 @@ describe('Login', () => {
           })
 
           it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
             expect(wrapper.vm.showPageMessage).toBe(false)
             expect(wrapper.find('.test-message-headline').exists()).toBe(false)
             expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
