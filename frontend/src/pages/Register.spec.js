@@ -245,7 +245,7 @@ describe('Register', () => {
           })
 
           it('toasts the error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
+            expect(toastErrorSpy).toBeCalledWith('error.backend.ERR_USER_ALREADY_EXISTS')
           })
         })
 
@@ -263,7 +263,7 @@ describe('Register', () => {
           })
 
           it('toasts the error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknown error.')
+            expect(toastErrorSpy).toBeCalledWith('error.backend. – Unknown error.')
           })
         })
       })
