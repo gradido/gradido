@@ -28,7 +28,7 @@ const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
 
-const logger = log4js.getLogger('graphql.UserResolver');
+const logger = log4js.getLogger('graphql.UserResolver')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {
@@ -47,7 +47,7 @@ const WORDS = fs
   .toString()
   .split(',')
 const PassphraseGenerate = (): string[] => {
-  logger.trace("PassphraseGenerate...");
+  logger.trace('PassphraseGenerate...')
   const result = []
   for (let i = 0; i < PHRASE_WORD_COUNT; i++) {
     result.push(WORDS[sodium.randombytes_random() % 2048])
@@ -56,9 +56,9 @@ const PassphraseGenerate = (): string[] => {
 }
 
 const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
-  logger.trace("KeyPairEd25519Create...");
+  logger.trace('KeyPairEd25519Create...')
   if (!passphrase.length || passphrase.length < PHRASE_WORD_COUNT) {
-    logger.error("passphrase empty or to short");
+    logger.error('passphrase empty or to short')
     throw new Error('passphrase empty or to short')
   }
 
@@ -86,17 +86,19 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
     privKey,
     outputHashBuffer.slice(0, sodium.crypto_sign_SEEDBYTES),
   )
-  logger.trace("KeyPair creation ready. pubKey=" + pubKey);
+  logger.trace(`KeyPair creation ready. pubKey=${pubKey}`)
 
   return [pubKey, privKey]
 }
 
 const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace("SecretKeyCryptographyCreateKey...");
+  logger.trace('SecretKeyCryptographyCreateKey...')
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
-    logger.error("ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.");
+    logger.error(
+      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
+    )
     throw new Error(
       `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
     )
@@ -125,9 +127,9 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
   sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
-  logger.trace("SecretKeyCryptographyCreateKey...successful");
-  logger.trace("encryptionKeyHash= " + ${encryptionKeyHash});
-  logger.trace("encryptionKey=" + ${encryptionKey});
+  logger.trace('SecretKeyCryptographyCreateKey...successful')
+  logger.trace(`encryptionKeyHash= ${encryptionKeyHash}`)
+  logger.trace(`encryptionKey= ${encryptionKey}`)
   return [encryptionKeyHash, encryptionKey]
 }
 
@@ -135,40 +137,40 @@ const getEmailHash = (email: string): Buffer => {
   logger.trace('getEmailHash...')
   const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
   sodium.crypto_generichash(emailHash, Buffer.from(email))
-  logger.trace("getEmailHash...successful: " + emailHash);
+  logger.trace('getEmailHash...successful: ' + emailHash)
   return emailHash
 }
 
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
-  logger.trace("SecretKeyCryptographyEncrypt...");
+  logger.trace('SecretKeyCryptographyEncrypt...')
   const encrypted = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
 
   sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
-  logger.trace("SecretKeyCryptographyEncrypt...successful: " + encrypted);
+  logger.trace('SecretKeyCryptographyEncrypt...successful: ' + encrypted)
   return encrypted
 }
 
 const SecretKeyCryptographyDecrypt = (encryptedMessage: Buffer, encryptionKey: Buffer): Buffer => {
-  logger.trace("SecretKeyCryptographyDecrypt...");
+  logger.trace('SecretKeyCryptographyDecrypt...')
   const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
 
   sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
 
-  logger.trace("SecretKeyCryptographyDecrypt...successful: "+ message);
+  logger.trace('SecretKeyCryptographyDecrypt...successful: ' + message)
   return message
 }
 
 const newEmailOptIn = (userId: number): LoginEmailOptIn => {
-  logger.trace("newEmailOptIn...");
+  logger.trace('newEmailOptIn...')
   const emailOptIn = new LoginEmailOptIn()
   emailOptIn.verificationCode = random(64)
   emailOptIn.userId = userId
   emailOptIn.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-  logger.trace("newEmailOptIn...successful: " + emailOptIn);
+  logger.trace('newEmailOptIn...successful: ' + emailOptIn)
   return emailOptIn
 }
 
@@ -180,11 +182,14 @@ export const checkOptInCode = async (
   userId: number,
   optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
 ): Promise<LoginEmailOptIn> => {
-  logger.trace("checkOptInCode..." + optInCode);
+  logger.trace('checkOptInCode...' + optInCode)
   if (optInCode) {
     if (!canResendOptIn(optInCode)) {
-      logger.error(`email already sent less than ${printTimeDuration(
-        CONFIG.EMAIL_CODE_REQUEST_TIME,)} minutes ago`);
+      logger.error(
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
+      )
       throw new Error(
         `email already sent less than ${printTimeDuration(
           CONFIG.EMAIL_CODE_REQUEST_TIME,
@@ -194,20 +199,20 @@ export const checkOptInCode = async (
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
   } else {
-    logger.trace("create new OptIn for userId=" + userId);
+    logger.trace('create new OptIn for userId=' + userId)
     optInCode = newEmailOptIn(userId)
   }
   optInCode.emailOptInTypeId = optInType
   await LoginEmailOptIn.save(optInCode).catch(() => {
-    logger.error("Unable to save optin code= " + optInCode);
+    logger.error('Unable to save optin code= ' + optInCode)
     throw new Error('Unable to save optin code.')
   })
-  logger.trace("checkOptInCode...successful: " + optInCode);
+  logger.trace('checkOptInCode...successful: ' + optInCode)
   return optInCode
 }
 
 export const activationLink = (optInCode: LoginEmailOptIn): string => {
-  logger.trace("activationLink...");
+  logger.trace('activationLink...')
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
@@ -217,7 +222,7 @@ export class UserResolver {
   @Query(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
-    logger.trace("verifyLogin...");
+    logger.trace('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
     const user = new User(userEntity)
@@ -230,7 +235,7 @@ export class UserResolver {
     const coinanimation = await userSettingRepository
       .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
       .catch((error) => {
-        logger.error("error:", error);
+        logger.error('error:', error)
         throw new Error(error)
       })
     user.coinanimation = coinanimation
