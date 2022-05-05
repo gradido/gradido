@@ -43,8 +43,12 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
   // check for correct database version
   const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
   if (!dbVersion) {
-    logger.fatal('Missmatching Database Versions! configured=' +
-        CONFIG.DB_VERSION + ', dbVersion=' + dbVersion )
+    logger.fatal(
+      'Missmatching Database Versions! configured=' +
+        CONFIG.DB_VERSION +
+        ', dbVersion=' +
+        dbVersion,
+    )
     throw new Error('Fatal: Database Version incorrect')
   }
 
