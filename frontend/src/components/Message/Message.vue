@@ -6,7 +6,7 @@
           <p class="h1 test-message-headline">{{ headline }}</p>
           <p class="h4 test-message-subtitle">{{ subtitle }}</p>
           <hr />
-          <b-button v-if="showButton()" class="test-message-button" :to="buttonLinkTo()">
+          <b-button v-if="showButton" class="test-message-button" :to="buttonLinkTo">
             {{ buttonText }}
           </b-button>
         </div>
@@ -24,7 +24,7 @@ export default {
     buttonText: { type: String, required: false, default: null },
     linkTo: { type: String, required: false, default: null },
   },
-  methods: {
+  computed: {
     showButton() {
       return this.buttonText && this.linkTo
     },
