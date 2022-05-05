@@ -1,10 +1,10 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import App from './App'
-import VueRouter from 'vue-router'
+// import VueRouter from 'vue-router'
 
 const localVue = global.localVue
-localVue.use(VueRouter)
-const router = new VueRouter()
+// localVue.use(VueRouter)
+// const router = new VueRouter()
 const mockStoreCommit = jest.fn()
 
 const stubs = {
@@ -24,12 +24,17 @@ describe('App', () => {
         token: null,
       },
     },
+    $route: {
+      meta: {
+        requiresAuth: false,
+      },
+    },
   }
 
   let wrapper
 
   const Wrapper = () => {
-    return mount(App, { localVue, mocks, stubs, router })
+    return mount(App, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
@@ -45,14 +50,15 @@ describe('App', () => {
       expect(wrapper.findComponent({ name: 'AuthTemplate' }).exists()).toBe(true)
     })
 
-    // describe('with token', () => {
-    //   beforeEach(() => {
-    //     mocks.$store.state.token = 'login-token'
-    //   })
+    describe('route requires authorization', () => {
+      beforeEach(() => {
+        mocks.$route.meta.requiresAuth = true
+        wrapper = Wrapper()
+      })
 
-    //   it('has a component DashboardLayout', () => {
-    //     expect(wrapper.findComponent({ name: 'DashboardTemplate' }).exists()).toBe(true)
-    //   })
-    // })
+      it('has a component DashboardLayout', () => {
+        expect(wrapper.findComponent({ name: 'DashboardTemplate' }).exists()).toBe(true)
+      })
+    })
   })
 })
