@@ -127,7 +127,7 @@ bobsSendings.forEach((sending) => {
     confirmed: true,
   })
 })
-console.log('bobsSum: ', bobsSum)
+// Wolle: console.log('bobsSum: ', bobsSum)
 
 export const creations: CreationInterface[] = [
   {
