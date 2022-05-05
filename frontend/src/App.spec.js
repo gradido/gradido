@@ -44,5 +44,15 @@ describe('App', () => {
     it('has a component AuthLayoutGDD', () => {
       expect(wrapper.findComponent({ name: 'AuthTemplate' }).exists()).toBe(true)
     })
+
+    // describe('with token', () => {
+    //   beforeEach(() => {
+    //     mocks.$store.state.token = 'login-token'
+    //   })
+
+    //   it('has a component DashboardLayout', () => {
+    //     expect(wrapper.findComponent({ name: 'DashboardTemplate' }).exists()).toBe(true)
+    //   })
+    // })
   })
 })
