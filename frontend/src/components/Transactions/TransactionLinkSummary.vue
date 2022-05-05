@@ -84,7 +84,11 @@ export default {
         this.visible = false
       } else {
         this.transactionLinks = []
-        this.updateListTransactionLinks()
+        if (this.currentPage === 1) {
+          this.updateListTransactionLinks()
+        } else {
+          this.currentPage = 1
+        }
         this.visible = true
       }
     },
