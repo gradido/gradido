@@ -134,14 +134,10 @@ export default {
             this.errorSubtitle = this.$t('site.thx.unsetPassword')
             this.errorLinkTo = '/reset-password/login'
             this.toastError(this.$t('error.no-account'))
+          } else if (error.message.includes('No user with this credentials')) {
+            this.toastError(this.$t('error.no-user'))
           } else {
-            // appeared errors: 'GraphQL error: No user with this credentials'
-            // Wolle: avoid this error message! may be avoid in general?
-            const errorMessage = this.$t('error.unknown-error') + error.message
-            this.showPageMessage = true
-            this.errorSubtitle = errorMessage
-            this.errorLinkTo = '/forgot-password'
-            this.toastError(errorMessage)
+            this.toastError(this.$t('error.unknown-error') + error.message)
           }
           loader.hide()
         })

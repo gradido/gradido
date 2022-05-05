@@ -35,6 +35,7 @@
     "error": "Error!",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
+    "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: ",
     "user-already-exists": "A user with this data already exists."
