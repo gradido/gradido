@@ -51,8 +51,8 @@ describe('Message', () => {
       })
 
       it('renders title, subtitle, and button text', () => {
-        expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-        expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+        expect(wrapper.find('.test-message-headline').text()).toBe('Headline text')
+        expect(wrapper.find('.test-message-subtitle').text()).toBe('Subtitle text')
       })
 
       it('button is not shown', () => {
