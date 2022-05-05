@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-template page-font-size">
+  <div class="auth-template" ref="pageFontSize">
     <div v-if="mobilStart" class="mobil-start-box d-inline d-sm-inline d-md-inline d-lg-none">
       <div class="position-absolute h1 text-white zindex1000 w-100 text-center mt-8">
         {{ $t('auth.left.gratitude') }}
@@ -140,7 +140,7 @@ export default {
   },
   methods: {
     setTextSize(size) {
-      document.querySelector('.page-font-size').style.fontSize = size + 'rem'
+      this.$refs.pageFontSize.style.fontSize = size + 'rem'
     },
   },
 }
