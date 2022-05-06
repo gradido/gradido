@@ -1,8 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import ForgotPassword from './ForgotPassword'
-
 import { toastErrorSpy } from '@test/testSetup'
+import ForgotPassword from './ForgotPassword'
 
 const mockAPIcall = jest.fn()
 
@@ -48,7 +47,7 @@ describe('ForgotPassword', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.forgot-password').exists()).toBeTruthy()
+      expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
     describe('back button', () => {
@@ -77,7 +76,7 @@ describe('ForgotPassword', () => {
       })
 
       it('has a submit button', () => {
-        expect(form.find('button[type="submit"]').exists()).toBeTruthy()
+        expect(form.find('button[type="submit"]').exists()).toBe(true)
       })
 
       describe('invalid Email', () => {
@@ -110,19 +109,25 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('toasts a standard error message', () => {
-              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
+            it('shows error title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBe(true)
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            it('button link directs to "/login"', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+            })
+
+            it.skip('click redirects to "/login"', async () => {
+              // wrapper.find('.test-message-button').trigger('click')
+              // await wrapper.vm.$nextTick()
+              expect(mockRouterPush).toBeCalledWith('/login')
+            })
+
+            it('toasts a standard error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
             })
           })
 
@@ -139,15 +144,19 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            it('shows success title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBe(true)
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
+            })
+
+            it('button link redirects to "/login"', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+            })
+
+            it.skip('click redirects to "/login"', () => {
+              // expect(mockRouterPush).toBeCalledWith('/login')
             })
           })
         })

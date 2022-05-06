@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { toastErrorSpy } from '@test/testSetup'
 import Register from './Register'
 
 const localVue = global.localVue
@@ -49,27 +50,27 @@ describe('Register', () => {
     })
 
     it('renders the Register form', () => {
-      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
+      expect(wrapper.find('div#registerform').exists()).toBe(true)
     })
 
     describe('Register form', () => {
       it('has a register form', () => {
-        expect(wrapper.find('form').exists()).toBeTruthy()
+        expect(wrapper.find('form').exists()).toBe(true)
       })
 
       it('has firstname input fields', () => {
-        expect(wrapper.find('#registerFirstname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerFirstname').exists()).toBe(true)
       })
       it('has lastname input fields', () => {
-        expect(wrapper.find('#registerLastname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerLastname').exists()).toBe(true)
       })
 
       it('has email input fields', () => {
-        expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
+        expect(wrapper.find('#Email-input-field').exists()).toBe(true)
       })
 
       it('has Language selected field', () => {
-        expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
+        expect(wrapper.find('.selectedLanguage').exists()).toBe(true)
       })
 
       it('selects Language value en', async () => {
@@ -78,7 +79,7 @@ describe('Register', () => {
       })
 
       it('has 1 checkbox input fields', () => {
-        expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
+        expect(wrapper.find('#registerCheckbox').exists()).toBe(true)
       })
 
       it('has PublisherId input fields', () => {
@@ -167,42 +168,63 @@ describe('Register', () => {
       })
 
       describe('server sends back error', () => {
-        beforeEach(async () => {
-          registerUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
+        const createError = async (errorMessage) => {
+          registerUserMutationMock.mockRejectedValue({
+            message: errorMessage,
+          })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        }
+
+        describe('server sends back error "User already exists."', () => {
+          beforeEach(async () => {
+            await createError('GraphQL error: User already exists.')
+          })
+
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
+          })
         })
 
-        it('shows error message', () => {
-          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text()).toContain('error.error')
-          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
-        })
+        describe('server sends back error "Unknown error"', () => {
+          beforeEach(async () => {
+            await createError(' – Unknown error.')
+          })
 
-        it('button to dismisses error message is present', () => {
-          expect(wrapper.find('button.close').exists()).toBeTruthy()
-        })
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
 
-        it('dismisses error message', async () => {
-          await wrapper.find('button.close').trigger('click')
-          await flushPromises()
-          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknown error.')
+          })
         })
       })
 
       describe('server sends back success', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
           registerUserMutationMock.mockResolvedValue({
             data: {
               create: 'success',
             },
           })
-        })
-
-        it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        })
+
+        it('submit sends apollo mutate', () => {
           expect(registerUserMutationMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
@@ -214,7 +236,16 @@ describe('Register', () => {
               },
             }),
           )
-          expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
+        })
+
+        it('shows success title, subtitle', () => {
+          expect(wrapper.vm.showPageMessage).toBe(true)
+          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
+        })
+
+        it('button is not present', () => {
+          expect(wrapper.find('.test-message-button').exists()).toBe(false)
         })
       })
     })

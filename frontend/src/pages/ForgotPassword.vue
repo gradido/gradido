@@ -1,37 +1,71 @@
 <template>
   <div class="forgot-password">
-    <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
-    <validation-observer ref="observer" v-slot="{ handleSubmit }">
-      <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-        <input-email v-model="form.email"></input-email>
-
-        <b-button type="submit" variant="gradido" class="mt-4">
-          {{ $t('settings.password.send_now') }}
-        </b-button>
-      </b-form>
-    </validation-observer>
-
-    <div class="text-center py-lg-4">
-      <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-    </div>
+    <b-container v-if="enterData">
+      <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
+      <b-row class="justify-content-center">
+        <b-col>
+          <b-card no-body class="border-0 gradido-custom-background">
+            <b-card-body class="p-4">
+              <validation-observer ref="observer" v-slot="{ handleSubmit }">
+                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
+                  <input-email v-model="form.email"></input-email>
+                  <div class="text-center">
+                    <b-button type="submit" variant="primary">
+                      {{ $t('settings.password.send_now') }}
+                    </b-button>
+                  </div>
+                </b-form>
+              </validation-observer>
+            </b-card-body>
+          </b-card>
+        </b-col>
+      </b-row>
+      <div class="text-center py-lg-4">
+        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
+      </div>
+    </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <message
+        v-if="success"
+        :headline="$t('site.thx.title')"
+        :subtitle="$t('site.thx.email')"
+        :buttonText="$t('login')"
+        linkTo="/login"
+      />
+      <message
+        v-else
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="$t('error.email-already-sent')"
+        :buttonText="$t('login')"
+        linkTo="/login"
+      />
+    </b-container>
   </div>
 </template>
 <script>
 import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'
+import Message from '@/components/Message/Message'
 
 export default {
   name: 'ForgotPassword',
   components: {
     InputEmail,
+    Message,
   },
   data() {
     return {
-      disable: 'disabled',
       form: {
         email: '',
       },
       subtitle: 'settings.password.subtitle',
+      showPageMessage: false,
+      success: null,
+    }
+  },
+  created() {
+    if (this.$route.params.comingFrom) {
+      this.subtitle = 'settings.password.resend_subtitle'
     }
   },
   methods: {
@@ -44,18 +78,20 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/forgotPassword')
+          this.showPageMessage = true
+          this.success = true
         })
         .catch(() => {
+          this.showPageMessage = true
+          this.success = false
           this.toastError(this.$t('error.email-already-sent'))
-          this.$router.push('/thx/forgotPassword')
         })
     },
   },
-  created() {
-    if (this.$route.params.comingFrom) {
-      this.subtitle = 'settings.password.resend_subtitle'
-    }
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
   },
 }
 </script>
