@@ -15,7 +15,7 @@
     </div>
 
     <!-- Page content -->
-    <b-container class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <!-- Table -->
 
       <b-row class="justify-content-center">
@@ -105,19 +105,6 @@
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
-                  <b-alert
-                    v-if="showError"
-                    show
-                    dismissible
-                    variant="danger"
-                    @dismissed="closeAlert"
-                  >
-                    <span class="alert-icon"><i class="ni ni-point"></i></span>
-                    <span class="alert-text">
-                      <strong>{{ $t('error.error') }}</strong>
-                      {{ messageError }}
-                    </span>
-                  </b-alert>
 
                   <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps">
                     <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
@@ -177,6 +164,9 @@
         </b-col>
       </b-row>
     </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <message :headline="$t('site.thx.title')" :subtitle="$t('site.thx.register')" />
+    </b-container>
     <!--
     <div class="text-center pt-4">
       <router-link class="test-button-another-community" to="/select-community">
@@ -189,13 +179,18 @@
   </div>
 </template>
 <script>
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'
+import InputEmail from '@/components/Inputs/InputEmail.vue'
+import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
+import Message from '@/components/Message/Message'
 
 export default {
-  components: { InputEmail, LanguageSwitchSelect },
+  components: {
+    InputEmail,
+    LanguageSwitchSelect,
+    Message,
+  },
   name: 'Register',
   data() {
     return {
@@ -206,10 +201,8 @@ export default {
         agree: false,
       },
       language: '',
+      showPageMessage: false,
       submitted: false,
-      showError: false,
-      messageError: '',
-      register: true,
       publisherId: this.$store.state.publisherId,
       redeemCode: this.$route.params.code,
       CONFIG,
@@ -240,19 +233,21 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/register')
+          this.showPageMessage = true
         })
         .catch((error) => {
-          this.showError = true
-          this.messageError = error.message
+          // don't show any error on the page! against boots
+          let errorMessage
+          switch (error.message) {
+            case 'GraphQL error: User already exists.':
+              errorMessage = this.$t('error.user-already-exists')
+              break
+            default:
+              errorMessage = this.$t('error.unknown-error') + error.message
+              break
+          }
+          this.toastError(errorMessage)
         })
-    },
-    closeAlert() {
-      this.showError = false
-      this.messageError = ''
-      this.form.email = ''
-      this.form.firstname = ''
-      this.form.lastname = ''
     },
   },
   computed: {
@@ -269,6 +264,9 @@ export default {
     },
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
+    },
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }
