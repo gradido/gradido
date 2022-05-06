@@ -30,8 +30,9 @@ type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServer = async (context: any = serverContext): Promise<ServerDef> => {
-  const logger = log4js.getLogger('server.createServer')
-  logger.trace('createServer...')
+  const logger = log4js.getLogger('backend.server.createServer')
+  logger.addContext('user', 'unknown')
+  logger.debug('createServer...')
 
   // open mysql connection
   const con = await connection()
@@ -43,12 +44,7 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
   // check for correct database version
   const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
   if (!dbVersion) {
-    logger.fatal(
-      'Missmatching Database Versions! configured=' +
-        CONFIG.DB_VERSION +
-        ', dbVersion=' +
-        dbVersion,
-    )
+    logger.fatal('Fatal: Database Version incorrect')
     throw new Error('Fatal: Database Version incorrect')
   }
 
@@ -76,7 +72,7 @@ const createServer = async (context: any = serverContext): Promise<ServerDef> =>
     logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
-  logger.trace('createServer...successful')
+  logger.debug('createServer...successful')
   return { apollo, app, con }
 }
 
