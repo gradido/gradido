@@ -24,7 +24,7 @@
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
-    <b-container v-else class="mt--8 p-1">
+    <b-container v-else>
       <message
         v-if="success"
         :headline="$t('site.thx.title')"

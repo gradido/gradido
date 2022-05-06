@@ -45,7 +45,7 @@
         </b-form>
       </validation-observer>
     </b-container>
-    <b-container v-else class="mt--8 p-1">
+    <b-container v-else>
       <message
         :headline="$t('site.thx.errorTitle')"
         :subtitle="errorSubtitle"

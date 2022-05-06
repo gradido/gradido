@@ -1,10 +1,9 @@
 <template>
   <div id="registerform">
-
-    <b-container v-if="enterData" >
-          <div class="pb-5">
-      {{ $t('site.signup.heading') }}
-    </div>
+    <b-container v-if="enterData">
+      <div class="pb-5">
+        {{ $t('site.signup.heading') }}
+      </div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
           <b-row>
@@ -134,7 +133,7 @@
         </b-form>
       </validation-observer>
     </b-container>
-    <b-container v-else class="mt--8 p-1">
+    <b-container v-else>
       <message :headline="$t('site.thx.title')" :subtitle="$t('site.thx.register')" />
     </b-container>
   </div>
