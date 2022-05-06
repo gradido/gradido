@@ -5,7 +5,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/access.log",
-      "pattern": "%d %p %c %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -13,7 +13,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/apollo.log",
-      "pattern": "%d %p %c %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -21,7 +21,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/errors.log",
-      "pattern": "%d %p %c %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -46,7 +46,7 @@
         "apollo",
         "errors"
       ],
-      "level": "all",
+      "level": "debug",
       "enableCallStack": true
     },
     "http": 
