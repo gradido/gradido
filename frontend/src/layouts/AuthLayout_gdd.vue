@@ -41,24 +41,21 @@
 
     <div>
       <auth-header class="auth-header" />
-      <b-row class="auth-template-content ml-1 mr-1 mr-md-0 ml-md-0">
-        <b-col lg="6" md="none" sm="none">
-          <div class="bg-img-box d-none d-lg-block">
-            <carousel class="d-block w-100 h-100" />
-          </div>
-          <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
-            <div class="h0">{{ $t('auth.left.gratitude') }}</div>
-            <div class="h1">{{ $t('auth.left.newCurrency') }}</div>
-            <div class="h2 text-uppercase">{{ $t('auth.left.oneAnotherNature') }}</div>
-            <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
-          </div>
-        </b-col>
-        <b-col
-          lg="6"
-          md="12"
-          sm="12"
-          class="ml-2 ml-md-0 ml-lg-0 pl-2 pl-md-5 pr-2 pr-md-5 pr-md-5"
-        >
+
+      <div class="left-content-box">
+        <div class="bg-img-box d-none d-lg-block">
+          <carousel class="d-block w-100 h-100" />
+        </div>
+        <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
+          <div class="h0">{{ $t('auth.left.gratitude') }}</div>
+          <div class="h1">{{ $t('auth.left.newCurrency') }}</div>
+          <div class="h2 text-uppercase">{{ $t('auth.left.oneAnotherNature') }}</div>
+          <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
+        </div>
+      </div>
+
+      <b-row>
+        <b-col lg="6" offset-lg="6" md="12" sm="12">
           <div class="right-content-box">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col>
@@ -114,7 +111,7 @@
               </b-card-body>
             </b-card>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->
@@ -148,6 +145,13 @@ export default {
 }
 </script>
 <style lang="scss">
+.left-content-box {
+  position: fixed;
+  max-width: 484px;
+  background-color: aquamarine;
+  top: 0px;
+  bottom: 0px;
+}
 .right-content-box {
   max-width: 640px;
 }
@@ -183,9 +187,9 @@ export default {
   z-index: 10;
 }
 .mobil-start-box #img0 {
-  position: absolute;
+  /* position: absolute;*/
   z-index: 1000;
-  width: 33%;
+  /* width: 33%; */
 }
 .mobil-start-box #img2 {
   position: absolute;

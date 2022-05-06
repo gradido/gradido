@@ -1,6 +1,6 @@
 <template>
   <div class="auth-header">
-    <b-navbar toggleable="lg" class="p-0">
+    <b-navbar toggleable="lg" class="p-0 pr-4">
       <div class="g-logo-radius bg-white p-3">
         <b-img :src="logo" height="40" alt="..." />
       </div>
@@ -13,10 +13,10 @@
           <b-nav-item href="https://gradido.net/de/" target="_blank">
             {{ $t('auth.navbar.overGradido') }}
           </b-nav-item>
-
-          <b-nav-item to="/register">{{ $t('signup') }}</b-nav-item>
-
-          <b-nav-item to="/login">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item class="ml-5">
+            <b-link to="/register">{{ $t('signup') }} {{ $t('|') }}</b-link>
+            <b-link to="/login">{{ $t('signin') }}</b-link>
+          </b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
