@@ -26,16 +26,8 @@
     </b-container>
     <b-container v-else>
       <message
-        v-if="success"
-        :headline="$t('site.thx.title')"
-        :subtitle="$t('site.thx.email')"
-        :buttonText="$t('login')"
-        linkTo="/login"
-      />
-      <message
-        v-else
-        :headline="$t('site.thx.errorTitle')"
-        :subtitle="$t('error.email-already-sent')"
+        :headline="success ? $t('site.thx.title') : $t('site.thx.errorTitle')"
+        :subtitle="success ? $t('site.thx.email') : $t('error.email-already-sent')"
         :buttonText="$t('login')"
         linkTo="/login"
       />
