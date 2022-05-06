@@ -1,7 +1,7 @@
 <template>
   <div class="auth-template" ref="pageFontSize">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
-    <div>
+    <div class="h-100 align-middle">
       <auth-header class="auth-header" />
 
       <div class="left-content-box d-none d-lg-block">
@@ -17,7 +17,7 @@
       </div>
 
 
-      <b-row class="d-flex justify-content-center">
+      <b-row class="right-content d-flex justify-content-center">
           <b-col sm="12" md="8" lg="6" offset-lg="6">
           <div class="right-content-box">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
@@ -139,6 +139,10 @@ export default {
 }
 
 /* right */
+.right-content {
+  height: 100%;
+  flex-direction: column-reverse;
+}
 .right-content-box {
   max-width: 640px;
 }
