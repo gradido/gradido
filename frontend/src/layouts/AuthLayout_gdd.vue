@@ -16,8 +16,9 @@
         </div>
       </div>
 
-      <b-row>
-        <b-col lg="6" offset-lg="6" md="12" sm="12">
+
+      <b-row class="d-flex justify-content-center">
+          <b-col sm="12" md="8" lg="6" offset-lg="6">
           <div class="right-content-box">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col>
@@ -73,7 +74,7 @@
               </b-card-body>
             </b-card>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="mt-4 pr-5"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->
