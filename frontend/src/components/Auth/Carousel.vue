@@ -39,24 +39,23 @@ export default {
 <style>
 .carousel {
   position: relative;
-  height: 100%;
+  height: 120%;
+  top: -138px;
+  bottom: -369px;
 }
+
 .carousel-inner {
+  background-color: brown;
   height: 100%;
   border-radius: 0 94% 63% 0/0 78% 54% 0;
 }
 
 @media screen and (max-width: 1398px) {
   .carousel-item {
-    width: 116%;
-    top: 101px;
   }
 }
 @media screen and (max-width: 1200px) {
   .carousel-item {
-    width: 129%;
-    top: 118px;
-    left: -75px;
   }
 }
 </style>

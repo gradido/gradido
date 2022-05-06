@@ -55,26 +55,28 @@ export default {
   bottom: 65px;
   width: 100%;
 }
-
+/* logo */
 .mobil-start-box #img0 {
-  /* position: absolute;*/
+  position: absolute;
   z-index: 1000;
-  /* width: 33%; */
+  min-width: 200px;
+  max-width: 280px;
 }
 
 .mobil-start-box #img1 {
-  /* position: absolute;*/
+  position: absolute;
   overflow: hidden;
   height: 100%;
-  /* width: 100%;*/
+  width: 100%;
   z-index: 10;
 }
 
 .mobil-start-box #img2 {
-  /*position: absolute;*/
-  /*width: 49%;*/
-  height: 14%;
-  z-index: 1;
+  position: absolute;
+  min-width: 220px;
+  max-width: 300px;
+  height: auto;
+  z-index: 100;
 }
 .mobil-start-box #img3 {
   width: 115%;

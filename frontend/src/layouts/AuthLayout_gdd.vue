@@ -4,9 +4,9 @@
     <div>
       <auth-header class="auth-header" />
 
-      <div class="left-content-box">
-        <div class="bg-img-box d-none d-lg-block">
-          <carousel class="d-block w-100 h-100" />
+      <div class="left-content-box d-none d-lg-block">
+        <div class="bg-img-box">
+          <carousel class="carousel" />
         </div>
         <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
           <div class="h0">{{ $t('auth.left.gratitude') }}</div>
@@ -112,13 +112,32 @@ export default {
 }
 </script>
 <style lang="scss">
+/* left  */
 .left-content-box {
   position: fixed;
-  max-width: 484px;
-  background-color: aquamarine;
+  width: 40%;
+  /* background-color: aquamarine; */
   top: 0px;
   bottom: 0px;
 }
+
+.bg-img-box {
+  /* background-color: red; */
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  /* margin-top: -308px;
+  margin-left: -118px;
+  position: absolute;
+  top: 33px;
+  bottom: -228px;
+  min-width: 86%;
+  max-width: 800px;
+  /* background-color: bisque; */
+  /* border-radius: 0% 48% 74% 0%/59% 70% 73% 47%; */
+}
+
+/* right */
 .right-content-box {
   max-width: 640px;
 }
@@ -136,17 +155,6 @@ export default {
   z-index: 999;
 }
 
-.bg-img-box {
-  margin-top: -308px;
-  margin-left: -118px;
-  position: absolute;
-  top: 33px;
-  bottom: -228px;
-  min-width: 86%;
-  max-width: 800px;
-  /* background-color: bisque; */
-  /* border-radius: 0% 48% 74% 0%/59% 70% 73% 47%; */
-}
 .bg-txt-box {
   position: relative;
   margin-top: 317px;
