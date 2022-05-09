@@ -76,39 +76,7 @@
             </span>
           </b-alert>
 
-          <b-row v-b-toggle:my-collapse class="text-muted shadow-sm p-3 publisherCollaps mb-4">
-            <b-col>{{ $t('publisher.publisherId') }} {{ $store.state.publisherId }}</b-col>
-            <b-col class="text-right">
-              <b-icon icon="chevron-down" aria-hidden="true"></b-icon>
-            </b-col>
-          </b-row>
-
-          <b-row>
-            <b-col>
-              <b-collapse id="my-collapse" class="">
-                <b-input-group class="shadow-sm p-2 bg-white rounded">
-                  <b-input-group-prepend is-text>
-                    <b-icon icon="person-fill"></b-icon>
-                  </b-input-group-prepend>
-                  <b-form-input
-                    id="publisherid"
-                    type="text"
-                    placeholder="Publisher ID"
-                    v-model="publisherId"
-                    @input="commitStorePublisherId(publisherId)"
-                  ></b-form-input>
-                </b-input-group>
-                <div v-b-toggle:my-collapse class="text-center mt-1 shadow-lg p-3 mb-5 rounded">
-                  {{ $t('publisher.infoText') }}
-                  <div class="text-center">
-                    <b-icon icon="chevron-up" aria-hidden="true"></b-icon>
-                  </div>
-                </div>
-              </b-collapse>
-            </b-col>
-          </b-row>
-
-          <b-row>
+          <b-row class="mt-4 mb-4">
             <b-col class="mb-4 mb-md-0">
               <b-form-checkbox
                 id="registerCheckbox"
