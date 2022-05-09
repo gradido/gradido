@@ -1,8 +1,13 @@
 <template>
   <div class="auth-header">
     <b-navbar toggleable="lg" class="p-0 pr-4">
-      <div class="g-logo-radius bg-white p-3">
-        <b-img :src="logo" height="40" alt="..." />
+      <b-img
+        class="imgLogoBack"
+        src="img/template/gradido_background_header.png"
+        alt="start background image"
+      ></b-img>
+      <div class="p-3">
+        <b-img class="imgLogo" :src="logo" height="40" alt="..." />
       </div>
       <b-img class="header-img d-block d-lg-none" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -34,6 +39,14 @@ export default {
 }
 </script>
 <style lang="scss">
+.imgLogoBack,
+.imgLogo {
+  position: absolute;
+}
+.imgLogoBack {
+  height: 140px;
+  width: 250px;
+}
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
   position: sticky;
