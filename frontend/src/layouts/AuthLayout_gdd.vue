@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-template" ref="pageFontSize">
+  <div class="auth-template">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
     <div class="h-100 align-middle">
       <auth-header class="auth-header" />
@@ -16,21 +16,20 @@
         </div>
       </div>
 
-
       <b-row class="right-content d-flex justify-content-center">
-          <b-col sm="12" md="8" lg="6" offset-lg="6">
+        <b-col sm="12" md="8" lg="6" offset-lg="6">
           <div class="right-content-box">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
-              <b-col>
-                <div class="h1">{{ $t('welcome') }}</div>
-                <div class="h1">{{ $t('communitiesWorldWide') }}</div>
-                <div>{{ $t('1000thanks') }}</div>
+              <b-col cols="9">
+                <div class="h1 mb--2">{{ $t('welcome') }}</div>
+                <div class="h1 mb-0">{{ $t('communitiesWorldWide') }}</div>
+                <div class="mb-0">{{ $t('1000thanks') }}</div>
               </b-col>
-              <b-col class="text-right d-none d-sm-none d-md-inline">
+              <b-col cols="3" class="text-right d-none d-sm-none d-md-inline">
                 <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
               </b-col>
             </b-row>
-            <b-card no-body class="border-0 mt-4 gradido-custom-background">
+            <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
               <b-row class="p-4">
                 <b-col cols="10">
                   <language-switch />
@@ -140,7 +139,7 @@ export default {
 
 /* right */
 .right-content {
-  height: 100%;
+  /* height: 100%; */
   flex-direction: column-reverse;
 }
 .right-content-box {
@@ -184,5 +183,16 @@ export default {
   width: 100%;
   border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
   overflow: hidden;
+}
+
+@media screen and (min-width: 2000px) {
+  .right-content {
+    height: 100%;
+    flex-direction: column-reverse;
+  }
+  .right-content-box {
+    max-width: 60%;
+    font-size: xx-large;
+  }
 }
 </style>
