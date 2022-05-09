@@ -1,13 +1,14 @@
 <template>
   <div class="language-switch">
     <span
-      v-for="lang in locales"
+      v-for="(lang, index) in locales"
       @click.prevent="saveLocale(lang.code)"
       :key="lang.code"
       class="pointer pr-3"
       :class="$store.state.language === lang.code ? 'text-primary' : ''"
     >
       {{ lang.name }}
+      <span class="ml-3">{{ locales.length - 1 > index ? $t('|') : '' }}</span>
     </span>
   </div>
 </template>
