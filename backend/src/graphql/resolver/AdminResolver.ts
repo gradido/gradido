@@ -361,7 +361,10 @@ export class AdminResolver {
     transaction.balanceDate = receivedCallDate
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
-    await transaction.save()
+    await transaction.save().catch(() => {
+      // eslint-disable-next-line no-console
+      console.log('Unable to save transaction.')
+    })
 
     await AdminPendingCreation.delete(pendingCreation)
 
