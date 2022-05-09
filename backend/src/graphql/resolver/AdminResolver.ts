@@ -362,8 +362,7 @@ export class AdminResolver {
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
     await transaction.save().catch(() => {
-      // eslint-disable-next-line no-console
-      console.log('Unable to save transaction.')
+      throw new Error('Unable to confirm creation.')
     })
 
     await AdminPendingCreation.delete(pendingCreation)
