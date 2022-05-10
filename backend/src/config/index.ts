@@ -13,6 +13,8 @@ const constants = {
   DB_VERSION: '0035-admin_pending_creations_decimal',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
+  // default log level on production should be info
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
     EXPECTED: 'v6.2022-04-21',
