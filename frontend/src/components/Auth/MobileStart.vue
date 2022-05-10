@@ -12,7 +12,7 @@
       fluid
       height="100%"
       id="img1"
-      src="img/template/background-start-mobil.png"
+      src="img/template/gold_03.png"
       alt="start background image"
     ></b-img>
     <b-img
