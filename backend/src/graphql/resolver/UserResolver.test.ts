@@ -79,7 +79,7 @@ afterAll(async () => {
 describe('UserResolver', () => {
   describe('logger', () => {
     it('creates a logger', () => {
-      expect(getLogger).toBeCalledWith('backend.graphql.resolver.UserResolver')
+      expect(getLogger).toBeCalledWith('backend')
     })
 
     it('adds user context to logger', () => {
