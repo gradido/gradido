@@ -55,14 +55,25 @@ export default {
   bottom: 65px;
   width: 100%;
 }
+
 /* logo */
 .mobil-start-box #img0 {
   position: absolute;
   z-index: 1000;
-  min-width: 200px;
+  width: 200px;
   max-width: 280px;
 }
 
+/* background logo */
+.mobil-start-box #img2 {
+  position: absolute;
+  width: 230px;
+  max-width: 300px;
+  height: auto;
+  z-index: 100;
+}
+
+/* background maske */
 .mobil-start-box #img1 {
   position: absolute;
   overflow: hidden;
@@ -71,22 +82,14 @@ export default {
   z-index: 10;
 }
 
-.mobil-start-box #img2 {
-  position: absolute;
-  min-width: 220px;
-  max-width: 300px;
-  height: auto;
-  z-index: 100;
-}
 .mobil-start-box #img3 {
-  width: 115%;
-  /*position: relative;*/
+  position: relative;
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 1024px) {
   .mobil-start-box #img3 {
-    width: 150%;
-    top: -148px;
+    width: 100%;
+    top: -120px;
   }
 }
 

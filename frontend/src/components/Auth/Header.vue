@@ -7,7 +7,7 @@
         alt="start background image"
       ></b-img>
       <div class="p-3">
-        <b-img class="imgLogo" :src="logo" height="40" alt="..." />
+        <b-img class="imgLogo" :src="logo" alt="..." />
       </div>
       <b-img class="header-img d-block d-lg-none" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -43,9 +43,19 @@ export default {
 .imgLogo {
   position: absolute;
 }
+.imgLogo {
+  z-index: 1000;
+  width: 200px;
+  max-width: 280px;
+  top: 19px;
+  left: 0px;
+}
+
 .imgLogoBack {
-  height: 140px;
-  width: 250px;
+  width: 230px;
+  max-width: 300px;
+  height: auto;
+  top: 0px;
 }
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
