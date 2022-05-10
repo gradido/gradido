@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import log4js from '@/server/logger'
+import { getLogger } from '@/server/logger'
 import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
@@ -35,7 +35,7 @@ import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
 
-const logger = log4js.getLogger('backend.graphql.resolver.TransactionResolver')
+const logger = getLogger('backend')
 
 const MEMO_MAX_CHARS = 255
 const MEMO_MIN_CHARS = 5
@@ -174,7 +174,7 @@ export class TransactionResolver {
     const now = new Date()
     const user = getUser(context)
 
-    logger.addContext('user', user.pubKey)
+    logger.addContext('user', user.id)
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.email})`)
 
     // find current balance

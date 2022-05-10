@@ -28,7 +28,7 @@ const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
 
-export const logger = getLogger('backend.graphql.resolver.UserResolver')
+export const logger = getLogger('backend')
 logger.addContext('user', 'unknown')
 
 // We will reuse this for changePassword
@@ -282,7 +282,7 @@ export class UserResolver {
       throw new Error('No user with this credentials')
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
-    logger.addContext('user', dbUser.pubKey)
+    logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
 
     const user = new User(dbUser)

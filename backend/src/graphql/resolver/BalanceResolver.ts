@@ -1,4 +1,4 @@
-import log4js from '@/server/logger'
+import { getLogger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
@@ -12,7 +12,7 @@ import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { MoreThan, getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-const logger = log4js.getLogger('backend.graphql.resolver.BalanceResolver')
+const logger = getLogger('backend')
 
 @Resolver()
 export class BalanceResolver {
@@ -22,7 +22,7 @@ export class BalanceResolver {
     const user = getUser(context)
     const now = new Date()
 
-    logger.addContext('user', user.pubKey)
+    logger.addContext('user', user.id)
     logger.info(`balance(userId=${user.id})...`)
 
     const gdtResolver = new GdtResolver()
