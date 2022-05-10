@@ -22,15 +22,21 @@ import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
-import log4js from './logger'
+import { getLogger } from './logger'
+import { Logger } from 'log4js'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createServer = async (context: any = serverContext): Promise<ServerDef> => {
-  const logger = log4js.getLogger('backend.server.createServer')
+const serverLogger = getLogger('backend.server.createServer')
+
+const createServer = async (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any = serverContext,
+  logger: Logger = serverLogger,
+): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 

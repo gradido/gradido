@@ -64,7 +64,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
