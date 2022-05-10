@@ -1,15 +1,19 @@
+import log4js from '@/server/logger'
 import { createTransport } from 'nodemailer'
 
 import CONFIG from '@/config'
+
+const logger = log4js.getLogger('backend.mailer.sendEMail')
 
 export const sendEMail = async (emailDef: {
   to: string
   subject: string
   text: string
 }): Promise<boolean> => {
+  logger.info(`send Email: to=${emailDef.to}, subject=${emailDef.subject}, text=${emailDef.text}`)
+
   if (!CONFIG.EMAIL) {
-    // eslint-disable-next-line no-console
-    console.log('Emails are disabled via config')
+    logger.info(`Emails are disabled via config...`)
     return false
   }
   const transporter = createTransport({
@@ -27,7 +31,9 @@ export const sendEMail = async (emailDef: {
     from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
   })
   if (!info.messageId) {
+    logger.error('error sending notification email, but transaction succeed')
     throw new Error('error sending notification email, but transaction succeed')
   }
+  logger.info('send Email successfully.')
   return true
 }

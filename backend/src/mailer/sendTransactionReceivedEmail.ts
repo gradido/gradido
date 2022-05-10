@@ -1,6 +1,9 @@
+import log4js from '@/server/logger'
 import Decimal from 'decimal.js-light'
 import { sendEMail } from './sendEMail'
 import { transactionReceived } from './text/transactionReceived'
+
+const logger = log4js.getLogger('backend.mailer.sendTransactionReceivedEmail')
 
 export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string
@@ -13,6 +16,12 @@ export const sendTransactionReceivedEmail = (data: {
   memo: string
   overviewURL: string
 }): Promise<boolean> => {
+  logger.info(
+    `sendEmail(): to=${data.recipientFirstName} ${data.recipientLastName}, 
+      <${data.email}>, 
+      subject=${transactionReceived.de.subject}, 
+      text=${transactionReceived.de.text(data)}`,
+  )
   return sendEMail({
     to: `${data.recipientFirstName} ${data.recipientLastName} <${data.email}>`,
     subject: transactionReceived.de.subject,

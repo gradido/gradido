@@ -1,3 +1,5 @@
+import log4js from '@/server/logger'
+
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { Balance } from '@model/Balance'
@@ -10,6 +12,8 @@ import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { MoreThan, getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
+const logger = log4js.getLogger('backend.graphql.resolver.BalanceResolver')
+
 @Resolver()
 export class BalanceResolver {
   @Authorized([RIGHTS.BALANCE])
@@ -18,15 +22,22 @@ export class BalanceResolver {
     const user = getUser(context)
     const now = new Date()
 
+    logger.addContext('user', user.pubKey)
+    logger.info(`balance(userId=${user.id})...`)
+
     const gdtResolver = new GdtResolver()
     const balanceGDT = await gdtResolver.gdtBalance(context)
+    logger.debug(`balanceGDT=${balanceGDT}`)
 
     const lastTransaction = context.lastTransaction
       ? context.lastTransaction
       : await dbTransaction.findOne({ userId: user.id }, { order: { balanceDate: 'DESC' } })
 
+    logger.debug(`lastTransaction=${lastTransaction}`)
+
     // No balance found
     if (!lastTransaction) {
+      logger.info(`no balance found, return Default-Balance!`)
       return new Balance({
         balance: new Decimal(0),
         balanceGDT,
@@ -39,6 +50,8 @@ export class BalanceResolver {
       context.transactionCount || context.transactionCount === 0
         ? context.transactionCount
         : await dbTransaction.count({ where: { userId: user.id } })
+    logger.debug(`transactionCount=${count}`)
+
     const linkCount =
       context.linkCount || context.linkCount === 0
         ? context.linkCount
@@ -49,12 +62,16 @@ export class BalanceResolver {
               validUntil: MoreThan(new Date()),
             },
           })
+    logger.debug(`linkCount=${linkCount}`)
 
     // The decay is always calculated on the last booked transaction
     const calculatedDecay = calculateDecay(
       lastTransaction.balance,
       lastTransaction.balanceDate,
       now,
+    )
+    logger.info(
+      `calculatedDecay(balance=${lastTransaction.balance}, balanceDate=${lastTransaction.balanceDate})=${calculatedDecay}`,
     )
 
     // The final balance is reduced by the link amount withheld
@@ -63,13 +80,27 @@ export class BalanceResolver {
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkRepository.summary(user.id, now)
 
-    return new Balance({
-      balance: calculatedDecay.balance
-        .minus(sumHoldAvailableAmount.toString())
-        .toDecimalPlaces(2, Decimal.ROUND_DOWN), // round towards zero
+    logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
+    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
+
+    const balance = calculatedDecay.balance
+      .minus(sumHoldAvailableAmount.toString())
+      .toDecimalPlaces(2, Decimal.ROUND_DOWN) // round towards zero
+
+    // const newBalance = new Balance({
+    //      balance: calculatedDecay.balance
+    //        .minus(sumHoldAvailableAmount.toString())
+    //        .toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    const newBalance = new Balance({
+      balance,
       balanceGDT,
       count,
       linkCount,
     })
+    logger.info(
+      `new Balance(balance=${balance}, balanceGDT=${balanceGDT}, count=${count}, linkCount=${linkCount}) = ${newBalance}`,
+    )
+
+    return newBalance
   }
 }
