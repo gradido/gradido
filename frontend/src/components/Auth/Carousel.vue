@@ -49,13 +49,4 @@ export default {
   height: 100%;
   border-radius: 0 94% 63% 0/0 78% 54% 0;
 }
-
-@media screen and (max-width: 1398px) {
-  .carousel-item {
-  }
-}
-@media screen and (max-width: 1200px) {
-  .carousel-item {
-  }
-}
 </style>

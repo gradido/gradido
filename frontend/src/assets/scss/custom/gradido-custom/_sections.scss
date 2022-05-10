@@ -1,10 +1,13 @@
-// Body
+// Sections
 
-$section-colors: () !default;
-$section-colors: map-merge((
-  "primary":      $body-bg,
-  "secondary":    $secondary,
-  "light":        $gray-400,
-  "dark":         $dark,
-  "darker":       $darker
-), $section-colors);
+// $section-colors: () !default;
+// $section-colors: map-merge(
+//   (
+//     "primary":      $body-bg,
+//     "secondary":    $secondary,
+//     "light":        $gray-400,
+//     "dark":         $dark,
+//     "darker":       $darker
+//   ),
+//   $section-colors
+// );
