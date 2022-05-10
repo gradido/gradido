@@ -25,6 +25,30 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import { logger } from './UserResolver'
+
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import { getLogger } from '@/server/logger'
+
+jest.mock('@/server/logger', () => {
+  const originalModule = jest.requireActual('@/server/logger')
+  return {
+    __esModule: true,
+    ...originalModule,
+    getLogger: jest.fn(() => {
+      return {
+        addContext: jest.fn(),
+        trace: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        error: jest.fn(),
+        fatal: jest.fn(),
+      }
+    }),
+  }
+})
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
