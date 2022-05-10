@@ -12,7 +12,28 @@ import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink } from './UserResolver'
+import { printTimeDuration, activationLink, logger } from './UserResolver'
+
+import { getLogger } from '@/server/logger'
+
+jest.mock('@/server/logger', () => {
+  const originalModule = jest.requireActual('@/server/logger')
+  return {
+    __esModule: true,
+    ...originalModule,
+    getLogger: jest.fn(() => {
+      return {
+        addContext: jest.fn(),
+        trace: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        error: jest.fn(),
+        fatal: jest.fn(),
+      }
+    }),
+  }
+})
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -56,6 +77,16 @@ afterAll(async () => {
 })
 
 describe('UserResolver', () => {
+  describe('logger', () => {
+    it('creates a logger', () => {
+      expect(getLogger).toBeCalledWith('backend.graphql.resolver.UserResolver')
+    })
+
+    it('adds user context to logger', () => {
+      expect(logger.addContext).toBeCalledWith('user', 'unknown')
+    })
+  })
+
   describe('createUser', () => {
     const variables = {
       email: 'peter@lustig.de',
@@ -149,12 +180,14 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      it('throws an error', async () => {
-        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
+      it('throws and logs an error', async () => {
+        const mutation = await mutate({ mutation: createUser, variables })
+        expect(mutation).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
         )
+        expect(logger.error).toBeCalledWith('User already exists with this email=peter@lustig.de')
       })
     })
 

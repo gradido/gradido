@@ -1,5 +1,5 @@
 import fs from 'fs'
-import log4js from '@/server/logger'
+import { getLogger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
@@ -28,7 +28,7 @@ const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
 
-const logger = log4js.getLogger('backend.graphql.resolver.UserResolver')
+export const logger = getLogger('backend.graphql.resolver.UserResolver')
 logger.addContext('user', 'unknown')
 
 // We will reuse this for changePassword
