@@ -5,7 +5,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/access.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -13,7 +13,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/apollo.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -21,7 +21,7 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/errors.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
@@ -36,7 +36,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m"
       }
 
     }
