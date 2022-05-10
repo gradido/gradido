@@ -30,7 +30,7 @@ import { Logger } from 'log4js'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const serverLogger = getLogger('backend.server.createServer')
+const serverLogger = getLogger('apollo')
 
 const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
