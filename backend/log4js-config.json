@@ -33,7 +33,12 @@
     },
     "out": 
     {
-      "type": "stdout"
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m%n"
+      }
+
     }
   },
   "categories": 
