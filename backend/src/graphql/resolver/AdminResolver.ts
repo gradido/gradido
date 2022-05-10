@@ -361,7 +361,9 @@ export class AdminResolver {
     transaction.balanceDate = receivedCallDate
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
-    await transaction.save()
+    await transaction.save().catch(() => {
+      throw new Error('Unable to confirm creation.')
+    })
 
     await AdminPendingCreation.delete(pendingCreation)
 
