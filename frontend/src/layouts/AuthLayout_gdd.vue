@@ -16,8 +16,8 @@
         </div>
       </div>
 
-      <b-row class="right-content d-flex justify-content-center">
-        <b-col sm="12" md="8" lg="6" offset-lg="6">
+      <b-row class="justify-content-md-center">
+        <b-col sm="12" md="8" offset-lg="6" lg="6">
           <div class="right-content-box">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col cols="9">
