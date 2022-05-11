@@ -18,7 +18,7 @@
 
       <b-row class="justify-content-md-center">
         <b-col sm="12" md="8" offset-lg="6" lg="6">
-          <div class="right-content-box">
+          <div class="right-content-box ml-2 ml-sm-4 mr-2 mr-sm-4">
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col cols="9">
                 <div class="h1 mb--2">{{ $t('welcome') }}</div>
