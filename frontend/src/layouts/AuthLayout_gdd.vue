@@ -116,30 +116,18 @@ export default {
 .left-content-box {
   position: fixed;
   width: 40%;
-  /* background-color: aquamarine; */
   top: 0px;
   bottom: 0px;
 }
 
 .bg-img-box {
-  /* background-color: red; */
   position: absolute;
   top: 0px;
   bottom: 0px;
-  /* margin-top: -308px;
-  margin-left: -118px;
-  position: absolute;
-  top: 33px;
-  bottom: -228px;
-  min-width: 86%;
-  max-width: 800px;
-  /* background-color: bisque; */
-  /* border-radius: 0% 48% 74% 0%/59% 70% 73% 47%; */
 }
 
 /* right */
 .right-content {
-  /* height: 100%; */
   flex-direction: column-reverse;
 }
 .right-content-box {
@@ -162,7 +150,6 @@ export default {
 .bg-txt-box {
   position: relative;
   margin-top: 317px;
-  /* padding-bottom: 20px; */
   text-shadow: 2px 2px 8px #000000;
   max-width: 733px;
 }

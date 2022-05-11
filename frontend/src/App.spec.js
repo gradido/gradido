@@ -1,10 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import App from './App'
-// import VueRouter from 'vue-router'
 
 const localVue = global.localVue
-// localVue.use(VueRouter)
-// const router = new VueRouter()
 const mockStoreCommit = jest.fn()
 
 const stubs = {

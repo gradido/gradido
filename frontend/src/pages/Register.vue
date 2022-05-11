@@ -164,7 +164,6 @@ export default {
           this.showPageMessage = true
         })
         .catch((error) => {
-          // don't show any error on the page! against boots
           let errorMessage
           switch (error.message) {
             case 'GraphQL error: User already exists.':

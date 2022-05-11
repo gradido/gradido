@@ -13,7 +13,6 @@
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
-        <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto" right>
           <b-nav-item href="https://gradido.net/de/" target="_blank">
             {{ $t('auth.navbar.overGradido') }}
@@ -67,19 +66,6 @@ export default {
 .navbar-collapse li {
   padding-top: 10px;
   padding-bottom: 10px;
-}
-
-.g-logo-radius {
-  -webkit-border-top-right-radius: 77px;
-  -webkit-border-bottom-right-radius: 137px;
-  -webkit-border-bottom-left-radius: 0px;
-  -moz-border-radius-topright: 77px;
-  -moz-border-radius-bottomright: 137px;
-  -moz-border-radius-bottomleft: 0px;
-  border-top-right-radius: 77px;
-  border-bottom-right-radius: 137px;
-  border-bottom-left-radius: 0px;
-  z-index: 1;
 }
 
 .header-img {

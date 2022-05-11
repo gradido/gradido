@@ -121,8 +121,6 @@ describe('ForgotPassword', () => {
             })
 
             it.skip('click redirects to "/login"', async () => {
-              // wrapper.find('.test-message-button').trigger('click')
-              // await wrapper.vm.$nextTick()
               expect(mockRouterPush).toBeCalledWith('/login')
             })
 
@@ -153,10 +151,6 @@ describe('ForgotPassword', () => {
 
             it('button link redirects to "/login"', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
-            })
-
-            it.skip('click redirects to "/login"', () => {
-              // expect(mockRouterPush).toBeCalledWith('/login')
             })
           })
         })

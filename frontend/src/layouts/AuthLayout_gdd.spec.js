@@ -59,16 +59,5 @@ describe('AuthLayoutGdd', () => {
       wrapper.vm.setTextSize('85')
       expect(wrapper.vm.$refs.pageFontSize.style.fontSize).toBe('85rem')
     })
-
-    // describe('check LanguageSwitch on register page', () => {
-    //   beforeEach(() => {
-    //     mocks.$route.path = '/register'
-    //     wrapper = Wrapper()
-    //   })
-    //
-    //   it('has not LanguageSwitch', () => {
-    //     expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeFalsy()
-    //   })
-    // })
   })
 })
