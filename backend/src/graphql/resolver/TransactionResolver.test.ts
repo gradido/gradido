@@ -11,6 +11,7 @@ import { User } from '@entity/User'
 import { Transaction } from '@entity/Transaction'
 import { sendCoins } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
+import { login } from '@/seeds/graphql/queries'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -50,6 +51,37 @@ describe('TransactionResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          adminUser = await userFactory(testEnv, peterLustig)
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('throws Error when sending to not existing user email', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: { email: user.email + '.', amount: 10, memo: 'test-memo' },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('recipient not known')],
+            }),
+          )
+        })
       })
     })
   })
