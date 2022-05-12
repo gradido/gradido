@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0036-unique_previous_in_transactions',
+  DB_VERSION: '0037-community_federation_tables',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
