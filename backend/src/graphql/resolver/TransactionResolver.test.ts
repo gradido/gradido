@@ -127,7 +127,7 @@ describe('TransactionResolver', () => {
           )
         })
 
-        it('throws Error when sending to own user', async () => {
+        it('throws Error when memo is to small', async () => {
           await expect(
             mutate({
               mutation: sendCoins,
@@ -137,6 +137,25 @@ describe('TransactionResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`),
+              ],
+            }),
+          )
+        })
+
+        it('throws Error when memo is to long', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: {
+                email: bibiBloxberg.email,
+                amount: 10,
+                memo: 'testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`),
               ],
             }),
           )
