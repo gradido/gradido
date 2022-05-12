@@ -13,6 +13,9 @@ import { sendCoins } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
 import { login } from '@/seeds/graphql/queries'
 
+const MEMO_MAX_CHARS = 255
+const MEMO_MIN_CHARS = 5
+
 let mutate: any, query: any, con: any
 let testEnv: any
 
@@ -58,7 +61,8 @@ describe('TransactionResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           adminUser = await userFactory(testEnv, peterLustig)
-          user = await userFactory(testEnv, stephenHawking)
+          user = await userFactory(testEnv, bibiBloxberg)
+          await userFactory(testEnv, stephenHawking)
           await userFactory(testEnv, garrickOllivander)
           await query({
             query: login,
@@ -88,7 +92,7 @@ describe('TransactionResolver', () => {
           await expect(
             mutate({
               mutation: sendCoins,
-              variables: { email: user.email, amount: 10, memo: 'test-memo' },
+              variables: { email: stephenHawking.email, amount: 10, memo: 'test-memo' },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -119,6 +123,21 @@ describe('TransactionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('Sender and Recipient are the same.')],
+            }),
+          )
+        })
+
+        it('throws Error when sending to own user', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: { email: bibiBloxberg.email, amount: 10, memo: 'test' },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`),
+              ],
             }),
           )
         })
