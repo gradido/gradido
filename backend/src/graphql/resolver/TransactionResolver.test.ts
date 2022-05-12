@@ -58,7 +58,7 @@ describe('TransactionResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           adminUser = await userFactory(testEnv, peterLustig)
-          user = await userFactory(testEnv, bibiBloxberg)
+          user = await userFactory(testEnv, stephenHawking)
           await query({
             query: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -79,6 +79,19 @@ describe('TransactionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('recipient not known')],
+            }),
+          )
+        })
+
+        it('throws Error when sending to deleted user', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: { email: user.email, amount: 10, memo: 'test-memo' },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('The recipient account was deleted')],
             }),
           )
         })
