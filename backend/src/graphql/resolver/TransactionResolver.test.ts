@@ -161,7 +161,7 @@ describe('TransactionResolver', () => {
           )
         })
 
-        it('throws Error when user balance has not enough GDD', async () => {
+        it('throws Error when amount is bigger than user balance', async () => {
           await expect(
             mutate({
               mutation: sendCoins,
