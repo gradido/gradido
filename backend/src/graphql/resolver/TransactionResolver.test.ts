@@ -109,6 +109,19 @@ describe('TransactionResolver', () => {
             }),
           )
         })
+
+        it('throws Error when sending to own user', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: { email: peterLustig.email, amount: 10, memo: 'test-memo' },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Sender and Recipient are the same.')],
+            }),
+          )
+        })
       })
     })
   })
