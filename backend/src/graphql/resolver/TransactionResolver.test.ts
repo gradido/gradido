@@ -160,6 +160,23 @@ describe('TransactionResolver', () => {
             }),
           )
         })
+
+        it('throws Error when user balance has not enough GDD', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: {
+                email: bibiBloxberg.email,
+                amount: 10,
+                memo: 'test-memo',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError("user hasn't enough GDD or amount is < 0")],
+            }),
+          )
+        })
       })
     })
   })
