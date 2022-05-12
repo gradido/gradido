@@ -12,6 +12,8 @@ import { Transaction } from '@entity/Transaction'
 import { sendCoins } from '@/seeds/graphql/mutations'
 import { GraphQLError } from 'graphql'
 import { login } from '@/seeds/graphql/queries'
+import { transactions } from '@/seeds/transaction'
+import { transactionFactory } from '@/seeds/factory/transaction'
 
 const MEMO_MAX_CHARS = 255
 const MEMO_MIN_CHARS = 5
@@ -176,6 +178,57 @@ describe('TransactionResolver', () => {
               errors: [new GraphQLError("user hasn't enough GDD or amount is < 0")],
             }),
           )
+        })
+
+        it('throws Error when amount is negative', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: {
+                email: bibiBloxberg.email,
+                amount: -10,
+                memo: 'test-memo',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError("user hasn't enough GDD or amount is < 0")],
+            }),
+          )
+        })
+
+        describe('setup transaction', () => {
+          beforeAll(async () => {
+            // adminUser = await userFactory(testEnv, peterLustig)
+            // user = await userFactory(testEnv, bibiBloxberg)
+            await transactionFactory(testEnv, transactions)
+            await query({
+              query: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+          })
+
+          it('can send coins to peter lustig', async () => {
+            await expect(
+              mutate({
+                mutation: sendCoins,
+                variables: {
+                  email: peterLustig.email,
+                  amount: 5,
+                  memo: 'test-memo',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError("user hasn't enough GDD or amount is < 0")],
+              }),
+            )
+          })
         })
       })
     })
