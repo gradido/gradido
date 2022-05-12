@@ -9,7 +9,7 @@ export class CommunityApiVersion extends BaseEntity {
   @Column()
   communityFederationID: number
 
-  @ManyToOne((type) => CommunityFederation)
+  @ManyToOne(() => CommunityFederation)
   @JoinColumn({ name: 'communityFederationID', referencedColumnName: 'id' })
   communityFederation: CommunityFederation
 
@@ -24,6 +24,4 @@ export class CommunityApiVersion extends BaseEntity {
 
   @Column({ nullable: true, default: null })
   verifiedAt: Date
-
-
 }

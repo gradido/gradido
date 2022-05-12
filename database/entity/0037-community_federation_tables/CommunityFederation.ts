@@ -27,6 +27,6 @@ export class CommunityFederation extends BaseEntity {
   @Column({ default: null, nullable: true })
   authenticatedAt: Date
 
-  @OneToMany((type) => CommunityApiVersion, (apiVersion) => apiVersion.communityFederation)
+  @OneToMany(() => CommunityApiVersion, (apiVersion) => apiVersion.communityFederation)
   apiVersions: CommunityApiVersion[]
 }
