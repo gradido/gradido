@@ -59,6 +59,7 @@ describe('TransactionResolver', () => {
         beforeAll(async () => {
           adminUser = await userFactory(testEnv, peterLustig)
           user = await userFactory(testEnv, stephenHawking)
+          await userFactory(testEnv, garrickOllivander)
           await query({
             query: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -92,6 +93,19 @@ describe('TransactionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('The recipient account was deleted')],
+            }),
+          )
+        })
+
+        it('throws Error when sending to user that has not checked the email', async () => {
+          await expect(
+            mutate({
+              mutation: sendCoins,
+              variables: { email: garrickOllivander.email, amount: 10, memo: 'test-memo' },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('The recipient account is not activated')],
             }),
           )
         })
