@@ -1,10 +1,10 @@
 <template>
-  <div class="navbar-small text-center">
+  <div class="navbar-small">
     <b-navbar>
-       <b-collapse is-nav class="mt-5 mt-lg-0">
-        <b-navbar-nav class="ml-md-auto">
+      <b-collapse is-nav class="mt-lg-0 mt-md-5">
+        <b-navbar-nav class="mx-auto mx-sm-auto mr-md-1">
           <b-nav-item class="ml-lg-5" to="/register">{{ $t('signup') }}</b-nav-item>
-          <span class="mt-3">{{ $t('|') }}</span>
+          <span class="mt-1">{{ $t('|') }}</span>
           <b-nav-item to="/login">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>

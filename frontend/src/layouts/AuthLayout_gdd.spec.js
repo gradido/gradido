@@ -36,7 +36,7 @@ describe('AuthLayoutGdd', () => {
     })
 
     it('has Component AuthHeader', () => {
-      expect(wrapper.findComponent({ name: 'AuthHeader' }).exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(true)
     })
 
     it('has Component AuthCarousel', () => {

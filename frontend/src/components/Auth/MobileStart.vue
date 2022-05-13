@@ -1,27 +1,43 @@
 <template>
-  <div class="mobil-start-box d-inline d-sm-inline d-md-inline d-lg-none">
+  <div
+    class="mobil-start-box position-fixed h-100 d-inline d-sm-inline d-md-inline d-lg-none zindex1000"
+  >
     <div class="position-absolute h1 text-white zindex1000 w-100 text-center mt-8">
       {{ $t('auth.left.gratitude') }}
     </div>
     <div class="position-absolute h2 text-white zindex1000 w-100 text-center mt-9">
       {{ $t('auth.left.newCurrency') }}
     </div>
-    <img src="img/template/Blaetter.png" class="header-img d-block d-lg-none zindex1000" />
-    <b-img id="img0" src="img/template/logo-header.png" alt="start background image"></b-img>
+    <img
+      src="img/template/Blaetter.png"
+      class="sheet-img position-absolute d-block d-lg-none zindex1000"
+    />
+    <b-img
+      id="img0"
+      class="position-absolute zindex1000"
+      src="img/template/logo-header.png"
+      alt="start background image"
+    ></b-img>
     <b-img
       fluid
-      height="100%"
       id="img1"
+      class="position-absolute h-100 w-100 overflow-hidden zindex10"
       src="img/template/gold_03.png"
       alt="start background image"
     ></b-img>
     <b-img
       id="img2"
+      class="position-absolute zindex100"
       src="img/template/gradido_background_header.png"
       alt="start background image"
     ></b-img>
-    <b-img id="img3" src="img/template/Foto_01.jpg" alt="start background image"></b-img>
-    <div class="mobil-start-box-text text-center">
+    <b-img
+      id="img3"
+      class="position-relative w-100"
+      src="img/template/Foto_01.jpg"
+      alt="start background image"
+    ></b-img>
+    <div class="mobil-start-box-text position-fixed w-100 text-center zindex1000">
       <b-button variant="gradido" to="/register" @click="$emit('is-mobile-start', false)">
         {{ $t('signup') }}
       </b-button>
@@ -44,66 +60,37 @@ export default {
 }
 </script>
 <style>
-.mobil-start-box {
-  position: fixed;
-  height: 100%;
-  z-index: 10000;
-}
 .mobil-start-box-text {
-  position: fixed;
-  z-index: 10000;
   bottom: 65px;
-  width: 100%;
 }
 
 /* logo */
 .mobil-start-box #img0 {
-  position: absolute;
-  z-index: 1000;
   width: 200px;
-  max-width: 280px;
 }
 
 /* background logo */
 .mobil-start-box #img2 {
-  position: absolute;
   width: 230px;
-  max-width: 300px;
-  height: auto;
-  z-index: 100;
 }
 
 /* background maske */
-.mobil-start-box #img1 {
-  position: absolute;
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  z-index: 10;
-}
-
-.mobil-start-box #img3 {
-  position: relative;
-}
-
 @media screen and (min-width: 1024px) {
   .mobil-start-box #img3 {
-    width: 100%;
     top: -120px;
   }
 }
 
 @media screen and (max-width: 991px) {
   .mobil-start-box #img3 {
-    width: 100%;
     top: -148px;
   }
 }
 
 @media screen and (max-width: 650px) {
   .mobil-start-box #img3 {
-    top: 66px;
     width: 115%;
+    top: 66px;
   }
 }
 

@@ -2,23 +2,23 @@
   <div class="auth-template">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
     <div class="h-100 align-middle">
-      <auth-header class="auth-header" />
+      <navbar class="auth-header" />
 
-      <div class="left-content-box d-none d-lg-block">
-        <div class="bg-img-box">
+      <div class="left-content-box position-fixed d-none d-lg-block">
+        <div class="bg-img-box position-absolute w-100">
           <carousel class="carousel" />
         </div>
-        <div class="w-100 bg-txt-box d-none d-lg-block text-center align-self-center">
-          <div class="h0">{{ $t('auth.left.gratitude') }}</div>
-          <div class="h1">{{ $t('auth.left.newCurrency') }}</div>
-          <div class="h2 text-uppercase">{{ $t('auth.left.oneAnotherNature') }}</div>
+        <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
+          <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
+          <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
+          <div class="h2 text-uppercase text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
           <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
         </div>
       </div>
       <b-row class="justify-content-md-center">
         <b-col sm="12" md="8" offset-lg="6" lg="6">
           <div class="right-content-box ml-2 ml-sm-4 mr-2 mr-sm-4">
-            <b-row class="d-none d-md-block d-lg-none mt-7">
+            <b-row class="d-none d-md-block d-lg-none mt-3">
               <b-col class="zindex1000 mb--4">
                 <navbar-small />
               </b-col>
@@ -82,7 +82,7 @@
 </template>
 <script>
 import MobileStart from '@/components/Auth/MobileStart.vue'
-import AuthHeader from '@/components/Auth/Header.vue'
+import Navbar from '@/components/Auth/Navbar.vue'
 import NavbarSmall from '@/components/Auth/NavbarSmall.vue'
 import Carousel from '@/components/Auth/Carousel.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
@@ -92,7 +92,7 @@ export default {
   name: 'AuthTemplate',
   components: {
     MobileStart,
-    AuthHeader,
+    Navbar,
     NavbarSmall,
     Carousel,
     LanguageSwitch,
@@ -116,22 +116,17 @@ export default {
 <style lang="scss">
 /* left  */
 .left-content-box {
-  position: fixed;
   width: 40%;
   top: 0px;
   bottom: 0px;
 }
 
 .bg-img-box {
-  position: absolute;
   top: 0px;
   bottom: 0px;
 }
 
 /* right */
-.right-content {
-  flex-direction: column-reverse;
-}
 .right-content-box {
   max-width: 640px;
 }
@@ -140,9 +135,6 @@ export default {
 }
 .auth-template {
   overflow-x: hidden;
-}
-.auth-template,
-.auth-template-content {
   height: 100%;
 }
 .auth-header {
@@ -150,39 +142,27 @@ export default {
 }
 
 .bg-txt-box {
-  position: relative;
   margin-top: 317px;
   text-shadow: 2px 2px 8px #000000;
   max-width: 733px;
 }
 .bg-txt-box > .h0 {
   font-size: 4em;
-  color: white;
   text-shadow: -2px -2px -8px #e4a907;
 }
 
 .bg-txt-box .h1,
 .bg-txt-box .h2 {
   font-size: 1.5em;
-  color: white;
   text-shadow: -2px -2px -8px #e4a907;
 }
 
 .bg-img {
-  width: 100%;
   border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
   overflow: hidden;
 }
 
-.zindex1000 {
-  z-index: 1000;
-}
-
 @media screen and (min-width: 2000px) {
-  .right-content {
-    height: 100%;
-    flex-direction: column-reverse;
-  }
   .right-content-box {
     max-width: 60%;
     font-size: xx-large;
