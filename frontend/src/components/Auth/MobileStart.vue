@@ -47,7 +47,7 @@ export default {
 .mobil-start-box {
   position: fixed;
   height: 100%;
-  z-index: 1000;
+  z-index: 10000;
 }
 .mobil-start-box-text {
   position: fixed;

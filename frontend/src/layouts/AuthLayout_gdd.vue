@@ -15,10 +15,14 @@
           <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
         </div>
       </div>
-
       <b-row class="justify-content-md-center">
         <b-col sm="12" md="8" offset-lg="6" lg="6">
           <div class="right-content-box ml-2 ml-sm-4 mr-2 mr-sm-4">
+            <b-row class="d-none d-md-block d-lg-none mt-7">
+              <b-col class="zindex1000 mb--4">
+                <navbar-small />
+              </b-col>
+            </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col cols="9">
                 <div class="h1 mb--2">{{ $t('welcome') }}</div>
@@ -57,15 +61,11 @@
               <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <b-col class="text-center">
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-                  <div>
-                    <span>
-                      <router-link to="login">{{ $t('signup') }}</router-link>
-                    </span>
-                    {{ $t('|') }}
-                    <span>
-                      <router-link to="register">{{ $t('signin') }}</router-link>
-                    </span>
-                  </div>
+                  <b-row class="mt-4">
+                    <b-col class="zindex1000 mb--4">
+                      <navbar-small />
+                    </b-col>
+                  </b-row>
                 </b-col>
               </b-row>
               <b-card-body class="">
@@ -83,6 +83,7 @@
 <script>
 import MobileStart from '@/components/Auth/MobileStart.vue'
 import AuthHeader from '@/components/Auth/Header.vue'
+import NavbarSmall from '@/components/Auth/NavbarSmall.vue'
 import Carousel from '@/components/Auth/Carousel.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/Footer.vue'
@@ -92,6 +93,7 @@ export default {
   components: {
     MobileStart,
     AuthHeader,
+    NavbarSmall,
     Carousel,
     LanguageSwitch,
     AuthFooter,
@@ -170,6 +172,10 @@ export default {
   width: 100%;
   border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
   overflow: hidden;
+}
+
+.zindex1000 {
+  z-index: 1000;
 }
 
 @media screen and (min-width: 2000px) {

@@ -12,15 +12,14 @@
       <b-img class="header-img d-block d-lg-none" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-      <b-collapse id="nav-collapse" is-nav>
+      <b-collapse id="nav-collapse" is-nav class="mt-5 mt-lg-0">
         <b-navbar-nav class="ml-auto" right>
           <b-nav-item href="https://gradido.net/de/" target="_blank">
             {{ $t('auth.navbar.overGradido') }}
           </b-nav-item>
-          <b-nav-item class="ml-5">
-            <b-link to="/register">{{ $t('signup') }} {{ $t('|') }}</b-link>
-            <b-link to="/login">{{ $t('signin') }}</b-link>
-          </b-nav-item>
+          <b-nav-item class="ml-lg-5" to="/register">{{ $t('signup') }}</b-nav-item>
+          <span class="d-none d-lg-block mt-3">{{ $t('|') }}</span>
+          <b-nav-item to="/login">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
