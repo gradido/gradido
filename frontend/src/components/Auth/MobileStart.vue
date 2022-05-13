@@ -21,7 +21,7 @@
     <b-img
       fluid
       id="img1"
-      class="position-absolute h-100 w-100 overflow-hidden zindex10"
+      class="position-absolute h-100 w-100 overflow-hidden zindex100"
       src="img/template/gold_03.png"
       alt="start background image"
     ></b-img>
@@ -33,7 +33,7 @@
     ></b-img>
     <b-img
       id="img3"
-      class="position-relative w-100"
+      class="position-relative zindex10"
       src="img/template/Foto_01.jpg"
       alt="start background image"
     ></b-img>
@@ -75,15 +75,23 @@ export default {
 }
 
 /* background maske */
-@media screen and (min-width: 1024px) {
+@media screen and (max-width: 1024px) {
   .mobil-start-box #img3 {
-    top: -120px;
+    width: 100%;
+    top: -100px;
   }
 }
 
 @media screen and (max-width: 991px) {
   .mobil-start-box #img3 {
+    width: 100%;
     top: -148px;
+  }
+}
+
+@media screen and (max-height: 740px) {
+  .mobil-start-box #img3 {
+    width: 115%;
   }
 }
 
@@ -103,13 +111,7 @@ export default {
   }
 }
 
-@media screen and (max-height: 740px) {
-  .mobil-start-box #img3 {
-    width: 115%;
-  }
-}
-
-@media screen and (max-width: 300px) {
+@media screen and (max-width: 310px) {
   .mobil-start-box #img3 {
     width: 145%;
     left: -94px;

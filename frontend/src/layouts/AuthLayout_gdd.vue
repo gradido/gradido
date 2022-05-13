@@ -2,7 +2,7 @@
   <div class="auth-template">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
     <div class="h-100 align-middle">
-      <navbar class="auth-header" />
+      <navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
         <div class="bg-img-box position-absolute w-100">
@@ -19,8 +19,8 @@
         <b-col sm="12" md="8" offset-lg="6" lg="6">
           <div class="right-content-box ml-2 ml-sm-4 mr-2 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none mt-3">
-              <b-col class="zindex1000 mb--4">
-                <navbar-small />
+              <b-col class="mb--4">
+                <navbar-small class="zindex10" />
               </b-col>
             </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
@@ -135,10 +135,6 @@ export default {
 }
 .auth-template {
   overflow-x: hidden;
-  height: 100%;
-}
-.auth-header {
-  z-index: 999;
 }
 
 .bg-txt-box {
