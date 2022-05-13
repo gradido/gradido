@@ -113,7 +113,7 @@
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
     "link-overview": "Link overview",
-    "links_count": "Active links",
+    "links_count": "Link count",
     "links_sum": "Open links and QR codes",
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
