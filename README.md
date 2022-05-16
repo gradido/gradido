@@ -97,9 +97,10 @@ Note: The Changelog will be regenerated with all tags on release on the external
 
 ## Attributions
 
+![browserstack_logo-freelogovectors net_](https://user-images.githubusercontent.com/1324583/167782608-0e4db0d4-3d34-45fb-ab06-344aa5e5ef4b.png)
+
 Browser compatibility testing with [BrowserStack](https://www.browserstack.com/).
 
-<img alt="BrowserStack Logo" src=".gitbook/assets/browserstack-logo.svg" width="256">
 
 ## License
 See the [LICENSE](LICENSE.md) file for license rights and limitations (Apache-2.0 license).
