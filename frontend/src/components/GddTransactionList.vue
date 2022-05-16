@@ -125,10 +125,6 @@ export default {
   },
   computed: {
     isPaginationVisible() {
-      // Wolle: console.log('this.showPagination: ', this.showPagination)
-      // console.log('this.pageSize: ', this.pageSize)
-      // console.log('this.transactions.length: ', this.transactions.length)
-      // console.log('this.transactionCount: ', this.transactionCount)
       return this.showPagination && this.pageSize < this.transactionCount
     },
   },
@@ -143,6 +139,7 @@ export default {
   },
 }
 </script>
+
 <style>
 collaps-icon {
   width: 95%;
