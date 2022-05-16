@@ -8,111 +8,111 @@ const bobsSendings = [
   },
   {
     amount: 10,
-    memo: 'von Betty',
+    memo: 'für deine Hilfe, Betty',
   },
   {
     amount: 23.37,
-    memo: 'von David',
+    memo: 'für deine Hilfe, David',
   },
   {
     amount: 47,
-    memo: 'von Frau Holle',
+    memo: 'für deine Hilfe, Frau Holle',
   },
   {
     amount: 1.02,
-    memo: 'von Herr Müller',
+    memo: 'für deine Hilfe, Herr Müller',
   },
   {
     amount: 5.67,
-    memo: 'von Maier',
+    memo: 'für deine Hilfe, Maier',
   },
   {
     amount: 72.93,
-    memo: 'von Elsbeth',
+    memo: 'für deine Hilfe, Elsbeth',
   },
   {
     amount: 5.6,
-    memo: 'von Daniel',
+    memo: 'für deine Hilfe, Daniel',
   },
   {
     amount: 8.87,
-    memo: 'von Yoda',
+    memo: 'für deine Hilfe, Yoda',
   },
   {
     amount: 7.56,
-    memo: 'von Sabine',
+    memo: 'für deine Hilfe, Sabine',
   },
   {
     amount: 7.89,
-    memo: 'von Karl',
+    memo: 'für deine Hilfe, Karl',
   },
   {
     amount: 8.9,
-    memo: 'von Darth Vader',
+    memo: 'für deine Hilfe, Darth Vader',
   },
   {
     amount: 56.79,
-    memo: 'von Luci',
+    memo: 'für deine Hilfe, Luci',
   },
   {
     amount: 3.45,
-    memo: 'von Hanne',
+    memo: 'für deine Hilfe, Hanne',
   },
   {
     amount: 8.74,
-    memo: 'von Luise',
+    memo: 'für deine Hilfe, Luise',
   },
   {
     amount: 7.85,
-    memo: 'von Annegred',
+    memo: 'für deine Hilfe, Annegred',
   },
   {
     amount: 32.7,
-    memo: 'von Prinz von Zamunda',
+    memo: 'für deine Hilfe, Prinz von Zamunda',
   },
   {
     amount: 44.2,
-    memo: 'von Charly Brown',
+    memo: 'für deine Hilfe, Charly Brown',
   },
   {
     amount: 38.17,
-    memo: 'von Michael',
+    memo: 'für deine Hilfe, Michael',
   },
   {
     amount: 5.72,
-    memo: 'von Kaja',
+    memo: 'für deine Hilfe, Kaja',
   },
   {
     amount: 3.99,
-    memo: 'von Maja',
+    memo: 'für deine Hilfe, Maja',
   },
   {
     amount: 4.5,
-    memo: 'von Martha',
+    memo: 'für deine Hilfe, Martha',
   },
   {
     amount: 8.3,
-    memo: 'von Ursula',
+    memo: 'für deine Hilfe, Ursula',
   },
   {
     amount: 2.9,
-    memo: 'von Urs',
+    memo: 'für deine Hilfe, Urs',
   },
   {
     amount: 4.6,
-    memo: 'von Mecedes',
+    memo: 'für deine Hilfe, Mecedes',
   },
   {
     amount: 74.1,
-    memo: 'von Heidi',
+    memo: 'für deine Hilfe, Heidi',
   },
   {
     amount: 4.5,
-    memo: 'von Peter',
+    memo: 'für deine Hilfe, Peter',
   },
   {
     amount: 5.8,
-    memo: 'von Fräulein Rottenmeier',
+    memo: 'für deine Hilfe, Fräulein Rottenmeier',
   },
 ]
 const bobsTransactions: CreationInterface[] = []
