@@ -93,3 +93,14 @@ Note: The Changelog will be regenerated with all tags on release on the external
 ## Useful Links
 
 - [Gradido.net](https://gradido.net/)
+
+
+## Attributions
+
+Browser compatibility testing with [BrowserStack](https://www.browserstack.com/).
+
+<img alt="BrowserStack Logo" src=".gitbook/assets/browserstack-logo.svg" width="256">
+
+## License
+See the [LICENSE](LICENSE.md) file for license rights and limitations (Apache-2.0 license).
+
