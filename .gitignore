@@ -13,7 +13,7 @@ package-lock.json
 /deployment/bare_metal/backup
 
 # Node Version Manager configuration file
-/.nvmrc
+.nvmrc
 
 # Apple macOS folder attribute file
 .DS_Store
