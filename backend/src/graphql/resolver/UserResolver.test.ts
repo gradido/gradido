@@ -12,28 +12,9 @@ import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink, logger } from './UserResolver'
+import { printTimeDuration, activationLink } from './UserResolver'
 
-import { getLogger } from '@/server/logger'
-
-jest.mock('@/server/logger', () => {
-  const originalModule = jest.requireActual('@/server/logger')
-  return {
-    __esModule: true,
-    ...originalModule,
-    getLogger: jest.fn(() => {
-      return {
-        addContext: jest.fn(),
-        trace: jest.fn(),
-        debug: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn(),
-        error: jest.fn(),
-        fatal: jest.fn(),
-      }
-    }),
-  }
-})
+import { logger } from '@test/testSetup'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -77,16 +58,6 @@ afterAll(async () => {
 })
 
 describe('UserResolver', () => {
-  describe('logger', () => {
-    it('creates a logger', () => {
-      expect(getLogger).toBeCalledWith('backend')
-    })
-
-    it('adds user context to logger', () => {
-      expect(logger.addContext).toBeCalledWith('user', 'unknown')
-    })
-  })
-
   describe('createUser', () => {
     const variables = {
       email: 'peter@lustig.de',

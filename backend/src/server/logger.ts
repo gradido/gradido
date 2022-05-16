@@ -1,4 +1,4 @@
-import log4js, { Logger } from 'log4js'
+import log4js from 'log4js'
 import CONFIG from '@/config'
 
 import { readFileSync } from 'fs'
@@ -9,8 +9,10 @@ options.categories.default.level = CONFIG.LOG_LEVEL
 
 log4js.configure(options)
 
-export const getLogger = (name: string): Logger => {
-  return log4js.getLogger(name)
-}
+const apolloLogger = log4js.getLogger('apollo')
+const backendLogger = log4js.getLogger('backend')
 
-export default log4js
+apolloLogger.addContext('user', 'unknown')
+backendLogger.addContext('user', 'unknown')
+
+export { apolloLogger, backendLogger }

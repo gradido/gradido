@@ -1,4 +1,4 @@
-import { getLogger } from '@/server/logger'
+import { backendLogger as logger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
@@ -11,8 +11,6 @@ import { GdtResolver } from './GdtResolver'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
-
-const logger = getLogger('backend')
 
 @Resolver()
 export class BalanceResolver {

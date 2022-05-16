@@ -22,7 +22,7 @@ import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
-import { getLogger } from './logger'
+import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
 // TODO implement
@@ -30,14 +30,11 @@ import { Logger } from 'log4js'
 
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
-const serverLogger = getLogger('apollo')
-
 const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
-  logger: Logger = serverLogger,
+  logger: Logger = apolloLogger,
 ): Promise<ServerDef> => {
-  logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
   // open mysql connection

@@ -1,9 +1,7 @@
-import { getLogger } from '@/server/logger'
+import { backendLogger as logger } from '@/server/logger'
 import { createTransport } from 'nodemailer'
 
 import CONFIG from '@/config'
-
-export const logger = getLogger('backend.mailer.sendEMail')
 
 export const sendEMail = async (emailDef: {
   to: string

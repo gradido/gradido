@@ -1,33 +1,14 @@
-import { sendEMail, logger } from './sendEMail'
+import { sendEMail } from './sendEMail'
 import { createTransport } from 'nodemailer'
 import CONFIG from '@/config'
 
-import { getLogger } from '@/server/logger'
+import { logger } from '@test/testSetup'
 
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
 CONFIG.EMAIL_SMTP_PORT = '1234'
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
-
-jest.mock('@/server/logger', () => {
-  const originalModule = jest.requireActual('@/server/logger')
-  return {
-    __esModule: true,
-    ...originalModule,
-    getLogger: jest.fn(() => {
-      return {
-        addContext: jest.fn(),
-        trace: jest.fn(),
-        debug: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn(),
-        error: jest.fn(),
-        fatal: jest.fn(),
-      }
-    }),
-  }
-})
 
 jest.mock('nodemailer', () => {
   return {
@@ -46,12 +27,6 @@ jest.mock('nodemailer', () => {
 
 describe('sendEMail', () => {
   let result: boolean
-  describe('logger', () => {
-    it('initializes the logger', () => {
-      expect(getLogger).toBeCalledWith('backend.mailer.sendEMail')
-    })
-  })
-
   describe('config email is false', () => {
     beforeEach(async () => {
       result = await sendEMail({

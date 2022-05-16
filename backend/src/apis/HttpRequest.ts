@@ -1,7 +1,6 @@
 import axios from 'axios'
-import log4js from '@/server/logger'
 
-const logger = log4js.getLogger('http')
+import { backendLogger as logger } from '@/server/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiPost = async (url: string, payload: unknown): Promise<any> => {

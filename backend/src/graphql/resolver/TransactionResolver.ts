@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getLogger } from '@/server/logger'
+import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
@@ -34,8 +34,6 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
-
-const logger = getLogger('backend')
 
 const MEMO_MAX_CHARS = 255
 const MEMO_MIN_CHARS = 5

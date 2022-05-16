@@ -1,9 +1,7 @@
-import log4js from '@/server/logger'
+import { backendLogger as logger } from '@/server/logger'
 import Decimal from 'decimal.js-light'
 import { sendEMail } from './sendEMail'
 import { transactionReceived } from './text/transactionReceived'
-
-const logger = log4js.getLogger('backend.mailer.sendTransactionReceivedEmail')
 
 export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string

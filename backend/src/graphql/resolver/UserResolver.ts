@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { getLogger } from '@/server/logger'
+import { backendLogger as logger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
@@ -27,9 +27,6 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
-
-export const logger = getLogger('backend')
-logger.addContext('user', 'unknown')
 
 // We will reuse this for changePassword
 const isPassword = (password: string): boolean => {

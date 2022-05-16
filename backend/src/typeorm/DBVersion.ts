@@ -1,8 +1,5 @@
 import { Migration } from '@entity/Migration'
-import log4js from '@/server/logger'
-
-const logger = log4js.getLogger('backend.DBVersion')
-logger.addContext('user', 'unknown')
+import { backendLogger as logger } from '@/server/logger'
 
 const getDBVersion = async (): Promise<string | null> => {
   try {
