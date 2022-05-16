@@ -112,13 +112,11 @@ const bobsSendings = [
   },
   {
     amount: 5.8,
-    memo: 'von Frau Rottenmeier',
+    memo: 'von Fräulein Rottenmeier',
   },
 ]
-let bobsSum = 0
 const bobsTransactions: CreationInterface[] = []
 bobsSendings.forEach((sending) => {
-  bobsSum = bobsSum + sending.amount
   bobsTransactions.push({
     email: 'bob@baumeister.de',
     amount: sending.amount,
