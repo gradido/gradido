@@ -3,9 +3,17 @@ body {
   height: 100%;
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 /* Navbar  */
 .navbar-light .navbar-nav .nav-link {
   color: #047006;
+}
+
+.navbar-light .navbar-nav .nav-link.active {
+  color: rgba(35, 121, 188, 0.9);
 }
 
 .text-gradido {

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="$route.meta.requiresAuth ? 'font-sans text-gray-800' : ''">
+  <div id="app" :class="$route.meta.requiresAuth ? 'font-sans text-gray-800' : ''" class="h-100">
     <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
   </div>
 </template>
@@ -22,7 +22,6 @@ export default {
   src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
 }
 #app {
-  height: 100%;
   min-width: 360px;
   font-size: 1rem;
   font-family: 'WorkSans', sans-serif !important;
@@ -32,9 +31,5 @@ export default {
   #app {
     font-size: 0.85rem;
   }
-}
-
-.pointer {
-  cursor: pointer;
 }
 </style>

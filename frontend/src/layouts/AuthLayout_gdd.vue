@@ -1,7 +1,7 @@
 <template>
   <div class="auth-template">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
-    <div class="h-100 align-middle">
+    <div v-else class="h-100 align-middle">
       <navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
@@ -63,7 +63,7 @@
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row class="mt-4">
                     <b-col class="zindex1000 mb--4">
-                      <navbar-small />
+                      <!-- <navbar-small /> -->
                     </b-col>
                   </b-row>
                 </b-col>
@@ -100,7 +100,8 @@ export default {
   },
   data() {
     return {
-      mobileStart: true,
+      mobileStart: window.innerWidth < 1025,
+      windowWidth: window.innerWidth,
     }
   },
   methods: {
@@ -109,6 +110,19 @@ export default {
     },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
+    },
+    onResize() {
+      this.mobileStart = window.innerWidth < 1025
+    },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      window.addEventListener('resize', this.onResize)
+    })
+  },
+  watch: {
+    windowWidth() {
+      window.addEventListener('resize', this.onResize)
     },
   },
 }
