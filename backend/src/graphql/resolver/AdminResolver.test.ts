@@ -1077,6 +1077,53 @@ describe('AdminResolver', () => {
               expect(transaction[0].typeId).toEqual(1)
             })
           })
+
+          describe('confirm two creations one after the other quickly', () => {
+            let c1: AdminPendingCreation | void
+            let c2: AdminPendingCreation | void
+
+            beforeAll(async () => {
+              const now = new Date()
+              c1 = await creationFactory(testEnv, {
+                email: 'bibi@bloxberg.de',
+                amount: 50,
+                memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+              })
+              c2 = await creationFactory(testEnv, {
+                email: 'bibi@bloxberg.de',
+                amount: 50,
+                memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+              })
+            })
+
+            // In the futrue this should not throw anymore
+            it('throws an error for the second confirmation', async () => {
+              const r1 = mutate({
+                mutation: confirmPendingCreation,
+                variables: {
+                  id: c1 ? c1.id : -1,
+                },
+              })
+              const r2 = mutate({
+                mutation: confirmPendingCreation,
+                variables: {
+                  id: c2 ? c2.id : -1,
+                },
+              })
+              await expect(r1).resolves.toEqual(
+                expect.objectContaining({
+                  data: { confirmPendingCreation: true },
+                }),
+              )
+              await expect(r2).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Unable to confirm creation.')],
+                }),
+              )
+            })
+          })
         })
       })
     })
