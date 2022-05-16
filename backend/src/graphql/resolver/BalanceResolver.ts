@@ -7,7 +7,7 @@ import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { GdtResolver } from './GdtResolver'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { MoreThan, getCustomRepository } from '@dbTools/typeorm'
+import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
 @Resolver()
@@ -39,16 +39,13 @@ export class BalanceResolver {
       context.transactionCount || context.transactionCount === 0
         ? context.transactionCount
         : await dbTransaction.count({ where: { userId: user.id } })
-    const linkCount =
-      context.linkCount || context.linkCount === 0
-        ? context.linkCount
-        : await dbTransactionLink.count({
-            where: {
-              userId: user.id,
-              redeemedAt: null,
-              validUntil: MoreThan(new Date()),
-            },
-          })
+    const linkCount = await dbTransactionLink.count({
+      where: {
+        userId: user.id,
+        redeemedAt: null,
+        // validUntil: MoreThan(new Date()),
+      },
+    })
 
     // The decay is always calculated on the last booked transaction
     const calculatedDecay = calculateDecay(
