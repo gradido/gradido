@@ -60,6 +60,7 @@ export default {
   name: 'AuthMobileStart',
 }
 </script>
+
 <style>
 .mobil-start-box-text {
   bottom: 65px;
