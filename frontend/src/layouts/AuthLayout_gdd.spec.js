@@ -34,30 +34,57 @@ describe('AuthLayoutGdd', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
+    describe('Mobile Version Start', () => {
+      beforeEach(() => {
+        wrapper.vm.mobileStart = true
+      })
 
-    it('has Component AuthHeader', () => {
-      expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(true)
+      it('has Component AuthMobileStart', () => {
+        expect(wrapper.findComponent({ name: 'AuthMobileStart' }).exists()).toBe(true)
+      })
+
+      it('has Component AuthNavbar', () => {
+        expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(false)
+      })
+
+      it('has Component AuthCarousel', () => {
+        expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(false)
+      })
+
+      it('has Component AuthFooter', () => {
+        expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(false)
+      })
     })
 
-    it('has Component AuthCarousel', () => {
-      expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(true)
-    })
+    describe('Desktop Version Start', () => {
+      beforeEach(() => {
+        wrapper.vm.mobileStart = false
+      })
 
-    it('has Component AuthFooter', () => {
-      expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
-    })
+      it('has Component AuthNavbar', () => {
+        expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(true)
+      })
 
-    it('has no sidebar', () => {
-      expect(wrapper.find('nav#sidenav-main').exists()).not.toBeTruthy()
-    })
+      it('has Component AuthCarousel', () => {
+        expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(true)
+      })
 
-    it('has LanguageSwitch', () => {
-      expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
-    })
+      it('has Component AuthFooter', () => {
+        expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
+      })
 
-    test('test size in setTextSize ', () => {
-      wrapper.vm.setTextSize('85')
-      expect(wrapper.vm.$refs.pageFontSize.style.fontSize).toBe('85rem')
+      it('has no sidebar', () => {
+        expect(wrapper.find('nav#sidenav-main').exists()).not.toBeTruthy()
+      })
+
+      it('has LanguageSwitch', () => {
+        expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
+      })
+
+      test('test size in setTextSize ', () => {
+        wrapper.vm.setTextSize('85')
+        expect(wrapper.vm.$refs.pageFontSize.style.fontSize).toBe('85rem')
+      })
     })
   })
 })

@@ -56,7 +56,7 @@
 </template>
 <script>
 export default {
-  name: 'MobileStart',
+  name: 'AuthMobileStart',
 }
 </script>
 <style>
