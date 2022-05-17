@@ -54,7 +54,7 @@ describe('App', () => {
       })
 
       it('has a component DashboardLayout', () => {
-        expect(wrapper.findComponent({ name: 'DashboardTemplate' }).exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'DashboardLayout' }).exists()).toBe(true)
       })
     })
   })

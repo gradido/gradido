@@ -1,6 +1,6 @@
 <template>
   <div class="auth-template">
-    <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="isMobileStart" />
+    <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="setMobileStart" />
     <div v-else class="h-100 align-middle">
       <navbar class="zindex10" />
 
@@ -100,19 +100,20 @@ export default {
   },
   data() {
     return {
-      mobileStart: window.innerWidth < 1025,
+      lg: 1025,
+      mobileStart: window.innerWidth < this.lg,
       windowWidth: window.innerWidth,
     }
   },
   methods: {
-    isMobileStart(boolean) {
+    setMobileStart(boolean) {
       this.mobileStart = boolean
     },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
     },
     onResize() {
-      this.mobileStart = window.innerWidth < 1025
+      this.mobileStart = window.innerWidth < this.lg
     },
   },
   mounted() {

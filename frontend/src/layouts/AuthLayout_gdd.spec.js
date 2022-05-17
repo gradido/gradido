@@ -1,6 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import AuthLayoutGdd from './AuthLayout_gdd'
-import VueRouter from 'vue-router'
 
 const localVue = global.localVue
 
@@ -16,10 +15,12 @@ describe('AuthLayoutGdd', () => {
       state: {},
       commit: jest.fn(),
     },
+    $route: {
+      meta: {
+        requiresAuth: false,
+      },
+    },
   }
-
-  localVue.use(VueRouter)
-  const router = new VueRouter()
 
   const stubs = {
     RouterLink: RouterLinkStub,
@@ -27,7 +28,7 @@ describe('AuthLayoutGdd', () => {
   }
 
   const Wrapper = () => {
-    return mount(AuthLayoutGdd, { localVue, mocks, stubs, router })
+    return mount(AuthLayoutGdd, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
