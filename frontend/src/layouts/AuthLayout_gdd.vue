@@ -63,7 +63,7 @@
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row class="mt-4">
                     <b-col class="zindex1000 mb--4">
-                      <!-- <navbar-small /> -->
+                      <navbar-small />
                     </b-col>
                   </b-row>
                 </b-col>
@@ -73,7 +73,7 @@
               </b-card-body>
             </b-card>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="mt-4 pr-5"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->

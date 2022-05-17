@@ -1,15 +1,19 @@
 <template>
   <footer class="footer bg-transparent">
-    <b-row class="mt-4">
+    <b-row class="mt-lg-8 mt-md-6 mt-4">
       <b-col class="col-12 col-md-12 col-lg-6">
-        <b-nav class="nav-footer">
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
-            {{ $t('footer.imprint') }}
-          </b-nav-item>
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
-            {{ $t('footer.privacy_policy') }}
-          </b-nav-item>
-        </b-nav>
+        <div
+          class="d-flex justify-content-center justify-content-md-center justify-content-lg-start"
+        >
+          <b-nav class="nav-footer">
+            <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
+              {{ $t('footer.imprint') }}
+            </b-nav-item>
+            <b-nav-item :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
+              {{ $t('footer.privacy_policy') }}
+            </b-nav-item>
+          </b-nav>
+        </div>
       </b-col>
       <b-col class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
         <div class="text-center text-lg-right">
