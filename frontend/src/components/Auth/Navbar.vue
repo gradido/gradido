@@ -21,9 +21,9 @@
           <b-nav-item href="https://gradido.net/de/" target="_blank">
             {{ $t('auth.navbar.overGradido') }}
           </b-nav-item>
-          <b-nav-item class="ml-lg-5" to="/register">{{ $t('signup') }}</b-nav-item>
+          <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
           <span class="d-none d-lg-block mt-1">{{ $t('|') }}</span>
-          <b-nav-item to="/login">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item to="/login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -41,6 +41,14 @@ export default {
 }
 </script>
 <style lang="scss">
+.authNavbar > .nav-link {
+  color: #383838 !important;
+}
+
+.authNavbar > .router-link-exact-active {
+  color: #0e79bc !important;
+}
+
 .auth-header {
   font-family: 'Open Sans', sans-serif !important;
 }
