@@ -1,6 +1,7 @@
 <template>
   <div id="app" :class="$route.meta.requiresAuth ? 'font-sans text-gray-800' : ''" class="h-100">
     <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
+    <div class="goldrand position-fixed w-100 fixed-bottom zindex10"></div>
   </div>
 </template>
 
@@ -31,5 +32,17 @@ export default {
   #app {
     font-size: 0.85rem;
   }
+}
+
+.goldrand {
+  background: linear-gradient(
+    90deg,
+    rgba(197, 141, 56, 1) 6%,
+    rgba(243, 205, 124, 1) 30%,
+    rgba(219, 176, 86, 1) 54%,
+    rgba(238, 192, 95, 1) 63%,
+    rgba(204, 157, 61, 1) 88%
+  );
+  height: 13px;
 }
 </style>
