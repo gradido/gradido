@@ -50,9 +50,9 @@
                   >
                     <div class="text-light">
                       <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
-                      {{ $t('|') }}
+                      {{ $t('math.pipe') }}
                       <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
-                      {{ $t('|') }}
+                      {{ $t('math.pipe') }}
                       <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
                     </div>
                   </b-popover>

@@ -22,7 +22,7 @@
             {{ $t('auth.navbar.aboutGradido') }}
           </b-nav-item>
           <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
-          <span class="d-none d-lg-block mt-1">{{ $t('|') }}</span>
+          <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
           <b-nav-item to="/login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>

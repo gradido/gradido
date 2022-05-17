@@ -8,7 +8,7 @@
       :class="$store.state.language === lang.code ? 'text-primary' : ''"
     >
       {{ lang.name }}
-      <span class="ml-3">{{ locales.length - 1 > index ? $t('|') : '' }}</span>
+      <span class="ml-3">{{ locales.length - 1 > index ? $t('math.pipe') : '' }}</span>
     </span>
   </div>
 </template>
