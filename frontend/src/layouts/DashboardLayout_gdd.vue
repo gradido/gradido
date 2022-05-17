@@ -15,7 +15,7 @@
         <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
       </div>
 
-      <div class="main-page gradido-max-width" @click="visible = false">
+      <div class="main-page w-100" @click="visible = false">
         <div class="main-content">
           <fade-transition :duration="200" origin="center top" mode="out-in">
             <router-view
