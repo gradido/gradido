@@ -1,3 +1,4 @@
+.dbeaver
 *.log
 /node_modules/*
 messages.pot
