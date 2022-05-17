@@ -34,6 +34,7 @@
     </b-container>
   </div>
 </template>
+
 <script>
 import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'

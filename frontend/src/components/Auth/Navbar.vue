@@ -41,6 +41,7 @@ export default {
   },
 }
 </script>
+
 <style lang="scss">
 .authNavbar > .nav-link {
   color: #383838 !important;

@@ -106,6 +106,7 @@
     </b-container>
   </div>
 </template>
+
 <script>
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'

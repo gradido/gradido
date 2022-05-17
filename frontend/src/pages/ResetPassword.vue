@@ -20,6 +20,7 @@
     </b-row>
   </div>
 </template>
+
 <script>
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { setPassword } from '@/graphql/mutations'

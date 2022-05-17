@@ -12,6 +12,7 @@
     </span>
   </div>
 </template>
+
 <script>
 import locales from '@/locales/'
 import { updateUserInfos } from '@/graphql/mutations'
