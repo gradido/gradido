@@ -17,6 +17,7 @@ export default {
   },
 }
 </script>
+
 <style>
 @font-face {
   font-family: 'WorkSans', sans-serif !important;
