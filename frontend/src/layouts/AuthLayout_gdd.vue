@@ -129,6 +129,7 @@ export default {
   },
 }
 </script>
+
 <style lang="scss">
 /* left  */
 .left-content-box {
