@@ -14,6 +14,7 @@ export default {
   name: 'AuthCarousel',
 }
 </script>
+
 <style>
 .carousel {
   position: relative;
