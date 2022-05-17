@@ -39,6 +39,7 @@
     </b-row>
   </footer>
 </template>
+
 <script>
 export default {
   name: 'AuthFooter',
