@@ -80,6 +80,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import MobileStart from '@/components/Auth/MobileStart.vue'
 import Navbar from '@/components/Auth/Navbar.vue'
