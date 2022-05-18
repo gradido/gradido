@@ -1,18 +1,20 @@
 <template>
   <div class="auth-header position-sticky">
     <b-navbar toggleable="lg" class="pr-4">
-      <b-img
-        class="imgLogo position-absolute ml--3 mt--3 p-2 zindex1000"
-        :src="logo"
-        width="200"
-        alt="..."
-      />
-      <b-img
-        class="imgLogoBack mt--3 ml--3"
-        src="img/template/gradido_background_header.png"
-        width="230"
-        alt="start background image"
-      ></b-img>
+      <b-navbar-brand>
+        <b-img
+          class="imgLogo position-absolute ml--3 mt--3 p-2 zindex1000"
+          :src="logo"
+          width="200"
+          alt="..."
+        />
+        <b-img
+          class="imgLogoBack mt--3 ml--3"
+          src="img/template/gradido_background_header.png"
+          width="230"
+          alt="start background image"
+        ></b-img>
+      </b-navbar-brand>
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse" class="zindex1000"></b-navbar-toggle>
 

@@ -18,7 +18,7 @@
       <b-row class="justify-content-md-center">
         <b-col sm="12" md="8" offset-lg="6" lg="6">
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
-            <b-row class="d-none d-md-block d-lg-none mt-3">
+            <b-row class="d-none d-md-block d-lg-none">
               <b-col class="mb--4">
                 <navbar-small class="zindex10" />
               </b-col>
