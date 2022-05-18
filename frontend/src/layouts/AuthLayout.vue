@@ -1,7 +1,11 @@
 <template>
   <div class="auth-template">
-    <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="setMobileStart" />
-    <div v-if="!mobileStart" class="h-100 align-middle">
+    <mobile-start
+      v-if="mobileStart"
+      class="d-inline d-lg-none zindex10000"
+      @is-mobile-start="setMobileStart"
+    />
+    <div class="h-100 align-middle">
       <navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
@@ -16,7 +20,7 @@
         </div>
       </div>
       <b-row class="justify-content-md-center">
-        <b-col sm="12" md="8" offset-lg="6" lg="6" class="zindex10000">
+        <b-col sm="12" md="8" offset-lg="6" lg="6" class="zindex1000">
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
               <b-col class="mb--4 d-flex justify-content-end">
