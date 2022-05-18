@@ -56,19 +56,27 @@ export class AdminResolver {
       searchText,
       currentPage = 1,
       pageSize = 25,
-      filterByActivated = null,
-      filterByDeleted = null,
+      // Wolle: filters = {
+      //   filterByActivated: null,
+      //   filterByDeleted: null,
+      // },
+      filters = {
+        filterByActivated: null,
+        filterByDeleted: null,
+      },
     }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
+    // Wolle
+    console.log('filters: ', filters)
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (filterByActivated !== null) {
-      filterCriteria.push({ emailChecked: filterByActivated })
+    if (filters.filterByActivated !== null) {
+      filterCriteria.push({ emailChecked: filters.filterByActivated })
     }
 
-    if (filterByDeleted !== null) {
-      filterCriteria.push({ deletedAt: filterByDeleted ? Not(IsNull()) : IsNull() })
+    if (filters.filterByDeleted !== null) {
+      filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']

@@ -97,7 +97,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filterByActivated: this.filterByActivated,
+            filterByActivated: this.filterByActivated, // Wolle: put in 'filters' object?
             filterByDeleted: this.filterByDeleted,
           },
           fetchPolicy: 'no-cache',

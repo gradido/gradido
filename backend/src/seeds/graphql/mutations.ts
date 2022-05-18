@@ -107,6 +107,39 @@ export const unDeleteUser = gql`
   }
 `
 
+export const searchUsers = gql`
+  query (
+    $searchText: String!
+    $currentPage: Int
+    $pageSize: Int
+    # Wolle $filterByActivated: Boolean
+    # $filterByDeleted: Boolean
+    $filters: SearchUsersFiltersInput!
+  ) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      # Wolle filterByActivated: $filterByActivated # Wolle: put in 'filters' object?
+      # filterByDeleted: $filterByDeleted
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+      }
+    }
+  }
+`
+
 export const createPendingCreations = gql`
   mutation ($pendingCreations: [CreatePendingCreationArgs!]!) {
     createPendingCreations(pendingCreations: $pendingCreations) {

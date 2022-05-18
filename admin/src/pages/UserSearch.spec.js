@@ -82,7 +82,7 @@ describe('UserSearch', () => {
             searchText: '',
             currentPage: 1,
             pageSize: 25,
-            filterByActivated: null,
+            filterByActivated: null, // Wolle: put in 'filters' object?
             filterByDeleted: null,
           },
         }),
@@ -101,7 +101,7 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: false,
+              filterByActivated: false, // Wolle: put in 'filters' object?
               filterByDeleted: null,
             },
           }),
@@ -121,7 +121,7 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: null,
+              filterByActivated: null, // Wolle: put in 'filters' object?
               filterByDeleted: true,
             },
           }),
@@ -141,7 +141,7 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 2,
               pageSize: 25,
-              filterByActivated: null,
+              filterByActivated: null, // Wolle: put in 'filters' object?
               filterByDeleted: null,
             },
           }),
@@ -161,7 +161,7 @@ describe('UserSearch', () => {
               searchText: 'search string',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: null,
+              filterByActivated: null, // Wolle: put in 'filters' object?
               filterByDeleted: null,
             },
           }),
@@ -178,7 +178,7 @@ describe('UserSearch', () => {
                 searchText: '',
                 currentPage: 1,
                 pageSize: 25,
-                filterByActivated: null,
+                filterByActivated: null, // Wolle: put in 'filters' object?
                 filterByDeleted: null,
               },
             }),
