@@ -1,19 +1,19 @@
 <template>
   <div id="app" :class="$route.meta.requiresAuth ? 'font-sans text-gray-800' : ''" class="h-100">
-    <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
+    <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
     <div class="goldrand position-fixed w-100 fixed-bottom zindex10"></div>
   </div>
 </template>
 
 <script>
-import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
-import AuthLayoutGDD from '@/layouts/AuthLayout_gdd.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import AuthLayout from '@/layouts/AuthLayout.vue'
 
 export default {
   name: 'App',
   components: {
     DashboardLayout,
-    AuthLayoutGDD,
+    AuthLayout,
   },
 }
 </script>

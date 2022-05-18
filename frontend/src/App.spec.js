@@ -43,8 +43,8 @@ describe('App', () => {
       expect(wrapper.find('#app').exists()).toBe(true)
     })
 
-    it('has a component AuthLayoutGDD', () => {
-      expect(wrapper.findComponent({ name: 'AuthTemplate' }).exists()).toBe(true)
+    it('has a component AuthLayout', () => {
+      expect(wrapper.findComponent({ name: 'AuthLayout' }).exists()).toBe(true)
     })
 
     describe('route requires authorization', () => {

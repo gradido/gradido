@@ -1,9 +1,9 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import AuthLayoutGdd from './AuthLayout_gdd'
+import AuthLayout from './AuthLayout'
 
 const localVue = global.localVue
 
-describe('AuthLayoutGdd', () => {
+describe('AuthLayout', () => {
   let wrapper
 
   const mocks = {
@@ -28,7 +28,7 @@ describe('AuthLayoutGdd', () => {
   }
 
   const Wrapper = () => {
-    return mount(AuthLayoutGdd, { localVue, mocks, stubs })
+    return mount(AuthLayout, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {

@@ -27,7 +27,7 @@ a,
 
 /* Button */
 .btn {
-  border-radius: 17px;
+  border-radius: 25px;
 }
 
 .btn-gradido {
@@ -38,6 +38,8 @@ a,
   border-style: none;
   box-shadow: 10px 10px 50px 10px rgb(56 56 56 / 31%);
   color: #fff;
+  padding-right: 50px;
+  padding-left: 50px;
 }
 
 .btn-gradido:hover {

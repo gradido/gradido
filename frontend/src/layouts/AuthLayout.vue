@@ -90,7 +90,7 @@ import LanguageSwitch from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/Footer.vue'
 
 export default {
-  name: 'AuthTemplate',
+  name: 'AuthLayout',
   components: {
     MobileStart,
     Navbar,
