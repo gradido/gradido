@@ -36,7 +36,7 @@
             <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
               <b-row class="p-4">
                 <b-col cols="10">
-                  <language-switch />
+                  <language-switch class="ml-3"/>
                 </b-col>
                 <b-col cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">

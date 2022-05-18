@@ -33,7 +33,7 @@
                 {{ $t('site.login.saveLogin') }}
               </b-form-checkbox>
             </b-col>
-            <b-col>
+            <b-col class="d-flex justify-content-end">
               <router-link to="/forgot-password" class="mt-3">
                 {{ $t('settings.password.forgot_pwd') }}
               </router-link>

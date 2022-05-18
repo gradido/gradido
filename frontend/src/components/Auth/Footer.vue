@@ -1,6 +1,6 @@
 <template>
   <footer class="footer bg-transparent">
-    <b-row class="mt-lg-8 mt-md-6 mt-4">
+    <b-row class="mt-lg-7 mt-md-6 mt-4">
       <b-col class="col-12 col-md-12 col-lg-6">
         <div
           class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ml-3"
