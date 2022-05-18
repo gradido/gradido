@@ -1,7 +1,7 @@
 <template>
   <div class="auth-template">
     <mobile-start v-if="mobileStart" class="d-inline d-lg-none" @is-mobile-start="setMobileStart" />
-    <div v-else class="h-100 align-middle">
+    <div v-if="!mobileStart" class="h-100 align-middle">
       <navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
@@ -16,11 +16,11 @@
         </div>
       </div>
       <b-row class="justify-content-md-center">
-        <b-col sm="12" md="8" offset-lg="6" lg="6">
+        <b-col sm="12" md="8" offset-lg="6" lg="6" class="zindex10000">
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
-              <b-col class="mb--4">
-                <navbar-small class="zindex10000" />
+              <b-col class="mb--4 d-flex justify-content-end">
+                <navbar-small />
               </b-col>
             </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
@@ -36,7 +36,7 @@
             <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
               <b-row class="p-4">
                 <b-col cols="10">
-                  <language-switch class="ml-3"/>
+                  <language-switch class="ml-3" />
                 </b-col>
                 <b-col cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
@@ -62,7 +62,7 @@
                 <b-col class="text-center">
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row class="mt-4">
-                    <b-col class="zindex1000 mb--4">
+                    <b-col class="zindex1000 d-flex justify-content-center">
                       <navbar-small />
                     </b-col>
                   </b-row>
@@ -101,9 +101,7 @@ export default {
   },
   data() {
     return {
-      lg: 1025,
-      mobileStart: window.innerWidth < this.lg,
-      windowWidth: window.innerWidth,
+      mobileStart: true,
     }
   },
   methods: {
@@ -112,19 +110,6 @@ export default {
     },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
-    },
-    onResize() {
-      this.mobileStart = window.innerWidth < this.lg
-    },
-  },
-  mounted() {
-    this.$nextTick(() => {
-      window.addEventListener('resize', this.onResize)
-    })
-  },
-  watch: {
-    windowWidth() {
-      window.addEventListener('resize', this.onResize)
     },
   },
 }

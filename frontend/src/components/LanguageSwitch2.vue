@@ -5,7 +5,7 @@
       @click.prevent="saveLocale(lang.code)"
       :key="lang.code"
       class="pointer pr-3"
-      :class="$store.state.language === lang.code ? 'text-primary' : ''"
+      :class="$store.state.language === lang.code ? 'c-blau' : 'c-grey'"
     >
       {{ lang.name }}
       <span class="ml-3">{{ locales.length - 1 > index ? $t('math.pipe') : '' }}</span>
