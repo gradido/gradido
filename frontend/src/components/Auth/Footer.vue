@@ -3,7 +3,7 @@
     <b-row class="mt-lg-8 mt-md-6 mt-4">
       <b-col class="col-12 col-md-12 col-lg-6">
         <div
-          class="d-flex justify-content-center justify-content-md-center justify-content-lg-start"
+          class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ml-3"
         >
           <b-nav class="nav-footer">
             <b-nav-item :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
@@ -16,7 +16,7 @@
         </div>
       </b-col>
       <b-col class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
-        <div class="text-center text-lg-right">
+        <div class="text-center ml-3 ml-lg-0 text-lg-right">
           {{ $t('followUs') }}
           <b-icon-facebook class="ml-3 mr-3" font-scale="1"></b-icon-facebook>
           <b-icon-twitter class="mr-3" font-scale="1"></b-icon-twitter>

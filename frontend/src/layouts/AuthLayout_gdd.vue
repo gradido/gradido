@@ -11,13 +11,13 @@
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
           <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
-          <div class="h2 text-uppercase text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
+          <div class="h2 text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
           <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
         </div>
       </div>
       <b-row class="justify-content-md-center">
         <b-col sm="12" md="8" offset-lg="6" lg="6">
-          <div class="right-content-box ml-2 ml-sm-4 mr-2 mr-sm-4">
+          <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none mt-3">
               <b-col class="mb--4">
                 <navbar-small class="zindex10" />
