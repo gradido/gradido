@@ -22,7 +22,7 @@ a,
 }
 
 .navbar-light .navbar-nav .nav-link.active {
-  color: rgba(35, 121, 188, 0.9);
+  color: rgb(35 121 188 / 90%);
 }
 
 .text-gradido {
@@ -144,6 +144,7 @@ a,
 .zindex100000 {
   z-index: 100000;
 }
+
 .gradido-global-color-blue {
   color: #0e79bc;
 }
