@@ -43,18 +43,6 @@ describe('AuthLayout', () => {
       it('has Component AuthMobileStart', () => {
         expect(wrapper.findComponent({ name: 'AuthMobileStart' }).exists()).toBe(true)
       })
-
-      it('has Component AuthNavbar', () => {
-        expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(false)
-      })
-
-      it('has Component AuthCarousel', () => {
-        expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(false)
-      })
-
-      it('has Component AuthFooter', () => {
-        expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(false)
-      })
     })
 
     describe('Desktop Version Start', () => {
