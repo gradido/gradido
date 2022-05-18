@@ -20,7 +20,7 @@
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
               <b-col class="mb--4">
-                <navbar-small class="zindex10" />
+                <navbar-small class="zindex10000" />
               </b-col>
             </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
