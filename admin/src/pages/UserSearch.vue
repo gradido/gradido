@@ -4,16 +4,22 @@
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{
-          byActivated === null
+          filters.byActivated === null
             ? $t('all_emails')
-            : byActivated === false
+            : filters.byActivated === false
             ? $t('unregistered_emails')
             : ''
         }}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ byDeleted === null ? $t('all_emails') : byDeleted === true ? $t('deleted_user') : '' }}
+        {{
+          filters.byDeleted === null
+            ? $t('all_emails')
+            : filters.byDeleted === true
+            ? $t('deleted_user')
+            : ''
+        }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -66,8 +72,10 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      byActivated: null, // Wolle: used 'filters' object?
-      byDeleted: null,
+      filters: {
+        byActivated: null,
+        byDeleted: null,
+      },
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -76,11 +84,11 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.byActivated = this.byActivated === null ? false : null
+      this.filters.byActivated = this.filters.byActivated === null ? false : null
       this.getUsers()
     },
     deletedUserSearch() {
-      this.byDeleted = this.byDeleted === null ? true : null
+      this.filters.byDeleted = this.filters.byDeleted === null ? true : null
       this.getUsers()
     },
     getUsers() {
@@ -91,10 +99,7 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filters: {
-              byActivated: this.byActivated,
-              byDeleted: this.byDeleted,
-            },
+            filters: this.filters,
           },
           fetchPolicy: 'no-cache',
         })
