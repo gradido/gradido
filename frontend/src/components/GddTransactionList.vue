@@ -61,7 +61,7 @@
       </div>
     </div>
     <b-pagination
-      v-if="showPagination"
+      v-if="isPaginationVisible"
       class="mt-3"
       pills
       size="lg"
@@ -96,11 +96,6 @@ export default {
     TransactionCreation,
     TransactionLinkSummary,
   },
-  data() {
-    return {
-      currentPage: 1,
-    }
-  },
   props: {
     transactions: { default: () => [] },
     pageSize: { type: Number, default: 25 },
@@ -109,6 +104,11 @@ export default {
     transactionLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
     pending: { type: Boolean },
+  },
+  data() {
+    return {
+      currentPage: 1,
+    }
   },
   methods: {
     updateTransactions() {
@@ -123,6 +123,11 @@ export default {
       return '0'
     },
   },
+  computed: {
+    isPaginationVisible() {
+      return this.showPagination && this.pageSize < this.transactionCount
+    },
+  },
   watch: {
     currentPage() {
       this.updateTransactions()
@@ -134,6 +139,7 @@ export default {
   },
 }
 </script>
+
 <style>
 collaps-icon {
   width: 95%;
