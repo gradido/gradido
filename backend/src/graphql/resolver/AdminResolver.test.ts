@@ -320,6 +320,21 @@ describe('AdminResolver', () => {
       })
 
       describe('with admin rights', () => {
+        const allUsers = {
+          bibi: expect.objectContaining({
+            email: 'bibi@bloxberg.de',
+          }),
+          garrick: expect.objectContaining({
+            email: 'garrick@ollivander.com',
+          }),
+          peter: expect.objectContaining({
+            email: 'peter@lustig.de',
+          }),
+          stephen: expect.objectContaining({
+            email: 'stephen@hawking.uk',
+          }),
+        }
+
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
           await query({
@@ -337,23 +352,8 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        describe('find', () => {
-          const allUsers = {
-            bibi: expect.objectContaining({
-              email: 'bibi@bloxberg.de',
-            }),
-            garrick: expect.objectContaining({
-              email: 'garrick@ollivander.com',
-            }),
-            peter: expect.objectContaining({
-              email: 'peter@lustig.de',
-            }),
-            stephen: expect.objectContaining({
-              email: 'stephen@hawking.uk',
-            }),
-          }
-
-          it('all users by "filters === null"', async () => {
+        describe('without any filters', () => {
+          it('finds all users', async () => {
             await expect(
               query({
                 query: searchUsers,
@@ -372,8 +372,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+        })
 
-          it('all users by "filterByActivated === null && filterByDeleted === null"', async () => {
+        describe('all filters are null', () => {
+          it('finds all users', async () => {
             await expect(
               query({
                 query: searchUsers,
@@ -396,8 +398,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+        })
 
-          it('users with unchecked email', async () => {
+        describe('filter by unchecked email', () => {
+          it('finds only users with unchecked email', async () => {
             await expect(
               query({
                 query: searchUsers,
@@ -420,8 +424,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+        })
 
-          it('users with deleted account', async () => {
+        describe('filter by deleted users', () => {
+          it('finds only users with deleted account', async () => {
             await expect(
               query({
                 query: searchUsers,
@@ -444,8 +450,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+        })
 
-          it('no users with deleted account and unchecked email', async () => {
+        describe('filter by deleted account and unchecked email', () => {
+          it('finds no users', async () => {
             await expect(
               query({
                 query: searchUsers,

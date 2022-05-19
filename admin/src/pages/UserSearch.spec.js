@@ -7,7 +7,7 @@ const localVue = global.localVue
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     searchUsers: {
-      userCount: 1,
+      userCount: 4,
       userList: [
         {
           userId: 1,
