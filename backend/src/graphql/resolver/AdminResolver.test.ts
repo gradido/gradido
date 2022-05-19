@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { convertObjValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -342,6 +343,21 @@ describe('AdminResolver', () => {
         })
 
         describe('find', () => {
+          const allUsers = {
+            bibi: expect.objectContaining({
+              email: 'bibi@bloxberg.de',
+            }),
+            garrick: expect.objectContaining({
+              email: 'garrick@ollivander.com',
+            }),
+            peter: expect.objectContaining({
+              email: 'peter@lustig.de',
+            }),
+            stephen: expect.objectContaining({
+              email: 'stephen@hawking.uk',
+            }),
+          }
+
           it('all users', async () => {
             await expect(
               query({
@@ -355,27 +371,14 @@ describe('AdminResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 4,
-                    userList: expect.arrayContaining([
-                      expect.objectContaining({
-                        email: 'bibi@bloxberg.de',
-                      }),
-                      expect.objectContaining({
-                        email: 'garrick@ollivander.com',
-                      }),
-                      expect.objectContaining({
-                        email: 'peter@lustig.de',
-                      }),
-                      expect.objectContaining({
-                        email: 'stephen@hawking.uk',
-                      }),
-                    ]),
+                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
                   },
                 },
               }),
             )
           })
 
-          it.only('users with unchecked email', async () => {
+          it('users with unchecked email', async () => {
             await expect(
               query({
                 query: searchUsers,
@@ -391,21 +394,32 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   searchUsers: {
-                    userCount: 4,
-                    userList: expect.arrayContaining([
-                      expect.objectContaining({
-                        email: 'bibi@bloxberg.de',
-                      }),
-                      expect.objectContaining({
-                        email: 'garrick@ollivander.com',
-                      }),
-                      expect.objectContaining({
-                        email: 'peter@lustig.de',
-                      }),
-                      expect.objectContaining({
-                        email: 'stephen@hawking.uk',
-                      }),
-                    ]),
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.garrick]),
+                  },
+                },
+              }),
+            )
+          })
+
+          it('users with deleted account', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: null,
+                    filterByDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.stephen]),
                   },
                 },
               }),

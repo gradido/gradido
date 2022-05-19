@@ -1,4 +1,4 @@
-import { Args, ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 import SearchUsersFilters from '@arg/SearchUsersFilters'
 
 @ArgsType()
