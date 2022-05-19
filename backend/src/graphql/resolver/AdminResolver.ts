@@ -52,30 +52,16 @@ export class AdminResolver {
   @Query(() => SearchUsersResult)
   async searchUsers(
     @Args()
-    {
-      searchText,
-      currentPage = 1,
-      pageSize = 25,
-      // Wolle: filters = {
-      //   filterByActivated: null,
-      //   filterByDeleted: null,
-      // },
-      filters = {
-        filterByActivated: null,
-        filterByDeleted: null,
-      },
-    }: SearchUsersArgs,
+    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
-    // Wolle
-    console.log('filters: ', filters)
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (filters.filterByActivated !== null) {
+    if (filters && filters.filterByActivated !== null) {
       filterCriteria.push({ emailChecked: filters.filterByActivated })
     }
 
-    if (filters.filterByDeleted !== null) {
+    if (filters && filters.filterByDeleted !== null) {
       filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
     }
 

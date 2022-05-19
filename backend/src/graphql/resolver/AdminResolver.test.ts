@@ -268,10 +268,7 @@ describe('AdminResolver', () => {
       searchText: '',
       currentPage: 1,
       pageSize: 25,
-      filters: {
-        filterByActivated: null,
-        filterByDeleted: null,
-      },
+      filters: null,
     }
 
     describe('unauthenticated', () => {
@@ -333,8 +330,6 @@ describe('AdminResolver', () => {
           await userFactory(testEnv, bibiBloxberg)
           await userFactory(testEnv, stephenHawking)
           await userFactory(testEnv, garrickOllivander)
-          // Wolle await userFactory(testEnv, XXX)
-          // await userFactory(testEnv, XXX)
         })
 
         afterAll(async () => {
@@ -358,12 +353,36 @@ describe('AdminResolver', () => {
             }),
           }
 
-          it('all users', async () => {
+          it('all users by "filters === null"', async () => {
             await expect(
               query({
                 query: searchUsers,
                 variables: {
                   ...variablesWithoutTextAndFilters,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 4,
+                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                  },
+                },
+              }),
+            )
+          })
+
+          it('all users by "filterByActivated === null && filterByDeleted === null"', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: null,
+                    filterByDeleted: null,
+                  },
                 },
               }),
             ).resolves.toEqual(
@@ -420,6 +439,30 @@ describe('AdminResolver', () => {
                   searchUsers: {
                     userCount: 1,
                     userList: expect.arrayContaining([allUsers.stephen]),
+                  },
+                },
+              }),
+            )
+          })
+
+          it('no users with deleted account and unchecked email', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: false,
+                    filterByDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 0,
+                    userList: [],
                   },
                 },
               }),

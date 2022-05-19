@@ -12,13 +12,6 @@ export default class SearchUsersArgs {
   @Field(() => Int, { nullable: true })
   pageSize?: number
 
-  // Wolle: @Field(() => Boolean, { nullable: true })
-  // filterByActivated?: boolean | null
-
-  // Wolle: @Field(() => Boolean, { nullable: true })
-  // filterByDeleted?: boolean | null
-
-  // Wolle: shall this be nullable?
-  @Field()
+  @Field(() => SearchUsersFilters, { nullable: true })
   filters: SearchUsersFilters
 }
