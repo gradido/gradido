@@ -1,5 +1,6 @@
 <template>
   <div class="resetpwd-form">
+    <!-- change to "enterData", see Login.vue -->
     <div v-if="!showPageMessage">
       <b-container>
         <div class="header p-4" ref="header">
@@ -95,7 +96,7 @@ export default {
         passwordRepeat: '',
       },
       displaySetup: {},
-      showPageMessage: false,
+      showPageMessage: false, // compute "enterData"
       messageHeadline: null,
       messageSubtitle: null,
       messageButtonText: null,
