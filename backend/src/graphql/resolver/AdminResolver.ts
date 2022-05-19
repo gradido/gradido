@@ -57,12 +57,14 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (filters && filters.filterByActivated !== null) {
-      filterCriteria.push({ emailChecked: filters.filterByActivated })
-    }
+    if (filters) {
+      if (filters.filterByActivated !== null) {
+        filterCriteria.push({ emailChecked: filters.filterByActivated })
+      }
 
-    if (filters && filters.filterByDeleted !== null) {
-      filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+      if (filters.filterByDeleted !== null) {
+        filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+      }
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
