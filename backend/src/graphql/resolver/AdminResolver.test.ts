@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { convertObjValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -11,6 +12,7 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
   deleteUser,
   unDeleteUser,
+  searchUsers,
   createPendingCreation,
   createPendingCreations,
   updatePendingCreation,
@@ -255,6 +257,224 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+          })
+        })
+      })
+    })
+  })
+
+  describe('search users', () => {
+    const variablesWithoutTextAndFilters = {
+      searchText: '',
+      currentPage: 1,
+      pageSize: 25,
+      filters: null,
+    }
+
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: searchUsers,
+            variables: {
+              ...variablesWithoutTextAndFilters,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            query({
+              query: searchUsers,
+              variables: {
+                ...variablesWithoutTextAndFilters,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        const allUsers = {
+          bibi: expect.objectContaining({
+            email: 'bibi@bloxberg.de',
+          }),
+          garrick: expect.objectContaining({
+            email: 'garrick@ollivander.com',
+          }),
+          peter: expect.objectContaining({
+            email: 'peter@lustig.de',
+          }),
+          stephen: expect.objectContaining({
+            email: 'stephen@hawking.uk',
+          }),
+        }
+
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+
+          await userFactory(testEnv, bibiBloxberg)
+          await userFactory(testEnv, stephenHawking)
+          await userFactory(testEnv, garrickOllivander)
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('without any filters', () => {
+          it('finds all users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 4,
+                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('all filters are null', () => {
+          it('finds all users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: null,
+                    filterByDeleted: null,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 4,
+                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by unchecked email', () => {
+          it('finds only users with unchecked email', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: false,
+                    filterByDeleted: null,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.garrick]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by deleted users', () => {
+          it('finds only users with deleted account', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: null,
+                    filterByDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    userList: expect.arrayContaining([allUsers.stephen]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by deleted account and unchecked email', () => {
+          it('finds no users', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  filters: {
+                    filterByActivated: false,
+                    filterByDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 0,
+                    userList: [],
+                  },
+                },
+              }),
+            )
           })
         })
       })
