@@ -39,7 +39,7 @@
       "level": "error",
       "appender": "errorFile"
     },
-    "out": 
+    "out":
     {
       "type": "stdout",
       "layout": 
@@ -54,10 +54,9 @@
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c %m"
       }
-
     }    
   },
-  "categories": 
+  "categories":
   {
     "default": 
     {
@@ -71,7 +70,7 @@
     },
     "apollo":
     {
-      "appenders": 
+      "appenders":
       [
         "apollo",
         "apolloOut",
@@ -82,7 +81,7 @@
     },
     "backend":
     {
-      "appenders": 
+      "appenders":
       [
         "backend",
         "out",
