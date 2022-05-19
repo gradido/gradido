@@ -57,12 +57,12 @@ export class AdminResolver {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (filters && filters.filterByActivated !== null) {
-      filterCriteria.push({ emailChecked: filters.filterByActivated })
+    if (filters && filters.byActivated !== null) {
+      filterCriteria.push({ emailChecked: filters.byActivated })
     }
 
-    if (filters && filters.filterByDeleted !== null) {
-      filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+    if (filters && filters.byDeleted !== null) {
+      filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
@@ -436,11 +436,11 @@ export class AdminResolver {
     } = {
       userId,
     }
-    if (!filters.filterByRedeemed) where.redeemedBy = null
-    if (!filters.filterByExpired) where.validUntil = MoreThan(new Date())
+    if (!filters.byRedeemed) where.redeemedBy = null
+    if (!filters.byExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.filterByDeleted,
+      withDeleted: filters.byDeleted,
       order: {
         createdAt: order,
       },

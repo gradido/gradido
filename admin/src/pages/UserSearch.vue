@@ -4,22 +4,16 @@
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
         {{
-          filterByActivated === null
+          byActivated === null
             ? $t('all_emails')
-            : filterByActivated === false
+            : byActivated === false
             ? $t('unregistered_emails')
             : ''
         }}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{
-          filterByDeleted === null
-            ? $t('all_emails')
-            : filterByDeleted === true
-            ? $t('deleted_user')
-            : ''
-        }}
+        {{ byDeleted === null ? $t('all_emails') : byDeleted === true ? $t('deleted_user') : '' }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -72,8 +66,8 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      filterByActivated: null,
-      filterByDeleted: null,
+      byActivated: null, // Wolle: used 'filters' object?
+      byDeleted: null,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -82,11 +76,11 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.filterByActivated = this.filterByActivated === null ? false : null
+      this.byActivated = this.byActivated === null ? false : null
       this.getUsers()
     },
     deletedUserSearch() {
-      this.filterByDeleted = this.filterByDeleted === null ? true : null
+      this.byDeleted = this.byDeleted === null ? true : null
       this.getUsers()
     },
     getUsers() {
@@ -98,8 +92,8 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             filters: {
-              filterByActivated: this.filterByActivated,
-              filterByDeleted: this.filterByDeleted,
+              byActivated: this.byActivated,
+              byDeleted: this.byDeleted,
             },
           },
           fetchPolicy: 'no-cache',

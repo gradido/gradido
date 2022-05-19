@@ -373,15 +373,15 @@ describe('AdminResolver', () => {
             )
           })
 
-          it('all users by "filterByActivated === null && filterByDeleted === null"', async () => {
+          it('all users by "byActivated === null && byDeleted === null"', async () => {
             await expect(
               query({
                 query: searchUsers,
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: null,
-                    filterByDeleted: null,
+                    byActivated: null,
+                    byDeleted: null,
                   },
                 },
               }),
@@ -404,8 +404,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: false,
-                    filterByDeleted: null,
+                    byActivated: false,
+                    byDeleted: null,
                   },
                 },
               }),
@@ -428,8 +428,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: null,
-                    filterByDeleted: true,
+                    byActivated: null,
+                    byDeleted: true,
                   },
                 },
               }),
@@ -452,8 +452,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: false,
-                    filterByDeleted: true,
+                    byActivated: false,
+                    byDeleted: true,
                   },
                 },
               }),
