@@ -68,14 +68,6 @@
             </b-col>
           </b-row>
 
-          <b-alert v-if="showError" show dismissible variant="danger" @dismissed="closeAlert">
-            <span class="alert-icon"><i class="ni ni-point"></i></span>
-            <span class="alert-text">
-              <strong>{{ $t('error.error') }}</strong>
-              {{ messageError }}
-            </span>
-          </b-alert>
-
           <b-row class="mt-4 mb-4">
             <b-col class="mb-4 mb-md-0">
               <b-form-checkbox

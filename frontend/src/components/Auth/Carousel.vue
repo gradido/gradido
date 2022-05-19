@@ -1,10 +1,10 @@
 <template>
   <div>
-    <b-carousel :interval="30000">
-      <b-carousel-slide img-src="/img/template/Foto_01.jpg"></b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_02.jpg"></b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_03.jpg"></b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_04.jpg"></b-carousel-slide>
+    <b-carousel :interval="3000">
+      <b-carousel-slide img-src="/img/template/Foto_01_2400_small.jpg"></b-carousel-slide>
+      <b-carousel-slide img-src="/img/template/Foto_02_2400_small.jpg"></b-carousel-slide>
+      <b-carousel-slide img-src="/img/template/Foto_03_2400_small.jpg"></b-carousel-slide>
+      <b-carousel-slide img-src="/img/template/Foto_04_2400_small.jpg"></b-carousel-slide>
     </b-carousel>
   </div>
 </template>
