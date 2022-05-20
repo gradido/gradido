@@ -97,8 +97,10 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            filterByActivated: this.filterByActivated,
-            filterByDeleted: this.filterByDeleted,
+            filters: {
+              filterByActivated: this.filterByActivated,
+              filterByDeleted: this.filterByDeleted,
+            },
           },
           fetchPolicy: 'no-cache',
         })
