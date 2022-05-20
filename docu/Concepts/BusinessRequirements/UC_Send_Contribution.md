@@ -10,10 +10,9 @@ In der Admin-Übersicht wird es zusätzliche Navigations- bzw. Menüpunkte geben
 
 ![Admin Overview](./image/UC_Send_Contribution_Admin-Overview.png)
 
-
 ## Contribution erfassen
 
-Bei der Erfassung einer Contribution wird die Kategorie, ein eindeutiger Name, eine Beschreibung der Contribution und der Betrag eingegeben.
+Bei der Erfassung einer Contribution wird die Kategorie, ein Name, eine Beschreibung der Contribution und der Betrag eingegeben.
 
 Der Gültigkeitsstart wird als Default mit dem aktuellen Erfassungszeitpunkt vorbelegt, wobei das Gültigkeitsende leer bleibt und damit als endlos gültig definiert wird. Mit Eingabe eines Start- und/oder Endezeitpunktes kann aber ein konkreter Gültigkeitszeitraum erfasst werden.
 
@@ -23,9 +22,7 @@ Wie häufig ein User für diese Contribution eine Schöpfung gutgeschrieben beko
 
 Ob die Contribution über einen versendeten Link bzw. QR-Code geschöpft werden kann, wird mittels der Auswahl "Versenden möglich als" bestimmt.
 
-
 ![send](./image/UC_Send_Contribution_Admin-new ContributionSend.png)
-
 
 Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 
@@ -37,14 +34,19 @@ Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 
 ![new](./image/UC_Send_Contribution_Admin-newContribution.png)
 
-
 ## Datenbank-Modell
 
+### Ausgangsmodell
+
+Das nachfolgende Bild zeigt das Datenmodell vor der Einführung und Migration auf Contributions.
 
 ![Datenbankmodell](./image/DB-Diagramm_20220518.png)
 
+### Datenbank-Änderungen
 
-### Contributions - Table
+#### neue Tabellen
+
+##### Contributions - Table
 
 | Name                        | Typ          | Nullable |    Default    | Kommentar                                                                                                                              |
 | --------------------------- | ------------ | :------: | :------------: | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,32 +66,59 @@ Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 | MinGapHours                 | INT UNSIGNED |         |      NULL      |                                                                                                                                        |
 | CreatedAt                   | DATETIME     |         |      NOW      |                                                                                                                                        |
 | Deleted                     | BOOL         | NOT NULL |     FALSE     |                                                                                                                                        |
+| Link                        | varchar(24)  |         |      NULL      |                                                                                                                                        |
+| LinkEnabled                 | BOOL         |         |      NULL      |                                                                                                                                        |
 
+##### PendingActivities -Table
 
-### ContributionCategories -Table
+| Name           | Typ          | Nullable | Default        | Kommentar                                                                        |
+| -------------- | ------------ | -------- | -------------- | -------------------------------------------------------------------------------- |
+| ID             | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey                                                                       |
+| Name           | varchar(100) | NOT NULL |                | short Naming of activity                                                         |
+| Memo           | varchar(255) | NOT NULL |                | full and detailed description of activities                                      |
+| Amount         | DECIMAL      | NOT NULL |                | the amount of GDD for this activity                                              |
+| ActivityDate   | DATETIME     |          | NULL           | the date, when the activity was done                                             |
+| UserID         | INT UNSIGNED | NOT NULL |                | the user, who wants to get GDD for his activity                                  |
+| CapturedAt     | DATETIME     | NOT NULL | NOW            | the date, when this entry was captured and stored in database                    |
+| ContributionID | INT UNSIGNED |          | NULL           | contribution, on which this activity base on                                     |
+| ModeratorID    | INT UNSIGNED |          | NULL           | userID of Moderator/Admin, who confirms the activity                             |
+| ConfirmedAt    | DATETIME     |          | NULL           | date, when moderator has confirmed the activity                                  |
+| BookedAt       | DATETIME     |          | NULL           | date, when the system has booked the amount of the activity on the users account |
 
-| Name                   | Typ          | Nullable | Default        | Kommentar   |
-| ---------------------- | ------------ | -------- | -------------- | ----------- |
-| ID                     | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey  |
-| Name                   | varchar(100) | NOT NULL |                | unique Name |
-| Description            | varchar(255) |          |                |             |
-| Active                 | BOOL         | NOT NULL | TRUE           |             |
-| ContributionCategoryID | INT UNSIGNED |          | NULL           |             |
+#### zu migrierende Tabellen
 
+##### Tabelle admin_pending-creations
+
+Diese Tabelle wird im Rahmen dieses UseCase migriert in die neue Tabelle PendingActivies...
+
+| Quell-Spalte | Migration | Ziel-Spalte    | Beschreibung                                               |
+| ------------ | --------- | -------------- | ---------------------------------------------------------- |
+| id           | keine     | id             | auto inkrement des PK                                      |
+| userId       | copy      | UserID         |                                                            |
+| created      | copy      | CapturedAt     |                                                            |
+| date         | copy      | ActivityDate   |                                                            |
+| memo         | copy      | Memo           |                                                            |
+| amount       | copy      | Amount         |                                                            |
+| moderator    | copy      | ModeratorID    |                                                            |
+|              |           | Name           | neu mit Contributions                                      |
+|              |           | ContributionID | neu mit Contributions                                      |
+|              |           | ConfirmedAt    | neu mit Erfassung der Contributions von Elopage in Gradido |
+|              |           | BookedAt       | neu mit Erfassung der Contributions von Elopage in Gradido |
+
+...und kann nach Übernahme der Daten in die neue Tabelle gelöscht werden.
+
+### Zielmodell
 
 ![Contributions-DB](./image/DB-Diagramm_Contributions.png)
 
-
-
-CREATE TABLE CommunityContributions (
+CREATE TABLE gradido_community.Contributions (
 Id INT UNSIGNED auto_increment NOT NULL,
 Name varchar(100) NOT NULL,
-Description varchar(255) NULL,
-ContributionCategoryID INT UNSIGNED NULL,
+Description varchar(255) NOT NULL,
 ValidFrom DATETIME DEFAULT NOW NOT NULL,
 ValidTo DATETIME DEFAULT null NULL,
 Amount DECIMAL NOT NULL,
-`Cycle` ENUM DEFAULT ONCE NOT NULL COMMENT 'ONCE, HOUR, 4HOUR, 8HOUR, HALFDAY, DAY, WEEK, 2WEEKS, MONTH, QUARTER, HALFYEAR, YEAR',
+Cycle ENUM DEFAULT ONCE NOT NULL COMMENT 'ONCE, HOUR, 4HOUR, 8HOUR, HALFDAY, DAY, WEEK, 2WEEKS, MONTH, QUARTER, HALFYEAR, YEAR',
 MaxPerCycle INT UNSIGNED DEFAULT 1 NOT NULL,
 AbelToSend ENUM DEFAULT NO NOT NULL COMMENT 'NO, LINK, QRCODE',
 MaxAmountPerMonth DECIMAL DEFAULT null NULL,
@@ -97,20 +126,31 @@ TotalMaxCountOfContribution INT UNSIGNED DEFAULT null NULL,
 MaxAccountBalance DECIMAL DEFAULT null NULL,
 MinGapHours INT UNSIGNED DEFAULT null NULL,
 CreatedAt DATETIME DEFAULT NOW NULL,
-Deleted BOOL DEFAULT FALSE NOT NULL
+Deleted BOOL DEFAULT FALSE NOT NULL,
+Link varchar(24) DEFAULT null NULL,
+LinkEnabled BOOL DEFAULT null NULL,
+CONSTRAINT Contributions_PK PRIMARY KEY (Id)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci;
 
-
-
-CREATE TABLE gradido_community.ContributionCategory (
-ID INT UNSIGNED auto_increment NOT NULL,
+CREATE TABLE gradido_community.PendingActivities (
+Id INT UNSIGNED auto_increment NOT NULL,
 Name varchar(100) NOT NULL,
-Description varchar(255) NULL,
-Active BOOL DEFAULT TRUE NOT NULL,
-ContributionCategoryID INT UNSIGNED NULL
+Memo varchar(255) NULL,
+Amount DECIMAL NULL,
+AcitivtyDate DATETIME NULL,
+UserID INT UNSIGNED NOT NULL,
+CreatedAt DATETIME DEFAULT NOW NULL,
+ContributionID INT UNSIGNED NULL,
+ModeratorID INT UNSIGNED NULL COMMENT 'userID of moderator',
+ConfirmedAt DATETIME NULL,
+BookedAt DATETIME NULL,
+CONSTRAINT CreationActivities_PK PRIMARY KEY (Id),
+CONSTRAINT PendingActivities_FK FOREIGN KEY (UserID) REFERENCES gradido_community.users(id),
+CONSTRAINT PendingActivities_FK_1 FOREIGN KEY (ContributionID) REFERENCES gradido_community.Contributions(Id),
+CONSTRAINT PendingActivities_FK_2 FOREIGN KEY (ModeratorID) REFERENCES gradido_community.users(id)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
