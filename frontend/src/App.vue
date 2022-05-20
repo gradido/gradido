@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="h-100">
     <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
-    <div class="goldrand position-fixed w-100 fixed-bottom zindex10"></div>
+    <div class="goldrand position-fixed w-100 fixed-bottom zindex1000"></div>
   </div>
 </template>
 

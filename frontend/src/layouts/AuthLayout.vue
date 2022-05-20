@@ -44,7 +44,7 @@
                 </b-col>
                 <b-col cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
-                    <b-img src="img/svg/type.svg" width="19" class="svg"></b-img>
+                    <b-img src="img/svg/type.svg" width="19" class="svgType"></b-img>
                   </div>
                   <b-popover
                     target="popover-target-1"
@@ -164,6 +164,9 @@ export default {
   overflow: hidden;
 }
 
+.svgType:hover {
+  filter: invert(38%) sepia(18%) saturate(5307%) hue-rotate(179deg) brightness(89%) contrast(89%);
+}
 @media screen and (min-width: 2000px) {
   .right-content-box {
     max-width: 60%;
