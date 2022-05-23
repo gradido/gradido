@@ -18,7 +18,6 @@
     }
   },
   "back": "Zurück",
-  "WelcomeBy": "bei {name}",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
@@ -281,5 +280,6 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen"
+  "welcome": "Willkommen",
+  "WelcomeBy": "bei {name}"
 }
