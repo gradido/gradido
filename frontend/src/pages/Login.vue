@@ -2,13 +2,6 @@
   <div class="login-form">
     <b-container v-if="enterData">
       <div class="pb-5">{{ $t('site.login.heading') }}</div>
-      <label>{{ $t('site.login.community') }}</label>
-      <b-form-select
-        v-model="selected"
-        :options="options"
-        class="selectedLanguage mb-3"
-      ></b-form-select>
-
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>
@@ -23,8 +16,9 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col>
+            <b-col class="d-flex justify-content-start">
               <b-form-checkbox
+                class="mt-3"
                 v-model="status"
                 name="checkbox-1"
                 value="saved"
@@ -39,7 +33,7 @@
               </router-link>
             </b-col>
           </b-row>
-          <div class="mt-4">
+          <div class="mt-5">
             <b-button type="submit" variant="gradido">{{ $t('login') }}</b-button>
           </div>
         </b-form>
@@ -61,7 +55,6 @@ import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { login } from '@/graphql/queries'
-import CONFIG from '@/config'
 
 export default {
   name: 'Login',
@@ -77,14 +70,11 @@ export default {
         password: '',
       },
       passwordVisible: false,
-      selected: '01',
-      options: [{ value: '01', text: CONFIG.COMMUNITY_NAME }],
       status: false,
       showPageMessage: false,
       errorReason: null,
       errorSubtitle: '',
       errorLinkTo: '',
-      CONFIG,
     }
   },
   methods: {

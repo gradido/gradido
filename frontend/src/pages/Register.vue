@@ -80,11 +80,11 @@
               </b-form-checkbox>
             </b-col>
 
-            <b-col>
+            <b-col class="d-flex justify-content-end">
               <b-button
-                :disabled="disabled"
                 type="submit"
-                :variant="disabled ? 'outline-light' : 'gradido'"
+                :disabled="disabled"
+                :variant="disabled ? 'outline-gradido' : 'gradido'"
               >
                 {{ $t('signup') }}
               </b-button>

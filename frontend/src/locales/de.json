@@ -18,7 +18,7 @@
     }
   },
   "back": "Zurück",
-  "communitiesWorldWide": "Gemeinden in aller Welt",
+  "WelcomeBy": "bei {name}",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
@@ -230,7 +230,6 @@
       "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
     },
     "login": {
-      "community": "Wähle deine Gemeinschaft",
       "heading": "Melde dich mit deinen Zugangsdaten an. Bewahre sie stets sicher auf!",
       "saveLogin": "Anmeldung speichern"
     },

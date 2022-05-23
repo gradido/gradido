@@ -36,6 +36,8 @@ a,
 /* Button */
 .btn {
   border-radius: 25px;
+  padding-right: 50px;
+  padding-left: 50px;
 }
 
 .btn-gradido {
@@ -46,8 +48,6 @@ a,
   border-style: none;
   box-shadow: 10px 10px 50px 10px rgb(56 56 56 / 31%);
   color: #fff;
-  padding-right: 50px;
-  padding-left: 50px;
 }
 
 .btn-gradido:hover {
@@ -59,7 +59,7 @@ a,
 }
 
 .btn-outline-gradido {
-  color: rgb(248 161 27);
+  color: rgb(140, 121, 88);
   border: 1px solid #f5b805;
 }
 

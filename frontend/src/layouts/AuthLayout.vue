@@ -30,7 +30,7 @@
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
               <b-col cols="9">
                 <div class="h1 mb--2">{{ $t('welcome') }}</div>
-                <div class="h1 mb-0">{{ $t('communitiesWorldWide') }}</div>
+                <div class="h1 mb-0">{{ $t('WelcomeBy', { name: communityName }) }}</div>
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </b-col>
               <b-col cols="3" class="text-right d-none d-sm-none d-md-inline">
@@ -92,6 +92,7 @@ import NavbarSmall from '@/components/Auth/NavbarSmall.vue'
 import Carousel from '@/components/Auth/Carousel.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/Footer.vue'
+import CONFIG from '@/config'
 
 export default {
   name: 'AuthLayout',
@@ -106,6 +107,7 @@ export default {
   data() {
     return {
       mobileStart: true,
+      communityName: CONFIG.COMMUNITY_NAME,
     }
   },
   methods: {

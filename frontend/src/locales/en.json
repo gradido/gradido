@@ -18,7 +18,7 @@
     }
   },
   "back": "Back",
-  "communitiesWorldWide": "Communities World Wide",
+  "WelcomeBy": "by {name}",
   "community": {
     "choose-another-community": "Choose another community",
     "community": "Community",
@@ -230,7 +230,6 @@
       "heading": "Please enter the email address by which you're registered here."
     },
     "login": {
-      "community": "Choose your community",
       "heading": "Log in with your access data. Keep them safe!",
       "saveLogin": "Save login"
     },
