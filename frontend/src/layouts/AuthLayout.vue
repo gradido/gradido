@@ -65,7 +65,7 @@
               <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <b-col class="text-center">
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-                  <b-row class="mt-4">
+                  <b-row>
                     <b-col class="zindex1000 d-flex justify-content-center">
                       <navbar-small />
                     </b-col>
