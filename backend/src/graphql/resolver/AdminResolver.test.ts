@@ -1528,6 +1528,7 @@ describe('AdminResolver', () => {
               }),
             )
           })
+        })
 
         // Wolle: not done jet
         describe.skip('filter by redeemed', () => {
