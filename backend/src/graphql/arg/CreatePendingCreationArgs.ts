@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType, Int } from 'type-graphql'
+import { ArgsType, Field, InputType } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @InputType()
@@ -15,7 +15,4 @@ export default class CreatePendingCreationArgs {
 
   @Field(() => String)
   creationDate: string
-
-  @Field(() => Int)
-  moderator: number
 }

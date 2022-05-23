@@ -24,12 +24,6 @@ const mocks = {
   },
   $store: {
     commit: stateCommitMock,
-    state: {
-      moderator: {
-        id: 0,
-        name: 'test moderator',
-      },
-    },
   },
 }
 
@@ -122,7 +116,6 @@ describe('CreationFormular', () => {
                     creationDate: getCreationDate(2),
                     amount: 90,
                     memo: 'Test create coins',
-                    moderator: 0,
                   },
                 }),
               )
@@ -370,14 +363,12 @@ describe('CreationFormular', () => {
                     creationDate: getCreationDate(1),
                     amount: 200,
                     memo: 'Test mass create coins',
-                    moderator: 0,
                   },
                   {
                     email: 'bibi@bloxberg.de',
                     creationDate: getCreationDate(1),
                     amount: 200,
                     memo: 'Test mass create coins',
-                    moderator: 0,
                   },
                 ],
               },

@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container class="mt--8 p-1">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="6" md="8">
           <b-card no-body class="border-0 gradido-custom-background">
@@ -36,24 +36,48 @@
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <message
+        v-if="success"
+        :headline="$t('site.thx.title')"
+        :subtitle="$t('site.thx.email')"
+        :buttonText="$t('login')"
+        linkTo="/login"
+      />
+      <message
+        v-else
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="$t('error.email-already-sent')"
+        :buttonText="$t('login')"
+        linkTo="/login"
+      />
+    </b-container>
   </div>
 </template>
 <script>
 import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'
+import Message from '@/components/Message/Message'
 
 export default {
   name: 'ForgotPassword',
   components: {
     InputEmail,
+    Message,
   },
   data() {
     return {
-      disable: 'disabled',
       form: {
         email: '',
       },
       subtitle: 'settings.password.subtitle',
+      showPageMessage: false,
+      success: null,
+    }
+  },
+  created() {
+    if (this.$route.params.comingFrom) {
+      this.subtitle = 'settings.password.resend_subtitle'
     }
   },
   methods: {
@@ -66,18 +90,20 @@ export default {
           },
         })
         .then(() => {
-          this.$router.push('/thx/forgotPassword')
+          this.showPageMessage = true
+          this.success = true
         })
         .catch(() => {
+          this.showPageMessage = true
+          this.success = false
           this.toastError(this.$t('error.email-already-sent'))
-          this.$router.push('/thx/forgotPassword')
         })
     },
   },
-  created() {
-    if (this.$route.params.comingFrom) {
-      this.subtitle = 'settings.password.resend_subtitle'
-    }
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
   },
 }
 </script>
