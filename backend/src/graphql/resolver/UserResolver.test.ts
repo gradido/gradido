@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword } from '@/seeds/graphql/mutations'
-import { login, logout } from '@/seeds/graphql/queries'
+import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
+import { login, logout, verifyLogin, queryOptIn } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { printTimeDuration } from './UserResolver'
+import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
+import { printTimeDuration, activationLink } from './UserResolver'
+
+import { logger } from '@test/testSetup'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -19,6 +22,13 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('@/mailer/sendResetPasswordEmail', () => {
+  return {
+    __esModule: true,
+    sendResetPasswordEmail: jest.fn(),
   }
 })
 
@@ -35,7 +45,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -85,7 +95,7 @@ describe('UserResolver', () => {
       })
 
       describe('filling all tables', () => {
-        it('saves the user in login_user table', () => {
+        it('saves the user in users table', () => {
           expect(user).toEqual([
             {
               id: expect.any(Number),
@@ -100,6 +110,7 @@ describe('UserResolver', () => {
               emailChecked: false,
               passphrase: expect.any(String),
               language: 'de',
+              isAdmin: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -140,12 +151,14 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      it('throws an error', async () => {
-        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
+      it('throws and logs an error', async () => {
+        const mutation = await mutate({ mutation: createUser, variables })
+        expect(mutation).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
         )
+        expect(logger.error).toBeCalledWith('User already exists with this email=peter@lustig.de')
       })
     })
 
@@ -336,7 +349,7 @@ describe('UserResolver', () => {
                 firstName: 'Bibi',
                 hasElopage: false,
                 id: expect.any(Number),
-                isAdmin: false,
+                isAdmin: null,
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -409,6 +422,356 @@ describe('UserResolver', () => {
             errors: undefined,
           }),
         )
+      })
+    })
+  })
+
+  describe('verifyLogin', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(query({ query: verifyLogin })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('user exists but is not logged in', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('throws an error', async () => {
+        resetToken()
+        await expect(query({ query: verifyLogin })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+
+      describe('authenticated', () => {
+        const variables = {
+          email: 'bibi@bloxberg.de',
+          password: 'Aa12345_',
+        }
+
+        beforeAll(async () => {
+          await query({ query: login, variables })
+        })
+
+        afterAll(() => {
+          resetToken()
+        })
+
+        it('returns user object', async () => {
+          await expect(query({ query: verifyLogin })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                verifyLogin: {
+                  email: 'bibi@bloxberg.de',
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  language: 'de',
+                  coinanimation: true,
+                  klickTipp: {
+                    newsletterState: false,
+                  },
+                  hasElopage: false,
+                  publisherId: 1234,
+                  isAdmin: null,
+                },
+              },
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('forgotPassword', () => {
+    const variables = { email: 'bibi@bloxberg.de' }
+    describe('user is not in DB', () => {
+      it('returns true', async () => {
+        await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              forgotPassword: true,
+            },
+          }),
+        )
+      })
+    })
+
+    describe('user exists in DB', () => {
+      let result: any
+      let loginEmailOptIn: LoginEmailOptIn[]
+
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await resetEntity(LoginEmailOptIn)
+        result = await mutate({ mutation: forgotPassword, variables })
+        loginEmailOptIn = await LoginEmailOptIn.find()
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true', async () => {
+        await expect(result).toEqual(
+          expect.objectContaining({
+            data: {
+              forgotPassword: true,
+            },
+          }),
+        )
+      })
+
+      it('sends reset password email', () => {
+        expect(sendResetPasswordEmail).toBeCalledWith({
+          link: activationLink(loginEmailOptIn[0]),
+          firstName: 'Bibi',
+          lastName: 'Bloxberg',
+          email: 'bibi@bloxberg.de',
+          duration: expect.any(String),
+        })
+      })
+
+      describe('request reset password again', () => {
+        it('thows an error', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('queryOptIn', () => {
+    let loginEmailOptIn: LoginEmailOptIn[]
+
+    beforeAll(async () => {
+      await userFactory(testEnv, bibiBloxberg)
+      loginEmailOptIn = await LoginEmailOptIn.find()
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    describe('wrong optin code', () => {
+      it('throws an error', async () => {
+        await expect(
+          query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [
+              // keep Whitspace in error message!
+              new GraphQLError(`Could not find any entity of type "LoginEmailOptIn" matching: {
+    "verificationCode": "not-valid"
+}`),
+            ],
+          }),
+        )
+      })
+    })
+
+    describe('correct optin code', () => {
+      it('returns true', async () => {
+        await expect(
+          query({
+            query: queryOptIn,
+            variables: { optIn: loginEmailOptIn[0].verificationCode.toString() },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              queryOptIn: true,
+            },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('updateUserInfos', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await query({
+          query: login,
+          variables: {
+            email: 'bibi@bloxberg.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true', async () => {
+        await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              updateUserInfos: true,
+            },
+          }),
+        )
+      })
+
+      describe('first-name, last-name and language', () => {
+        it('updates the fields in DB', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: {
+              firstName: 'Benjamin',
+              lastName: 'Blümchen',
+              locale: 'en',
+            },
+          })
+          await expect(User.findOne()).resolves.toEqual(
+            expect.objectContaining({
+              firstName: 'Benjamin',
+              lastName: 'Blümchen',
+              language: 'en',
+            }),
+          )
+        })
+      })
+
+      describe('language is not valid', () => {
+        it('thows an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateUserInfos,
+              variables: {
+                locale: 'not-valid',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError(`"not-valid" isn't a valid language`)],
+            }),
+          )
+        })
+      })
+
+      describe('password', () => {
+        describe('wrong old password', () => {
+          it('throws an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  password: 'wrong password',
+                  passwordNew: 'Aa12345_',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('Old password is invalid')],
+              }),
+            )
+          })
+        })
+
+        describe('invalid new password', () => {
+          it('throws an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  password: 'Aa12345_',
+                  passwordNew: 'Aa12345',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('correct old and new password', () => {
+          it('returns true', async () => {
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: {
+                  password: 'Aa12345_',
+                  passwordNew: 'Bb12345_',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: { updateUserInfos: true },
+              }),
+            )
+          })
+
+          it('can login wtih new password', async () => {
+            await expect(
+              query({
+                query: login,
+                variables: {
+                  email: 'bibi@bloxberg.de',
+                  password: 'Bb12345_',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  login: expect.objectContaining({
+                    email: 'bibi@bloxberg.de',
+                  }),
+                },
+              }),
+            )
+          })
+
+          it('cannot login wtih old password', async () => {
+            await expect(
+              query({
+                query: login,
+                variables: {
+                  email: 'bibi@bloxberg.de',
+                  password: 'Aa12345_',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('No user with this credentials')],
+              }),
+            )
+          })
+        })
       })
     })
   })

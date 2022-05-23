@@ -13,7 +13,7 @@
         </div>
       </b-container>
     </div>
-    <b-container class="mt--8">
+    <b-container v-if="enterData" class="mt--8 p-1">
       <b-row class="justify-content-center">
         <b-col lg="5" md="7">
           <b-card no-body class="border-0 mb-0 gradido-custom-background">
@@ -57,11 +57,21 @@
         </b-col>
       </b-row>
     </b-container>
+    <b-container v-else class="mt--8 p-1">
+      <message
+        :headline="$t('site.thx.errorTitle')"
+        :subtitle="errorSubtitle"
+        :buttonText="$t('settings.password.reset')"
+        :linkTo="errorLinkTo"
+      />
+    </b-container>
   </div>
 </template>
+
 <script>
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
+import Message from '@/components/Message/Message'
 import { login } from '@/graphql/queries'
 import CONFIG from '@/config'
 
@@ -70,6 +80,7 @@ export default {
   components: {
     InputPassword,
     InputEmail,
+    Message,
   },
   data() {
     return {
@@ -78,6 +89,10 @@ export default {
         password: '',
       },
       passwordVisible: false,
+      showPageMessage: false,
+      errorReason: null,
+      errorSubtitle: '',
+      errorLinkTo: '',
       CONFIG,
     }
   },
@@ -109,14 +124,30 @@ export default {
           }
         })
         .catch((error) => {
-          this.toastError(this.$t('error.no-account'))
           if (error.message.includes('User email not validated')) {
-            this.$router.push('/thx/login')
+            this.showPageMessage = true
+            this.errorSubtitle = this.$t('site.thx.activateEmail')
+            this.errorLinkTo = '/forgot-password'
+            this.toastError(this.$t('error.no-account'))
           } else if (error.message.includes('User has no password set yet')) {
-            this.$router.push('/reset-password/login')
+            this.showPageMessage = true
+            this.errorSubtitle = this.$t('site.thx.unsetPassword')
+            this.errorLinkTo = '/reset-password/login'
+            this.toastError(this.$t('error.no-account'))
+          } else if (error.message.includes('No user with this credentials')) {
+            // don't show any error on the page! against boots
+            this.toastError(this.$t('error.no-user'))
+          } else {
+            // don't show any error on the page! against boots
+            this.toastError(this.$t('error.unknown-error') + error.message)
           }
           loader.hide()
         })
+    },
+  },
+  computed: {
+    enterData() {
+      return !this.showPageMessage
     },
   },
 }

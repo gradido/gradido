@@ -33,9 +33,12 @@
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
     "error": "Fehler!",
-    "no-account": "Leider konnten wir keinen Account mit diesen Daten finden.",
-    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt",
-    "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet."
+    "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
+    "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
+    "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
+    "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
+    "unknown-error": "Unbekanter Fehler: ",
+    "user-already-exists": "Ein Benutzer mit diesen Daten existiert bereits."
   },
   "footer": {
     "app_version": "App version {version}",
@@ -102,6 +105,7 @@
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
+    "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Gradidos versenden per Link",
     "isFree": "Gradido ist weltweit kostenfrei.",
@@ -113,7 +117,7 @@
     "links_sum": "Offene Links und QR-Codes",
     "no-account": "Du besitzt noch kein Gradido Konto?",
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
-    "not-copied": "Konnte den Link nicht kopieren: {err}",
+    "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
     "redeem": "Einlösen",
     "redeem-text": "Willst du den Betrag jetzt einlösen?",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
@@ -121,7 +125,7 @@
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "valid_until": "Gültig bis"
+    "validUntil": "Gültig bis"
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
@@ -164,6 +168,7 @@
     "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
     "publisherId": "Publisher-Id:"
   },
+  "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "settings": {
@@ -232,7 +237,8 @@
       "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
       "reset": "Dein Passwort wurde geändert.",
       "resetPassword": "Den Code den Du genutzt hast ist zu alt bitte fordere ein neuen über die Passwort Reset Seite an.",
-      "title": "Danke!"
+      "title": "Danke!",
+      "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
     }
   },
   "success": "Erfolg",

@@ -22,7 +22,9 @@
             <div v-else>{{ errorResult }}</div>
           </div>
           <p class="text-center mt-3">
-            <b-button variant="success" @click="$emit('on-reset')">{{ $t('form.close') }}</b-button>
+            <b-button variant="secondary" @click="$emit('on-reset')">
+              {{ $t('form.close') }}
+            </b-button>
           </p>
         </b-card>
       </b-col>
