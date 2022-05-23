@@ -108,12 +108,7 @@ export const unDeleteUser = gql`
 `
 
 export const searchUsers = gql`
-  query (
-    $searchText: String!
-    $currentPage: Int
-    $pageSize: Int
-    $filters: SearchUsersFiltersInput
-  ) {
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage

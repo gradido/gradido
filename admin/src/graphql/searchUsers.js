@@ -1,12 +1,7 @@
 import gql from 'graphql-tag'
 
 export const searchUsers = gql`
-  query (
-    $searchText: String!
-    $currentPage: Int
-    $pageSize: Int
-    $filters: SearchUsersFiltersInput
-  ) {
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage
