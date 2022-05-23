@@ -1,1 +1,1 @@
-export { User } from './0033-add_referrer_id/User'
+export { User } from './0034-drop_server_user_table/User'

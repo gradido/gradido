@@ -5,15 +5,13 @@ export const searchUsers = gql`
     $searchText: String!
     $currentPage: Int
     $pageSize: Int
-    $notActivated: Boolean
-    $isDeleted: Boolean
+    $filters: SearchUsersFiltersInput
   ) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage
       pageSize: $pageSize
-      notActivated: $notActivated
-      isDeleted: $isDeleted
+      filters: $filters
     ) {
       userCount
       userList {

@@ -4,7 +4,7 @@ import FigureQrCode from './FigureQrCode'
 const localVue = global.localVue
 
 const propsData = {
-  text: '',
+  link: '',
 }
 
 describe('FigureQrCode', () => {

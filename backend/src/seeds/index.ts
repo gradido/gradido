@@ -4,7 +4,7 @@
 import createServer from '../server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 
-import { name, internet, random } from 'faker'
+import { name, internet, datatype } from 'faker'
 
 import { users } from './users/index'
 import { creations } from './creation/index'
@@ -13,6 +13,9 @@ import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
 import { entities } from '@entity/index'
+import CONFIG from '@/config'
+
+CONFIG.EMAIL = false
 
 const context = {
   token: '',
@@ -26,7 +29,7 @@ const context = {
 }
 
 export const cleanDB = async () => {
-  // this only works as lond we do not have foreign key constraints
+  // this only works as long we do not have foreign key constraints
   for (let i = 0; i < entities.length; i++) {
     await resetEntity(entities[i])
   }
@@ -57,13 +60,16 @@ const run = async () => {
       firstName: name.firstName(),
       lastName: name.lastName(),
       email: internet.email(),
-      language: random.boolean() ? 'en' : 'de',
+      language: datatype.boolean() ? 'en' : 'de',
     })
   }
 
   // create GDD
   for (let i = 0; i < creations.length; i++) {
+    const now = new Date().getTime() // we have to wait a little! quick fix for account sum problem of bob@baumeister.de, (see https://github.com/gradido/gradido/issues/1886)
     await creationFactory(seedClient, creations[i])
+    // eslint-disable-next-line no-empty
+    while (new Date().getTime() < now + 1000) {} // we have to wait a little! quick fix for account sum problem of bob@baumeister.de, (see https://github.com/gradido/gradido/issues/1886)
   }
 
   // create Transaction Links

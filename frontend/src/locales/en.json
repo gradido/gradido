@@ -33,9 +33,12 @@
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "error": "Error!",
-    "no-account": "Unfortunately we could not find an account to the given data!",
+    "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
-    "session-expired": "The session was closed for security reasons."
+    "no-user": "No user with this credentials.",
+    "session-expired": "The session was closed for security reasons.",
+    "unknown-error": "Unknown error: ",
+    "user-already-exists": "A user with this data already exists."
   },
   "footer": {
     "app_version": "App version {version}",
@@ -102,6 +105,7 @@
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
+    "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
@@ -113,7 +117,7 @@
     "links_sum": "Open links and QR codes",
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
-    "not-copied": "Could not copy link: {err}",
+    "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "redeem": "Redeem",
     "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
@@ -121,7 +125,7 @@
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "valid_until": "Valid until"
+    "validUntil": "Valid until"
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
@@ -225,7 +229,7 @@
       "uppercase": "One uppercase letter required."
     },
     "thx": {
-      "activateEmail": "Your account has not been activated yet, please check your emails and click the activation link or order a new activation link over the password reset page.",
+      "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
       "checkEmail": "Your email has been successfully verified. You can sign in now.",
       "email": "We have sent you an email.",
       "emailActivated": "Thank you your email has been activated.",
@@ -233,7 +237,8 @@
       "register": "You are registered now, please check your emails and click the activation link.",
       "reset": "Your password has been changed.",
       "resetPassword": "The code you used was to old please order a new on over the password reset page.",
-      "title": "Thank you!"
+      "title": "Thank you!",
+      "unsetPassword": "Your password has not been set yet. Please set it again."
     }
   },
   "success": "Success",

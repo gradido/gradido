@@ -14,8 +14,8 @@ export class User {
     this.emailChecked = user.emailChecked
     this.language = user.language
     this.publisherId = user.publisherId
+    this.isAdmin = user.isAdmin
     // TODO
-    this.isAdmin = null
     this.coinanimation = null
     this.klickTipp = null
     this.hasElopage = null
@@ -58,11 +58,11 @@ export class User {
 
   // `passphrase` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 
+  @Field(() => Date, { nullable: true })
+  isAdmin: Date | null
+
   // TODO this is a bit inconsistent with what we query from the database
   // therefore all those fields are now nullable with default value null
-  @Field(() => Boolean, { nullable: true })
-  isAdmin: boolean | null
-
   @Field(() => Boolean, { nullable: true })
   coinanimation: boolean | null
 

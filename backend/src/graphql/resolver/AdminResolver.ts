@@ -43,7 +43,7 @@ import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
-const MAX_CREATION_AMOUNT = 1000
+const MAX_CREATION_AMOUNT = new Decimal(1000)
 const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
 
 @Resolver()
@@ -52,23 +52,19 @@ export class AdminResolver {
   @Query(() => SearchUsersResult)
   async searchUsers(
     @Args()
-    {
-      searchText,
-      currentPage = 1,
-      pageSize = 25,
-      notActivated = null,
-      isDeleted = null,
-    }: SearchUsersArgs,
+    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (notActivated !== null) {
-      filterCriteria.push({ emailChecked: !notActivated })
-    }
+    if (filters) {
+      if (filters.filterByActivated !== null) {
+        filterCriteria.push({ emailChecked: filters.filterByActivated })
+      }
 
-    if (isDeleted !== null) {
-      filterCriteria.push({ deletedAt: isDeleted ? Not(IsNull()) : IsNull() })
+      if (filters.filterByDeleted !== null) {
+        filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+      }
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
@@ -157,11 +153,12 @@ export class AdminResolver {
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
-    // user exists ?
     if (!user) {
       throw new Error(`Could not find user with userId: ${userId}`)
     }
-    // recover user account
+    if (!user.deletedAt) {
+      throw new Error('User is not deleted')
+    }
     await user.recover()
     return null
   }
@@ -169,8 +166,9 @@ export class AdminResolver {
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
-    @Args() { email, amount, memo, creationDate, moderator }: CreatePendingCreationArgs,
-  ): Promise<number[]> {
+    @Args() { email, amount, memo, creationDate }: CreatePendingCreationArgs,
+    @Ctx() context: Context,
+  ): Promise<Decimal[]> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -181,16 +179,17 @@ export class AdminResolver {
     if (!user.emailChecked) {
       throw new Error('Creation could not be saved, Email is not activated')
     }
+    const moderator = getUser(context)
     const creations = await getUserCreation(user.id)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
       const adminPendingCreation = AdminPendingCreation.create()
       adminPendingCreation.userId = user.id
-      adminPendingCreation.amount = BigInt(amount)
+      adminPendingCreation.amount = amount
       adminPendingCreation.created = new Date()
       adminPendingCreation.date = creationDateObj
       adminPendingCreation.memo = memo
-      adminPendingCreation.moderator = moderator
+      adminPendingCreation.moderator = moderator.id
 
       await AdminPendingCreation.save(adminPendingCreation)
     }
@@ -202,12 +201,13 @@ export class AdminResolver {
   async createPendingCreations(
     @Arg('pendingCreations', () => [CreatePendingCreationArgs])
     pendingCreations: CreatePendingCreationArgs[],
+    @Ctx() context: Context,
   ): Promise<CreatePendingCreations> {
     let success = false
     const successfulCreation: string[] = []
     const failedCreation: string[] = []
     for (const pendingCreation of pendingCreations) {
-      await this.createPendingCreation(pendingCreation)
+      await this.createPendingCreation(pendingCreation, context)
         .then(() => {
           successfulCreation.push(pendingCreation.email)
           success = true
@@ -226,7 +226,8 @@ export class AdminResolver {
   @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
   @Mutation(() => UpdatePendingCreation)
   async updatePendingCreation(
-    @Args() { id, email, amount, memo, creationDate, moderator }: UpdatePendingCreationArgs,
+    @Args() { id, email, amount, memo, creationDate }: UpdatePendingCreationArgs,
+    @Ctx() context: Context,
   ): Promise<UpdatePendingCreation> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
@@ -236,7 +237,13 @@ export class AdminResolver {
       throw new Error(`User was deleted (${email})`)
     }
 
-    const pendingCreationToUpdate = await AdminPendingCreation.findOneOrFail({ id })
+    const moderator = getUser(context)
+
+    const pendingCreationToUpdate = await AdminPendingCreation.findOne({ id })
+
+    if (!pendingCreationToUpdate) {
+      throw new Error('No creation found to given id.')
+    }
 
     if (pendingCreationToUpdate.userId !== user.id) {
       throw new Error('user of the pending creation and send user does not correspond')
@@ -248,20 +255,18 @@ export class AdminResolver {
       creations = updateCreations(creations, pendingCreationToUpdate)
     }
 
-    if (!isCreationValid(creations, amount, creationDateObj)) {
-      throw new Error('Creation is not valid')
-    }
-    pendingCreationToUpdate.amount = BigInt(amount)
+    // all possible cases not to be true are thrown in this function
+    isCreationValid(creations, amount, creationDateObj)
+    pendingCreationToUpdate.amount = amount
     pendingCreationToUpdate.memo = memo
     pendingCreationToUpdate.date = new Date(creationDate)
-    pendingCreationToUpdate.moderator = moderator
+    pendingCreationToUpdate.moderator = moderator.id
 
     await AdminPendingCreation.save(pendingCreationToUpdate)
     const result = new UpdatePendingCreation()
-    result.amount = parseInt(amount.toString())
+    result.amount = amount
     result.memo = pendingCreationToUpdate.memo
     result.date = pendingCreationToUpdate.date
-    result.moderator = pendingCreationToUpdate.moderator
 
     result.creation = await getUserCreation(user.id)
 
@@ -286,7 +291,7 @@ export class AdminResolver {
 
       return {
         ...pendingCreation,
-        amount: Number(pendingCreation.amount.toString()),
+        amount: pendingCreation.amount,
         firstName: user ? user.firstName : '',
         lastName: user ? user.lastName : '',
         email: user ? user.email : '',
@@ -298,8 +303,11 @@ export class AdminResolver {
   @Authorized([RIGHTS.DELETE_PENDING_CREATION])
   @Mutation(() => Boolean)
   async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const entity = await AdminPendingCreation.findOneOrFail(id)
-    const res = await AdminPendingCreation.delete(entity)
+    const pendingCreation = await AdminPendingCreation.findOne(id)
+    if (!pendingCreation) {
+      throw new Error('Creation not found for given id.')
+    }
+    const res = await AdminPendingCreation.delete(pendingCreation)
     return !!res
   }
 
@@ -309,7 +317,10 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const pendingCreation = await AdminPendingCreation.findOneOrFail(id)
+    const pendingCreation = await AdminPendingCreation.findOne(id)
+    if (!pendingCreation) {
+      throw new Error('Creation not found to given id.')
+    }
     const moderatorUser = getUser(context)
     if (moderatorUser.id === pendingCreation.userId)
       throw new Error('Moderator can not confirm own pending creation')
@@ -318,7 +329,7 @@ export class AdminResolver {
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
 
     const creations = await getUserCreation(pendingCreation.userId, false)
-    if (!isCreationValid(creations, Number(pendingCreation.amount), pendingCreation.date)) {
+    if (!isCreationValid(creations, pendingCreation.amount, pendingCreation.date)) {
       throw new Error('Creation is not valid!!')
     }
 
@@ -333,22 +344,22 @@ export class AdminResolver {
       decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, receivedCallDate)
       newBalance = decay.balance
     }
-    // TODO pending creations decimal
-    newBalance = newBalance.add(new Decimal(Number(pendingCreation.amount)).toString())
+    newBalance = newBalance.add(pendingCreation.amount.toString())
 
     const transaction = new DbTransaction()
     transaction.typeId = TransactionTypeId.CREATION
     transaction.memo = pendingCreation.memo
     transaction.userId = pendingCreation.userId
     transaction.previous = lastTransaction ? lastTransaction.id : null
-    // TODO pending creations decimal
-    transaction.amount = new Decimal(Number(pendingCreation.amount))
+    transaction.amount = pendingCreation.amount
     transaction.creationDate = pendingCreation.date
     transaction.balance = newBalance
     transaction.balanceDate = receivedCallDate
     transaction.decay = decay ? decay.decay : new Decimal(0)
     transaction.decayStart = decay ? decay.start : null
-    await transaction.save()
+    await transaction.save().catch(() => {
+      throw new Error('Unable to confirm creation.')
+    })
 
     await AdminPendingCreation.delete(pendingCreation)
 
@@ -427,11 +438,11 @@ export class AdminResolver {
     } = {
       userId,
     }
-    if (!filters.withRedeemed) where.redeemedBy = null
-    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
+    if (!filters.filterByRedeemed) where.redeemedBy = null
+    if (!filters.filterByExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.withDeleted,
+      withDeleted: filters.filterByDeleted,
       order: {
         createdAt: order,
       },
@@ -448,10 +459,10 @@ export class AdminResolver {
 
 interface CreationMap {
   id: number
-  creations: number[]
+  creations: Decimal[]
 }
 
-async function getUserCreation(id: number, includePending = true): Promise<number[]> {
+async function getUserCreation(id: number, includePending = true): Promise<Decimal[]> {
   const creations = await getUserCreations([id], includePending)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
@@ -493,32 +504,32 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
           (raw: { month: string; id: string; creation: number[] }) =>
             parseInt(raw.month) === month && parseInt(raw.id) === id,
         )
-        return MAX_CREATION_AMOUNT - (creation ? Number(creation.sum) : 0)
+        return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
     }
   })
 }
 
-function updateCreations(creations: number[], pendingCreation: AdminPendingCreation): number[] {
+function updateCreations(creations: Decimal[], pendingCreation: AdminPendingCreation): Decimal[] {
   const index = getCreationIndex(pendingCreation.date.getMonth())
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-  creations[index] += parseInt(pendingCreation.amount.toString())
+  creations[index] = creations[index].plus(pendingCreation.amount.toString())
   return creations
 }
 
-function isCreationValid(creations: number[], amount: number, creationDate: Date) {
+function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
-    throw new Error(`No Creation found!`)
+    throw new Error('No information for available creations for the given date')
   }
 
-  if (amount > creations[index]) {
+  if (amount.greaterThan(creations[index].toString())) {
     throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the available amount (${creations[index]} GDD) for this month.`,
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
     )
   }
 
