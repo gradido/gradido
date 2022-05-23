@@ -442,7 +442,9 @@ export class AdminResolver {
     if (!filters.byExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
+      // Wolle: works not as expected
       withDeleted: filters.byDeleted,
+      // withDeleted: filters.byDeleted !== undefined ? !filters.byDeleted : undefined,
       order: {
         createdAt: order,
       },
