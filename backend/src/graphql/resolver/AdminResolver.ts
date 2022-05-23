@@ -426,7 +426,7 @@ export class AdminResolver {
   async listTransactionLinksAdmin(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Args()
+    @Arg('filters')
     filters: TransactionLinkFilters,
     @Arg('userId', () => Int) userId: number,
   ): Promise<TransactionLinkResult> {

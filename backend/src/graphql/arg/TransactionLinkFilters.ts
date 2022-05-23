@@ -1,13 +1,13 @@
-import { ArgsType, Field } from 'type-graphql'
+import { Field, InputType } from 'type-graphql'
 
-@ArgsType()
+@InputType()
 export default class TransactionLinkFilters {
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byDeleted?: boolean
+  byDeleted: boolean
 
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byExpired?: boolean
+  byExpired: boolean
 
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byRedeemed?: boolean
+  byRedeemed: boolean
 }
