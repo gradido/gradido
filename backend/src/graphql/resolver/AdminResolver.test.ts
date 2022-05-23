@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { convertObjValuesToArray } from '@/util/utilities'
+import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -366,7 +366,7 @@ describe('AdminResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 4,
-                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
                   },
                 },
               }),
@@ -392,7 +392,7 @@ describe('AdminResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 4,
-                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
                   },
                 },
               }),
