@@ -14,6 +14,8 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 
+import { logger } from '@test/testSetup'
+
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -43,7 +45,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -149,12 +151,14 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      it('throws an error', async () => {
-        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
+      it('throws and logs an error', async () => {
+        const mutation = await mutate({ mutation: createUser, variables })
+        expect(mutation).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('User already exists.')],
           }),
         )
+        expect(logger.error).toBeCalledWith('User already exists with this email=peter@lustig.de')
       })
     })
 

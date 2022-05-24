@@ -52,23 +52,19 @@ export class AdminResolver {
   @Query(() => SearchUsersResult)
   async searchUsers(
     @Args()
-    {
-      searchText,
-      currentPage = 1,
-      pageSize = 25,
-      filterByActivated = null,
-      filterByDeleted = null,
-    }: SearchUsersArgs,
+    { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
 
     const filterCriteria: ObjectLiteral[] = []
-    if (filterByActivated !== null) {
-      filterCriteria.push({ emailChecked: filterByActivated })
-    }
+    if (filters) {
+      if (filters.filterByActivated !== null) {
+        filterCriteria.push({ emailChecked: filters.filterByActivated })
+      }
 
-    if (filterByDeleted !== null) {
-      filterCriteria.push({ deletedAt: filterByDeleted ? Not(IsNull()) : IsNull() })
+      if (filters.filterByDeleted !== null) {
+        filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+      }
     }
 
     const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
@@ -442,11 +438,11 @@ export class AdminResolver {
     } = {
       userId,
     }
-    if (!filters.withRedeemed) where.redeemedBy = null
-    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
+    if (!filters.filterByRedeemed) where.redeemedBy = null
+    if (!filters.filterByExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.withDeleted,
+      withDeleted: filters.filterByDeleted,
       order: {
         createdAt: order,
       },
