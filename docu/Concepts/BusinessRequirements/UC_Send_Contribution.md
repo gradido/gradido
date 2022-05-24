@@ -56,116 +56,68 @@ Das nachfolgende Bild zeigt das Datenmodell vor der Einführung und Migration au
 
 #### neue Tabellen
 
-##### Contributions - Table
+##### contribution_links - Tabelle
 
-| Name                        | Typ          | Nullable |    Default    | Kommentar                                                                                                                              |
-| --------------------------- | ------------ | :------: | :------------: | -------------------------------------------------------------------------------------------------------------------------------------- |
-| ID                          | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey                                                                                                                             |
-| Name                        | varchar(100) | NOT NULL |               | unique Name                                                                                                                            |
-| Description                 | varchar(255) |         |               |                                                                                                                                        |
-| ContributionCategoryID      | INT UNSIGNED |         |               |                                                                                                                                        |
-| ValidFrom                   | DATETIME     | NOT NULL |      NOW      |                                                                                                                                        |
-| ValidTo                     | DATETIME     |         |      NULL      |                                                                                                                                        |
-| Amount                      | DECIMAL      | NOT NULL |               |                                                                                                                                        |
-| Cycle                       | ENUM         | NOT NULL |      ONCE      | ONCE, HOUR, 2HOUR, 4HOUR, 8HOUR, HALFDAY, DAY, 2DAYS, 3DAYS, 4DAYS, 5DAYS, 6DAYS, WEEK, 2WEEKS, MONTH, 2MONTH, QUARTER, HALFYEAR, YEAR |
-| MaxPerCycle                 | INT UNSIGNED | NOT NULL |       1       |                                                                                                                                        |
-| AbelToSend                  | ENUM         | NOT NULL |       NO       | NO, LINK, QRCODE                                                                                                                       |
-| MaxAmountPerMonth           | DECIMAL      |         |      NULL      |                                                                                                                                        |
-| TotalMaxCountOfContribution | INT UNSIGNED |         |      NULL      |                                                                                                                                        |
-| MaxAccountBalance           | DECIMAL      |         |      NULL      |                                                                                                                                        |
-| MinGapHours                 | INT UNSIGNED |         |      NULL      |                                                                                                                                        |
-| CreatedAt                   | DATETIME     |         |      NOW      |                                                                                                                                        |
-| Deleted                     | BOOL         | NOT NULL |     FALSE     |                                                                                                                                        |
-| Link                        | varchar(24)  |         |      NULL      |                                                                                                                                        |
-| LinkEnabled                 | BOOL         |         |      NULL      |                                                                                                                                        |
+| Name                            | Typ          | Nullable |    Default    | Kommentar                                                                                                                              |
+| ------------------------------- | ------------ | :------: | :------------: | -------------------------------------------------------------------------------------------------------------------------------------- |
+| id                              | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey                                                                                                                             |
+| name                            | varchar(100) | NOT NULL |               | unique Name                                                                                                                            |
+| description                     | varchar(255) |         |               |                                                                                                                                        |
+| valid_from                      | DATETIME     | NOT NULL |      NOW      |                                                                                                                                        |
+| valid_to                        | DATETIME     |         |      NULL      |                                                                                                                                        |
+| amount                          | DECIMAL      | NOT NULL |               |                                                                                                                                        |
+| cycle                           | ENUM         | NOT NULL |      ONCE      | ONCE, HOUR, 2HOUR, 4HOUR, 8HOUR, HALFDAY, DAY, 2DAYS, 3DAYS, 4DAYS, 5DAYS, 6DAYS, WEEK, 2WEEKS, MONTH, 2MONTH, QUARTER, HALFYEAR, YEAR |
+| max_per_cycle                   | INT UNSIGNED | NOT NULL |       1       |                                                                                                                                        |
+| max_amount_per_month            | DECIMAL      |         |      NULL      |                                                                                                                                        |
+| total_max_count_of_contribution | INT UNSIGNED |         |      NULL      |                                                                                                                                        |
+| max_account_balance             | DECIMAL      |         |      NULL      |                                                                                                                                        |
+| min_gap_hours                   | INT UNSIGNED |         |      NULL      |                                                                                                                                        |
+| created_at                      | DATETIME     |         |      NOW      |                                                                                                                                        |
+| deleted_at                      | DATETIMEBOOL |         |      NULL      |                                                                                                                                        |
+| code                            | varchar(24)  |         |      NULL      |                                                                                                                                        |
+| link_enabled                    | BOOL         |         |      NULL      |                                                                                                                                        |
 
-##### PendingActivities -Table
+##### contributions -Tabelle
 
-| Name           | Typ          | Nullable | Default        | Kommentar                                                                        |
-| -------------- | ------------ | -------- | -------------- | -------------------------------------------------------------------------------- |
-| ID             | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey                                                                       |
-| Name           | varchar(100) | NOT NULL |                | short Naming of activity                                                         |
-| Memo           | varchar(255) | NOT NULL |                | full and detailed description of activities                                      |
-| Amount         | DECIMAL      | NOT NULL |                | the amount of GDD for this activity                                              |
-| ActivityDate   | DATETIME     |          | NULL           | the date, when the activity was done                                             |
-| UserID         | INT UNSIGNED | NOT NULL |                | the user, who wants to get GDD for his activity                                  |
-| CapturedAt     | DATETIME     | NOT NULL | NOW            | the date, when this entry was captured and stored in database                    |
-| ContributionID | INT UNSIGNED |          | NULL           | contribution, on which this activity base on                                     |
-| ModeratorID    | INT UNSIGNED |          | NULL           | userID of Moderator/Admin, who confirms the activity                             |
-| ConfirmedAt    | DATETIME     |          | NULL           | date, when moderator has confirmed the activity                                  |
-| BookedAt       | DATETIME     |          | NULL           | date, when the system has booked the amount of the activity on the users account |
+| Name                  | Typ          | Nullable | Default        | Kommentar                                                                        |
+| --------------------- | ------------ | -------- | -------------- | -------------------------------------------------------------------------------- |
+| id                    | INT UNSIGNED | NOT NULL | auto increment | PrimaryKey                                                                       |
+| name                  | varchar(100) | NOT NULL |                | short Naming of activity                                                         |
+| memo                  | varchar(255) | NOT NULL |                | full and detailed description of activities                                      |
+| amount                | DECIMAL      | NOT NULL |                | the amount of GDD for this activity                                              |
+| contribution_date     | DATETIME     |          | NULL           | the date/month, when the contribution was realized by the user                   |
+| user_id               | INT UNSIGNED | NOT NULL |                | the user, who wants to get GDD for his activity                                  |
+| created_at            | DATETIME     | NOT NULL | NOW            | the date, when this entry was captured and stored in database                    |
+| contribution_links_id | INT UNSIGNED |          | NULL           | contribution, on which this activity base on                                     |
+| moderator_id          | INT UNSIGNED |          | NULL           | userID of Moderator/Admin, who captured the contribution                         |
+| confirmed_by          | INT UNSIGNED |          | NULL           | userID of Moderator/Admin, who confirms the contribution                         |
+| confirmed_at          | DATETIME     |          | NULL           | date, when moderator has confirmed the contribution                              |
+| booked_at             | DATETIME     |          | NULL           | date, when the system has booked the amount of the activity on the users account |
+| deleted_at            | DATETIME     |          | NULL           | soft delete                                                                      |
 
 #### zu migrierende Tabellen
 
-##### Tabelle admin_pending-creations
+##### Tabelle admin_pending_creations
 
-Diese Tabelle wird im Rahmen dieses UseCase migriert in die neue Tabelle PendingActivies...
+Diese Tabelle wird im Rahmen dieses UseCase migriert in die neue Tabelle contributions...
 
-| Quell-Spalte | Migration | Ziel-Spalte    | Beschreibung                                               |
-| ------------ | --------- | -------------- | ---------------------------------------------------------- |
-| id           | keine     | id             | auto inkrement des PK                                      |
-| userId       | copy      | UserID         |                                                            |
-| created      | copy      | CapturedAt     |                                                            |
-| date         | copy      | ActivityDate   |                                                            |
-| memo         | copy      | Memo           |                                                            |
-| amount       | copy      | Amount         |                                                            |
-| moderator    | copy      | ModeratorID    |                                                            |
-|              |           | Name           | neu mit Contributions                                      |
-|              |           | ContributionID | neu mit Contributions                                      |
-|              |           | ConfirmedAt    | neu mit Erfassung der Contributions von Elopage in Gradido |
-|              |           | BookedAt       | neu mit Erfassung der Contributions von Elopage in Gradido |
+| Quell-Spalte | Migration | Ziel-Spalte           | Beschreibung                                               |
+| ------------ | --------- | --------------------- | ---------------------------------------------------------- |
+| id           | keine     | id                    | auto inkrement des PK                                      |
+| user_id      | copy      | user_id               |                                                            |
+| created      | copy      | created_at            |                                                            |
+| date         | copy      | activity_date         |                                                            |
+| memo         | copy      | memo                  |                                                            |
+| amount       | copy      | amount                |                                                            |
+| moderator    | copy      | moderator_id          |                                                            |
+|              |           | name                  | neu mit ContributionsLinks                                 |
+|              |           | contribution_links_id | neu mit ContributionsLinks                                 |
+|              |           | confirmed_at          | neu mit Erfassung der Contributions von Elopage in Gradido |
+|              |           | confirmed_by          | neu mit Erfassung der Contributions von Elopage in Gradido |
+|              |           | booked_at             | neu mit Erfassung der Contributions von Elopage in Gradido |
 
-...und kann nach Übernahme der Daten in die neue Tabelle gelöscht werden.
+...und kann nach Übernahme der Daten in die neue Tabelle gelöscht werden oder es erfolgen die Änderungen sofort auf der Ursprungstabelle.
 
 ### Zielmodell
 
 ![Contributions-DB](./image/DB-Diagramm_Contributions.png)
-
-
-
-
-
-CREATE TABLE gradido_community.Contributions (
-Id INT UNSIGNED auto_increment NOT NULL,
-Name varchar(100) NOT NULL,
-Description varchar(255) NOT NULL,
-ValidFrom DATETIME DEFAULT NOW NOT NULL,
-ValidTo DATETIME DEFAULT null NULL,
-Amount DECIMAL NOT NULL,
-Cycle ENUM DEFAULT ONCE NOT NULL COMMENT 'ONCE, HOUR, 4HOUR, 8HOUR, HALFDAY, DAY, WEEK, 2WEEKS, MONTH, QUARTER, HALFYEAR, YEAR',
-MaxPerCycle INT UNSIGNED DEFAULT 1 NOT NULL,
-AbelToSend ENUM DEFAULT NO NOT NULL COMMENT 'NO, LINK, QRCODE',
-MaxAmountPerMonth DECIMAL DEFAULT null NULL,
-TotalMaxCountOfContribution INT UNSIGNED DEFAULT null NULL,
-MaxAccountBalance DECIMAL DEFAULT null NULL,
-MinGapHours INT UNSIGNED DEFAULT null NULL,
-CreatedAt DATETIME DEFAULT NOW NULL,
-Deleted BOOL DEFAULT FALSE NOT NULL,
-Link varchar(24) DEFAULT null NULL,
-LinkEnabled BOOL DEFAULT null NULL,
-CONSTRAINT Contributions_PK PRIMARY KEY (Id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE gradido_community.PendingActivities (
-Id INT UNSIGNED auto_increment NOT NULL,
-Name varchar(100) NOT NULL,
-Memo varchar(255) NULL,
-Amount DECIMAL NULL,
-AcitivtyDate DATETIME NULL,
-UserID INT UNSIGNED NOT NULL,
-CreatedAt DATETIME DEFAULT NOW NULL,
-ContributionID INT UNSIGNED NULL,
-ModeratorID INT UNSIGNED NULL COMMENT 'userID of moderator',
-ConfirmedAt DATETIME NULL,
-BookedAt DATETIME NULL,
-CONSTRAINT CreationActivities_PK PRIMARY KEY (Id),
-CONSTRAINT PendingActivities_FK FOREIGN KEY (UserID) REFERENCES gradido_community.users(id),
-CONSTRAINT PendingActivities_FK_1 FOREIGN KEY (ContributionID) REFERENCES gradido_community.Contributions(Id),
-CONSTRAINT PendingActivities_FK_2 FOREIGN KEY (ModeratorID) REFERENCES gradido_community.users(id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_unicode_ci;
