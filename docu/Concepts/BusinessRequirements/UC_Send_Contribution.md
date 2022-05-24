@@ -2,15 +2,25 @@
 
 Die Idee besteht darin, dass ein Administrator eine Contributions mit all seinen Attributen und Regeln im System erfasst. Dabei kann er unter anderem festlegen, ob für diese ein Link oder ein QR-Code generiert und über andere Medien wie Email oder Messenger versendet werden kann. Der Empfänger kann diesen Link bzw QR-Code dann über die Gradido-Anwendung einlösen und bekommt dann den Betrag der Contribution als Schöpfung auf seinem Konto gutgeschrieben.
 
+## Logischer Ablauf
+
+Der logische Ablauf für das Szenario "Activity-Confirmation and booking of Creations " wird in der nachfolgenden Grafik dargestellt. Dabei wird links das Szenario der "interactive Confirmation and booking of Creations" und rechts "automatic Confirmation and booking of Creations" dargestellt. Ziel dieser Grafik ist neben der logischen Ablaufsübersicht auch die Gemeinsamkeiten und Unterschiede der beiden Szenarien herauszuarbeiten.
+
+![img](./image/Ablauf_manuelle_auto_Creations.png)
+
+Das Szenario der *interaktiven Aktivitäten-Bestätigung* ist derzeit noch in den zwei Systemen EloPage und Gradido enthalten - markiert als IST-Prozess - und wird zukünftig dann nur noch innerhalb Gradido ablaufen - markiert als SOLL-Prozess. Mit der Ablösung von EloPage und der vollständigen Migration nach Gradido erfolgt  gleichzeitig eine Migration der Datenbank-Tabelle "admin_pending-creations" nach "PendingActivies". Unterhalb der gestrichelten Linie sind die beiden Szenarien dann in der Ablauflogik vollständig gleich.
+
+## Dialoge
+
 Für die Erfassung, Suche und Anzeige der Contributions und deren Gliederung in Kategorien wird es dazu im Admin-Bereich zusätzliche Funktionen und Dialoge geben.
 
-## Übersicht - Dialog
+### Übersicht - Dialog
 
 In der Admin-Übersicht wird es zusätzliche Navigations- bzw. Menüpunkte geben, über die der Admin die gewünschte Funktionalität und die zugehörigen Dialoge öffnen kann.
 
 ![Admin Overview](./image/UC_Send_Contribution_Admin-Overview.png)
 
-## Contribution erfassen
+### Contribution erfassen - Dialog
 
 Bei der Erfassung einer Contribution wird die Kategorie, ein Name, eine Beschreibung der Contribution und der Betrag eingegeben.
 
@@ -18,11 +28,11 @@ Der Gültigkeitsstart wird als Default mit dem aktuellen Erfassungszeitpunkt vor
 
 Wie häufig ein User für diese Contribution eine Schöpfung gutgeschrieben bekommen kann, wird über die Auswahl eines Zyklus - stündlich, 2-stündlich, 4-stündlich, etc. - und innerhalb dieses Zyklus eine Anzahl an Wiederholungen definiert. Voreinstellung sind 1x täglich.
 
-![Zyklus](./image/UC_Send_Contribution_Admin-new ContributionZyklus.png)
+![Zyklus](./image/UC_Send_Contribution_Admin-new ContributionZyklus.png "Zyklus")
 
 Ob die Contribution über einen versendeten Link bzw. QR-Code geschöpft werden kann, wird mittels der Auswahl "Versenden möglich als" bestimmt.
 
-![send](./image/UC_Send_Contribution_Admin-new ContributionSend.png)
+![send](./image/UC_Send_Contribution_Admin-new ContributionSend.png "send")
 
 Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 
@@ -110,6 +120,10 @@ Diese Tabelle wird im Rahmen dieses UseCase migriert in die neue Tabelle Pending
 ### Zielmodell
 
 ![Contributions-DB](./image/DB-Diagramm_Contributions.png)
+
+
+
+
 
 CREATE TABLE gradido_community.Contributions (
 Id INT UNSIGNED auto_increment NOT NULL,
