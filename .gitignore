@@ -1,6 +1,5 @@
 .dbeaver/*
 .project
->>>>>>> refs/remotes/origin/improve-apollo-logging
 *.log
 /node_modules/*
 messages.pot
