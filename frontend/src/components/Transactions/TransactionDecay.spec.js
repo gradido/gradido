@@ -31,6 +31,7 @@ const propsData = {
   memo: 'sadasd asdasdasdasdadadd da dad aad',
   typeId: 'DECAY',
   decayStartBlock: new Date('2021-05-13T17:46:31.000Z'),
+  previousBookedBalance: '43.56',
 }
 
 describe('TransactionDecay', () => {

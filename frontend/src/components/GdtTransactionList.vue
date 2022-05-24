@@ -8,7 +8,7 @@
           {{ $t('gdt.funding') }}
         </b-button>
       </div>
-      <div v-else-if="typeof transactionGdtCount === 'object'" class="text-center">
+      <div v-else-if="transactionGdtCount === -1" class="text-center">
         {{ $t('gdt.not-reachable') }}
       </div>
       <div
@@ -27,63 +27,45 @@
         ></transaction>
       </div>
     </div>
-    <pagination-buttons
+    <b-pagination
+      v-if="transactionGdtCount > pageSize"
+      class="mt-3"
+      pills
+      size="lg"
       v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
-    ></pagination-buttons>
+      align="center"
+    ></b-pagination>
   </div>
 </template>
 
 <script>
-import { listGDTEntriesQuery } from '@/graphql/queries'
-import PaginationButtons from '@/components/PaginationButtons'
 import Transaction from '@/components/Transaction.vue'
 
 export default {
   name: 'gdt-transaction-list',
   components: {
-    PaginationButtons,
     Transaction,
+  },
+  props: {
+    transactionsGdt: {
+      type: Array,
+      required: true,
+    },
+    transactionGdtCount: { type: Number, required: true },
+    pageSize: { type: Number, required: true },
+    value: { type: Number, required: true },
   },
   data() {
     return {
-      transactionsGdt: [],
-      transactionGdtCount: { type: Number, default: 0 },
-      currentPage: 1,
-      pageSize: 25,
+      currentPage: this.value,
       link: 'https://gradido.net/' + this.$store.state.language + '/memberships/',
     }
   },
-  methods: {
-    async updateGdt() {
-      this.$apollo
-        .query({
-          query: listGDTEntriesQuery,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listGDTEntries },
-          } = result
-          this.transactionsGdt = listGDTEntries.gdtEntries
-          this.transactionGdtCount = listGDTEntries.count
-          window.scrollTo(0, 0)
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
-  },
-  mounted() {
-    this.updateGdt()
-  },
   watch: {
     currentPage() {
-      this.updateGdt()
+      if (this.value !== this.currentPage) this.$emit('input', this.currentPage)
     },
   },
 }

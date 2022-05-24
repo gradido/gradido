@@ -1,5 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import { communities, communityInfo } from '@/graphql/queries'
+import { communities } from '@/graphql/queries'
 import SelectCommunity from './SelectCommunity'
 
 import { toastErrorSpy } from '@test/testSetup'
@@ -14,45 +14,33 @@ const spinnerMock = jest.fn(() => {
   }
 })
 
-const apolloQueryMock = jest
-  .fn()
-  .mockResolvedValueOnce({
-    data: {
-      getCommunityInfo: {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
+const apolloQueryMock = jest.fn().mockResolvedValue({
+  data: {
+    communities: [
+      {
+        id: 1,
+        name: 'Gradido Entwicklung',
+        description: 'Die lokale Entwicklungsumgebung von Gradido.',
+        url: 'http://localhost/',
+        registerUrl: 'http://localhost/register-community',
       },
-    },
-  })
-  .mockResolvedValue({
-    data: {
-      communities: [
-        {
-          id: 1,
-          name: 'Gradido Entwicklung',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register-community',
-        },
-        {
-          id: 2,
-          name: 'Gradido Staging',
-          description: 'Der Testserver der Gradido-Akademie.',
-          url: 'https://stage1.gradido.net/',
-          registerUrl: 'https://stage1.gradido.net/register-community',
-        },
-        {
-          id: 3,
-          name: 'Gradido-Akademie',
-          description: 'Freies Institut für Wirtschaftsbionik.',
-          url: 'https://gradido.net',
-          registerUrl: 'https://gdd1.gradido.com/register-community',
-        },
-      ],
-    },
-  })
+      {
+        id: 2,
+        name: 'Gradido Staging',
+        description: 'Der Testserver der Gradido-Akademie.',
+        url: 'https://stage1.gradido.net/',
+        registerUrl: 'https://stage1.gradido.net/register-community',
+      },
+      {
+        id: 3,
+        name: 'Gradido-Akademie',
+        description: 'Freies Institut für Wirtschaftsbionik.',
+        url: 'https://gradido.net',
+        registerUrl: 'https://gdd1.gradido.com/register-community',
+      },
+    ],
+  },
+})
 
 const mockStoreCommit = jest.fn()
 
@@ -95,12 +83,6 @@ describe('SelectCommunity', () => {
       wrapper = Wrapper()
     })
 
-    it('calls the API to get the community info data', () => {
-      expect(apolloQueryMock).toBeCalledWith({
-        query: communityInfo,
-      })
-    })
-
     it('calls the API to get the communities data', () => {
       expect(apolloQueryMock).toBeCalledWith({
         query: communities,
@@ -139,12 +121,6 @@ describe('SelectCommunity', () => {
           registerUrl: 'http://localhost/register-community',
         }
         wrapper = Wrapper()
-      })
-
-      it('does not call community info data when already filled', () => {
-        expect(apolloQueryMock).not.toBeCalledWith({
-          query: communityInfo,
-        })
       })
 
       it('has a Community name', () => {

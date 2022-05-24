@@ -15,14 +15,19 @@
       <div v-for="({ id, typeId }, index) in transactions" :key="id">
         <transaction-list-item :typeId="typeId" class="pointer">
           <template #DECAY>
-            <transaction-decay class="list-group-item" v-bind="transactions[index]" />
+            <transaction-decay
+              class="list-group-item"
+              v-bind="transactions[index]"
+              :previousBookedBalance="previousBookedBalance(index)"
+            />
           </template>
 
           <template #SEND>
             <transaction-send
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
+              v-on="$listeners"
             />
           </template>
 
@@ -30,7 +35,8 @@
             <transaction-receive
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
+              v-on="$listeners"
             />
           </template>
 
@@ -38,7 +44,8 @@
             <transaction-creation
               class="list-group-item"
               v-bind="transactions[index]"
-              :decayStartBlock="decayStartBlock"
+              :previousBookedBalance="previousBookedBalance(index)"
+              v-on="$listeners"
             />
           </template>
 
@@ -53,21 +60,26 @@
         </transaction-list-item>
       </div>
     </div>
-    <pagination-buttons
-      v-if="showPagination"
+    <b-pagination
+      v-if="isPaginationVisible"
+      class="mt-3"
+      pills
+      size="lg"
       v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionCount"
-    ></pagination-buttons>
+      align="center"
+    ></b-pagination>
+
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
-      <span>{{ $t('transaction.nullTransactions') }}</span>
+      <b-icon v-if="pending" icon="three-dots" animation="cylon"></b-icon>
+      <div v-else>{{ $t('transaction.nullTransactions') }}</div>
     </div>
   </div>
 </template>
 
 <script>
 import TransactionListItem from '@/components/TransactionListItem'
-import PaginationButtons from '@/components/PaginationButtons'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionSend from '@/components/Transactions/TransactionSend'
 import TransactionReceive from '@/components/Transactions/TransactionReceive'
@@ -78,26 +90,25 @@ export default {
   name: 'gdd-transaction-list',
   components: {
     TransactionListItem,
-    PaginationButtons,
     TransactionDecay,
     TransactionSend,
     TransactionReceive,
     TransactionCreation,
     TransactionLinkSummary,
   },
-  data() {
-    return {
-      currentPage: 1,
-    }
-  },
   props: {
-    decayStartBlock: { type: Date },
     transactions: { default: () => [] },
     pageSize: { type: Number, default: 25 },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
+    pending: { type: Boolean },
+  },
+  data() {
+    return {
+      currentPage: 1,
+    }
   },
   methods: {
     updateTransactions() {
@@ -106,6 +117,15 @@ export default {
         pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)
+    },
+    previousBookedBalance(idx) {
+      if (this.transactions[idx + 1]) return this.transactions[idx + 1].balance
+      return '0'
+    },
+  },
+  computed: {
+    isPaginationVisible() {
+      return this.showPagination && this.pageSize < this.transactionCount
     },
   },
   watch: {
@@ -119,6 +139,7 @@ export default {
   },
 }
 </script>
+
 <style>
 collaps-icon {
   width: 95%;

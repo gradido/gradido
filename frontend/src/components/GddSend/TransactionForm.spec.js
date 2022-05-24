@@ -1,10 +1,12 @@
 import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
+import { SEND_TYPES } from '@/pages/Send.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
 const localVue = global.localVue
 
-describe('GddSend', () => {
+describe('TransactionForm', () => {
   let wrapper
 
   const mocks = {
@@ -25,7 +27,12 @@ describe('GddSend', () => {
   }
 
   const Wrapper = () => {
-    return mount(TransactionForm, { localVue, mocks, propsData })
+    return mount(TransactionForm, {
+      localVue,
+      mocks,
+      propsData,
+      provide: DashboardLayout.provide,
+    })
   }
 
   describe('mount', () => {
@@ -34,7 +41,7 @@ describe('GddSend', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.transaction-form').exists()).toBeTruthy()
+      expect(wrapper.find('div.transaction-form').exists()).toBe(true)
     })
 
     describe('transaction form disable because balance 0,0 GDD', () => {
@@ -51,31 +58,35 @@ describe('GddSend', () => {
         expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
       })
       it('has no reset button and no submit button ', () => {
-        expect(wrapper.find('.test-buttons').exists()).toBeFalsy()
+        expect(wrapper.find('.test-buttons').exists()).toBe(false)
       })
     })
 
-    describe('is selected: "send"', () => {
+    describe('send GDD', () => {
       beforeEach(async () => {
-        // await wrapper.setData({
-        //   selected: 'send',
-        // })
         await wrapper.findAll('input[type="radio"]').at(0).setChecked()
+      })
+
+      it('has SEND_TYPES = send', () => {
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
       })
 
       describe('transaction form', () => {
         beforeEach(() => {
           wrapper.setProps({ balance: 100.0 })
         })
+
         describe('transaction form show because balance 100,0 GDD', () => {
           it('has no warning message ', () => {
-            expect(wrapper.find('.errors').exists()).toBeFalsy()
+            expect(wrapper.find('.errors').exists()).toBe(false)
           })
+
           it('has a reset button', () => {
             expect(wrapper.find('.test-buttons').findAll('button').at(0).attributes('type')).toBe(
               'reset',
             )
           })
+
           it('has a submit button', () => {
             expect(wrapper.find('.test-buttons').findAll('button').at(1).attributes('type')).toBe(
               'submit',
@@ -108,6 +119,12 @@ describe('GddSend', () => {
             await wrapper.find('#input-group-1').find('input').setValue('a')
             await flushPromises()
             expect(wrapper.find('span.errors').text()).toBe('validations.messages.email')
+          })
+
+          it('flushes an error message when email is the email of logged in user', async () => {
+            await wrapper.find('#input-group-1').find('input').setValue('user@example.org')
+            await flushPromises()
+            expect(wrapper.find('span.errors').text()).toBe('form.validation.is-not')
           })
 
           it('trims the email after blur', async () => {
@@ -159,13 +176,13 @@ describe('GddSend', () => {
           it('flushes no errors when amount is valid', async () => {
             await wrapper.find('#input-group-2').find('input').setValue('87.34')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBeFalsy()
+            expect(wrapper.find('span.errors').exists()).toBe(false)
           })
         })
 
         describe('message text box', () => {
           it('has an textarea field', () => {
-            expect(wrapper.find('#input-group-3').find('textarea').exists()).toBeTruthy()
+            expect(wrapper.find('#input-group-3').find('textarea').exists()).toBe(true)
           })
 
           it('has an chat-right-text icon', () => {
@@ -184,20 +201,55 @@ describe('GddSend', () => {
             expect(wrapper.find('span.errors').text()).toBe('validations.messages.min')
           })
 
+          it('flushes an error message when memo is more than 255 characters', async () => {
+            await wrapper.find('#input-group-3').find('textarea').setValue(`
+Es ist ein König in Thule, der trinkt
+Champagner, es geht ihm nichts drüber;
+Und wenn er seinen Champagner trinkt,
+Dann gehen die Augen ihm über.
+
+Die Ritter sitzen um ihn her,
+Die ganze Historische Schule;
+Ihm aber wird die Zunge schwer,
+Es lallt der König von Thule:
+
+„Als Alexander, der Griechenheld,
+Mit seinem kleinen Haufen
+Erobert hatte die ganze Welt,
+Da gab er sich ans Saufen.
+
+Ihn hatten so durstig gemacht der Krieg
+Und die Schlachten, die er geschlagen;
+Er soff sich zu Tode nach dem Sieg,
+Er konnte nicht viel vertragen.
+
+Ich aber bin ein stärkerer Mann
+Und habe mich klüger besonnen:
+Wie jener endete, fang ich an,
+Ich hab mit dem Trinken begonnen.
+
+Im Rausche wird der Heldenzug
+Mir später weit besser gelingen;
+Dann werde ich, taumelnd von Krug zu Krug,
+Die ganze Welt bezwingen.“`)
+            await flushPromises()
+            expect(wrapper.find('span.errors').text()).toBe('validations.messages.max')
+          })
+
           it('flushes no error message when memo is valid', async () => {
             await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBeFalsy()
+            expect(wrapper.find('span.errors').exists()).toBe(false)
           })
         })
 
         describe('cancel button', () => {
           it('has a cancel button', () => {
-            expect(wrapper.find('button[type="reset"]').exists()).toBeTruthy()
+            expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
           })
 
           it('has the text "form.cancel"', () => {
-            expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
+            expect(wrapper.find('button[type="reset"]').text()).toBe('form.cancel')
           })
 
           it('clears all fields on click', async () => {
@@ -242,16 +294,17 @@ describe('GddSend', () => {
       })
     })
 
-    describe('is selected: "link"', () => {
+    describe('create transaction link', () => {
       beforeEach(async () => {
-        // await wrapper.setData({
-        //   selected: 'link',
-        // })
         await wrapper.findAll('input[type="radio"]').at(1).setChecked()
       })
 
+      it('has SEND_TYPES = link', () => {
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
+      })
+
       it('has no input field of id input-group-1', () => {
-        expect(wrapper.find('#input-group-1').isVisible()).toBeFalsy()
+        expect(wrapper.find('#input-group-1').exists()).toBe(false)
       })
     })
   })

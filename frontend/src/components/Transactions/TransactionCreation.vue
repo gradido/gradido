@@ -12,7 +12,7 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" />
+            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
 
             <!-- Nachricht Memo -->
             <memo-row :memo="memo" />
@@ -27,12 +27,7 @@
       </div>
 
       <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
-        <decay-information
-          :typeId="typeId"
-          :decay="decay"
-          :amount="amount"
-          :decayStartBlock="decayStartBlock"
-        />
+        <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
       </b-collapse>
     </div>
   </div>
@@ -47,7 +42,7 @@ import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
-  name: 'slot-creation',
+  name: 'TransactionCreation',
   components: {
     CollapseIcon,
     TypeIcon,
@@ -82,8 +77,8 @@ export default {
       type: String,
       required: true,
     },
-    decayStartBlock: {
-      type: Date,
+    previousBookedBalance: {
+      type: String,
       required: true,
     },
   },

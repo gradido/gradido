@@ -1,20 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import RegisterCommunity from './RegisterCommunity'
 
-import { toastErrorSpy } from '@test/testSetup'
-
 const localVue = global.localVue
-
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getCommunityInfo: {
-      name: 'test12',
-      description: 'test community 12',
-      url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/register',
-    },
-  },
-})
 
 const mockStoreCommit = jest.fn()
 
@@ -26,9 +13,6 @@ describe('RegisterCommunity', () => {
       locale: 'en',
     },
     $t: jest.fn((t) => t),
-    $apollo: {
-      query: apolloQueryMock,
-    },
     $store: {
       commit: mockStoreCommit,
       state: {
@@ -53,30 +37,8 @@ describe('RegisterCommunity', () => {
       wrapper = Wrapper()
     })
 
-    it('commits the community info to the store', () => {
-      expect(mockStoreCommit).toBeCalledWith('community', {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
-      })
-    })
-
     it('renders the Div Element "#register-community"', () => {
       expect(wrapper.find('div#register-community').exists()).toBeTruthy()
-    })
-
-    describe('communities gives back error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Failed to get communities',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
-      })
     })
 
     describe('Community data already loaded', () => {
@@ -99,10 +61,6 @@ describe('RegisterCommunity', () => {
         expect(wrapper.find('.justify-content-center p').text()).toBe(
           'Die lokale Entwicklungsumgebung von Gradido.',
         )
-      })
-
-      it('does not call community data update', () => {
-        expect(apolloQueryMock).not.toBeCalled()
       })
     })
 

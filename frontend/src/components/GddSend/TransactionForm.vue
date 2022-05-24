@@ -6,29 +6,38 @@
           <b-form role="form" @submit.prevent="handleSubmit(onSubmit)" @reset="onReset">
             <b-row>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" :value="sendTypes.send" size="lg">
+                <b-form-radio
+                  v-model="radioSelected"
+                  name="radios"
+                  :value="sendTypes.send"
+                  size="lg"
+                >
                   {{ $t('send_gdd') }}
                 </b-form-radio>
               </b-col>
               <b-col>
-                <b-form-radio v-model="selected" name="radios" :value="sendTypes.link" size="lg">
+                <b-form-radio
+                  v-model="radioSelected"
+                  name="radios"
+                  :value="sendTypes.link"
+                  size="lg"
+                >
                   {{ $t('send_per_link') }}
                 </b-form-radio>
               </b-col>
             </b-row>
-            <div class="mt-4" v-show="selected === sendTypes.link">
+            <div class="mt-4" v-if="radioSelected === sendTypes.link">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
 
-            <div>
+            <div v-if="radioSelected === sendTypes.send">
               <validation-provider
-                v-show="selected === sendTypes.send"
                 name="Email"
                 :rules="{
-                  required: selected === sendTypes.send ? true : false,
+                  required: radioSelected === sendTypes.send ? true : false,
                   email: true,
                   is_not: $store.state.email,
                 }"
@@ -62,9 +71,7 @@
               </validation-provider>
             </div>
 
-            <br />
-
-            <div>
+            <div class="mt-4 mb-4">
               <validation-provider
                 :name="$t('form.amount')"
                 :rules="{
@@ -97,12 +104,12 @@
               </validation-provider>
             </div>
 
-            <div class="mt-4">
+            <div class="mb-4">
               <validation-provider
                 :rules="{
                   required: true,
                   min: 5,
-                  max: 150,
+                  max: 255,
                 }"
                 :name="$t('form.message')"
                 v-slot="{ errors }"
@@ -125,23 +132,22 @@
                 </b-col>
               </validation-provider>
             </div>
-            <br />
+
             <div v-if="!!isBalanceDisabled" class="text-danger">
               {{ $t('form.no_gdd_available') }}
             </div>
             <b-row v-else class="test-buttons">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
-                  {{ $t('form.reset') }}
+                  {{ $t('form.cancel') }}
                 </b-button>
               </b-col>
               <b-col class="text-right">
-                <b-button type="submit" variant="success">
-                  {{ selected === sendTypes.send ? $t('form.send_now') : $t('form.generate_now') }}
+                <b-button type="submit" variant="primary">
+                  {{ $t('form.check_now') }}
                 </b-button>
               </b-col>
             </b-row>
-
             <br />
           </b-form>
         </validation-observer>
@@ -163,7 +169,9 @@ export default {
     email: { type: String, default: '' },
     amount: { type: Number, default: 0 },
     memo: { type: String, default: '' },
+    selected: { type: String, default: 'send' },
   },
+  inject: ['getTunneledEmail'],
   data() {
     return {
       amountFocused: false,
@@ -174,14 +182,14 @@ export default {
         memo: this.memo,
         amountValue: 0.0,
       },
-      selected: SEND_TYPES.send,
+      radioSelected: this.selected,
     }
   },
   methods: {
     onSubmit() {
       this.normalizeAmount(true)
       this.$emit('set-transaction', {
-        selected: this.selected,
+        selected: this.radioSelected,
         email: this.form.email,
         amount: this.form.amountValue,
         memo: this.form.memo,
@@ -211,6 +219,12 @@ export default {
     sendTypes() {
       return SEND_TYPES
     },
+    recipientEmail() {
+      return this.getTunneledEmail()
+    },
+  },
+  created() {
+    this.form.email = this.recipientEmail ? this.recipientEmail : this.form.email
   },
 }
 </script>

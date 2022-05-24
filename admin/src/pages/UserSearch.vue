@@ -3,11 +3,23 @@
     <div class="user-search-first-div">
       <b-button class="unconfirmedRegisterMails" variant="light" @click="unconfirmedRegisterMails">
         <b-icon icon="envelope" variant="danger"></b-icon>
-        {{ filterCheckedEmails ? $t('all_emails') : $t('unregistered_emails') }}
+        {{
+          filterByActivated === null
+            ? $t('all_emails')
+            : filterByActivated === false
+            ? $t('unregistered_emails')
+            : ''
+        }}
       </b-button>
       <b-button class="deletedUserSearch" variant="light" @click="deletedUserSearch">
         <b-icon icon="x-circle" variant="danger"></b-icon>
-        {{ filterDeletedUser ? $t('all_emails') : $t('deleted_user') }}
+        {{
+          filterByDeleted === null
+            ? $t('all_emails')
+            : filterByDeleted === true
+            ? $t('deleted_user')
+            : ''
+        }}
       </b-button>
     </div>
     <label>{{ $t('user_search') }}</label>
@@ -60,8 +72,8 @@ export default {
       searchResult: [],
       massCreation: [],
       criteria: '',
-      filterCheckedEmails: false,
-      filterDeletedUser: false,
+      filterByActivated: null,
+      filterByDeleted: null,
       rows: 0,
       currentPage: 1,
       perPage: 25,
@@ -70,11 +82,11 @@ export default {
   },
   methods: {
     unconfirmedRegisterMails() {
-      this.filterCheckedEmails = !this.filterCheckedEmails
+      this.filterByActivated = this.filterByActivated === null ? false : null
       this.getUsers()
     },
     deletedUserSearch() {
-      this.filterDeletedUser = !this.filterDeletedUser
+      this.filterByDeleted = this.filterByDeleted === null ? true : null
       this.getUsers()
     },
     getUsers() {
@@ -85,9 +97,12 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
-            notActivated: this.filterCheckedEmails,
-            isDeleted: this.filterDeletedUser,
+            filters: {
+              filterByActivated: this.filterByActivated,
+              filterByDeleted: this.filterByDeleted,
+            },
           },
+          fetchPolicy: 'no-cache',
         })
         .then((result) => {
           this.rows = result.data.searchUsers.userCount

@@ -1,21 +1,9 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { toastErrorSpy } from '@test/testSetup'
 import Register from './Register'
 
-import { toastErrorSpy } from '@test/testSetup'
-
 const localVue = global.localVue
-
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    getCommunityInfo: {
-      name: 'test12',
-      description: 'test community 12',
-      url: 'http://test12.test12/',
-      registerUrl: 'http://test12.test12/register',
-    },
-  },
-})
 
 const mockStoreCommit = jest.fn()
 const registerUserMutationMock = jest.fn()
@@ -37,18 +25,12 @@ describe('Register', () => {
     },
     $apollo: {
       mutate: registerUserMutationMock,
-      query: apolloQueryMock,
     },
     $store: {
       commit: mockStoreCommit,
       state: {
         email: 'peter@lustig.de',
         language: 'en',
-        community: {
-          name: '',
-          description: '',
-        },
-        publisherId: 12345,
       },
     },
   }
@@ -66,93 +48,28 @@ describe('Register', () => {
       wrapper = Wrapper()
     })
 
-    it('commits the community info to the store', () => {
-      expect(mockStoreCommit).toBeCalledWith('community', {
-        name: 'test12',
-        description: 'test community 12',
-        url: 'http://test12.test12/',
-        registerUrl: 'http://test12.test12/register',
-      })
-    })
-
     it('renders the Register form', () => {
-      expect(wrapper.find('div#registerform').exists()).toBeTruthy()
-    })
-
-    describe('Register header', () => {
-      it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('site.signup.title site.signup.subtitle')
-      })
-    })
-
-    describe('communities gives back error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Failed to get communities',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Failed to get communities')
-      })
-    })
-
-    describe('Community data already loaded', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        mocks.$store.state.community = {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        }
-        wrapper = Wrapper()
-      })
-
-      it('has a Community name', () => {
-        expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-      })
-
-      it('has a Community description', () => {
-        expect(wrapper.find('.test-communitydata p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
-      })
-
-      it('does not call community data update', () => {
-        expect(apolloQueryMock).not.toBeCalled()
-      })
-    })
-
-    describe('links', () => {
-      it('has a link "Back"', () => {
-        expect(wrapper.find('.test-button-back').text()).toEqual('back')
-      })
-
-      it('links to /login when clicking "Back"', () => {
-        expect(wrapper.find('.test-button-back').props().to).toBe('/login')
-      })
+      expect(wrapper.find('div#registerform').exists()).toBe(true)
     })
 
     describe('Register form', () => {
       it('has a register form', () => {
-        expect(wrapper.find('form').exists()).toBeTruthy()
+        expect(wrapper.find('form').exists()).toBe(true)
       })
 
       it('has firstname input fields', () => {
-        expect(wrapper.find('#registerFirstname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerFirstname').exists()).toBe(true)
       })
       it('has lastname input fields', () => {
-        expect(wrapper.find('#registerLastname').exists()).toBeTruthy()
+        expect(wrapper.find('#registerLastname').exists()).toBe(true)
       })
 
       it('has email input fields', () => {
-        expect(wrapper.find('#Email-input-field').exists()).toBeTruthy()
+        expect(wrapper.find('#Email-input-field').exists()).toBe(true)
       })
 
       it('has Language selected field', () => {
-        expect(wrapper.find('.selectedLanguage').exists()).toBeTruthy()
+        expect(wrapper.find('.selectedLanguage').exists()).toBe(true)
       })
 
       it('selects Language value en', async () => {
@@ -161,12 +78,7 @@ describe('Register', () => {
       })
 
       it('has 1 checkbox input fields', () => {
-        expect(wrapper.find('#registerCheckbox').exists()).toBeTruthy()
-      })
-
-      it('has PublisherId input fields', () => {
-        wrapper.find('.publisherCollaps').trigger('click')
-        expect(wrapper.find('#publisherid').exists()).toBe(true)
+        expect(wrapper.find('#registerCheckbox').exists()).toBe(true)
       })
 
       it('has disabled submit button when not completely filled', () => {
@@ -198,26 +110,11 @@ describe('Register', () => {
       })
     })
 
-    /*
-    describe('link Choose another community', () => {
-      it('has a link "Choose another community"', () => {
-        expect(wrapper.find('.test-button-another-community').text()).toEqual(
-          'community.choose-another-community',
-        )
-      })
-
-      it('links to /select-community when clicking "Choose another community"', () => {
-        expect(wrapper.find('.test-button-another-community').props().to).toBe('/select-community')
-      })
-    })
-    */
-
     describe('API calls when form is missing input', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-        wrapper.find('#publisherid').setValue('12345')
       })
       it('has disabled submit button when missing input checked box', () => {
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
@@ -230,32 +127,13 @@ describe('Register', () => {
       })
     })
 
-    describe('API calls when completely filled and missing publisherid', () => {
-      beforeEach(() => {
-        wrapper.find('#registerFirstname').setValue('Max')
-        wrapper.find('#registerLastname').setValue('Mustermann')
-        wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-        wrapper.find('#registerCheckbox').setChecked()
-      })
-      it('has enabled submit button when completely filled', async () => {
-        await wrapper.vm.$nextTick()
-        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe(undefined)
-      })
-    })
-
     describe('API calls when completely filled', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
         wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
-        wrapper.find('#publisherid').setValue('12345')
         wrapper.find('#registerCheckbox').setChecked()
-      })
-
-      it('commits publisherId to store', () => {
-        expect(mockStoreCommit).toBeCalledWith('publisherId', 12345)
       })
 
       it('has enabled submit button when completely filled', async () => {
@@ -264,42 +142,63 @@ describe('Register', () => {
       })
 
       describe('server sends back error', () => {
-        beforeEach(async () => {
-          registerUserMutationMock.mockRejectedValue({ message: 'Ouch!' })
+        const createError = async (errorMessage) => {
+          registerUserMutationMock.mockRejectedValue({
+            message: errorMessage,
+          })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        }
+
+        describe('server sends back error "User already exists."', () => {
+          beforeEach(async () => {
+            await createError('GraphQL error: User already exists.')
+          })
+
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.user-already-exists')
+          })
         })
 
-        it('shows error message', () => {
-          expect(wrapper.find('span.alert-text').exists()).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text().length !== 0).toBeTruthy()
-          expect(wrapper.find('span.alert-text').text()).toContain('error.error')
-          expect(wrapper.find('span.alert-text').text()).toContain('Ouch!')
-        })
+        describe('server sends back error "Unknown error"', () => {
+          beforeEach(async () => {
+            await createError(' – Unknown error.')
+          })
 
-        it('button to dismisses error message is present', () => {
-          expect(wrapper.find('button.close').exists()).toBeTruthy()
-        })
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
 
-        it('dismisses error message', async () => {
-          await wrapper.find('button.close').trigger('click')
-          await flushPromises()
-          expect(wrapper.find('span.alert-text').exists()).not.toBeTruthy()
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknown error.')
+          })
         })
       })
 
       describe('server sends back success', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
           registerUserMutationMock.mockResolvedValue({
             data: {
               create: 'success',
             },
           })
-        })
-
-        it('routes to "/thx/register"', async () => {
           await wrapper.find('form').trigger('submit')
           await flushPromises()
+        })
+
+        it('submit sends apollo mutate', () => {
           expect(registerUserMutationMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
@@ -307,11 +206,19 @@ describe('Register', () => {
                 firstName: 'Max',
                 lastName: 'Mustermann',
                 language: 'en',
-                publisherId: 12345,
               },
             }),
           )
-          expect(routerPushMock).toHaveBeenCalledWith('/thx/register')
+        })
+
+        it('shows success title, subtitle', () => {
+          expect(wrapper.vm.showPageMessage).toBe(true)
+          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
+        })
+
+        it('button is not present', () => {
+          expect(wrapper.find('.test-message-button').exists()).toBe(false)
         })
       })
     })
@@ -348,7 +255,6 @@ describe('Register', () => {
               firstName: 'Max',
               lastName: 'Mustermann',
               language: 'en',
-              publisherId: 12345,
               redeemCode: 'some-code',
             },
           }),

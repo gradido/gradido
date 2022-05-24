@@ -38,9 +38,6 @@ export const mutations = {
   isAdmin: (state, isAdmin) => {
     state.isAdmin = !!isAdmin
   },
-  community: (state, community) => {
-    state.community = community
-  },
   coinanimation: (state, coinanimation) => {
     state.coinanimation = coinanimation
   },
@@ -96,10 +93,6 @@ try {
       isAdmin: false,
       coinanimation: true,
       newsletterState: null,
-      community: {
-        name: '',
-        description: '',
-      },
       hasElopage: false,
       publisherId: null,
     },

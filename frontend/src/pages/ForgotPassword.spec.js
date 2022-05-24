@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { toastErrorSpy } from '@test/testSetup'
 import ForgotPassword from './ForgotPassword'
 
 const mockAPIcall = jest.fn()
@@ -21,7 +22,7 @@ const createMockObject = (comingFrom) => {
         push: mockRouterPush,
       },
       $apollo: {
-        query: mockAPIcall,
+        mutate: mockAPIcall,
       },
       $route: {
         params: {
@@ -46,15 +47,7 @@ describe('ForgotPassword', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.forgot-password').exists()).toBeTruthy()
-    })
-
-    it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
-    })
-
-    it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
+      expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
     describe('back button', () => {
@@ -83,7 +76,7 @@ describe('ForgotPassword', () => {
       })
 
       it('has a submit button', () => {
-        expect(form.find('button[type="submit"]').exists()).toBeTruthy()
+        expect(form.find('button[type="submit"]').exists()).toBe(true)
       })
 
       describe('invalid Email', () => {
@@ -116,15 +109,23 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            it('shows error title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBe(true)
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
+            })
+
+            it('button link directs to "/login"', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+            })
+
+            it.skip('click redirects to "/login"', async () => {
+              expect(mockRouterPush).toBeCalledWith('/login')
+            })
+
+            it('toasts a standard error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
             })
           })
 
@@ -141,28 +142,18 @@ describe('ForgotPassword', () => {
               await flushPromises()
             })
 
-            it('pushes to "/thx/forgotPassword"', () => {
-              expect(mockAPIcall).toBeCalledWith(
-                expect.objectContaining({
-                  variables: {
-                    email: 'user@example.org',
-                  },
-                }),
-              )
-              expect(mockRouterPush).toHaveBeenCalledWith('/thx/forgotPassword')
+            it('shows success title, subtitle, login button', () => {
+              expect(wrapper.vm.showPageMessage).toBe(true)
+              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+              expect(wrapper.find('.test-message-button').text()).toBe('login')
+            })
+
+            it('button link redirects to "/login"', () => {
+              expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
           })
         })
-      })
-    })
-
-    describe('comingFrom login', () => {
-      beforeEach(() => {
-        wrapper = Wrapper(createMockObject('resetPassword'))
-      })
-
-      it('has another subtitle', () => {
-        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
       })
     })
   })

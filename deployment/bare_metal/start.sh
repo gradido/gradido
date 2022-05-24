@@ -67,7 +67,7 @@ BRANCH=${1:-master}
 echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
-git fetch origin --all
+git fetch --all
 git checkout $BRANCH
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
@@ -106,7 +106,6 @@ yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
   yarn dev_reset
-  yarn seed 
 else
   yarn up
 fi
@@ -118,6 +117,9 @@ cd $PROJECT_ROOT/backend
 unset NODE_ENV
 yarn install
 yarn build
+if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+  yarn seed
+fi
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-backend

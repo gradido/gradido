@@ -2,6 +2,7 @@
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "creation": "Schöpfung",
+  "creationList": "Schöpfungsliste",
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
@@ -27,6 +28,7 @@
   "edit": "Bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
+  "expired": "abgelaufen",
   "e_mail": "E-Mail",
   "firstname": "Vorname",
   "footer": {
@@ -56,6 +58,7 @@
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
+  "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {
     "confirm": {
@@ -66,6 +69,7 @@
       "yes": "Ja, Schöpfung bestätigen und speichern!"
     }
   },
+  "redeemed": "eingelöst",
   "remove": "Entfernen",
   "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
@@ -73,6 +77,11 @@
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
+  "transactionlink": {
+    "created": "Erstellt",
+    "name": "Transaktion-Links",
+    "valid_until": "Gültig bis"
+  },
   "transactionlist": {
     "amount": "Betrag",
     "balanceDate": "Schöpfungsdatum",
@@ -92,7 +101,6 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
-  "userIsDeleted": "Der Nutzer ist gelöscht. Es können keine GDD mehr geschöpft werden.",
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
   "user_search": "Nutzer-Suche"

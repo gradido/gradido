@@ -20,8 +20,12 @@
         </b-row>
       </div>
 
-      <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information-decay :balance="balance" :decay="decay.decay" />
+      <b-collapse :class="visible ? 'bg-secondary' : ''" class="pb-4 pt-5" v-model="visible">
+        <decay-information-decay
+          :balance="balance"
+          :decay="decay.decay"
+          :previousBookedBalance="previousBookedBalance"
+        />
       </b-collapse>
     </div>
   </div>
@@ -33,7 +37,7 @@ import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
 export default {
-  name: 'slot-decay',
+  name: 'TransactionDecay',
   components: {
     CollapseIcon,
     TypeIcon,
@@ -51,6 +55,10 @@ export default {
     },
     decay: {
       type: Object,
+      required: true,
+    },
+    previousBookedBalance: {
+      type: String,
       required: true,
     },
   },

@@ -43,6 +43,12 @@ export const logout = gql`
   }
 `
 
+export const queryOptIn = gql`
+  query ($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
 export const transactionsQuery = gql`
   query (
     $currentPage: Int = 1
@@ -59,7 +65,6 @@ export const transactionsQuery = gql`
       balanceGDT
       count
       balance
-      decayStartBlock
       transactions {
         id
         typeId
@@ -140,6 +145,24 @@ export const queryTransactionLink = gql`
         firstName
         publisherId
       }
+    }
+  }
+`
+
+// from admin interface
+
+export const getPendingCreations = gql`
+  query {
+    getPendingCreations {
+      id
+      firstName
+      lastName
+      email
+      amount
+      memo
+      date
+      moderator
+      creation
     }
   }
 `

@@ -1,7 +1,8 @@
-import { ObjectType, Field } from 'type-graphql'
+import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User } from './User'
+import CONFIG from '@/config'
 
 @ObjectType()
 export class TransactionLink {
@@ -17,6 +18,7 @@ export class TransactionLink {
     this.deletedAt = transactionLink.deletedAt
     this.redeemedAt = transactionLink.redeemedAt
     this.redeemedBy = redeemedBy
+    this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
   }
 
   @Field(() => Number)
@@ -51,4 +53,16 @@ export class TransactionLink {
 
   @Field(() => User, { nullable: true })
   redeemedBy: User | null
+
+  @Field(() => String)
+  link: string
+}
+
+@ObjectType()
+export class TransactionLinkResult {
+  @Field(() => Int)
+  linkCount: number
+
+  @Field(() => [TransactionLink])
+  linkList: TransactionLink[]
 }

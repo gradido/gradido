@@ -1,22 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
 export class Balance {
-  constructor(json: any) {
-    this.balance = json.balance
-    this.decay = json.decay
-    this.decayDate = json.decay_date
+  constructor(data: {
+    balance: Decimal
+    balanceGDT: number | null
+    count: number
+    linkCount: number
+  }) {
+    this.balance = data.balance
+    this.balanceGDT = data.balanceGDT || null
+    this.count = data.count
+    this.linkCount = data.linkCount
   }
 
+  // the actual balance, decay included
   @Field(() => Decimal)
   balance: Decimal
 
-  @Field(() => Decimal)
-  decay: Decimal
+  @Field(() => Number, { nullable: true })
+  balanceGDT: number | null
 
-  @Field(() => Date)
-  decayDate: Date
+  // the count of all transactions
+  @Field(() => Number)
+  count: number
+
+  // the count of transaction links
+  @Field(() => Number)
+  linkCount: number
 }

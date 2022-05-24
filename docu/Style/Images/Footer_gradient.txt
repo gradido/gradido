@@ -1,0 +1,5 @@
+background: linear-gradient(90deg, rgba(197,141,56,1) 6%, rgba(243,205,124,1) 30%, rgba(219,176,86,1) 54%, rgba(238,192,95,1) 63%, rgba(204,157,61,1) 88%);
+
+height: 13px
+
+

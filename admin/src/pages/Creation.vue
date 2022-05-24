@@ -102,6 +102,10 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
+            filters: {
+              filterByActivated: true,
+              filterByDeleted: false,
+            },
           },
           fetchPolicy: 'network-only',
         })
