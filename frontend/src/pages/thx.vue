@@ -40,7 +40,7 @@ const textFields = {
   register: {
     headline: 'site.thx.title',
     subtitle: 'site.thx.register',
-    button: 'site.login.signin',
+    button: 'signin',
     // linkTo: '/login',
   },
   checkEmail: {
