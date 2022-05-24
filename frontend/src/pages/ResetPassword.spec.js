@@ -79,36 +79,6 @@ describe('ResetPassword', () => {
         expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
       })
 
-      describe('Register header', () => {
-        describe('from reset', () => {
-          beforeEach(() => {
-            mocks.$route.path.mock = 'reset-password'
-            wrapper = Wrapper()
-          })
-
-          it('has a welcome message', async () => {
-            expect(wrapper.find('div.header').text()).toContain('settings.password.reset')
-            expect(wrapper.find('div.header').text()).toContain(
-              'settings.password.reset-password.text',
-            )
-          })
-        })
-
-        describe('from checkEmail', () => {
-          beforeEach(() => {
-            mocks.$route.path.mock = 'checkEmail'
-            wrapper = Wrapper()
-          })
-
-          it('has a welcome message', async () => {
-            expect(wrapper.find('div.header').text()).toContain('settings.password.set')
-            expect(wrapper.find('div.header').text()).toContain(
-              'settings.password.set-password.text',
-            )
-          })
-        })
-      })
-
       describe('links', () => {
         it('has a link "Back"', async () => {
           expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
