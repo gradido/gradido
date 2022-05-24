@@ -1333,9 +1333,9 @@ describe('AdminResolver', () => {
     const variables = {
       userId: 1, // dummy, may be replaced
       filters: {
-        byDeleted: null,
-        byExpired: null,
-        byRedeemed: null,
+        withDeleted: null,
+        withExpired: null,
+        withRedeemed: null,
       },
       currentPage: 1,
       pageSize: 5,
@@ -1465,9 +1465,9 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variables,
                   filters: {
-                    byDeleted: true, // Wolle: rename to `withDeleted`?
-                    byExpired: null,
-                    byRedeemed: null,
+                    withDeleted: true, // Wolle: rename to `withDeleted`?
+                    withExpired: null,
+                    withRedeemed: null,
                   },
                 },
               }),
@@ -1502,9 +1502,9 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variables,
                   filters: {
-                    byDeleted: null,
-                    byExpired: true,
-                    byRedeemed: null,
+                    withDeleted: null,
+                    withExpired: true,
+                    withRedeemed: null,
                   },
                 },
               }),
@@ -1539,9 +1539,9 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variables,
                   filters: {
-                    byDeleted: null,
-                    byExpired: null,
-                    byRedeemed: true,
+                    withDeleted: null,
+                    withExpired: null,
+                    withRedeemed: true,
                   },
                 },
               }),

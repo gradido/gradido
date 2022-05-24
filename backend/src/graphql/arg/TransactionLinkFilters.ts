@@ -3,11 +3,11 @@ import { Field, InputType } from 'type-graphql'
 @InputType()
 export default class TransactionLinkFilters {
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byDeleted: boolean
+  withDeleted: boolean
 
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byExpired: boolean
+  withExpired: boolean
 
   @Field(() => Boolean, { nullable: true, defaultValue: true })
-  byRedeemed: boolean
+  withRedeemed: boolean
 }
