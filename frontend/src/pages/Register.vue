@@ -80,7 +80,7 @@
               <b-button
                 type="submit"
                 :disabled="disabled"
-                :variant="disabled ? 'outline-gradido' : 'gradido'"
+                :variant="disabled ? 'gradido-disable' : 'gradido'"
               >
                 {{ $t('signup') }}
               </b-button>
