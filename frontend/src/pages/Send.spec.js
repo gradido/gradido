@@ -3,7 +3,7 @@ import Send, { SEND_TYPES } from './Send'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
 import { TRANSACTION_STEPS } from '@/components/GddSend.vue'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
-import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import flushPromises from 'flush-promises'
 
 const apolloMutationMock = jest.fn()
