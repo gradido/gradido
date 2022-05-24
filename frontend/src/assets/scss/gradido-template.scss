@@ -42,18 +42,18 @@ a,
 
 .btn-gradido {
   display: inline-block;
-	padding: 1em 3em;
-	letter-spacing: 0.05em;
-	color: #fff;
-	transition: all 0.5s ease;
-	background: rgb(249,205,105);
-	background: linear-gradient(135deg, rgba(249,205,105,1) 2%, rgba(197,141,56,1) 55%);
-	box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;
-	border-radius:26px;
+  padding: 1em 3em;
+  letter-spacing: 0.05em;
+  color: #fff;
+  transition: all 0.5s ease;
+  background: rgb(249 205 105);
+  background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
+  box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
+  border-radius: 26px;
 }
 
 .btn-gradido:hover {
-  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 10px rgb(0 0 0 / 20%);
 }
 
 .btn-gradido:focus {
