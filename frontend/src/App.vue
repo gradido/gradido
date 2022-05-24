@@ -1,47 +1,49 @@
 <template>
-  <div id="app" class="font-sans text-gray-800">
-    <div>
-      <particles-bg v-if="$store.state.coinanimation" type="custom" :config="config" :bg="true" />
-      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayoutGDD'" />
-    </div>
+  <div id="app" class="h-100">
+    <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
+    <div class="goldrand position-fixed w-100 fixed-bottom zindex1000"></div>
   </div>
 </template>
 
 <script>
-import { ParticlesBg } from 'particles-bg-vue'
-import icon from './icon.js'
-import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
-import AuthLayoutGDD from '@/layouts/AuthLayout_gdd.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import AuthLayout from '@/layouts/AuthLayout.vue'
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
-    ParticlesBg,
     DashboardLayout,
-    AuthLayoutGDD,
-  },
-  data() {
-    return {
-      config: {
-        num: [1, 7],
-        rps: 15,
-        radius: [5, 50],
-        life: [6.5, 15],
-        v: [1, 1],
-        tha: [-40, 40],
-        body: icon,
-        alpha: [0.6, 0],
-        scale: [0.1, 0.4],
-        position: 'all',
-        cross: 'dead',
-        random: 2,
-      },
-    }
+    AuthLayout,
   },
 }
 </script>
+
 <style>
-.pointer {
-  cursor: pointer;
+@font-face {
+  font-family: 'WorkSans', sans-serif !important;
+  src: url(./assets/scss/fonts/WorkSans-VariableFont_wght.ttf) format('truetype');
+}
+#app {
+  min-width: 360px;
+  font-size: 1rem;
+  font-family: 'WorkSans', sans-serif !important;
+}
+
+@media screen and (max-width: 500px) {
+  #app {
+    font-size: 0.85rem;
+  }
+}
+
+.goldrand {
+  background: linear-gradient(
+    90deg,
+    rgba(197, 141, 56, 1) 6%,
+    rgba(243, 205, 124, 1) 30%,
+    rgba(219, 176, 86, 1) 54%,
+    rgba(238, 192, 95, 1) 63%,
+    rgba(204, 157, 61, 1) 88%
+  );
+  height: 13px;
 }
 </style>
