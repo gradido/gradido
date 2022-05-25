@@ -1,6 +1,6 @@
 <template>
   <!-- change to "enterData", see Login.vue -->
-  <div v-if="!showPageMessage" class="resetpwd-form">
+  <div v-if="enterData" class="resetpwd-form">
     <div class="pb-5">{{ $t('site.resetPassword.heading') }}</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
@@ -58,12 +58,16 @@ export default {
         passwordRepeat: '',
       },
       displaySetup: {},
-      showPageMessage: false, // compute "enterData"
+      showPageMessage: false,
       messageHeadline: null,
       messageSubtitle: null,
       messageButtonText: null,
       messageButtonLinktTo: null,
     }
+  },
+  created() {
+    this.$emit('set-mobile-start', false)
+    this.setDisplaySetup()
   },
   methods: {
     async onSubmit() {
@@ -77,18 +81,15 @@ export default {
         })
         .then(() => {
           this.form.password = ''
-          if (this.$route.path.includes('checkEmail')) {
-            if (this.$route.params.code) {
-              // Wolle: refactor
-              this.$router.push('/thx/checkEmail/' + this.$route.params.code)
-            } else {
-              // Wolle: refactor
-              this.$router.push('/thx/checkEmail')
-            }
-          } else {
-            // Wolle: refactor
-            this.$router.push('/thx/resetPassword')
-          }
+          this.form.passwordRepeat = ''
+
+          this.showPageMessage = true
+          this.messageHeadline = this.$t('site.thx.title')
+          this.messageSubtitle = this.$route.path.includes('checkEmail')
+            ? this.$t('site.thx.checkEmail')
+            : this.$t('site.thx.reset')
+          this.messageButtonText = this.$t('login')
+          this.messageButtonLinktTo = '/login'
         })
         .catch((error) => {
           let errorMessage
@@ -97,10 +98,9 @@ export default {
               /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
             )
           ) {
-            // Wolle: this.$router.push('/forgot-password/resetPassword')
-            errorMessage = error.message // Wolle: shall the error get in the message
+            errorMessage = error.message
           } else {
-            errorMessage = error.message // Wolle: shall the error get in the message
+            errorMessage = error.message
           }
           this.showPageMessage = true
           this.messageHeadline = this.$t('site.thx.errorTitle')
@@ -120,7 +120,6 @@ export default {
         })
         .then()
         .catch((error) => {
-          // Wolle: show message as well?
           this.toastError(error.message)
           this.$router.push('/forgot-password/resetPassword')
         })
@@ -135,9 +134,10 @@ export default {
       }
     },
   },
-  created() {
-    this.$emit('set-mobile-start', false)
-    this.setDisplaySetup()
+  computed: {
+    enterData() {
+      return !this.showPageMessage
+    },
   },
 }
 </script>
