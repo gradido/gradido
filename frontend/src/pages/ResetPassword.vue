@@ -92,7 +92,6 @@ export default {
         })
         .catch((error) => {
           let errorMessage
-          // Wolle: how to solve this with error codes?
           if (
             error.message.match(
               /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
