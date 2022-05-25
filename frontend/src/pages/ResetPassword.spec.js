@@ -79,16 +79,6 @@ describe('ResetPassword', () => {
         expect(wrapper.find('div.resetpwd-form').exists()).toBeTruthy()
       })
 
-      describe('links', () => {
-        it('has a link "Back"', async () => {
-          expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual('back')
-        })
-
-        it('links to /login when clicking "Back"', async () => {
-          expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/login')
-        })
-      })
-
       describe('reset password form', () => {
         it('has a register form', async () => {
           expect(wrapper.find('form').exists()).toBeTruthy()

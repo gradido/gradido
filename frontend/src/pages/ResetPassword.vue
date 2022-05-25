@@ -13,12 +13,6 @@
         </div>
       </b-form>
     </validation-observer>
-
-    <b-row v-if="displaySetup.linkTo">
-      <b-col class="text-center py-lg-4">
-        <router-link :to="displaySetup.linkTo" class="mt-3">{{ $t('back') }}</router-link>
-      </b-col>
-    </b-row>
   </div>
   <div v-else>
     <message
@@ -48,11 +42,6 @@ const textFields = {
     text: 'settings.password.set-password.text',
     button: 'settings.password.set',
     linkTo: '/login',
-  },
-  // Wolle: seems unused
-  login: {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail',
   },
 }
 
@@ -148,6 +137,7 @@ export default {
     },
   },
   created() {
+    this.$emit('set-mobile-start', false)
     this.setDisplaySetup()
   },
 }
