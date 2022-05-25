@@ -33,10 +33,6 @@ const textFields = {
     button: 'settings.password.set',
     linkTo: '/login',
   },
-  login: {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail',
-  },
 }
 
 export default {
