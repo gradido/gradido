@@ -50,14 +50,6 @@ describe('ForgotPassword', () => {
       expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
-    it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
-    })
-
-    it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
-    })
-
     describe('back button', () => {
       it('has a "back" button', () => {
         expect(wrapper.findComponent(RouterLinkStub).text()).toEqual('back')
@@ -129,8 +121,6 @@ describe('ForgotPassword', () => {
             })
 
             it.skip('click redirects to "/login"', async () => {
-              // wrapper.find('.test-message-button').trigger('click')
-              // await wrapper.vm.$nextTick()
               expect(mockRouterPush).toBeCalledWith('/login')
             })
 
@@ -162,22 +152,8 @@ describe('ForgotPassword', () => {
             it('button link redirects to "/login"', () => {
               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
             })
-
-            it.skip('click redirects to "/login"', () => {
-              // expect(mockRouterPush).toBeCalledWith('/login')
-            })
           })
         })
-      })
-    })
-
-    describe('comingFrom login', () => {
-      beforeEach(() => {
-        wrapper = Wrapper(createMockObject('resetPassword'))
-      })
-
-      it('has another subtitle', () => {
-        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
       })
     })
   })
