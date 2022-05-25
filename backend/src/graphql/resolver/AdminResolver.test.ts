@@ -1393,11 +1393,11 @@ describe('AdminResolver', () => {
               linkList: expect.not.arrayContaining([
                 expect.objectContaining({
                   memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
-                  createdAt: new Date(2022, 0, 1),
+                  createdAt: expect.any(String),
                 }),
                 expect.objectContaining({
                   memo: 'Da habe ich mich wohl etwas übernommen.',
-                  deletedAt: true,
+                  deletedAt: expect.any(String),
                 }),
               ]),
             },
@@ -1410,7 +1410,7 @@ describe('AdminResolver', () => {
 
           user = await userFactory(testEnv, bibiBloxberg)
           variables.userId = user.id
-          // bibi need GDDs
+          // bibi needs GDDs
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await creationFactory(testEnv, bibisCreation!)
@@ -1434,13 +1434,13 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        // Wolle: make filters object nullable
+        // Todo: make filters argument nullable?
         describe.skip('without any filters', () => {
           it('finds 6 open transaction links and no deleted or redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
-                variables,
+                variables: { ...variables, filters: null },
               }),
             ).resolves.toEqual(expectNoDeletedOrRedeemed)
           })
@@ -1457,7 +1457,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('filter by deleted', () => {
+        describe('filter with deleted', () => {
           it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
             await expect(
               query({
@@ -1465,7 +1465,7 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variables,
                   filters: {
-                    withDeleted: true, // Wolle: rename to `withDeleted`?
+                    withDeleted: true,
                     withExpired: null,
                     withRedeemed: null,
                   },
@@ -1479,11 +1479,11 @@ describe('AdminResolver', () => {
                     linkList: expect.arrayContaining([
                       expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
-                        // Wolle: createdAt: new Date(2022, 0, 1),
+                        createdAt: expect.any(String),
                       }),
                       expect.objectContaining({
                         memo: 'Da habe ich mich wohl etwas übernommen.',
-                        // Wolle: deletedAt: expect.any(String),
+                        deletedAt: expect.any(String),
                       }),
                     ]),
                   },
@@ -1512,15 +1512,15 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7, // Wolle: finds 5 but counts 7
+                    linkCount: 7,
                     linkList: expect.arrayContaining([
                       expect.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
-                        // Wolle: createdAt: new Date(2022, 0, 1),
+                        createdAt: expect.any(String),
                       }),
                       expect.not.objectContaining({
                         memo: 'Da habe ich mich wohl etwas übernommen.',
-                        // Wolle: deletedAt: expect.any(String),
+                        deletedAt: expect.any(String),
                       }),
                     ]),
                   },
