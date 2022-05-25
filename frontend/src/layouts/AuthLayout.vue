@@ -3,7 +3,7 @@
     <mobile-start
       v-if="mobileStart"
       class="d-inline d-lg-none zindex10000"
-      @is-mobile-start="setMobileStart"
+      @set-mobile-start="setMobileStart"
     />
     <div class="h-100 align-middle">
       <navbar class="zindex10" />
@@ -73,7 +73,7 @@
                 </b-col>
               </b-row>
               <b-card-body class="">
-                <router-view @is-mobile-start="setMobileStart"></router-view>
+                <router-view @set-mobile-start="setMobileStart"></router-view>
               </b-card-body>
             </b-card>
           </div>

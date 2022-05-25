@@ -106,7 +106,7 @@ export default {
     },
   },
   created() {
-    this.$emit('is-mobile-start', false)
+    this.$emit('set-mobile-start', false)
     this.setDisplaySetup()
   },
 }
