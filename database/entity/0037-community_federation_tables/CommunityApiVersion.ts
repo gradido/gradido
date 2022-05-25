@@ -6,22 +6,22 @@ export class CommunityApiVersion extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column()
+  @Column({ name: 'community_federation_id', unsigned: true, nullable: false })
   communityFederationID: number
 
   @ManyToOne(() => CommunityFederation)
-  @JoinColumn({ name: 'communityFederationID', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'community_federation_id', referencedColumnName: 'id' })
   communityFederation: CommunityFederation
 
   @Column({ length: 255, nullable: false })
   url: string
 
-  @Column({ length: 255, nullable: false })
+  @Column({ name: 'api_version', length: 255, nullable: false })
   apiVersion: string
 
-  @Column({ nullable: true, default: null })
+  @Column({ name: 'valid_from', nullable: true, default: null })
   validFrom: Date
 
-  @Column({ nullable: true, default: null })
+  @Column({ name: 'verified_at', nullable: true, default: null })
   verifiedAt: Date
 }

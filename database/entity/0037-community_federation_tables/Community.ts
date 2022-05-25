@@ -14,6 +14,6 @@ export class Community extends BaseEntity {
   @Column({ length: 255 })
   description: string
 
-  @Column({ default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
 }
