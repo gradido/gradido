@@ -20,7 +20,10 @@ a,
 .navbar-light .navbar-nav .nav-link {
   color: #047006;
 }
-
+a:hover,
+.nav-link:hover {
+  color: #383838 !important;
+}
 .navbar-light .navbar-nav .nav-link.active {
   color: rgb(35 121 188 / 90%);
 }
