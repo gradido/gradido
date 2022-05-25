@@ -12,6 +12,6 @@
 
 <script>
 export default {
-  name: 'NavbarSmall',
+  name: 'AuthNavbarSmall',
 }
 </script>
