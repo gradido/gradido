@@ -13,7 +13,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`uuid\` varchar(37) NOT NULL,
       \`name\` varchar(255),
       \`description\` varchar(255),
-      \`createdAt\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (\`id\`),
       UNIQUE KEY \`uuid\` (\`uuid\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -23,11 +23,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
       \`uuid\` varchar(36) NOT NULL,
       \`foreign\` tinyint DEFAULT '0',
-      \`createdAt\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      \`privateKey\` varchar(255),
-      \`publicKey\` varchar(255),
-      \`pubKeyVerifiedAt\` datetime,
-      \`authenticatedAt\` datetime,
+      \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      \`private_key\` varchar(255),
+      \`public_key\` varchar(255),
+      \`pub_key_verified_at\` datetime,
+      \`authenticated_at\` datetime,
       PRIMARY KEY (\`id\`),
       UNIQUE KEY \`uuid\` (\`uuid\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -35,11 +35,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE IF NOT EXISTS \`community_api_version\` (
       \`id\` int unsigned NOT NULL AUTO_INCREMENT,
-      \`communityFederationID\` int unsigned NOT NULL,
+      \`community_federation_id\` int unsigned NOT NULL,
       \`url\` varchar(255) NOT NULL,
-      \`apiVersion\` varchar(255) NOT NULL,
-      \`validFrom\` datetime NOT NULL,
-      \`verifiedAt\` datetime,
+      \`api_version\` varchar(255) NOT NULL,
+      \`valid_from\` datetime NOT NULL,
+      \`verified_at\` datetime,
       PRIMARY KEY (\`id\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
