@@ -12,12 +12,6 @@
         </div>
       </b-form>
     </validation-observer>
-
-    <b-row v-if="displaySetup.linkTo">
-      <b-col class="text-center py-lg-4">
-        <router-link :to="displaySetup.linkTo" class="mt-3">{{ $t('back') }}</router-link>
-      </b-col>
-    </b-row>
   </div>
 </template>
 
@@ -116,6 +110,7 @@ export default {
     },
   },
   created() {
+    this.$emit('is-mobile-start', false)
     this.setDisplaySetup()
   },
 }

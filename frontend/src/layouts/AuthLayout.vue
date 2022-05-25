@@ -34,7 +34,7 @@
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </b-col>
               <b-col cols="3" class="text-right d-none d-sm-none d-md-inline">
-                <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
+                <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
               </b-col>
             </b-row>
             <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
@@ -44,7 +44,7 @@
                 </b-col>
                 <b-col cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
-                    <b-img src="img/svg/type.svg" width="19" class="svgType"></b-img>
+                    <b-img src="/img/svg/type.svg" width="19" class="svgType"></b-img>
                   </div>
                   <b-popover
                     target="popover-target-1"
@@ -64,7 +64,7 @@
               </b-row>
               <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <b-col class="text-center">
-                  <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
+                  <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row>
                     <b-col class="zindex1000 d-flex justify-content-center">
                       <navbar-small />
@@ -73,7 +73,7 @@
                 </b-col>
               </b-row>
               <b-card-body class="">
-                <router-view></router-view>
+                <router-view @is-mobile-start="setMobileStart"></router-view>
               </b-card-body>
             </b-card>
           </div>
