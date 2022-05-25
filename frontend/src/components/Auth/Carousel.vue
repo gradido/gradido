@@ -1,10 +1,9 @@
 <template>
   <div>
-    <b-carousel :interval="3000">
+    <b-carousel :interval="13000">
       <b-carousel-slide img-src="/img/template/Foto_01_2400_small.jpg"></b-carousel-slide>
       <b-carousel-slide img-src="/img/template/Foto_02_2400_small.jpg"></b-carousel-slide>
       <b-carousel-slide img-src="/img/template/Foto_03_2400_small.jpg"></b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_04_2400_small.jpg"></b-carousel-slide>
     </b-carousel>
   </div>
 </template>
