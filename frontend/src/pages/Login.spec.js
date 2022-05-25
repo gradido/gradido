@@ -62,41 +62,11 @@ describe('Login', () => {
       expect(wrapper.find('div.login-form').exists()).toBe(true)
     })
 
-    describe('Login header', () => {
-      it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('site.login.heading site.login.community')
-      })
-    })
-
-    it('has a Community name', () => {
-      expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-    })
-
-    it('has a Community description', () => {
-      expect(wrapper.find('.test-communitydata p').text()).toBe(
-        'Die lokale Entwicklungsumgebung von Gradido.',
-      )
-    })
-
     describe('links', () => {
       it('has a link "Forgot Password"', () => {
         expect(wrapper.findAllComponents(RouterLinkStub).at(0).text()).toEqual(
           'settings.password.forgot_pwd',
         )
-      })
-
-      it('links to /forgot-password when clicking "Forgot Password"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/forgot-password')
-      })
-
-      it('has a link "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).text()).toEqual(
-          'site.login.new_wallet',
-        )
-      })
-
-      it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
       })
     })
 

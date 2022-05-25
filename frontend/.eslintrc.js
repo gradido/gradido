@@ -50,6 +50,7 @@ module.exports = {
           '/time./',
           '/decay.types./',
           'settings.password.resend_subtitle',
+          'settings.password.reset',
           'settings.password.reset-password.text',
           'settings.password.set',
           'settings.password.set-password.text',

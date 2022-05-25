@@ -1,5 +1,22 @@
 {
+  "100": "100%",
+  "1000thanks": "1000 thanks for being with us!",
+  "125": "125%",
+  "85": "85%",
   "advanced-calculation": "Advanced calculation",
+  "auth": {
+    "left": {
+      "gratitude": "Gratitude",
+      "hasAccount": "You already have an account?",
+      "hereLogin": "Log in here",
+      "learnMore": "Learn more …",
+      "newCurrency": "The new currency",
+      "oneAnotherNature": "FOR ONE ANOTHER, FOR ALL, FOR NATURE"
+    },
+    "navbar": {
+      "aboutGradido": "About Gradido"
+    }
+  },
   "back": "Back",
   "community": {
     "choose-another-community": "Choose another community",
@@ -40,6 +57,7 @@
     "unknown-error": "Unknown error: ",
     "user-already-exists": "A user with this data already exists."
   },
+  "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
     "copyright": {
@@ -164,10 +182,6 @@
     "support": "Support",
     "transactions": "Transactions"
   },
-  "publisher": {
-    "infoText": "If your referrer has given you his publisher id, enter it here, otherwise leave the field unchanged!",
-    "publisherId": "PublisherID:"
-  },
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
@@ -208,24 +222,28 @@
       "subtitle": "If you have forgotten your password, you can reset it here."
     }
   },
+  "signin": "Sign in",
   "signup": "Sign up",
   "site": {
+    "forgotPassword": {
+      "heading": "Please enter the email address by which you're registered here."
+    },
     "login": {
-      "community": "A thousand thanks for being with us!",
-      "heading": "Gradido",
-      "new_wallet": "Create new account",
-      "signin": "Sign in"
+      "heading": "Log in with your access data. Keep them safe!",
+      "saveLogin": "Save login"
+    },
+    "resetPassword": {
+      "heading": "Please enter your password and repeat it."
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",
+      "heading": "Register by entering all data completely and in the correct fields.",
       "lowercase": "One lowercase letter required.",
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
       "special-char": "One special character required (e.g. _ or ä)",
-      "subtitle": "Become a part of the community!",
-      "title": "Create your Gradido account",
       "uppercase": "One uppercase letter required."
     },
     "thx": {
@@ -261,5 +279,7 @@
   "transaction-link": {
     "send_you": "wants to send you"
   },
-  "via_link": "via Link"
+  "via_link": "via Link",
+  "welcome": "Welcome",
+  "WelcomeBy": "by {name}"
 }
