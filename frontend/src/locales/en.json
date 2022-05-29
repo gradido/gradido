@@ -186,11 +186,6 @@
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "settings": {
-    "coinanimation": {
-      "coinanimation": "Coin animation",
-      "False": "Coin animation disabled",
-      "True": "Coin animation enabled"
-    },
     "language": {
       "changeLanguage": "Change language",
       "de": "Deutsch",

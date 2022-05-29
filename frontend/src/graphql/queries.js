@@ -7,7 +7,6 @@ export const login = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }
@@ -25,7 +24,6 @@ export const verifyLogin = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }

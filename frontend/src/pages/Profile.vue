@@ -8,8 +8,6 @@
     <user-language />
     <hr />
     <user-newsletter />
-    <hr />
-    <user-coin-animation />
   </div>
 </template>
 <script>
@@ -18,7 +16,6 @@ import UserData from '@/components/UserSettings/UserData.vue'
 import UserPassword from '@/components/UserSettings/UserPassword.vue'
 import UserLanguage from '@/components/UserSettings/UserLanguage.vue'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
-import UserCoinAnimation from '@/components/UserSettings/UserCoinAnimation.vue'
 
 export default {
   name: 'Profile',
@@ -28,7 +25,6 @@ export default {
     UserPassword,
     UserLanguage,
     UserNewsletter,
-    UserCoinAnimation,
   },
   props: {
     balance: { type: Number, default: 0 },
