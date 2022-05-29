@@ -1,16 +1,16 @@
 <template>
   <div class="auth-template">
-    <mobile-start
+    <auth-mobile-start
       v-if="mobileStart"
       class="d-inline d-lg-none zindex10000"
       @is-mobile-start="setMobileStart"
     />
     <div class="h-100 align-middle">
-      <navbar class="zindex10" />
+      <auth-navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
         <div class="bg-img-box position-absolute w-100">
-          <carousel class="carousel" />
+          <auth-carousel class="carousel" />
         </div>
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
@@ -24,7 +24,7 @@
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
               <b-col class="mb--4 d-flex justify-content-end">
-                <navbar-small />
+                <auth-navbar-small />
               </b-col>
             </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
@@ -67,7 +67,7 @@
                   <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row>
                     <b-col class="zindex1000 d-flex justify-content-center">
-                      <navbar-small />
+                      <auth-navbar-small />
                     </b-col>
                   </b-row>
                 </b-col>
@@ -86,21 +86,21 @@
 </template>
 
 <script>
-import MobileStart from '@/components/Auth/MobileStart.vue'
-import Navbar from '@/components/Auth/Navbar.vue'
-import NavbarSmall from '@/components/Auth/NavbarSmall.vue'
-import Carousel from '@/components/Auth/Carousel.vue'
+import AuthMobileStart from '@/components/Auth/AuthMobileStart.vue'
+import AuthNavbar from '@/components/Auth/AuthNavbar.vue'
+import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall.vue'
+import AuthCarousel from '@/components/Auth/AuthCarousel.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
-import AuthFooter from '@/components/Auth/Footer.vue'
+import AuthFooter from '@/components/Auth/AuthFooter.vue'
 import CONFIG from '@/config'
 
 export default {
   name: 'AuthLayout',
   components: {
-    MobileStart,
-    Navbar,
-    NavbarSmall,
-    Carousel,
+    AuthMobileStart,
+    AuthNavbar,
+    AuthNavbarSmall,
+    AuthCarousel,
     LanguageSwitch,
     AuthFooter,
   },
