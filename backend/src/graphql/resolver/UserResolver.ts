@@ -14,7 +14,6 @@ import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { UserSettingRepository } from '@repository/UserSettingRepository'
-import { Setting } from '@enum/Setting'
 import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
@@ -228,15 +227,6 @@ export class UserResolver {
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    // coinAnimation
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const coinanimation = await userSettingRepository
-      .readBoolean(userEntity.id, Setting.COIN_ANIMATION)
-      .catch((error) => {
-        logger.error('error:', error)
-        throw new Error(error)
-      })
-    user.coinanimation = coinanimation
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}, ${user.email}`)
     return user
   }
@@ -293,15 +283,6 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       DbUser.save(dbUser)
     }
-
-    // coinAnimation
-    const userSettingRepository = getCustomRepository(UserSettingRepository)
-    const coinanimation = await userSettingRepository
-      .readBoolean(dbUser.id, Setting.COIN_ANIMATION)
-      .catch((error) => {
-        throw new Error(error)
-      })
-    user.coinanimation = coinanimation
 
     context.setHeaders.push({
       key: 'token',
@@ -598,12 +579,10 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async updateUserInfos(
     @Args()
-    { firstName, lastName, language, password, passwordNew, coinanimation }: UpdateUserInfosArgs,
+    { firstName, lastName, language, password, passwordNew }: UpdateUserInfosArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***, ${coinanimation})...`,
-    )
+    logger.info(`updateUserInfos(${firstName}, ${lastName}, ${language}, ***, ***)...`)
     const userEntity = getUser(context)
 
     if (firstName) {
@@ -655,15 +634,6 @@ export class UserResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
     try {
-      if (coinanimation !== null && coinanimation !== undefined) {
-        queryRunner.manager
-          .getCustomRepository(UserSettingRepository)
-          .setOrUpdate(userEntity.id, Setting.COIN_ANIMATION, coinanimation.toString())
-          .catch((error) => {
-            throw new Error('error saving coinanimation: ' + error)
-          })
-      }
-
       await queryRunner.manager.save(userEntity).catch((error) => {
         throw new Error('error saving user: ' + error)
       })
