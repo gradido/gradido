@@ -7,7 +7,7 @@ import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from '@entity/User'
 import { Transaction } from '@entity/Transaction'
-import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { Contribution } from '@entity/Contribution'
 // import CONFIG from '@/config/index'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {
@@ -17,7 +17,7 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
-): Promise<AdminPendingCreation | void> => {
+): Promise<Contribution | void> => {
   const { mutate, query } = client
 
   await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
@@ -27,9 +27,9 @@ export const creationFactory = async (
 
   const user = await User.findOneOrFail({ where: { email: creation.email } })
 
-  const pendingCreation = await AdminPendingCreation.findOneOrFail({
+  const pendingCreation = await Contribution.findOneOrFail({
     where: { userId: user.id, amount: creation.amount },
-    order: { created: 'DESC' },
+    order: { createdAt: 'DESC' },
   })
 
   if (creation.confirmed) {

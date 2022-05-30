@@ -40,6 +40,7 @@ import { communityUser } from '@/util/communityUser'
 import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import CONFIG from '@/config'
+import { backendLogger as logger } from '@/server/logger'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -169,6 +170,7 @@ export class AdminResolver {
     @Args() { email, amount, memo, creationDate }: CreatePendingCreationArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
+    logger.trace('createPendingCreation...')
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -180,7 +182,9 @@ export class AdminResolver {
       throw new Error('Creation could not be saved, Email is not activated')
     }
     const moderator = getUser(context)
+    logger.trace('moderator: ', moderator.id)
     const creations = await getUserCreation(user.id)
+    logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
     if (isCreationValid(creations, amount, creationDateObj)) {
       const contribution = Contribution.create()
@@ -191,6 +195,7 @@ export class AdminResolver {
       contribution.memo = memo
       contribution.moderatorId = moderator.id
 
+      logger.trace('contribution to save', contribution)
       await Contribution.save(contribution)
     }
     return getUserCreation(user.id)
@@ -470,23 +475,27 @@ interface CreationMap {
 }
 
 async function getUserCreation(id: number, includePending = true): Promise<Decimal[]> {
+  logger.trace('getUserCreation', id, includePending)
   const creations = await getUserCreations([id], includePending)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 
 async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
+  logger.trace('getUserCreations:', ids, includePending)
   const months = getCreationMonths()
+  logger.trace('getUserCreations months', months)
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
 
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
+  logger.trace('getUserCreations dateFilter', dateFilter)
 
   const unionString = includePending
     ? `
     UNION
       SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE userId IN (${ids.toString()})
+        WHERE user_id IN (${ids.toString()})
         AND contribution_date >= ${dateFilter}`
     : ''
 
@@ -528,6 +537,7 @@ function updateCreations(creations: Decimal[], contribution: Contribution): Deci
 }
 
 function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
+  logger.trace('isCreationValid', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {

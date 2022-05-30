@@ -25,7 +25,7 @@ import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
-import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 
 // mock account activation email to avoid console spam
@@ -54,7 +54,7 @@ afterAll(async () => {
 
 let admin: User
 let user: User
-let creation: AdminPendingCreation | void
+let creation: Contribution | void
 
 describe('AdminResolver', () => {
   describe('delete user', () => {
@@ -1275,8 +1275,8 @@ describe('AdminResolver', () => {
           })
 
           describe('confirm two creations one after the other quickly', () => {
-            let c1: AdminPendingCreation | void
-            let c2: AdminPendingCreation | void
+            let c1: Contribution | void
+            let c2: Contribution | void
 
             beforeAll(async () => {
               const now = new Date()
