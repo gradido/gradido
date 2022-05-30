@@ -5,19 +5,13 @@
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-password-confirmation v-model="form" />
         <div class="text-center">
-          <b-button type="submit" variant="primary" class="mt-4">
+          <b-button type="submit" variant="gradido" class="mt-4">
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
         </div>
       </b-form>
     </validation-observer>
-
-    <b-row v-if="displaySetup.linkTo">
-      <b-col class="text-center py-lg-4">
-        <router-link :to="displaySetup.linkTo" class="mt-3">{{ $t('back') }}</router-link>
-      </b-col>
-    </b-row>
   </div>
 </template>
 
@@ -38,10 +32,6 @@ const textFields = {
     text: 'settings.password.set-password.text',
     button: 'settings.password.set',
     linkTo: '/login',
-  },
-  login: {
-    headline: 'site.thx.errorTitle',
-    subtitle: 'site.thx.activateEmail',
   },
 }
 
@@ -116,6 +106,7 @@ export default {
     },
   },
   created() {
+    this.$emit('set-mobile-start', false)
     this.setDisplaySetup()
   },
 }
