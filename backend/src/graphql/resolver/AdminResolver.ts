@@ -496,7 +496,8 @@ async function getUserCreations(ids: number[], includePending = true): Promise<C
     UNION
       SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
         WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}`
+        AND contribution_date >= ${dateFilter}
+        AND confirmed_at IS NULL AND deleted_at IS NULL`
     : ''
 
   const unionQuery = await queryRunner.manager.query(`
