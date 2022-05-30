@@ -6,7 +6,7 @@
       <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
         <input-password-confirmation v-model="form" />
         <div class="text-center">
-          <b-button type="submit" variant="primary" class="mt-4">
+          <b-button type="submit" variant="gradido" class="mt-4">
             <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
             {{ $t(displaySetup.button) }}
           </b-button>
