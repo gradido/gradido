@@ -207,7 +207,6 @@ describe('Login', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
           })
 
-          // Wolle
           it.skip('click redirects to "/forgot-password"', async () => {
             // wrapper.find('.test-message-button').trigger('click')
             // await flushPromises()
@@ -238,7 +237,6 @@ describe('Login', () => {
             )
           })
 
-          // Wolle
           it.skip('click redirects to "/reset-password/login"', () => {
             // expect(mockRouterPush).toBeCalledWith('/reset-password/login')
           })

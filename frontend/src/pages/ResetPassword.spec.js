@@ -139,7 +139,6 @@ describe('ResetPassword', () => {
             )
           })
 
-          // Wolle
           it.skip('click redirects to "/forgot-password/resetPassword"', () => {
             // wrapper.find('.test-message-button').trigger('click')
             // await flushPromises()
@@ -173,7 +172,6 @@ describe('ResetPassword', () => {
             expect(toastErrorSpy).toHaveBeenCalledWith('Error')
           })
 
-          // Wolle
           it.skip('click redirects to "/forgot-password/resetPassword"', () => {
             // expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
@@ -216,7 +214,6 @@ describe('ResetPassword', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
           })
 
-          // Wolle
           it.skip('click redirects to "/login"', () => {
             // expect(routerPushMock).toHaveBeenCalledWith('/login')
           })
@@ -248,7 +245,6 @@ describe('ResetPassword', () => {
             expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
           })
 
-          // Wolle
           it.skip('click redirects to "/login"', () => {
             // expect(routerPushMock).toHaveBeenCalledWith('/login')
           })
