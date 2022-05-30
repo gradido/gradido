@@ -77,7 +77,7 @@
               </b-card-body>
             </b-card>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5 mb-5"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->
