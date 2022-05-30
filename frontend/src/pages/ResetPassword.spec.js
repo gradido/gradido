@@ -174,7 +174,7 @@ describe('ResetPassword', () => {
           })
 
           // Wolle
-          it.only('click redirects to "/forgot-password/resetPassword"', () => {
+          it.skip('click redirects to "/forgot-password/resetPassword"', () => {
             // expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
         })
