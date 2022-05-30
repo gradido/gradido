@@ -41,7 +41,7 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null
           logger.info(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
         if (requestContext.response.errors)
-          logger.info(`Response-Errors:
+          logger.error(`Response-Errors:
 ${JSON.stringify(requestContext.response.errors, null, 2)}`)
         return requestContext
       },
