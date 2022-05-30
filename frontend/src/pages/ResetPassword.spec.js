@@ -120,7 +120,7 @@ describe('ResetPassword', () => {
 
           it('shows error title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe(
               '...email was sent more than 23 hours and 10 minutes ago',
             )
@@ -158,7 +158,7 @@ describe('ResetPassword', () => {
 
           it('shows error title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
             expect(wrapper.find('.test-message-subtitle').text()).toBe('Error')
             expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
           })
@@ -207,8 +207,8 @@ describe('ResetPassword', () => {
 
           it('shows message title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.checkEmail')
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('message.checkEmail')
             expect(wrapper.find('.test-message-button').text()).toBe('login')
           })
 
@@ -239,8 +239,8 @@ describe('ResetPassword', () => {
 
           it('shows message title, subtitle, login button', () => {
             expect(wrapper.vm.showPageMessage).toBe(true)
-            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.reset')
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('message.reset')
             expect(wrapper.find('.test-message-button').text()).toBe('login')
           })
 

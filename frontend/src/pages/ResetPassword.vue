@@ -84,10 +84,10 @@ export default {
           this.form.passwordRepeat = ''
 
           this.showPageMessage = true
-          this.messageHeadline = this.$t('site.thx.title')
+          this.messageHeadline = this.$t('message.title')
           this.messageSubtitle = this.$route.path.includes('checkEmail')
-            ? this.$t('site.thx.checkEmail')
-            : this.$t('site.thx.reset')
+            ? this.$t('message.checkEmail')
+            : this.$t('message.reset')
           this.messageButtonText = this.$t('login')
           this.messageButtonLinktTo = '/login'
         })
@@ -103,7 +103,7 @@ export default {
             errorMessage = error.message
           }
           this.showPageMessage = true
-          this.messageHeadline = this.$t('site.thx.errorTitle')
+          this.messageHeadline = this.$t('message.errorTitle')
           this.messageSubtitle = errorMessage
           this.messageButtonText = this.$t('settings.password.reset')
           this.messageButtonLinktTo = '/forgot-password/resetPassword'
