@@ -61,11 +61,7 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col sm="12" md="6"><input-email v-model="form.email"></input-email></b-col>
-            <b-col sm="12" md="6">
-              <label>{{ $t('language') }}</label>
-              <language-switch-select @update-language="updateLanguage" />
-            </b-col>
+            <b-col><input-email v-model="form.email"></input-email></b-col>
           </b-row>
 
           <b-row class="mt-4 mb-4">
@@ -103,13 +99,11 @@
 import { createUser } from '@/graphql/mutations'
 import CONFIG from '@/config'
 import InputEmail from '@/components/Inputs/InputEmail.vue'
-import LanguageSwitchSelect from '@/components/LanguageSwitchSelect.vue'
 import Message from '@/components/Message/Message'
 
 export default {
   components: {
     InputEmail,
-    LanguageSwitchSelect,
     Message,
   },
   name: 'Register',
@@ -121,7 +115,6 @@ export default {
         email: '',
         agree: false,
       },
-      language: '',
       showPageMessage: false,
       submitted: false,
       publisherId: this.$store.state.publisherId,
@@ -130,10 +123,6 @@ export default {
     }
   },
   methods: {
-    updateLanguage(e) {
-      this.language = e
-      this.$store.commit('language', this.language)
-    },
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
@@ -148,7 +137,7 @@ export default {
             email: this.form.email,
             firstName: this.form.firstname,
             lastName: this.form.lastname,
-            language: this.language,
+            language: this.$store.state.language,
             publisherId: this.$store.state.publisherId,
             redeemCode: this.redeemCode,
           },
@@ -183,7 +172,7 @@ export default {
       return this.form.email !== ''
     },
     disabled() {
-      return !(this.namesFilled && this.emailFilled && this.form.agree && !!this.language)
+      return !(this.namesFilled && this.emailFilled && this.form.agree)
     },
     enterData() {
       return !this.showPageMessage
