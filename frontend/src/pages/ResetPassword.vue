@@ -1,5 +1,4 @@
 <template>
-  <!-- change to "enterData", see Login.vue -->
   <div v-if="enterData" class="resetpwd-form">
     <div class="pb-5">{{ $t('site.resetPassword.heading') }}</div>
     <validation-observer ref="observer" v-slot="{ handleSubmit }">
