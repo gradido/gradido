@@ -173,7 +173,7 @@
     "pipe": "|"
   },
   "message": {
-    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite.",
+    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
     "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
     "email": "Wir haben dir eine E-Mail gesendet.",
     "errorTitle": "Achtung!",
