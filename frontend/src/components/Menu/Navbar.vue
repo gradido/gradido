@@ -1,5 +1,5 @@
 <template>
-  <div class="component-navbar gradido-background-white">
+  <div class="component-navbar">
     <b-navbar toggleable="lg" type="light" variant="faded">
       <div class="navbar-brand">
         <b-navbar-nav @click="$emit('set-visible', false)">

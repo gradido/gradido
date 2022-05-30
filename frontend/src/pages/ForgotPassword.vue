@@ -1,21 +1,9 @@
 <template>
   <div class="forgot-password">
-    <div class="header p-4">
-      <b-container class="container">
-        <div class="header-body text-center mb-7">
-          <b-row class="justify-content-center">
-            <b-col xl="5" lg="6" md="8" class="px-2">
-              <h1>{{ $t('settings.password.reset') }}</h1>
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys-->
-              <p class="text-lead">{{ $t(subtitle) }}</p>
-            </b-col>
-          </b-row>
-        </div>
-      </b-container>
-    </div>
-    <b-container v-if="enterData" class="mt--8 p-1">
+    <b-container v-if="enterData">
+      <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
       <b-row class="justify-content-center">
-        <b-col lg="6" md="8">
+        <b-col>
           <b-card no-body class="border-0 gradido-custom-background">
             <b-card-body class="p-4">
               <validation-observer ref="observer" v-slot="{ handleSubmit }">
@@ -36,24 +24,17 @@
         <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
       </div>
     </b-container>
-    <b-container v-else class="mt--8 p-1">
+    <b-container v-else>
       <message
-        v-if="success"
-        :headline="$t('site.thx.title')"
-        :subtitle="$t('site.thx.email')"
-        :buttonText="$t('login')"
-        linkTo="/login"
-      />
-      <message
-        v-else
-        :headline="$t('site.thx.errorTitle')"
-        :subtitle="$t('error.email-already-sent')"
+        :headline="success ? $t('site.thx.title') : $t('site.thx.errorTitle')"
+        :subtitle="success ? $t('site.thx.email') : $t('error.email-already-sent')"
         :buttonText="$t('login')"
         linkTo="/login"
       />
     </b-container>
   </div>
 </template>
+
 <script>
 import { forgotPassword } from '@/graphql/mutations'
 import InputEmail from '@/components/Inputs/InputEmail'
