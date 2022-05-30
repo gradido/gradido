@@ -45,7 +45,6 @@ module.exports = {
         extensions: ['.js', '.vue'],
         // TODO: remove ignores
         ignores: [
-          '/site.thx./',
           '/form./',
           '/time./',
           '/decay.types./',
