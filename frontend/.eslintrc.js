@@ -54,7 +54,6 @@ module.exports = {
           'settings.password.set',
           'settings.password.set-password.text',
           'settings.password.subtitle',
-          'site.login.signin',
         ],
         enableFix: false,
       },
