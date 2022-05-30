@@ -9,9 +9,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
   await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `userId` `user_id` int(10);')
 
-  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `created` `contribution_date` datetime;')
+  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `created` `created_at` datetime;')
 
-  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `date` `created_at` datetime;')
+  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `date` `contribution_date` datetime;')
 
   await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `moderator` `moderator_id` int(10);')
 
@@ -43,9 +43,9 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
 
   await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `moderator_id` `moderator` int(10);')
 
-  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `created_at` `date` datetime;')
+  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `created_at` `created` datetime;')
 
-  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `contribution_date` `created` datetime;')
+  await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `contribution_date` `date` datetime;')
 
   await queryFn('ALTER TABLE `contributions` CHANGE COLUMN `user_id` `userId` int(10);')
 

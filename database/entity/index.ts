@@ -5,10 +5,10 @@ import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
-import { AdminPendingCreation } from './AdminPendingCreation'
+import { Contribution } from './Contribution'
 
 export const entities = [
-  AdminPendingCreation,
+  Contribution,
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,
