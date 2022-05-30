@@ -118,6 +118,21 @@ describe('ResetPassword', () => {
             await flushPromises()
           })
 
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe(
+              '...email was sent more than 23 hours and 10 minutes ago',
+            )
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+          })
+
+          it('button link directs to "/forgot-password/resetPassword"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+              '/forgot-password/resetPassword',
+            )
+          })
+
           it('toasts an error message', () => {
             expect(toastErrorSpy).toHaveBeenCalledWith(
               '...email was sent more than 23 hours and 10 minutes ago',
@@ -126,6 +141,9 @@ describe('ResetPassword', () => {
 
           // Wolle
           it.skip('click redirects to "/forgot-password/resetPassword"', () => {
+            // wrapper.find('.test-message-button').trigger('click')
+            // await flushPromises()
+            // await wrapper.vm.$nextTick()
             // expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
         })
@@ -138,8 +156,26 @@ describe('ResetPassword', () => {
             await flushPromises()
           })
 
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('Error')
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+          })
+
+          it('button link directs to "/forgot-password/resetPassword"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+              '/forgot-password/resetPassword',
+            )
+          })
+
           it('toasts an error message', () => {
             expect(toastErrorSpy).toHaveBeenCalledWith('Error')
+          })
+
+          // Wolle
+          it.only('click redirects to "/forgot-password/resetPassword"', () => {
+            // expect(routerPushMock).toHaveBeenCalledWith('/forgot-password/resetPassword')
           })
         })
 
@@ -169,30 +205,20 @@ describe('ResetPassword', () => {
             )
           })
 
-          it('redirects to "/thx/checkEmail"', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/thx/checkEmail')
+          it('shows message title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.checkEmail')
+            expect(wrapper.find('.test-message-button').text()).toBe('login')
           })
 
-          describe('with param code', () => {
-            beforeEach(async () => {
-              mocks.$route.params.code = 'the-most-secret-code-ever'
-              apolloMutationMock.mockResolvedValue({
-                data: {
-                  resetPassword: 'success',
-                },
-              })
-              wrapper = Wrapper()
-              await wrapper.findAll('input').at(0).setValue('Aa123456_')
-              await wrapper.findAll('input').at(1).setValue('Aa123456_')
-              await wrapper.find('form').trigger('submit')
-              await flushPromises()
-            })
+          it('button link directs to "/login"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+          })
 
-            it('redirects to "/thx/checkEmail/the-most-secret-code-ever"', () => {
-              expect(routerPushMock).toHaveBeenCalledWith(
-                '/thx/checkEmail/the-most-secret-code-ever',
-              )
-            })
+          // Wolle
+          it.skip('click redirects to "/login"', () => {
+            // expect(routerPushMock).toHaveBeenCalledWith('/login')
           })
         })
 
@@ -211,8 +237,20 @@ describe('ResetPassword', () => {
             await flushPromises()
           })
 
-          it('redirects to "/thx/resetPassword"', () => {
-            expect(routerPushMock).toHaveBeenCalledWith('/thx/resetPassword')
+          it('shows message title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.reset')
+            expect(wrapper.find('.test-message-button').text()).toBe('login')
+          })
+
+          it('button link directs to "/login"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
+          })
+
+          // Wolle
+          it.skip('click redirects to "/login"', () => {
+            // expect(routerPushMock).toHaveBeenCalledWith('/login')
           })
         })
       })
