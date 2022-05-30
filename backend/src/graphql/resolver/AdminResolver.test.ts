@@ -981,7 +981,7 @@ describe('AdminResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('No creation found to given id.')],
+                  errors: [new GraphQLError('No contribution found to given id.')],
                 }),
               )
             })
@@ -1004,7 +1004,7 @@ describe('AdminResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'user of the pending creation and send user does not correspond',
+                      'user of the pending contribution and send user does not correspond',
                     ),
                   ],
                 }),
