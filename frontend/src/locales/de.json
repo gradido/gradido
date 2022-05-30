@@ -186,11 +186,6 @@
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "settings": {
-    "coinanimation": {
-      "coinanimation": "Münzanimation",
-      "False": "Münzanimation ausgeschaltet",
-      "True": "Münzanimation eingeschaltet"
-    },
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
