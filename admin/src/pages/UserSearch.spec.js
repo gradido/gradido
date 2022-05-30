@@ -7,7 +7,7 @@ const localVue = global.localVue
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     searchUsers: {
-      userCount: 1,
+      userCount: 4,
       userList: [
         {
           userId: 1,
@@ -82,8 +82,10 @@ describe('UserSearch', () => {
             searchText: '',
             currentPage: 1,
             pageSize: 25,
-            filterByActivated: null,
-            filterByDeleted: null,
+            filters: {
+              filterByActivated: null,
+              filterByDeleted: null,
+            },
           },
         }),
       )
@@ -101,8 +103,10 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: false,
-              filterByDeleted: null,
+              filters: {
+                filterByActivated: false,
+                filterByDeleted: null,
+              },
             },
           }),
         )
@@ -121,8 +125,10 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: null,
-              filterByDeleted: true,
+              filters: {
+                filterByActivated: null,
+                filterByDeleted: true,
+              },
             },
           }),
         )
@@ -141,8 +147,10 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 2,
               pageSize: 25,
-              filterByActivated: null,
-              filterByDeleted: null,
+              filters: {
+                filterByActivated: null,
+                filterByDeleted: null,
+              },
             },
           }),
         )
@@ -161,8 +169,10 @@ describe('UserSearch', () => {
               searchText: 'search string',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: null,
-              filterByDeleted: null,
+              filters: {
+                filterByActivated: null,
+                filterByDeleted: null,
+              },
             },
           }),
         )
@@ -178,8 +188,10 @@ describe('UserSearch', () => {
                 searchText: '',
                 currentPage: 1,
                 pageSize: 25,
-                filterByActivated: null,
-                filterByDeleted: null,
+                filters: {
+                  filterByActivated: null,
+                  filterByDeleted: null,
+                },
               },
             }),
           )
