@@ -81,7 +81,6 @@ export default {
     },
     editAutomaticCreations(row) {
       this.$emit('editAutomaticContributionData', row.item)
-     
     },
 
     showAutomaticCreations(row) {

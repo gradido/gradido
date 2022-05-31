@@ -31,7 +31,7 @@
   </div>
 </template>
 <script>
-import AutomaticCreationForm, { updateForm } from './AutomaticCreationForm.vue'
+import AutomaticCreationForm from './AutomaticCreationForm.vue'
 import AutomaticCreationList from './AutomaticCreationList.vue'
 
 export default {
@@ -52,7 +52,6 @@ export default {
       automaticContributionData: {},
     }
   },
- 
   methods: {
     editAutomaticContributionData(data) {
       console.log('start methodes editAutomaticContributionData')
