@@ -42,11 +42,7 @@ export default {
   },
   data() {
     return {
-      items: [
-        { Name: 'John1', Text: 'Doe1 ', GDD: '200', startDate: '', endDate: '' },
-        { Name: 'John2', Text: 'Doe2', GDD: '300', startDate: '', endDate: '' },
-        { Name: 'John3', Text: 'Doe3', GDD: '400', startDate: '', endDate: '' },
-      ],
+      items: [],
     }
   },
   methods: {
@@ -60,9 +56,26 @@ export default {
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
     },
+    async getAutomaticCreations() {
+      // TODO
+      // this.$apollo
+      //   .query({
+      //     query: getAutomaticCreations,
+      //     fetchPolicy: 'network-only',
+      //   })
+      //   .then((result) => {
+      //
+      //   })
+      this.items = [
+        { Name: 'John1', Text: 'Doe1 ', GDD: '200', startDate: '', endDate: '' },
+        { Name: 'John2', Text: 'Doe2', GDD: '300', startDate: '', endDate: '' },
+        { Name: 'John3', Text: 'Doe3', GDD: '400', startDate: '', endDate: '' },
+      ]
+    },
   },
   created() {
     this.getPendingCreations()
+    // this.getAutomaticCreations()
   },
 }
 </script>
