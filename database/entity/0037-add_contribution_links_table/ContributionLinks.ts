@@ -100,7 +100,7 @@ export class ContributionLinks extends BaseEntity {
   @Column({ name: 'deleted_at', type: 'datetime', nullable: true, default: null })
   deletedAt: Date | null
 
-  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
   code: string
 
   @Column({ name: 'link_enabled', type: 'boolean', nullable: true, default: null })
