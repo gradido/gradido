@@ -9,36 +9,36 @@
       {{ $t('auth.left.newCurrency') }}
     </div>
     <img
-      src="img/template/Blaetter.png"
+      src="/img/template/Blaetter.png"
       class="sheet-img position-absolute d-block d-lg-none zindex1000"
     />
     <b-img
       id="img0"
       class="position-absolute zindex1000"
-      src="img/template/logo-header.png"
+      src="/img/template/logo-header.png"
       alt="start background image"
     ></b-img>
     <b-img
       fluid
       id="img1"
       class="position-absolute h-100 w-100 overflow-hidden zindex100"
-      src="img/template/gold_03.png"
+      src="/img/template/gold_03.png"
       alt="start background image"
     ></b-img>
     <b-img
       id="img2"
       class="position-absolute zindex100"
-      src="img/template/gradido_background_header.png"
+      src="/img/template/gradido_background_header.png"
       alt="start background image"
     ></b-img>
     <b-img
       id="img3"
       class="position-relative zindex10"
-      src="img/template/Foto_01.jpg"
+      src="/img/template/Foto_01.jpg"
       alt="start background image"
     ></b-img>
     <div class="mobil-start-box-text position-fixed w-100 text-center zindex1000">
-      <b-button variant="gradido" to="/register" @click="$emit('is-mobile-start', false)">
+      <b-button variant="gradido" to="/register" @click="$emit('set-mobile-start', false)">
         {{ $t('signup') }}
       </b-button>
       <div class="mt-3 h3 text-white">
@@ -46,7 +46,7 @@
         <b-link
           to="/login"
           class="text-gradido gradido-global-color-blue"
-          @click="$emit('is-mobile-start', false)"
+          @click="$emit('set-mobile-start', false)"
         >
           {{ $t('auth.left.hereLogin') }}
         </b-link>
@@ -58,6 +58,9 @@
 <script>
 export default {
   name: 'AuthMobileStart',
+  props: {
+    mobileStart: { type: Boolean, default: false },
+  },
 }
 </script>
 
