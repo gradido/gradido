@@ -81,7 +81,7 @@ export default {
     },
     editAutomaticCreations(row) {
       this.$emit('editAutomaticContributionData', row.item)
-      this.$root.$emit('bv::toggle::collapse', 'newContribution')
+     
     },
 
     showAutomaticCreations(row) {

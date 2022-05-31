@@ -1,7 +1,9 @@
 <template>
   <div>
-    {{ this.automaticContributionData }}
-    <b-form class="m-5" @submit="onSubmit">
+    <div v-if="updateData" class="text-light bg-info p-3">
+      {{ updateData }}
+    </div>
+    <b-form class="m-5" @submit="onSubmit" @reset="onReset">
       <!-- Date -->
       <b-row>
         <b-col>
@@ -109,14 +111,15 @@ export default {
   props: {
     automaticContributionData: {
       type: Object,
-      default: () => {},
+      default() {
+        return {}
+      },
     },
   },
   data() {
     return {
       form: {
-        name:
-          this.automaticContributionData.Name === '' ? null : this.automaticContributionData.Name,
+        name: null,
         text: null,
         amount: null,
         startDate: null,
@@ -149,6 +152,26 @@ export default {
       if (this.form.startDate === null) return this.toastError('No start Date')
       if (this.form.endDate === null) return this.toastError('No end Date')
       alert(JSON.stringify(this.form))
+    },
+    onReset(event) {
+      event.preventDefault()
+      this.form.name = null
+      this.form.text = null
+      this.form.amount = null
+      this.form.startDate = null
+      this.form.endDate = null
+      this.form.cycle = null
+      this.form.repetition = null
+      this.form.maxAmount = null
+      this.updateData = {}
+    },
+    updateForm() {
+      alert('updateForm')
+    },
+  },
+  computed: {
+    updateData() {
+      return this.automaticContributionData
     },
   },
 }

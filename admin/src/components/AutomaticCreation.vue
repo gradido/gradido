@@ -12,7 +12,7 @@
         + New Automatic Creations
       </b-button>
 
-      <b-collapse id="newContribution" class="mt-2">
+      <b-collapse v-model="visible" id="newContribution" class="mt-2">
         <b-card>
           <p class="h2 ml-5">Automatic Creations</p>
           <automatic-creation-form :automaticContributionData="automaticContributionData" />
@@ -31,11 +31,15 @@
   </div>
 </template>
 <script>
-import AutomaticCreationForm from './AutomaticCreationForm.vue'
+import AutomaticCreationForm, { updateForm } from './AutomaticCreationForm.vue'
 import AutomaticCreationList from './AutomaticCreationList.vue'
 
 export default {
   name: 'AutomaticCreation',
+  components: {
+    AutomaticCreationForm,
+    AutomaticCreationList,
+  },
   props: {
     items: {
       type: Array,
@@ -44,17 +48,16 @@ export default {
   },
   data: function () {
     return {
+      visible: false,
       automaticContributionData: {},
     }
   },
-  components: {
-    AutomaticCreationForm,
-    AutomaticCreationList,
-  },
+ 
   methods: {
     editAutomaticContributionData(data) {
       console.log('start methodes editAutomaticContributionData')
-      console.log(typeof(data))
+      console.log(typeof data)
+      if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
       this.automaticContributionData = data
     },
   },
