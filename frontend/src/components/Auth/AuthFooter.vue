@@ -19,13 +19,13 @@
         <div class="text-center ml-3 ml-lg-0 text-lg-right pt-1">
           {{ $t('followUs') }}
           <b-link href="https://www.facebook.com/groups/Gradido/" target="_blank">
-            <b-icon-facebook class="ml-3 mr-3" font-scale="1"></b-icon-facebook>
+            <b-icon-facebook class="ml-3 mr-3 c-grey" font-scale="1"></b-icon-facebook>
           </b-link>
           <b-link href="https://twitter.com/gradido" target="_blank">
-            <b-icon-twitter class="mr-3" font-scale="1"></b-icon-twitter>
+            <b-icon-twitter class="mr-3 c-grey" font-scale="1"></b-icon-twitter>
           </b-link>
           <b-link href="https://www.youtube.com/c/GradidoNet" target="_blank">
-            <b-icon-youtube class="mr-3" font-scale="1"></b-icon-youtube>
+            <b-icon-youtube class="mr-3 c-grey" font-scale="1"></b-icon-youtube>
           </b-link>
 
           <b-link href="https://t.me/Gradido" target="_blank">
@@ -34,7 +34,7 @@
               width="16"
               height="16"
               fill="currentColor"
-              class="bi bi-telegram"
+              class="bi bi-telegram c-grey"
               viewBox="0 0 16 16"
             >
               <path
