@@ -1315,7 +1315,7 @@ describe('AdminResolver', () => {
               )
               await expect(r2).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Unable to confirm creation.')],
+                  errors: [new GraphQLError('Creation was not successful.')],
                 }),
               )
             })

@@ -344,37 +344,57 @@ export class AdminResolver {
 
     const receivedCallDate = new Date()
 
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const lastTransaction = await transactionRepository.findLastForUser(contribution.userId)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    try {
+      const lastTransaction = await queryRunner.manager
+        .createQueryBuilder()
+        .select('transaction')
+        .from(DbTransaction, 'transaction')
+        .where('transaction.userId = :id', { id: contribution.userId })
+        .orderBy('transaction.balanceDate', 'DESC')
+        .getOne()
+      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
-    let newBalance = new Decimal(0)
-    let decay: Decay | null = null
-    if (lastTransaction) {
-      decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, receivedCallDate)
-      newBalance = decay.balance
+      let newBalance = new Decimal(0)
+      let decay: Decay | null = null
+      if (lastTransaction) {
+        decay = calculateDecay(
+          lastTransaction.balance,
+          lastTransaction.balanceDate,
+          receivedCallDate,
+        )
+        newBalance = decay.balance
+      }
+      newBalance = newBalance.add(contribution.amount.toString())
+
+      const transaction = new DbTransaction()
+      transaction.typeId = TransactionTypeId.CREATION
+      transaction.memo = contribution.memo
+      transaction.userId = contribution.userId
+      transaction.previous = lastTransaction ? lastTransaction.id : null
+      transaction.amount = contribution.amount
+      transaction.creationDate = contribution.contributionDate
+      transaction.balance = newBalance
+      transaction.balanceDate = receivedCallDate
+      transaction.decay = decay ? decay.decay : new Decimal(0)
+      transaction.decayStart = decay ? decay.start : null
+      await queryRunner.manager.insert(DbTransaction, transaction)
+
+      contribution.confirmedAt = receivedCallDate
+      contribution.confirmedBy = moderatorUser.id
+      await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
+
+      await queryRunner.commitTransaction()
+      logger.info('creation commited successfuly.')
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`Creation was not successful: ${e}`)
+      throw new Error(`Creation was not successful.`)
+    } finally {
+      await queryRunner.release()
     }
-    newBalance = newBalance.add(contribution.amount.toString())
-
-    const transaction = new DbTransaction()
-    transaction.typeId = TransactionTypeId.CREATION
-    transaction.memo = contribution.memo
-    transaction.userId = contribution.userId
-    transaction.previous = lastTransaction ? lastTransaction.id : null
-    transaction.amount = contribution.amount
-    transaction.creationDate = contribution.contributionDate
-    transaction.balance = newBalance
-    transaction.balanceDate = receivedCallDate
-    transaction.decay = decay ? decay.decay : new Decimal(0)
-    transaction.decayStart = decay ? decay.start : null
-    await transaction.save().catch(() => {
-      throw new Error('Unable to confirm creation.')
-    })
-
-    contribution.confirmedAt = receivedCallDate
-    contribution.confirmedBy = moderatorUser.id
-
-    await Contribution.save(contribution)
-
     return true
   }
 
