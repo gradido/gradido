@@ -68,15 +68,6 @@ describe('Register', () => {
         expect(wrapper.find('#Email-input-field').exists()).toBe(true)
       })
 
-      it('has Language selected field', () => {
-        expect(wrapper.find('.selectedLanguage').exists()).toBe(true)
-      })
-
-      it('selects Language value en', async () => {
-        wrapper.find('.selectedLanguage').findAll('option').at(1).setSelected()
-        expect(wrapper.find('.selectedLanguage').element.value).toBe('en')
-      })
-
       it('has 1 checkbox input fields', () => {
         expect(wrapper.find('#registerCheckbox').exists()).toBe(true)
       })
@@ -114,7 +105,6 @@ describe('Register', () => {
       beforeEach(() => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
-        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
       })
       it('has disabled submit button when missing input checked box', () => {
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
@@ -132,7 +122,6 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('#registerCheckbox').setChecked()
       })
 
@@ -213,8 +202,8 @@ describe('Register', () => {
 
         it('shows success title, subtitle', () => {
           expect(wrapper.vm.showPageMessage).toBe(true)
-          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-          expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
+          expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('message.register')
         })
 
         it('button is not present', () => {
@@ -241,7 +230,6 @@ describe('Register', () => {
         wrapper.find('#registerFirstname').setValue('Max')
         wrapper.find('#registerLastname').setValue('Mustermann')
         wrapper.find('#Email-input-field').setValue('max.mustermann@gradido.net')
-        wrapper.find('.language-switch-select').findAll('option').at(1).setSelected()
         wrapper.find('#registerCheckbox').setChecked()
         await wrapper.find('form').trigger('submit')
         await flushPromises()
