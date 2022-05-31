@@ -67,9 +67,36 @@ export default {
       //
       //   })
       this.items = [
-        { Name: 'John1', Text: 'Doe1 ', GDD: '200', startDate: '', endDate: '' },
-        { Name: 'John2', Text: 'Doe2', GDD: '300', startDate: '', endDate: '' },
-        { Name: 'John3', Text: 'Doe3', GDD: '400', startDate: '', endDate: '' },
+        {
+          id: 1,
+          Name: 'Meditation',
+          Text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+          GDD: '200',
+          startDate: '2022-04-01',
+          endDate: '2022-08-01',
+          cycle: 'täglich',
+          repetition: '3 mal',
+        },
+        {
+          id: 2,
+          Name: 'Teamarbeit',
+          Text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
+          GDD: '300',
+          startDate: '2022-04-01',
+          endDate: '2022-12-01',
+          cycle: 'monatlich',
+          repetition: '1 mal',
+        },
+        {
+          id: 3,
+          Name: 'Documenta Kassel 2022',
+          Text: 'New Account Register by Documenta Kassel, Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
+          GDD: '400',
+          startDate: '2022-06-18',
+          endDate: '2022-10-01',
+          cycle: 'null',
+          repetition: '1 mal',
+        },
       ]
     },
   },

@@ -1,5 +1,6 @@
 <template>
   <div>
+    {{ this.automaticContributionData }}
     <b-form class="m-5" @submit="onSubmit">
       <!-- Date -->
       <b-row>
@@ -92,7 +93,6 @@
             size="lg"
             type="number"
             placeholder="0"
-            required
           ></b-form-input>
         </b-form-group>
       </b-jumbotron>
@@ -106,10 +106,17 @@
 <script>
 export default {
   name: 'AutomaticCreationForm',
+  props: {
+    automaticContributionData: {
+      type: Object,
+      default: () => {},
+    },
+  },
   data() {
     return {
       form: {
-        name: null,
+        name:
+          this.automaticContributionData.Name === '' ? null : this.automaticContributionData.Name,
         text: null,
         amount: null,
         startDate: null,
@@ -120,6 +127,7 @@ export default {
       },
       min: new Date(),
       cycle: [
+        { value: 'no cycle', text: 'null' },
         { value: 'stündlich', text: 'stündlich' },
         { value: 'täglich', text: 'täglich' },
         { value: 'wöchentlich', text: 'wöchentlich' },
