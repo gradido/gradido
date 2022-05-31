@@ -1493,7 +1493,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        // Wolle: works not as expected, because of wrong 'linkCount' at least
+        // TODO: works not as expected, because the expired link is not in the result eventhogh a link has 'createdAt' at the very first of 2022 and should be expired
         describe.skip('filter by expired', () => {
           it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
             await expect(
@@ -1530,7 +1530,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        // Wolle: not done jet
+        // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
         describe.skip('filter by redeemed', () => {
           it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
             await expect(
@@ -1549,15 +1549,20 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    linkCount: 7, // Wolle: finds 5 but counts 7
+                    linkCount: 6,
                     linkList: expect.arrayContaining([
-                      expect.objectContaining({
+                      expect.not.objectContaining({
                         memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
-                        // Wolle: createdAt: new Date(2022, 0, 1),
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Yeah, eingelöst!',
+                        redeemedAt: expect.any(String),
+                        redeemedBy: expect.any(Number),
                       }),
                       expect.not.objectContaining({
                         memo: 'Da habe ich mich wohl etwas übernommen.',
-                        // Wolle: deletedAt: expect.any(String),
+                        deletedAt: expect.any(String),
                       }),
                     ]),
                   },
