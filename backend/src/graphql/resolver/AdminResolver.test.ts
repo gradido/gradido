@@ -1332,11 +1332,7 @@ describe('AdminResolver', () => {
   describe('transaction links list', () => {
     const variables = {
       userId: 1, // dummy, may be replaced
-      filters: {
-        withDeleted: null,
-        withExpired: null,
-        withRedeemed: null,
-      },
+      filters: null,
       currentPage: 1,
       pageSize: 5,
     }
@@ -1434,13 +1430,12 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        // Todo: make filters argument nullable?
-        describe.skip('without any filters', () => {
+        describe('without any filters', () => {
           it('finds 6 open transaction links and no deleted or redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
-                variables: { ...variables, filters: null },
+                variables,
               }),
             ).resolves.toEqual(expectNoDeletedOrRedeemed)
           })
@@ -1451,7 +1446,14 @@ describe('AdminResolver', () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
-                variables,
+                variables: {
+                  ...variables,
+                  filters: {
+                    withDeleted: null,
+                    withExpired: null,
+                    withRedeemed: null,
+                  },
+                },
               }),
             ).resolves.toEqual(expectNoDeletedOrRedeemed)
           })

@@ -165,7 +165,7 @@ export const deletePendingCreation = gql`
 export const listTransactionLinksAdmin = gql`
   query (
     $userId: Int!
-    $filters: TransactionLinkFilters!
+    $filters: TransactionLinkFilters
     $currentPage: Int = 1
     $pageSize: Int = 5
   ) {

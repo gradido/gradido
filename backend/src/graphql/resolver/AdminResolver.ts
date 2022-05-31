@@ -426,9 +426,10 @@ export class AdminResolver {
   async listTransactionLinksAdmin(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Arg('filters')
+    @Arg('filters', () => TransactionLinkFilters, { nullable: true, defaultValue: null })
     filters: TransactionLinkFilters,
-    @Arg('userId', () => Int) userId: number,
+    @Arg('userId', () => Int)
+    userId: number,
   ): Promise<TransactionLinkResult> {
     const user = await dbUser.findOneOrFail({ id: userId })
     const where: {
@@ -438,11 +439,11 @@ export class AdminResolver {
     } = {
       userId,
     }
-    if (!filters.withRedeemed) where.redeemedBy = null
-    if (!filters.withExpired) where.validUntil = MoreThan(new Date())
+    if (!filters || !filters.withRedeemed) where.redeemedBy = null
+    if (!filters || !filters.withExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.withDeleted,
+      withDeleted: !filters ? false : filters.withDeleted,
       order: {
         createdAt: order,
       },
