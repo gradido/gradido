@@ -12,7 +12,6 @@ log4js.configure(options)
 const apolloLogger = log4js.getLogger('apollo')
 const backendLogger = log4js.getLogger('backend')
 
-apolloLogger.addContext('user', 'unknown')
 backendLogger.addContext('user', 'unknown')
 
 export { apolloLogger, backendLogger }
