@@ -31,7 +31,6 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
-    $coinanimation: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -39,7 +38,6 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
-      coinanimation: $coinanimation
     )
   }
 `
@@ -104,6 +102,35 @@ export const deleteUser = gql`
 export const unDeleteUser = gql`
   mutation ($userId: Int!) {
     unDeleteUser(userId: $userId)
+  }
+`
+
+export const searchUsers = gql`
+  query (
+    $searchText: String!
+    $currentPage: Int
+    $pageSize: Int
+    $filters: SearchUsersFiltersInput
+  ) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+      }
+    }
   }
 `
 
