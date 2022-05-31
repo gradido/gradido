@@ -20,7 +20,6 @@ const {
   token,
   firstName,
   lastName,
-  coinanimation,
   newsletterState,
   publisherId,
   isAdmin,
@@ -78,14 +77,6 @@ describe('Vuex store', () => {
       })
     })
 
-    describe('coinanimation', () => {
-      it('sets the state of coinanimation', () => {
-        const state = { coinanimation: true }
-        coinanimation(state, false)
-        expect(state.coinanimation).toEqual(false)
-      })
-    })
-
     describe('newsletterState', () => {
       it('sets the state of newsletterState', () => {
         const state = { newsletterState: null }
@@ -134,7 +125,6 @@ describe('Vuex store', () => {
         language: 'de',
         firstName: 'Peter',
         lastName: 'Lustig',
-        coinanimation: false,
         klickTipp: {
           newsletterState: true,
         },
@@ -145,7 +135,7 @@ describe('Vuex store', () => {
 
       it('calls nine commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(8)
       })
 
       it('commits email', () => {
@@ -168,29 +158,24 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(4, 'lastName', 'Lustig')
       })
 
-      it('commits coinanimation', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'coinanimation', false)
-      })
-
       it('commits newsletterState', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', true)
+        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', true)
       })
 
       it('commits hasElopage', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', 1234)
+        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', 1234)
       })
 
       it('commits isAdmin', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', true)
+        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', true)
       })
     })
 
@@ -200,7 +185,7 @@ describe('Vuex store', () => {
 
       it('calls nine commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(9)
+        expect(commit).toHaveBeenCalledTimes(8)
       })
 
       it('commits token', () => {
@@ -223,29 +208,24 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(4, 'lastName', '')
       })
 
-      it('commits coinanimation', () => {
-        logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(5, 'coinanimation', true)
-      })
-
       it('commits newsletterState', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', null)
+        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', null)
       })
 
       it('commits hasElopage', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', null)
+        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', null)
       })
 
       it('commits isAdmin', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', false)
+        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', false)
       })
 
       // how to get this working?

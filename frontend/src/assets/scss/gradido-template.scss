@@ -17,8 +17,15 @@ body {
 
 /* Navbar  */
 a,
-.navbar-light .navbar-nav .nav-link {
+.navbar-light,
+.navbar-nav,
+.nav-link {
   color: #047006;
+}
+
+a:hover,
+.nav-link:hover {
+  color: #383838 !important;
 }
 
 .navbar-light .navbar-nav .nav-link.active {
@@ -36,13 +43,11 @@ a,
 /* Button */
 .btn {
   border-radius: 25px;
-  padding-right: 50px;
-  padding-left: 50px;
 }
 
 .btn-gradido {
   display: inline-block;
-  padding: 1em 3em;
+  padding: 0.6em 3em;
   letter-spacing: 0.05em;
   color: #fff;
   transition: all 0.5s ease;
@@ -50,6 +55,9 @@ a,
   background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
   border-radius: 26px;
+  padding-right: 50px;
+  padding-left: 50px;
+  border-style: none;
 }
 
 .btn-gradido:hover {
@@ -62,7 +70,7 @@ a,
 }
 
 .btn-gradido-disable {
-  padding: 1em 3em;
+  padding: 0.6em 3em;
   letter-spacing: 0.05em;
   color: #fff;
   transition: all 0.5s ease;
@@ -70,6 +78,9 @@ a,
   background: linear-gradient(135deg, rgb(180 180 180 / 100%) 46%, rgb(180 180 180 / 100%) 99%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
   border-radius: 26px;
+  padding-right: 50px;
+  padding-left: 50px;
+  border-style: none;
 }
 
 .btn-gradido-disable:hover {
