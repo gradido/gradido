@@ -10,7 +10,7 @@
         />
         <b-img
           class="imgLogoBack mt--3 ml--3"
-          src="img/template/gradido_background_header.png"
+          src="/img/template/gradido_background_header.png"
           width="230"
           alt="start background image"
         ></b-img>
@@ -37,8 +37,8 @@ export default {
   name: 'AuthNavbar',
   data() {
     return {
-      logo: 'img/brand/green.png',
-      sheet: 'img/template/Blaetter.png',
+      logo: '/img/brand/green.png',
+      sheet: '/img/template/Blaetter.png',
     }
   },
 }

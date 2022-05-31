@@ -1,16 +1,16 @@
 <template>
   <div class="auth-template">
-    <mobile-start
+    <auth-mobile-start
       v-if="mobileStart"
       class="d-inline d-lg-none zindex10000"
-      @is-mobile-start="setMobileStart"
+      @set-mobile-start="setMobileStart"
     />
     <div class="h-100 align-middle">
-      <navbar class="zindex10" />
+      <auth-navbar class="zindex10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
         <div class="bg-img-box position-absolute w-100">
-          <carousel class="carousel" />
+          <auth-carousel class="carousel" />
         </div>
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
@@ -24,7 +24,7 @@
           <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
               <b-col class="mb--4 d-flex justify-content-end">
-                <navbar-small />
+                <auth-navbar-small />
               </b-col>
             </b-row>
             <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
@@ -34,7 +34,7 @@
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </b-col>
               <b-col cols="3" class="text-right d-none d-sm-none d-md-inline">
-                <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
+                <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
               </b-col>
             </b-row>
             <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
@@ -44,7 +44,7 @@
                 </b-col>
                 <b-col cols="2" class="text-right">
                   <div id="popover-target-1" class="pointer">
-                    <b-img src="img/svg/type.svg" width="19" class="svgType"></b-img>
+                    <b-img src="/img/svg/type.svg" width="19" class="svgType"></b-img>
                   </div>
                   <b-popover
                     target="popover-target-1"
@@ -64,20 +64,20 @@
               </b-row>
               <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <b-col class="text-center">
-                  <b-avatar src="img/brand/gradido_coin●.png" size="6rem"></b-avatar>
+                  <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
                   <b-row>
                     <b-col class="zindex1000 d-flex justify-content-center">
-                      <navbar-small />
+                      <auth-navbar-small />
                     </b-col>
                   </b-row>
                 </b-col>
               </b-row>
               <b-card-body class="">
-                <router-view></router-view>
+                <router-view @set-mobile-start="setMobileStart"></router-view>
               </b-card-body>
             </b-card>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5"></auth-footer>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5 mb-5"></auth-footer>
         </b-col>
       </b-row>
       <!-- <auth-layout-gdd />-->
@@ -86,21 +86,21 @@
 </template>
 
 <script>
-import MobileStart from '@/components/Auth/MobileStart.vue'
-import Navbar from '@/components/Auth/Navbar.vue'
-import NavbarSmall from '@/components/Auth/NavbarSmall.vue'
-import Carousel from '@/components/Auth/Carousel.vue'
+import AuthMobileStart from '@/components/Auth/AuthMobileStart.vue'
+import AuthNavbar from '@/components/Auth/AuthNavbar.vue'
+import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall.vue'
+import AuthCarousel from '@/components/Auth/AuthCarousel.vue'
 import LanguageSwitch from '@/components/LanguageSwitch2'
-import AuthFooter from '@/components/Auth/Footer.vue'
+import AuthFooter from '@/components/Auth/AuthFooter.vue'
 import CONFIG from '@/config'
 
 export default {
   name: 'AuthLayout',
   components: {
-    MobileStart,
-    Navbar,
-    NavbarSmall,
-    Carousel,
+    AuthMobileStart,
+    AuthNavbar,
+    AuthNavbarSmall,
+    AuthCarousel,
     LanguageSwitch,
     AuthFooter,
   },
