@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
   "author": "Ulf Gebhardt",
-  "license": "MIT",
+  "license": "Apache License 2.0",
   "private": false,
   "scripts": {
     "build": "mkdir -p build/src/config/ && cp src/config/*.txt build/src/config/ && tsc --build",
