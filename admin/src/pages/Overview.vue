@@ -75,7 +75,7 @@ export default {
   },
   created() {
     this.getPendingCreations()
-    // this.getAutomaticCreations()
+    this.getAutomaticCreations()
   },
 }
 </script>
