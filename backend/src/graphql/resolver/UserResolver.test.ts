@@ -344,7 +344,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                coinanimation: true,
                 email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
@@ -479,7 +478,6 @@ describe('UserResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
-                  coinanimation: true,
                   klickTipp: {
                     newsletterState: false,
                   },

@@ -13,6 +13,14 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/apollo.log",
+      "pattern": "%d{ISO8601} %p %c %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "backend": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/backend.log",
       "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
       "keepFileExt" : true,
       "fileNameSep" : "_" 
@@ -31,24 +39,52 @@
       "level": "error",
       "appender": "errorFile"
     },
-    "out": 
+    "out":
     {
       "type": "stdout",
       "layout": 
       {
         "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m"
       }
-
-    }
+    },
+    "apolloOut": 
+    {
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c %m"
+      }
+    }    
   },
-  "categories": 
+  "categories":
   {
     "default": 
     {
       "appenders": 
       [
         "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "apollo":
+    {
+      "appenders":
+      [
         "apollo",
+        "apolloOut",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "backend":
+    {
+      "appenders":
+      [
+        "backend",
+        "out",
         "errors"
       ],
       "level": "debug",

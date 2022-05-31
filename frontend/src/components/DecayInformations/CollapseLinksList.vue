@@ -1,7 +1,7 @@
 <template>
   <div class="collapse-links-list">
     <div class="d-flex">
-      <div class="gradido-max-width">
+      <div class="w-100">
         <hr />
         <div>
           <transaction-link
