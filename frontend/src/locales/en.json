@@ -234,8 +234,7 @@
       "heading": "Please enter the email address by which you're registered here."
     },
     "login": {
-      "heading": "Log in with your access data. Keep them safe!",
-      "saveLogin": "Save login"
+      "heading": "Log in with your access data. Keep them safe!"
     },
     "resetPassword": {
       "heading": "Please enter your password and repeat it."
