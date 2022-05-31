@@ -31,7 +31,6 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
-    $coinanimation: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -39,7 +38,6 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
-      coinanimation: $coinanimation
     )
   }
 `

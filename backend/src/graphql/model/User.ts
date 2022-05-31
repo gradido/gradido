@@ -15,8 +15,6 @@ export class User {
     this.language = user.language
     this.publisherId = user.publisherId
     this.isAdmin = user.isAdmin
-    // TODO
-    this.coinanimation = null
     this.klickTipp = null
     this.hasElopage = null
   }
@@ -60,11 +58,6 @@ export class User {
 
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
-
-  // TODO this is a bit inconsistent with what we query from the database
-  // therefore all those fields are now nullable with default value null
-  @Field(() => Boolean, { nullable: true })
-  coinanimation: boolean | null
 
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
