@@ -51,7 +51,9 @@
 </template>
 
 <script>
+import { ERRORS } from '@/config/errors'
 import { login } from '@/graphql/queries'
+import { errorMessageRemoveGraphQl, errors } from '@/mixins/errors'
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
