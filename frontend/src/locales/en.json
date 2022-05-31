@@ -172,6 +172,16 @@
     "minus": "−",
     "pipe": "|"
   },
+  "message": {
+    "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
+    "checkEmail": "Your email has been successfully verified. You can sign in now.",
+    "email": "We have sent you an email.",
+    "errorTitle": "Attention!",
+    "register": "You are registered now, please check your emails and click the activation link.",
+    "reset": "Your password has been changed.",
+    "title": "Thank you!",
+    "unsetPassword": "Your password has not been set yet. Please set it again."
+  },
   "navigation": {
     "admin_area": "Admin Area",
     "logout": "Logout",
@@ -240,18 +250,6 @@
       "one_number": "One number required.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
-    },
-    "thx": {
-      "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
-      "checkEmail": "Your email has been successfully verified. You can sign in now.",
-      "email": "We have sent you an email.",
-      "emailActivated": "Thank you your email has been activated.",
-      "errorTitle": "Attention!",
-      "register": "You are registered now, please check your emails and click the activation link.",
-      "reset": "Your password has been changed.",
-      "resetPassword": "The code you used was to old please order a new on over the password reset page.",
-      "title": "Thank you!",
-      "unsetPassword": "Your password has not been set yet. Please set it again."
     }
   },
   "success": "Success",

@@ -202,8 +202,8 @@ describe('Register', () => {
 
         it('shows success title, subtitle', () => {
           expect(wrapper.vm.showPageMessage).toBe(true)
-          expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-          expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.register')
+          expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
+          expect(wrapper.find('.test-message-subtitle').text()).toBe('message.register')
         })
 
         it('button is not present', () => {

@@ -45,7 +45,6 @@ module.exports = {
         extensions: ['.js', '.vue'],
         // TODO: remove ignores
         ignores: [
-          '/site.thx./',
           '/form./',
           '/time./',
           '/decay.types./',
@@ -55,7 +54,6 @@ module.exports = {
           'settings.password.set',
           'settings.password.set-password.text',
           'settings.password.subtitle',
-          'site.login.signin',
         ],
         enableFix: false,
       },
