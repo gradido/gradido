@@ -16,17 +16,6 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col class="d-flex justify-content-start">
-              <b-form-checkbox
-                class="mt-3"
-                v-model="status"
-                name="checkbox-1"
-                value="saved"
-                unchecked-value="not_saved"
-              >
-                {{ $t('site.login.saveLogin') }}
-              </b-form-checkbox>
-            </b-col>
             <b-col class="d-flex justify-content-end">
               <router-link to="/forgot-password" class="mt-3">
                 {{ $t('settings.password.forgot_pwd') }}
@@ -70,7 +59,6 @@ export default {
         password: '',
       },
       passwordVisible: false,
-      status: false,
       showPageMessage: false,
       errorReason: null,
       errorSubtitle: '',
