@@ -16,7 +16,9 @@
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
           <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
           <div class="h2 text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
-          <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
+          <b-button :href="learnMore" variant="gradido" target="_blank">
+            {{ $t('auth.left.learnMore') }}
+          </b-button>
         </div>
       </div>
       <b-row class="justify-content-md-center">
@@ -116,6 +118,11 @@ export default {
     },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
+    },
+  },
+  computed: {
+    learnMore() {
+      return 'https://gradido.net/' + this.$i18n.locale
     },
   },
 }
