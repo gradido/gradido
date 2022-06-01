@@ -443,7 +443,7 @@ export class AdminResolver {
     if (!filters || !filters.withExpired) where.validUntil = MoreThan(new Date())
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: !filters ? false : filters.withDeleted,
+      withDeleted: filters ? filters.withDeleted : false,
       order: {
         createdAt: order,
       },
