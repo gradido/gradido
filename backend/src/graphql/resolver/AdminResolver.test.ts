@@ -1382,24 +1382,6 @@ describe('AdminResolver', () => {
       })
 
       describe('with admin rights', () => {
-        const expectNoDeletedOrRedeemed = expect.objectContaining({
-          data: {
-            listTransactionLinksAdmin: {
-              linkCount: 6,
-              linkList: expect.not.arrayContaining([
-                expect.objectContaining({
-                  memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
-                  createdAt: expect.any(String),
-                }),
-                expect.objectContaining({
-                  memo: 'Da habe ich mich wohl etwas übernommen.',
-                  deletedAt: expect.any(String),
-                }),
-              ]),
-            },
-          },
-        })
-
         beforeAll(async () => {
           // admin 'peter@lustig.de' has to exists for 'creationFactory'
           admin = await userFactory(testEnv, peterLustig)
@@ -1437,7 +1419,25 @@ describe('AdminResolver', () => {
                 query: listTransactionLinksAdmin,
                 variables,
               }),
-            ).resolves.toEqual(expectNoDeletedOrRedeemed)
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 6,
+                    linkList: expect.not.arrayContaining([
+                      expect.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
           })
         })
 
@@ -1455,7 +1455,25 @@ describe('AdminResolver', () => {
                   },
                 },
               }),
-            ).resolves.toEqual(expectNoDeletedOrRedeemed)
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 6,
+                    linkList: expect.not.arrayContaining([
+                      expect.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
           })
         })
 
