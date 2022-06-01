@@ -164,3 +164,32 @@ export const getPendingCreations = gql`
     }
   }
 `
+
+export const listTransactionLinksAdmin = gql`
+  query (
+    $userId: Int!
+    $filters: TransactionLinkFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+  ) {
+    listTransactionLinksAdmin(
+      userId: $userId
+      filters: $filters
+      currentPage: $currentPage
+      pageSize: $pageSize
+    ) {
+      linkCount
+      linkList {
+        id
+        amount
+        holdAvailableAmount
+        memo
+        code
+        createdAt
+        validUntil
+        redeemedAt
+        deletedAt
+      }
+    }
+  }
+`
