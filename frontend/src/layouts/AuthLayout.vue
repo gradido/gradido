@@ -16,7 +16,7 @@
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
           <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
           <div class="h2 text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
-          <b-link :href="learnMore" target="_blank">
+          <b-link :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
             <b-button variant="gradido">
               {{ $t('auth.left.learnMore') }}
             </b-button>
@@ -120,11 +120,6 @@ export default {
     },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
-    },
-  },
-  computed: {
-    learnMore() {
-      return 'https://gradido.net/' + this.$i18n.locale
     },
   },
 }
