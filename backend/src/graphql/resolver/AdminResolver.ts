@@ -438,6 +438,8 @@ export class AdminResolver {
       validUntil?: FindOperator<Date> | null
     } = {
       userId,
+      redeemedBy: null,
+      validUntil: MoreThan(new Date()),
     }
     if (filters) {
       if (filters.withRedeemed) delete where.redeemedBy
