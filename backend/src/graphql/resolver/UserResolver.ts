@@ -17,6 +17,7 @@ import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -324,88 +325,118 @@ export class UserResolver {
 
     // Validate email unique
     email = email.trim().toLowerCase()
+    const emailHash = getEmailHash(email)
+    const passphrase = PassphraseGenerate()
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
-    if (userFound) {
-      logger.error('User already exists with this email=' + email)
-      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      throw new Error(`User already exists.`)
-    }
-
-    const passphrase = PassphraseGenerate()
-    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    const emailHash = getEmailHash(email)
-
     const dbUser = new DbUser()
-    dbUser.email = email
-    dbUser.firstName = firstName
-    dbUser.lastName = lastName
-    dbUser.emailHash = emailHash
-    dbUser.language = language
-    dbUser.publisherId = publisherId
-    dbUser.passphrase = passphrase.join(' ')
-    logger.debug('new dbUser=' + dbUser)
-    if (redeemCode) {
-      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-      logger.info('redeemCode found transactionLink=' + transactionLink)
-      if (transactionLink) {
-        dbUser.referrerId = transactionLink.userId
-      }
-    }
-    // TODO this field has no null allowed unlike the loginServer table
-    // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
-    // dbUser.pubkey = keyPair[0]
-    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-    // loginUser.pubKey = keyPair[0]
-    // loginUser.privKey = encryptedPrivkey
-
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
-    try {
-      await queryRunner.manager.save(dbUser).catch((error) => {
-        logger.error('Error while saving dbUser', error)
-        throw new Error('error saving user')
-      })
-
-      const emailOptIn = newEmailOptIn(dbUser.id)
-      await queryRunner.manager.save(emailOptIn).catch((error) => {
-        logger.error('Error while saving emailOptIn', error)
-        throw new Error('error saving email opt in')
-      })
-
-      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{optin}/g,
-        emailOptIn.verificationCode.toString(),
-      ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
+    if (userFound) {
+      // Wolle: logger.error('User already exists with this email=' + email)
+      logger.info('User already exists with this email=' + email)
+      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+      // Wolle: throw new Error(`User already exists.`)
+      // send mail even CC to support
+      // respond with fake user_id?
+      dbUser.email = email
+      dbUser.firstName = firstName
+      dbUser.lastName = lastName
+      dbUser.emailHash = emailHash
+      dbUser.language = language
+      dbUser.publisherId = publisherId
+      dbUser.passphrase = passphrase.join(' ')
+      logger.debug('partly faked dbUser=' + dbUser)
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
+      const emailSent = await sendAccountMultiRegistrationEmail({
+        link: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
         firstName,
         lastName,
         email,
-        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
-      logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
       /* uncomment this, when you need the activation link on the console */
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
-        logger.debug(`Account confirmation link: ${activationLink}`)
+        logger.debug(`Email not send!`)
       }
+      logger.info('createUser() faked and send multi registration mail...')
+    } else {
+      // Wolle: const passphrase = PassphraseGenerate()
+      // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+      // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+      // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+      // Wolle: const emailHash = getEmailHash(email)
 
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      logger.error(`error during create user with ${e}`)
-      await queryRunner.rollbackTransaction()
-      throw e
-    } finally {
-      await queryRunner.release()
+      // Wolle: const dbUser = new DbUser()
+      // Wolle: what is about id?
+      dbUser.email = email
+      dbUser.firstName = firstName
+      dbUser.lastName = lastName
+      dbUser.emailHash = emailHash
+      dbUser.language = language
+      dbUser.publisherId = publisherId
+      dbUser.passphrase = passphrase.join(' ')
+      logger.debug('new dbUser=' + dbUser)
+      if (redeemCode) {
+        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        logger.info('redeemCode found transactionLink=' + transactionLink)
+        if (transactionLink) {
+          dbUser.referrerId = transactionLink.userId
+        }
+      }
+      // TODO this field has no null allowed unlike the loginServer table
+      // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
+      // dbUser.pubkey = keyPair[0]
+      // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+      // loginUser.pubKey = keyPair[0]
+      // loginUser.privKey = encryptedPrivkey
+
+      const queryRunner = getConnection().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction('READ UNCOMMITTED')
+      try {
+        await queryRunner.manager.save(dbUser).catch((error) => {
+          logger.error('Error while saving dbUser', error)
+          throw new Error('error saving user')
+        })
+
+        const emailOptIn = newEmailOptIn(dbUser.id)
+        await queryRunner.manager.save(emailOptIn).catch((error) => {
+          logger.error('Error while saving emailOptIn', error)
+          throw new Error('error saving email opt in')
+        })
+
+        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+          /{optin}/g,
+          emailOptIn.verificationCode.toString(),
+        ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const emailSent = await sendAccountActivationEmail({
+          link: activationLink,
+          firstName,
+          lastName,
+          email,
+          duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+        })
+        logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+        /* uncomment this, when you need the activation link on the console */
+        // In case EMails are disabled log the activation link for the user
+        if (!emailSent) {
+          logger.debug(`Account confirmation link: ${activationLink}`)
+        }
+
+        await queryRunner.commitTransaction()
+      } catch (e) {
+        logger.error(`error during create user with ${e}`)
+        await queryRunner.rollbackTransaction()
+        throw e
+      } finally {
+        await queryRunner.release()
+      }
+      logger.info('createUser() successful...')
     }
-    logger.info('createUser() successful...')
     return new User(dbUser)
   }
 
