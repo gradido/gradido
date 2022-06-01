@@ -90,7 +90,7 @@
       </validation-observer>
     </b-container>
     <b-container v-else>
-      <message :headline="$t('site.thx.title')" :subtitle="$t('site.thx.register')" />
+      <message :headline="$t('message.title')" :subtitle="$t('message.register')" />
     </b-container>
   </div>
 </template>
