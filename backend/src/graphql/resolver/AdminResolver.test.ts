@@ -21,9 +21,8 @@ import {
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
-  listTransactionLinksAdmin,
 } from '@/seeds/graphql/mutations'
-import { getPendingCreations, login } from '@/seeds/graphql/queries'
+import { getPendingCreations, login, listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -1388,6 +1387,7 @@ describe('AdminResolver', () => {
 
           user = await userFactory(testEnv, bibiBloxberg)
           variables.userId = user.id
+          variables.pageSize = 25
           // bibi needs GDDs
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1486,8 +1486,6 @@ describe('AdminResolver', () => {
                   ...variables,
                   filters: {
                     withDeleted: true,
-                    withExpired: null,
-                    withRedeemed: null,
                   },
                 },
               }),
@@ -1513,8 +1511,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        // TODO: works not as expected, because the expired link is not in the result eventhogh a link has 'createdAt' at the very first of 2022 and should be expired
-        describe.skip('filter by expired', () => {
+        describe('filter by expired', () => {
           it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
             await expect(
               query({
@@ -1522,9 +1519,7 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variables,
                   filters: {
-                    withDeleted: null,
                     withExpired: true,
-                    withRedeemed: null,
                   },
                 },
               }),
