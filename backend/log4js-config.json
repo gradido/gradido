@@ -1,0 +1,102 @@
+{
+  "appenders": 
+  {
+    "access": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/access.log",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "apollo": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/apollo.log",
+      "pattern": "%d{ISO8601} %p %c %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "backend": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/backend.log",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "errorFile": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/errors.log",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
+    "errors": 
+    {
+      "type": "logLevelFilter",
+      "level": "error",
+      "appender": "errorFile"
+    },
+    "out":
+    {
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m"
+      }
+    },
+    "apolloOut": 
+    {
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c %m"
+      }
+    }    
+  },
+  "categories":
+  {
+    "default": 
+    {
+      "appenders": 
+      [
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "apollo":
+    {
+      "appenders":
+      [
+        "apollo",
+        "apolloOut",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "backend":
+    {
+      "appenders":
+      [
+        "backend",
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "http": 
+    {
+      "appenders": 
+      [
+        "access"
+      ],
+      "level": "info"
+    }
+  }
+}

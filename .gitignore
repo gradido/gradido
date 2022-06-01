@@ -1,9 +1,14 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 .dbeaver/*
 =======
 .dbeaver
 .project
 >>>>>>> refs/remotes/origin/improve-apollo-logging
+=======
+.dbeaver
+.project
+>>>>>>> refs/remotes/origin/master
 *.log
 /node_modules/*
 messages.pot

@@ -189,7 +189,7 @@ describe('UserCard_FormUserPasswort', () => {
           })
 
           it('toasts a success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('site.thx.reset')
+            expect(toastSuccessSpy).toBeCalledWith('message.reset')
           })
 
           it('cancels the edit process', () => {

@@ -1,6 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import DashboardLayoutGdd from './DashboardLayout_gdd'
+import DashboardLayout from './DashboardLayout'
 
 import { toastErrorSpy } from '@test/testSetup'
 
@@ -19,7 +19,7 @@ const apolloMock = jest.fn().mockResolvedValue({
   },
 })
 
-describe('DashboardLayoutGdd', () => {
+describe('DashboardLayout', () => {
   let wrapper
 
   const mocks = {
@@ -61,7 +61,7 @@ describe('DashboardLayoutGdd', () => {
   }
 
   const Wrapper = () => {
-    return mount(DashboardLayoutGdd, { localVue, mocks, stubs })
+    return mount(DashboardLayout, { localVue, mocks, stubs })
   }
 
   describe('mount', () => {
