@@ -8,7 +8,7 @@
             <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
               <input-email v-model="form.email"></input-email>
               <div class="text-center">
-                <b-button type="submit" variant="primary">
+                <b-button type="submit" variant="gradido">
                   {{ $t('settings.password.send_now') }}
                 </b-button>
               </div>
