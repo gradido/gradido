@@ -332,12 +332,8 @@ export class UserResolver {
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
     const dbUser = new DbUser()
     if (userFound) {
-      // Wolle: logger.error('User already exists with this email=' + email)
       logger.info('User already exists with this email=' + email)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      // Wolle: throw new Error(`User already exists.`)
-      // send mail even CC to support
-      // respond with fake user_id?
       dbUser.id = sodium.randombytes_random() % (2048 * 16)
       dbUser.email = email
       dbUser.firstName = firstName
@@ -361,17 +357,11 @@ export class UserResolver {
         logger.debug(`Email not send!`)
       }
       logger.info('createUser() faked and send multi registration mail...')
-      // Wolle:
-      // console.log('dbUser: ', dbUser)
     } else {
-      // Wolle: const passphrase = PassphraseGenerate()
       // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
       // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
       // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-      // Wolle: const emailHash = getEmailHash(email)
 
-      // Wolle: const dbUser = new DbUser()
-      // Wolle: what is about id?
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
