@@ -15,14 +15,18 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
   deleteUser,
   unDeleteUser,
-  searchUsers,
   createPendingCreation,
   createPendingCreations,
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
 } from '@/seeds/graphql/mutations'
-import { getPendingCreations, login, listTransactionLinksAdmin } from '@/seeds/graphql/queries'
+import {
+  getPendingCreations,
+  login,
+  searchUsers,
+  listTransactionLinksAdmin,
+} from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -1478,7 +1482,7 @@ describe('AdminResolver', () => {
         })
 
         describe('filter with deleted', () => {
-          it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
+          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -1512,7 +1516,7 @@ describe('AdminResolver', () => {
         })
 
         describe('filter by expired', () => {
-          it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
+          it('finds 5 open transaction links, 1 expired, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -1547,7 +1551,7 @@ describe('AdminResolver', () => {
 
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
         describe.skip('filter by redeemed', () => {
-          it('finds 6 open transaction links and 1 deleted and no redeemed', async () => {
+          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,

@@ -91,6 +91,30 @@ export const sendResetPasswordEmail = gql`
   }
 `
 
+export const searchUsers = gql`
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+      }
+    }
+  }
+`
+
 export const listGDTEntriesQuery = gql`
   query ($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
