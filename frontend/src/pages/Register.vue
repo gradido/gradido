@@ -122,9 +122,6 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    commitStorePublisherId(val) {
-      this.$store.commit('publisherId', val)
-    },
     async onSubmit() {
       this.$apollo
         .mutate({
