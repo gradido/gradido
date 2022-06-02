@@ -32,16 +32,16 @@ const logPlugin = {
   requestDidStart(requestContext: any) {
     const { logger } = requestContext
     const { query, mutation, variables } = requestContext.request
-    logger.trace(`Request:
+    logger.info(`Request:
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     return {
       willSendResponse(requestContext: any) {
-        if (requestContext.context.user) logger.trace(`User ID: ${requestContext.context.user.id}`)
+        if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
         if (requestContext.response.data)
-          logger.trace(`Response-Data:
+          logger.info(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
         if (requestContext.response.errors)
-          logger.trace(`Response-Errors:
+          logger.error(`Response-Errors:
 ${JSON.stringify(requestContext.response.errors, null, 2)}`)
         return requestContext
       },

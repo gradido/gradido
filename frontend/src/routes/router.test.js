@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has seventeen routes defined', () => {
-        expect(routes).toHaveLength(17)
+      it('has sixteen routes defined', () => {
+        expect(routes).toHaveLength(16)
       })
 
       describe('overview', () => {
@@ -108,31 +108,6 @@ describe('router', () => {
         it('loads the "register" page', async () => {
           const component = await routes.find((r) => r.path === '/register/:code?').component()
           expect(component.default.name).toBe('Register')
-        })
-      })
-
-      describe('thx', () => {
-        const thx = routes.find((r) => r.path === '/thx/:comingFrom/:code?')
-
-        it('loads the "Thx" page', async () => {
-          const component = await thx.component()
-          expect(component.default.name).toBe('Thx')
-        })
-
-        describe('beforeEnter', () => {
-          const beforeEnter = thx.beforeEnter
-          const next = jest.fn()
-
-          it('redirects to login when not coming from a valid page', () => {
-            beforeEnter({}, { path: '' }, next)
-            expect(next).toBeCalledWith({ path: '/login' })
-          })
-
-          it('enters the page when coming from a valid page', () => {
-            jest.resetAllMocks()
-            beforeEnter({}, { path: '/forgot-password' }, next)
-            expect(next).toBeCalledWith()
-          })
         })
       })
 

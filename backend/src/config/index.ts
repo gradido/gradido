@@ -11,7 +11,7 @@ Decimal.set({
 
 const constants = {
   DB_VERSION: '0037-contributions_table',
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
