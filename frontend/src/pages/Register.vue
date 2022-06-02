@@ -142,16 +142,7 @@ export default {
           this.showPageMessage = true
         })
         .catch((error) => {
-          let errorMessage
-          switch (error.message) {
-            case 'GraphQL error: User already exists.':
-              errorMessage = this.$t('error.user-already-exists')
-              break
-            default:
-              errorMessage = this.$t('error.unknown-error') + error.message
-              break
-          }
-          this.toastError(errorMessage)
+          this.toastError(this.$t('error.unknown-error') + error.message)
         })
     },
   },
