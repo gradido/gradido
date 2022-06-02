@@ -4,30 +4,23 @@
       <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
       <b-row class="justify-content-center">
         <b-col>
-          <b-card no-body class="border-0 gradido-custom-background">
-            <b-card-body class="p-4">
-              <validation-observer ref="observer" v-slot="{ handleSubmit }">
-                <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
-                  <input-email v-model="form.email"></input-email>
-                  <div class="text-center">
-                    <b-button type="submit" variant="primary">
-                      {{ $t('settings.password.send_now') }}
-                    </b-button>
-                  </div>
-                </b-form>
-              </validation-observer>
-            </b-card-body>
-          </b-card>
+          <validation-observer ref="observer" v-slot="{ handleSubmit }">
+            <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
+              <input-email v-model="form.email"></input-email>
+              <div class="text-center">
+                <b-button type="submit" variant="gradido">
+                  {{ $t('settings.password.send_now') }}
+                </b-button>
+              </div>
+            </b-form>
+          </validation-observer>
         </b-col>
       </b-row>
-      <div class="text-center py-lg-4">
-        <router-link to="/login" class="mt-3">{{ $t('back') }}</router-link>
-      </div>
     </b-container>
     <b-container v-else>
       <message
-        :headline="success ? $t('site.thx.title') : $t('site.thx.errorTitle')"
-        :subtitle="success ? $t('site.thx.email') : $t('error.email-already-sent')"
+        :headline="success ? $t('message.title') : $t('message.errorTitle')"
+        :subtitle="success ? $t('message.email') : $t('error.email-already-sent')"
         :buttonText="$t('login')"
         linkTo="/login"
       />

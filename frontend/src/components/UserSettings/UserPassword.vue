@@ -89,7 +89,7 @@ export default {
           },
         })
         .then(() => {
-          this.toastSuccess(this.$t('site.thx.reset'))
+          this.toastSuccess(this.$t('message.reset'))
           this.cancelEdit()
         })
         .catch((error) => {

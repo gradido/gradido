@@ -16,17 +16,6 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col class="d-flex justify-content-start">
-              <b-form-checkbox
-                class="mt-3"
-                v-model="status"
-                name="checkbox-1"
-                value="saved"
-                unchecked-value="not_saved"
-              >
-                {{ $t('site.login.saveLogin') }}
-              </b-form-checkbox>
-            </b-col>
             <b-col class="d-flex justify-content-end">
               <router-link to="/forgot-password" class="mt-3">
                 {{ $t('settings.password.forgot_pwd') }}
@@ -41,7 +30,7 @@
     </b-container>
     <b-container v-else>
       <message
-        :headline="$t('site.thx.errorTitle')"
+        :headline="$t('message.errorTitle')"
         :subtitle="errorSubtitle"
         :buttonText="$t('settings.password.reset')"
         :linkTo="errorLinkTo"
@@ -70,7 +59,6 @@ export default {
         password: '',
       },
       passwordVisible: false,
-      status: false,
       showPageMessage: false,
       errorReason: null,
       errorSubtitle: '',
@@ -107,12 +95,12 @@ export default {
         .catch((error) => {
           if (error.message.includes('User email not validated')) {
             this.showPageMessage = true
-            this.errorSubtitle = this.$t('site.thx.activateEmail')
+            this.errorSubtitle = this.$t('message.activateEmail')
             this.errorLinkTo = '/forgot-password'
             this.toastError(this.$t('error.no-account'))
           } else if (error.message.includes('User has no password set yet')) {
             this.showPageMessage = true
-            this.errorSubtitle = this.$t('site.thx.unsetPassword')
+            this.errorSubtitle = this.$t('message.unsetPassword')
             this.errorLinkTo = '/reset-password/login'
             this.toastError(this.$t('error.no-account'))
           } else if (error.message.includes('No user with this credentials')) {
