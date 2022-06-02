@@ -20,7 +20,6 @@ describe('sendAccountMultiRegistrationEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Peter Lustig <peter@lustig.de>`,
-      cc: 'support@gradido.net',
       subject: 'Gradido: Erneuter Registrierungsversuch mit deiner E-Mail',
       text:
         expect.stringContaining('Hallo Peter Lustig') &&

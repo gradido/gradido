@@ -9,7 +9,6 @@ export const sendAccountMultiRegistrationEmail = (data: {
 }): Promise<boolean> => {
   return sendEMail({
     to: `${data.firstName} ${data.lastName} <${data.email}>`,
-    cc: CONFIG.EMAIL_EMAIL_SUPPORT,
     subject: accountMultiRegistration.de.subject,
     text: accountMultiRegistration.de.text({
       ...data,
