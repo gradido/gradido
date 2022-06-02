@@ -52,18 +52,17 @@ Die Ausbaustufe-1 wird gezielt auf die Anforderungen der "Dokumenta" im Juni 202
 
 Es werden folgende Anforderungen an den Erfassungsdialog einer Contribution gestellt:
 
-| Attribut                                     | Beschreibung                                                                                                                                                                                                                             |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Name                                         | Name der Contribution als Bezeichnung, nach dem später auch eine Suche erfolgen kann                                                                                                                                                    |
-| Beschreibung                                 | Beschreibung der Contribution, die mit der Schöpfung als Memo in die Transaktion übernommen wird                                                                                                                                       |
-| Betrag                                       | der Betrag, der mit Einlösen der Contribution geschöpft wird                                                                                                                                                                           |
-| GültigVon                                   | - das Datum, ab wann die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 00:00:00 angenommen                                                                                                                    |
-| GültigBis                                   | - das Datum, wie lange die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 23:59:59 angenommen                                                                                                                  |
-| Zyklus                                       | - Angabe wie häufig eine Contribution gutgeschrieben werden kann<br />- als Auswahlliste (Combobox) geplant, aber für diese Ausbaustufe nur mit dem Wert "täglich" vorbelegt                                                          |
-| Wiederholungen                               | - Anzahl an Wiederholungen pro Zyklus<br />- für diese Ausbaustufe wird der Wert "1" vorbelegt -> somit gilt 1 x täglich                                                                                                               |
-| VersendenMöglich                            | - hier wird "als Link / QR-Code" voreingestellt                                                                                                                                                                                          |
-| pro User: max. schöpfbarer Betrag pro Monat | max. Betrag wieviel Gradido ein User innerhalb des aktuellen Monats durch diese Contribution schöpfen kann                                                                                                                              |
-| alle weiteren Attribute                      | - entfallen für diese Ausbaustufe<br />- die GUI-Komponenten können optional schon im Dialog eingebaut und angezeigt werden<br />- diese GUI-Komponenten müssen als disabled markiert und dürfen damit keine Eingaben entgegennehmen |
+| Attribut                | Beschreibung                                                                                                                                                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name                    | Name der Contribution als Bezeichnung, nach dem später auch eine Suche erfolgen kann                                                                                                                                                           |
+| Beschreibung            | Beschreibung der Contribution, die mit der Schöpfung als Memo in die Transaktion übernommen wird                                                                                                                                              |
+| Betrag                  | der Betrag, der mit Einlösen der Contribution geschöpft wird                                                                                                                                                                                  |
+| GültigVon              | - das Datum, ab wann die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 00:00:00 angenommen                                                                                                                           |
+| GültigBis              | - das Datum, wie lange die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 23:59:59 angenommen                                                                                                                         |
+| Zyklus                  | - Angabe wie häufig eine Contribution gutgeschrieben werden kann<br />- als Auswahlliste (Combobox) geplant, aber für diese Ausbaustufe nur mit dem Wert "kein Wiederholungszyklus" vorbelegt                                                 |
+| Wiederholungen          | - Anzahl an Wiederholungen pro Zyklus<br />- für diese Ausbaustufe wird der Wert "1" vorbelegt -> somit gilt 1 x pro User                                                                                                                      |
+| VersendenMöglich       | - hier wird "als Link / QR-Code" voreingestellt                                                                                                                                                                                                 |
+| alle weiteren Attribute | - entfallen für diese Ausbaustufe<br />- die GUI-Komponenten können optional schon im Dialog eingebaut und angezeigt werden<br />- diese GUI-Komponenten müssen wenn sichtbar disabled sein und dürfen damit keine Eingaben entgegen nehmen |
 
 
 #### Ablauflogik
@@ -77,17 +76,16 @@ Das Regelwerk in der Businesslogik wird gemäß der reduzierten Contribution-Att
 
 * Es soll eine "Dokumenta"-Contribution im Admin-Bereich erfassbar sein und in der Datenbank als ContributionLink gespeichert werden.
 * Es wird für die Gesamtlaufzeit der "Dokumenta" genau ein Contribution benötigt
-* Die "Dokumenta"-Contribution kann von einem User maximal 1x am Tag aktiviert werden
-* Ein User kann mit diesem Link nicht mehr GDD schöpfen, als in der Contribution als "max. schöpfbarer Betrag pro Monat" festgelegt ist
+* Die "Dokumenta"-Contribution kann von einem User maximal 1x aktiviert werden
+* Ein User kann mit diesem Link nur die Menge an GDDs schöpfen, die in der Contribution als "Betrag" festgelegt ist
 * Die "Dokumenta"-Contribution kann als Link / QR-Code erzeugt, angezeigt und in die Zwischenablage kopiert werden
 * Jeder beliebige User kann den Link / QR-Code aktivieren
 * der Link führt auf eine Gradido-Seite, wo der User sich anmelden oder registrieren kann
 * mit erfolgreichem Login bzw. Registrierung wird der automatische Bestätigungs- und Schöpfungsprozess getriggert
 * es erfolgt eine Überprüfung der definierten Contribution-Regeln für den angemeldeten User:
-  * Gültigkeitszeitraum
-  * Zyklus und Häufigkeit
-  * max. schöpfbarer Gradido-Betrag pro Monat
-  * max. schöpfbarer Betrag mit dieser Contribution pro Monat
+  * Gültigkeit: liegt die Aktivierung im Gültigkeitszeitraum der Contribution
+  * Zyklus und WIederholungen: bei einem Zyklus-Wert = "kein Zyklus" und einem Wiederholungswert = 1 darf der User den Betrag dieser Contribution nur einmal insgesamt schöpfen
+  * max. schöpfbarer Gradido-Betrag pro Monat: wenn der Betrag der Contribution plus der Betrag, den der User in diesem Monat schon geschöpft hat den maximal schöpfbaren Betrag pro Monat von 1000 GDD übersteigt, dann wird die Schöpfung dieser Contribution abgelehnt
 * mit erfolgreich durchlaufenen Regelprüfungen wird ein "besätigter" aber "noch nicht gebuchten" Eintrag in der "Contributions"-Tabelle erzeugt
 * ein "bestätigter" aber "noch nicht gebuchter" "Contributions"-Eintrag stößt eine Schöpfungstransaktion für den User an
 * es erfolgt eine übliche Schöpfungstransaktion nach der Bestätigung der Contribution
