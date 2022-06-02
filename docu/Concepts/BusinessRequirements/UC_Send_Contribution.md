@@ -1,6 +1,6 @@
 # GDD-Creation per Link/QR-Code
 
-Die Idee besteht darin, dass ein Administrator eine Contributions mit all seinen Attributen und Regeln im System erfasst. Dabei kann er unter anderem festlegen, ob für diese ein Link oder ein QR-Code generiert und über andere Medien wie Email oder Messenger versendet werden kann. Der Empfänger kann diesen Link bzw QR-Code dann über die Gradido-Anwendung einlösen und bekommt dann den Betrag der Contribution als Schöpfung auf seinem Konto gutgeschrieben.
+Die Idee besteht darin, dass ein Administrator eine Contribution mit all seinen Attributen und Regeln im System erfasst. Dabei kann er unter anderem festlegen, ob für diese ein Link oder ein QR-Code generiert und über andere Medien wie Email oder Messenger versendet werden kann. Der Empfänger kann diesen Link bzw QR-Code dann über die Gradido-Anwendung einlösen und bekommt dann den Betrag der Contribution als Schöpfung auf seinem Konto gutgeschrieben.
 
 ## Logischer Ablauf
 
@@ -8,7 +8,7 @@ Der logische Ablauf für das Szenario "Activity-Confirmation and booking of Crea
 
 ![img](./image/Ablauf_manuelle_auto_Creations.png)
 
-Das Szenario der *interaktiven Aktivitäten-Bestätigung* ist derzeit noch in den zwei Systemen EloPage und Gradido enthalten - markiert als IST-Prozess - und wird zukünftig dann nur noch innerhalb Gradido ablaufen - markiert als SOLL-Prozess. Mit der Ablösung von EloPage und der vollständigen Migration nach Gradido erfolgt  gleichzeitig eine Migration der Datenbank-Tabelle "admin_pending-creations" nach "PendingActivies". Unterhalb der gestrichelten Linie sind die beiden Szenarien dann in der Ablauflogik vollständig gleich.
+Das Szenario der *interaktiven Aktivitäten-Bestätigung* ist derzeit noch in den zwei Systemen EloPage und Gradido enthalten - markiert als IST-Prozess - und wird zukünftig dann nur noch innerhalb Gradido ablaufen - markiert als SOLL-Prozess. Mit der Ablösung von EloPage und der vollständigen Migration nach Gradido erfolgt  gleichzeitig eine Migration der Datenbank-Tabelle "admin_pending-creations" nach "Contributions". Unterhalb der gestrichelten Linie sind die beiden Szenarien dann in der Ablauflogik vollständig gleich.
 
 ## Dialoge
 
@@ -28,11 +28,11 @@ Der Gültigkeitsstart wird als Default mit dem aktuellen Erfassungszeitpunkt vor
 
 Wie häufig ein User für diese Contribution eine Schöpfung gutgeschrieben bekommen kann, wird über die Auswahl eines Zyklus - stündlich, 2-stündlich, 4-stündlich, etc. - und innerhalb dieses Zyklus eine Anzahl an Wiederholungen definiert. Voreinstellung sind 1x täglich.
 
-![Zyklus](./image/UC_Send_Contribution_Admin-new ContributionZyklus.png "Zyklus")
+![Zyklus](./image/UC_Send_Contribution_Admin-new ContributionZyklus.png)
 
 Ob die Contribution über einen versendeten Link bzw. QR-Code geschöpft werden kann, wird mittels der Auswahl "Versenden möglich als" bestimmt.
 
-![send](./image/UC_Send_Contribution_Admin-new ContributionSend.png "send")
+![send](./image/UC_Send_Contribution_Admin-new ContributionSend.png)
 
 Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 
@@ -44,6 +44,56 @@ Für die Schöpfung der Contribution können weitere Regeln definiert werden:
 
 ![new](./image/UC_Send_Contribution_Admin-newContribution.png)
 
+### Ausbaustufe-1:
+
+Die Ausbaustufe-1 wird gezielt auf die Anforderungen der "Dokumenta" im Juni 2022 abgestimmt. 
+
+#### Contribution-Erfassungsdialog (Adminbereich)
+
+Es werden folgende Anforderungen an den Erfassungsdialog einer Contribution gestellt:
+
+| Attribut                                     | Beschreibung                                                                                                                                                                                                                             |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name                                         | Name der Contribution als Bezeichnung, nach dem später auch eine Suche erfolgen kann                                                                                                                                                    |
+| Beschreibung                                 | Beschreibung der Contribution, die mit der Schöpfung als Memo in die Transaktion übernommen wird                                                                                                                                       |
+| Betrag                                       | der Betrag, der mit Einlösen der Contribution geschöpft wird                                                                                                                                                                           |
+| GültigVon                                   | - das Datum, ab wann die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 00:00:00 angenommen                                                                                                                    |
+| GültigBis                                   | - das Datum, wie lange die Contribution gültig und damit einlösbar ist<br />- es wird die Uhrzeit 23:59:59 angenommen                                                                                                                  |
+| Zyklus                                       | - Angabe wie häufig eine Contribution gutgeschrieben werden kann<br />- als Auswahlliste (Combobox) geplant, aber für diese Ausbaustufe nur mit dem Wert "täglich" vorbelegt                                                          |
+| Wiederholungen                               | - Anzahl an Wiederholungen pro Zyklus<br />- für diese Ausbaustufe wird der Wert "1" vorbelegt -> somit gilt 1 x täglich                                                                                                               |
+| VersendenMöglich                            | - hier wird "als Link / QR-Code" voreingestellt                                                                                                                                                                                          |
+| pro User: max. schöpfbarer Betrag pro Monat | max. Betrag wieviel Gradido ein User innerhalb des aktuellen Monats durch diese Contribution schöpfen kann                                                                                                                              |
+| alle weiteren Attribute                      | - entfallen für diese Ausbaustufe<br />- die GUI-Komponenten können optional schon im Dialog eingebaut und angezeigt werden<br />- diese GUI-Komponenten müssen als disabled markiert und dürfen damit keine Eingaben entgegennehmen |
+
+
+#### Ablauflogik
+
+Für die Ausbaustufe-1 wird gemäß der Beschreibung aus dem Kapitel "Logischer Ablauf" nur die "automatic Confirmation and booking of Creations" umgesetzt. Die interaktive Variante - sprich Ablösung des EloPage Prozesses - mit "interactive Confirmation and booking of Creations" bleibt für eine spätere Ausbaustufe aussen vor.
+
+Das Regelwerk in der Businesslogik wird gemäß der reduzierten Contribution-Attribute aus dem Erfassungsdialog, den vordefinierten Initialwerten und der daraus resultierenden Variantenvielfalt vereinfacht.
+
+
+#### Kriterien "Dokumenta"
+
+* Es soll eine "Dokumenta"-Contribution im Admin-Bereich erfassbar sein und in der Datenbank als ContributionLink gespeichert werden.
+* Es wird für die Gesamtlaufzeit der "Dokumenta" genau ein Contribution benötigt
+* Die "Dokumenta"-Contribution kann von einem User maximal 1x am Tag aktiviert werden
+* Ein User kann mit diesem Link nicht mehr GDD schöpfen, als in der Contribution als "max. schöpfbarer Betrag pro Monat" festgelegt ist
+* Die "Dokumenta"-Contribution kann als Link / QR-Code erzeugt, angezeigt und in die Zwischenablage kopiert werden
+* Jeder beliebige User kann den Link / QR-Code aktivieren
+* der Link führt auf eine Gradido-Seite, wo der User sich anmelden oder registrieren kann
+* mit erfolgreichem Login bzw. Registrierung wird der automatische Bestätigungs- und Schöpfungsprozess getriggert
+* es erfolgt eine Überprüfung der definierten Contribution-Regeln für den angemeldeten User:
+  * Gültigkeitszeitraum
+  * Zyklus und Häufigkeit
+  * max. schöpfbarer Gradido-Betrag pro Monat
+  * max. schöpfbarer Betrag mit dieser Contribution pro Monat
+* mit erfolgreich durchlaufenen Regelprüfungen wird ein "besätigter" aber "noch nicht gebuchten" Eintrag in der "Contributions"-Tabelle erzeugt
+* ein "bestätigter" aber "noch nicht gebuchter" "Contributions"-Eintrag stößt eine Schöpfungstransaktion für den User an
+* es erfolgt eine übliche Schöpfungstransaktion nach der Bestätigung der Contribution
+* die Schöpfungstransaktion schreibt den Betrag der Contribution dem Kontostand des Users gut
+
+
 ## Datenbank-Modell
 
 ### Ausgangsmodell
@@ -53,6 +103,8 @@ Das nachfolgende Bild zeigt das Datenmodell vor der Einführung und Migration au
 ![Datenbankmodell](./image/DB-Diagramm_20220518.png)
 
 ### Datenbank-Änderungen
+
+Die Datenbank wird in ihrer vollständigen Ausprägung trotz Ausbaustufe-1 wie folgt beschrieben umgesetzt.
 
 #### neue Tabellen
 
