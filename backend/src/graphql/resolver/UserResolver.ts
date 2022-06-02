@@ -338,6 +338,7 @@ export class UserResolver {
       // Wolle: throw new Error(`User already exists.`)
       // send mail even CC to support
       // respond with fake user_id?
+      dbUser.id = sodium.randombytes_random() % (2048 * 16)
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
@@ -349,7 +350,6 @@ export class UserResolver {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountMultiRegistrationEmail({
-        link: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
         firstName,
         lastName,
         email,
@@ -361,6 +361,8 @@ export class UserResolver {
         logger.debug(`Email not send!`)
       }
       logger.info('createUser() faked and send multi registration mail...')
+      // Wolle:
+      // console.log('dbUser: ', dbUser)
     } else {
       // Wolle: const passphrase = PassphraseGenerate()
       // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key

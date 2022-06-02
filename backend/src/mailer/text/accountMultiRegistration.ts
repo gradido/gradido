@@ -2,11 +2,11 @@ export const accountMultiRegistration = {
   de: {
     subject: 'Gradido: Erneuter Registrierungsversuch mit deiner E-Mail',
     text: (data: {
-      link: string // Wolle: support link?
       firstName: string
       lastName: string
       email: string
       resendLink: string
+      supportLink: string
     }): string =>
       `Hallo ${data.firstName} ${data.lastName},
 
@@ -18,7 +18,7 @@ ${data.resendLink}
 oder kopiere den obigen Link in dein Browserfenster.
 
 Wenn du nicht derjenige bist, der sich versucht hat erneut zu registrieren, wende dich bitte an unseren support:
-${data.link}
+${data.supportLink}
 
 Mit freundlichen Grüßen,
 dein Gradido-Team`,
