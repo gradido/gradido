@@ -281,7 +281,7 @@ export class AdminResolver {
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
   @Query(() => [PendingContribution])
   async getPendingCreations(): Promise<PendingContribution[]> {
-    const contributions = await Contribution.find()
+    const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
     if (contributions.length === 0) {
       return []
     }
