@@ -40,10 +40,22 @@ const routes = [
   },
   {
     path: '/login/:code?',
+    name: 'login',
+    component: () => import('@/pages/Login.vue'),
+  },
+  {
+    path: '/contribution-link-login/:code?',
+    name: 'contribution-link-login',
     component: () => import('@/pages/Login.vue'),
   },
   {
     path: '/register/:code?',
+    name: 'register',
+    component: () => import('@/pages/Register.vue'),
+  },
+  {
+    path: '/contribution-link-register/:code?',
+    name: 'contribution-link-register',
     component: () => import('@/pages/Register.vue'),
   },
   {
@@ -73,6 +85,10 @@ const routes = [
   {
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink.vue'),
+  },
+  {
+    path: '/contribution-link/:code',
+    component: () => import('@/pages/ContributionLink.vue'),
   },
   { path: '*', component: NotFound },
 ]

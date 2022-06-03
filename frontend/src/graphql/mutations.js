@@ -50,6 +50,8 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $pathName: String!
+    $contributionCode: String
   ) {
     createUser(
       email: $email
@@ -58,6 +60,8 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      pathName: $pathName
+      contributionCode: $contributionCode
     ) {
       id
     }

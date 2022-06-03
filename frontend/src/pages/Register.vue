@@ -1,5 +1,6 @@
 <template>
   <div id="registerform">
+    {{ this.$route.name }}, {{ this.$route.params }}
     <b-container v-if="enterData">
       <div class="pb-5">
         {{ $t('site.signup.heading') }}
@@ -136,6 +137,8 @@ export default {
             language: this.$store.state.language,
             publisherId: this.$store.state.publisherId,
             redeemCode: this.redeemCode,
+            pathName: this.pathName,
+            contributionCode: this.contributionCode,
           },
         })
         .then(() => {
@@ -169,6 +172,13 @@ export default {
     },
     disabled() {
       return !(this.namesFilled && this.emailFilled && this.form.agree)
+    },
+    pathName() {
+      return this.$route.name
+    },
+    contributionCode() {
+      if (this.pathName === 'contribution-link-register') return this.$route.params.code
+      return null
     },
     enterData() {
       return !this.showPageMessage

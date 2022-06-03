@@ -1,5 +1,6 @@
 <template>
   <div class="login-form">
+    {{ this.$route.name }}, {{ this.$route.params }}
     <b-container v-if="enterData">
       <div class="pb-5">{{ $t('site.login.heading') }}</div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
@@ -76,6 +77,8 @@ export default {
           variables: {
             email: this.form.email,
             password: this.form.password,
+            pathName: this.pathName,
+            code: this.code,
             publisherId: this.$store.state.publisherId,
           },
           fetchPolicy: 'network-only',
@@ -113,6 +116,13 @@ export default {
     },
   },
   computed: {
+    pathName() {
+      return this.$route.name
+    },
+    code() {
+      if (this.pathName === 'contribution-link-login') return this.$route.params.code
+      return null
+    },
     enterData() {
       return !this.showPageMessage
     },
