@@ -69,9 +69,9 @@ export default {
       this.items = [
         {
           id: 1,
-          Name: 'Meditation',
-          Text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-          GDD: '200',
+          name: 'Meditation',
+          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+          gdd: '200',
           startDate: '2022-04-01',
           endDate: '2022-08-01',
           cycle: 'täglich',
@@ -79,9 +79,9 @@ export default {
         },
         {
           id: 2,
-          Name: 'Teamarbeit',
-          Text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
-          GDD: '300',
+          name: 'Teamarbeit',
+          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
+          gdd: '300',
           startDate: '2022-04-01',
           endDate: '2022-12-01',
           cycle: 'monatlich',
@@ -89,9 +89,9 @@ export default {
         },
         {
           id: 3,
-          Name: 'Documenta Kassel 2022',
-          Text: 'New Account Register by Documenta Kassel, Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
-          GDD: '400',
+          name: 'Documenta Kassel 2022',
+          memo: 'New Account Register by Documenta Kassel, Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
+          gdd: '400',
           startDate: '2022-06-18',
           endDate: '2022-10-01',
           cycle: 'null',

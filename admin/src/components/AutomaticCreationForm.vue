@@ -36,16 +36,16 @@
           v-model="form.name"
           size="lg"
           type="text"
-          placeholder="Name Contribution"
+          placeholder="Name"
           required
         ></b-form-input>
       </b-form-group>
       <!-- Desc -->
-      <b-form-group id="input-group-2" label="Beschreibung:">
+      <b-form-group id="input-group-2" label="Nachricht:">
         <b-form-textarea
           v-model="form.text"
           size="lg"
-          placeholder="Text Contribution"
+          placeholder="Memo"
           required
         ></b-form-textarea>
       </b-form-group>

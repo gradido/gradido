@@ -43,9 +43,9 @@ export default {
   data() {
     return {
       fields: [
-        'Name',
-        'Text',
-        'GDD',
+        'name',
+        'memo',
+        'gdd',
         'cycle',
         'repetition',
         { key: 'startDate', label: 'Start' },
