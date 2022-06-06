@@ -35,6 +35,8 @@
   </div>
 </template>
 <script>
+import { deleteAutomaticCreation } from '@/graphql/deleteAutomaticCreation.js'
+
 export default {
   name: 'AutomaticCreationList',
   props: {
@@ -62,21 +64,20 @@ export default {
       this.$bvModal
         .msgBoxConfirm('Automatische Creations wirklich löschen?')
         .then(async (value) => {
-          // if (value)
-          // await this.$apollo
-          //   .mutate({
-          //     mutation: deleteTransactionLink,
-          //     variables: {
-          //       id: this.id,
-          //     },
-          //   })
-          //   .then(() => {
-          //     this.toastSuccess(this.$t('gdd_per_link.deleted'))
-          //     this.$emit('reset-transaction-link-list')
-          //   })
-          //   .catch((err) => {
-          //     this.toastError(err.message)
-          // })
+          if (value)
+            await this.$apollo
+              .mutate({
+                mutation: deleteAutomaticCreation,
+                variables: {
+                  id: this.id,
+                },
+              })
+              .then(() => {
+                this.toastSuccess('TODO: request message deleted ')
+              })
+              .catch((err) => {
+                this.toastError(err.message)
+              })
         })
     },
     editAutomaticCreations(row) {
