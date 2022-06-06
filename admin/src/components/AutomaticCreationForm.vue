@@ -43,7 +43,7 @@
       <!-- Desc -->
       <b-form-group id="input-group-2" label="Nachricht:">
         <b-form-textarea
-          v-model="form.text"
+          v-model="form.memo"
           size="lg"
           placeholder="Memo"
           required
@@ -106,6 +106,7 @@
   </div>
 </template>
 <script>
+import { createAutomaticCreation } from '@/graphql/createAutomaticCreation.js'
 export default {
   name: 'AutomaticCreationForm',
   props: {
@@ -120,7 +121,7 @@ export default {
     return {
       form: {
         name: null,
-        text: null,
+        memo: null,
         amount: null,
         startDate: null,
         endDate: null,
@@ -152,11 +153,32 @@ export default {
       if (this.form.startDate === null) return this.toastError('No start Date')
       if (this.form.endDate === null) return this.toastError('No end Date')
       alert(JSON.stringify(this.form))
+      this.$apollo
+        .mutate({
+          mutation: createAutomaticCreation,
+          variables: {
+            startDate: this.form.startDate,
+            endDate: this.form.endDate,
+            name: this.form.name,
+            amount: this.form.amount,
+            memo: this.form.memo,
+            cycle: this.form.cycle,
+            repetition: this.form.repetition,
+            maxAmount: this.form.maxAmount,
+          },
+        })
+        .then((result) => {
+          this.link = result.data.createAutomaticCreation.link
+          this.toastSuccess(this.link)
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
     onReset(event) {
       event.preventDefault()
       this.form.name = null
-      this.form.text = null
+      this.form.memo = null
       this.form.amount = null
       this.form.startDate = null
       this.form.endDate = null

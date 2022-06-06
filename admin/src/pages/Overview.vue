@@ -33,6 +33,7 @@
 </template>
 <script>
 import { getPendingCreations } from '../graphql/getPendingCreations'
+import { listAutomaticCreations } from '@/graphql/listAutomaticCreations.js'
 import AutomaticCreation from '../components/AutomaticCreation.vue'
 
 export default {
@@ -57,15 +58,18 @@ export default {
         })
     },
     async getAutomaticCreations() {
-      // TODO
-      // this.$apollo
-      //   .query({
-      //     query: getAutomaticCreations,
-      //     fetchPolicy: 'network-only',
-      //   })
-      //   .then((result) => {
-      //
-      //   })
+      this.$apollo
+        .query({
+          query: listAutomaticCreations,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.toastSuccess('TODO! change this.items')
+        })
+        .catch(() => {
+          this.toastError('listAutomaticCreations has no result, use default data')
+        })
+
       this.items = [
         {
           id: 1,
