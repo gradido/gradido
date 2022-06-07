@@ -143,6 +143,7 @@ export default {
   },
   created() {
     this.setTransactionLinkInformation()
+    this.$emit('set-mobile-start', false)
   },
 }
 </script>
