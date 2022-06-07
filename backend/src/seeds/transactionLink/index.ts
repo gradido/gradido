@@ -30,6 +30,10 @@ bei Gradidio sei dabei!`,
     amount: 19.99,
     memo: `Kein Trick, keine Zauberrei,
 bei Gradidio sei dabei!`,
+    // TODO: for testing
+    // memo: `Yeah, eingelöst!`,
+    // redeemedAt: new Date(2022, 2, 2),
+    // redeemedBy: not null,
   },
   {
     email: 'bibi@bloxberg.de',

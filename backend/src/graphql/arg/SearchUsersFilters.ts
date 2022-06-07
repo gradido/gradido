@@ -1,11 +1,10 @@
-import { Field, InputType, ObjectType } from 'type-graphql'
+import { Field, InputType } from 'type-graphql'
 
-@ObjectType()
-@InputType('SearchUsersFiltersInput')
+@InputType()
 export default class SearchUsersFilters {
   @Field(() => Boolean, { nullable: true, defaultValue: null })
-  filterByActivated?: boolean | null
+  byActivated: boolean
 
   @Field(() => Boolean, { nullable: true, defaultValue: null })
-  filterByDeleted?: boolean | null
+  byDeleted: boolean
 }
