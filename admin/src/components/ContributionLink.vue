@@ -2,28 +2,28 @@
   <div>
     <b-card
       border-variant="success"
-      header="Automatic Creations"
+      header="Contribution Link"
       header-bg-variant="success"
       header-text-variant="white"
       header-class="text-center"
       class="mt-5"
     >
       <b-button v-b-toggle.newContribution class="my-3 d-flex justify-content-left">
-        + New Automatic Creations
+        + New Contribution Link
       </b-button>
 
       <b-collapse v-model="visible" id="newContribution" class="mt-2">
         <b-card>
-          <p class="h2 ml-5">Automatic Creations</p>
-          <automatic-creation-form :automaticContributionData="automaticContributionData" />
+          <p class="h2 ml-5">Contribution Links</p>
+          <contribution-link-form :contributionLinkData="contributionLinkData" />
         </b-card>
       </b-collapse>
 
       <b-card-text>
-        <automatic-creation-list
+        <contribution-link-list
           v-if="items.length > 1"
           :items="items"
-          @editAutomaticContributionData="editAutomaticContributionData"
+          @editContributionLinkData="editContributionLinkData"
         />
         <div v-else>Es sind keine automatischen Schöpfungen angelegt.</div>
       </b-card-text>
@@ -31,14 +31,14 @@
   </div>
 </template>
 <script>
-import AutomaticCreationForm from './AutomaticCreationForm.vue'
-import AutomaticCreationList from './AutomaticCreationList.vue'
+import ContributionLinkForm from './ContributionLinkForm.vue'
+import ContributionLinkList from './ContributionLinkList.vue'
 
 export default {
-  name: 'AutomaticCreation',
+  name: 'ContributionLink',
   components: {
-    AutomaticCreationForm,
-    AutomaticCreationList,
+    ContributionLinkForm,
+    ContributionLinkList,
   },
   props: {
     items: {
@@ -49,13 +49,13 @@ export default {
   data: function () {
     return {
       visible: false,
-      automaticContributionData: {},
+      contributionLinkData: {},
     }
   },
   methods: {
-    editAutomaticContributionData(data) {
+    editContributionLinkData(data) {
       if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
-      this.automaticContributionData = data
+      this.contributionLinkData = data
     },
   },
 }

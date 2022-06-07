@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
-export const showAutomaticCreation = gql`
+export const showContributionLink = gql`
   query ($id: Int!) {
-    showAutomaticCreation {
+    showContributionLink {
       id
       startDate
       endDate

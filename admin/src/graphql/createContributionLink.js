@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-export const createAutomaticCreation = gql`
+export const createContributionLink = gql`
   mutation (
     $startDate: String!
     $endDate: String!
@@ -11,7 +11,7 @@ export const createAutomaticCreation = gql`
     $repetition: String
     $maxAmount: Decimal
   ) {
-    createAutomaticCreation(
+    createContributionLink(
       startDate: $startDate
       endDate: $endDate
       name: $name

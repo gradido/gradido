@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
-export const listAutomaticCreations = gql`
+export const listContributionLinks = gql`
   query {
-    listAutomaticCreations {
+    listContributionLinks {
       id
       startDate
       endDate

@@ -28,18 +28,18 @@
         </b-link>
       </b-card-text>
     </b-card>
-    <automatic-creation :items="items" />
+    <contribution-link :items="items" />
   </div>
 </template>
 <script>
 import { getPendingCreations } from '../graphql/getPendingCreations'
-import { listAutomaticCreations } from '@/graphql/listAutomaticCreations.js'
-import AutomaticCreation from '../components/AutomaticCreation.vue'
+import { listContributionLinks } from '@/graphql/listContributionLinks.js'
+import ContributionLink from '../components/ContributionLink.vue'
 
 export default {
   name: 'overview',
   components: {
-    AutomaticCreation,
+    ContributionLink,
   },
   data() {
     return {
@@ -57,17 +57,17 @@ export default {
           this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
         })
     },
-    async getAutomaticCreations() {
+    async getContributionLinks() {
       this.$apollo
         .query({
-          query: listAutomaticCreations,
+          query: listContributionLinks,
           fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.toastSuccess('TODO! change this.items')
         })
         .catch(() => {
-          this.toastError('listAutomaticCreations has no result, use default data')
+          this.toastError('listContributionLinks has no result, use default data')
         })
 
       this.items = [
@@ -81,7 +81,7 @@ export default {
           cycle: 'täglich',
           repetition: '3',
           maxAmount: 0,
-          link: 'https://localhost/redeem/1a2345678',
+          link: 'https://localhost/redeem/CL-1a2345678',
         },
         {
           id: 2,
@@ -93,7 +93,7 @@ export default {
           cycle: 'monatlich',
           repetition: '2',
           maxAmount: 0,
-          link: 'https://localhost/redeem/1b2345678',
+          link: 'https://localhost/redeem/CL-1b2345678',
         },
         {
           id: 3,
@@ -105,14 +105,14 @@ export default {
           cycle: 'null',
           repetition: '1',
           maxAmount: 0,
-          link: 'https://localhost/redeem/1c2345678',
+          link: 'https://localhost/redeem/CL-1c2345678',
         },
       ]
     },
   },
   created() {
     this.getPendingCreations()
-    this.getAutomaticCreations()
+    this.getContributionLinks()
   },
 }
 </script>
