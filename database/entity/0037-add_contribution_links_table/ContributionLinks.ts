@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('contribution_links')
@@ -75,7 +75,7 @@ export class ContributionLinks extends BaseEntity {
   @Column({ name: 'created_at', type: 'datetime', nullable: true, default: null })
   createdAt: Date | null
 
-  @Column({ name: 'deleted_at', type: 'datetime', nullable: true, default: null })
+  @DeleteDateColumn()
   deletedAt: Date | null
 
   @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
