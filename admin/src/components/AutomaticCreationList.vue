@@ -7,12 +7,12 @@
         </b-button>
       </template>
       <template #cell(edit)="data">
-        <b-button variant="success" size="md" class="mr-2" @click="editAutomaticCreations(data)">
+        <b-button variant="success" size="md" class="mr-2" @click="editAutomaticCreations(data.item)">
           <b-icon icon="pencil" variant="light"></b-icon>
         </b-button>
       </template>
       <template #cell(show)="data">
-        <b-button variant="info" size="md" class="mr-2" @click="showAutomaticCreations(data)">
+        <b-button variant="info" size="md" class="mr-2" @click="showAutomaticCreations(data.item)">
           <b-icon icon="eye" variant="light"></b-icon>
         </b-button>
       </template>
@@ -24,11 +24,11 @@
           <h6 class="mb-0">xxx</h6>
         </template>
         <b-card-text>
-          daten + qrCode + link
           {{ modalData }}
+          <figure-qr-code :link="modalData ? modalData.link : ''" />
         </b-card-text>
         <template #footer>
-          <em>link</em>
+          <em>{{ modalData ? modalData.link : '' }}</em>
         </template>
       </b-card>
     </b-modal>
@@ -36,9 +36,13 @@
 </template>
 <script>
 import { deleteAutomaticCreation } from '@/graphql/deleteAutomaticCreation.js'
+import FigureQrCode from './FigureQrCode.vue'
 
 export default {
   name: 'AutomaticCreationList',
+  components: {
+    FigureQrCode,
+  },
   props: {
     items: { type: Array },
   },
@@ -47,7 +51,7 @@ export default {
       fields: [
         'name',
         'memo',
-        'gdd',
+        'amount',
         'cycle',
         'repetition',
         { key: 'startDate', label: 'Start' },
@@ -57,6 +61,7 @@ export default {
         'show',
       ],
       modalData: null,
+      modalDataLink: null,
     }
   },
   methods: {
@@ -81,7 +86,7 @@ export default {
         })
     },
     editAutomaticCreations(row) {
-      this.$emit('editAutomaticContributionData', row.item)
+      this.$emit('editAutomaticContributionData', row)
     },
 
     showAutomaticCreations(row) {

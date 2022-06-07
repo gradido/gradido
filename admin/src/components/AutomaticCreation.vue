@@ -54,8 +54,6 @@ export default {
   },
   methods: {
     editAutomaticContributionData(data) {
-      console.log('start methodes editAutomaticContributionData')
-      console.log(typeof data)
       if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
       this.automaticContributionData = data
     },

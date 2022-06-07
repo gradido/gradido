@@ -131,12 +131,12 @@ export default {
       },
       min: new Date(),
       cycle: [
-        { value: 'no cycle', text: 'null' },
-        { value: 'stündlich', text: 'stündlich' },
-        { value: 'täglich', text: 'täglich' },
-        { value: 'wöchentlich', text: 'wöchentlich' },
-        { value: 'monatlich', text: 'monatlich' },
-        { value: 'jährlich', text: 'jährlich' },
+        { value: 'none', text: 'no cycle' },
+        { value: 'hourly', text: 'stündlich' },
+        { value: 'daily', text: 'täglich' },
+        { value: 'weekly', text: 'wöchentlich' },
+        { value: 'monthly', text: 'monatlich' },
+        { value: 'yearly', text: 'jährlich' },
       ],
       repetition: [
         { value: '1', text: '1 mal' },
@@ -194,6 +194,19 @@ export default {
   computed: {
     updateData() {
       return this.automaticContributionData
+    },
+  },
+  watch: {
+    automaticContributionData() {
+      alert('change automaticContributionData')
+      this.form.name = this.automaticContributionData.name
+      this.form.memo = this.automaticContributionData.memo
+      this.form.amount = this.automaticContributionData.amount
+      this.form.startDate = this.automaticContributionData.startDate
+      this.form.endDate = this.automaticContributionData.endDate
+      this.form.cycle = this.automaticContributionData.cycle
+      this.form.repetition = this.automaticContributionData.repetition
+      this.form.maxAmount = this.automaticContributionData.maxAmount
     },
   },
 }
