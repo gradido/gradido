@@ -1,5 +1,3 @@
-.dbeaver
-.project
 *.log
 /node_modules/*
 messages.pot
