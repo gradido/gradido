@@ -7,7 +7,12 @@
         </b-button>
       </template>
       <template #cell(edit)="data">
-        <b-button variant="success" size="md" class="mr-2" @click="editAutomaticCreations(data.item)">
+        <b-button
+          variant="success"
+          size="md"
+          class="mr-2"
+          @click="editAutomaticCreations(data.item)"
+        >
           <b-icon icon="pencil" variant="light"></b-icon>
         </b-button>
       </template>
