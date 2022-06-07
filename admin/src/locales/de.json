@@ -1,17 +1,17 @@
 {
   "all_emails": "Alle Nutzer",
   "contributionLink": {
-    "repetition":"Wiederholung",
-    "cycle":"Zyclus",
-    "maximumAmount":"maximaler Betrag",
-    "create":"Anlegen",
-    "clear":"Löschen",
-    "startDate":"Start-Datum",
-    "endDate":"End-Datum",
-    "name":"Name",
-    "memo":"Nachricht",
+    "repetition": "Wiederholung",
+    "cycle": "Zyclus",
+    "maximumAmount": "maximaler Betrag",
+    "create": "Anlegen",
+    "clear": "Löschen",
+    "startDate": "Start-Datum",
+    "endDate": "End-Datum",
+    "name": "Name",
+    "memo": "Nachricht",
     "amount": "Betrag",
-    "options" :{
+    "options": {
       "cycle": {
         "null": "Bitter wähle einen Zyclus",
         "none": "kein Zyclus",
@@ -23,11 +23,10 @@
       },
       "repetition": {
         "null": "Bitte wähle eine Wiederholung"
-      },
-      "noStartDate":"Kein Start-Datum gewählt.",
-      "noEndDate":"Kein End-Datum gewählt."
-
-    }
+      }
+    },
+    "noStartDate": "Kein Start-Datum gewählt.",
+    "noEndDate": "Kein End-Datum gewählt."
   },
   "back": "zurück",
   "creation": "Schöpfung",
@@ -103,9 +102,7 @@
   "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
-  "selectOptions": {
-
-  },
+  "selectOptions": {},
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",

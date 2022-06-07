@@ -7,7 +7,7 @@
       <!-- Date -->
       <b-row>
         <b-col>
-          <b-form-group id="input-group-4" :label="$t('contributionLink.startDate')">
+          <b-form-group :label="$t('contributionLink.startDate')">
             <b-form-datepicker
               v-model="form.startDate"
               size="lg"
@@ -19,7 +19,7 @@
           </b-form-group>
         </b-col>
         <b-col>
-          <b-form-group id="input-group-4" :label="$t('contributionLink.endDate')">
+          <b-form-group :label="$t('contributionLink.endDate')">
             <b-form-datepicker
               v-model="form.endDate"
               size="lg"
@@ -33,7 +33,7 @@
       </b-row>
 
       <!-- Name -->
-      <b-form-group id="input-group-1" :label="$t('contributionLink.name')">
+      <b-form-group :label="$t('contributionLink.name')">
         <b-form-input
           v-model="form.name"
           size="lg"
@@ -43,7 +43,7 @@
         ></b-form-input>
       </b-form-group>
       <!-- Desc -->
-      <b-form-group id="input-group-2" :label="$t('contributionLink.memo')">
+      <b-form-group :label="$t('contributionLink.memo')">
         <b-form-textarea
           v-model="form.memo"
           size="lg"
@@ -52,7 +52,7 @@
         ></b-form-textarea>
       </b-form-group>
       <!-- Amount -->
-      <b-form-group id="input-group-3" :label="$t('contributionLink.amount')">
+      <b-form-group :label="$t('contributionLink.amount')">
         <b-form-input
           v-model="form.amount"
           size="lg"
@@ -98,7 +98,9 @@
       </b-jumbotron>
       <div class="mt-6">
         <b-button type="submit" variant="primary">{{ $t('contributionLink.create') }}</b-button>
-        <b-button type="reset" variant="danger" @click.prevent="onReset">{{ $t('contributionLink.clear') }}</b-button>
+        <b-button type="reset" variant="danger" @click.prevent="onReset">
+          {{ $t('contributionLink.clear') }}
+        </b-button>
       </div>
     </b-form>
   </div>

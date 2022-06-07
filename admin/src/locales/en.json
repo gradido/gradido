@@ -1,17 +1,17 @@
 {
   "all_emails": "All users",
   "contributionLink": {
-    "repetition":"Repetition",
-    "cycle":"Cycle",
-    "maximumAmount":"Maximum amount",
-    "create":"Create",
-    "clear":"Clear",
-    "startDate":"Start-Date",
-    "endDate":"End-Date",
-    "name":"Name",
-    "memo":"Memo",
+    "repetition": "Repetition",
+    "cycle": "Cycle",
+    "maximumAmount": "Maximum amount",
+    "create": "Create",
+    "clear": "Clear",
+    "startDate": "Start-Date",
+    "endDate": "End-Date",
+    "name": "Name",
+    "memo": "Memo",
     "amount": "Amount",
-    "options" :{
+    "options": {
       "cycle": {
         "null": "Please select an cycle",
         "none": "no cycle",
@@ -23,10 +23,10 @@
       },
       "repetition": {
         "null": "Please select an repetition"
-      },
-      "noStartDate":"No start Date",
-      "noEndDate":"No end Date"
-    }
+      }
+    },
+    "noStartDate": "No start Date",
+    "noEndDate": "No end Date"
   },
   "back": "back",
   "creation": "Creation",
