@@ -2,28 +2,6 @@ import Decimal from 'decimal.js-light'
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
-export enum CycleTypes {
-  ONCE = 1,
-  HOUR = 2,
-  TWOHOURS = 3,
-  FOURHOURS = 4,
-  EIGHTHOURS = 5,
-  HALFDAY = 6,
-  DAY = 7,
-  TWODAYS = 8,
-  THREEDAYS = 9,
-  FOURDAYS = 10,
-  FIVEDAYS = 11,
-  SIXDAYS = 12,
-  WEEK = 13,
-  TWOWEEKS = 14,
-  MONTH = 15,
-  TWOMONTH = 16,
-  QUARTER = 17,
-  HALFYEAR = 18,
-  YEAR = 19,
-}
-
 @Entity('contribution_links')
 export class ContributionLinks extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
@@ -50,8 +28,8 @@ export class ContributionLinks extends BaseEntity {
   })
   amount: Decimal
 
-  @Column({ name: 'cycle', unsigned: true, nullable: false })
-  cycle: number
+  @Column({ length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  cycle: string
 
   @Column({ name: 'max_per_cycle', unsigned: true, nullable: false, default: 1 })
   maxPerCycle: number
