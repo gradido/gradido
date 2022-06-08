@@ -25,7 +25,6 @@ describe('ContributionLink', () => {
 
     it('emits toggle::collapse new Contribution', async () => {
       wrapper.vm.editContributionLinkData()
-      // expect(wrapper.emitted('bv::toggle::collapse', 'newContribution')).toBeTruthy()
       expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
     })
   })
