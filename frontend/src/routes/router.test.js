@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(16)
+        expect(routes).toHaveLength(17)
       })
 
       describe('overview', () => {
@@ -94,6 +94,17 @@ describe('router', () => {
         it('loads the "Transactions" page', async () => {
           const component = await routes.find((r) => r.path === '/transactions').component()
           expect(component.default.name).toBe('Transactions')
+        })
+      })
+
+      describe('community', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Community" page', async () => {
+          const component = await routes.find((r) => r.path === '/community').component()
+          expect(component.default.name).toBe('Community')
         })
       })
 

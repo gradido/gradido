@@ -50,7 +50,7 @@
 import CONFIG from '@/config'
 
 export default {
-  name: 'community',
+  name: 'Community',
   data() {
     return {
       CONFIG,
