@@ -34,6 +34,20 @@
       </ul>
       <mail>suport@gradido.net</mail>
     </b-container>
+    <hr />
+    <b-container>
+      <div class="h3">Statistik</div>
+      <div>
+        <div>
+          Mitglieder
+          <span class="h4">1203</span>
+        </div>
+        <div>
+          Mitglieder
+          <span class="h4">1203</span>
+        </div>
+      </div>
+    </b-container>
   </div>
 </template>
 <script>
