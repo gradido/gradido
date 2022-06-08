@@ -1,7 +1,6 @@
 import { registerEnumType } from 'type-graphql'
 
 export enum ContributionCycleType {
-  NONE = 'none',
   ONCE = 'once',
   HOUR = 'hour',
   TWO_HOURS = 'two_hours',
