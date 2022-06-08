@@ -11,7 +11,7 @@ export class ContributionLinks extends BaseEntity {
   name: string
 
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  description: string
+  memo: string
 
   @Column({ name: 'valid_from', type: 'datetime', nullable: true, default: null })
   validFrom: Date | null
