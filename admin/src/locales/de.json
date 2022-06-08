@@ -103,5 +103,10 @@
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
+  "userRole": {
+    "tabTitle": "Nutzer-Rolle / -Rechte",
+    "notChangeYourSelf": "Als Admin / Moderator kannst du nicht selber deine Rolle ändern.",
+    "selectLabel": "Rolle:"
+  },
   "user_search": "Nutzer-Suche"
 }

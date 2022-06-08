@@ -71,7 +71,7 @@
   },
   "redeemed": "redeemed",
   "remove": "Remove",
-  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
+  "removeNotSelf": "As admin / moderator you can not delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
   "status": "Status",
@@ -103,5 +103,10 @@
   },
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",
+  "userRole": {
+    "tabTitle": "User Role / Rights",
+    "notChangeYourSelf": "As admin / moderator you can not change your own role.",
+    "selectLabel": "Role:"
+  },
   "user_search": "User search"
 }

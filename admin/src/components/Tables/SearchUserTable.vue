@@ -79,6 +79,9 @@
             <b-tab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
               <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
+            <b-tab :title="$t('userRole.tabTitle')">
+              <change-user-role-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+            </b-tab>
             <b-tab :title="$t('delete_user')">
               <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
             </b-tab>
@@ -93,6 +96,7 @@ import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
 import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
+import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 export default {
@@ -102,6 +106,7 @@ export default {
     ConfirmRegisterMailFormular,
     CreationTransactionList,
     TransactionLinkList,
+    ChangeUserRoleFormular,
     DeletedUserFormular,
   },
   props: {
