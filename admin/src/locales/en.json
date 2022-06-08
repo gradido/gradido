@@ -21,12 +21,12 @@
         "hourly": "hourly",
         "monthly": "monthly",
         "none": "no cycle",
-        "null": "Please select a cycle",
+        "null": "please select a cycle",
         "weekly": "weekly",
         "yearly": "yearly"
       },
       "repetition": {
-        "null": "Please select a repetition"
+        "null": "please select a repetition"
       }
     },
     "repetition": "Repetition",
