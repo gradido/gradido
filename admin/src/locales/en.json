@@ -26,7 +26,7 @@
         "yearly": "yearly"
       },
       "repetition": {
-        "null": "Please select an repetition"
+        "null": "Please select a repetition"
       }
     },
     "repetition": "Repetition",
