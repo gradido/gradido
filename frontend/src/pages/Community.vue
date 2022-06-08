@@ -42,10 +42,6 @@
           Mitglieder
           <span class="h4">1203</span>
         </div>
-        <div>
-          Mitglieder
-          <span class="h4">1203</span>
-        </div>
       </div>
     </b-container>
   </div>
