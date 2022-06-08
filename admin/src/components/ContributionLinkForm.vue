@@ -134,7 +134,6 @@ export default {
       min: new Date(),
       cycle: [
         { value: null, text: this.$t('contributionLink.options.cycle.null') },
-        { value: 'none', text: this.$t('contributionLink.options.cycle.none') },
         { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
         { value: 'daily', text: this.$t('contributionLink.options.cycle.daily') },
         { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },
@@ -142,7 +141,7 @@ export default {
         { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },
       ],
       repetition: [
-        { value: null, text: 'Please select an repetition' },
+        { value: null, text: this.$t('contributionLink.options.repetition.null') },
         { value: '1', text: '1 x' },
         { value: '2', text: '2 x' },
         { value: '3', text: '3 x' },
@@ -183,9 +182,6 @@ export default {
       this.$refs.contributionLinkForm.reset()
       this.form.startDate = null
       this.form.endDate = null
-    },
-    updateForm() {
-      alert('updateForm')
     },
   },
   computed: {

@@ -3,10 +3,11 @@ import ContributionLinkForm from './ContributionLinkForm.vue'
 
 const localVue = global.localVue
 
+global.alert = jest.fn()
+
 const propsData = {
   contributionLinkData: {},
 }
-jest.spyOn(window, 'alert').mockReturnValue()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -25,19 +26,39 @@ describe('ContributionLinkForm', () => {
     })
 
     it('renders the Div Element ".contribution-link-form"', () => {
-      expect(wrapper.find('div.contribution-link-form').exists()).toBeTruthy()
-    })
-
-    it('function onSubmit', () => {
-      wrapper.vm.onSubmit()
+      expect(wrapper.find('div.contribution-link-form').exists()).toBe(true)
     })
 
     it('function onReset', () => {
-      wrapper.vm.onReset()
+      beforeEach(() => {
+        wrapper.setData({
+          form: {
+            name: 'name',
+            memo: 'memo',
+            amount: 100,
+            startDate: 'startDate',
+            endDate: 'endDate',
+            cycle: 'cycle',
+            repetition: 'repetition',
+            maxAmount: 100,
+          },
+        })
+        wrapper.vm.onReset()
+      })
+      expect(wrapper.vm.form).toEqual({
+        amount: null,
+        cycle: null,
+        endDate: null,
+        maxAmount: null,
+        memo: null,
+        name: null,
+        repetition: null,
+        startDate: null,
+      })
     })
 
-    it('function updateForm', () => {
-      wrapper.vm.updateForm()
+    it('onSubmit valid form', () => {
+      wrapper.vm.onSubmit()
     })
   })
 })
