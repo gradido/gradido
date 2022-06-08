@@ -2,19 +2,19 @@
   <div>
     <b-card
       border-variant="success"
-      header="Contribution Link"
+      :header="$t('contributionLink.contributionLinks')"
       header-bg-variant="success"
       header-text-variant="white"
       header-class="text-center"
       class="mt-5"
     >
       <b-button v-b-toggle.newContribution class="my-3 d-flex justify-content-left">
-        + New Contribution Link
+        {{ $t('math.plus') }} {{ $t('contributionLink.newContributionLink') }}
       </b-button>
 
       <b-collapse v-model="visible" id="newContribution" class="mt-2">
         <b-card>
-          <p class="h2 ml-5">Contribution Links</p>
+          <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form :contributionLinkData="contributionLinkData" />
         </b-card>
       </b-collapse>
@@ -25,7 +25,7 @@
           :items="items"
           @editContributionLinkData="editContributionLinkData"
         />
-        <div v-else>Es sind keine automatischen Schöpfungen angelegt.</div>
+        <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
       </b-card-text>
     </b-card>
   </div>

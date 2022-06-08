@@ -4,12 +4,15 @@
   "contributionLink": {
     "amount": "Amount",
     "clear": "Clear",
+    "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
     "endDate": "End-Date",
     "maximumAmount": "Maximum amount",
     "memo": "Memo",
     "name": "Name",
+    "newContributionLink": "New Contribution Link",
+    "noContributionLinks": "No contribution links have been created.",
     "noEndDate": "No end Date",
     "noStartDate": "No start Date",
     "options": {
@@ -72,7 +75,8 @@
   "lastname": "Lastname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",

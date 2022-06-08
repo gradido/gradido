@@ -4,12 +4,15 @@
   "contributionLink": {
     "amount": "Betrag",
     "clear": "Löschen",
+    "contributionLinks": "Contribution Links",
     "create": "Anlegen",
     "cycle": "Zyclus",
     "endDate": "End-Datum",
     "maximumAmount": "maximaler Betrag",
     "memo": "Nachricht",
     "name": "Name",
+    "newContributionLink": "Neuer Contribution Link",
+    "noContributionLinks": "Es sind keine Contribution Links angelegt.",
     "noEndDate": "Kein End-Datum gewählt.",
     "noStartDate": "Kein Start-Datum gewählt.",
     "options": {
@@ -72,7 +75,8 @@
   "lastname": "Nachname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",

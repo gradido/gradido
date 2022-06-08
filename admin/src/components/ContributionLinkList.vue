@@ -21,7 +21,7 @@
     <b-modal ref="my-modal" ok-only hide-header-close>
       <b-card header-tag="header" footer-tag="footer">
         <template #header>
-          <h6 class="mb-0">xxx</h6>
+          <h6 class="mb-0">{{ modalData ? modalData.name : '' }}</h6>
         </template>
         <b-card-text>
           {{ modalData }}
