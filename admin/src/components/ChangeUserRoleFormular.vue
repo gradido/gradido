@@ -42,8 +42,8 @@ export default {
       // Wolle: checked: false,
       roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
       roles: [
-        { value: rolesValues.user, text: 'einfacher Nutzer' },
-        { value: rolesValues.admin, text: 'Administrator' },
+        { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
+        { value: rolesValues.admin, text: this.$t('userRole.selectRoles.admin') },
       ],
     }
   },

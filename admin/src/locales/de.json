@@ -101,12 +101,16 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
+  "userRole": {
+    "notChangeYourSelf": "Als Admin / Moderator kannst du nicht selber deine Rolle ändern.",
+    "selectLabel": "Rolle:",
+    "selectRoles": {
+      "admin": "Administrator",
+      "user": "einfacher Nutzer"
+    },
+    "tabTitle": "Nutzer-Rolle / -Rechte"
+  },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
-  "userRole": {
-    "tabTitle": "Nutzer-Rolle / -Rechte",
-    "notChangeYourSelf": "Als Admin / Moderator kannst du nicht selber deine Rolle ändern.",
-    "selectLabel": "Rolle:"
-  },
   "user_search": "Nutzer-Suche"
 }
