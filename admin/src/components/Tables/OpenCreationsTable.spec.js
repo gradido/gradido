@@ -125,35 +125,5 @@ describe('OpenCreationsTable', () => {
         expect(wrapper.find('div.component-edit-creation-formular').exists()).toBeTruthy()
       })
     })
-
-    describe('updateCreationData', () => {
-      beforeEach(() => {
-        wrapper.setData({
-          creationUserData: {
-            amount: 100,
-            date: '',
-            memo: '',
-            moderator: 1,
-          },
-        })
-        wrapper.vm.updateCreationData()
-      })
-      it('function updateCreationData', () => {
-        expect(wrapper.vm.creationUserData).toEqual({
-          amount: 100,
-          date: '',
-          memo: '',
-          moderator: 1,
-        })
-      })
-    })
-
-    describe('updateUserData', () => {
-      it('function updateUserData', () => {
-        beforeEach(() => {
-          wrapper.vm.updateUserData()
-        })
-      })
-    })
   })
 })
