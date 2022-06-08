@@ -23,8 +23,8 @@ describe('FigureQrCode', () => {
       expect(wrapper.find('div.figure-qr-code').exists()).toBe(true)
     })
 
-    it('renders the Div Element "q-r-canvas"', () => {
-      expect(wrapper.find('q-r-canvas'))
+    it('renders the QRCanvas Element ".canvas"', () => {
+      expect(wrapper.find('.canvas').exists()).toBe(true)
     })
   })
 })
