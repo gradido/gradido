@@ -21,7 +21,7 @@
         "hourly": "hourly",
         "monthly": "monthly",
         "none": "no cycle",
-        "null": "Please select an cycle",
+        "null": "Please select a cycle",
         "weekly": "weekly",
         "yearly": "yearly"
       },
