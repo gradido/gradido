@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType } from 'type-graphql'
+import { ArgsType, Field, Int, InputType } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @InputType()
