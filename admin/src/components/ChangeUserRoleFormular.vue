@@ -1,30 +1,29 @@
 <template>
   <div class="change-user-role-formular">
-    <div v-if="item.userId === $store.state.moderator.id" class="mt-5 mb-5">
-      {{ $t('userRole.notChangeYourSelf') }}
-    </div>
-    <!-- Wolle: <div v-else class="mt-5"> -->
-    <div class="mt-5">
-      <!-- Wolle: <b-form-checkbox switch size="lg" v-model="checked">
-        <div>{{ item.deletedAt ? $t('undelete_user') : $t('delete_user') }}</div>
-      </b-form-checkbox>
-
-      <div class="mt-3 mb-5">
-        <b-button v-if="checked && item.deletedAt === null" variant="danger" @click="deleteUser">
-          {{ $t('delete_user') }}
-        </b-button>
-        <b-button v-if="checked && item.deletedAt !== null" variant="success" @click="unDeleteUser">
-          {{ $t('undelete_user') }}
-        </b-button>
-      </div> -->
-      {{ $t('userRole.selectLabel') }}
-      <b-form-select v-model="selected" :options="options"></b-form-select>
+    <div class="shadow p-3 mb-5 bg-white rounded">
+      <div v-if="item.userId === $store.state.moderator.id" class="m-3 mb-4">
+        {{ $t('userRole.notChangeYourSelf') }}
+      </div>
+      <div class="m-3">
+        <label for="role" class="mr-3">{{ $t('userRole.selectLabel') }}</label>
+        <b-form-select
+          class="role-select"
+          v-model="roleSelected"
+          :options="roles"
+          :disabled="item.userId === $store.state.moderator.id"
+        />
+      </div>
     </div>
   </div>
 </template>
 <script>
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
+
+const rolesValues = {
+  admin: 'admin',
+  user: 'user',
+}
 
 export default {
   name: 'ChangeUserRoleFormular',
@@ -36,15 +35,25 @@ export default {
   },
   data() {
     // Wolle
-    console.log('this.item: ', this.item)
+    // console.log('this.item: ', this.item)
+    // console.log('this.item.isAdmin: ', this.item.isAdmin)
+    // console.log('roleSelected: ', this.item.isAdmin ? 'admin' : 'user')
     return {
       // Wolle: checked: false,
-      selected: this.item.isAmin ? 'admin' : 'user',
-      options: [
-        { value: 'user', text: 'einfacher Nutzer' },
-        { value: 'admin', text: 'Administrator' },
+      roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
+      roles: [
+        { value: rolesValues.user, text: 'einfacher Nutzer' },
+        { value: rolesValues.admin, text: 'Administrator' },
       ],
     }
+  },
+  watch: {
+    roleSelected(newRole, oldRole) {
+      if (newRole !== oldRole) {
+        // Wolle
+        console.log('newRole: ', newRole)
+      }
+    },
   },
   methods: {
     // Wolle: deleteUser() {
@@ -90,7 +99,7 @@ export default {
 }
 </script>
 <style>
-.input-group-text {
-  background-color: rgb(255, 252, 205);
+.role-select {
+  width: 300pt;
 }
 </style>
