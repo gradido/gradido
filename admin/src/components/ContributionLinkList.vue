@@ -1,8 +1,13 @@
 <template>
-  <div>
+  <div class="contribution-link-list">
     <b-table striped hover :items="items" :fields="fields">
       <template #cell(delete)>
-        <b-button variant="danger" size="md" class="mr-2" @click="deleteContributionLink">
+        <b-button
+          variant="danger"
+          size="md"
+          class="mr-2 test-delete-link"
+          @click="deleteContributionLink"
+        >
           <b-icon icon="trash" variant="light"></b-icon>
         </b-button>
       </template>
