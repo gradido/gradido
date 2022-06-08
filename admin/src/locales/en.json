@@ -13,8 +13,8 @@
     "name": "Name",
     "newContributionLink": "New contribution link",
     "noContributionLinks": "No contribution links have been created.",
-    "noEndDate": "No end-date",
     "noDateSelected": "No date selected",
+    "noEndDate": "No end-date",
     "noStartDate": "No start-date",
     "options": {
       "cycle": {

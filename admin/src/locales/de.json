@@ -13,8 +13,8 @@
     "name": "Name",
     "newContributionLink": "Neuer Beitragslink",
     "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
-    "noEndDate": "Kein Enddatum gewählt.",
     "noDateSelected": "Kein Datum ausgewählt",
+    "noEndDate": "Kein Enddatum gewählt.",
     "noStartDate": "Kein Startdatum gewählt.",
     "options": {
       "cycle": {
