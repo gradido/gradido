@@ -1,34 +1,34 @@
 {
   "all_emails": "Alle Nutzer",
+  "back": "zurück",
   "contributionLink": {
-    "repetition": "Wiederholung",
-    "cycle": "Zyclus",
-    "maximumAmount": "maximaler Betrag",
-    "create": "Anlegen",
-    "clear": "Löschen",
-    "startDate": "Start-Datum",
-    "endDate": "End-Datum",
-    "name": "Name",
-    "memo": "Nachricht",
     "amount": "Betrag",
+    "clear": "Löschen",
+    "create": "Anlegen",
+    "cycle": "Zyclus",
+    "endDate": "End-Datum",
+    "maximumAmount": "maximaler Betrag",
+    "memo": "Nachricht",
+    "name": "Name",
+    "noEndDate": "Kein End-Datum gewählt.",
+    "noStartDate": "Kein Start-Datum gewählt.",
     "options": {
       "cycle": {
-        "null": "Bitter wähle einen Zyclus",
-        "none": "kein Zyclus",
-        "hourly": "stündlich",
         "daily": "täglich",
-        "weekly": "wöchentlich",
+        "hourly": "stündlich",
         "monthly": "monatlich",
+        "none": "kein Zyclus",
+        "null": "Bitter wähle einen Zyclus",
+        "weekly": "wöchentlich",
         "yearly": "jährlich"
       },
       "repetition": {
         "null": "Bitte wähle eine Wiederholung"
       }
     },
-    "noStartDate": "Kein Start-Datum gewählt.",
-    "noEndDate": "Kein End-Datum gewählt."
+    "repetition": "Wiederholung",
+    "startDate": "Start-Datum"
   },
-  "back": "zurück",
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
