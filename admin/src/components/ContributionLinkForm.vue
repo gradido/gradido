@@ -14,6 +14,7 @@
               :min="min"
               class="mb-4"
               reset-value=""
+              :label-no-date-selected="$t('contributionLink.noDateSelected')"
               required
             ></b-form-datepicker>
           </b-form-group>
@@ -26,6 +27,7 @@
               :min="form.startDate ? form.startDate : min"
               class="mb-4"
               reset-value=""
+              :label-no-date-selected="$t('contributionLink.noDateSelected')"
               required
             ></b-form-datepicker>
           </b-form-group>
