@@ -67,7 +67,15 @@ export class AdminResolver {
       }
     }
 
-    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
+    const userFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'emailChecked',
+      'deletedAt',
+      'isAdmin',
+    ]
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
