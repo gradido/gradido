@@ -39,6 +39,13 @@ const routes = [
     },
   },
   {
+    path: '/community',
+    component: () => import('@/pages/Community.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/login/:code?',
     component: () => import('@/pages/Login.vue'),
   },

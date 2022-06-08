@@ -144,3 +144,18 @@ export const listTransactionLinks = gql`
     }
   }
 `
+
+export const listContributionLinks = gql`
+  query {
+    listContributionLinks {
+      startDate
+      endDate
+      name
+      memo
+      amount
+      cycle
+      repetition
+      maxAmount
+    }
+  }
+`
