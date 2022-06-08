@@ -39,12 +39,22 @@ import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
 import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { ContributionLinks as dbContributionLinks } from '@entity/ContributionLinks'
+import CreateContributionLinkArgs from '@arg/CreateContributionLinkArgs'
+import { ContributionCycleType } from '@enum/ContributionCycleType'
 import CONFIG from '@/config'
+import { backendLogger as logger } from '@/server/logger'
+import _ from 'lodash'
+import { randomBytes } from 'crypto'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 const MAX_CREATION_AMOUNT = new Decimal(1000)
 const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
+const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
+const CONTRIBUTIONLINK_NAME_MIN_CHARS = 5
+const CONTRIBUTIONLINK_MEMO_MAX_CHARS = 255
+const CONTRIBUTIONLINK_MEMO_MIN_CHARS = 5
 
 @Resolver()
 export class AdminResolver {
@@ -460,6 +470,77 @@ export class AdminResolver {
       linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
     }
   }
+
+  @Authorized([RIGHTS.CONTRIBUTION_LINK_CREATE])
+  @Mutation(() => dbContributionLinks)
+  async createContributionLink(
+    @Args()
+    {
+      startDate,
+      endDate,
+      name,
+      amount,
+      memo,
+      cycle,
+      repetition,
+      maxAmount,
+    }: CreateContributionLinkArgs,
+    @Ctx() context: Context,
+  ): Promise<dbContributionLinks> {
+    if (!isStartEndDateValid(startDate, endDate)) {
+      logger.error(`The startDate=${startDate} must be before or equals the endDate=${endDate}!`)
+      throw new Error(`The startDate=${startDate} must be before or equals the endDate=${endDate}!`)
+    }
+    if (name == null) {
+      logger.error(`The name must be initialized!`)
+      throw new Error(`The name must be initialized!`)
+    }
+    if (
+      name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS ||
+      name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS
+    ) {
+      const msg = `The name=${name} with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (amount == null) {
+      logger.error(`The amount must be initialized!`)
+      throw new Error('The amount must be initialized!')
+    }
+    const amountObj = new Decimal(amount)
+    const moderator = getUser(context)
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+    if (amountObj.isZero || amountObj.isNegative()) {
+      logger.error(`The amount=${amount} must be initialized with a positiv value!`)
+      throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
+    }
+    const contributionLink = dbContributionLinks.create()
+    contributionLink.amount = amount
+    contributionLink.code = contributionLinkCode(startDateObj)
+    contributionLink.createdAt = new Date()
+    contributionLink.cycle = cycle //  ? cycle : ContributionCycleType.NONE
+    contributionLink.deletedAt = null
+    contributionLink.linkEnabled = true
+    /* not supported in the 1st expansion stage
+        contributionLink.maxAccountBalance = null
+    */
+    contributionLink.maxAmountPerMonth = maxAmount
+    contributionLink.maxPerCycle = repetition
+    contributionLink.memo = memo
+    /* not supported in the 1st expansion stage
+        contributionLink.minGapHours = null
+    */
+    contributionLink.name = name
+    /* not supported in the 1st expansion stage
+        contributionLink.totalMaxCountOfContribution = null
+    */
+    contributionLink.validFrom = startDateObj
+    contributionLink.validTo = endDateObj
+
+    await dbContributionLinks.save(contributionLink)
+    return dbContributionLinks.findOneOrFail(contributionLink.code)
+  }
 }
 
 interface CreationMap {
@@ -541,6 +622,29 @@ function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Da
   return true
 }
 
+function isStartEndDateValid(startDate: string, endDate: string) {
+  if (startDate == null && endDate == null) {
+    logger.error('Start- and End-Date are not initialized. At least a startDate must be set!')
+    throw new Error('Start- and End-Date are not initialized. At least a startDate must be set!')
+  }
+
+  if (startDate == null) {
+    logger.error('StartDate is not initialized. At least a startDate must be set!')
+    throw new Error('Start-Date is not initialized. At least a startDate must be set!')
+  }
+
+  if (startDate != null && endDate != null) {
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+
+    // check if endDate is before startDate
+    if (endDateObj.getTime() - startDateObj.getTime() < 0) {
+      return false
+    }
+  }
+  return true
+}
+
 const getCreationMonths = (): number[] => {
   const now = new Date(Date.now())
   return [
@@ -553,3 +657,13 @@ const getCreationMonths = (): number[] => {
 const getCreationIndex = (month: number): number => {
   return getCreationMonths().findIndex((el) => el === month + 1)
 }
+
+const contributionLinkCode = (date: Date): string => {
+  const time = date.getTime().toString(16)
+  return (
+    randomBytes(12)
+      .toString('hex')
+      .substring(0, 24 - time.length) + time
+  )
+}
+
