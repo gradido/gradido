@@ -15,7 +15,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`valid_from\` datetime NULL,
         \`valid_to\` datetime NULL,
         \`amount\` bigint(20) NOT NULL,
-        \`cycle\` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NONE',
+        \`cycle\` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ONCE',
         \`max_per_cycle\` int(10) unsigned NOT NULL DEFAULT '1',
         \`max_amount_per_month\` bigint(20) NULL DEFAULT NULL,
         \`total_max_count_of_contribution\` int(10) unsigned NULL DEFAULT NULL,
