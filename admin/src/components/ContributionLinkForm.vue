@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="contribution-link-form">
     <div v-if="updateData" class="text-light bg-info p-3">
       {{ updateData }}
     </div>
