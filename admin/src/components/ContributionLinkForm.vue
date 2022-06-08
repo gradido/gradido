@@ -193,7 +193,7 @@ export default {
   },
   watch: {
     contributionLinkData() {
-      alert('change contributionLinkData')
+      // alert('change contributionLinkData')
       this.form.name = this.contributionLinkData.name
       this.form.memo = this.contributionLinkData.memo
       this.form.amount = this.contributionLinkData.amount

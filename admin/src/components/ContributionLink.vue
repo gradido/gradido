@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="contribution-link">
     <b-card
       border-variant="success"
       :header="$t('contributionLink.contributionLinks')"
