@@ -4,15 +4,15 @@
   "contributionLink": {
     "amount": "Betrag",
     "clear": "Löschen",
-    "contributionLinks": "Contribution-Links",
+    "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
     "endDate": "Enddatum",
     "maximumAmount": "maximaler Betrag",
     "memo": "Nachricht",
     "name": "Name",
-    "newContributionLink": "Neuer Contribution-Link",
-    "noContributionLinks": "Es sind keine Contribution-Links angelegt.",
+    "newContributionLink": "Neuer Beitragslink",
+    "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
     "noEndDate": "Kein Enddatum gewählt.",
     "noStartDate": "Kein Startdatum gewählt.",
     "options": {
