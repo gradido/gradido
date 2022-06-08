@@ -41,7 +41,7 @@ import { checkOptInCode, activationLink, printTimeDuration } from './UserResolve
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { ContributionLinks as dbContributionLinks } from '@entity/ContributionLinks'
 import CreateContributionLinkArgs from '@arg/CreateContributionLinkArgs'
-import { ContributionCycleType } from '@enum/ContributionCycleType'
+import { ContributionLink } from '../model/ContributionLink'
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import _ from 'lodash'
@@ -472,7 +472,7 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.CONTRIBUTION_LINK_CREATE])
-  @Mutation(() => dbContributionLinks)
+  @Mutation(() => ContributionLink)
   async createContributionLink(
     @Args()
     {
@@ -486,7 +486,10 @@ export class AdminResolver {
       maxAmount,
     }: CreateContributionLinkArgs,
     @Ctx() context: Context,
-  ): Promise<dbContributionLinks> {
+  ): Promise<ContributionLink> {
+    logger.trace(
+      `createContributionLink(startDate=${startDate}, endDate=${endDate}, name=${name}, amount=${amount}, memo=${memo}, cycle=${cycle}, repetition=${repetition}, maxAmount=${maxAmount})`,
+    )
     if (!isStartEndDateValid(startDate, endDate)) {
       logger.error(`The startDate=${startDate} must be before or equals the endDate=${endDate}!`)
       throw new Error(`The startDate=${startDate} must be before or equals the endDate=${endDate}!`)
@@ -539,7 +542,7 @@ export class AdminResolver {
     contributionLink.validTo = endDateObj
 
     await dbContributionLinks.save(contributionLink)
-    return dbContributionLinks.findOneOrFail(contributionLink.code)
+    return new ContributionLink(await dbContributionLinks.findOneOrFail(contributionLink.code))
   }
 }
 
