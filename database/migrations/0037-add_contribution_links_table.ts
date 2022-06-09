@@ -12,7 +12,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
         \`name\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
         \`decsription\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-        \`valid_from\` datetime NULL,
+        \`valid_from\` datetime NOT NULL,
         \`valid_to\` datetime NULL,
         \`amount\` bigint(20) NOT NULL,
         \`cycle\` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ONCE',
