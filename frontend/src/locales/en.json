@@ -24,7 +24,12 @@
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
     "other-communities": "Other communities",
-    "switch-to-this-community": "Switch to this community"
+    "switch-to-this-community": "Switch to this community",
+    "openContributionLinks": "open Contribution links list",
+    "openContributionLinkText":"The following automatic creations are currently provided by the '{_name_}' community.",
+    "moderators":"Moderators",
+    "Statistic": "Statistics",
+    "members":"Members"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",

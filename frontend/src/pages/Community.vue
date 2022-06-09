@@ -13,10 +13,9 @@
 
     <hr />
     <b-container>
-      <div class="h3">öffentliche Beitragslinkliste</div>
+      <div class="h3">{{ $t('community.openContributionLinks') }}</div>
       <small>
-        Folgende automatische Schöpfungen werden zur Zeit durch die Gemeinschaft
-        {{ CONFIG.COMMUNITY_NAME }} bereitgestellt.
+        {{ $t('community.openContributionLinkText', { _name_: CONFIG.COMMUNITY_NAME }) }}
       </small>
       <ul>
         <li>1</li>
@@ -26,20 +25,20 @@
     </b-container>
     <hr />
     <b-container>
-      <div class="h3">Moderatoren</div>
+      <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
-        <li>Bernd Hückstedt</li>
+        <li>Bernd</li>
         <li>Elfi</li>
         <li>Manuela</li>
       </ul>
-      <mail>suport@gradido.net</mail>
+      <mail>support@supportemail.de</mail>
     </b-container>
     <hr />
     <b-container>
-      <div class="h3">Statistik</div>
+      <div class="h3">{{ $t('community.statistic') }}</div>
       <div>
         <div>
-          Mitglieder
+          {{ $t('community.members') }}
           <span class="h4">1203</span>
         </div>
       </div>

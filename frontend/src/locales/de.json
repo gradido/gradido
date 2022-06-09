@@ -24,7 +24,12 @@
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
     "other-communities": "Weitere Gemeinschaften",
-    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
+    "switch-to-this-community": "zu dieser Gemeinschaft wechseln",
+    "openContributionLinks": "öffentliche Beitragslinklist",
+    "openContributionLinkText":"Folgende automatische Schöpfungen werden zur Zeit durch die Gemeinschaft '{_name_}' bereitgestellt.",
+    "moderators":"Moderatoren",
+    "statistic": "Statistik",
+    "members":"Mitglieder"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
