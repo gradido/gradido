@@ -50,16 +50,6 @@ describe('ForgotPassword', () => {
       expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
-    describe('back button', () => {
-      it('has a "back" button', () => {
-        expect(wrapper.findComponent(RouterLinkStub).text()).toEqual('back')
-      })
-
-      it('links to login', () => {
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual('/login')
-      })
-    })
-
     describe('input form', () => {
       let form
 

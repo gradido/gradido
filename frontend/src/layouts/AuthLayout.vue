@@ -16,7 +16,11 @@
           <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
           <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
           <div class="h2 text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
-          <b-button variant="gradido">{{ $t('auth.left.learnMore') }}</b-button>
+          <b-link :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
+            <b-button variant="gradido">
+              {{ $t('auth.left.learnMore') }}
+            </b-button>
+          </b-link>
         </div>
       </div>
       <b-row class="justify-content-md-center">
