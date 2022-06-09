@@ -72,8 +72,8 @@ export class ContributionLinks extends BaseEntity {
   })
   minGapHours: number | null
 
-  @Column({ name: 'created_at', type: 'datetime', nullable: true, default: null })
-  createdAt: Date | null
+  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date
 
   @DeleteDateColumn()
   deletedAt: Date | null
