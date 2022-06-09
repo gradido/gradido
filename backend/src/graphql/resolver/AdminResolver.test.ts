@@ -135,22 +135,24 @@ describe('AdminResolver', () => {
             user = await userFactory(testEnv, bibiBloxberg)
           })
 
-          it('returns date string', async () => {
-            const result = await mutate({
-              mutation: setUserRole,
-              variables: { userId: user.id, isAdmin: true },
-            })
-            expect(result).toEqual(
-              expect.objectContaining({
-                data: {
-                  setUserRole: expect.any(String),
-                },
-              }),
-            )
-            expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
-          })
-
           describe('user gets new role', () => {
+            describe('is admin', () => {
+              it('returns date string', async () => {
+                const result = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
+                expect(result).toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: expect.any(String),
+                    },
+                  }),
+                )
+                expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
+              })
+            })
+
             describe('is usual user', () => {
               it('returns string', async () => {
                 await expect(
@@ -158,24 +160,7 @@ describe('AdminResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      setUserRole: expect.any(String),
-                    },
-                  }),
-                )
-              })
-            })
-
-            describe('is admin', () => {
-              it('returns string', async () => {
-                await expect(
-                  mutate({
-                    mutation: setUserRole,
-                    variables: { userId: user.id, isAdmin: true },
-                  }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    data: {
-                      setUserRole: expect.any(String),
+                      setUserRole: null,
                     },
                   }),
                 )
@@ -184,8 +169,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        // Wolle
-        describe.skip('change role with error', () => {
+        describe('change role with error', () => {
           describe('is own role', () => {
             it('throws an error', async () => {
               await expect(
@@ -201,6 +185,10 @@ describe('AdminResolver', () => {
           describe('user has already role to be set', () => {
             describe('is admin', () => {
               it('throws an error', async () => {
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
                 await expect(
                   mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
                 ).resolves.toEqual(
