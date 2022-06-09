@@ -81,6 +81,6 @@ export class ContributionLinks extends BaseEntity {
   @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
   code: string
 
-  @Column({ name: 'link_enabled', type: 'boolean', nullable: true, default: null })
-  linkEnabled: boolean | null
+  @Column({ name: 'link_enabled', type: 'boolean', default: true })
+  linkEnabled: boolean
 }
