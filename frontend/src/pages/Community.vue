@@ -18,20 +18,16 @@
         {{ $t('community.openContributionLinkText', { _name_: CONFIG.COMMUNITY_NAME }) }}
       </small>
       <ul>
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
+        <li v-for="item in items" v-bind:key="item">{{ item.id }}</li>
       </ul>
     </b-container>
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
-        <li>Bernd</li>
-        <li>Elfi</li>
-        <li>Manuela</li>
+        <li v-for="item in items" v-bind:key="item">{{ item.id }}</li>
       </ul>
-      <mail>support@supportemail.de</mail>
+      <mail>{{ supportMail }}</mail>
     </b-container>
     <hr />
     <b-container>
@@ -39,7 +35,7 @@
       <div>
         <div>
           {{ $t('community.members') }}
-          <span class="h4">1203</span>
+          <span class="h4">{{ membersCount }}</span>
         </div>
       </div>
     </b-container>
@@ -53,6 +49,9 @@ export default {
   data() {
     return {
       CONFIG,
+      items: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      supportMail: 'support@supportemail.de',
+      membersCount: '1203',
     }
   },
 }

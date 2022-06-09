@@ -23,13 +23,13 @@
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
-    "other-communities": "Weitere Gemeinschaften",
-    "switch-to-this-community": "zu dieser Gemeinschaft wechseln",
+    "members": "Mitglieder",
+    "moderators": "Moderatoren",
     "openContributionLinks": "öffentliche Beitragslinklist",
-    "openContributionLinkText":"Folgende automatische Schöpfungen werden zur Zeit durch die Gemeinschaft '{_name_}' bereitgestellt.",
-    "moderators":"Moderatoren",
+    "openContributionLinkText": "Folgende automatische Schöpfungen werden zur Zeit durch die Gemeinschaft '{_name_}' bereitgestellt.",
+    "other-communities": "Weitere Gemeinschaften",
     "statistic": "Statistik",
-    "members":"Mitglieder"
+    "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
