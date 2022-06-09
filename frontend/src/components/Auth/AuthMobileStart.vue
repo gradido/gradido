@@ -124,4 +124,10 @@ export default {
     min-width: 360px;
   }
 }
+
+@media screen and (max-height: 700px) {
+  .mobil-start-box #img3 {
+    top: -104px;
+  }
+}
 </style>

@@ -91,6 +91,30 @@ export const sendResetPasswordEmail = gql`
   }
 `
 
+export const searchUsers = gql`
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+      }
+    }
+  }
+`
+
 export const listGDTEntriesQuery = gql`
   query ($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
@@ -161,6 +185,35 @@ export const getPendingCreations = gql`
       date
       moderator
       creation
+    }
+  }
+`
+
+export const listTransactionLinksAdmin = gql`
+  query (
+    $userId: Int!
+    $filters: TransactionLinkFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+  ) {
+    listTransactionLinksAdmin(
+      userId: $userId
+      filters: $filters
+      currentPage: $currentPage
+      pageSize: $pageSize
+    ) {
+      linkCount
+      linkList {
+        id
+        amount
+        holdAvailableAmount
+        memo
+        code
+        createdAt
+        validUntil
+        redeemedAt
+        deletedAt
+      }
     }
   }
 `

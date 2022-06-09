@@ -72,8 +72,8 @@ export class ContributionLinks extends BaseEntity {
   })
   minGapHours: number | null
 
-  @Column({ name: 'created_at', type: 'datetime', nullable: true, default: null })
-  createdAt: Date | null
+  @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date
 
   @DeleteDateColumn()
   deletedAt: Date | null
@@ -81,6 +81,6 @@ export class ContributionLinks extends BaseEntity {
   @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
   code: string
 
-  @Column({ name: 'link_enabled', type: 'boolean', nullable: true, default: null })
-  linkEnabled: boolean | null
+  @Column({ name: 'link_enabled', type: 'boolean', default: true })
+  linkEnabled: boolean
 }
