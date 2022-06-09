@@ -24,7 +24,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         \`deleted_at\` datetime NULL DEFAULT NULL,
         \`code\` varchar(24) COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-        \`link_enabled\` tinyint(4) NOT NULL DEFAULT '0',
+        \`link_enabled\` tinyint(4) NOT NULL DEFAULT '1',
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 }
