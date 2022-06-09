@@ -11,10 +11,10 @@ export class ContributionLinks extends BaseEntity {
   name: string
 
   @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
-  description: string
+  memo: string
 
-  @Column({ name: 'valid_from', type: 'datetime', nullable: true, default: null })
-  validFrom: Date | null
+  @Column({ name: 'valid_from', type: 'datetime', nullable: false })
+  validFrom: Date
 
   @Column({ name: 'valid_to', type: 'datetime', nullable: true, default: null })
   validTo: Date | null
@@ -43,7 +43,7 @@ export class ContributionLinks extends BaseEntity {
     default: null,
     transformer: DecimalTransformer,
   })
-  maxAmountPerMonth: Decimal
+  maxAmountPerMonth: Decimal | null
 
   @Column({
     name: 'total_max_count_of_contribution',
@@ -62,7 +62,7 @@ export class ContributionLinks extends BaseEntity {
     default: null,
     transformer: DecimalTransformer,
   })
-  maxAccountBalance: Decimal
+  maxAccountBalance: Decimal | null
 
   @Column({
     name: 'min_gap_hours',
@@ -79,7 +79,7 @@ export class ContributionLinks extends BaseEntity {
   deletedAt: Date | null
 
   @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  code: string
+  code: string | null
 
   @Column({ name: 'link_enabled', type: 'boolean', default: true })
   linkEnabled: boolean
