@@ -31,8 +31,8 @@ export class ContributionLink {
   @Field(() => String)
   code: string
 
-  @Field(() => Date, { nullable: true })
-  createdAt: Date | null
+  @Field(() => Date)
+  createdAt: Date
 
   @Field(() => String)
   cycle: string
@@ -46,17 +46,17 @@ export class ContributionLink {
   @Field(() => Int)
   id?: number
 
-  @Field(() => Boolean, { nullable: true })
-  linkEnabled: boolean | null
+  @Field(() => Boolean)
+  linkEnabled: boolean
 
   @Field(() => String)
   link: string
 
-  @Field(() => Decimal)
-  maxAccountBalance: Decimal
+  @Field(() => Decimal, { nullable: true })
+  maxAccountBalance: Decimal | null
 
-  @Field(() => Decimal)
-  maxAmountPerMonth: Decimal
+  @Field(() => Decimal, { nullable: true })
+  maxAmountPerMonth: Decimal | null
 
   @Field(() => String)
   memo: string
@@ -70,8 +70,8 @@ export class ContributionLink {
   @Field(() => Int)
   repetition: number
 
-  @Field(() => Date, { nullable: true })
-  startDate: Date | null
+  @Field(() => Date)
+  startDate: Date
 
   @Field(() => Int, { nullable: true })
   totalMaxCountOfContribution: number | null
