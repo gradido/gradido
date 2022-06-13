@@ -20,6 +20,7 @@ import {
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
+  createContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
   getPendingCreations,
@@ -34,6 +35,8 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+// import { contributionFactory } from '@/seeds/factory/contribution'
+// import CONFIG from '@/config'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -494,6 +497,17 @@ describe('AdminResolver', () => {
       amount: new Decimal(2000),
       memo: 'Aktives Grundeinkommen',
       creationDate: 'not-valid',
+    }
+
+    const contributionLinkVariables = {
+      startDate: '18.06.2022',
+      endDate: '30.09.2022',
+      name: 'Dokumenta 2022',
+      amount: '100,00',
+      memo: 'Startguthaben Dokumenta',
+      cycle: 'ONCE',
+      repetition: '1',
+      maxAmount: '500,00',
     }
 
     describe('unauthenticated', () => {
@@ -1330,179 +1344,51 @@ describe('AdminResolver', () => {
         })
         // Tests for creating ContributionLinks
         describe('createContributionLink', () => {
+          /*
           beforeAll(async () => {
             const now = new Date()
-            creation = await creationFactory(testEnv, {
-              startDate: new Date(2022, 6, 18).toISOString(),
-              endDate,
-              name,
-              amount,
-              memo,
-              cycle,
-              repetition,
-              maxAmount,
-              
-              email: 'peter@lustig.de',
-              amount: 400,
-              memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+            const contributionLink = await contributionFactory(testEnv, {
+              startDate: '18.06.2022',
+              endDate: '30.09.2022',
+              name: 'Dokumenta 2022',
+              amount: '100.00',
+              memo: 'Startguthaben Dokumenta',
+              cycle: 'once',
+              repetition: '1',
+              maxAmount: '500.00',
             })
           })
-
-          describe('user to create for does not exist', () => {
-            it('throws an error', async () => {
-              await expect(
-                mutate({ mutation: createContributionLink, variables }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('Could not find user with email: bibi@bloxberg.de')],
-                }),
-              )
-            })
-          })
-
-          describe('user to create for is deleted', () => {
-            beforeAll(async () => {
-              user = await userFactory(testEnv, stephenHawking)
-              variables.email = 'stephen@hawking.uk'
-            })
-
-            it('throws an error', async () => {
-              await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('This user was deleted. Cannot make a creation.')],
-                }),
-              )
-            })
-          })
-
-          describe('user to create for has email not confirmed', () => {
-            beforeAll(async () => {
-              user = await userFactory(testEnv, garrickOllivander)
-              variables.email = 'garrick@ollivander.com'
-            })
-
-            it('throws an error', async () => {
-              await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [new GraphQLError('Creation could not be saved, Email is not activated')],
-                }),
-              )
-            })
-          })
-
-          describe('valid user to create for', () => {
-            beforeAll(async () => {
-              user = await userFactory(testEnv, bibiBloxberg)
-              variables.email = 'bibi@bloxberg.de'
-            })
-
-            describe('date of creation is not a date string', () => {
-              it('throws an error', async () => {
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
-                  }),
-                )
-              })
-            })
-
-            describe('date of creation is four months ago', () => {
-              it('throws an error', async () => {
-                const now = new Date()
-                variables.creationDate = new Date(
-                  now.getFullYear(),
-                  now.getMonth() - 4,
-                  1,
-                ).toString()
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
-                  }),
-                )
-              })
-            })
-
-            describe('date of creation is in the future', () => {
-              it('throws an error', async () => {
-                const now = new Date()
-                variables.creationDate = new Date(
-                  now.getFullYear(),
-                  now.getMonth() + 4,
-                  1,
-                ).toString()
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
-                  }),
-                )
-              })
-            })
-
-            describe('amount of creation is too high', () => {
-              it('throws an error', async () => {
-                variables.creationDate = new Date().toString()
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [
-                      new GraphQLError(
-                        'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
-                      ),
-                    ],
-                  }),
-                )
-              })
-            })
-
-            describe('creation is valid', () => {
-              it('returns an array of the open creations for the last three months', async () => {
-                variables.amount = new Decimal(200)
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    data: {
-                      createPendingCreation: [1000, 1000, 800],
-                    },
-                  }),
-                )
-              })
-            })
-
-            describe('second creation surpasses the available amount ', () => {
-              it('returns an array of the open creations for the last three months', async () => {
-                variables.amount = new Decimal(1000)
-                await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    errors: [
-                      new GraphQLError(
-                        'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
-                      ),
-                    ],
-                  }),
-                )
-              })
-            })
+          */
+          it('throws an error', async () => {
+            await expect(
+              mutate({ mutation: createContributionLink, contributionLinkVariables }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  ContributionLink: {
+                    amount: '100.00',
+                    code: expect.any(String),
+                    createdAt: expect.any(Date),
+                    cycle: 'once',
+                    deletedAt: null,
+                    endDate: expect.any(Date),
+                    id: expect.any(Number),
+                    linkEnabled: true,
+                    link: expect.stringMatching('http://localhost/redeem/CL-'),
+                    maxAccountBalance: null,
+                    maxAmountPerMonth: null,
+                    memo: 'Startguthaben Dokumenta',
+                    minGapHours: null,
+                    name: 'Dokumenta 2022',
+                    repetition: 1,
+                    startDate: expect.any(Date),
+                    totalMaxCountOfContribution: null,
+                  },
+                },
+              }),
+            )
           })
         })
-
-        
       })
     })
   })

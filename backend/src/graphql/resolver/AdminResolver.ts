@@ -487,7 +487,7 @@ export class AdminResolver {
     }: CreateContributionLinkArgs,
     @Ctx() context: Context,
   ): Promise<ContributionLink> {
-    logger.trace(
+    logger.debug(
       `createContributionLink(startDate=${startDate}, endDate=${endDate}, name=${name}, amount=${amount}, memo=${memo}, cycle=${cycle}, repetition=${repetition}, maxAmount=${maxAmount})`,
     )
     if (!isStartEndDateValid(startDate, endDate)) {
@@ -523,12 +523,12 @@ export class AdminResolver {
     contributionLink.code = contributionLinkCode(startDateObj)
     contributionLink.createdAt = new Date()
     contributionLink.cycle = cycle //  ? cycle : ContributionCycleType.NONE
-    contributionLink.deletedAt = null
+    // contributionLink.deletedAt = null
     contributionLink.linkEnabled = true
     /* not supported in the 1st expansion stage
         contributionLink.maxAccountBalance = null
     */
-    contributionLink.maxAmountPerMonth = null // maxAmount
+    // contributionLink.maxAmountPerMonth = null // maxAmount
     contributionLink.maxPerCycle = Number(repetition)
     contributionLink.memo = memo
     /* not supported in the 1st expansion stage
