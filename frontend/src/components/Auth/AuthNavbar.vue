@@ -20,7 +20,7 @@
 
       <b-collapse id="nav-collapse" is-nav class="mt-5 mt-lg-0">
         <b-navbar-nav class="ml-auto" right>
-          <b-nav-item href="https://gradido.net/de/" target="_blank">
+          <b-nav-item :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
             {{ $t('auth.navbar.aboutGradido') }}
           </b-nav-item>
           <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
