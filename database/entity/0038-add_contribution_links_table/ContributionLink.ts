@@ -3,7 +3,7 @@ import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('contribution_links')
-export class ContributionLinks extends BaseEntity {
+export class ContributionLink extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
