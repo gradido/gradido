@@ -21,7 +21,7 @@
         "daily": "täglich",
         "hourly": "stündlich",
         "monthly": "monatlich",
-        "null": "Bitter wähle einen Zyklus",
+        "once": "einmalig",
         "weekly": "wöchentlich",
         "yearly": "jährlich"
       },

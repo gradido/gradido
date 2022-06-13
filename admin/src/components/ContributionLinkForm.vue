@@ -72,6 +72,7 @@
             <b-form-select
               v-model="form.cycle"
               :options="cycle"
+              :disabled="disabled"
               class="mb-3"
               size="lg"
             ></b-form-select>
@@ -82,6 +83,7 @@
             <b-form-select
               v-model="form.repetition"
               :options="repetition"
+              :disabled="disabled"
               class="mb-3"
               size="lg"
             ></b-form-select>
@@ -93,6 +95,7 @@
           <b-form-input
             v-model="form.maxAmount"
             size="lg"
+            :disabled="disabled"
             type="number"
             placeholder="0"
           ></b-form-input>
@@ -109,6 +112,7 @@
 </template>
 <script>
 import { createContributionLink } from '@/graphql/createContributionLink.js'
+import { throwServerError } from 'apollo-link-http-common'
 export default {
   name: 'ContributionLinkForm',
   props: {
@@ -127,13 +131,13 @@ export default {
         amount: null,
         startDate: null,
         endDate: null,
-        cycle: null,
+        cycle: 'once',
         repetition: null,
         maxAmount: null,
       },
       min: new Date(),
       cycle: [
-        { value: null, text: this.$t('contributionLink.options.cycle.null') },
+        { value: 'once', text: this.$t('contributionLink.options.cycle.once') },
         { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
         { value: 'daily', text: this.$t('contributionLink.options.cycle.daily') },
         { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },
@@ -187,6 +191,10 @@ export default {
   computed: {
     updateData() {
       return this.contributionLinkData
+    },
+    disabled() {
+      if (this.form.cycle === 'once') return true
+      return false
     },
   },
   watch: {

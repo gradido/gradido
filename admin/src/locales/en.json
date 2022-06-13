@@ -21,7 +21,7 @@
         "daily": "daily",
         "hourly": "hourly",
         "monthly": "monthly",
-        "null": "please select a cycle",
+        "once": "unique",
         "weekly": "weekly",
         "yearly": "yearly"
       },
