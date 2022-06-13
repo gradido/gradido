@@ -69,6 +69,7 @@ const propsData = {
     { key: 'edit_creation', label: 'edit' },
     { key: 'confirm', label: 'save' },
   ],
+  toggleDetails: false,
 }
 
 const mocks = {
@@ -124,6 +125,10 @@ describe('OpenCreationsTable', () => {
       it.skip('renders the component component-edit-creation-formular', () => {
         expect(wrapper.find('div.component-edit-creation-formular').exists()).toBeTruthy()
       })
+    })
+
+    it('funtion updateUserData', () => {
+      wrapper.vm.updateUserData([111, 222, 333], [444, 555, 666])
     })
   })
 })
