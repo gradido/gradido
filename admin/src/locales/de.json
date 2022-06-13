@@ -71,7 +71,7 @@
   },
   "redeemed": "eingelöst",
   "remove": "Entfernen",
-  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
+  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "status": "Status",
@@ -102,7 +102,7 @@
     "text_true": " Die Email wurde bestätigt."
   },
   "userRole": {
-    "notChangeYourSelf": "Als Admin / Moderator kannst du nicht selber deine Rolle ändern.",
+    "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
     "selectLabel": "Rolle:",
     "selectRoles": {
       "admin": "Administrator",
