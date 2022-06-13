@@ -137,3 +137,13 @@ export const deletePendingCreation = gql`
     deletePendingCreation(id: $id)
   }
 `
+
+export const createContributionLink = gql`
+  mutation ($pendingCreations: [CreateContributionLinkArgs!]!) {
+    createContributionLink(pendingCreations: $pendingCreations) {
+      success
+      successfulCreation
+      failedCreation
+    }
+  }
+`
