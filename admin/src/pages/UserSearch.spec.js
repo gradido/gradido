@@ -199,14 +199,34 @@ describe('UserSearch', () => {
       })
     })
 
+    describe('change user role', () => {
+      const userId = 4
+
+      it('to admin', async () => {
+        const now = new Date()
+        await wrapper
+          .findComponent({ name: 'SearchUserTable' })
+          .vm.$emit('updateIsAdmin', userId, now)
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(now)
+      })
+
+      it('to usual user', async () => {
+        await wrapper
+          .findComponent({ name: 'SearchUserTable' })
+          .vm.$emit('updateIsAdmin', userId, null)
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+      })
+    })
+
     describe('delete user', () => {
       const now = new Date()
+      const userId = 4
       beforeEach(async () => {
-        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', 4, now)
+        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', userId, now)
       })
 
       it('marks the user as deleted', () => {
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === 4).deletedAt).toEqual(now)
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).deletedAt).toEqual(now)
       })
 
       it('toasts a success message', () => {
