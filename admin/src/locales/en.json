@@ -108,6 +108,7 @@
       "admin": "administrator",
       "user": "usual user"
     },
+    "successfullyChangedTo": "User is now \"{role}\".",
     "tabTitle": "User Role"
   },
   "user_deleted": "User is deleted.",

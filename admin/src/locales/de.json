@@ -108,6 +108,7 @@
       "admin": "Administrator",
       "user": "einfacher Nutzer"
     },
+    "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",

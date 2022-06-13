@@ -16,9 +16,9 @@
     </div>
   </div>
 </template>
+
 <script>
-import { deleteUser } from '../graphql/deleteUser'
-import { unDeleteUser } from '../graphql/unDeleteUser'
+import { setUserRole } from '../graphql/setUserRole'
 
 const rolesValues = {
   admin: 'admin',
@@ -34,12 +34,7 @@ export default {
     },
   },
   data() {
-    // Wolle
-    // console.log('this.item: ', this.item)
-    // console.log('this.item.isAdmin: ', this.item.isAdmin)
-    // console.log('roleSelected: ', this.item.isAdmin ? 'admin' : 'user')
     return {
-      // Wolle: checked: false,
       roleSelected: this.item.isAdmin ? rolesValues.admin : rolesValues.user,
       roles: [
         { value: rolesValues.user, text: this.$t('userRole.selectRoles.user') },
@@ -50,54 +45,43 @@ export default {
   watch: {
     roleSelected(newRole, oldRole) {
       if (newRole !== oldRole) {
-        // Wolle
-        console.log('newRole: ', newRole)
+        this.setUserRole(newRole, oldRole)
       }
     },
   },
   methods: {
-    // Wolle: deleteUser() {
-    //   this.$apollo
-    //     .mutate({
-    //       mutation: deleteUser,
-    //       variables: {
-    //         userId: this.item.userId,
-    //       },
-    //     })
-    //     .then((result) => {
-    //       this.$emit('updateDeletedAt', {
-    //         userId: this.item.userId,
-    //         deletedAt: result.data.deleteUser,
-    //       })
-    //       this.checked = false
-    //     })
-    //     .catch((error) => {
-    //       this.toastError(error.message)
-    //     })
-    // },
-    // unDeleteUser() {
-    //   this.$apollo
-    //     .mutate({
-    //       mutation: unDeleteUser,
-    //       variables: {
-    //         userId: this.item.userId,
-    //       },
-    //     })
-    //     .then((result) => {
-    //       this.toastSuccess(this.$t('user_recovered'))
-    //       this.$emit('updateDeletedAt', {
-    //         userId: this.item.userId,
-    //         deletedAt: result.data.unDeleteUser,
-    //       })
-    //       this.checked = false
-    //     })
-    //     .catch((error) => {
-    //       this.toastError(error.message)
-    //     })
-    // },
+    setUserRole(newRole, oldRole) {
+      this.$apollo
+        .mutate({
+          mutation: setUserRole,
+          variables: {
+            userId: this.item.userId,
+            isAdmin: newRole === rolesValues.admin,
+          },
+        })
+        .then((result) => {
+          this.$emit('updateIsAdmin', {
+            userId: this.item.userId,
+            isAdmin: result.data.setUserRole,
+          })
+          this.toastSuccess(
+            this.$t('userRole.successfullyChangedTo', {
+              role:
+                result.data.setUserRole !== null
+                  ? this.$t('userRole.selectRoles.admin')
+                  : this.$t('userRole.selectRoles.user'),
+            }),
+          )
+        })
+        .catch((error) => {
+          this.roleSelected = oldRole
+          this.toastError(error.message)
+        })
+    },
   },
 }
 </script>
+
 <style>
 .role-select {
   width: 300pt;
