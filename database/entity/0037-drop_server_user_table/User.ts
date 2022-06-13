@@ -1,16 +1,9 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
-import { UserSetting } from '../0002-add_settings/UserSetting'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
 
-@Entity('state_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
+@Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
-
-  @Column({ name: 'login_user_id', default: null, unsigned: true })
-  loginUserId: number
-
-  @Column({ name: 'index_id', type: 'smallint', default: 0, nullable: false })
-  indexId: number
 
   @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
   pubKey: Buffer
@@ -39,14 +32,8 @@ export class User extends BaseEntity {
   })
   lastName: string
 
-  @Column({ length: 255, nullable: true, default: null, collation: 'utf8mb4_unicode_ci' })
-  username: string
-
-  @Column({ type: 'bool', default: false })
-  disabled: boolean
-
-  @Column({ type: 'mediumtext', default: '', collation: 'utf8mb4_unicode_ci', nullable: true })
-  description: string
+  @DeleteDateColumn()
+  deletedAt: Date | null
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
   password: BigInt
@@ -60,11 +47,14 @@ export class User extends BaseEntity {
   @Column({ name: 'email_checked', type: 'bool', nullable: false, default: false })
   emailChecked: boolean
 
-  @Column({ name: 'passphrase_shown', type: 'bool', nullable: false, default: false })
-  passphraseShown: boolean
-
   @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci', nullable: false })
   language: string
+
+  @Column({ name: 'is_admin', type: 'datetime', nullable: true, default: null })
+  isAdmin: Date | null
+
+  @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
+  referrerId?: number | null
 
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
@@ -77,7 +67,4 @@ export class User extends BaseEntity {
     default: null,
   })
   passphrase: string
-
-  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
-  settings: UserSetting[]
 }
