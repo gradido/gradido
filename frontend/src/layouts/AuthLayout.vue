@@ -31,8 +31,8 @@
                 <auth-navbar-small />
               </b-col>
             </b-row>
-            <b-row class="mt-5 pl-2 pl-md-0 pl-lg-0">
-              <b-col cols="9">
+            <b-row class="mt-0 mt-md-5 pl-2 pl-md-0 pl-lg-0">
+              <b-col lg="9" md="9" sm="12">
                 <div class="h1 mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ $t('WelcomeBy', { name: communityName }) }}</div>
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
