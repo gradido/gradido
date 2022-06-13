@@ -108,7 +108,7 @@
       "admin": "administrator",
       "user": "usual user"
     },
-    "tabTitle": "User Role / Rights"
+    "tabTitle": "User Role"
   },
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",
