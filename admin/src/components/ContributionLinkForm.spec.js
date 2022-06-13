@@ -38,8 +38,8 @@ describe('ContributionLinkForm', () => {
             amount: 100,
             startDate: 'startDate',
             endDate: 'endDate',
-            cycle: 'cycle',
-            repetition: 'repetition',
+            cycle: 'once',
+            repetition: '1',
             maxAmount: 100,
           },
         })
@@ -47,7 +47,7 @@ describe('ContributionLinkForm', () => {
       })
       expect(wrapper.vm.form).toEqual({
         amount: null,
-        cycle: null,
+        cycle: 'once',
         endDate: null,
         maxAmount: null,
         memo: null,
