@@ -112,7 +112,6 @@
 </template>
 <script>
 import { createContributionLink } from '@/graphql/createContributionLink.js'
-import { throwServerError } from 'apollo-link-http-common'
 export default {
   name: 'ContributionLinkForm',
   props: {
