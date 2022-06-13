@@ -51,7 +51,7 @@ export class ContributionLinks extends BaseEntity {
     nullable: true,
     default: null,
   })
-  totalMaxCountOfContribution: number | null
+  totalMaxCountOfContribution: number
 
   @Column({
     name: 'max_account_balance',
@@ -70,12 +70,12 @@ export class ContributionLinks extends BaseEntity {
     nullable: true,
     default: null,
   })
-  minGapHours: number | null
+  minGapHours: number
 
   @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', default: null })
   deletedAt: Date | null
 
   @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
