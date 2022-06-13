@@ -1,5 +1,5 @@
 import { ArgsType, Field, Int, InputType } from 'type-graphql'
-import Decimal from 'decimal.js-light'
+// import Decimal from 'decimal.js-light'
 
 @InputType()
 @ArgsType()
@@ -13,8 +13,8 @@ export default class CreateContributionLinkArgs {
   @Field(() => String)
   name: string
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => String)
+  amount: string
 
   @Field(() => String)
   memo: string
@@ -22,9 +22,9 @@ export default class CreateContributionLinkArgs {
   @Field(() => String)
   cycle: string
 
-  @Field(() => Int)
-  repetition: number
+  @Field(() => String)
+  repetition: string
 
-  @Field(() => Decimal)
-  maxAmount: Decimal
+  @Field(() => String)
+  maxAmount: string
 }

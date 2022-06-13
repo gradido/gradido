@@ -1,4 +1,4 @@
-import { ContributionLink } from './ContributionLink'
+import { ContributionLinks } from './ContributionLinks'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { Migration } from './Migration'
@@ -9,7 +9,7 @@ import { AdminPendingCreation } from './AdminPendingCreation'
 
 export const entities = [
   AdminPendingCreation,
-  ContributionLink,
+  ContributionLinks,
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,

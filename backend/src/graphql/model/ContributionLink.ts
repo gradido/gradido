@@ -14,7 +14,10 @@ export class ContributionLink {
     this.endDate = contributionLink.validTo
     this.id = contributionLink.id
     this.linkEnabled = contributionLink.linkEnabled
-    this.link = CONFIG.COMMUNITY_CONTRIBUTION_URL.replace(/{code}/g, contributionLink.code)
+    this.link = CONFIG.COMMUNITY_CONTRIBUTION_URL.replace(
+      /{code}/g,
+      contributionLink.code !== null ? contributionLink.code : 'null',
+    )
     this.maxAccountBalance = contributionLink.maxAccountBalance
     this.maxAmountPerMonth = contributionLink.maxAmountPerMonth
     this.memo = contributionLink.memo
@@ -28,8 +31,8 @@ export class ContributionLink {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => String)
-  code: string
+  @Field(() => String, { nullable: true })
+  code: string | null
 
   @Field(() => Date)
   createdAt: Date
@@ -49,8 +52,8 @@ export class ContributionLink {
   @Field(() => Boolean)
   linkEnabled: boolean
 
-  @Field(() => String)
-  link: string
+  @Field(() => String, { nullable: true })
+  link: string | null
 
   @Field(() => Decimal, { nullable: true })
   maxAccountBalance: Decimal | null

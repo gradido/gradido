@@ -133,7 +133,7 @@ export default {
       },
       min: new Date(),
       cycle: [
-        { value: null, text: this.$t('contributionLink.options.cycle.null') },
+        { value: 'once', text: 'einmalig' },
         { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
         { value: 'daily', text: this.$t('contributionLink.options.cycle.daily') },
         { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },

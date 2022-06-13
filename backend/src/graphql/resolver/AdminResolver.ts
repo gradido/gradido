@@ -46,6 +46,7 @@ import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import _ from 'lodash'
 import { randomBytes } from 'crypto'
+import { ContributionCycleType } from '../enum/ContributionCycleType'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -514,23 +515,22 @@ export class AdminResolver {
     const moderator = getUser(context)
     const startDateObj = new Date(startDate)
     const endDateObj = new Date(endDate)
-    if (amountObj.isZero || amountObj.isNegative()) {
+    if (amountObj.isZero() || amountObj.isNegative()) {
       logger.error(`The amount=${amount} must be initialized with a positiv value!`)
       throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
     }
     const contributionLink = dbContributionLinks.create()
-    contributionLink.amount = amount
+    contributionLink.amount = amountObj
     contributionLink.code = contributionLinkCode(startDateObj)
     contributionLink.createdAt = new Date()
-    contributionLink.cycle = cycle //  ? cycle : ContributionCycleType.NONE
+    contributionLink.cycle = ContributionCycleType.ONCE //  ? cycle : ContributionCycleType.NONE
     contributionLink.deletedAt = null
     contributionLink.linkEnabled = true
     /* not supported in the 1st expansion stage
         contributionLink.maxAccountBalance = null
     */
-    contributionLink.maxAmountPerMonth = maxAmount
-    contributionLink.maxPerCycle = repetition
-    contributionLink.memo = memo
+    // contributionLink.maxAmountPerMonth = maxAmount
+    contributionLink.maxPerCycle = Number(repetition)
     /* not supported in the 1st expansion stage
         contributionLink.minGapHours = null
     */
@@ -669,4 +669,3 @@ const contributionLinkCode = (date: Date): string => {
       .substring(0, 24 - time.length) + time
   )
 }
-
