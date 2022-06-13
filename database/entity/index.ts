@@ -6,9 +6,11 @@ import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { UserSetting } from './UserSetting'
 import { AdminPendingCreation } from './AdminPendingCreation'
+import { ContributionLinks } from './ContributionLinks'
 
 export const entities = [
   AdminPendingCreation,
+  ContributionLinks,
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,

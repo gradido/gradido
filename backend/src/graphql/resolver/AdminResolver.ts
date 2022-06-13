@@ -519,7 +519,7 @@ export class AdminResolver {
       throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
     }
     const contributionLink = dbContributionLinks.create()
-    contributionLink.amount = amount
+    contributionLink.amount = amountObj
     contributionLink.code = contributionLinkCode(startDateObj)
     contributionLink.createdAt = new Date()
     contributionLink.cycle = cycle //  ? cycle : ContributionCycleType.NONE
@@ -528,8 +528,8 @@ export class AdminResolver {
     /* not supported in the 1st expansion stage
         contributionLink.maxAccountBalance = null
     */
-    contributionLink.maxAmountPerMonth = maxAmount
-    contributionLink.maxPerCycle = repetition
+    contributionLink.maxAmountPerMonth = null // maxAmount
+    contributionLink.maxPerCycle = Number(repetition)
     contributionLink.memo = memo
     /* not supported in the 1st expansion stage
         contributionLink.minGapHours = null
@@ -669,4 +669,3 @@ const contributionLinkCode = (date: Date): string => {
       .substring(0, 24 - time.length) + time
   )
 }
-

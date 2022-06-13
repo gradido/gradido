@@ -28,8 +28,8 @@ export class ContributionLink {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => String)
-  code: string
+  @Field(() => String, { nullable: true })
+  code: string | null
 
   @Field(() => Date)
   createdAt: Date
@@ -49,8 +49,8 @@ export class ContributionLink {
   @Field(() => Boolean)
   linkEnabled: boolean
 
-  @Field(() => String)
-  link: string
+  @Field(() => String, { nullable: true })
+  link: string | null
 
   @Field(() => Decimal, { nullable: true })
   maxAccountBalance: Decimal | null
