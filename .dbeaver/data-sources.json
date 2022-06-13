@@ -1,10 +1,10 @@
 {
 	"folders": {},
 	"connections": {
-		"mariaDB-1813fbbc7bc-107c0b3aeaeb91ab": {
+		"mariaDB-1815e3cb8a7-3b4d7a27c954779d": {
 			"provider": "mysql",
 			"driver": "mariaDB",
-			"name": "gradido",
+			"name": "localhost",
 			"save-password": true,
 			"read-only": false,
 			"configuration": {
