@@ -47,6 +47,7 @@ export class ContributionLink extends BaseEntity {
 
   @Column({
     name: 'total_max_count_of_contribution',
+    type: 'int',
     unsigned: true,
     nullable: true,
     default: null,
@@ -66,6 +67,7 @@ export class ContributionLink extends BaseEntity {
 
   @Column({
     name: 'min_gap_hours',
+    type: 'int',
     unsigned: true,
     nullable: true,
     default: null,
@@ -75,11 +77,11 @@ export class ContributionLink extends BaseEntity {
   @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 
-  @Column({ length: 24, nullable: true, collation: 'utf8mb4_unicode_ci' })
-  code: string | null
+  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  code: string
 
   @Column({ name: 'link_enabled', type: 'boolean', default: true })
   linkEnabled: boolean
