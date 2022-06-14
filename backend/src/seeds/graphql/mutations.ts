@@ -173,3 +173,9 @@ export const createContributionLink = gql`
     }
   }
 `
+
+export const deleteContributionLink = gql`
+  mutation ($id: Int!) {
+    deleteContributionLink(id: $id)
+  }
+`

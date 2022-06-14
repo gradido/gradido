@@ -1,4 +1,5 @@
 import { Context, getUser } from '@/server/context'
+import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
   getCustomRepository,
@@ -15,6 +16,7 @@ import { PendingCreation } from '@model/PendingCreation'
 import { CreatePendingCreations } from '@model/CreatePendingCreations'
 import { UpdatePendingCreation } from '@model/UpdatePendingCreation'
 import { ContributionLink } from '@model/ContributionLink'
+import { ContributionLinkList } from '@model/ContributionLinkList'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
@@ -491,8 +493,38 @@ export class AdminResolver {
     if (validTo) dbContributionLink.validTo = new Date(validTo)
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
-    dbContributionLink.save()
+    await dbContributionLink.save()
     return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTION_LINKS])
+  @Query(() => ContributionLinkList)
+  async listContributionLinks(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionLinkList> {
+    const [links, count] = await DbContributionLink.findAndCount({
+      order: { createdAt: order },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return {
+      links: links.map((link: DbContributionLink) => new ContributionLink(link)),
+      count,
+    }
+  }
+
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
+  @Mutation(() => Date, { nullable: true })
+  async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
+    const contributionLink = await DbContributionLink.findOne(id)
+    if (!contributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    await contributionLink.softRemove()
+    const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
+    return newContributionLink ? newContributionLink.deletedAt : null
   }
 }
 
