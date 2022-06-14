@@ -337,7 +337,7 @@ export class UserResolver {
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
       const user = new User(communityDbUser)
-      user.id = sodium.randombytes_random() % (2048 * 16)
+      user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
       user.email = email
       user.emailChecked = true
       user.firstName = firstName
