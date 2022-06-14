@@ -526,6 +526,39 @@ export class AdminResolver {
     const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
     return newContributionLink ? newContributionLink.deletedAt : null
   }
+
+  @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async updateContributionLink(
+    @Args()
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+    @Arg('id', () => Int) id: number,
+  ): Promise<ContributionLink> {
+    const dbContributionLink = await DbContributionLink.findOne(id)
+    if (!dbContributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    await dbContributionLink.save()
+    return new ContributionLink(dbContributionLink)
+  }
 }
 
 interface CreationMap {

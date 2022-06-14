@@ -22,6 +22,7 @@ import {
   confirmPendingCreation,
   createContributionLink,
   deleteContributionLink,
+  updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
   getPendingCreations,
@@ -1631,6 +1632,27 @@ describe('AdminResolver', () => {
         })
       })
 
+      describe('updateContributionLink', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateContributionLink,
+              variables: {
+                ...variables,
+                id: -1,
+                amount: new Decimal(400),
+                name: 'Dokumenta 2023',
+                memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
       describe('deleteContributionLink', () => {
         it('returns an error', async () => {
           await expect(
@@ -1672,6 +1694,27 @@ describe('AdminResolver', () => {
         describe('listContributionLinks', () => {
           it('returns an error', async () => {
             await expect(query({ query: listContributionLinks })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('updateContributionLink', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateContributionLink,
+                variables: {
+                  ...variables,
+                  id: -1,
+                  amount: new Decimal(400),
+                  name: 'Dokumenta 2023',
+                  memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                },
+              }),
+            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -1780,6 +1823,81 @@ describe('AdminResolver', () => {
                       count: 1,
                     },
                   },
+                }),
+              )
+            })
+          })
+        })
+
+        describe('updateContributionLink', () => {
+          describe('no valid id', () => {
+            it('returns an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updateContributionLink,
+                  variables: {
+                    ...variables,
+                    id: -1,
+                    amount: new Decimal(400),
+                    name: 'Dokumenta 2023',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Contribution Link not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('valid id', () => {
+            let linkId: number
+            beforeAll(async () => {
+              const links = await query({ query: listContributionLinks })
+              linkId = links.data.listContributionLinks.links[0].id
+            })
+
+            it('returns updated contribution link object', async () => {
+              await expect(
+                mutate({
+                  mutation: updateContributionLink,
+                  variables: {
+                    ...variables,
+                    id: linkId,
+                    amount: new Decimal(400),
+                    name: 'Dokumenta 2023',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    updateContributionLink: {
+                      id: linkId,
+                      amount: '400',
+                      code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                      link: expect.any(String),
+                      createdAt: expect.any(String),
+                      name: 'Dokumenta 2023',
+                      memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                      validFrom: expect.any(String),
+                      validTo: expect.any(String),
+                      maxAmountPerMonth: '200',
+                      cycle: 'once',
+                      maxPerCycle: 1,
+                    },
+                  },
+                }),
+              )
+            })
+
+            it('updated the DB record', async () => {
+              await expect(DbContributionLink.findOne(linkId)).resolves.toEqual(
+                expect.objectContaining({
+                  id: linkId,
+                  name: 'Dokumenta 2023',
+                  memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
                 }),
               )
             })
