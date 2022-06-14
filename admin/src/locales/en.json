@@ -7,8 +7,8 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-    "validTo": "End-Date",
     "maximumAmount": "Maximum amount",
+    "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
     "newContributionLink": "New contribution link",
@@ -29,8 +29,8 @@
         "null": "please select a repetition"
       }
     },
-    "maxPerCycle": "Repetition",
-    "validFrom": "Start-date"
+    "validFrom": "Start-date",
+    "validTo": "End-Date"
   },
   "creation": "Creation",
   "creationList": "Creation list",
