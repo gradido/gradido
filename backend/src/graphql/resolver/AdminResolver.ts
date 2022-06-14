@@ -42,6 +42,7 @@ import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
 import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -484,9 +485,10 @@ export class AdminResolver {
     dbContributionLink.name = name
     dbContributionLink.memo = memo
     dbContributionLink.createdAt = new Date()
+    dbContributionLink.code = contributionLinkCode(dbContributionLink.createdAt)
     dbContributionLink.cycle = cycle
-    if (validFrom) dbContributionLink.validFrom = validFrom
-    if (validTo) dbContributionLink.validTo = validTo
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     dbContributionLink.save()

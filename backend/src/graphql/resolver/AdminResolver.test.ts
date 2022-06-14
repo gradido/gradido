@@ -20,6 +20,7 @@ import {
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
+  createContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
   getPendingCreations,
@@ -34,6 +35,7 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -1586,6 +1588,122 @@ describe('AdminResolver', () => {
                     ]),
                   },
                 },
+              }),
+            )
+          })
+        })
+      })
+    })
+  })
+
+  describe('Contribution Links', () => {
+    const variables = {
+      amount: new Decimal(200),
+      name: 'Dokumenta 2022',
+      memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+      cycle: 'once',
+      validFrom: new Date(2022, 5, 18).toISOString(),
+      validTo: new Date(2022, 7, 14).toISOString(),
+      maxAmountPerMonth: new Decimal(200),
+      maxPerCycle: 1,
+    }
+
+    describe('unauthenticated', () => {
+      describe('createContributionLink', () => {
+        it.only('returns an error', async () => {
+          await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('createContributionLink', () => {
+          it.only('returns an error', async () => {
+            await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, peterLustig)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('createContributionLink', () => {
+          it.only('returns a contribution link object', async () => {
+            await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  createContributionLink: expect.objectContaining({
+                    amount: '200',
+                    code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                    link: expect.any(String),
+                    createdAt: expect.any(String),
+                    name: 'Dokumenta 2022',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                    validFrom: expect.any(String),
+                    validTo: expect.any(String),
+                    maxAmountPerMonth: '200',
+                    cycle: 'once',
+                    maxPerCycle: 1,
+                  }),
+                },
+              }),
+            )
+          })
+
+          it.only('has a contribution link stored in db', async () => {
+            const cls = await DbContributionLink.find()
+            expect(cls).toHaveLength(1)
+            expect(cls[0]).toEqual(
+              expect.objectContaining({
+                id: expect.any(Number),
+                name: 'Dokumenta 2022',
+                memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                validFrom: new Date('2022-06-18T00:00:00.000Z'),
+                validTo: new Date('2022-08-14T00:00:00.000Z'),
+                cycle: 'once',
+                maxPerCycle: 1,
+                totalMaxCountOfContribution: null,
+                maxAccountBalance: null,
+                minGapHours: null,
+                createdAt: expect.any(Date),
+                deletedAt: null,
+                code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                linkEnabled: true,
+                // amount: '200',
+                // maxAmountPerMonth: '200',
               }),
             )
           })

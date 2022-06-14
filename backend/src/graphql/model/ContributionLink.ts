@@ -1,6 +1,7 @@
 import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
+import CONFIG from '@/config'
 
 @ObjectType()
 export class ContributionLink {
@@ -16,6 +17,8 @@ export class ContributionLink {
     this.maxAmountPerMonth = contributionLink.maxAmountPerMonth
     this.cycle = contributionLink.cycle
     this.maxPerCycle = contributionLink.maxPerCycle
+    this.code = 'CL-' + contributionLink.code
+    this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
   }
 
   @Field(() => Number)
@@ -32,6 +35,9 @@ export class ContributionLink {
 
   @Field(() => String)
   code: string
+
+  @Field(() => String)
+  link: string
 
   @Field(() => Date)
   createdAt: Date

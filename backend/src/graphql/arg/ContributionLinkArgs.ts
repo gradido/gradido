@@ -15,11 +15,11 @@ export default class ContributionLinkArgs {
   @Field(() => String)
   cycle: string
 
-  @Field(() => Date, { nullable: true })
-  validFrom?: Date | null
+  @Field(() => String, { nullable: true })
+  validFrom?: string | null
 
-  @Field(() => Date, { nullable: true })
-  validTo?: Date | null
+  @Field(() => String, { nullable: true })
+  validTo?: string | null
 
   @Field(() => Decimal, { nullable: true })
   maxAmountPerMonth: Decimal | null
