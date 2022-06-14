@@ -108,7 +108,7 @@ describe('ChangeUserRoleFormular', () => {
           expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
         })
 
-        describe.skip('on API error', () => {
+        describe('on API error', () => {
           beforeEach(async () => {
             apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
             rolesToSelect.at(1).setSelected()
@@ -124,6 +124,12 @@ describe('ChangeUserRoleFormular', () => {
 
       describe('user is usual user', () => {
         beforeEach(() => {
+          apolloMutateMock.mockResolvedValue({
+            data: {
+              setUserRole: date,
+            },
+          })
+
           propsData = {
             item: {
               userId: 1,
