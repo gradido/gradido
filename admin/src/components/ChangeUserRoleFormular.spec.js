@@ -129,7 +129,6 @@ describe('ChangeUserRoleFormular', () => {
               setUserRole: date,
             },
           })
-
           propsData = {
             item: {
               userId: 1,
