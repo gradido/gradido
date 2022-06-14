@@ -14,12 +14,15 @@ import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { PendingCreation } from '@model/PendingCreation'
 import { CreatePendingCreations } from '@model/CreatePendingCreations'
 import { UpdatePendingCreation } from '@model/UpdatePendingCreation'
+import { ContributionLink } from '@model/ContributionLink'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
 import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
+import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Transaction } from '@model/Transaction'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -460,6 +463,14 @@ export class AdminResolver {
       linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
     }
   }
+
+  @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async createContributionLink(
+    @Args()
+    { amount, name, memo, cycle, validFrom, validTo, maxAmountPerMonth, maxPerCycle }: ContributionLinkArgs,
+  )
+  
 }
 
 interface CreationMap {
