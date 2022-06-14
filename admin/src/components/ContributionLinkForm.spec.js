@@ -38,8 +38,8 @@ describe('ContributionLinkForm', () => {
             amount: 100,
             validFrom: 'validFrom',
             validTo: 'validTo',
-            cycle: 'once',
-            maxPerCycle: '1',
+            cycle: 'ONCE',
+            maxPerCycle: 1,
             maxAmountPerMonth: 100,
           },
         })
@@ -47,12 +47,12 @@ describe('ContributionLinkForm', () => {
       })
       expect(wrapper.vm.form).toEqual({
         amount: null,
-        cycle: 'once',
+        cycle: 'ONCE',
         validTo: null,
-        maxAmountPerMonth: null,
+        maxAmountPerMonth: '0',
         memo: null,
         name: null,
-        maxPerCycle: null,
+        maxPerCycle: 1,
         validFrom: null,
       })
     })
