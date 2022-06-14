@@ -48,7 +48,7 @@ export class ContributionLink {
   @Field(() => Decimal, { nullable: true })
   maxAmountPerMonth: Decimal | null
 
-  @Field(() => string)
+  @Field(() => String)
   cycle: string
 
   @Field(() => Int)

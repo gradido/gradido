@@ -468,9 +468,30 @@ export class AdminResolver {
   @Mutation(() => ContributionLink)
   async createContributionLink(
     @Args()
-    { amount, name, memo, cycle, validFrom, validTo, maxAmountPerMonth, maxPerCycle }: ContributionLinkArgs,
-  )
-  
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+  ): Promise<ContributionLink> {
+    const dbContributionLink = new DbContributionLink()
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.createdAt = new Date()
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = validFrom
+    if (validTo) dbContributionLink.validTo = validTo
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    dbContributionLink.save()
+    return new ContributionLink(dbContributionLink)
+  }
 }
 
 interface CreationMap {

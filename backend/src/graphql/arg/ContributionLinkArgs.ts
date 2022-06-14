@@ -24,6 +24,6 @@ export default class ContributionLinkArgs {
   @Field(() => Decimal, { nullable: true })
   maxAmountPerMonth: Decimal | null
 
-  @Field(() => Int, { default: 1 })
+  @Field(() => Int)
   maxPerCycle: number
 }
