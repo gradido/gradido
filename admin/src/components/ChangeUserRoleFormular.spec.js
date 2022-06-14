@@ -112,7 +112,6 @@ describe('ChangeUserRoleFormular', () => {
           beforeEach(async () => {
             apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
             rolesToSelect.at(1).setSelected()
-            // wrapper.vm.roleSelected = 'admin'
             await wrapper.vm.$nextTick()
           })
 
