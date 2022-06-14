@@ -1,1 +1,1 @@
-export { User } from './0037-drop_server_user_table/User'
+export { User } from './0037-drop_user_setting_table/User'
