@@ -1,7 +1,7 @@
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class CreatePendingCreations {
+export class AdminCreateContribution {
   constructor() {
     this.success = false
     this.successfulCreation = []

@@ -11,13 +11,13 @@ import {
   FindOperator,
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
-import { PendingContribution } from '@model/PendingContribution'
-import { CreatePendingCreations } from '@model/CreatePendingCreations'
-import { UpdatePendingCreation } from '@model/UpdatePendingCreation'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { AdminCreateContribution } from '@model/AdminCreateContribution'
+import { AdminUpdateUnconfirmedContribution } from '@model/AdminUpdateUnconfirmedContribution'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
-import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
-import UpdatePendingCreationArgs from '@arg/UpdatePendingCreationArgs'
+import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
+import AdminUpdateUnconfirmedContributionArgs from '@arg/AdminUpdateUnconfirmedContributionArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Transaction } from '@model/Transaction'
@@ -167,7 +167,7 @@ export class AdminResolver {
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
   async createPendingCreation(
-    @Args() { email, amount, memo, creationDate }: CreatePendingCreationArgs,
+    @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
     logger.trace('createPendingCreation...')
@@ -202,12 +202,12 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
-  @Mutation(() => CreatePendingCreations)
+  @Mutation(() => AdminCreateContribution)
   async createPendingCreations(
-    @Arg('pendingCreations', () => [CreatePendingCreationArgs])
-    contributions: CreatePendingCreationArgs[],
+    @Arg('pendingCreations', () => [AdminCreateContributionArgs])
+    contributions: AdminCreateContributionArgs[],
     @Ctx() context: Context,
-  ): Promise<CreatePendingCreations> {
+  ): Promise<AdminCreateContribution> {
     let success = false
     const successfulCreation: string[] = []
     const failedCreation: string[] = []
@@ -229,11 +229,11 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
-  @Mutation(() => UpdatePendingCreation)
+  @Mutation(() => AdminUpdateUnconfirmedContribution)
   async updatePendingCreation(
-    @Args() { id, email, amount, memo, creationDate }: UpdatePendingCreationArgs,
+    @Args() { id, email, amount, memo, creationDate }: AdminUpdateUnconfirmedContributionArgs,
     @Ctx() context: Context,
-  ): Promise<UpdatePendingCreation> {
+  ): Promise<AdminUpdateUnconfirmedContribution> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -268,7 +268,7 @@ export class AdminResolver {
     contributionToUpdate.moderatorId = moderator.id
 
     await Contribution.save(contributionToUpdate)
-    const result = new UpdatePendingCreation()
+    const result = new AdminUpdateUnconfirmedContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
@@ -279,8 +279,8 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
-  @Query(() => [PendingContribution])
-  async getPendingCreations(): Promise<PendingContribution[]> {
+  @Query(() => [UnconfirmedContribution])
+  async getPendingCreations(): Promise<UnconfirmedContribution[]> {
     const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
     if (contributions.length === 0) {
       return []

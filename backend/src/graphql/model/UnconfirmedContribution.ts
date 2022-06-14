@@ -2,7 +2,7 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
-export class PendingContribution {
+export class UnconfirmedContribution {
   @Field(() => String)
   firstName: string
 
