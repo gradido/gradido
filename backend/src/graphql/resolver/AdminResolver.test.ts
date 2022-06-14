@@ -1898,6 +1898,7 @@ describe('AdminResolver', () => {
                   id: linkId,
                   name: 'Dokumenta 2023',
                   memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  // amount: '400',
                 }),
               )
             })
