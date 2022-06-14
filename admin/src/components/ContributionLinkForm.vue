@@ -131,7 +131,7 @@ export default {
         validFrom: null,
         validTo: null,
         cycle: 'ONCE',
-        maxPerCycle: '1',
+        maxPerCycle: 1,
         maxAmountPerMonth: '0',
       },
       min: new Date(),
@@ -158,7 +158,7 @@ export default {
       if (this.form.validFrom === null)
         return this.toastError(this.$t('contributionLink.noStartDate'))
       if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))
-      alert(JSON.stringify(this.form))
+      // alert(JSON.stringify(this.form))
       this.$apollo
         .mutate({
           mutation: createContributionLink,
