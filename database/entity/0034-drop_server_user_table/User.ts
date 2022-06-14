@@ -6,7 +6,7 @@ import {
   OneToMany,
   DeleteDateColumn,
 } from 'typeorm'
-import { UserSetting } from '../UserSetting'
+import { UserSetting } from '../0002-add_settings/UserSetting'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
