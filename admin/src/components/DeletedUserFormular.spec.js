@@ -47,7 +47,7 @@ describe('DeletedUserFormular', () => {
     })
 
     it('has a DIV element with the class.delete-user-formular', () => {
-      expect(wrapper.find('.deleted-user-formular').exists()).toBeTruthy()
+      expect(wrapper.find('.deleted-user-formular').exists()).toBe(true)
     })
 
     describe('delete self', () => {
