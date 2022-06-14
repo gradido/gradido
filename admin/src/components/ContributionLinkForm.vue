@@ -63,44 +63,45 @@
           required
         ></b-form-input>
       </b-form-group>
+      <b-collapse id="collapse-2">
+        <b-jumbotron>
+          <b-row class="mb-4">
+            <b-col>
+              <!-- Cycle -->
+              <label for="cycle">{{ $t('contributionLink.cycle') }}</label>
+              <b-form-select
+                v-model="form.cycle"
+                :options="cycle"
+                :disabled="disabled"
+                class="mb-3"
+                size="lg"
+              ></b-form-select>
+            </b-col>
+            <b-col>
+              <!-- maxPerCycle -->
+              <label for="maxPerCycle">{{ $t('contributionLink.maxPerCycle') }}</label>
+              <b-form-select
+                v-model="form.maxPerCycle"
+                :options="maxPerCycle"
+                :disabled="disabled"
+                class="mb-3"
+                size="lg"
+              ></b-form-select>
+            </b-col>
+          </b-row>
 
-      <b-jumbotron>
-        <b-row class="mb-4">
-          <b-col>
-            <!-- Cycle -->
-            <label for="cycle">{{ $t('contributionLink.cycle') }}</label>
-            <b-form-select
-              v-model="form.cycle"
-              :options="cycle"
-              :disabled="disabled"
-              class="mb-3"
+          <!-- Max amount -->
+          <b-form-group :label="$t('contributionLink.maximumAmount')">
+            <b-form-input
+              v-model="form.maxAmountPerMonth"
               size="lg"
-            ></b-form-select>
-          </b-col>
-          <b-col>
-            <!-- maxPerCycle -->
-            <label for="maxPerCycle">{{ $t('contributionLink.maxPerCycle') }}</label>
-            <b-form-select
-              v-model="form.maxPerCycle"
-              :options="maxPerCycle"
               :disabled="disabled"
-              class="mb-3"
-              size="lg"
-            ></b-form-select>
-          </b-col>
-        </b-row>
-
-        <!-- Max amount -->
-        <b-form-group :label="$t('contributionLink.maximumAmount')">
-          <b-form-input
-            v-model="form.maxAmountPerMonth"
-            size="lg"
-            :disabled="disabled"
-            type="number"
-            placeholder="0"
-          ></b-form-input>
-        </b-form-group>
-      </b-jumbotron>
+              type="number"
+              placeholder="0"
+            ></b-form-input>
+          </b-form-group>
+        </b-jumbotron>
+      </b-collapse>
       <div class="mt-6">
         <b-button type="submit" variant="primary">{{ $t('contributionLink.create') }}</b-button>
         <b-button type="reset" variant="danger" @click.prevent="onReset">
