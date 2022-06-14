@@ -102,7 +102,7 @@ describe('OpenCreationsTable', () => {
     })
 
     it('has a DIV element with the class .open-creations-table', () => {
-      expect(wrapper.find('div.open-creations-table').exists()).toBeTruthy()
+      expect(wrapper.find('div.open-creations-table').exists()).toBe(true)
     })
 
     it('has a table with three rows', () => {
@@ -110,7 +110,7 @@ describe('OpenCreationsTable', () => {
     })
 
     it('find first button.bi-pencil-square for open EditCreationFormular ', () => {
-      expect(wrapper.findAll('tr').at(1).find('.bi-pencil-square').exists()).toBeTruthy()
+      expect(wrapper.findAll('tr').at(1).find('.bi-pencil-square').exists()).toBe(true)
     })
 
     describe('show edit details', () => {
@@ -123,7 +123,7 @@ describe('OpenCreationsTable', () => {
       })
 
       it.skip('renders the component component-edit-creation-formular', () => {
-        expect(wrapper.find('div.component-edit-creation-formular').exists()).toBeTruthy()
+        expect(wrapper.find('div.component-edit-creation-formular').exists()).toBe(true)
       })
     })
 
