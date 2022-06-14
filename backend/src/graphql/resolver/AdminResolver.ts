@@ -15,6 +15,7 @@ import { PendingCreation } from '@model/PendingCreation'
 import { CreatePendingCreations } from '@model/CreatePendingCreations'
 import { UpdatePendingCreation } from '@model/UpdatePendingCreation'
 import { ContributionLink } from '@model/ContributionLink'
+import { ContributionLinkList } from '@model/ContributionLinkList'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import CreatePendingCreationArgs from '@arg/CreatePendingCreationArgs'
@@ -493,6 +494,23 @@ export class AdminResolver {
     dbContributionLink.maxPerCycle = maxPerCycle
     dbContributionLink.save()
     return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTION_LINKS])
+  @Query(() => ContributionLinkList)
+  async listContributionLinks(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionLinkList> {
+    const [links, count] = await DbContributionLink.findAndCount({
+      order: { createdAt: order },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return {
+      links: links.map((link: DbContributionLink) => new ContributionLink(link)),
+      count,
+    }
   }
 }
 

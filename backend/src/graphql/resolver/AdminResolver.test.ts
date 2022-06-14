@@ -27,6 +27,7 @@ import {
   login,
   searchUsers,
   listTransactionLinksAdmin,
+  listContributionLinks,
 } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
@@ -1618,6 +1619,16 @@ describe('AdminResolver', () => {
           )
         })
       })
+
+      describe('listContributionLinks', () => {
+        it.only('returns an error', async () => {
+          await expect(query({ query: listContributionLinks })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
     })
 
     describe('authenticated', () => {
@@ -1638,6 +1649,16 @@ describe('AdminResolver', () => {
         describe('createContributionLink', () => {
           it.only('returns an error', async () => {
             await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('listContributionLinks', () => {
+          it.only('returns an error', async () => {
+            await expect(query({ query: listContributionLinks })).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -1706,6 +1727,37 @@ describe('AdminResolver', () => {
                 // maxAmountPerMonth: '200',
               }),
             )
+          })
+        })
+
+        describe('listContributionLinks', () => {
+          describe('one link in DB', () => {
+            it.only('returns the link and count 1', async () => {
+              await expect(query({ query: listContributionLinks })).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    listContributionLinks: {
+                      links: expect.arrayContaining([
+                        expect.objectContaining({
+                          amount: '200',
+                          code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                          link: expect.any(String),
+                          createdAt: expect.any(String),
+                          name: 'Dokumenta 2022',
+                          memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                          validFrom: expect.any(String),
+                          validTo: expect.any(String),
+                          maxAmountPerMonth: '200',
+                          cycle: 'once',
+                          maxPerCycle: 1,
+                        }),
+                      ]),
+                      count: 1,
+                    },
+                  },
+                }),
+              )
+            })
           })
         })
       })
