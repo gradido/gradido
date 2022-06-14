@@ -21,6 +21,7 @@ import {
   deletePendingCreation,
   confirmPendingCreation,
   createContributionLink,
+  deleteContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
   getPendingCreations,
@@ -1629,6 +1630,18 @@ describe('AdminResolver', () => {
           )
         })
       })
+
+      describe('deleteContributionLink', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
     })
 
     describe('authenticated', () => {
@@ -1659,6 +1672,18 @@ describe('AdminResolver', () => {
         describe('listContributionLinks', () => {
           it('returns an error', async () => {
             await expect(query({ query: listContributionLinks })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('deleteContributionLink', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+            ).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -1753,6 +1778,53 @@ describe('AdminResolver', () => {
                         }),
                       ]),
                       count: 1,
+                    },
+                  },
+                }),
+              )
+            })
+          })
+        })
+
+        describe('deleteContributionLink', () => {
+          describe('no valid id', () => {
+            it('returns an error', async () => {
+              await expect(
+                mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Contribution Link not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('valid id', () => {
+            let linkId: number
+            beforeAll(async () => {
+              const links = await query({ query: listContributionLinks })
+              linkId = links.data.listContributionLinks.links[0].id
+            })
+
+            it('returns a date string', async () => {
+              await expect(
+                mutate({ mutation: deleteContributionLink, variables: { id: linkId } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    deleteContributionLink: expect.any(String),
+                  },
+                }),
+              )
+            })
+
+            it('does not list this contribution link anymore', async () => {
+              await expect(query({ query: listContributionLinks })).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    listContributionLinks: {
+                      links: [],
+                      count: 0,
                     },
                   },
                 }),
