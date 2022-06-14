@@ -1611,7 +1611,7 @@ describe('AdminResolver', () => {
 
     describe('unauthenticated', () => {
       describe('createContributionLink', () => {
-        it.only('returns an error', async () => {
+        it('returns an error', async () => {
           await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('401 Unauthorized')],
@@ -1621,7 +1621,7 @@ describe('AdminResolver', () => {
       })
 
       describe('listContributionLinks', () => {
-        it.only('returns an error', async () => {
+        it('returns an error', async () => {
           await expect(query({ query: listContributionLinks })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('401 Unauthorized')],
@@ -1647,7 +1647,7 @@ describe('AdminResolver', () => {
         })
 
         describe('createContributionLink', () => {
-          it.only('returns an error', async () => {
+          it('returns an error', async () => {
             await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
@@ -1657,7 +1657,7 @@ describe('AdminResolver', () => {
         })
 
         describe('listContributionLinks', () => {
-          it.only('returns an error', async () => {
+          it('returns an error', async () => {
             await expect(query({ query: listContributionLinks })).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
@@ -1682,7 +1682,7 @@ describe('AdminResolver', () => {
         })
 
         describe('createContributionLink', () => {
-          it.only('returns a contribution link object', async () => {
+          it('returns a contribution link object', async () => {
             await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
               expect.objectContaining({
                 data: {
@@ -1704,7 +1704,7 @@ describe('AdminResolver', () => {
             )
           })
 
-          it.only('has a contribution link stored in db', async () => {
+          it('has a contribution link stored in db', async () => {
             const cls = await DbContributionLink.find()
             expect(cls).toHaveLength(1)
             expect(cls[0]).toEqual(
@@ -1732,7 +1732,7 @@ describe('AdminResolver', () => {
 
         describe('listContributionLinks', () => {
           describe('one link in DB', () => {
-            it.only('returns the link and count 1', async () => {
+            it('returns the link and count 1', async () => {
               await expect(query({ query: listContributionLinks })).resolves.toEqual(
                 expect.objectContaining({
                   data: {
