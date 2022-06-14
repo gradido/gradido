@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { convertObjValuesToArray } from '@/util/utilities'
+import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
+import { creations } from '@/seeds/creation/index'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { transactionLinks } from '@/seeds/transactionLink/index'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
@@ -12,14 +15,18 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
   deleteUser,
   unDeleteUser,
-  searchUsers,
   createPendingCreation,
   createPendingCreations,
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
 } from '@/seeds/graphql/mutations'
-import { getPendingCreations, login } from '@/seeds/graphql/queries'
+import {
+  getPendingCreations,
+  login,
+  searchUsers,
+  listTransactionLinksAdmin,
+} from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -366,7 +373,7 @@ describe('AdminResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 4,
-                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
                   },
                 },
               }),
@@ -382,8 +389,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: null,
-                    filterByDeleted: null,
+                    byActivated: null,
+                    byDeleted: null,
                   },
                 },
               }),
@@ -392,7 +399,7 @@ describe('AdminResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 4,
-                    userList: expect.arrayContaining(convertObjValuesToArray(allUsers)),
+                    userList: expect.arrayContaining(objectValuesToArray(allUsers)),
                   },
                 },
               }),
@@ -408,8 +415,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: false,
-                    filterByDeleted: null,
+                    byActivated: false,
+                    byDeleted: null,
                   },
                 },
               }),
@@ -434,8 +441,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: null,
-                    filterByDeleted: true,
+                    byActivated: null,
+                    byDeleted: true,
                   },
                 },
               }),
@@ -460,8 +467,8 @@ describe('AdminResolver', () => {
                 variables: {
                   ...variablesWithoutTextAndFilters,
                   filters: {
-                    filterByActivated: false,
-                    filterByDeleted: true,
+                    byActivated: false,
+                    byDeleted: true,
                   },
                 },
               }),
@@ -1319,6 +1326,268 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+          })
+        })
+      })
+    })
+  })
+
+  describe('transaction links list', () => {
+    const variables = {
+      userId: 1, // dummy, may be replaced
+      filters: null,
+      currentPage: 1,
+      pageSize: 5,
+    }
+
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: listTransactionLinksAdmin,
+            variables,
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            query({
+              query: listTransactionLinksAdmin,
+              variables,
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          // admin 'peter@lustig.de' has to exists for 'creationFactory'
+          admin = await userFactory(testEnv, peterLustig)
+
+          user = await userFactory(testEnv, bibiBloxberg)
+          variables.userId = user.id
+          variables.pageSize = 25
+          // bibi needs GDDs
+          const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          await creationFactory(testEnv, bibisCreation!)
+          // bibis transaktion links
+          const bibisTransaktionLinks = transactionLinks.filter(
+            (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',
+          )
+          for (let i = 0; i < bibisTransaktionLinks.length; i++) {
+            await transactionLinkFactory(testEnv, bibisTransaktionLinks[i])
+          }
+
+          // admin: only now log in
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('without any filters', () => {
+          it('finds 6 open transaction links and no deleted or redeemed', async () => {
+            await expect(
+              query({
+                query: listTransactionLinksAdmin,
+                variables,
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 6,
+                    linkList: expect.not.arrayContaining([
+                      expect.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('all filters are null', () => {
+          it('finds 6 open transaction links and no deleted or redeemed', async () => {
+            await expect(
+              query({
+                query: listTransactionLinksAdmin,
+                variables: {
+                  ...variables,
+                  filters: {
+                    withDeleted: null,
+                    withExpired: null,
+                    withRedeemed: null,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 6,
+                    linkList: expect.not.arrayContaining([
+                      expect.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter with deleted', () => {
+          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
+            await expect(
+              query({
+                query: listTransactionLinksAdmin,
+                variables: {
+                  ...variables,
+                  filters: {
+                    withDeleted: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 7,
+                    linkList: expect.arrayContaining([
+                      expect.not.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        describe('filter by expired', () => {
+          it('finds 5 open transaction links, 1 expired, and no redeemed', async () => {
+            await expect(
+              query({
+                query: listTransactionLinksAdmin,
+                variables: {
+                  ...variables,
+                  filters: {
+                    withExpired: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 7,
+                    linkList: expect.arrayContaining([
+                      expect.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.not.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
+        describe.skip('filter by redeemed', () => {
+          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
+            await expect(
+              query({
+                query: listTransactionLinksAdmin,
+                variables: {
+                  ...variables,
+                  filters: {
+                    withDeleted: null,
+                    withExpired: null,
+                    withRedeemed: true,
+                  },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  listTransactionLinksAdmin: {
+                    linkCount: 6,
+                    linkList: expect.arrayContaining([
+                      expect.not.objectContaining({
+                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        createdAt: expect.any(String),
+                      }),
+                      expect.objectContaining({
+                        memo: 'Yeah, eingelöst!',
+                        redeemedAt: expect.any(String),
+                        redeemedBy: expect.any(Number),
+                      }),
+                      expect.not.objectContaining({
+                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        deletedAt: expect.any(String),
+                      }),
+                    ]),
+                  },
+                },
+              }),
+            )
           })
         })
       })

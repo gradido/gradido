@@ -103,8 +103,8 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.perPage,
             filters: {
-              filterByActivated: true,
-              filterByDeleted: false,
+              byActivated: true,
+              byDeleted: false,
             },
           },
           fetchPolicy: 'network-only',

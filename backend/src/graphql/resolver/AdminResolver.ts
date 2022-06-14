@@ -59,12 +59,12 @@ export class AdminResolver {
 
     const filterCriteria: ObjectLiteral[] = []
     if (filters) {
-      if (filters.filterByActivated !== null) {
-        filterCriteria.push({ emailChecked: filters.filterByActivated })
+      if (filters.byActivated !== null) {
+        filterCriteria.push({ emailChecked: filters.byActivated })
       }
 
-      if (filters.filterByDeleted !== null) {
-        filterCriteria.push({ deletedAt: filters.filterByDeleted ? Not(IsNull()) : IsNull() })
+      if (filters.byDeleted !== null) {
+        filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
       }
     }
 
@@ -458,9 +458,10 @@ export class AdminResolver {
   async listTransactionLinksAdmin(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
-    @Args()
+    @Arg('filters', () => TransactionLinkFilters, { nullable: true })
     filters: TransactionLinkFilters,
-    @Arg('userId', () => Int) userId: number,
+    @Arg('userId', () => Int)
+    userId: number,
   ): Promise<TransactionLinkResult> {
     const user = await dbUser.findOneOrFail({ id: userId })
     const where: {
@@ -469,12 +470,16 @@ export class AdminResolver {
       validUntil?: FindOperator<Date> | null
     } = {
       userId,
+      redeemedBy: null,
+      validUntil: MoreThan(new Date()),
     }
-    if (!filters.filterByRedeemed) where.redeemedBy = null
-    if (!filters.filterByExpired) where.validUntil = MoreThan(new Date())
+    if (filters) {
+      if (filters.withRedeemed) delete where.redeemedBy
+      if (filters.withExpired) delete where.validUntil
+    }
     const [transactionLinks, count] = await dbTransactionLink.findAndCount({
       where,
-      withDeleted: filters.filterByDeleted,
+      withDeleted: filters ? filters.withDeleted : false,
       order: {
         createdAt: order,
       },
