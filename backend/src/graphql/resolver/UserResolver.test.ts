@@ -159,7 +159,7 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      let mutation: any
+      let mutation: User
       beforeAll(async () => {
         mutation = await mutate({ mutation: createUser, variables })
       })

@@ -7,6 +7,7 @@ import { getConnection } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
+import { communityDbUser } from '@/util/communityUser'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { encode } from '@/auth/JWT'
 import CreateUserArgs from '@arg/CreateUserArgs'
@@ -330,19 +331,20 @@ export class UserResolver {
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
-    const dbUser = new DbUser()
+
     if (userFound) {
       logger.info('User already exists with this email=' + email)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      dbUser.id = sodium.randombytes_random() % (2048 * 16)
-      dbUser.email = email
-      dbUser.firstName = firstName
-      dbUser.lastName = lastName
-      dbUser.emailHash = emailHash
-      dbUser.language = language
-      dbUser.publisherId = publisherId
-      dbUser.passphrase = passphrase.join(' ')
-      logger.debug('partly faked dbUser=' + dbUser)
+
+      const user = new User(communityDbUser)
+      user.id = sodium.randombytes_random() % (2048 * 16)
+      user.email = email
+      user.emailChecked = true
+      user.firstName = firstName
+      user.lastName = lastName
+      user.language = language
+      user.publisherId = publisherId
+      logger.debug('partly faked user=' + user)
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountMultiRegistrationEmail({
@@ -357,11 +359,14 @@ export class UserResolver {
         logger.debug(`Email not send!`)
       }
       logger.info('createUser() faked and send multi registration mail...')
+
+      return user
     } else {
       // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
       // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
       // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
 
+      const dbUser = new DbUser()
       dbUser.email = email
       dbUser.firstName = firstName
       dbUser.lastName = lastName
@@ -428,8 +433,9 @@ export class UserResolver {
         await queryRunner.release()
       }
       logger.info('createUser() successful...')
+
+      return new User(dbUser)
     }
-    return new User(dbUser)
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])

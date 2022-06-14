@@ -1,3 +1,4 @@
+import CONFIG from '@/config'
 import { sendAccountMultiRegistrationEmail } from './sendAccountMultiRegistrationEmail'
 import { sendEMail } from './sendEMail'
 
@@ -23,7 +24,7 @@ describe('sendAccountMultiRegistrationEmail', () => {
       subject: 'Gradido: Erneuter Registrierungsversuch mit deiner E-Mail',
       text:
         expect.stringContaining('Hallo Peter Lustig') &&
-        expect.stringContaining('http://localhost/forgot-password') &&
+        expect.stringContaining(CONFIG.EMAIL_LINK_FORGOTPASSWORD) &&
         expect.stringContaining('https://gradido.net/de/contact/'),
     })
   })

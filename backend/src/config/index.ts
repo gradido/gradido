@@ -77,7 +77,6 @@ const email = {
   EMAIL_LINK_FORGOTPASSWORD:
     process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
   EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW || 'http://localhost/overview',
-  EMAIL_LINK_SUPPORT: process.env.EMAIL_LINK_SUPPORT || 'https://gradido.net/de/contact/',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? parseInt(process.env.EMAIL_CODE_VALID_TIME) || 1440

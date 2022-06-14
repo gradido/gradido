@@ -13,7 +13,6 @@ export const sendAccountMultiRegistrationEmail = (data: {
     text: accountMultiRegistration.de.text({
       ...data,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
-      supportLink: CONFIG.EMAIL_LINK_SUPPORT,
     }),
   })
 }
