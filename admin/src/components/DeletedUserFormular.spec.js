@@ -75,7 +75,7 @@ describe('DeletedUserFormular', () => {
       })
 
       it('has a checkbox', () => {
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
       })
 
       it('shows the text "delete_user"', () => {
@@ -88,7 +88,7 @@ describe('DeletedUserFormular', () => {
         })
 
         it('has a confirmation button', () => {
-          expect(wrapper.find('button').exists()).toBeTruthy()
+          expect(wrapper.find('button').exists()).toBe(true)
         })
 
         it('has the button text "delete_user"', () => {
@@ -146,7 +146,7 @@ describe('DeletedUserFormular', () => {
           })
 
           it('has no confirmation button anymore', () => {
-            expect(wrapper.find('button').exists()).toBeFalsy()
+            expect(wrapper.find('button').exists()).toBe(false)
           })
         })
       })
@@ -163,7 +163,7 @@ describe('DeletedUserFormular', () => {
       })
 
       it('has a checkbox', () => {
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
       })
 
       it('shows the text "undelete_user"', () => {
@@ -181,7 +181,7 @@ describe('DeletedUserFormular', () => {
         })
 
         it('has a confirmation button', () => {
-          expect(wrapper.find('button').exists()).toBeTruthy()
+          expect(wrapper.find('button').exists()).toBe(true)
         })
 
         it('has the button text "undelete_user"', () => {
@@ -239,7 +239,7 @@ describe('DeletedUserFormular', () => {
           })
 
           it('has no confirmation button anymore', () => {
-            expect(wrapper.find('button').exists()).toBeFalsy()
+            expect(wrapper.find('button').exists()).toBe(false)
           })
         })
       })
