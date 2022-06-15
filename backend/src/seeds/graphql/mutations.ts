@@ -120,9 +120,9 @@ export const adminCreateContributions = gql`
   }
 `
 
-export const updatePendingCreation = gql`
+export const adminUpdateContribution = gql`
   mutation ($id: Int!, $email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    updatePendingCreation(
+    adminUpdateContribution(
       id: $id
       email: $email
       amount: $amount

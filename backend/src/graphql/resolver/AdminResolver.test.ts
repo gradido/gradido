@@ -17,7 +17,7 @@ import {
   unDeleteUser,
   adminCreateContribution,
   adminCreateContributions,
-  updatePendingCreation,
+  adminUpdateContribution,
   adminDeleteContribution,
   confirmContribution,
   createContributionLink,
@@ -527,11 +527,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('updatePendingCreation', () => {
+      describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: updatePendingCreation,
+              mutation: adminUpdateContribution,
               variables: {
                 id: 1,
                 email: 'bibi@bloxberg.de',
@@ -637,11 +637,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('updatePendingCreation', () => {
+        describe('adminUpdateContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: updatePendingCreation,
+                mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
                   email: 'bibi@bloxberg.de',
@@ -939,7 +939,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('updatePendingCreation', () => {
+        describe('adminUpdateContribution', () => {
           // at this I expect to have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 300]
           // peter@lustig.de: [1000, 600, 500]
@@ -950,7 +950,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
                     email: 'bob@baumeister.de',
@@ -971,7 +971,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
                     email: 'stephen@hawking.uk',
@@ -992,7 +992,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: -1,
                     email: 'bibi@bloxberg.de',
@@ -1013,7 +1013,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'bibi@bloxberg.de',
@@ -1038,7 +1038,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1063,7 +1063,7 @@ describe('AdminResolver', () => {
             it('returns update creation object', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1075,7 +1075,7 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
-                    updatePendingCreation: {
+                    adminUpdateContribution: {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
@@ -1091,7 +1091,7 @@ describe('AdminResolver', () => {
             it('returns update creation object', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1103,7 +1103,7 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
-                    updatePendingCreation: {
+                    adminUpdateContribution: {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',

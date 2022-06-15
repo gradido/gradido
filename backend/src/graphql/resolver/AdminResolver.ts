@@ -191,7 +191,7 @@ export class AdminResolver {
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    if (isCreationValid(creations, amount, creationDateObj)) {
+    if (isContributionValid(creations, amount, creationDateObj)) {
       const contribution = Contribution.create()
       contribution.userId = user.id
       contribution.amount = amount
@@ -235,7 +235,7 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
   @Mutation(() => AdminUpdateContribution)
-  async updatePendingCreation(
+  async adminUpdateContribution(
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
@@ -249,7 +249,9 @@ export class AdminResolver {
 
     const moderator = getUser(context)
 
-    const contributionToUpdate = await Contribution.findOne({ id })
+    const contributionToUpdate = await Contribution.findOne({
+      where: { id, confirmedAt: IsNull() },
+    })
 
     if (!contributionToUpdate) {
       throw new Error('No contribution found to given id.')
@@ -266,7 +268,7 @@ export class AdminResolver {
     }
 
     // all possible cases not to be true are thrown in this function
-    isCreationValid(creations, amount, creationDateObj)
+    isContributionValid(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -343,7 +345,7 @@ export class AdminResolver {
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
 
     const creations = await getUserCreation(contribution.userId, false)
-    if (!isCreationValid(creations, contribution.amount, contribution.contributionDate)) {
+    if (!isContributionValid(creations, contribution.amount, contribution.contributionDate)) {
       throw new Error('Creation is not valid!!')
     }
 
@@ -661,8 +663,8 @@ function updateCreations(creations: Decimal[], contribution: Contribution): Deci
   return creations
 }
 
-function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
-  logger.trace('isCreationValid', creations, amount, creationDate)
+function isContributionValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
+  logger.trace('isContributionValid', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
