@@ -106,7 +106,7 @@ export const unDeleteUser = gql`
 `
 
 export const createPendingCreations = gql`
-  mutation ($pendingCreations: [CreatePendingCreationArgs!]!) {
+  mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
     createPendingCreations(pendingCreations: $pendingCreations) {
       success
       successfulCreation
