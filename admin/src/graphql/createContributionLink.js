@@ -2,24 +2,24 @@ import gql from 'graphql-tag'
 
 export const createContributionLink = gql`
   mutation (
-    $startDate: String!
-    $endDate: String!
+    $validFrom: String!
+    $validTo: String!
     $name: String!
     $amount: Decimal!
     $memo: String!
     $cycle: String
-    $repetition: String
-    $maxAmount: Decimal
+    $maxPerCycle: String
+    $maxAmountPerMonth: Decimal
   ) {
     createContributionLink(
-      startDate: $startDate
-      endDate: $endDate
+      validFrom: $validFrom
+      validTo: $validTo
       name: $name
       amount: $amount
       memo: $memo
       cycle: $cycle
-      repetition: $repetition
-      maxAmount: $maxAmount
+      maxPerCycle: $maxPerCycle
+      maxAmountPerMonth: $maxAmountPerMonth
     ) {
       link
     }

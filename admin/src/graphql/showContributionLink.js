@@ -4,14 +4,14 @@ export const showContributionLink = gql`
   query ($id: Int!) {
     showContributionLink {
       id
-      startDate
-      endDate
+      validFrom
+      validTo
       name
       memo
       amount
       cycle
-      repetition
-      maxAmount
+      maxPerCycle
+      maxAmountPerMonth
       code
     }
   }

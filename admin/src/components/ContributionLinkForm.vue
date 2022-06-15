@@ -7,9 +7,9 @@
       <!-- Date -->
       <b-row>
         <b-col>
-          <b-form-group :label="$t('contributionLink.startDate')">
+          <b-form-group :label="$t('contributionLink.validFrom')">
             <b-form-datepicker
-              v-model="form.startDate"
+              v-model="form.validFrom"
               size="lg"
               :min="min"
               class="mb-4"
@@ -20,11 +20,11 @@
           </b-form-group>
         </b-col>
         <b-col>
-          <b-form-group :label="$t('contributionLink.endDate')">
+          <b-form-group :label="$t('contributionLink.validTo')">
             <b-form-datepicker
-              v-model="form.endDate"
+              v-model="form.validTo"
               size="lg"
-              :min="form.startDate ? form.startDate : min"
+              :min="form.validFrom ? form.validFrom : min"
               class="mb-4"
               reset-value=""
               :label-no-date-selected="$t('contributionLink.noDateSelected')"
@@ -68,7 +68,7 @@
         <b-row class="mb-4">
           <b-col>
             <!-- Cycle -->
-            <label for="cycle-repetition">{{ $t('contributionLink.cycle') }}</label>
+            <label for="cycle">{{ $t('contributionLink.cycle') }}</label>
             <b-form-select
               v-model="form.cycle"
               :options="cycle"
@@ -78,11 +78,11 @@
             ></b-form-select>
           </b-col>
           <b-col>
-            <!-- Repetition -->
-            <label for="cycle-repetition">{{ $t('contributionLink.repetition') }}</label>
+            <!-- maxPerCycle -->
+            <label for="maxPerCycle">{{ $t('contributionLink.maxPerCycle') }}</label>
             <b-form-select
-              v-model="form.repetition"
-              :options="repetition"
+              v-model="form.maxPerCycle"
+              :options="maxPerCycle"
               :disabled="disabled"
               class="mb-3"
               size="lg"
@@ -90,10 +90,10 @@
           </b-col>
         </b-row>
 
-        <!-- Max amount -->
+        <!-- maxAmountPerMonth -->
         <b-form-group :label="$t('contributionLink.maximumAmount')">
           <b-form-input
-            v-model="form.maxAmount"
+            v-model="form.maxAmountPerMonth"
             size="lg"
             :disabled="disabled"
             type="number"
@@ -128,23 +128,23 @@ export default {
         name: null,
         memo: null,
         amount: null,
-        startDate: null,
-        endDate: null,
-        cycle: 'once',
-        repetition: null,
-        maxAmount: null,
+        validFrom: null,
+        validTo: null,
+        cycle: 'ONCE',
+        maxPerCycle: '1',
+        maxAmountPerMonth: 0,
       },
       min: new Date(),
       cycle: [
-        { value: 'once', text: this.$t('contributionLink.options.cycle.once') },
+        { value: 'ONCE', text: this.$t('contributionLink.options.cycle.once') },
         { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
         { value: 'daily', text: this.$t('contributionLink.options.cycle.daily') },
         { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },
         { value: 'monthly', text: this.$t('contributionLink.options.cycle.monthly') },
         { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },
       ],
-      repetition: [
-        { value: null, text: this.$t('contributionLink.options.repetition.null') },
+      maxPerCycle: [
+        { value: null, text: this.$t('contributionLink.options.maxPerCycle.null') },
         { value: '1', text: '1 x' },
         { value: '2', text: '2 x' },
         { value: '3', text: '3 x' },
@@ -155,22 +155,22 @@ export default {
   },
   methods: {
     onSubmit() {
-      if (this.form.startDate === null)
+      if (this.form.validFrom === null)
         return this.toastError(this.$t('contributionLink.noStartDate'))
-      if (this.form.endDate === null) return this.toastError(this.$t('contributionLink.noEndDate'))
+      if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))
       alert(JSON.stringify(this.form))
       this.$apollo
         .mutate({
           mutation: createContributionLink,
           variables: {
-            startDate: this.form.startDate,
-            endDate: this.form.endDate,
+            validFrom: this.form.validFrom,
+            validTo: this.form.validTo,
             name: this.form.name,
             amount: this.form.amount,
             memo: this.form.memo,
             cycle: this.form.cycle,
-            repetition: this.form.repetition,
-            maxAmount: this.form.maxAmount,
+            maxPerCycle: this.form.maxPerCycle,
+            maxAmountPerMonth: this.form.maxAmountPerMonth,
           },
         })
         .then((result) => {
@@ -183,8 +183,8 @@ export default {
     },
     onReset() {
       this.$refs.contributionLinkForm.reset()
-      this.form.startDate = null
-      this.form.endDate = null
+      this.form.validFrom = null
+      this.form.validTo = null
     },
   },
   computed: {
@@ -192,7 +192,7 @@ export default {
       return this.contributionLinkData
     },
     disabled() {
-      if (this.form.cycle === 'once') return true
+      if (this.form.cycle === 'ONCE') return true
       return false
     },
   },
@@ -201,11 +201,11 @@ export default {
       this.form.name = this.contributionLinkData.name
       this.form.memo = this.contributionLinkData.memo
       this.form.amount = this.contributionLinkData.amount
-      this.form.startDate = this.contributionLinkData.startDate
-      this.form.endDate = this.contributionLinkData.endDate
+      this.form.validFrom = this.contributionLinkData.validFrom
+      this.form.validTo = this.contributionLinkData.validTo
       this.form.cycle = this.contributionLinkData.cycle
-      this.form.repetition = this.contributionLinkData.repetition
-      this.form.maxAmount = this.contributionLinkData.maxAmount
+      this.form.maxPerCycle = this.contributionLinkData.maxPerCycle
+      this.form.maxAmountPerMonth = this.contributionLinkData.maxAmountPerMonth
     },
   },
 }

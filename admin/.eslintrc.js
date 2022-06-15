@@ -39,7 +39,7 @@ module.exports = {
       {
         src: './src',
         extensions: ['.js', '.vue'],
-        ignores: ['contributionLink.options.repetition.null'],
+        ignores: ['contributionLink.options.maxPerCycle.null'],
         enableFix: false,
       },
     ],

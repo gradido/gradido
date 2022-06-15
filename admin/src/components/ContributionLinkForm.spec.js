@@ -36,24 +36,24 @@ describe('ContributionLinkForm', () => {
             name: 'name',
             memo: 'memo',
             amount: 100,
-            startDate: 'startDate',
-            endDate: 'endDate',
-            cycle: 'once',
-            repetition: '1',
-            maxAmount: 100,
+            validFrom: 'validFrom',
+            validTo: 'validTo',
+            cycle: 'ONCE',
+            maxPerCycle: '1',
+            maxAmountPerMonth: 100,
           },
         })
         wrapper.vm.onReset()
       })
       expect(wrapper.vm.form).toEqual({
         amount: null,
-        cycle: 'once',
-        endDate: null,
-        maxAmount: null,
+        cycle: 'ONCE',
+        validTo: null,
+        maxAmountPerMonth: null,
         memo: null,
         name: null,
-        repetition: null,
-        startDate: null,
+        maxPerCycle: null,
+        validFrom: null,
       })
     })
 
