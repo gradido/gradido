@@ -1755,6 +1755,7 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   createContributionLink: expect.objectContaining({
+                    id: expect.any(Number),
                     amount: '200',
                     code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
                     link: expect.any(String),
