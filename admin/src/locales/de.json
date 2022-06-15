@@ -7,6 +7,7 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
+    "deleteNow": "Automatische Creations wirklich löschen?",
     "maximumAmount": "maximaler Betrag",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
@@ -24,14 +25,10 @@
         "once": "einmalig",
         "weekly": "wöchentlich",
         "yearly": "jährlich"
-      },
-      "maxPerCycle": {
-        "null": "Bitte wähle eine Wiederholung"
       }
     },
     "validFrom": "Startdatum",
-    "validTo": "Enddatum",
-    "deleteNow":"Automatische Creations wirklich löschen?"
+    "validTo": "Enddatum"
   },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",

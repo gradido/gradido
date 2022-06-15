@@ -7,6 +7,7 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
+    "deleteNow": "Do you really delete automatic creations?",
     "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
@@ -24,14 +25,10 @@
         "once": "once",
         "weekly": "weekly",
         "yearly": "yearly"
-      },
-      "maxPerCycle": {
-        "null": "please select a repetition"
       }
     },
     "validFrom": "Start-date",
-    "validTo": "End-Date",
-    "deleteNow":"Do you really delete automatic creations?"
+    "validTo": "End-Date"
   },
   "creation": "Creation",
   "creationList": "Creation list",
