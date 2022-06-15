@@ -137,9 +137,9 @@ export const updatePendingCreation = gql`
   }
 `
 
-export const deletePendingCreation = gql`
+export const adminDeleteContribution = gql`
   mutation ($id: Int!) {
-    deletePendingCreation(id: $id)
+    adminDeleteContribution(id: $id)
   }
 `
 

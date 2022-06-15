@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
@@ -84,9 +84,9 @@ describe('CreationConfirm', () => {
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
-      it('calls the deletePendingCreation mutation', () => {
+      it('calls the adminDeleteContribution mutation', () => {
         expect(apolloMutateMock).toBeCalledWith({
-          mutation: deletePendingCreation,
+          mutation: adminDeleteContribution,
           variables: { id: 1 },
         })
       })

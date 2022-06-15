@@ -314,12 +314,12 @@ export class AdminResolver {
     })
   }
 
-  @Authorized([RIGHTS.DELETE_PENDING_CREATION])
+  @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async deletePendingCreation(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
-      throw new Error('Creation not found for given id.')
+      throw new Error('Contribution not found for given id.')
     }
     const res = await contribution.softRemove()
     return !!res

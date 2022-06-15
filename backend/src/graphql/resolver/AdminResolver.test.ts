@@ -18,7 +18,7 @@ import {
   adminCreateContribution,
   adminCreateContributions,
   updatePendingCreation,
-  deletePendingCreation,
+  adminDeleteContribution,
   confirmPendingCreation,
   createContributionLink,
   deleteContributionLink,
@@ -562,11 +562,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('deletePendingCreation', () => {
+      describe('adminDeleteContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: deletePendingCreation,
+              mutation: adminDeleteContribution,
               variables: {
                 id: 1,
               },
@@ -672,11 +672,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('deletePendingCreation', () => {
+        describe('adminDeleteContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: deletePendingCreation,
+                mutation: adminDeleteContribution,
                 variables: {
                   id: 1,
                 },
@@ -1177,19 +1177,19 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('deletePendingCreation', () => {
+        describe('adminDeleteContribution', () => {
           describe('creation id does not exist', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: deletePendingCreation,
+                  mutation: adminDeleteContribution,
                   variables: {
                     id: -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation not found for given id.')],
+                  errors: [new GraphQLError('Contribution not found for given id.')],
                 }),
               )
             })
@@ -1199,14 +1199,14 @@ describe('AdminResolver', () => {
             it('returns true', async () => {
               await expect(
                 mutate({
-                  mutation: deletePendingCreation,
+                  mutation: adminDeleteContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  data: { deletePendingCreation: true },
+                  data: { adminDeleteContribution: true },
                 }),
               )
             })

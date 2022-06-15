@@ -16,7 +16,7 @@
 import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
 import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
 export default {
@@ -36,7 +36,7 @@ export default {
     removeCreation(item) {
       this.$apollo
         .mutate({
-          mutation: deletePendingCreation,
+          mutation: adminDeleteContribution,
           variables: {
             id: item.id,
           },
