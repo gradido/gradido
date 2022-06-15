@@ -9,7 +9,7 @@ const localVue = global.localVue
 const storeCommitMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    getPendingCreations: [
+    listUnconfirmedContributions: [
       {
         id: 1,
         firstName: 'Bibi',

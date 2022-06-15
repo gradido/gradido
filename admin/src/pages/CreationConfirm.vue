@@ -15,7 +15,7 @@
 <script>
 import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
-import { getPendingCreations } from '../graphql/getPendingCreations'
+import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { deletePendingCreation } from '../graphql/deletePendingCreation'
 import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
 
@@ -70,13 +70,13 @@ export default {
     getPendingCreations() {
       this.$apollo
         .query({
-          query: getPendingCreations,
+          query: listUnconfirmedContributions,
           fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.pendingCreations = result.data.getPendingCreations
-          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
+          this.pendingCreations = result.data.listUnconfirmedContributions
+          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
         .catch((error) => {
           this.toastError(error.message)

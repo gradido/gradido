@@ -25,7 +25,7 @@ import {
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
-  getPendingCreations,
+  listUnconfirmedContributions,
   login,
   searchUsers,
   listTransactionLinksAdmin,
@@ -548,11 +548,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('getPendingCreations', () => {
+      describe('listUnconfirmedContributions', () => {
         it('returns an error', async () => {
           await expect(
             query({
-              query: getPendingCreations,
+              query: listUnconfirmedContributions,
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -658,11 +658,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('getPendingCreations', () => {
+        describe('listUnconfirmedContributions', () => {
           it('returns an error', async () => {
             await expect(
               query({
-                query: getPendingCreations,
+                query: listUnconfirmedContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -1116,16 +1116,16 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('getPendingCreations', () => {
+        describe('listUnconfirmedContributions', () => {
           it('returns four pending creations', async () => {
             await expect(
               query({
-                query: getPendingCreations,
+                query: listUnconfirmedContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  getPendingCreations: expect.arrayContaining([
+                  listUnconfirmedContributions: expect.arrayContaining([
                     {
                       id: expect.any(Number),
                       firstName: 'Peter',

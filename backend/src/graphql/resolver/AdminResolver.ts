@@ -283,9 +283,9 @@ export class AdminResolver {
     return result
   }
 
-  @Authorized([RIGHTS.SEARCH_PENDING_CREATION])
+  @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
-  async getPendingCreations(): Promise<UnconfirmedContribution[]> {
+  async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
     const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
     if (contributions.length === 0) {
       return []

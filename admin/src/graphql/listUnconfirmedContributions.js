@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
-export const getPendingCreations = gql`
+export const listUnconfirmedContributions = gql`
   query {
-    getPendingCreations {
+    listUnconfirmedContributions {
       id
       firstName
       lastName
