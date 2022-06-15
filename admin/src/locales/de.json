@@ -7,8 +7,8 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "validTo": "Enddatum",
     "maximumAmount": "maximaler Betrag",
+    "maxPerCycle": "Wiederholung",
     "memo": "Nachricht",
     "name": "Name",
     "newContributionLink": "Neuer Beitragslink",
@@ -29,8 +29,8 @@
         "null": "Bitte wähle eine Wiederholung"
       }
     },
-    "maxPerCycle": "Wiederholung",
-    "validFrom": "Startdatum"
+    "validFrom": "Startdatum",
+    "validTo": "Enddatum"
   },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
