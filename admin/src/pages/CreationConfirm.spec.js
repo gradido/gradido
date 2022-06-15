@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -141,9 +141,9 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
-          it('calls the confirmPendingCreation mutation', () => {
+          it('calls the confirmContribution mutation', () => {
             expect(apolloMutateMock).toBeCalledWith({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: { id: 2 },
             })
           })

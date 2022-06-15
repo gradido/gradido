@@ -325,22 +325,22 @@ export class AdminResolver {
     return !!res
   }
 
-  @Authorized([RIGHTS.CONFIRM_PENDING_CREATION])
+  @Authorized([RIGHTS.CONFIRM_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async confirmPendingCreation(
+  async confirmContribution(
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
-      throw new Error('Creation not found to given id.')
+      throw new Error('Contribution not found to given id.')
     }
     const moderatorUser = getUser(context)
     if (moderatorUser.id === contribution.userId)
-      throw new Error('Moderator can not confirm own pending creation')
+      throw new Error('Moderator can not confirm own contribution')
 
     const user = await dbUser.findOneOrFail({ id: contribution.userId }, { withDeleted: true })
-    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a creation.')
+    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
 
     const creations = await getUserCreation(contribution.userId, false)
     if (!isCreationValid(creations, contribution.amount, contribution.contributionDate)) {

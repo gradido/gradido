@@ -92,9 +92,9 @@ export const adminCreateContribution = gql`
   }
 `
 
-export const confirmPendingCreation = gql`
+export const confirmContribution = gql`
   mutation ($id: Int!) {
-    confirmPendingCreation(id: $id)
+    confirmContribution(id: $id)
   }
 `
 

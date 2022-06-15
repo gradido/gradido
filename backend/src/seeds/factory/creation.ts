@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { adminCreateContribution, confirmPendingCreation } from '@/seeds/graphql/mutations'
+import { adminCreateContribution, confirmContribution } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -33,7 +33,7 @@ export const creationFactory = async (
   })
 
   if (creation.confirmed) {
-    await mutate({ mutation: confirmPendingCreation, variables: { id: pendingCreation.id } })
+    await mutate({ mutation: confirmContribution, variables: { id: pendingCreation.id } })
 
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({

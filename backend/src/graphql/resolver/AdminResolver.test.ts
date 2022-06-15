@@ -19,7 +19,7 @@ import {
   adminCreateContributions,
   updatePendingCreation,
   adminDeleteContribution,
-  confirmPendingCreation,
+  confirmContribution,
   createContributionLink,
   deleteContributionLink,
   updateContributionLink,
@@ -579,11 +579,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('confirmPendingCreation', () => {
+      describe('confirmContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: {
                 id: 1,
               },
@@ -689,11 +689,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('confirmPendingCreation', () => {
+        describe('confirmContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: 1,
                 },
@@ -1213,19 +1213,19 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('confirmPendingCreation', () => {
+        describe('confirmContribution', () => {
           describe('creation does not exits', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation not found to given id.')],
+                  errors: [new GraphQLError('Contribution not found to given id.')],
                 }),
               )
             })
@@ -1245,14 +1245,14 @@ describe('AdminResolver', () => {
             it('thows an error', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Moderator can not confirm own pending creation')],
+                  errors: [new GraphQLError('Moderator can not confirm own contribution')],
                 }),
               )
             })
@@ -1272,14 +1272,14 @@ describe('AdminResolver', () => {
             it('returns true', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  data: { confirmPendingCreation: true },
+                  data: { confirmContribution: true },
                 }),
               )
             })
@@ -1319,20 +1319,20 @@ describe('AdminResolver', () => {
             // In the futrue this should not throw anymore
             it('throws an error for the second confirmation', async () => {
               const r1 = mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: c1 ? c1.id : -1,
                 },
               })
               const r2 = mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: c2 ? c2.id : -1,
                 },
               })
               await expect(r1).resolves.toEqual(
                 expect.objectContaining({
-                  data: { confirmPendingCreation: true },
+                  data: { confirmContribution: true },
                 }),
               )
               await expect(r2).resolves.toEqual(
