@@ -54,7 +54,7 @@
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
-    "unknown-error": "Unbekanter Fehler: "
+    "unknown-error": "Unbekannter Fehler: "
   },
   "followUs": "folge uns:",
   "footer": {
