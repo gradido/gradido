@@ -1,4 +1,5 @@
 import { Context, getUser } from '@/server/context'
+import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
   getCustomRepository,
@@ -14,12 +15,16 @@ import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { AdminCreateContribution } from '@model/AdminCreateContribution'
 import { AdminUpdateUnconfirmedContribution } from '@model/AdminUpdateUnconfirmedContribution'
+import { ContributionLink } from '@model/ContributionLink'
+import { ContributionLinkList } from '@model/ContributionLinkList'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
 import AdminUpdateUnconfirmedContributionArgs from '@arg/AdminUpdateUnconfirmedContributionArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
+import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Transaction } from '@model/Transaction'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
@@ -39,6 +44,7 @@ import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
 import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 
@@ -491,6 +497,99 @@ export class AdminResolver {
       linkCount: count,
       linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
     }
+  }
+
+  @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async createContributionLink(
+    @Args()
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+  ): Promise<ContributionLink> {
+    const dbContributionLink = new DbContributionLink()
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.createdAt = new Date()
+    dbContributionLink.code = contributionLinkCode(dbContributionLink.createdAt)
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    await dbContributionLink.save()
+    return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTION_LINKS])
+  @Query(() => ContributionLinkList)
+  async listContributionLinks(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionLinkList> {
+    const [links, count] = await DbContributionLink.findAndCount({
+      order: { createdAt: order },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return {
+      links: links.map((link: DbContributionLink) => new ContributionLink(link)),
+      count,
+    }
+  }
+
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
+  @Mutation(() => Date, { nullable: true })
+  async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
+    const contributionLink = await DbContributionLink.findOne(id)
+    if (!contributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    await contributionLink.softRemove()
+    const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
+    return newContributionLink ? newContributionLink.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async updateContributionLink(
+    @Args()
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+    @Arg('id', () => Int) id: number,
+  ): Promise<ContributionLink> {
+    const dbContributionLink = await DbContributionLink.findOne(id)
+    if (!dbContributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    await dbContributionLink.save()
+    return new ContributionLink(dbContributionLink)
   }
 }
 

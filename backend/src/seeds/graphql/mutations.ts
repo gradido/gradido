@@ -142,3 +142,85 @@ export const deletePendingCreation = gql`
     deletePendingCreation(id: $id)
   }
 `
+
+export const createContributionLink = gql`
+  mutation (
+    $amount: Decimal!
+    $name: String!
+    $memo: String!
+    $cycle: String!
+    $validFrom: String
+    $validTo: String
+    $maxAmountPerMonth: Decimal
+    $maxPerCycle: Int! = 1
+  ) {
+    createContributionLink(
+      amount: $amount
+      name: $name
+      memo: $memo
+      cycle: $cycle
+      validFrom: $validFrom
+      validTo: $validTo
+      maxAmountPerMonth: $maxAmountPerMonth
+      maxPerCycle: $maxPerCycle
+    ) {
+      id
+      amount
+      name
+      memo
+      code
+      link
+      createdAt
+      validFrom
+      validTo
+      maxAmountPerMonth
+      cycle
+      maxPerCycle
+    }
+  }
+`
+
+export const updateContributionLink = gql`
+  mutation (
+    $amount: Decimal!
+    $name: String!
+    $memo: String!
+    $cycle: String!
+    $validFrom: String
+    $validTo: String
+    $maxAmountPerMonth: Decimal
+    $maxPerCycle: Int! = 1
+    $id: Int!
+  ) {
+    updateContributionLink(
+      amount: $amount
+      name: $name
+      memo: $memo
+      cycle: $cycle
+      validFrom: $validFrom
+      validTo: $validTo
+      maxAmountPerMonth: $maxAmountPerMonth
+      maxPerCycle: $maxPerCycle
+      id: $id
+    ) {
+      id
+      amount
+      name
+      memo
+      code
+      link
+      createdAt
+      validFrom
+      validTo
+      maxAmountPerMonth
+      cycle
+      maxPerCycle
+    }
+  }
+`
+
+export const deleteContributionLink = gql`
+  mutation ($id: Int!) {
+    deleteContributionLink(id: $id)
+  }
+`

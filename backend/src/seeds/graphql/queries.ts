@@ -217,3 +217,25 @@ export const listTransactionLinksAdmin = gql`
     }
   }
 `
+
+export const listContributionLinks = gql`
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order) {
+    listContributionLinks(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        code
+        link
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
+    }
+  }
+`
