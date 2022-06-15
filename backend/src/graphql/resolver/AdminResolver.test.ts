@@ -1755,9 +1755,10 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   createContributionLink: expect.objectContaining({
+                    id: expect.any(Number),
                     amount: '200',
-                    code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
-                    link: expect.any(String),
+                    code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                    link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
                     createdAt: expect.any(String),
                     name: 'Dokumenta 2022',
                     memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
@@ -1808,8 +1809,8 @@ describe('AdminResolver', () => {
                       links: expect.arrayContaining([
                         expect.objectContaining({
                           amount: '200',
-                          code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
-                          link: expect.any(String),
+                          code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                          link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
                           createdAt: expect.any(String),
                           name: 'Dokumenta 2022',
                           memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
@@ -1876,8 +1877,8 @@ describe('AdminResolver', () => {
                     updateContributionLink: {
                       id: linkId,
                       amount: '400',
-                      code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
-                      link: expect.any(String),
+                      code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                      link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
                       createdAt: expect.any(String),
                       name: 'Dokumenta 2023',
                       memo: 'Danke für deine Teilnahme an der Dokumenta 2023',

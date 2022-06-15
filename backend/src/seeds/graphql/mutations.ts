@@ -159,6 +159,7 @@ export const createContributionLink = gql`
       maxAmountPerMonth: $maxAmountPerMonth
       maxPerCycle: $maxPerCycle
     ) {
+      id
       amount
       name
       memo

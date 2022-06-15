@@ -17,8 +17,8 @@ export class ContributionLink {
     this.maxAmountPerMonth = contributionLink.maxAmountPerMonth
     this.cycle = contributionLink.cycle
     this.maxPerCycle = contributionLink.maxPerCycle
-    this.code = 'CL-' + contributionLink.code
-    this.link = CONFIG.COMMUNITY_REDEEM_URL.replace(/{code}/g, this.code)
+    this.code = contributionLink.code
+    this.link = CONFIG.COMMUNITY_REDEEM_CONTRIBUTION_URL.replace(/{code}/g, this.code)
   }
 
   @Field(() => Number)
