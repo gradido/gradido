@@ -39,7 +39,7 @@ describe('ContributionLinkForm', () => {
             validFrom: 'validFrom',
             validTo: 'validTo',
             cycle: 'ONCE',
-            maxPerCycle: '1',
+            maxPerCycle: 1,
             maxAmountPerMonth: 100,
           },
         })
@@ -52,7 +52,7 @@ describe('ContributionLinkForm', () => {
         maxAmountPerMonth: 0,
         memo: null,
         name: null,
-        maxPerCycle: '1',
+        maxPerCycle: 1,
         validFrom: null,
       })
     })

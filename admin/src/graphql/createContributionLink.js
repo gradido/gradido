@@ -7,8 +7,8 @@ export const createContributionLink = gql`
     $name: String!
     $amount: Decimal!
     $memo: String!
-    $cycle: String
-    $maxPerCycle: String
+    $cycle: String!
+    $maxPerCycle: Int! = 1
     $maxAmountPerMonth: Decimal
   ) {
     createContributionLink(

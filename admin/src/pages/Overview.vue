@@ -79,8 +79,8 @@ export default {
           validFrom: '2022-04-01',
           validTo: '2022-08-01',
           cycle: 'täglich',
-          maxPerCycle: '3',
-          maxAmountPerMonth: 0,
+          maxPerCycle: 3,
+          maxAmountPerMonth: '0',
           link: 'https://localhost/redeem/CL-1a2345678',
         },
         {
@@ -91,8 +91,8 @@ export default {
           validFrom: '2022-04-01',
           validTo: '2022-12-01',
           cycle: 'monatlich',
-          maxPerCycle: '2',
-          maxAmountPerMonth: 0,
+          maxPerCycle: 2,
+          maxAmountPerMonth: '0',
           link: 'https://localhost/redeem/CL-1b2345678',
         },
         {
@@ -103,8 +103,8 @@ export default {
           validFrom: '2022-06-18',
           validTo: '2022-10-01',
           cycle: 'null',
-          maxPerCycle: '1',
-          maxAmountPerMonth: 0,
+          maxPerCycle: 1,
+          maxAmountPerMonth: '0',
           link: 'https://localhost/redeem/CL-1c2345678',
         },
       ]
