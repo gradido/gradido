@@ -81,9 +81,14 @@ export const createTransactionLink = gql`
 
 // from admin interface
 
-export const createPendingCreation = gql`
+export const adminCreateContribution = gql`
   mutation ($email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    createPendingCreation(email: $email, amount: $amount, memo: $memo, creationDate: $creationDate)
+    adminCreateContribution(
+      email: $email
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    )
   }
 `
 
@@ -105,9 +110,9 @@ export const unDeleteUser = gql`
   }
 `
 
-export const createPendingCreations = gql`
+export const adminCreateContributions = gql`
   mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
-    createPendingCreations(pendingCreations: $pendingCreations) {
+    adminCreateContributions(pendingCreations: $pendingCreations) {
       success
       successfulCreation
       failedCreation

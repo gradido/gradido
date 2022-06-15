@@ -85,8 +85,8 @@
   </div>
 </template>
 <script>
-import { createPendingCreation } from '../graphql/createPendingCreation'
-import { createPendingCreations } from '../graphql/createPendingCreations'
+import { adminCreateContribution } from '../graphql/adminCreateContribution'
+import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { creationMonths } from '../mixins/creationMonths'
 export default {
   name: 'CreationFormular',
@@ -158,7 +158,7 @@ export default {
         })
         this.$apollo
           .mutate({
-            mutation: createPendingCreations,
+            mutation: adminCreateContributions,
             variables: {
               pendingCreations: submitObj,
             },
@@ -168,10 +168,10 @@ export default {
             const failedCreations = []
             this.$store.commit(
               'openCreationsPlus',
-              result.data.createPendingCreations.successfulCreation.length,
+              result.data.adminCreateContributions.successfulCreation.length,
             )
-            if (result.data.createPendingCreations.failedCreation.length > 0) {
-              result.data.createPendingCreations.failedCreation.forEach((email) => {
+            if (result.data.adminCreateContributions.failedCreation.length > 0) {
+              result.data.adminCreateContributions.failedCreation.forEach((email) => {
                 failedCreations.push(email)
               })
             }
@@ -190,11 +190,11 @@ export default {
         }
         this.$apollo
           .mutate({
-            mutation: createPendingCreation,
+            mutation: adminCreateContribution,
             variables: submitObj,
           })
           .then((result) => {
-            this.$emit('update-user-data', this.item, result.data.createPendingCreation)
+            this.$emit('update-user-data', this.item, result.data.adminCreateContribution)
             this.$store.commit('openCreationsPlus', 1)
             this.toastSuccess(
               this.$t('creation_form.toasted', {

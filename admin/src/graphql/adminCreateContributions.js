@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
-export const createPendingCreations = gql`
+export const adminCreateContributions = gql`
   mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
-    createPendingCreations(pendingCreations: $pendingCreations) {
+    adminCreateContributions(pendingCreations: $pendingCreations) {
       success
       successfulCreation
       failedCreation

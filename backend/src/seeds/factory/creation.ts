@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createPendingCreation, confirmPendingCreation } from '@/seeds/graphql/mutations'
+import { adminCreateContribution, confirmPendingCreation } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -23,7 +23,7 @@ export const creationFactory = async (
   await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
 
   // TODO it would be nice to have this mutation return the id
-  await mutate({ mutation: createPendingCreation, variables: { ...creation } })
+  await mutate({ mutation: adminCreateContribution, variables: { ...creation } })
 
   const user = await User.findOneOrFail({ where: { email: creation.email } })
 

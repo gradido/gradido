@@ -166,11 +166,11 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => [Number])
-  async createPendingCreation(
+  async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
-    logger.trace('createPendingCreation...')
+    logger.trace('adminCreateContribution...')
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -203,7 +203,7 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.CREATE_PENDING_CREATION])
   @Mutation(() => AdminCreateContribution)
-  async createPendingCreations(
+  async adminCreateContributions(
     @Arg('pendingCreations', () => [AdminCreateContributionArgs])
     contributions: AdminCreateContributionArgs[],
     @Ctx() context: Context,
@@ -212,7 +212,7 @@ export class AdminResolver {
     const successfulCreation: string[] = []
     const failedCreation: string[] = []
     for (const contribution of contributions) {
-      await this.createPendingCreation(contribution, context)
+      await this.adminCreateContribution(contribution, context)
         .then(() => {
           successfulCreation.push(contribution.email)
           success = true
