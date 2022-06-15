@@ -1757,7 +1757,7 @@ describe('AdminResolver', () => {
                   createContributionLink: expect.objectContaining({
                     id: expect.any(Number),
                     amount: '200',
-                    code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                    code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                     link: expect.any(String),
                     createdAt: expect.any(String),
                     name: 'Dokumenta 2022',
@@ -1809,7 +1809,7 @@ describe('AdminResolver', () => {
                       links: expect.arrayContaining([
                         expect.objectContaining({
                           amount: '200',
-                          code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                          code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                           link: expect.any(String),
                           createdAt: expect.any(String),
                           name: 'Dokumenta 2022',
@@ -1877,7 +1877,7 @@ describe('AdminResolver', () => {
                     updateContributionLink: {
                       id: linkId,
                       amount: '400',
-                      code: expect.stringMatching(/^CL-[0-9a-f]{24,24}$/),
+                      code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                       link: expect.any(String),
                       createdAt: expect.any(String),
                       name: 'Dokumenta 2023',
