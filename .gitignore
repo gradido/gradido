@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-.dbeaver/*
+/.dbeaver/*
 .project
-=======
->>>>>>> refs/remotes/origin/master
 *.log
 *.bak
 /node_modules/*
