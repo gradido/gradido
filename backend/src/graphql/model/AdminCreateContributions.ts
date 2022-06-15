@@ -1,7 +1,7 @@
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class AdminCreateContribution {
+export class AdminCreateContributions {
   constructor() {
     this.success = false
     this.successfulContribution = []

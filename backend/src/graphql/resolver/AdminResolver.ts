@@ -13,14 +13,14 @@ import {
 } from '@dbTools/typeorm'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { AdminCreateContribution } from '@model/AdminCreateContribution'
-import { AdminUpdateUnconfirmedContribution } from '@model/AdminUpdateUnconfirmedContribution'
+import { AdminCreateContributions } from '@model/AdminCreateContributions'
+import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
-import AdminUpdateUnconfirmedContributionArgs from '@arg/AdminUpdateUnconfirmedContributionArgs'
+import AdminUpdateContributionArgs from '@arg/AdminUpdateContributionArgs'
 import SearchUsersArgs from '@arg/SearchUsersArgs'
 import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -207,12 +207,12 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
-  @Mutation(() => AdminCreateContribution)
+  @Mutation(() => AdminCreateContributions)
   async adminCreateContributions(
     @Arg('pendingCreations', () => [AdminCreateContributionArgs])
     contributions: AdminCreateContributionArgs[],
     @Ctx() context: Context,
-  ): Promise<AdminCreateContribution> {
+  ): Promise<AdminCreateContributions> {
     let success = false
     const successfulContribution: string[] = []
     const failedContribution: string[] = []
@@ -233,12 +233,12 @@ export class AdminResolver {
     }
   }
 
-  @Authorized([RIGHTS.ADMIN_UPDATE_UNCONFIRMED_CONTRIBUTION])
-  @Mutation(() => AdminUpdateUnconfirmedContribution)
+  @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
+  @Mutation(() => AdminUpdateContribution)
   async updatePendingCreation(
-    @Args() { id, email, amount, memo, creationDate }: AdminUpdateUnconfirmedContributionArgs,
+    @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
-  ): Promise<AdminUpdateUnconfirmedContribution> {
+  ): Promise<AdminUpdateContribution> {
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -273,7 +273,7 @@ export class AdminResolver {
     contributionToUpdate.moderatorId = moderator.id
 
     await Contribution.save(contributionToUpdate)
-    const result = new AdminUpdateUnconfirmedContribution()
+    const result = new AdminUpdateContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate

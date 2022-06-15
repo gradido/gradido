@@ -2,7 +2,7 @@ import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ObjectType()
-export class AdminUpdateUnconfirmedContribution {
+export class AdminUpdateContribution {
   @Field(() => Date)
   date: Date
 

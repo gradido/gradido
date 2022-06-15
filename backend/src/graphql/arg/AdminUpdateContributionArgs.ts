@@ -2,7 +2,7 @@ import { ArgsType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
 @ArgsType()
-export default class AdminUpdatePendingContributionArgs {
+export default class AdminUpdateContributionArgs {
   @Field(() => Int)
   id: number
 
