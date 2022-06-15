@@ -12,7 +12,7 @@
     "memo": "Memo",
     "name": "Name",
     "newContributionLink": "New contribution link",
-    "noContributionLinks": "No contribution links have been created.",
+    "noContributionLinks": "No contribution link has been created.",
     "noDateSelected": "No date selected",
     "noEndDate": "No end-date",
     "noStartDate": "No start-date",
@@ -21,7 +21,7 @@
         "daily": "daily",
         "hourly": "hourly",
         "monthly": "monthly",
-        "once": "unique",
+        "once": "once",
         "weekly": "weekly",
         "yearly": "yearly"
       },
@@ -30,7 +30,8 @@
       }
     },
     "validFrom": "Start-date",
-    "validTo": "End-Date"
+    "validTo": "End-Date",
+    "deleteNow":"Do you really delete automatic creations?"
   },
   "creation": "Creation",
   "creationList": "Creation list",

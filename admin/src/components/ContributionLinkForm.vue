@@ -42,6 +42,7 @@
           type="text"
           placeholder="Name"
           required
+          maxlength="80"
         ></b-form-input>
       </b-form-group>
       <!-- Desc -->
@@ -51,6 +52,7 @@
           size="lg"
           :placeholder="$t('contributionLink.memo')"
           required
+          maxlength="255"
         ></b-form-textarea>
       </b-form-group>
       <!-- Amount -->
@@ -145,7 +147,6 @@ export default {
         { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },
       ],
       maxPerCycle: [
-        { value: null, text: this.$t('contributionLink.options.maxPerCycle.null') },
         { value: '1', text: '1 x' },
         { value: '2', text: '2 x' },
         { value: '3', text: '3 x' },

@@ -8,7 +8,7 @@
     "create": "Anlegen",
     "cycle": "Zyklus",
     "maximumAmount": "maximaler Betrag",
-    "maxPerCycle": "Wiederholung",
+    "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
     "newContributionLink": "Neuer Beitragslink",
@@ -30,7 +30,8 @@
       }
     },
     "validFrom": "Startdatum",
-    "validTo": "Enddatum"
+    "validTo": "Enddatum",
+    "deleteNow":"Automatische Creations wirklich löschen?"
   },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",

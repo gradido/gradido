@@ -57,10 +57,10 @@ export default {
         'name',
         'memo',
         'amount',
-        { key: 'cycle', label: 'Zyklus' },
-        { key: 'maxPerCycle', label: 'Wiederholung' },
-        { key: 'validFrom', label: 'Start' },
-        { key: 'validTo', label: 'Ende' },
+        { key: 'cycle', label: this.$t('contributionLink.cycle') },
+        { key: 'maxPerCycle', label: this.$t('contributionLink.maxPerCycle') },
+        { key: 'validFrom', label: this.$t('contributionLink.validFrom') },
+        { key: 'validTo', label: this.$t('contributionLink.validTo') },
         'delete',
         'edit',
         'show',
@@ -71,24 +71,22 @@ export default {
   },
   methods: {
     deleteContributionLink() {
-      this.$bvModal
-        .msgBoxConfirm('Automatische Creations wirklich löschen?')
-        .then(async (value) => {
-          if (value)
-            await this.$apollo
-              .mutate({
-                mutation: deleteContributionLink,
-                variables: {
-                  id: this.id,
-                },
-              })
-              .then(() => {
-                this.toastSuccess('TODO: request message deleted ')
-              })
-              .catch((err) => {
-                this.toastError(err.message)
-              })
-        })
+      this.$bvModal.msgBoxConfirm(this.$t('contributionLink.deleteNow')).then(async (value) => {
+        if (value)
+          await this.$apollo
+            .mutate({
+              mutation: deleteContributionLink,
+              variables: {
+                id: this.id,
+              },
+            })
+            .then(() => {
+              this.toastSuccess('TODO: request message deleted ')
+            })
+            .catch((err) => {
+              this.toastError(err.message)
+            })
+      })
     },
     editContributionLink(row) {
       this.$emit('editContributionLinkData', row)
