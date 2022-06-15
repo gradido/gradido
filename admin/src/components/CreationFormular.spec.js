@@ -336,8 +336,8 @@ describe('CreationFormular', () => {
             data: {
               adminCreateContributions: {
                 success: true,
-                successfulCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
-                failedCreation: [],
+                successfulContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                failedContribution: [],
               },
             },
           })
@@ -392,8 +392,8 @@ describe('CreationFormular', () => {
             data: {
               adminCreateContributions: {
                 success: true,
-                successfulCreation: [],
-                failedCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                successfulContribution: [],
+                failedContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
               },
             },
           })

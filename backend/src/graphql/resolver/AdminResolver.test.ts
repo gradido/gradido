@@ -750,7 +750,9 @@ describe('AdminResolver', () => {
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('This user was deleted. Cannot make a creation.')],
+                  errors: [
+                    new GraphQLError('This user was deleted. Cannot create a contribution.'),
+                  ],
                 }),
               )
             })
@@ -767,7 +769,9 @@ describe('AdminResolver', () => {
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation could not be saved, Email is not activated')],
+                  errors: [
+                    new GraphQLError('Contribution could not be saved, Email is not activated'),
+                  ],
                 }),
               )
             })
@@ -917,8 +921,8 @@ describe('AdminResolver', () => {
                 data: {
                   adminCreateContributions: {
                     success: true,
-                    successfulCreation: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedCreation: [
+                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
+                    failedContribution: [
                       'stephen@hawking.uk',
                       'garrick@ollivander.com',
                       'bob@baumeister.de',

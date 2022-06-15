@@ -176,10 +176,10 @@ export class AdminResolver {
       throw new Error(`Could not find user with email: ${email}`)
     }
     if (user.deletedAt) {
-      throw new Error('This user was deleted. Cannot make a creation.')
+      throw new Error('This user was deleted. Cannot create a contribution.')
     }
     if (!user.emailChecked) {
-      throw new Error('Creation could not be saved, Email is not activated')
+      throw new Error('Contribution could not be saved, Email is not activated')
     }
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
@@ -209,22 +209,22 @@ export class AdminResolver {
     @Ctx() context: Context,
   ): Promise<AdminCreateContribution> {
     let success = false
-    const successfulCreation: string[] = []
-    const failedCreation: string[] = []
+    const successfulContribution: string[] = []
+    const failedContribution: string[] = []
     for (const contribution of contributions) {
       await this.adminCreateContribution(contribution, context)
         .then(() => {
-          successfulCreation.push(contribution.email)
+          successfulContribution.push(contribution.email)
           success = true
         })
         .catch(() => {
-          failedCreation.push(contribution.email)
+          failedContribution.push(contribution.email)
         })
     }
     return {
       success,
-      successfulCreation,
-      failedCreation,
+      successfulContribution,
+      failedContribution,
     }
   }
 

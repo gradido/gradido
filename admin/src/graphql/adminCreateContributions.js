@@ -4,8 +4,8 @@ export const adminCreateContributions = gql`
   mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
     adminCreateContributions(pendingCreations: $pendingCreations) {
       success
-      successfulCreation
-      failedCreation
+      successfulContribution
+      failedContribution
     }
   }
 `

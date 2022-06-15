@@ -4,16 +4,16 @@ import { ObjectType, Field } from 'type-graphql'
 export class AdminCreateContribution {
   constructor() {
     this.success = false
-    this.successfulCreation = []
-    this.failedCreation = []
+    this.successfulContribution = []
+    this.failedContribution = []
   }
 
   @Field(() => Boolean)
   success: boolean
 
   @Field(() => [String])
-  successfulCreation: string[]
+  successfulContribution: string[]
 
   @Field(() => [String])
-  failedCreation: string[]
+  failedContribution: string[]
 }
