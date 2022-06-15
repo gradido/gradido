@@ -164,7 +164,7 @@ export class AdminResolver {
     return null
   }
 
-  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
   @Mutation(() => [Number])
   async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
@@ -201,7 +201,7 @@ export class AdminResolver {
     return getUserCreation(user.id)
   }
 
-  @Authorized([RIGHTS.CREATE_PENDING_CREATION])
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
   @Mutation(() => AdminCreateContribution)
   async adminCreateContributions(
     @Arg('pendingCreations', () => [AdminCreateContributionArgs])
@@ -228,7 +228,7 @@ export class AdminResolver {
     }
   }
 
-  @Authorized([RIGHTS.UPDATE_PENDING_CREATION])
+  @Authorized([RIGHTS.ADMIN_UPDATE_UNCONFIRMED_CONTRIBUTION])
   @Mutation(() => AdminUpdateUnconfirmedContribution)
   async updatePendingCreation(
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateUnconfirmedContributionArgs,
