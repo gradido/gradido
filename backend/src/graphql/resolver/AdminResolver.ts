@@ -518,7 +518,7 @@ export class AdminResolver {
       throw new Error('The amount must be initialized!')
     }
     const amountObj = new Decimal(amount)
-    if (amountObj.isZero || amountObj.isNegative()) {
+    if (amountObj.lessThanOrEqualTo(new Decimal(0))) {
       logger.error(`The amount=${amount} must be initialized with a positiv value!`)
       throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
     }
