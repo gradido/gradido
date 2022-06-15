@@ -51,6 +51,10 @@ import CONFIG from '@/config'
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 const MAX_CREATION_AMOUNT = new Decimal(1000)
 const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
+const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
+const CONTRIBUTIONLINK_NAME_MIN_CHARS = 5
+const CONTRIBUTIONLINK_MEMO_MAX_CHARS = 255
+const CONTRIBUTIONLINK_MEMO_MIN_CHARS = 5
 
 @Resolver()
 export class AdminResolver {
@@ -482,6 +486,42 @@ export class AdminResolver {
       maxPerCycle,
     }: ContributionLinkArgs,
   ): Promise<ContributionLink> {
+    logger.debug(
+      `createContributionLink(validFrom=${validFrom}, validTo=${validTo}, name=${name}, amount=${amount}, memo=${memo}, cycle=${cycle}, maxPerCycle=${maxPerCycle}, maxAmountPerMonth=${maxAmountPerMonth})...`,
+    )
+    if (!isStartEndDateValid(validFrom, validTo)) {
+      logger.error(`The validFrom=${validFrom} must be before or equals the validTo=${validTo}!`)
+      throw new Error(`The validFrom=${validFrom} must be before or equals the validTo=${validTo}!`)
+    }
+    if (name == null) {
+      logger.error(`The name must be initialized!`)
+      throw new Error(`The name must be initialized!`)
+    }
+    if (
+      name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS ||
+      name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS
+    ) {
+      const msg = `The name=${name} with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (
+      memo.length < CONTRIBUTIONLINK_MEMO_MIN_CHARS ||
+      memo.length > CONTRIBUTIONLINK_MEMO_MAX_CHARS
+    ) {
+      const msg = `The memo=${memo} with a length of ${memo.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_MEMO_MIN_CHARS} and max=${CONTRIBUTIONLINK_MEMO_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (amount == null) {
+      logger.error(`The amount must be initialized!`)
+      throw new Error('The amount must be initialized!')
+    }
+    const amountObj = new Decimal(amount)
+    if (amountObj.isZero || amountObj.isNegative()) {
+      logger.error(`The amount=${amount} must be initialized with a positiv value!`)
+      throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
+    }
     const dbContributionLink = new DbContributionLink()
     dbContributionLink.amount = amount
     dbContributionLink.name = name
@@ -494,6 +534,7 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
+    logger.debug(`createContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
 
@@ -503,6 +544,7 @@ export class AdminResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
+    logger.debug('listContributionLinks()...')
     const [links, count] = await DbContributionLink.findAndCount({
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
@@ -517,12 +559,14 @@ export class AdminResolver {
   @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
   @Mutation(() => Date, { nullable: true })
   async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
+    logger.debug(`deleteContributionLink(id=${id})`)
     const contributionLink = await DbContributionLink.findOne(id)
     if (!contributionLink) {
       logger.error(`Contribution Link not found to given id: ${id}`)
       throw new Error('Contribution Link not found to given id.')
     }
     await contributionLink.softRemove()
+    logger.debug(`deleteContributionLink successful!`)
     const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
     return newContributionLink ? newContributionLink.deletedAt : null
   }
@@ -543,6 +587,9 @@ export class AdminResolver {
     }: ContributionLinkArgs,
     @Arg('id', () => Int) id: number,
   ): Promise<ContributionLink> {
+    logger.debug(
+      `updateContributionLink(id=${id}, amount=${amount}, name=${name}, memo=${memo}, cycle=${cycle}, validFrom=${validFrom}, validTo=${validTo}, maxAmountPerMonth=${maxAmountPerMonth}, maxPerCycle=${maxPerCycle})...`,
+    )
     const dbContributionLink = await DbContributionLink.findOne(id)
     if (!dbContributionLink) {
       logger.error(`Contribution Link not found to given id: ${id}`)
@@ -557,6 +604,7 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
+    logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
 }
@@ -637,6 +685,32 @@ function isCreationValid(creations: Decimal[], amount: Decimal, creationDate: Da
     )
   }
 
+  return true
+}
+
+function isStartEndDateValid(
+  startDate: string | null | undefined,
+  endDate: string | null | undefined,
+) {
+  if (startDate == null && endDate == null) {
+    logger.error('Start- and End-Date are not initialized. At least a startDate must be set!')
+    throw new Error('Start- and End-Date are not initialized. At least a startDate must be set!')
+  }
+
+  if (startDate == null) {
+    logger.error('StartDate is not initialized. At least a startDate must be set!')
+    throw new Error('Start-Date is not initialized. At least a startDate must be set!')
+  }
+
+  if (startDate != null && endDate != null) {
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+
+    // check if endDate is before startDate
+    if (endDateObj.getTime() - startDateObj.getTime() < 0) {
+      return false
+    }
+  }
   return true
 }
 
