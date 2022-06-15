@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
-import { User } from '../User'
+import { User } from '../0034-drop_server_user_table/User'
 
 @Entity()
 export class UserSetting extends BaseEntity {
