@@ -40,6 +40,9 @@ export class Contribution extends BaseEntity {
   @Column({ nullable: true, name: 'confirmed_at' })
   confirmedAt: Date
 
+  @Column({ unsigned: true, nullable: true, name: 'transaction_id' })
+  transactionId: number
+
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 }
