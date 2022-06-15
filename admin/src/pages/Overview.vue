@@ -28,7 +28,7 @@
         </b-link>
       </b-card-text>
     </b-card>
-    <contribution-link :items="items" />
+    <contribution-link :items="items" :count="count" />
   </div>
 </template>
 <script>
@@ -44,6 +44,7 @@ export default {
   data() {
     return {
       items: [],
+      count: 0,
     }
   },
   methods: {
@@ -64,50 +65,13 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          this.toastSuccess('TODO! change this.items')
+          console.log(result.data.listContributionLinks.count)
+          this.count = result.data.listContributionLinks.count
+          this.items = result.data.listContributionLinks.links
         })
         .catch(() => {
           this.toastError('listContributionLinks has no result, use default data')
         })
-
-      this.items = [
-        {
-          id: 1,
-          name: 'Meditation',
-          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-          amount: '200',
-          validFrom: '2022-04-01',
-          validTo: '2022-08-01',
-          cycle: 'täglich',
-          maxPerCycle: '3',
-          maxAmountPerMonth: 0,
-          link: 'https://localhost/redeem/CL-1a2345678',
-        },
-        {
-          id: 2,
-          name: 'Teamarbeit',
-          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
-          amount: '300',
-          validFrom: '2022-04-01',
-          validTo: '2022-12-01',
-          cycle: 'monatlich',
-          maxPerCycle: '2',
-          maxAmountPerMonth: 0,
-          link: 'https://localhost/redeem/CL-1b2345678',
-        },
-        {
-          id: 3,
-          name: 'Documenta Kassel 2022',
-          memo: 'New Account Register by Documenta Kassel, Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt',
-          amount: '400',
-          validFrom: '2022-06-18',
-          validTo: '2022-10-01',
-          cycle: 'null',
-          maxPerCycle: '1',
-          maxAmountPerMonth: 0,
-          link: 'https://localhost/redeem/CL-1c2345678',
-        },
-      ]
     },
   },
   created() {

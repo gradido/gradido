@@ -49,7 +49,7 @@ export default {
     FigureQrCode,
   },
   props: {
-    items: { type: Array },
+    items: { type: Array, default: () => [] },
   },
   data() {
     return {

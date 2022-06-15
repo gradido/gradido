@@ -21,7 +21,7 @@
 
       <b-card-text>
         <contribution-link-list
-          v-if="items.length > 1"
+          v-if="count > 0"
           :items="items"
           @editContributionLinkData="editContributionLinkData"
         />
@@ -44,6 +44,10 @@ export default {
     items: {
       type: Array,
       default: () => [],
+    },
+    count: {
+      type: Number,
+      default: 0,
     },
   },
   data: function () {
