@@ -20,7 +20,6 @@ const communityDbUser: dbUser = {
   isAdmin: null,
   publisherId: 0,
   passphrase: '',
-  settings: [],
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },

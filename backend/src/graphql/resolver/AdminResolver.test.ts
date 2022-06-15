@@ -20,12 +20,16 @@ import {
   updatePendingCreation,
   deletePendingCreation,
   confirmPendingCreation,
+  createContributionLink,
+  deleteContributionLink,
+  updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
   getPendingCreations,
   login,
   searchUsers,
   listTransactionLinksAdmin,
+  listContributionLinks,
 } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
@@ -34,6 +38,7 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
 import { AdminPendingCreation } from '@entity/AdminPendingCreation'
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -1588,6 +1593,363 @@ describe('AdminResolver', () => {
                 },
               }),
             )
+          })
+        })
+      })
+    })
+  })
+
+  describe('Contribution Links', () => {
+    const variables = {
+      amount: new Decimal(200),
+      name: 'Dokumenta 2022',
+      memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+      cycle: 'once',
+      validFrom: new Date(2022, 5, 18).toISOString(),
+      validTo: new Date(2022, 7, 14).toISOString(),
+      maxAmountPerMonth: new Decimal(200),
+      maxPerCycle: 1,
+    }
+
+    describe('unauthenticated', () => {
+      describe('createContributionLink', () => {
+        it('returns an error', async () => {
+          await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('listContributionLinks', () => {
+        it('returns an error', async () => {
+          await expect(query({ query: listContributionLinks })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('updateContributionLink', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateContributionLink,
+              variables: {
+                ...variables,
+                id: -1,
+                amount: new Decimal(400),
+                name: 'Dokumenta 2023',
+                memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('deleteContributionLink', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error', async () => {
+            await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('listContributionLinks', () => {
+          it('returns an error', async () => {
+            await expect(query({ query: listContributionLinks })).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('updateContributionLink', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({
+                mutation: updateContributionLink,
+                variables: {
+                  ...variables,
+                  id: -1,
+                  amount: new Decimal(400),
+                  name: 'Dokumenta 2023',
+                  memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+
+        describe('deleteContributionLink', () => {
+          it('returns an error', async () => {
+            await expect(
+              mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, peterLustig)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('createContributionLink', () => {
+          it('returns a contribution link object', async () => {
+            await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  createContributionLink: expect.objectContaining({
+                    id: expect.any(Number),
+                    amount: '200',
+                    code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                    link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
+                    createdAt: expect.any(String),
+                    name: 'Dokumenta 2022',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                    validFrom: expect.any(String),
+                    validTo: expect.any(String),
+                    maxAmountPerMonth: '200',
+                    cycle: 'once',
+                    maxPerCycle: 1,
+                  }),
+                },
+              }),
+            )
+          })
+
+          it('has a contribution link stored in db', async () => {
+            const cls = await DbContributionLink.find()
+            expect(cls).toHaveLength(1)
+            expect(cls[0]).toEqual(
+              expect.objectContaining({
+                id: expect.any(Number),
+                name: 'Dokumenta 2022',
+                memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                validFrom: new Date('2022-06-18T00:00:00.000Z'),
+                validTo: new Date('2022-08-14T00:00:00.000Z'),
+                cycle: 'once',
+                maxPerCycle: 1,
+                totalMaxCountOfContribution: null,
+                maxAccountBalance: null,
+                minGapHours: null,
+                createdAt: expect.any(Date),
+                deletedAt: null,
+                code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                linkEnabled: true,
+                // amount: '200',
+                // maxAmountPerMonth: '200',
+              }),
+            )
+          })
+        })
+
+        describe('listContributionLinks', () => {
+          describe('one link in DB', () => {
+            it('returns the link and count 1', async () => {
+              await expect(query({ query: listContributionLinks })).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    listContributionLinks: {
+                      links: expect.arrayContaining([
+                        expect.objectContaining({
+                          amount: '200',
+                          code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                          link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
+                          createdAt: expect.any(String),
+                          name: 'Dokumenta 2022',
+                          memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
+                          validFrom: expect.any(String),
+                          validTo: expect.any(String),
+                          maxAmountPerMonth: '200',
+                          cycle: 'once',
+                          maxPerCycle: 1,
+                        }),
+                      ]),
+                      count: 1,
+                    },
+                  },
+                }),
+              )
+            })
+          })
+        })
+
+        describe('updateContributionLink', () => {
+          describe('no valid id', () => {
+            it('returns an error', async () => {
+              await expect(
+                mutate({
+                  mutation: updateContributionLink,
+                  variables: {
+                    ...variables,
+                    id: -1,
+                    amount: new Decimal(400),
+                    name: 'Dokumenta 2023',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Contribution Link not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('valid id', () => {
+            let linkId: number
+            beforeAll(async () => {
+              const links = await query({ query: listContributionLinks })
+              linkId = links.data.listContributionLinks.links[0].id
+            })
+
+            it('returns updated contribution link object', async () => {
+              await expect(
+                mutate({
+                  mutation: updateContributionLink,
+                  variables: {
+                    ...variables,
+                    id: linkId,
+                    amount: new Decimal(400),
+                    name: 'Dokumenta 2023',
+                    memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    updateContributionLink: {
+                      id: linkId,
+                      amount: '400',
+                      code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
+                      link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
+                      createdAt: expect.any(String),
+                      name: 'Dokumenta 2023',
+                      memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                      validFrom: expect.any(String),
+                      validTo: expect.any(String),
+                      maxAmountPerMonth: '200',
+                      cycle: 'once',
+                      maxPerCycle: 1,
+                    },
+                  },
+                }),
+              )
+            })
+
+            it('updated the DB record', async () => {
+              await expect(DbContributionLink.findOne(linkId)).resolves.toEqual(
+                expect.objectContaining({
+                  id: linkId,
+                  name: 'Dokumenta 2023',
+                  memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
+                  // amount: '400',
+                }),
+              )
+            })
+          })
+        })
+
+        describe('deleteContributionLink', () => {
+          describe('no valid id', () => {
+            it('returns an error', async () => {
+              await expect(
+                mutate({ mutation: deleteContributionLink, variables: { id: -1 } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Contribution Link not found to given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('valid id', () => {
+            let linkId: number
+            beforeAll(async () => {
+              const links = await query({ query: listContributionLinks })
+              linkId = links.data.listContributionLinks.links[0].id
+            })
+
+            it('returns a date string', async () => {
+              await expect(
+                mutate({ mutation: deleteContributionLink, variables: { id: linkId } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    deleteContributionLink: expect.any(String),
+                  },
+                }),
+              )
+            })
+
+            it('does not list this contribution link anymore', async () => {
+              await expect(query({ query: listContributionLinks })).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    listContributionLinks: {
+                      links: [],
+                      count: 0,
+                    },
+                  },
+                }),
+              )
+            })
           })
         })
       })

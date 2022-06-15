@@ -9,9 +9,11 @@ import { name, internet, datatype } from 'faker'
 import { users } from './users/index'
 import { creations } from './creation/index'
 import { transactionLinks } from './transactionLink/index'
+import { contributionLinks } from './contributionLink/index'
 import { userFactory } from './factory/user'
 import { creationFactory } from './factory/creation'
 import { transactionLinkFactory } from './factory/transactionLink'
+import { contributionLinkFactory } from './factory/contributionLink'
 import { entities } from '@entity/index'
 import CONFIG from '@/config'
 
@@ -75,6 +77,11 @@ const run = async () => {
   // create Transaction Links
   for (let i = 0; i < transactionLinks.length; i++) {
     await transactionLinkFactory(seedClient, transactionLinks[i])
+  }
+
+  // create Contribution Links
+  for (let i = 0; i < contributionLinks.length; i++) {
+    await contributionLinkFactory(seedClient, contributionLinks[i])
   }
 
   await con.close()

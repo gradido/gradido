@@ -1,6 +1,7 @@
 {
 	"folders": {},
 	"connections": {
+<<<<<<< HEAD
 		"mariaDB-180637bab9c-385a8c5454123150": {
 			"provider": "mysql",
 			"driver": "mariaDB",
@@ -38,6 +39,22 @@
 						}
 					}
 				}
+=======
+		"mariaDB-1813fbbc7bc-107c0b3aeaeb91ab": {
+			"provider": "mysql",
+			"driver": "mariaDB",
+			"name": "gradido",
+			"save-password": true,
+			"read-only": false,
+			"configuration": {
+				"host": "localhost",
+				"port": "3306",
+				"url": "jdbc:mariadb://localhost:3306/",
+				"home": "mysql_client",
+				"type": "dev",
+				"auth-model": "native",
+				"handlers": {}
+>>>>>>> refs/remotes/origin/master
 			}
 		}
 	},
