@@ -65,7 +65,6 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          console.log(result.data.listContributionLinks.count)
           this.count = result.data.listContributionLinks.count
           this.items = result.data.listContributionLinks.links
         })
