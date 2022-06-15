@@ -46,7 +46,6 @@ import { checkOptInCode, activationLink, printTimeDuration } from './UserResolve
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
-import { backendLogger as logger } from '@/server/logger'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -390,6 +389,7 @@ export class AdminResolver {
 
       contribution.confirmedAt = receivedCallDate
       contribution.confirmedBy = moderatorUser.id
+      contribution.transactionId = transaction.id
       await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
 
       await queryRunner.commitTransaction()
