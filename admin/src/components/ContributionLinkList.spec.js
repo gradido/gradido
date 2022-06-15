@@ -44,7 +44,7 @@ describe('ContributionLinkList', () => {
     })
 
     it('renders the Div Element ".contribution-link-list"', () => {
-      expect(wrapper.find('div.contribution-link-list').exists()).toBeTruthy()
+      expect(wrapper.find('div.contribution-link-list').exists()).toBe(true)
     })
 
     describe('edit contribution link', () => {

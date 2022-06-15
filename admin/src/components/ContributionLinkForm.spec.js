@@ -49,10 +49,10 @@ describe('ContributionLinkForm', () => {
         amount: null,
         cycle: 'ONCE',
         validTo: null,
-        maxAmountPerMonth: null,
+        maxAmountPerMonth: 0,
         memo: null,
         name: null,
-        maxPerCycle: null,
+        maxPerCycle: '1',
         validFrom: null,
       })
     })

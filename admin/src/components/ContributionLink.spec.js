@@ -20,7 +20,7 @@ describe('ContributionLink', () => {
     })
 
     it('renders the Div Element ".contribution-link"', () => {
-      expect(wrapper.find('div.contribution-link').exists()).toBeTruthy()
+      expect(wrapper.find('div.contribution-link').exists()).toBe(true)
     })
 
     it('emits toggle::collapse new Contribution', async () => {
