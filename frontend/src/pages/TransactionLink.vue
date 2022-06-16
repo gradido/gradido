@@ -11,7 +11,11 @@
         </template>
 
         <template #VALID>
-          <redeem-valid v-bind="linkData" @redeem-link="redeemLink" />
+          <redeem-valid
+            :linkData="linkData"
+            :isContributionLink="isContributionLink"
+            @redeem-link="redeemLink"
+          />
         </template>
 
         <template #TEXT>
@@ -63,35 +67,39 @@ export default {
           },
         })
         .then((result) => {
-          console.log(result)
           this.linkData = result.data.queryTransactionLink
+          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
+            this.mutationLink(this.linkData.amount)
+          }
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
+    async mutationLink(amount) {
+      await this.$apollo
+        .mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: this.$route.params.code,
+          },
+        })
+        .then(() => {
+          this.toastSuccess(
+            this.$t('gdd_per_link.redeemed', {
+              n: amount,
+            }),
+          )
+          this.$router.push('/overview')
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+          this.$router.push('/overview')
+        })
+    },
     redeemLink(amount) {
       this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: this.$route.params.code,
-              },
-            })
-            .then(() => {
-              this.toastSuccess(
-                this.$t('gdd_per_link.redeemed', {
-                  n: amount,
-                }),
-              )
-              this.$router.push('/overview')
-            })
-            .catch((err) => {
-              this.toastError(err.message)
-              this.$router.push('/overview')
-            })
+        if (value) await this.mutationLink(amount)
       })
     },
   },
@@ -100,49 +108,44 @@ export default {
       return this.$route.params.code.search(/^CL-/) === 0
     },
     itemType() {
-      /*
-          // link wurde gelöscht: am, von
-          if (this.linkData.deletedAt) {
-          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
+      // link wurde gelöscht: am, von
+      if (this.linkData.deletedAt) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
           date: this.$d(new Date(this.linkData.deletedAt), 'long'),
-          })
-          return `TEXT`
-          }
-          // link ist abgelaufen, nicht gelöscht
-          if (new Date(this.linkData.validUntil) < new Date()) {
-          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
+        })
+        return `TEXT`
+      }
+      // link ist abgelaufen, nicht gelöscht
+      if (new Date(this.linkData.validUntil) < new Date()) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
           date: this.$d(new Date(this.linkData.validUntil), 'long'),
-          })
-          return `TEXT`
-          }
+        })
+        return `TEXT`
+      }
 
-          // der link wurde eingelöst, nicht gelöscht
-          if (this.linkData.redeemedAt) {
-          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
+      // der link wurde eingelöst, nicht gelöscht
+      if (this.linkData.redeemedAt) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
           date: this.$d(new Date(this.linkData.redeemedAt), 'long'),
-          })
-          return `TEXT`
-          }
+        })
+        return `TEXT`
+      }
 
-          if (this.$store.state.token) {
-          // logged in, nicht berechtigt einzulösen, eigener link
-          if (this.$store.state.email === this.linkData.user.email) {
+      if (this.$store.state.token) {
+        // logged in, nicht berechtigt einzulösen, eigener link
+        if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
           return `SELF_CREATOR`
-          }
+        }
 
-          // logged in und berechtigt einzulösen
-          if (
-          this.$store.state.email !== this.linkData.user.email &&
-          !this.linkData.redeemedAt &&
-          !this.linkData.deletedAt
-          ) {
+        // logged in und berechtigt einzulösen
+        if (!this.linkData.redeemedAt && !this.linkData.deletedAt) {
           return `VALID`
-          }
-          }
-        */
+        }
+      }
+
       return `LOGGED_OUT`
     },
   },

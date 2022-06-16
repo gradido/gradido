@@ -88,7 +88,12 @@ export default {
             ? this.$t('message.checkEmail')
             : this.$t('message.reset')
           this.messageButtonText = this.$t('login')
-          this.messageButtonLinktTo = '/login'
+          alert(this.$route.params.code)
+          if (this.$route.params.code) {
+            this.messageButtonLinktTo = `/login/${this.$route.params.code}`
+          } else {
+            this.messageButtonLinktTo = '/login'
+          }
         })
         .catch((error) => {
           let errorMessage
