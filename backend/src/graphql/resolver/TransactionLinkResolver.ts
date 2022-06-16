@@ -197,7 +197,7 @@ export class TransactionLinkResolver {
           throw new Error('Contribution link not valid yet')
         }
         if (contributionLink.validTo) {
-          if (new Date(contributionLink.validTo).setHours(23, 59, 59) > now.getTime()) {
+          if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
             logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
             throw new Error('Contribution link is depricated')
           }
@@ -206,6 +206,21 @@ export class TransactionLinkResolver {
           logger.error('contribution link has unknown cycle', contributionLink.cycle)
           throw new Error('Contribution link has unknown cycle')
         }
+        // Test ONCE rule
+        const alreadyRedeemed = await queryRunner.manager
+          .createQueryBuilder()
+          .select('contribution')
+          .from(DbContribution, 'contribution')
+          .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
+            linkId: contributionLink.id,
+            id: user.id,
+          })
+          .getOne()
+        if (alreadyRedeemed) {
+          logger.error('contribution link with rule ONCE already redeemed by user with id', user.id)
+          throw new Error('Contribution link already redeemed')
+        }
+
         const creations = await getUserCreation(user.id, false)
         logger.info('open creations', creations)
         if (!isContributionValid(creations, contributionLink.amount, now)) {
@@ -262,7 +277,7 @@ export class TransactionLinkResolver {
       } catch (e) {
         await queryRunner.rollbackTransaction()
         logger.error(`Creation  from contribution link was not successful: ${e}`)
-        throw new Error(`Creation  from contribution link was not successful.`)
+        throw new Error(`Creation  from contribution link was not successful. ${e}`)
       } finally {
         await queryRunner.release()
       }

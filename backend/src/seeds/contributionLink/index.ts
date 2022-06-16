@@ -12,7 +12,7 @@ export const contributionLinks: ContributionLinkInterface[] = [
     name: 'Dokumenta 2022',
     memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
     amount: 200,
-    validFrom: new Date(2022, 5, 18),
+    validFrom: new Date(2022, 5, 16),
     validTo: new Date(2022, 8, 25),
   },
 ]
