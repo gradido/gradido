@@ -47,11 +47,17 @@ describe('ContributionLinkList', () => {
       expect(wrapper.find('div.contribution-link-list').exists()).toBe(true)
     })
 
+    it('renders table with contribution link', () => {
+      expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
+        'Meditation',
+      )
+    })
+
     describe('edit contribution link', () => {
       beforeEach(() => {
-        wrapper = Wrapper()
         wrapper.vm.editContributionLink()
       })
+
       it('emits editContributionLinkData', async () => {
         expect(wrapper.vm.$emit('editContributionLinkData')).toBeTruthy()
       })
@@ -77,16 +83,16 @@ describe('ContributionLinkList', () => {
           expect(spy).toBeCalled()
         })
 
-        // it('calls the API', () => {
-        //   expect(mockAPIcall).toBeCalledWith(
-        //     expect.objectContaining({
-        //       mutation: deleteContributionLink,
-        //       variables: {
-        //         id: 1,
-        //       },
-        //     }),
-        //   )
-        // })
+        it.skip('calls the API', () => {
+          // expect(mockAPIcall).toBeCalledWith(
+          //   expect.objectContaining({
+          //     mutation: deleteContributionLink,
+          //     variables: {
+          //       id: 1,
+          //     },
+          //   }),
+          // )
+        })
 
         it('toasts a success message', () => {
           expect(toastSuccessSpy).toBeCalledWith('TODO: request message deleted ')
@@ -120,30 +126,21 @@ describe('ContributionLinkList', () => {
       })
     })
 
-    describe('show contribution link', () => {
-      beforeEach(() => {
-        wrapper = Wrapper()
-        wrapper.setData({
-          modalData: [
-            {
-              id: 1,
-              name: 'Meditation',
-              memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-              amount: '200',
-              validFrom: '2022-04-01',
-              validTo: '2022-08-01',
-              cycle: 'täglich',
-              maxPerCycle: '3',
-              maxAmountPerMonth: 0,
-              link: 'https://localhost/redeem/CL-1a2345678',
-            },
-          ],
+    describe('onClick showButton', () => {
+      it('modelData contains contribution link', () => {
+        wrapper.find('button.test-show').trigger('click')
+        expect(wrapper.vm.modalData).toEqual({
+          amount: '200',
+          cycle: 'täglich',
+          id: 1,
+          link: 'https://localhost/redeem/CL-1a2345678',
+          maxAmountPerMonth: 0,
+          maxPerCycle: '3',
+          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+          name: 'Meditation',
+          validFrom: '2022-04-01',
+          validTo: '2022-08-01',
         })
-        wrapper.vm.showContributionLink()
-      })
-
-      it('shows modalData', () => {
-        expect(wrapper.emitted('modalData')).toEqual()
       })
     })
   })

@@ -17,7 +17,12 @@
         </b-button>
       </template>
       <template #cell(show)="data">
-        <b-button variant="info" size="md" class="mr-2" @click="showContributionLink(data.item)">
+        <b-button
+          variant="info"
+          size="md"
+          class="mr-2 test-show"
+          @click="showContributionLink(data.item)"
+        >
           <b-icon icon="eye" variant="light"></b-icon>
         </b-button>
       </template>
@@ -49,7 +54,7 @@ export default {
     FigureQrCode,
   },
   props: {
-    items: { type: Array, default: () => [] },
+    items: { type: Array, required: true },
   },
   data() {
     return {

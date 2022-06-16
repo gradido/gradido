@@ -22,6 +22,9 @@ export default {
         cellSize: 8,
         correctLevel: 'H',
         data: this.link,
+        logo: {
+          image: null,
+        },
       },
     }
   },

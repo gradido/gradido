@@ -29,36 +29,40 @@ describe('ContributionLinkForm', () => {
       expect(wrapper.find('div.contribution-link-form').exists()).toBe(true)
     })
 
-    it('function onReset', () => {
-      beforeEach(() => {
-        wrapper.setData({
-          form: {
-            name: 'name',
-            memo: 'memo',
-            amount: 100,
-            validFrom: 'validFrom',
-            validTo: 'validTo',
-            cycle: 'ONCE',
-            maxPerCycle: 1,
-            maxAmountPerMonth: 100,
-          },
+    describe('call onReset', () => {
+      it('form has the set data', () => {
+        beforeEach(() => {
+          wrapper.setData({
+            form: {
+              name: 'name',
+              memo: 'memo',
+              amount: 100,
+              validFrom: 'validFrom',
+              validTo: 'validTo',
+              cycle: 'ONCE',
+              maxPerCycle: 1,
+              maxAmountPerMonth: 100,
+            },
+          })
+          wrapper.vm.onReset()
         })
-        wrapper.vm.onReset()
-      })
-      expect(wrapper.vm.form).toEqual({
-        amount: null,
-        cycle: 'ONCE',
-        validTo: null,
-        maxAmountPerMonth: '0',
-        memo: null,
-        name: null,
-        maxPerCycle: 1,
-        validFrom: null,
+        expect(wrapper.vm.form).toEqual({
+          amount: null,
+          cycle: 'ONCE',
+          validTo: null,
+          maxAmountPerMonth: '0',
+          memo: null,
+          name: null,
+          maxPerCycle: 1,
+          validFrom: null,
+        })
       })
     })
 
-    it('onSubmit valid form', () => {
-      wrapper.vm.onSubmit()
+    describe.skip('call onSubmit', () => {
+      it('response with the contribution link url', () => {
+        wrapper.vm.onSubmit()
+      })
     })
   })
 })

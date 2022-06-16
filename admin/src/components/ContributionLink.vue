@@ -43,11 +43,11 @@ export default {
   props: {
     items: {
       type: Array,
-      default: () => [],
+      required: true,
     },
     count: {
       type: Number,
-      default: 0,
+      required: true,
     },
   },
   data: function () {

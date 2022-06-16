@@ -7,11 +7,29 @@ const mocks = {
   $t: jest.fn((t) => t),
 }
 
+const propsData = {
+  items: [
+    {
+      id: 1,
+      name: 'Meditation',
+      memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+      amount: '200',
+      validFrom: '2022-04-01',
+      validTo: '2022-08-01',
+      cycle: 'täglich',
+      maxPerCycle: '3',
+      maxAmountPerMonth: 0,
+      link: 'https://localhost/redeem/CL-1a2345678',
+    },
+  ],
+  count: 1,
+}
+
 describe('ContributionLink', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(ContributionLink, { localVue, mocks })
+    return mount(ContributionLink, { localVue, mocks, propsData })
   }
 
   describe('mount', () => {

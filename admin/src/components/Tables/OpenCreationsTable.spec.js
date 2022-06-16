@@ -127,8 +127,12 @@ describe('OpenCreationsTable', () => {
       })
     })
 
-    it('funtion updateUserData', () => {
-      wrapper.vm.updateUserData([111, 222, 333], [444, 555, 666])
+    describe('call updateUserData', () => {
+      it('user creations has updated data', async () => {
+        wrapper.vm.updateUserData(propsData.items[0], [444, 555, 666])
+        await wrapper.vm.$nextTick()
+        expect(wrapper.vm.items[0].creation).toEqual([444, 555, 666])
+      })
     })
   })
 })
