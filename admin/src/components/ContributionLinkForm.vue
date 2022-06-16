@@ -12,7 +12,7 @@
               v-model="form.validFrom"
               size="lg"
               :min="min"
-              class="mb-4"
+              class="mb-4 test-validFrom"
               reset-value=""
               :label-no-date-selected="$t('contributionLink.noDateSelected')"
               required
@@ -25,7 +25,7 @@
               v-model="form.validTo"
               size="lg"
               :min="form.validFrom ? form.validFrom : min"
-              class="mb-4"
+              class="mb-4 test-validTo"
               reset-value=""
               :label-no-date-selected="$t('contributionLink.noDateSelected')"
               required
@@ -43,6 +43,7 @@
           placeholder="Name"
           required
           maxlength="100"
+          class="test-name"
         ></b-form-input>
       </b-form-group>
       <!-- Desc -->
@@ -53,6 +54,7 @@
           :placeholder="$t('contributionLink.memo')"
           required
           maxlength="255"
+          class="test-memo"
         ></b-form-textarea>
       </b-form-group>
       <!-- Amount -->
@@ -63,6 +65,7 @@
           type="number"
           placeholder="0"
           required
+          class="test-amount"
         ></b-form-input>
       </b-form-group>
       <b-collapse id="collapse-2">

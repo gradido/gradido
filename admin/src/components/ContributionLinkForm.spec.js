@@ -13,6 +13,8 @@ const mocks = {
   $t: jest.fn((t) => t),
 }
 
+// const mockAPIcall = jest.fn()
+
 describe('ContributionLinkForm', () => {
   let wrapper
 
@@ -59,10 +61,42 @@ describe('ContributionLinkForm', () => {
       })
     })
 
-    describe.skip('call onSubmit', () => {
+    describe('call onSubmit', () => {
       it('response with the contribution link url', () => {
         wrapper.vm.onSubmit()
       })
     })
+
+    // describe('successfull submit', () => {
+    //   beforeEach(async () => {
+    //     mockAPIcall.mockResolvedValue({
+    //       data: {
+    //         createContributionLink: {
+    //           link: 'https://localhost/redeem/CL-1a2345678',
+    //         },
+    //       },
+    //     })
+    //     await wrapper.find('input.test-validFrom').setValue('2022-6-18')
+    //     await wrapper.find('input.test-validTo').setValue('2022-7-18')
+    //     await wrapper.find('input.test-name').setValue('test name')
+    //     await wrapper.find('input.test-memo').setValue('test memo')
+    //     await wrapper.find('input.test-amount').setValue('100')
+    //     await wrapper.find('form').trigger('submit')
+    //   })
+
+    //   it('calls the API', () => {
+    //     expect(mockAPIcall).toHaveBeenCalledWith(
+    //       expect.objectContaining({
+    //         variables: {
+    //           link: 'https://localhost/redeem/CL-1a2345678',
+    //         },
+    //       }),
+    //     )
+    //   })
+
+    //   it('displays the new username', () => {
+    //     expect(wrapper.find('div.display-username').text()).toEqual('@username')
+    //   })
+    // })
   })
 })
