@@ -1,7 +1,19 @@
 import { Context, getUser } from '@/server/context'
-import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
+import {
+  Resolver,
+  Args,
+  Arg,
+  Authorized,
+  Ctx,
+  Mutation,
+  Query,
+  Int,
+  createUnionType,
+} from 'type-graphql'
 import { TransactionLink } from '@model/TransactionLink'
+import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
 import { User as dbUser } from '@entity/User'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
 import Paginated from '@arg/Paginated'
@@ -12,6 +24,11 @@ import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
 import { executeTransaction } from './TransactionResolver'
 import { Order } from '@enum/Order'
+
+const QueryLinkResult = createUnionType({
+  name: 'QueryLinkResult', // the name of the GraphQL union
+  types: () => [TransactionLink, ContributionLink] as const, // function that returns tuple of object types classes
+})
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -95,15 +112,23 @@ export class TransactionLinkResolver {
   }
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
-  @Query(() => TransactionLink)
-  async queryTransactionLink(@Arg('code') code: string): Promise<TransactionLink> {
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
-    const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
-    let redeemedBy: User | null = null
-    if (transactionLink && transactionLink.redeemedBy) {
-      redeemedBy = new User(await dbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
+  @Query(() => QueryLinkResult)
+  async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
+    if (code.match(/^CL-/)) {
+      const contributionLink = await dbContributionLink.findOneOrFail(
+        { code: code.replace('CL-', '') },
+        { withDeleted: true },
+      )
+      return new ContributionLink(contributionLink)
+    } else {
+      const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
+      const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      let redeemedBy: User | null = null
+      if (transactionLink && transactionLink.redeemedBy) {
+        redeemedBy = new User(await dbUser.findOneOrFail({ id: transactionLink.redeemedBy }))
+      }
+      return new TransactionLink(transactionLink, new User(user), redeemedBy)
     }
-    return new TransactionLink(transactionLink, new User(user), redeemedBy)
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
