@@ -1,6 +1,35 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "contributionLink": {
+    "amount": "Amount",
+    "clear": "Clear",
+    "contributionLinks": "Contribution Links",
+    "create": "Create",
+    "cycle": "Cycle",
+    "deleteNow": "Do you really delete automatic creations?",
+    "maximumAmount": "Maximum amount",
+    "maxPerCycle": "Repetition",
+    "memo": "Memo",
+    "name": "Name",
+    "newContributionLink": "New contribution link",
+    "noContributionLinks": "No contribution link has been created.",
+    "noDateSelected": "No date selected",
+    "noEndDate": "No end-date",
+    "noStartDate": "No start-date",
+    "options": {
+      "cycle": {
+        "daily": "daily",
+        "hourly": "hourly",
+        "monthly": "monthly",
+        "once": "once",
+        "weekly": "weekly",
+        "yearly": "yearly"
+      }
+    },
+    "validFrom": "Start-date",
+    "validTo": "End-Date"
+  },
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -44,7 +73,8 @@
   "lastname": "Lastname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",

@@ -1,6 +1,35 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "contributionLink": {
+    "amount": "Betrag",
+    "clear": "Löschen",
+    "contributionLinks": "Beitragslinks",
+    "create": "Anlegen",
+    "cycle": "Zyklus",
+    "deleteNow": "Automatische Creations wirklich löschen?",
+    "maximumAmount": "maximaler Betrag",
+    "maxPerCycle": "Wiederholungen",
+    "memo": "Nachricht",
+    "name": "Name",
+    "newContributionLink": "Neuer Beitragslink",
+    "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
+    "noDateSelected": "Kein Datum ausgewählt",
+    "noEndDate": "Kein Enddatum gewählt.",
+    "noStartDate": "Kein Startdatum gewählt.",
+    "options": {
+      "cycle": {
+        "daily": "täglich",
+        "hourly": "stündlich",
+        "monthly": "monatlich",
+        "once": "einmalig",
+        "weekly": "wöchentlich",
+        "yearly": "jährlich"
+      }
+    },
+    "validFrom": "Startdatum",
+    "validTo": "Enddatum"
+  },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
@@ -44,7 +73,8 @@
   "lastname": "Nachname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",

@@ -174,9 +174,9 @@ export const queryTransactionLink = gql`
 
 // from admin interface
 
-export const getPendingCreations = gql`
+export const listUnconfirmedContributions = gql`
   query {
-    getPendingCreations {
+    listUnconfirmedContributions {
       id
       firstName
       lastName
@@ -215,6 +215,28 @@ export const listTransactionLinksAdmin = gql`
         redeemedAt
         deletedAt
       }
+    }
+  }
+`
+
+export const listContributionLinks = gql`
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order) {
+    listContributionLinks(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        code
+        link
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
     }
   }
 `
