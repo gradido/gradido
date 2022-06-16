@@ -56,6 +56,7 @@ export default {
     setTransactionLinkInformation() {
       this.$apollo
         .query({
+          fetchPolicy: 'no-cache',
           query: queryTransactionLink,
           variables: {
             code: this.$route.params.code,
@@ -99,48 +100,49 @@ export default {
       return this.$route.params.code.search(/^CL-/) === 0
     },
     itemType() {
-      // link wurde gelöscht: am, von
-      if (this.linkData.deletedAt) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
+      /*
+          // link wurde gelöscht: am, von
+          if (this.linkData.deletedAt) {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
           date: this.$d(new Date(this.linkData.deletedAt), 'long'),
-        })
-        return `TEXT`
-      }
-      // link ist abgelaufen, nicht gelöscht
-      if (new Date(this.linkData.validUntil) < new Date()) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
+          })
+          return `TEXT`
+          }
+          // link ist abgelaufen, nicht gelöscht
+          if (new Date(this.linkData.validUntil) < new Date()) {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
           date: this.$d(new Date(this.linkData.validUntil), 'long'),
-        })
-        return `TEXT`
-      }
+          })
+          return `TEXT`
+          }
 
-      // der link wurde eingelöst, nicht gelöscht
-      if (this.linkData.redeemedAt) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
+          // der link wurde eingelöst, nicht gelöscht
+          if (this.linkData.redeemedAt) {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
           date: this.$d(new Date(this.linkData.redeemedAt), 'long'),
-        })
-        return `TEXT`
-      }
+          })
+          return `TEXT`
+          }
 
-      if (this.$store.state.token) {
-        // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.$store.state.email === this.linkData.user.email) {
+          if (this.$store.state.token) {
+          // logged in, nicht berechtigt einzulösen, eigener link
+          if (this.$store.state.email === this.linkData.user.email) {
           return `SELF_CREATOR`
-        }
+          }
 
-        // logged in und berechtigt einzulösen
-        if (
+          // logged in und berechtigt einzulösen
+          if (
           this.$store.state.email !== this.linkData.user.email &&
           !this.linkData.redeemedAt &&
           !this.linkData.deletedAt
-        ) {
+          ) {
           return `VALID`
-        }
-      }
-
+          }
+          }
+        */
       return `LOGGED_OUT`
     },
   },

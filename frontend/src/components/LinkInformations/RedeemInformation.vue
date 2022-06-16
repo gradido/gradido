@@ -19,7 +19,7 @@ import CONFIG from '@/config'
 export default {
   name: 'RedeemInformation',
   props: {
-    user: { type: Object, required: true },
+    user: { type: Object, required: false },
     amount: { type: String, required: true },
     memo: { type: String, required: true, default: '' },
     isContributionLink: { type: Boolean, default: false },
