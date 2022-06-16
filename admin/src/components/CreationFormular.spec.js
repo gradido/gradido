@@ -1,14 +1,14 @@
 import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
-import { createPendingCreation } from '../graphql/createPendingCreation'
-import { createPendingCreations } from '../graphql/createPendingCreations'
+import { adminCreateContribution } from '../graphql/adminCreateContribution'
+import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
-    createPendingCreation: [0, 0, 0],
+    adminCreateContribution: [0, 0, 0],
   },
 })
 const stateCommitMock = jest.fn()
@@ -110,7 +110,7 @@ describe('CreationFormular', () => {
             it('sends ... to apollo', () => {
               expect(apolloMutateMock).toBeCalledWith(
                 expect.objectContaining({
-                  mutation: createPendingCreation,
+                  mutation: adminCreateContribution,
                   variables: {
                     email: 'benjamin@bluemchen.de',
                     creationDate: getCreationDate(2),
@@ -334,10 +334,10 @@ describe('CreationFormular', () => {
           jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
-              createPendingCreations: {
+              adminCreateContributions: {
                 success: true,
-                successfulCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
-                failedCreation: [],
+                successfulContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                failedContribution: [],
               },
             },
           })
@@ -355,7 +355,7 @@ describe('CreationFormular', () => {
         it('calls the API', () => {
           expect(apolloMutateMock).toBeCalledWith(
             expect.objectContaining({
-              mutation: createPendingCreations,
+              mutation: adminCreateContributions,
               variables: {
                 pendingCreations: [
                   {
@@ -390,10 +390,10 @@ describe('CreationFormular', () => {
           jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
-              createPendingCreations: {
+              adminCreateContributions: {
                 success: true,
-                successfulCreation: [],
-                failedCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                successfulContribution: [],
+                failedContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
               },
             },
           })
