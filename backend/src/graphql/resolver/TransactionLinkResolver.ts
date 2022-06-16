@@ -1,4 +1,6 @@
+import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser } from '@/server/context'
+import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
   Args,
@@ -13,7 +15,7 @@ import {
 import { TransactionLink } from '@model/TransactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
+import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as dbUser } from '@entity/User'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
 import Paginated from '@arg/Paginated'
@@ -24,6 +26,12 @@ import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
 import { executeTransaction } from './TransactionResolver'
 import { Order } from '@enum/Order'
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { getUserCreation, isContributionValid } from './AdminResolver'
+import { Decay } from '@model/Decay'
+import Decimal from 'decimal.js-light'
+import { TransactionTypeId } from '@enum/TransactionTypeId'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -115,7 +123,7 @@ export class TransactionLinkResolver {
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     if (code.match(/^CL-/)) {
-      const contributionLink = await dbContributionLink.findOneOrFail(
+      const contributionLink = await DbContributionLink.findOneOrFail(
         { code: code.replace('CL-', '') },
         { withDeleted: true },
       )
@@ -162,31 +170,128 @@ export class TransactionLinkResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-    const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
-
     const now = new Date()
 
-    if (user.id === linkedUser.id) {
-      throw new Error('Cannot redeem own transaction link.')
+    if (code.match(/^CL-/)) {
+      logger.info('redeem contribution link...')
+      const queryRunner = getConnection().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction('SERIALIZABLE')
+      try {
+        const contributionLink = await queryRunner.manager
+          .createQueryBuilder()
+          .select('contributionLink')
+          .from(DbContributionLink, 'contributionLink')
+          .where('contributionLink.code = :code', { code: code.replace('CL-', '') })
+          .getOne()
+        if (!contributionLink) {
+          logger.error('no contribution link found to given code:', code)
+          throw new Error('No contribution link found')
+        }
+        logger.info('...contribution link found with id', contributionLink.id)
+        if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
+          logger.error(
+            'contribution link is not valid yet. Valid from: ',
+            contributionLink.validFrom,
+          )
+          throw new Error('Contribution link not valid yet')
+        }
+        if (contributionLink.validTo) {
+          if (new Date(contributionLink.validTo).setHours(23, 59, 59) > now.getTime()) {
+            logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
+            throw new Error('Contribution link is depricated')
+          }
+        }
+        if (contributionLink.cycle !== 'ONCE') {
+          logger.error('contribution link has unknown cycle', contributionLink.cycle)
+          throw new Error('Contribution link has unknown cycle')
+        }
+        const creations = await getUserCreation(user.id, false)
+        logger.info('open creations', creations)
+        if (!isContributionValid(creations, contributionLink.amount, now)) {
+          logger.error(
+            'Amount of Contribution link exceeds available amount for this month',
+            contributionLink.amount,
+          )
+          throw new Error('Amount of Contribution link exceeds available amount')
+        }
+        const contribution = new DbContribution()
+        contribution.userId = user.id
+        contribution.createdAt = now
+        contribution.contributionDate = now
+        contribution.memo = contributionLink.memo
+        contribution.amount = contributionLink.amount
+        contribution.contributionLinkId = contributionLink.id
+        await queryRunner.manager.insert(DbContribution, contribution)
+
+        const lastTransaction = await queryRunner.manager
+          .createQueryBuilder()
+          .select('transaction')
+          .from(DbTransaction, 'transaction')
+          .where('transaction.userId = :id', { id: user.id })
+          .orderBy('transaction.balanceDate', 'DESC')
+          .getOne()
+        let newBalance = new Decimal(0)
+
+        let decay: Decay | null = null
+        if (lastTransaction) {
+          decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
+          newBalance = decay.balance
+        }
+        newBalance = newBalance.add(contributionLink.amount.toString())
+
+        const transaction = new DbTransaction()
+        transaction.typeId = TransactionTypeId.CREATION
+        transaction.memo = contribution.memo
+        transaction.userId = contribution.userId
+        transaction.previous = lastTransaction ? lastTransaction.id : null
+        transaction.amount = contribution.amount
+        transaction.creationDate = contribution.contributionDate
+        transaction.balance = newBalance
+        transaction.balanceDate = now
+        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decayStart = decay ? decay.start : null
+        await queryRunner.manager.insert(DbTransaction, transaction)
+
+        contribution.confirmedAt = now
+        contribution.transactionId = transaction.id
+        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+
+        await queryRunner.commitTransaction()
+        logger.info('creation from contribution link commited successfuly.')
+      } catch (e) {
+        await queryRunner.rollbackTransaction()
+        logger.error(`Creation  from contribution link was not successful: ${e}`)
+        throw new Error(`Creation  from contribution link was not successful.`)
+      } finally {
+        await queryRunner.release()
+      }
+      return true
+    } else {
+      const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+      const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+
+      if (user.id === linkedUser.id) {
+        throw new Error('Cannot redeem own transaction link.')
+      }
+
+      if (transactionLink.validUntil.getTime() < now.getTime()) {
+        throw new Error('Transaction Link is not valid anymore.')
+      }
+
+      if (transactionLink.redeemedBy) {
+        throw new Error('Transaction Link already redeemed.')
+      }
+
+      await executeTransaction(
+        transactionLink.amount,
+        transactionLink.memo,
+        linkedUser,
+        user,
+        transactionLink,
+      )
+
+      return true
     }
-
-    if (transactionLink.validUntil.getTime() < now.getTime()) {
-      throw new Error('Transaction Link is not valid anymore.')
-    }
-
-    if (transactionLink.redeemedBy) {
-      throw new Error('Transaction Link already redeemed.')
-    }
-
-    await executeTransaction(
-      transactionLink.amount,
-      transactionLink.memo,
-      linkedUser,
-      user,
-      transactionLink,
-    )
-
-    return true
   }
 }
