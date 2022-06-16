@@ -26,6 +26,9 @@
     "other-communities": "Other communities",
     "switch-to-this-community": "Switch to this community"
   },
+  "contribution-link": {
+    "thanksYouWith": "thanks you with"
+  },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -270,9 +273,6 @@
   },
   "transaction-link": {
     "send_you": "wants to send you"
-  },
-  "contribution-link": {
-    "thanksYouWith": "thanks you with"
   },
   "via_link": "via Link",
   "welcome": "Welcome",

@@ -26,6 +26,9 @@
     "other-communities": "Weitere Gemeinschaften",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
+  "contribution-link": {
+    "thanksYouWith": "dankt dir mit"
+  },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
@@ -270,9 +273,6 @@
   },
   "transaction-link": {
     "send_you": "sendet dir"
-  },
-  "contribution-link": {
-    "thanksYouWith": "dankt dir mit"
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen",
