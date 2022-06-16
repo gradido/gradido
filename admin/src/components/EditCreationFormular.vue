@@ -73,7 +73,7 @@
   </div>
 </template>
 <script>
-import { updatePendingCreation } from '../graphql/updatePendingCreation'
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { creationMonths } from '../mixins/creationMonths'
 
 export default {
@@ -113,7 +113,7 @@ export default {
     submitCreation() {
       this.$apollo
         .mutate({
-          mutation: updatePendingCreation,
+          mutation: adminUpdateContribution,
           variables: {
             id: this.item.id,
             email: this.item.email,
@@ -123,11 +123,11 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
+          this.$emit('update-user-data', this.item, result.data.adminUpdateContribution.creation)
           this.$emit('update-creation-data', {
-            amount: Number(result.data.updatePendingCreation.amount),
-            date: result.data.updatePendingCreation.date,
-            memo: result.data.updatePendingCreation.memo,
+            amount: Number(result.data.adminUpdateContribution.amount),
+            date: result.data.adminUpdateContribution.date,
+            memo: result.data.adminUpdateContribution.memo,
             row: this.row,
           })
           this.toastSuccess(
