@@ -42,7 +42,7 @@
           type="text"
           placeholder="Name"
           required
-          maxlength="80"
+          maxlength="100"
         ></b-form-input>
       </b-form-group>
       <!-- Desc -->
