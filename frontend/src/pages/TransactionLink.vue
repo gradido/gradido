@@ -62,6 +62,7 @@ export default {
           },
         })
         .then((result) => {
+          console.log(result)
           this.linkData = result.data.queryTransactionLink
         })
         .catch((err) => {
