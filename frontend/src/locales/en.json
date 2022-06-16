@@ -271,6 +271,9 @@
   "transaction-link": {
     "send_you": "wants to send you"
   },
+  "contribution-link": {
+    "thanksYouWith":"thanks you with"
+  },
   "via_link": "via Link",
   "welcome": "Welcome",
   "WelcomeBy": "by {name}"

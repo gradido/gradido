@@ -1,10 +1,9 @@
 <template>
   <div class="show-transaction-link-informations">
-    <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
-          <redeem-logged-out v-bind="linkData" />
+          <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
         </template>
 
         <template #SELF_CREATOR>
@@ -95,6 +94,9 @@ export default {
     },
   },
   computed: {
+    isContributionLink() {
+      return this.$route.params.code.search(/^CL-/) === 0
+    },
     itemType() {
       // link wurde gelöscht: am, von
       if (this.linkData.deletedAt) {
