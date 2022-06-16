@@ -1,12 +1,13 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { createContributionLink } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
+import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
 
 export const contributionLinkFactory = async (
   client: ApolloServerTestClient,
   contributionLink: ContributionLinkInterface,
-): Promise<void> => {
+): Promise<ContributionLink> => {
   const { mutate, query } = client
 
   // login as admin
@@ -23,5 +24,6 @@ export const contributionLinkFactory = async (
     validTo: contributionLink.validTo ? contributionLink.validTo.toISOString() : undefined,
   }
 
-  await mutate({ mutation: createContributionLink, variables })
+  const result = await mutate({ mutation: createContributionLink, variables })
+  return result.data.createContributionLink
 }
