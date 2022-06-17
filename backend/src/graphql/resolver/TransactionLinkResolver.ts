@@ -276,8 +276,8 @@ export class TransactionLinkResolver {
         logger.info('creation from contribution link commited successfuly.')
       } catch (e) {
         await queryRunner.rollbackTransaction()
-        logger.error(`Creation  from contribution link was not successful: ${e}`)
-        throw new Error(`Creation  from contribution link was not successful. ${e}`)
+        logger.error(`Creation from contribution link was not successful: ${e}`)
+        throw new Error(`Creation from contribution link was not successful. ${e}`)
       } finally {
         await queryRunner.release()
       }
