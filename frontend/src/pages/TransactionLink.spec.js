@@ -235,7 +235,7 @@ describe('TransactionLink', () => {
         wrapper = Wrapper()
       })
 
-      it('has a RedeemValid component', () => {
+      it('has a RedeemSelfCreator component', () => {
         expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).exists()).toBe(true)
       })
 
