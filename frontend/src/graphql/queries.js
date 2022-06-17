@@ -114,17 +114,33 @@ export const queryOptIn = gql`
 export const queryTransactionLink = gql`
   query($code: String!) {
     queryTransactionLink(code: $code) {
-      id
-      amount
-      memo
-      createdAt
-      validUntil
-      redeemedAt
-      deletedAt
-      user {
-        firstName
-        publisherId
-        email
+      ... on TransactionLink {
+        id
+        amount
+        memo
+        createdAt
+        validUntil
+        redeemedAt
+        deletedAt
+        user {
+          firstName
+          publisherId
+          email
+        }
+      }
+      ... on ContributionLink {
+        id
+        validTo
+        validFrom
+        amount
+        name
+        memo
+        cycle
+        createdAt
+        code
+        link
+        deletedAt
+        maxAmountPerMonth
       }
     }
   }
