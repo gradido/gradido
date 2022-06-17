@@ -24,6 +24,7 @@ const transactionLinkValidExpireDate = () => {
 apolloQueryMock.mockResolvedValue({
   data: {
     queryTransactionLink: {
+      __typename: 'TransactionLink',
       id: 92,
       amount: '22',
       memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -91,6 +92,7 @@ describe('TransactionLink', () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -121,6 +123,7 @@ describe('TransactionLink', () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -151,6 +154,7 @@ describe('TransactionLink', () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -178,9 +182,11 @@ describe('TransactionLink', () => {
 
     describe('no token in store', () => {
       beforeEach(() => {
+        mocks.$store.state.token = null
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -211,14 +217,10 @@ describe('TransactionLink', () => {
     describe('token in store and own link', () => {
       beforeEach(() => {
         mocks.$store.state.token = 'token'
-        wrapper.setData({
-          linkData: {
-            user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
-          },
-        })
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
@@ -234,13 +236,12 @@ describe('TransactionLink', () => {
       })
 
       it('has a RedeemValid component', () => {
-        // expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).exists()).toBe(true)
-        expect(wrapper.findComponent({ name: 'RedeemValid' }).exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).exists()).toBe(true)
       })
 
-      it.skip('has a no redeem text', () => {
-        expect(wrapper.findComponent({ name: 'RedeemValid' }).text()).toContain(
-          `Bibi transaction-link.send_you + 123.45 GDD memo· gdd_per_link.redeem`,
+      it('has a no redeem text', () => {
+        expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).text()).toContain(
+          'gdd_per_link.no-redeem',
         )
       })
 
@@ -255,6 +256,7 @@ describe('TransactionLink', () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             queryTransactionLink: {
+              __typename: 'TransactionLink',
               id: 92,
               amount: '22',
               memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',

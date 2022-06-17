@@ -7,7 +7,7 @@
         </template>
 
         <template #SELF_CREATOR>
-          <redeem-self-creator v-bind="linkData" />
+          <redeem-self-creator :linkData="linkData" />
         </template>
 
         <template #VALID>
@@ -47,6 +47,7 @@ export default {
     return {
       img: '/img/brand/green.png',
       linkData: {
+        __typename: 'TransactionLink',
         amount: '123.45',
         memo: 'memo',
         user: {
@@ -76,8 +77,8 @@ export default {
           this.toastError(err.message)
         })
     },
-    async mutationLink(amount) {
-      await this.$apollo
+    mutationLink(amount) {
+      this.$apollo
         .mutate({
           mutation: redeemTransactionLink,
           variables: {
@@ -98,8 +99,8 @@ export default {
         })
     },
     redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
-        if (value) await this.mutationLink(amount)
+      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then((value) => {
+        if (value) this.mutationLink(amount)
       })
     },
   },
