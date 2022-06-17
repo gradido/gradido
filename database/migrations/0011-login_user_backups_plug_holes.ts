@@ -5,6 +5,9 @@
  * delete the right one of the duplicate keys
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Delete data with no reference in login_users table
   await queryFn(`DELETE FROM login_user_backups WHERE user_id NOT IN (SELECT id FROM login_users)`)
@@ -13,6 +16,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`DELETE FROM login_user_backups WHERE id IN (21, 103, 313, 325, 726, 750, 1098)`)
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  return [] // cannot undelete things
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // cannot undelete things
 }

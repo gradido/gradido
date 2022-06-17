@@ -15,13 +15,13 @@ if [ ! -f "$BACKUP_FILE" ]; then
     return "File '$BACKUP_FILE' does not exist" 2>/dev/null || exit 1
 fi
 
-# Load backend .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
+# Load database .env for DB_USERNAME, DB_PASSWORD & DB_DATABASE
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
-if [ -f "$PROJECT_ROOT/backend/.env" ]; then
-    export $(cat $PROJECT_ROOT/backend/.env | sed 's/#.*//g' | xargs)
+if [ -f "$PROJECT_ROOT/database/.env" ]; then
+    export $(cat $PROJECT_ROOT/database/.env | sed 's/#.*//g' | xargs)
 else
-    export $(cat $PROJECT_ROOT/backend/.env.dist | sed 's/#.*//g' | xargs)
+    export $(cat $PROJECT_ROOT/database/.env.dist | sed 's/#.*//g' | xargs)
 fi
 
 # Stop gradido-backend service
@@ -29,6 +29,11 @@ pm2 stop gradido-backend
 
 # Backup data
 mysqldump --databases --single-transaction --quick --hex-blob --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-restore-backup-$(date +%d-%m-%Y_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
+
+# Drop Database
+mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
+    DROP DATABASE $DB_DATABASE
+EOFMYSQL
 
 # Restore Data
 mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL

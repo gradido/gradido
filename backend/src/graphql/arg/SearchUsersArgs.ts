@@ -1,4 +1,5 @@
 import { ArgsType, Field, Int } from 'type-graphql'
+import SearchUsersFilters from '@arg/SearchUsersFilters'
 
 @ArgsType()
 export default class SearchUsersArgs {
@@ -11,6 +12,6 @@ export default class SearchUsersArgs {
   @Field(() => Int, { nullable: true })
   pageSize?: number
 
-  @Field(() => Boolean, { nullable: true })
-  notActivated?: boolean
+  @Field(() => SearchUsersFilters, { nullable: true, defaultValue: null })
+  filters: SearchUsersFilters
 }

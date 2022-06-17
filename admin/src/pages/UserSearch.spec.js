@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
 import UserSearch from './UserSearch.vue'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
     searchUsers: {
-      userCount: 1,
+      userCount: 4,
       userList: [
         {
           userId: 1,
@@ -15,6 +16,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'bibi@bloxberg.de',
           creation: [200, 400, 600],
           emailChecked: true,
+          deletedAt: null,
         },
         {
           userId: 2,
@@ -23,6 +25,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'benjamin@bluemchen.de',
           creation: [1000, 1000, 1000],
           emailChecked: true,
+          deletedAt: null,
         },
         {
           userId: 3,
@@ -31,6 +34,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'peter@lustig.de',
           creation: [0, 0, 0],
           emailChecked: true,
+          deletedAt: null,
         },
         {
           userId: 4,
@@ -39,22 +43,18 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
           email: 'new@user.ch',
           creation: [1000, 1000, 1000],
           emailChecked: false,
+          deletedAt: null,
         },
       ],
     },
   },
 })
 
-const toastErrorMock = jest.fn()
-
 const mocks = {
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => String(d)),
   $apollo: {
     query: apolloQueryMock,
-  },
-  $toasted: {
-    error: toastErrorMock,
   },
 }
 
@@ -82,7 +82,10 @@ describe('UserSearch', () => {
             searchText: '',
             currentPage: 1,
             pageSize: 25,
-            notActivated: false,
+            filters: {
+              byActivated: null,
+              byDeleted: null,
+            },
           },
         }),
       )
@@ -90,7 +93,7 @@ describe('UserSearch', () => {
 
     describe('unconfirmed emails', () => {
       beforeEach(async () => {
-        await wrapper.find('button.btn-block').trigger('click')
+        await wrapper.find('button.unconfirmedRegisterMails').trigger('click')
       })
 
       it('calls API with filter', () => {
@@ -100,7 +103,32 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              notActivated: true,
+              filters: {
+                byActivated: false,
+                byDeleted: null,
+              },
+            },
+          }),
+        )
+      })
+    })
+
+    describe('deleted Users', () => {
+      beforeEach(async () => {
+        await wrapper.find('button.deletedUserSearch').trigger('click')
+      })
+
+      it('calls API with filter', () => {
+        expect(apolloQueryMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              searchText: '',
+              currentPage: 1,
+              pageSize: 25,
+              filters: {
+                byActivated: null,
+                byDeleted: true,
+              },
             },
           }),
         )
@@ -119,7 +147,10 @@ describe('UserSearch', () => {
               searchText: '',
               currentPage: 2,
               pageSize: 25,
-              notActivated: false,
+              filters: {
+                byActivated: null,
+                byDeleted: null,
+              },
             },
           }),
         )
@@ -138,7 +169,10 @@ describe('UserSearch', () => {
               searchText: 'search string',
               currentPage: 1,
               pageSize: 25,
-              notActivated: false,
+              filters: {
+                byActivated: null,
+                byDeleted: null,
+              },
             },
           }),
         )
@@ -154,11 +188,29 @@ describe('UserSearch', () => {
                 searchText: '',
                 currentPage: 1,
                 pageSize: 25,
-                notActivated: false,
+                filters: {
+                  byActivated: null,
+                  byDeleted: null,
+                },
               },
             }),
           )
         })
+      })
+    })
+
+    describe('delete user', () => {
+      const now = new Date()
+      beforeEach(async () => {
+        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', 4, now)
+      })
+
+      it('marks the user as deleted', () => {
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === 4).deletedAt).toEqual(now)
+      })
+
+      it('toasts a success message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('user_deleted')
       })
     })
 
@@ -171,7 +223,7 @@ describe('UserSearch', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastErrorMock).toBeCalledWith('Ouch')
+        expect(toastErrorSpy).toBeCalledWith('Ouch')
       })
     })
   })

@@ -4,20 +4,25 @@
  * we need to detect which word list was used and transform it accordingly.
  * This also removes the trailing space
  */
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fs from 'fs'
+import path from 'path'
 
 const TARGET_MNEMONIC_TYPE = 2
 const PHRASE_WORD_COUNT = 24
 const WORDS_MNEMONIC_0 = fs
-  .readFileSync('src/config/mnemonic.uncompressed_buffer18112.txt')
+  .readFileSync(path.resolve(__dirname, '../src/config/mnemonic.uncompressed_buffer18112.txt'))
   .toString()
   .split(',')
 const WORDS_MNEMONIC_1 = fs
-  .readFileSync('src/config/mnemonic.uncompressed_buffer18113.txt')
+  .readFileSync(path.resolve(__dirname, '../src/config/mnemonic.uncompressed_buffer18113.txt'))
   .toString()
   .split(',')
 const WORDS_MNEMONIC_2 = fs
-  .readFileSync('src/config/mnemonic.uncompressed_buffer13116.txt')
+  .readFileSync(path.resolve(__dirname, '../src/config/mnemonic.uncompressed_buffer13116.txt'))
   .toString()
   .split(',')
 const WORDS_MNEMONIC = [WORDS_MNEMONIC_0, WORDS_MNEMONIC_1, WORDS_MNEMONIC_2]
@@ -61,6 +66,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   })
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  return [] // cannot transform things back
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // cannot transform things back
 }

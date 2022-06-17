@@ -1,6 +1,8 @@
 import { sendEMail } from './sendEMail'
 import { createTransport } from 'nodemailer'
-import CONFIG from '../config'
+import CONFIG from '@/config'
+
+import { logger } from '@test/testSetup'
 
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
@@ -26,11 +28,6 @@ jest.mock('nodemailer', () => {
 describe('sendEMail', () => {
   let result: boolean
   describe('config email is false', () => {
-    // eslint-disable-next-line no-console
-    const consoleLog = console.log
-    const consoleLogMock = jest.fn()
-    // eslint-disable-next-line no-console
-    console.log = consoleLogMock
     beforeEach(async () => {
       result = await sendEMail({
         to: 'receiver@mail.org',
@@ -39,13 +36,8 @@ describe('sendEMail', () => {
       })
     })
 
-    afterAll(() => {
-      // eslint-disable-next-line no-console
-      console.log = consoleLog
-    })
-
-    it('logs warining to console', () => {
-      expect(consoleLogMock).toBeCalledWith('Emails are disabled via config')
+    it('logs warining', () => {
+      expect(logger.info).toBeCalledWith('Emails are disabled via config...')
     })
 
     it('returns false', () => {

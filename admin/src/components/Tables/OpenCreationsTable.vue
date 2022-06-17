@@ -1,5 +1,5 @@
 <template>
-  <div class="component-open-creations-table">
+  <div class="open-creations-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
       <template #cell(bookmark)="row">
         <b-button
@@ -12,7 +12,7 @@
         </b-button>
       </template>
       <template #cell(edit_creation)="row">
-        <b-button variant="info" size="md" @click="rowToogleDetails(row, 0)" class="mr-2">
+        <b-button variant="info" size="md" @click="rowToggleDetails(row, 0)" class="mr-2">
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
       </template>
@@ -27,7 +27,7 @@
           type="show-creation"
           slotName="show-creation"
           :index="0"
-          @row-toogle-details="rowToogleDetails"
+          @row-toggle-details="rowToggleDetails"
         >
           <template #show-creation>
             <div>
@@ -70,12 +70,23 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      creationUserData: {
+        amount: null,
+        date: null,
+        memo: null,
+        moderator: null,
+      },
+    }
+  },
   methods: {
     updateCreationData(data) {
-      this.creationUserData.amount = data.amount
-      this.creationUserData.date = data.date
-      this.creationUserData.memo = data.memo
-      this.creationUserData.moderator = data.moderator
+      this.creationUserData = data
+      // this.creationUserData.amount = data.amount
+      // this.creationUserData.date = data.date
+      // this.creationUserData.memo = data.memo
+      // this.creationUserData.moderator = data.moderator
       data.row.toggleDetails()
     },
     updateUserData(rowItem, newCreation) {

@@ -1,16 +1,15 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { confirmContribution } from '../graphql/confirmContribution'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const storeCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    getPendingCreations: [
+    listUnconfirmedContributions: [
       {
         id: 1,
         firstName: 'Bibi',
@@ -46,10 +45,6 @@ const mocks = {
   $apollo: {
     query: apolloQueryMock,
     mutate: apolloMutateMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -89,9 +84,9 @@ describe('CreationConfirm', () => {
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
-      it('calls the deletePendingCreation mutation', () => {
+      it('calls the adminDeleteContribution mutation', () => {
         expect(apolloMutateMock).toBeCalledWith({
-          mutation: deletePendingCreation,
+          mutation: adminDeleteContribution,
           variables: { id: 1 },
         })
       })
@@ -101,7 +96,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts a success message', () => {
-        expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_delete')
+        expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
       })
     })
 
@@ -112,7 +107,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toasts an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+        expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
       })
     })
 
@@ -132,8 +127,8 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(0).trigger('click')
           })
 
-          it('closes the overlay', () => {
-            expect(wrapper.find('#overlay').isVisible()).toBeFalsy()
+          it('closes the overlay', async () => {
+            expect(wrapper.find('#overlay').exists()).toBeFalsy()
           })
 
           it('still has 2 items in the table', () => {
@@ -146,9 +141,9 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
-          it('calls the confirmPendingCreation mutation', () => {
+          it('calls the confirmContribution mutation', () => {
             expect(apolloMutateMock).toBeCalledWith({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: { id: 2 },
             })
           })
@@ -158,7 +153,7 @@ describe('CreationConfirm', () => {
           })
 
           it('toasts a success message', () => {
-            expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_created')
+            expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_created')
           })
 
           it('has 1 item left in the table', () => {
@@ -173,7 +168,7 @@ describe('CreationConfirm', () => {
           })
 
           it('toasts an error message', () => {
-            expect(toastedErrorMock).toBeCalledWith('Ouchhh!')
+            expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
       })
@@ -189,7 +184,7 @@ describe('CreationConfirm', () => {
       })
 
       it('toast an error message', () => {
-        expect(toastedErrorMock).toBeCalledWith('Ouch!')
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
     })
   })

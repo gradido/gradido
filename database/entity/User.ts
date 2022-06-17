@@ -1,1 +1,1 @@
-export { User } from './0020-rename_and_clean_state_users/User'
+export { User } from './0040-add_contribution_link_id_to_user/User'

@@ -1,23 +1,21 @@
 import { mount } from '@vue/test-utils'
 import EditCreationFormular from './EditCreationFormular.vue'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
-    updatePendingCreation: {
+    adminUpdateContribution: {
       creation: [0, 0, 0],
       amount: 500,
       date: new Date(),
       memo: 'Test Schöpfung 2',
-      moderator: 0,
     },
   },
 })
 
 const stateCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -29,17 +27,7 @@ const mocks = {
     mutate: apolloMutateMock,
   },
   $store: {
-    state: {
-      moderator: {
-        id: 0,
-        name: 'test moderator',
-      },
-    },
     commit: stateCommitMock,
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -109,7 +97,6 @@ describe('EditCreationFormular', () => {
                 creationDate: getCreationDate(0),
                 amount: 500,
                 memo: 'Test Schöpfung 2',
-                moderator: 0,
               },
             }),
           )
@@ -134,7 +121,6 @@ describe('EditCreationFormular', () => {
                 amount: 500,
                 date: expect.any(Date),
                 memo: 'Test Schöpfung 2',
-                moderator: 0,
                 row: expect.any(Object),
               },
             ],
@@ -142,7 +128,7 @@ describe('EditCreationFormular', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastedSuccessMock).toBeCalledWith('creation_form.toasted_update')
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_update')
         })
       })
 
@@ -155,7 +141,7 @@ describe('EditCreationFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })

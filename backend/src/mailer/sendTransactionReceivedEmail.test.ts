@@ -1,5 +1,6 @@
 import { sendTransactionReceivedEmail } from './sendTransactionReceivedEmail'
 import { sendEMail } from './sendEMail'
+import Decimal from 'decimal.js-light'
 
 jest.mock('./sendEMail', () => {
   return {
@@ -16,8 +17,10 @@ describe('sendTransactionReceivedEmail', () => {
       recipientFirstName: 'Peter',
       recipientLastName: 'Lustig',
       email: 'peter@lustig.de',
-      amount: 42.0,
+      senderEmail: 'bibi@bloxberg.de',
+      amount: new Decimal(42.0),
       memo: 'Vielen herzlichen Dank für den neuen Hexenbesen!',
+      overviewURL: 'http://localhost/overview',
     })
   })
 
@@ -29,7 +32,9 @@ describe('sendTransactionReceivedEmail', () => {
         expect.stringContaining('Hallo Peter Lustig') &&
         expect.stringContaining('42,00 GDD') &&
         expect.stringContaining('Bibi Bloxberg') &&
-        expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!'),
+        expect.stringContaining('(bibi@bloxberg.de)') &&
+        expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!') &&
+        expect.stringContaining('http://localhost/overview'),
     })
   })
 })

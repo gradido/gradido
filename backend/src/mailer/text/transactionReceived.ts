@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js-light'
+
 export const transactionReceived = {
   de: {
     subject: 'Gradido Überweisung',
@@ -7,14 +9,16 @@ export const transactionReceived = {
       recipientFirstName: string
       recipientLastName: string
       email: string
-      amount: number
+      senderEmail: string
+      amount: Decimal
       memo: string
+      overviewURL: string
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName}
 
 Du hast soeben ${data.amount.toFixed(2).replace('.', ',')} GDD von ${data.senderFirstName} ${
         data.senderLastName
-      } erhalten.
+      } (${data.senderEmail}) erhalten.
 ${data.senderFirstName} ${data.senderLastName} schreibt:
 
 ${data.memo}
@@ -22,6 +26,9 @@ ${data.memo}
 Bitte antworte nicht auf diese E-Mail!
 
 Mit freundlichen Grüßen,
-dein Gradido-Team`,
+dein Gradido-Team
+
+
+Link zu deinem Konto: ${data.overviewURL}`,
   },
 }

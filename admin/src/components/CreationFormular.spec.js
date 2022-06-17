@@ -1,18 +1,17 @@
 import { mount } from '@vue/test-utils'
 import CreationFormular from './CreationFormular.vue'
-import { createPendingCreation } from '../graphql/createPendingCreation'
-import { createPendingCreations } from '../graphql/createPendingCreations'
+import { adminCreateContribution } from '../graphql/adminCreateContribution'
+import { adminCreateContributions } from '../graphql/adminCreateContributions'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
-    createPendingCreation: [0, 0, 0],
+    adminCreateContribution: [0, 0, 0],
   },
 })
 const stateCommitMock = jest.fn()
-const toastedErrorMock = jest.fn()
-const toastedSuccessMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t, options) => (options ? [t, options] : t)),
@@ -25,16 +24,6 @@ const mocks = {
   },
   $store: {
     commit: stateCommitMock,
-    state: {
-      moderator: {
-        id: 0,
-        name: 'test moderator',
-      },
-    },
-  },
-  $toasted: {
-    error: toastedErrorMock,
-    success: toastedSuccessMock,
   },
 }
 
@@ -121,13 +110,12 @@ describe('CreationFormular', () => {
             it('sends ... to apollo', () => {
               expect(apolloMutateMock).toBeCalledWith(
                 expect.objectContaining({
-                  mutation: createPendingCreation,
+                  mutation: adminCreateContribution,
                   variables: {
                     email: 'benjamin@bluemchen.de',
                     creationDate: getCreationDate(2),
                     amount: 90,
                     memo: 'Test create coins',
-                    moderator: 0,
                   },
                 }),
               )
@@ -140,7 +128,7 @@ describe('CreationFormular', () => {
             })
 
             it('toasts a success message', () => {
-              expect(toastedSuccessMock).toBeCalledWith([
+              expect(toastSuccessSpy).toBeCalledWith([
                 'creation_form.toasted',
                 { email: 'benjamin@bluemchen.de', value: '90' },
               ])
@@ -162,7 +150,7 @@ describe('CreationFormular', () => {
             })
 
             it('toasts an error message', () => {
-              expect(toastedErrorMock).toBeCalledWith('Ouch!')
+              expect(toastErrorSpy).toBeCalledWith('Ouch!')
             })
           })
 
@@ -292,7 +280,7 @@ describe('CreationFormular', () => {
             })
 
             it('toast success message', () => {
-              expect(toastedSuccessMock).toBeCalled()
+              expect(toastSuccessSpy).toBeCalled()
             })
 
             it('store commit openCreationPlus', () => {
@@ -346,10 +334,10 @@ describe('CreationFormular', () => {
           jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
-              createPendingCreations: {
+              adminCreateContributions: {
                 success: true,
-                successfulCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
-                failedCreation: [],
+                successfulContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                failedContribution: [],
               },
             },
           })
@@ -367,7 +355,7 @@ describe('CreationFormular', () => {
         it('calls the API', () => {
           expect(apolloMutateMock).toBeCalledWith(
             expect.objectContaining({
-              mutation: createPendingCreations,
+              mutation: adminCreateContributions,
               variables: {
                 pendingCreations: [
                   {
@@ -375,14 +363,12 @@ describe('CreationFormular', () => {
                     creationDate: getCreationDate(1),
                     amount: 200,
                     memo: 'Test mass create coins',
-                    moderator: 0,
                   },
                   {
                     email: 'bibi@bloxberg.de',
                     creationDate: getCreationDate(1),
                     amount: 200,
                     memo: 'Test mass create coins',
-                    moderator: 0,
                   },
                 ],
               },
@@ -404,10 +390,10 @@ describe('CreationFormular', () => {
           jest.clearAllMocks()
           apolloMutateMock.mockResolvedValue({
             data: {
-              createPendingCreations: {
+              adminCreateContributions: {
                 success: true,
-                successfulCreation: [],
-                failedCreation: ['bob@baumeister.de', 'bibi@bloxberg.de'],
+                successfulContribution: [],
+                failedContribution: ['bob@baumeister.de', 'bibi@bloxberg.de'],
               },
             },
           })
@@ -426,13 +412,14 @@ describe('CreationFormular', () => {
           expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 0)
         })
 
-        it('toasts two errors', () => {
-          expect(toastedErrorMock).toBeCalledWith(
-            'Could not created PendingCreation for bob@baumeister.de',
-          )
-          expect(toastedErrorMock).toBeCalledWith(
-            'Could not created PendingCreation for bibi@bloxberg.de',
-          )
+        it('emits remove all bookmarks', () => {
+          expect(wrapper.emitted('remove-all-bookmark')).toBeTruthy()
+        })
+
+        it('emits toast failed creations with two emails', () => {
+          expect(wrapper.emitted('toast-failed-creations')).toEqual([
+            [['bob@baumeister.de', 'bibi@bloxberg.de']],
+          ])
         })
       })
 
@@ -454,7 +441,7 @@ describe('CreationFormular', () => {
         })
 
         it('toasts an error message', () => {
-          expect(toastedErrorMock).toBeCalledWith('Oh no!')
+          expect(toastErrorSpy).toBeCalledWith('Oh no!')
         })
       })
     })

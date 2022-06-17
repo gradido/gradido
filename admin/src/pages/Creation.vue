@@ -2,7 +2,7 @@
   <div class="creation">
     <b-row>
       <b-col cols="12" lg="6">
-        <label>Usersuche</label>
+        <label>{{ $t('user_search') }}</label>
         <b-input-group>
           <b-form-input
             type="text"
@@ -56,6 +56,7 @@
           :creation="creation"
           :items="itemsMassCreation"
           @remove-all-bookmark="removeAllBookmarks"
+          @toast-failed-creations="toastFailedCreations"
         />
       </b-col>
     </b-row>
@@ -101,6 +102,10 @@ export default {
             searchText: this.criteria,
             currentPage: this.currentPage,
             pageSize: this.perPage,
+            filters: {
+              byActivated: true,
+              byDeleted: false,
+            },
           },
           fetchPolicy: 'network-only',
         })
@@ -118,7 +123,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     pushItem(selectedItem) {
@@ -143,6 +148,11 @@ export default {
       this.itemsMassCreation = []
       this.$store.commit('setUserSelectedInMassCreation', [])
       this.getUsers()
+    },
+    toastFailedCreations(failedCreations) {
+      failedCreations.forEach((email) =>
+        this.toastError(this.$t('creation_form.creation_failed', { email })),
+      )
     },
   },
   computed: {

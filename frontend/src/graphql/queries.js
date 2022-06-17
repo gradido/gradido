@@ -7,7 +7,6 @@ export const login = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }
@@ -25,7 +24,6 @@ export const verifyLogin = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }
@@ -43,49 +41,37 @@ export const logout = gql`
 `
 
 export const transactionsQuery = gql`
-  query(
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $onlyCreations: Boolean = false
-  ) {
-    transactionList(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      onlyCreations: $onlyCreations
-    ) {
-      gdtSum
-      count
-      balance
-      decay
-      decayDate
-      transactions {
-        type
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      balance {
         balance
-        decayStart
-        decayEnd
-        decayDuration
+        balanceGDT
+        count
+        linkCount
+      }
+      transactions {
+        id
+        typeId
+        amount
+        balance
+        balanceDate
         memo
-        transactionId
-        name
-        email
-        date
-        decay {
-          balance
-          decayStart
-          decayEnd
-          decayDuration
-          decayStartBlock
+        linkedUser {
+          firstName
+          lastName
         }
+        decay {
+          decay
+          start
+          end
+          duration
+        }
+        linkedUser {
+          email
+        }
+        transactionLinkId
       }
     }
-  }
-`
-
-export const sendResetPasswordEmail = gql`
-  query($email: String!) {
-    sendResetPasswordEmail(email: $email)
   }
 `
 
@@ -107,17 +93,6 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communityInfo = gql`
-  query {
-    getCommunityInfo {
-      name
-      description
-      registerUrl
-      url
-    }
-  }
-`
-
 export const communities = gql`
   query {
     communities {
@@ -126,6 +101,46 @@ export const communities = gql`
       url
       description
       registerUrl
+    }
+  }
+`
+
+export const queryOptIn = gql`
+  query($optIn: String!) {
+    queryOptIn(optIn: $optIn)
+  }
+`
+
+export const queryTransactionLink = gql`
+  query($code: String!) {
+    queryTransactionLink(code: $code) {
+      id
+      amount
+      memo
+      createdAt
+      validUntil
+      redeemedAt
+      deletedAt
+      user {
+        firstName
+        publisherId
+        email
+      }
+    }
+  }
+`
+
+export const listTransactionLinks = gql`
+  query($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
+      id
+      amount
+      holdAvailableAmount
+      memo
+      link
+      createdAt
+      validUntil
+      redeemedAt
     }
   }
 `

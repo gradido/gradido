@@ -4,6 +4,9 @@
  * Copy missing data from login_users to state_users.
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Copy data with intact private key
   await queryFn(
@@ -40,6 +43,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 }
 
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  return [] // cannot undelete things
+export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+  // cannot undelete things
 }

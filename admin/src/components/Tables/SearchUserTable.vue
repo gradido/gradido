@@ -1,55 +1,58 @@
 <template>
   <div class="search-user-table">
-    <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
+    <b-table
+      tbody-tr-class="pointer"
+      :items="myItems"
+      :fields="fields"
+      caption-top
+      striped
+      hover
+      stacked="md"
+      select-mode="single"
+      selectableonRowSelected
+      @row-clicked="onRowClicked"
+    >
       <template #cell(creation)="data">
         <div v-html="data.value"></div>
       </template>
-      <template #cell(show_details)="row">
-        <b-button
-          variant="info"
-          size="md"
-          v-if="row.item.emailChecked"
-          @click="rowToogleDetails(row, 0)"
-          class="mr-2"
-        >
-          <b-icon :icon="row.detailsShowing ? 'eye-slash-fill' : 'eye-fill'"></b-icon>
-        </b-button>
-      </template>
-      <template #cell(confirm_mail)="row">
-        <b-button
-          :variant="row.item.emailChecked ? 'success' : 'danger'"
-          size="md"
-          @click="rowToogleDetails(row, 1)"
-          class="mr-2"
-        >
+
+      <template #cell(status)="row">
+        <div class="text-right">
+          <b-avatar v-if="row.item.deletedAt" class="mr-3" variant="light">
+            <b-iconstack font-scale="2">
+              <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
+              <b-icon stacked icon="slash-circle" variant="danger"></b-icon>
+            </b-iconstack>
+          </b-avatar>
+          <span v-if="!row.item.deletedAt">
+            <b-avatar
+              v-if="!row.item.emailChecked"
+              icon="envelope"
+              class="align-center mr-3"
+              variant="danger"
+            ></b-avatar>
+
+            <b-avatar
+              v-if="!row.item.hasElopage"
+              variant="danger"
+              class="mr-3"
+              src="img/elopage_favicon.png"
+            ></b-avatar>
+          </span>
           <b-icon
-            :icon="row.item.emailChecked ? 'envelope-open' : 'envelope'"
-            aria-label="Help"
+            variant="dark"
+            :icon="row.detailsShowing ? 'caret-up-fill' : 'caret-down'"
+            :title="row.item.enabled ? $t('enabled') : $t('deleted')"
           ></b-icon>
-        </b-button>
+        </div>
       </template>
-      <template #cell(has_elopage)="row">
-        <b-icon
-          :variant="row.item.hasElopage ? 'success' : 'danger'"
-          :icon="row.item.hasElopage ? 'check-circle' : 'x-circle'"
-        ></b-icon>
-      </template>
-      <template #cell(transactions_list)="row">
-        <b-button variant="warning" size="md" @click="rowToogleDetails(row, 2)" class="mr-2">
-          <b-icon icon="list"></b-icon>
-        </b-button>
-      </template>
+
       <template #row-details="row">
-        <row-details
-          :row="row"
-          type="singleCreation"
-          :slotName="slotName"
-          :index="slotIndex"
-          @row-toogle-details="rowToogleDetails"
-        >
-          <template #show-creation>
-            <div>
+        <b-card ref="rowDetails" class="shadow-lg pl-3 pr-3 mb-5 bg-white rounded">
+          <b-tabs content-class="mt-3">
+            <b-tab :title="$t('creation')" active :disabled="row.item.deletedAt !== null">
               <creation-formular
+                v-if="!row.item.deletedAt"
                 type="singleCreation"
                 pagetype="singleCreation"
                 :creation="row.item.creation"
@@ -57,40 +60,49 @@
                 :creationUserData="creationUserData"
                 @update-user-data="updateUserData"
               />
-            </div>
-          </template>
-          <template #show-register-mail>
-            <confirm-register-mail-formular
-              :checked="row.item.emailChecked"
-              :email="row.item.email"
-              :dateLastSend="$d(new Date(), 'long')"
-            />
-          </template>
-          <template #show-transaction-list>
-            <creation-transaction-list-formular :userId="row.item.userId" />
-          </template>
-        </row-details>
+            </b-tab>
+            <b-tab :title="$t('e_mail')" :disabled="row.item.deletedAt !== null">
+              <confirm-register-mail-formular
+                v-if="!row.item.deletedAt"
+                :checked="row.item.emailChecked"
+                :email="row.item.email"
+                :dateLastSend="
+                  row.item.emailConfirmationSend
+                    ? $d(new Date(row.item.emailConfirmationSend), 'long')
+                    : ''
+                "
+              />
+            </b-tab>
+            <b-tab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
+              <creation-transaction-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </b-tab>
+            <b-tab :title="$t('transactionlink.name')" :disabled="row.item.deletedAt !== null">
+              <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
+            </b-tab>
+            <b-tab :title="$t('delete_user')">
+              <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+            </b-tab>
+          </b-tabs>
+        </b-card>
       </template>
-    </b-table-lite>
+    </b-table>
   </div>
 </template>
 <script>
 import CreationFormular from '../CreationFormular.vue'
 import ConfirmRegisterMailFormular from '../ConfirmRegisterMailFormular.vue'
-import RowDetails from '../RowDetails.vue'
-import CreationTransactionListFormular from '../CreationTransactionListFormular.vue'
-import { toggleRowDetails } from '../../mixins/toggleRowDetails'
-
-const slotNames = ['show-creation', 'show-register-mail', 'show-transaction-list']
+import CreationTransactionList from '../CreationTransactionList.vue'
+import TransactionLinkList from '../TransactionLinkList.vue'
+import DeletedUserFormular from '../DeletedUserFormular.vue'
 
 export default {
   name: 'SearchUserTable',
-  mixins: [toggleRowDetails],
   components: {
     CreationFormular,
     ConfirmRegisterMailFormular,
-    CreationTransactionListFormular,
-    RowDetails,
+    CreationTransactionList,
+    TransactionLinkList,
+    DeletedUserFormular,
   },
   props: {
     items: {
@@ -111,10 +123,29 @@ export default {
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
     },
+    updateDeletedAt({ userId, deletedAt }) {
+      this.$emit('updateDeletedAt', userId, deletedAt)
+    },
+    async onRowClicked(item) {
+      const status = this.myItems.find((obj) => obj === item)._showDetails
+      this.myItems.forEach((obj) => {
+        if (obj === item) {
+          obj._showDetails = !status
+        } else {
+          obj._showDetails = false
+        }
+      })
+      await this.$nextTick()
+      if (!status && this.$refs.rowDetails) {
+        this.$refs.rowDetails.focus()
+      }
+    },
   },
   computed: {
-    slotName() {
-      return slotNames[this.slotIndex]
+    myItems() {
+      return this.items.map((item) => {
+        return { ...item, _showDetails: false }
+      })
     },
   },
 }

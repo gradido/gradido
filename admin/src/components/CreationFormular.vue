@@ -85,8 +85,8 @@
   </div>
 </template>
 <script>
-import { createPendingCreation } from '../graphql/createPendingCreation'
-import { createPendingCreations } from '../graphql/createPendingCreations'
+import { adminCreateContribution } from '../graphql/adminCreateContribution'
+import { adminCreateContributions } from '../graphql/adminCreateContributions'
 import { creationMonths } from '../mixins/creationMonths'
 export default {
   name: 'CreationFormular',
@@ -154,32 +154,32 @@ export default {
             creationDate: this.selected.date,
             amount: Number(this.value),
             memo: this.text,
-            moderator: Number(this.$store.state.moderator.id),
           })
         })
         this.$apollo
           .mutate({
-            mutation: createPendingCreations,
+            mutation: adminCreateContributions,
             variables: {
               pendingCreations: submitObj,
             },
             fetchPolicy: 'no-cache',
           })
           .then((result) => {
+            const failedContributions = []
             this.$store.commit(
               'openCreationsPlus',
-              result.data.createPendingCreations.successfulCreation.length,
+              result.data.adminCreateContributions.successfulContribution.length,
             )
-            if (result.data.createPendingCreations.failedCreation.length > 0) {
-              result.data.createPendingCreations.failedCreation.forEach((failed) => {
-                // TODO: Please localize this error message
-                this.$toasted.error('Could not created PendingCreation for ' + failed)
+            if (result.data.adminCreateContributions.failedContribution.length > 0) {
+              result.data.adminCreateContributions.failedContribution.forEach((email) => {
+                failedContributions.push(email)
               })
             }
             this.$emit('remove-all-bookmark')
+            this.$emit('toast-failed-creations', failedContributions)
           })
           .catch((error) => {
-            this.$toasted.error(error.message)
+            this.toastError(error.message)
           })
       } else if (this.type === 'singleCreation') {
         submitObj = {
@@ -187,28 +187,27 @@ export default {
           creationDate: this.selected.date,
           amount: Number(this.value),
           memo: this.text,
-          moderator: Number(this.$store.state.moderator.id),
         }
         this.$apollo
           .mutate({
-            mutation: createPendingCreation,
+            mutation: adminCreateContribution,
             variables: submitObj,
           })
           .then((result) => {
-            this.$emit('update-user-data', this.item, result.data.createPendingCreation)
-            this.$toasted.success(
+            this.$emit('update-user-data', this.item, result.data.adminCreateContribution)
+            this.$store.commit('openCreationsPlus', 1)
+            this.toastSuccess(
               this.$t('creation_form.toasted', {
                 value: this.value,
                 email: this.item.email,
               }),
             )
-            this.$store.commit('openCreationsPlus', 1)
             // what is this? Tests says that this.text is not reseted
             this.$refs.creationForm.reset()
             this.value = 0
           })
           .catch((error) => {
-            this.$toasted.error(error.message)
+            this.toastError(error.message)
             this.$refs.creationForm.reset()
             this.value = 0
           })

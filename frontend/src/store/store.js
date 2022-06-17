@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
-import i18n from '../i18n.js'
+import i18n from '@/i18n.js'
 
 Vue.use(Vuex)
 
@@ -38,12 +38,6 @@ export const mutations = {
   isAdmin: (state, isAdmin) => {
     state.isAdmin = !!isAdmin
   },
-  community: (state, community) => {
-    state.community = community
-  },
-  coinanimation: (state, coinanimation) => {
-    state.coinanimation = coinanimation
-  },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
@@ -56,7 +50,6 @@ export const actions = {
     // commit('username', data.username)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
-    commit('coinanimation', data.coinanimation)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
@@ -68,7 +61,6 @@ export const actions = {
     // commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
-    commit('coinanimation', true)
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
@@ -94,12 +86,7 @@ try {
       // username: '',
       token: null,
       isAdmin: false,
-      coinanimation: true,
       newsletterState: null,
-      community: {
-        name: '',
-        description: '',
-      },
       hasElopage: false,
       publisherId: null,
     },

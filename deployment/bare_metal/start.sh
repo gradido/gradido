@@ -42,30 +42,38 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
+# find today string
+TODAY=$(date +"%Y-%m-%d")
+
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
+# redirect all output of the script to the UPDATE_HTML and also have things on console
+# TODO: this might pose a security risk
+exec > >(tee -a $UPDATE_HTML) 2>&1
+
 # configure nginx for the update-page
-echo 'Configuring nginx to serve the update-page<br>' >> $UPDATE_HTML
+echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
 rm /etc/nginx/sites-enabled/gradido.conf
 ln -s /etc/nginx/sites-available/update-page.conf /etc/nginx/sites-enabled/
 sudo /etc/init.d/nginx restart
 
 # stop all services
-echo 'Stopping all Gradido services<br>' >> $UPDATE_HTML
+echo 'Stopping all Gradido services' >> $UPDATE_HTML
 pm2 stop all
 
 # git
 BRANCH=${1:-master}
-echo "Starting with git pull - branch:$BRANCH<br>" >> $UPDATE_HTML
+echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
 cd $PROJECT_ROOT
-git fetch origin $BRANCH
+# TODO: this overfetches alot, but ensures we can use start.sh with tags
+git fetch --all
 git checkout $BRANCH
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
-echo 'Generate new gradido nginx config<br>' >> $UPDATE_HTML
+echo 'Generate new gradido nginx config' >> $UPDATE_HTML
 case "$NGINX_SSL" in
  true) TEMPLATE_FILE="gradido.conf.ssl.template" ;;
     *) TEMPLATE_FILE="gradido.conf.template" ;;
@@ -73,7 +81,7 @@ esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf
 
 # Generate update-page.conf from template
-echo 'Generate new update-page nginx config<br>' >> $UPDATE_HTML
+echo 'Generate new update-page nginx config' >> $UPDATE_HTML
 case "$NGINX_SSL" in
  true) TEMPLATE_FILE="update-page.conf.ssl.template" ;;
     *) TEMPLATE_FILE="update-page.conf.template" ;;
@@ -91,33 +99,35 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 # Install & build database
-echo 'Updating database<br>' >> $UPDATE_HTML
+echo 'Updating database' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
   yarn dev_reset
-  yarn seed 
 else
   yarn up
 fi
 
 # Install & build backend
-echo 'Updating backend<br>' >> $UPDATE_HTML
+echo 'Updating backend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
 yarn build
+if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+  yarn seed
+fi
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-backend
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # Install & build frontend
-echo 'Updating frontend<br>' >> $UPDATE_HTML
+echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -126,11 +136,11 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-frontend
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # Install & build admin
-echo 'Updating admin<br>' >> $UPDATE_HTML
+echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -139,14 +149,17 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 pm2 delete gradido-admin
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.log --log-date-format 'DD-MM HH:mm:ss.SSS'
+pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 
 # let nginx showing gradido
-echo 'Configuring nginx to serve gradido again<br>' >> $UPDATE_HTML
+echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
 ln -s /etc/nginx/sites-available/gradido.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/update-page.conf
 sudo /etc/init.d/nginx restart
+
+# keep the update log
+cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
 # release lock
 rm $LOCK_FILE

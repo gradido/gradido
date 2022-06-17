@@ -1,9 +1,39 @@
 {
   "all_emails": "All users",
-  "bookmark": "Remember",
-  "confirmed": "confirmed",
+  "back": "back",
+  "contributionLink": {
+    "amount": "Amount",
+    "clear": "Clear",
+    "contributionLinks": "Contribution Links",
+    "create": "Create",
+    "cycle": "Cycle",
+    "deleteNow": "Do you really delete automatic creations?",
+    "maximumAmount": "Maximum amount",
+    "maxPerCycle": "Repetition",
+    "memo": "Memo",
+    "name": "Name",
+    "newContributionLink": "New contribution link",
+    "noContributionLinks": "No contribution link has been created.",
+    "noDateSelected": "No date selected",
+    "noEndDate": "No end-date",
+    "noStartDate": "No start-date",
+    "options": {
+      "cycle": {
+        "daily": "daily",
+        "hourly": "hourly",
+        "monthly": "monthly",
+        "once": "once",
+        "weekly": "weekly",
+        "yearly": "yearly"
+      }
+    },
+    "validFrom": "Start-date",
+    "validTo": "End-Date"
+  },
   "creation": "Creation",
+  "creationList": "Creation list",
   "creation_form": {
+    "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
     "enter_text": "Enter text",
     "form": "Creation form",
@@ -14,22 +44,41 @@
     "submit_creation": "Submit creation",
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
-    "toasted_default": "`Case {event} is not supported`",
     "toasted_delete": "Open creation has been deleted",
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "creation_for_month": "Creation for month",
   "date": "Date",
   "delete": "Delete",
-  "details": "Details",
+  "deleted": "deleted",
+  "deleted_user": "All deleted user",
+  "delete_user": "Delete user",
   "edit": "Edit",
+  "enabled": "enabled",
+  "error": "Error",
+  "expired": "expired",
   "e_mail": "E-mail",
   "firstname": "Firstname",
-  "gradido_admin_footer": "Gradido Academy Admin Console",
-  "hide_details": "Hide details from",
+  "footer": {
+    "app_version": "App version {version}",
+    "copyright": {
+      "link": "Gradido Academy Admin Console",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "GDD": "GDD",
+  "hide_details": "Hide details",
   "lastname": "Lastname",
+  "math": {
+    "exclaim": "!",
+    "pipe": "|",
+    "plus": "+"
+  },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
+  "name": "Name",
   "navbar": {
     "logout": "Logout",
     "multi_creation": "Multiple creation",
@@ -39,45 +88,50 @@
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
-  "open_creation": "Open creation",
+  "open": "open",
   "open_creations": "Open creations",
   "overlay": {
     "confirm": {
-      "no": "No, do not save.",
+      "cancel": "Cancel",
       "question": "Do you really want to carry out and finally save this pre-stored creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Confirm creation!",
       "yes": "Yes, confirm and save creation!"
-    },
-    "remove": {
-      "no": "No, do not delete.",
-      "question": "Do you really want to delete the pre-stored creation?",
-      "text": "After deletion, there is no possibility to restore this data record. However, the entire process is saved in the log file as an overview.",
-      "title": "Attention! Delete creation!",
-      "yes": "Yes, delete creation!"
     }
   },
+  "redeemed": "redeemed",
   "remove": "Remove",
+  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
+  "status": "Status",
+  "success": "Success",
   "text": "Text",
-  "transaction": "Transaction",
+  "transactionlink": {
+    "created": "Created",
+    "name": "Transaction links",
+    "valid_until": "Valid until"
+  },
   "transactionlist": {
     "amount": "Amount",
+    "balanceDate": "Creation date",
     "community": "Community",
     "date": "Date",
-    "decay": "Decay",
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
+  "undelete_user": "Undelete User",
   "unregistered_emails": "Only unregistered users",
   "unregister_mail": {
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",
     "info": "Confirm email, send repeatedly to:",
+    "never_sent": "It seems we did never send an email to the member {email}",
     "success": "Successfully send the confirmation link to the user's email! ({email})",
-    "text_false": "The last email was sent to the member ({mail}) on {date} clock.",
-    "text_true": "The email was confirmed on {date} clock."
+    "text_false": "The last email was sent to the member ({email}) on {date}.",
+    "text_true": "The email was confirmed."
   },
+  "user_deleted": "User is deleted.",
+  "user_recovered": "User is recovered.",
   "user_search": "User search"
 }

@@ -2,6 +2,9 @@
 # This assums you have root access via ssh to your cleanly setup server
 # Furthermore this assumes you have debian (11 64bit) running
 
+# Check your (Sub-)Domain with your Provider.
+# In this document gddhost.tld refers to your chosen domain
+
 > ssh root@gddhost.tld
 
 # change root default shell
@@ -78,8 +81,8 @@
 > git clone https://github.com/gradido/gradido.git
 
 # Timezone
-# Note: This is not needed - UTC(default) is REQUIRED for production data
-# > sudo timedatectl set-timezone UTC
+# Note: This is needed - since there is Summer-Time included in the default server Setup - UTC is REQUIRED for production data
+> sudo timedatectl set-timezone UTC
 # > sudo timedatectl set-ntp on
 # > sudo apt purge ntp
 # > sudo systemctl start systemd-timesyncd
@@ -87,6 +90,7 @@
 
 # Adjust .env
 # NOTE ';' can not be part of any value
+# The Github Secret is Created on Github in Settimgs -> Webhooks
 > cd gradido/deployment/bare_metal
 > cp .env.dist .env
 > nano .env

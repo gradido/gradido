@@ -2,11 +2,13 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
+const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
+const CONFIG = require('./src/config')
 
 // vue.config.js
 module.exports = {
   devServer: {
-    port: process.env.PORT || 3000,
+    port: CONFIG.PORT,
   },
   pluginOptions: {
     i18n: {
@@ -14,6 +16,7 @@ module.exports = {
       fallbackLocale: 'de',
       localeDir: 'locales',
       enableInSFC: false,
+      enableLegacy: false,
     },
   },
   lintOnSave: true,
@@ -33,11 +36,25 @@ module.exports = {
         // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
         // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
         // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
-        'process.env.BUILD_COMMIT': JSON.stringify(process.env.BUILD_COMMIT),
+        'process.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
         // 'process.env.PORT': JSON.stringify(process.env.PORT),
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
+      new HtmlWebpackPlugin({
+        vue: true,
+        template: 'public/index.html',
+        meta: {
+          title_de: CONFIG.META_TITLE_DE,
+          title_en: CONFIG.META_TITLE_EN,
+          description_de: CONFIG.META_DESCRIPTION_DE,
+          description_en: CONFIG.META_DESCRIPTION_EN,
+          keywords_de: CONFIG.META_KEYWORDS_DE,
+          keywords_en: CONFIG.META_KEYWORDS_EN,
+          author: CONFIG.META_AUTHOR,
+          url: CONFIG.META_URL,
+        },
+      }),
     ],
     infrastructureLogging: {
       level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
@@ -45,7 +62,7 @@ module.exports = {
   },
   css: {
     // Enable CSS source maps.
-    sourceMap: process.env.NODE_ENV !== 'production',
+    sourceMap: CONFIG.NODE_ENV !== 'production',
   },
   outputDir: path.resolve(__dirname, './dist'),
 }

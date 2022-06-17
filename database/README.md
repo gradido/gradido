@@ -1,47 +1,39 @@
 # database
 
 ## Project setup
-```
+
+```bash
 yarn install
 ```
 
 ## Upgrade migrations production
-```
+
+```bash
 yarn up
 ```
 
 ## Upgrade migrations development
-```
+
+```bash
 yarn dev_up
 ```
 
 ## Downgrade migrations production
-```
+
+```bash
 yarn down
 ```
 
 ## Downgrade migrations development
-```
+
+```bash
 yarn dev_down
 ```
 
+## Reset database
 
-## Reset DB
-```
+```bash
 yarn dev_reset
 ```
 
-## Seed DB
-```
-yarn seed
-```
-
-## Seeded Users
-
-| email                  | password   | admin   |
-|------------------------|------------|---------|
-| peter@lustig.de        | `Aa12345_` | `true`  |
-| bibi@bloxberg.de       | `Aa12345_` | `false` |
-| raeuber@hotzenplotz.de | `Aa12345_` | `false` |
-| bob@baumeister.de      | `Aa12345_` | `false` |
- 
+Runs all down migrations and after this all up migrations.

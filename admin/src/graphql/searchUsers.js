@@ -1,12 +1,12 @@
 import gql from 'graphql-tag'
 
 export const searchUsers = gql`
-  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $notActivated: Boolean) {
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
     searchUsers(
       searchText: $searchText
       currentPage: $currentPage
       pageSize: $pageSize
-      notActivated: $notActivated
+      filters: $filters
     ) {
       userCount
       userList {
@@ -17,6 +17,8 @@ export const searchUsers = gql`
         creation
         emailChecked
         hasElopage
+        emailConfirmationSend
+        deletedAt
       }
     }
   }

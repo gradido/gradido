@@ -1,18 +1,7 @@
 <template>
   <div class="creation-confirm">
-    <div v-show="overlay" id="overlay" class="">
-      <b-jumbotron class="bg-light p-4">
-        <template #header>{{ $t('overlay.confirm.title') }}</template>
-        <template #lead>{{ $t('overlay.confirm.text') }}</template>
-        <hr class="my-4" />
-        <p>{{ $t('overlay.confirm.question') }}</p>
-        <b-button size="md" variant="danger" class="m-3" @click="overlay = false">
-          {{ $t('overlay.confirm.no') }}
-        </b-button>
-        <b-button size="md" variant="success" class="m-3 text-right" @click="confirmCreation">
-          {{ $t('overlay.confirm.yes') }}
-        </b-button>
-      </b-jumbotron>
+    <div v-if="overlay" id="overlay" @dblclick="overlay = false">
+      <overlay :item="item" @overlay-cancel="overlay = false" @confirm-creation="confirmCreation" />
     </div>
     <open-creations-table
       class="mt-4"
@@ -24,44 +13,46 @@
   </div>
 </template>
 <script>
+import Overlay from '../components/Overlay.vue'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable.vue'
-import { getPendingCreations } from '../graphql/getPendingCreations'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { confirmContribution } from '../graphql/confirmContribution'
 
 export default {
   name: 'CreationConfirm',
   components: {
     OpenCreationsTable,
+    Overlay,
   },
   data() {
     return {
       pendingCreations: [],
       overlay: false,
-      item: [],
+      item: {},
     }
   },
   methods: {
     removeCreation(item) {
       this.$apollo
         .mutate({
-          mutation: deletePendingCreation,
+          mutation: adminDeleteContribution,
           variables: {
             id: item.id,
           },
         })
         .then((result) => {
           this.updatePendingCreations(item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_delete'))
+          this.toastSuccess(this.$t('creation_form.toasted_delete'))
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     confirmCreation() {
       this.$apollo
         .mutate({
-          mutation: confirmPendingCreation,
+          mutation: confirmContribution,
           variables: {
             id: this.item.id,
           },
@@ -69,26 +60,26 @@ export default {
         .then((result) => {
           this.overlay = false
           this.updatePendingCreations(this.item.id)
-          this.$toasted.success(this.$t('creation_form.toasted_created'))
+          this.toastSuccess(this.$t('creation_form.toasted_created'))
         })
         .catch((error) => {
           this.overlay = false
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     getPendingCreations() {
       this.$apollo
         .query({
-          query: getPendingCreations,
+          query: listUnconfirmedContributions,
           fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.$store.commit('resetOpenCreations')
-          this.pendingCreations = result.data.getPendingCreations
-          this.$store.commit('setOpenCreations', result.data.getPendingCreations.length)
+          this.pendingCreations = result.data.listUnconfirmedContributions
+          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
         .catch((error) => {
-          this.$toasted.error(error.message)
+          this.toastError(error.message)
         })
     },
     updatePendingCreations(id) {

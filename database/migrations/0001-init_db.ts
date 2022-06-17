@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* FIRST MIGRATION
  *
  * This migration is special since it takes into account that
@@ -11,6 +8,9 @@
  * This ensures compatibility for existing or non-existing
  * databases.
  */
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write upgrade logic as parameter of queryFn
