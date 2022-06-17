@@ -1,11 +1,9 @@
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, InputType } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
+@InputType()
 @ArgsType()
-export default class UpdatePendingCreationArgs {
-  @Field(() => Int)
-  id: number
-
+export default class AdminCreateContributionArgs {
   @Field(() => String)
   email: string
 

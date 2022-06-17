@@ -8,6 +8,7 @@ import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
 import { encode } from '@/auth/JWT'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
@@ -349,10 +350,20 @@ export class UserResolver {
     dbUser.passphrase = passphrase.join(' ')
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
-      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-      logger.info('redeemCode found transactionLink=' + transactionLink)
-      if (transactionLink) {
-        dbUser.referrerId = transactionLink.userId
+      if (redeemCode.match(/^CL-/)) {
+        const contributionLink = await dbContributionLink.findOne({
+          code: redeemCode.replace('CL-', ''),
+        })
+        logger.info('redeemCode found contributionLink=' + contributionLink)
+        if (contributionLink) {
+          dbUser.contributionLinkId = contributionLink.id
+        }
+      } else {
+        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        logger.info('redeemCode found transactionLink=' + transactionLink)
+        if (transactionLink) {
+          dbUser.referrerId = transactionLink.userId
+        }
       }
     }
     // TODO this field has no null allowed unlike the loginServer table
