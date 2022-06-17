@@ -600,7 +600,7 @@ interface CreationMap {
   creations: Decimal[]
 }
 
-async function getUserCreation(id: number, includePending = true): Promise<Decimal[]> {
+export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
   logger.trace('getUserCreation', id, includePending)
   const creations = await getUserCreations([id], includePending)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
@@ -663,7 +663,11 @@ function updateCreations(creations: Decimal[], contribution: Contribution): Deci
   return creations
 }
 
-function isContributionValid(creations: Decimal[], amount: Decimal, creationDate: Date) {
+export const isContributionValid = (
+  creations: Decimal[],
+  amount: Decimal,
+  creationDate: Date,
+): boolean => {
   logger.trace('isContributionValid', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth())
 
