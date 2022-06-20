@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-self-creator">
-    <redeem-information :firstName="user.firstName" :amount="amount" :memo="memo" />
+    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
 
     <b-jumbotron>
       <div class="mb-3 text-center">
@@ -23,9 +23,8 @@ export default {
     RedeemInformation,
   },
   props: {
-    user: { type: Object, required: true },
-    amount: { type: String, required: true },
-    memo: { type: String, required: true, default: '' },
+    linkData: { type: Object, required: true },
+    isContributionLink: { type: Boolean, default: false },
   },
 }
 </script>
