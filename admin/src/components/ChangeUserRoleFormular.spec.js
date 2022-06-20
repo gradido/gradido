@@ -72,7 +72,7 @@ describe('ChangeUserRoleFormular', () => {
         expect(wrapper.text()).toContain('userRole.notChangeYourSelf')
       })
 
-      it('role select is disabled', () => {
+      it('has role select disabled', () => {
         expect(wrapper.find('select[disabled="disabled"]').exists()).toBe(true)
       })
     })
