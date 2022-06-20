@@ -104,7 +104,7 @@ describe('ChangeUserRoleFormular', () => {
           expect(wrapper.find('select.role-select').exists()).toBe(true)
         })
 
-        it('role select is enabled', () => {
+        it('has role select enabled', () => {
           expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
         })
 
