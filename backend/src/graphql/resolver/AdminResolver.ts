@@ -527,7 +527,7 @@ export class AdminResolver {
       logger.error(`The validFrom=${validFrom} must be before or equals the validTo=${validTo}!`)
       throw new Error(`The validFrom=${validFrom} must be before or equals the validTo=${validTo}!`)
     }
-    if (name == null) {
+    if (!name) {
       logger.error(`The name must be initialized!`)
       throw new Error(`The name must be initialized!`)
     }
@@ -539,6 +539,10 @@ export class AdminResolver {
       logger.error(`${msg}`)
       throw new Error(`${msg}`)
     }
+    if (!memo) {
+      logger.error(`The memo must be initialized!`)
+      throw new Error(`The memo must be initialized!`)
+    }
     if (
       memo.length < CONTRIBUTIONLINK_MEMO_MIN_CHARS ||
       memo.length > CONTRIBUTIONLINK_MEMO_MAX_CHARS
@@ -547,12 +551,11 @@ export class AdminResolver {
       logger.error(`${msg}`)
       throw new Error(`${msg}`)
     }
-    if (amount == null) {
+    if (!amount) {
       logger.error(`The amount must be initialized!`)
       throw new Error('The amount must be initialized!')
     }
-    const amountObj = new Decimal(amount)
-    if (amountObj.lessThanOrEqualTo(new Decimal(0))) {
+    if (!new Decimal(amount).isPositive()) {
       logger.error(`The amount=${amount} must be initialized with a positiv value!`)
       throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
     }
@@ -736,24 +739,19 @@ function isStartEndDateValid(
   startDate: string | null | undefined,
   endDate: string | null | undefined,
 ) {
-  if (startDate == null && endDate == null) {
-    logger.error('Start- and End-Date are not initialized. At least a startDate must be set!')
-    throw new Error('Start- and End-Date are not initialized. At least a startDate must be set!')
+  if (!startDate) {
+    logger.error('Start-Date is not initialized. A Start-Date must be set!')
+    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
   }
 
-  if (startDate == null) {
-    logger.error('StartDate is not initialized. At least a startDate must be set!')
-    throw new Error('Start-Date is not initialized. At least a startDate must be set!')
+  if (!endDate) {
+    logger.error('End-Date is not initialized. An End-Date must be set!')
+    throw new Error('End-Date is not initialized. An End-Date must be set!')
   }
 
-  if (startDate != null && endDate != null) {
-    const startDateObj = new Date(startDate)
-    const endDateObj = new Date(endDate)
-
-    // check if endDate is before startDate
-    if (endDateObj.getTime() - startDateObj.getTime() < 0) {
-      return false
-    }
+  // check if endDate is before startDate
+  if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
+    return false
   }
   return true
 }
