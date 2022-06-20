@@ -159,7 +159,7 @@ describe('AdminResolver', () => {
             })
 
             describe('is usual user', () => {
-              it('returns string', async () => {
+              it('returns null', async () => {
                 await expect(
                   mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
                 ).resolves.toEqual(
