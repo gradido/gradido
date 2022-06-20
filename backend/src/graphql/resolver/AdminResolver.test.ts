@@ -15,17 +15,17 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
   deleteUser,
   unDeleteUser,
-  createPendingCreation,
-  createPendingCreations,
-  updatePendingCreation,
-  deletePendingCreation,
-  confirmPendingCreation,
+  adminCreateContribution,
+  adminCreateContributions,
+  adminUpdateContribution,
+  adminDeleteContribution,
+  confirmContribution,
   createContributionLink,
   deleteContributionLink,
   updateContributionLink,
 } from '@/seeds/graphql/mutations'
 import {
-  getPendingCreations,
+  listUnconfirmedContributions,
   login,
   searchUsers,
   listTransactionLinksAdmin,
@@ -36,7 +36,7 @@ import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import Decimal from 'decimal.js-light'
-import { AdminPendingCreation } from '@entity/AdminPendingCreation'
+import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 
@@ -66,7 +66,7 @@ afterAll(async () => {
 
 let admin: User
 let user: User
-let creation: AdminPendingCreation | void
+let creation: Contribution | void
 
 describe('AdminResolver', () => {
   describe('delete user', () => {
@@ -502,9 +502,9 @@ describe('AdminResolver', () => {
     }
 
     describe('unauthenticated', () => {
-      describe('createPendingCreation', () => {
+      describe('adminCreateContribution', () => {
         it('returns an error', async () => {
-          await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('401 Unauthorized')],
             }),
@@ -512,11 +512,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('createPendingCreations', () => {
+      describe('adminCreateContributions', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: createPendingCreations,
+              mutation: adminCreateContributions,
               variables: { pendingCreations: [variables] },
             }),
           ).resolves.toEqual(
@@ -527,11 +527,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('updatePendingCreation', () => {
+      describe('adminUpdateContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: updatePendingCreation,
+              mutation: adminUpdateContribution,
               variables: {
                 id: 1,
                 email: 'bibi@bloxberg.de',
@@ -548,11 +548,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('getPendingCreations', () => {
+      describe('listUnconfirmedContributions', () => {
         it('returns an error', async () => {
           await expect(
             query({
-              query: getPendingCreations,
+              query: listUnconfirmedContributions,
             }),
           ).resolves.toEqual(
             expect.objectContaining({
@@ -562,11 +562,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('deletePendingCreation', () => {
+      describe('adminDeleteContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: deletePendingCreation,
+              mutation: adminDeleteContribution,
               variables: {
                 id: 1,
               },
@@ -579,11 +579,11 @@ describe('AdminResolver', () => {
         })
       })
 
-      describe('confirmPendingCreation', () => {
+      describe('confirmContribution', () => {
         it('returns an error', async () => {
           await expect(
             mutate({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: {
                 id: 1,
               },
@@ -612,9 +612,9 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        describe('createPendingCreation', () => {
+        describe('adminCreateContribution', () => {
           it('returns an error', async () => {
-            await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
+            await expect(mutate({ mutation: adminCreateContribution, variables })).resolves.toEqual(
               expect.objectContaining({
                 errors: [new GraphQLError('401 Unauthorized')],
               }),
@@ -622,11 +622,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('createPendingCreations', () => {
+        describe('adminCreateContributions', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: createPendingCreations,
+                mutation: adminCreateContributions,
                 variables: { pendingCreations: [variables] },
               }),
             ).resolves.toEqual(
@@ -637,11 +637,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('updatePendingCreation', () => {
+        describe('adminUpdateContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: updatePendingCreation,
+                mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
                   email: 'bibi@bloxberg.de',
@@ -658,11 +658,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('getPendingCreations', () => {
+        describe('listUnconfirmedContributions', () => {
           it('returns an error', async () => {
             await expect(
               query({
-                query: getPendingCreations,
+                query: listUnconfirmedContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
@@ -672,11 +672,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('deletePendingCreation', () => {
+        describe('adminDeleteContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: deletePendingCreation,
+                mutation: adminDeleteContribution,
                 variables: {
                   id: 1,
                 },
@@ -689,11 +689,11 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('confirmPendingCreation', () => {
+        describe('confirmContribution', () => {
           it('returns an error', async () => {
             await expect(
               mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: 1,
                 },
@@ -721,7 +721,7 @@ describe('AdminResolver', () => {
           resetToken()
         })
 
-        describe('createPendingCreation', () => {
+        describe('adminCreateContribution', () => {
           beforeAll(async () => {
             const now = new Date()
             creation = await creationFactory(testEnv, {
@@ -734,7 +734,9 @@ describe('AdminResolver', () => {
 
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
-              await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
+              await expect(
+                mutate({ mutation: adminCreateContribution, variables }),
+              ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [new GraphQLError('Could not find user with email: bibi@bloxberg.de')],
                 }),
@@ -749,9 +751,13 @@ describe('AdminResolver', () => {
             })
 
             it('throws an error', async () => {
-              await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
+              await expect(
+                mutate({ mutation: adminCreateContribution, variables }),
+              ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('This user was deleted. Cannot make a creation.')],
+                  errors: [
+                    new GraphQLError('This user was deleted. Cannot create a contribution.'),
+                  ],
                 }),
               )
             })
@@ -764,9 +770,13 @@ describe('AdminResolver', () => {
             })
 
             it('throws an error', async () => {
-              await expect(mutate({ mutation: createPendingCreation, variables })).resolves.toEqual(
+              await expect(
+                mutate({ mutation: adminCreateContribution, variables }),
+              ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation could not be saved, Email is not activated')],
+                  errors: [
+                    new GraphQLError('Contribution could not be saved, Email is not activated'),
+                  ],
                 }),
               )
             })
@@ -781,7 +791,7 @@ describe('AdminResolver', () => {
             describe('date of creation is not a date string', () => {
               it('throws an error', async () => {
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [
@@ -801,7 +811,7 @@ describe('AdminResolver', () => {
                   1,
                 ).toString()
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [
@@ -821,7 +831,7 @@ describe('AdminResolver', () => {
                   1,
                 ).toString()
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [
@@ -836,7 +846,7 @@ describe('AdminResolver', () => {
               it('throws an error', async () => {
                 variables.creationDate = new Date().toString()
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [
@@ -853,11 +863,11 @@ describe('AdminResolver', () => {
               it('returns an array of the open creations for the last three months', async () => {
                 variables.amount = new Decimal(200)
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      createPendingCreation: [1000, 1000, 800],
+                      adminCreateContribution: [1000, 1000, 800],
                     },
                   }),
                 )
@@ -868,7 +878,7 @@ describe('AdminResolver', () => {
               it('returns an array of the open creations for the last three months', async () => {
                 variables.amount = new Decimal(1000)
                 await expect(
-                  mutate({ mutation: createPendingCreation, variables }),
+                  mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     errors: [
@@ -883,7 +893,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('createPendingCreations', () => {
+        describe('adminCreateContributions', () => {
           // at this point we have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 800]
           // peter@lustig.de: [1000, 600, 1000]
@@ -908,16 +918,16 @@ describe('AdminResolver', () => {
           it('returns success, two successful creation and three failed creations', async () => {
             await expect(
               mutate({
-                mutation: createPendingCreations,
+                mutation: adminCreateContributions,
                 variables: { pendingCreations: massCreationVariables },
               }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  createPendingCreations: {
+                  adminCreateContributions: {
                     success: true,
-                    successfulCreation: ['bibi@bloxberg.de', 'peter@lustig.de'],
-                    failedCreation: [
+                    successfulContribution: ['bibi@bloxberg.de', 'peter@lustig.de'],
+                    failedContribution: [
                       'stephen@hawking.uk',
                       'garrick@ollivander.com',
                       'bob@baumeister.de',
@@ -929,7 +939,7 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('updatePendingCreation', () => {
+        describe('adminUpdateContribution', () => {
           // at this I expect to have this data in DB:
           // bibi@bloxberg.de: [1000, 1000, 300]
           // peter@lustig.de: [1000, 600, 500]
@@ -940,7 +950,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
                     email: 'bob@baumeister.de',
@@ -961,7 +971,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: 1,
                     email: 'stephen@hawking.uk',
@@ -982,7 +992,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: -1,
                     email: 'bibi@bloxberg.de',
@@ -993,7 +1003,7 @@ describe('AdminResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('No creation found to given id.')],
+                  errors: [new GraphQLError('No contribution found to given id.')],
                 }),
               )
             })
@@ -1003,7 +1013,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'bibi@bloxberg.de',
@@ -1016,7 +1026,7 @@ describe('AdminResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'user of the pending creation and send user does not correspond',
+                      'user of the pending contribution and send user does not correspond',
                     ),
                   ],
                 }),
@@ -1028,7 +1038,7 @@ describe('AdminResolver', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1053,7 +1063,7 @@ describe('AdminResolver', () => {
             it('returns update creation object', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1065,7 +1075,7 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
-                    updatePendingCreation: {
+                    adminUpdateContribution: {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
@@ -1081,7 +1091,7 @@ describe('AdminResolver', () => {
             it('returns update creation object', async () => {
               await expect(
                 mutate({
-                  mutation: updatePendingCreation,
+                  mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                     email: 'peter@lustig.de',
@@ -1093,7 +1103,7 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
-                    updatePendingCreation: {
+                    adminUpdateContribution: {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
@@ -1106,16 +1116,16 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('getPendingCreations', () => {
+        describe('listUnconfirmedContributions', () => {
           it('returns four pending creations', async () => {
             await expect(
               query({
-                query: getPendingCreations,
+                query: listUnconfirmedContributions,
               }),
             ).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  getPendingCreations: expect.arrayContaining([
+                  listUnconfirmedContributions: expect.arrayContaining([
                     {
                       id: expect.any(Number),
                       firstName: 'Peter',
@@ -1167,19 +1177,19 @@ describe('AdminResolver', () => {
           })
         })
 
-        describe('deletePendingCreation', () => {
+        describe('adminDeleteContribution', () => {
           describe('creation id does not exist', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: deletePendingCreation,
+                  mutation: adminDeleteContribution,
                   variables: {
                     id: -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation not found for given id.')],
+                  errors: [new GraphQLError('Contribution not found for given id.')],
                 }),
               )
             })
@@ -1189,33 +1199,33 @@ describe('AdminResolver', () => {
             it('returns true', async () => {
               await expect(
                 mutate({
-                  mutation: deletePendingCreation,
+                  mutation: adminDeleteContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  data: { deletePendingCreation: true },
+                  data: { adminDeleteContribution: true },
                 }),
               )
             })
           })
         })
 
-        describe('confirmPendingCreation', () => {
+        describe('confirmContribution', () => {
           describe('creation does not exits', () => {
             it('throws an error', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Creation not found to given id.')],
+                  errors: [new GraphQLError('Contribution not found to given id.')],
                 }),
               )
             })
@@ -1235,14 +1245,14 @@ describe('AdminResolver', () => {
             it('thows an error', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Moderator can not confirm own pending creation')],
+                  errors: [new GraphQLError('Moderator can not confirm own contribution')],
                 }),
               )
             })
@@ -1262,14 +1272,14 @@ describe('AdminResolver', () => {
             it('returns true', async () => {
               await expect(
                 mutate({
-                  mutation: confirmPendingCreation,
+                  mutation: confirmContribution,
                   variables: {
                     id: creation ? creation.id : -1,
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  data: { confirmPendingCreation: true },
+                  data: { confirmContribution: true },
                 }),
               )
             })
@@ -1287,8 +1297,8 @@ describe('AdminResolver', () => {
           })
 
           describe('confirm two creations one after the other quickly', () => {
-            let c1: AdminPendingCreation | void
-            let c2: AdminPendingCreation | void
+            let c1: Contribution | void
+            let c2: Contribution | void
 
             beforeAll(async () => {
               const now = new Date()
@@ -1309,25 +1319,25 @@ describe('AdminResolver', () => {
             // In the futrue this should not throw anymore
             it('throws an error for the second confirmation', async () => {
               const r1 = mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: c1 ? c1.id : -1,
                 },
               })
               const r2 = mutate({
-                mutation: confirmPendingCreation,
+                mutation: confirmContribution,
                 variables: {
                   id: c2 ? c2.id : -1,
                 },
               })
               await expect(r1).resolves.toEqual(
                 expect.objectContaining({
-                  data: { confirmPendingCreation: true },
+                  data: { confirmContribution: true },
                 }),
               )
               await expect(r2).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Unable to confirm creation.')],
+                  errors: [new GraphQLError('Creation was not successful.')],
                 }),
               )
             })
