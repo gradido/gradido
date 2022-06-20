@@ -4,7 +4,7 @@
       v-for="(lang, index) in locales"
       @click.prevent="saveLocale(lang.code)"
       :key="lang.code"
-      class="pointer pr-3"
+      class="pointer pr-2"
       :class="$store.state.language === lang.code ? 'c-blau' : 'c-grey'"
     >
       <span class="locales">{{ lang.name }}</span>
