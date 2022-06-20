@@ -1809,6 +1809,211 @@ describe('AdminResolver', () => {
           })
         })
 
+        describe('createContributionLink', () => {
+          it('returns an error if missing startDate', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  validFrom: null,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError('Start-Date is not initialized. A Start-Date must be set!'),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if missing endDate', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  validTo: null,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('End-Date is not initialized. An End-Date must be set!')],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if endDate is before startDate', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  validFrom: new Date('2022-06-18T00:00:00.001Z').toISOString(),
+                  validTo: new Date('2022-06-18T00:00:00.000Z').toISOString(),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    `The validFrom=2022-06-18T00:00:00.001Z must be before or equals the validTo=2022-06-18T00:00:00.000Z!`,
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if name is an empty string', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  name: '',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('The name must be initialized!')],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if name is shorter than 5 characters', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  name: '123',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    'The name=123 with a length of 3 did not fulfill the requested bounderies min=5 and max=100',
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if name is longer than 100 characters', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  name: '12345678901234567892123456789312345678941234567895123456789612345678971234567898123456789912345678901',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    'The name=12345678901234567892123456789312345678941234567895123456789612345678971234567898123456789912345678901 with a length of 101 did not fulfill the requested bounderies min=5 and max=100',
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if memo is an empty string', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  memo: '',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('The memo must be initialized!')],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if memo is shorter than 5 characters', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  memo: '123',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    'The memo=123 with a length of 3 did not fulfill the requested bounderies min=5 and max=255',
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if memo is longer than 255 characters', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  memo: '1234567890123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678901234567892123456789312345678941234567895123456',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError(
+                    'The memo=1234567890123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678901234567892123456789312345678941234567895123456 with a length of 256 did not fulfill the requested bounderies min=5 and max=255',
+                  ),
+                ],
+              }),
+            )
+          })
+        })
+
+        describe('createContributionLink', () => {
+          it('returns an error if amount is not positive', async () => {
+            await expect(
+              mutate({
+                mutation: createContributionLink,
+                variables: {
+                  ...variables,
+                  amount: new Decimal(0),
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [
+                  new GraphQLError('The amount=0 must be initialized with a positiv value!'),
+                ],
+              }),
+            )
+          })
+        })
+
         describe('listContributionLinks', () => {
           describe('one link in DB', () => {
             it('returns the link and count 1', async () => {
