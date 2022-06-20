@@ -188,7 +188,7 @@ describe('AdminResolver', () => {
           })
 
           describe('user has already role to be set', () => {
-            describe('is admin', () => {
+            describe('to admin', () => {
               it('throws an error', async () => {
                 await mutate({
                   mutation: setUserRole,
