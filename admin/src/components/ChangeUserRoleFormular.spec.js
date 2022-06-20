@@ -52,7 +52,7 @@ describe('ChangeUserRoleFormular', () => {
         wrapper = Wrapper()
       })
 
-      it('a DIV element with the class.delete-user-formular', () => {
+      it('has a DIV element with the class.delete-user-formular', () => {
         expect(wrapper.find('.change-user-role-formular').exists()).toBe(true)
       })
     })
