@@ -5,11 +5,9 @@ import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
-const date = new Date()
-
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
-    setUserRole: date,
+    setUserRole: null,
   },
 })
 
@@ -68,7 +66,7 @@ describe('ChangeUserRoleFormular', () => {
         wrapper = Wrapper()
       })
 
-      it('shows a text that you cannot change own role', () => {
+      it('has the text that you cannot change own role', () => {
         expect(wrapper.text()).toContain('userRole.notChangeYourSelf')
       })
 
@@ -92,11 +90,11 @@ describe('ChangeUserRoleFormular', () => {
           rolesToSelect = wrapper.find('select.role-select').findAll('option')
         })
 
-        it('shows no text that you cannot change own role', () => {
+        it('has no text that you cannot change own role', () => {
           expect(wrapper.text()).not.toContain('userRole.notChangeYourSelf')
         })
 
-        it('shows the select label', () => {
+        it('has the select label', () => {
           expect(wrapper.text()).toContain('userRole.selectLabel')
         })
 
@@ -109,10 +107,9 @@ describe('ChangeUserRoleFormular', () => {
         })
 
         describe('on API error', () => {
-          beforeEach(async () => {
+          beforeEach(() => {
             apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
             rolesToSelect.at(1).setSelected()
-            await wrapper.vm.$nextTick()
           })
 
           it('toasts an error message', () => {
@@ -125,7 +122,7 @@ describe('ChangeUserRoleFormular', () => {
         beforeEach(() => {
           apolloMutateMock.mockResolvedValue({
             data: {
-              setUserRole: date,
+              setUserRole: new Date(),
             },
           })
           propsData = {
@@ -173,7 +170,7 @@ describe('ChangeUserRoleFormular', () => {
                   expect.arrayContaining([
                     {
                       userId: 1,
-                      isAdmin: date,
+                      isAdmin: expect.any(Date),
                     },
                   ]),
                 ]),
@@ -197,7 +194,7 @@ describe('ChangeUserRoleFormular', () => {
           propsData = {
             item: {
               userId: 1,
-              isAdmin: date,
+              isAdmin: new Date(),
             },
           }
           wrapper = Wrapper()

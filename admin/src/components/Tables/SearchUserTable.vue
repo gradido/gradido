@@ -18,7 +18,7 @@
 
       <template #cell(status)="row">
         <div class="text-right">
-          <b-avatar v-if="row.item.deletedAt" class="mr-3" variant="light">
+          <b-avatar v-if="row.item.deletedAt" class="mr-3 test-deleted-icon" variant="light">
             <b-iconstack font-scale="2">
               <b-icon stacked icon="person" variant="info" scale="0.75"></b-icon>
               <b-icon stacked icon="slash-circle" variant="danger"></b-icon>
@@ -80,7 +80,7 @@
               <transaction-link-list v-if="!row.item.deletedAt" :userId="row.item.userId" />
             </b-tab>
             <b-tab :title="$t('userRole.tabTitle')">
-              <change-user-role-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
+              <change-user-role-formular :item="row.item" @updateIsAdmin="updateIsAdmin" />
             </b-tab>
             <b-tab :title="$t('delete_user')">
               <deleted-user-formular :item="row.item" @updateDeletedAt="updateDeletedAt" />
@@ -127,6 +127,9 @@ export default {
   methods: {
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+    updateIsAdmin({ userId, isAdmin }) {
+      this.$emit('updateIsAdmin', userId, isAdmin)
     },
     updateDeletedAt({ userId, deletedAt }) {
       this.$emit('updateDeletedAt', userId, deletedAt)

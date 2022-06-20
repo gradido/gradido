@@ -202,31 +202,40 @@ describe('UserSearch', () => {
     describe('change user role', () => {
       const userId = 4
 
-      it('to admin', async () => {
-        const now = new Date()
-        await wrapper
-          .findComponent({ name: 'SearchUserTable' })
-          .vm.$emit('updateIsAdmin', userId, now)
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(now)
+      describe('to admin', () => {
+        it('updates user role to admin', async () => {
+          await wrapper
+            .findComponent({ name: 'SearchUserTable' })
+            .vm.$emit('updateIsAdmin', userId, new Date())
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(
+            expect.any(Date),
+          )
+        })
       })
 
-      it('to usual user', async () => {
-        await wrapper
-          .findComponent({ name: 'SearchUserTable' })
-          .vm.$emit('updateIsAdmin', userId, null)
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+      describe('to usual user', () => {
+        it('updates user role to usual user', async () => {
+          await wrapper
+            .findComponent({ name: 'SearchUserTable' })
+            .vm.$emit('updateIsAdmin', userId, null)
+          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).isAdmin).toEqual(null)
+        })
       })
     })
 
     describe('delete user', () => {
-      const now = new Date()
       const userId = 4
-      beforeEach(async () => {
-        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', userId, now)
+      beforeEach(() => {
+        wrapper
+          .findComponent({ name: 'SearchUserTable' })
+          .vm.$emit('updateDeletedAt', userId, new Date())
       })
 
       it('marks the user as deleted', () => {
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).deletedAt).toEqual(now)
+        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).deletedAt).toEqual(
+          expect.any(Date),
+        )
+        expect(wrapper.find('.test-deleted-icon').exists()).toBe(true)
       })
 
       it('toasts a success message', () => {
