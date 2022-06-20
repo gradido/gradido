@@ -7,8 +7,8 @@
       class="pointer pr-2"
       :class="$store.state.language === lang.code ? 'c-blau' : 'c-grey'"
     >
-      {{ lang.name }}
-      <span class="ml-2">{{ locales.length - 1 > index ? $t('math.pipe') : '' }}</span>
+      <span class="locales">{{ lang.name }}</span>
+      <span class="ml-3">{{ locales.length - 1 > index ? $t('math.pipe') : '' }}</span>
     </span>
   </div>
 </template>

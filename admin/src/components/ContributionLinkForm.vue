@@ -181,6 +181,7 @@ export default {
         .then((result) => {
           this.link = result.data.createContributionLink.link
           this.toastSuccess(this.link)
+          this.onReset()
         })
         .catch((error) => {
           this.toastError(error.message)
