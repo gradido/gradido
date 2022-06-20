@@ -141,7 +141,7 @@ describe('AdminResolver', () => {
           })
 
           describe('user gets new role', () => {
-            describe('is admin', () => {
+            describe('to admin', () => {
               it('returns date string', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
