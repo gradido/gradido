@@ -338,7 +338,6 @@ export class UserResolver {
       const user = new User(communityDbUser)
       user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
       user.email = email
-      user.emailChecked = true
       user.firstName = firstName
       user.lastName = lastName
       user.language = language
@@ -360,93 +359,93 @@ export class UserResolver {
       logger.info('createUser() faked and send multi registration mail...')
 
       return user
-    } else {
-      const passphrase = PassphraseGenerate()
-      // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-      // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-      // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-      const emailHash = getEmailHash(email)
-
-      const dbUser = new DbUser()
-      dbUser.email = email
-      dbUser.firstName = firstName
-      dbUser.lastName = lastName
-      dbUser.emailHash = emailHash
-      dbUser.language = language
-      dbUser.publisherId = publisherId
-      dbUser.passphrase = passphrase.join(' ')
-      logger.debug('new dbUser=' + dbUser)
-      if (redeemCode) {
-        if (redeemCode.match(/^CL-/)) {
-          const contributionLink = await dbContributionLink.findOne({
-            code: redeemCode.replace('CL-', ''),
-          })
-          logger.info('redeemCode found contributionLink=' + contributionLink)
-          if (contributionLink) {
-            dbUser.contributionLinkId = contributionLink.id
-          }
-        } else {
-          const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-          logger.info('redeemCode found transactionLink=' + transactionLink)
-          if (transactionLink) {
-            dbUser.referrerId = transactionLink.userId
-          }
-        }
-      }
-      // TODO this field has no null allowed unlike the loginServer table
-      // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
-      // dbUser.pubkey = keyPair[0]
-      // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
-      // loginUser.pubKey = keyPair[0]
-      // loginUser.privKey = encryptedPrivkey
-
-      const queryRunner = getConnection().createQueryRunner()
-      await queryRunner.connect()
-      await queryRunner.startTransaction('READ UNCOMMITTED')
-      try {
-        await queryRunner.manager.save(dbUser).catch((error) => {
-          logger.error('Error while saving dbUser', error)
-          throw new Error('error saving user')
-        })
-
-        const emailOptIn = newEmailOptIn(dbUser.id)
-        await queryRunner.manager.save(emailOptIn).catch((error) => {
-          logger.error('Error while saving emailOptIn', error)
-          throw new Error('error saving email opt in')
-        })
-
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-          /{optin}/g,
-          emailOptIn.verificationCode.toString(),
-        ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const emailSent = await sendAccountActivationEmail({
-          link: activationLink,
-          firstName,
-          lastName,
-          email,
-          duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
-        })
-        logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
-        /* uncomment this, when you need the activation link on the console */
-        // In case EMails are disabled log the activation link for the user
-        if (!emailSent) {
-          logger.debug(`Account confirmation link: ${activationLink}`)
-        }
-
-        await queryRunner.commitTransaction()
-      } catch (e) {
-        logger.error(`error during create user with ${e}`)
-        await queryRunner.rollbackTransaction()
-        throw e
-      } finally {
-        await queryRunner.release()
-      }
-      logger.info('createUser() successful...')
-
-      return new User(dbUser)
     }
+
+    const passphrase = PassphraseGenerate()
+    // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
+    // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
+    // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
+    const emailHash = getEmailHash(email)
+
+    const dbUser = new DbUser()
+    dbUser.email = email
+    dbUser.firstName = firstName
+    dbUser.lastName = lastName
+    dbUser.emailHash = emailHash
+    dbUser.language = language
+    dbUser.publisherId = publisherId
+    dbUser.passphrase = passphrase.join(' ')
+    logger.debug('new dbUser=' + dbUser)
+    if (redeemCode) {
+      if (redeemCode.match(/^CL-/)) {
+        const contributionLink = await dbContributionLink.findOne({
+          code: redeemCode.replace('CL-', ''),
+        })
+        logger.info('redeemCode found contributionLink=' + contributionLink)
+        if (contributionLink) {
+          dbUser.contributionLinkId = contributionLink.id
+        }
+      } else {
+        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        logger.info('redeemCode found transactionLink=' + transactionLink)
+        if (transactionLink) {
+          dbUser.referrerId = transactionLink.userId
+        }
+      }
+    }
+    // TODO this field has no null allowed unlike the loginServer table
+    // dbUser.pubKey = Buffer.from(randomBytes(32)) // Buffer.alloc(32, 0) default to 0000...
+    // dbUser.pubkey = keyPair[0]
+    // loginUser.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    // loginUser.pubKey = keyPair[0]
+    // loginUser.privKey = encryptedPrivkey
+
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    try {
+      await queryRunner.manager.save(dbUser).catch((error) => {
+        logger.error('Error while saving dbUser', error)
+        throw new Error('error saving user')
+      })
+
+      const emailOptIn = newEmailOptIn(dbUser.id)
+      await queryRunner.manager.save(emailOptIn).catch((error) => {
+        logger.error('Error while saving emailOptIn', error)
+        throw new Error('error saving email opt in')
+      })
+
+      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
+        /{optin}/g,
+        emailOptIn.verificationCode.toString(),
+      ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emailSent = await sendAccountActivationEmail({
+        link: activationLink,
+        firstName,
+        lastName,
+        email,
+        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      })
+      logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      /* uncomment this, when you need the activation link on the console */
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        logger.debug(`Account confirmation link: ${activationLink}`)
+      }
+
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      logger.error(`error during create user with ${e}`)
+      await queryRunner.rollbackTransaction()
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
+    logger.info('createUser() successful...')
+
+    return new User(dbUser)
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
