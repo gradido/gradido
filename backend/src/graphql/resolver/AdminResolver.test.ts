@@ -204,7 +204,7 @@ describe('AdminResolver', () => {
               })
             })
 
-            describe('is usual user', () => {
+            describe('to usual user', () => {
               it('throws an error', async () => {
                 await mutate({
                   mutation: setUserRole,
