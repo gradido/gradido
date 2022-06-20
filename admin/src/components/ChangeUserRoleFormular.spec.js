@@ -210,7 +210,7 @@ describe('ChangeUserRoleFormular', () => {
 
         describe('change select to', () => {
           describe('same role', () => {
-            it('not calling the API', () => {
+            it('does not call the API', () => {
               rolesToSelect.at(1).setSelected()
               expect(apolloMutateMock).not.toHaveBeenCalled()
             })
