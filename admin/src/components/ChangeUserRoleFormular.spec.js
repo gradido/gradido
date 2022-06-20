@@ -52,7 +52,7 @@ describe('ChangeUserRoleFormular', () => {
         wrapper = Wrapper()
       })
 
-      it('a DIV element with the class.delete-user-formular', () => {
+      it('has a DIV element with the class.delete-user-formular', () => {
         expect(wrapper.find('.change-user-role-formular').exists()).toBe(true)
       })
     })
@@ -72,7 +72,7 @@ describe('ChangeUserRoleFormular', () => {
         expect(wrapper.text()).toContain('userRole.notChangeYourSelf')
       })
 
-      it('role select is disabled', () => {
+      it('has role select disabled', () => {
         expect(wrapper.find('select[disabled="disabled"]').exists()).toBe(true)
       })
     })
@@ -104,7 +104,7 @@ describe('ChangeUserRoleFormular', () => {
           expect(wrapper.find('select.role-select').exists()).toBe(true)
         })
 
-        it('role select is enabled', () => {
+        it('has role select enabled', () => {
           expect(wrapper.find('select.role-select[disabled="disabled"]').exists()).toBe(false)
         })
 
@@ -138,13 +138,13 @@ describe('ChangeUserRoleFormular', () => {
           rolesToSelect = wrapper.find('select.role-select').findAll('option')
         })
 
-        it('select is set to "usual user"', () => {
+        it('has selected option set to "usual user"', () => {
           expect(wrapper.find('select.role-select').element.value).toBe('user')
         })
 
         describe('change select to', () => {
           describe('same role', () => {
-            it('not calling the API', () => {
+            it('does not call the API', () => {
               rolesToSelect.at(0).setSelected()
               expect(apolloMutateMock).not.toHaveBeenCalled()
             })
@@ -204,13 +204,13 @@ describe('ChangeUserRoleFormular', () => {
           rolesToSelect = wrapper.find('select.role-select').findAll('option')
         })
 
-        it('select is set to "admin"', () => {
+        it('has selected option set to "admin"', () => {
           expect(wrapper.find('select.role-select').element.value).toBe('admin')
         })
 
         describe('change select to', () => {
           describe('same role', () => {
-            it('not calling the API', () => {
+            it('does not call the API', () => {
               rolesToSelect.at(1).setSelected()
               expect(apolloMutateMock).not.toHaveBeenCalled()
             })

@@ -141,7 +141,7 @@ describe('AdminResolver', () => {
           })
 
           describe('user gets new role', () => {
-            describe('is admin', () => {
+            describe('to admin', () => {
               it('returns date string', async () => {
                 const result = await mutate({
                   mutation: setUserRole,
@@ -158,8 +158,8 @@ describe('AdminResolver', () => {
               })
             })
 
-            describe('is usual user', () => {
-              it('returns string', async () => {
+            describe('to usual user', () => {
+              it('returns null', async () => {
                 await expect(
                   mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
                 ).resolves.toEqual(
@@ -188,7 +188,7 @@ describe('AdminResolver', () => {
           })
 
           describe('user has already role to be set', () => {
-            describe('is admin', () => {
+            describe('to admin', () => {
               it('throws an error', async () => {
                 await mutate({
                   mutation: setUserRole,
@@ -204,7 +204,7 @@ describe('AdminResolver', () => {
               })
             })
 
-            describe('is usual user', () => {
+            describe('to usual user', () => {
               it('throws an error', async () => {
                 await mutate({
                   mutation: setUserRole,
