@@ -1,19 +1,19 @@
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class CreatePendingCreations {
+export class AdminCreateContributions {
   constructor() {
     this.success = false
-    this.successfulCreation = []
-    this.failedCreation = []
+    this.successfulContribution = []
+    this.failedContribution = []
   }
 
   @Field(() => Boolean)
   success: boolean
 
   @Field(() => [String])
-  successfulCreation: string[]
+  successfulContribution: string[]
 
   @Field(() => [String])
-  failedCreation: string[]
+  failedContribution: string[]
 }

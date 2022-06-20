@@ -173,9 +173,9 @@ export const queryTransactionLink = gql`
 
 // from admin interface
 
-export const getPendingCreations = gql`
+export const listUnconfirmedContributions = gql`
   query {
-    getPendingCreations {
+    listUnconfirmedContributions {
       id
       firstName
       lastName
