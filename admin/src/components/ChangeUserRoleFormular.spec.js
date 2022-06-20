@@ -138,7 +138,7 @@ describe('ChangeUserRoleFormular', () => {
           rolesToSelect = wrapper.find('select.role-select').findAll('option')
         })
 
-        it('select is set to "usual user"', () => {
+        it('has selected option set to "usual user"', () => {
           expect(wrapper.find('select.role-select').element.value).toBe('user')
         })
 
