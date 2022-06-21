@@ -41,7 +41,7 @@
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "total": "Gesamt",
     "types": {
-      "created": "Geschöpft",
+      "creation": "Geschöpft",
       "noDecay": "Keine Vergänglichkeit",
       "receive": "Empfangen",
       "send": "Gesendet"
@@ -260,7 +260,7 @@
     "minutes": "Minuten",
     "months": "Monate",
     "seconds": "Sekunden",
-    "year": "Jahre"
+    "years": "Jahr"
   },
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
