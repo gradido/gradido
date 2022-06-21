@@ -6,16 +6,16 @@
   "advanced-calculation": "Vorausberechnung",
   "auth": {
     "left": {
-      "gratitude": "Dankbarkeit",
       "dignity": "Würde",
       "donation": "Gabe",
+      "gratitude": "Dankbarkeit",
       "hasAccount": "Du hast schon einen Account?",
       "hereLogin": "Hier Anmelden",
       "learnMore": "Erfahre mehr …",
       "newCurrency": "Die neue Währung",
-      "oneGratitude": "Die neue Währung. Für einander, für alle Menschen, für die Natur.",
       "oneDignity": "Wir Schenken einander und Danken mit Gradido.",
-      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist."
+      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
+      "oneGratitude": "Die neue Währung. Für einander, für alle Menschen, für die Natur."
     },
     "navbar": {
       "aboutGradido": "Über Gradido"
