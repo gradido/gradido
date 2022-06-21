@@ -73,7 +73,15 @@ export class AdminResolver {
       }
     }
 
-    const userFields = ['id', 'firstName', 'lastName', 'email', 'emailChecked', 'deletedAt']
+    const userFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'emailChecked',
+      'deletedAt',
+      'isAdmin',
+    ]
     const [users, count] = await userRepository.findBySearchCriteriaPagedFiltered(
       userFields.map((fieldName) => {
         return 'user.' + fieldName
@@ -131,6 +139,48 @@ export class AdminResolver {
       userCount: count,
       userList: adminUsers,
     }
+  }
+
+  @Authorized([RIGHTS.SET_USER_ROLE])
+  @Mutation(() => Date, { nullable: true })
+  async setUserRole(
+    @Arg('userId', () => Int)
+    userId: number,
+    @Arg('isAdmin', () => Boolean)
+    isAdmin: boolean,
+    @Ctx()
+    context: Context,
+  ): Promise<Date | null> {
+    const user = await dbUser.findOne({ id: userId })
+    // user exists ?
+    if (!user) {
+      throw new Error(`Could not find user with userId: ${userId}`)
+    }
+    // administrator user changes own role?
+    const moderatorUser = getUser(context)
+    if (moderatorUser.id === userId) {
+      throw new Error('Administrator can not change his own role!')
+    }
+    // change isAdmin
+    switch (user.isAdmin) {
+      case null:
+        if (isAdmin === true) {
+          user.isAdmin = new Date()
+        } else {
+          throw new Error('User is already a usual user!')
+        }
+        break
+      default:
+        if (isAdmin === false) {
+          user.isAdmin = null
+        } else {
+          throw new Error('User is already admin!')
+        }
+        break
+    }
+    await user.save()
+    const newUser = await dbUser.findOne({ id: userId })
+    return newUser ? newUser.isAdmin : null
   }
 
   @Authorized([RIGHTS.DELETE_USER])
