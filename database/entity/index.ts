@@ -6,6 +6,8 @@ import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { Contribution } from './Contribution'
+import { EventProtocol } from './EventProtocol'
+import { EnumEventType } from './EnumEventType'
 
 export const entities = [
   Contribution,
@@ -16,4 +18,6 @@ export const entities = [
   Transaction,
   TransactionLink,
   User,
+  EventProtocol,
+  EnumEventType,
 ]
