@@ -224,3 +224,34 @@ export const deleteContributionLink = gql`
     deleteContributionLink(id: $id)
   }
 `
+export const createEventProtocol = gql`
+  mutation (
+    $type: String!
+    $userId: Int!
+    $xUserId: Int
+    $xCommunityId: Int
+    $transactionId: Int
+    $contributionId: Int
+    $amount: Decimal
+  ) {
+    createEventProtocol(
+      type: $type
+      userId: $userId
+      xUserId: $xUserId
+      xCommunityId: $xCommunityId
+      transactionId: $transactionId
+      contributionId: $contributionId
+      amount: $amount
+    ) {
+      id
+      type
+      createdAt
+      userId
+      xUserId
+      xCommunityId
+      transactionId
+      contributionId
+      amount
+    }
+  }
+`
