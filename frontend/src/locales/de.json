@@ -197,6 +197,10 @@
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
+  "session": {
+    "warningText": "Die Session läuft gleich ab!",
+    "lightText": "Du wirst automatisch abgemeldet in"
+  },
   "settings": {
     "language": {
       "changeLanguage": "Sprache ändern",
