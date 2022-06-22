@@ -45,7 +45,7 @@
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
-      "created": "Created",
+      "creation": "Created",
       "noDecay": "No Decay",
       "receive": "Received",
       "send": "Sent"
@@ -264,7 +264,7 @@
     "minutes": "Minutes",
     "months": "Months",
     "seconds": "Seconds",
-    "year": "Years"
+    "years": "Year"
   },
   "transaction": {
     "gdd-text": "Gradido Transactions",
