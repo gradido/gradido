@@ -1,3 +1,6 @@
+/.dbeaver/*
+.dbeaver/*
+.project
 *.log
 *.bak
 /node_modules/*
