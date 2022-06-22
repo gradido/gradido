@@ -1,6 +1,7 @@
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
 import path from 'path'
+import { EventHandler } from '@/middleware/EventHandler'
 
 import isAuthorized from './directive/isAuthorized'
 import DecimalScalar from './scalar/Decimal'
@@ -11,6 +12,7 @@ const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [path.join(__dirname, 'resolver', `!(*.test).{js,ts}`)],
     authChecker: isAuthorized,
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
+    globalMiddlewares: [EventHandler],
   })
 }
 
