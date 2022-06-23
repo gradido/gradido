@@ -12,7 +12,11 @@ jest.mock('vee-validate', () => {
     localeChanged: jest.fn(),
   }
 })
-jest.mock('jwtDecode')
+jest.mock('jwt-decode', () => {
+  return jest.fn(() => {
+    return { exp: '1234' }
+  })
+})
 
 i18n.locale = 'blubb'
 
@@ -20,7 +24,6 @@ const {
   language,
   email,
   token,
-  tokenTime,
   firstName,
   lastName,
   newsletterState,
@@ -62,51 +65,22 @@ describe('Vuex store', () => {
         token(state, '1234')
         expect(state.token).toEqual('1234')
       })
-      it('sets the state of tokenTime', () => {
-        const state = { token: null, tokenTime: null }
-        token(state, {
-          pubKey: {
-            type: 'Buffer',
-            data: [
-              162,
-              79,
-              237,
-              250,
-              146,
-              219,
-              92,
-              105,
-              254,
-              47,
-              217,
-              63,
-              204,
-              175,
-              104,
-              149,
-              182,
-              28,
-              168,
-              76,
-              45,
-              130,
-              116,
-              61,
-              133,
-              40,
-              177,
-              60,
-              33,
-              156,
-              99,
-              250,
-            ],
-          },
-          iat: 1655963974,
-          exp: 1655964574,
+      describe('token has a value', () => {
+        it('sets the state of tokenTime', () => {
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          expect(jwtDecode).toBeCalledWith('token')
+          expect(state.tokenTime).toEqual('1234')
         })
-        tokenTime(state, jwtDecode(token).exp)
-        expect(state.tokenTime).toEqual('1655964574')
+      })
+      describe('token has null value', () => {
+        it('sets the state of tokenTime to null', () => {
+          jest.clearAllMocks()
+          const state = { token: null, tokenTime: '123' }
+          token(state, null)
+          expect(jwtDecode).not.toBeCalled()
+          expect(state.tokenTime).toEqual(null)
+        })
       })
     })
 
