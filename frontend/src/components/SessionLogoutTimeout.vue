@@ -61,7 +61,7 @@ export default {
           this.$emit('logout')
         })
     },
-    async log() {
+    log() {
       if (this.$route.meta.requiresAuth) {
         const now = new Date().getTime()
         const exp = new Date(this.$store.state.tokenTime * 1000).getTime()

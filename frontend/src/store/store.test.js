@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import Vue from 'vue'
 import i18n from '@/i18n.js'
 import { localeChanged } from 'vee-validate'
+import jwtDecode from 'jwt-decode'
 
 jest.mock('vuex')
 jest.mock('@/i18n.js')
@@ -11,6 +12,7 @@ jest.mock('vee-validate', () => {
     localeChanged: jest.fn(),
   }
 })
+jest.mock('jwtDecode')
 
 i18n.locale = 'blubb'
 
@@ -18,6 +20,7 @@ const {
   language,
   email,
   token,
+  tokenTime,
   firstName,
   lastName,
   newsletterState,
@@ -58,6 +61,52 @@ describe('Vuex store', () => {
         const state = { token: null }
         token(state, '1234')
         expect(state.token).toEqual('1234')
+      })
+      it('sets the state of tokenTime', () => {
+        const state = { token: null, tokenTime: null }
+        token(state, {
+          pubKey: {
+            type: 'Buffer',
+            data: [
+              162,
+              79,
+              237,
+              250,
+              146,
+              219,
+              92,
+              105,
+              254,
+              47,
+              217,
+              63,
+              204,
+              175,
+              104,
+              149,
+              182,
+              28,
+              168,
+              76,
+              45,
+              130,
+              116,
+              61,
+              133,
+              40,
+              177,
+              60,
+              33,
+              156,
+              99,
+              250,
+            ],
+          },
+          iat: 1655963974,
+          exp: 1655964574,
+        })
+        tokenTime(state, jwtDecode(token).exp)
+        expect(state.tokenTime).toEqual('1655964574')
       })
     })
 

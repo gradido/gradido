@@ -28,6 +28,7 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
     if (token) {
+      // console.log(jwtDecode(token))
       state.tokenTime = jwtDecode(token).exp
     } else {
       state.tokenTime = null
