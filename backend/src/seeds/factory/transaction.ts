@@ -23,17 +23,17 @@ export const transactionFactory = async (
 
     const {
       data: {
-        createTransaction: { id },
+        sendCoins: { success },
       },
     } = await mutate({ mutation: sendCoins, variables })
 
-    if (transaction.creationDate) {
-      const dbTransaction = await Transaction.findOneOrFail({ id })
+    // if (transaction.creationDate) {
+    //   const dbTransaction = await Transaction.findOneOrFail({ id })
 
-      if (transaction.creationDate) {
-        dbTransaction.creationDate = transaction.creationDate
-        await dbTransaction.save()
-      }
-    }
+    //   if (transaction.creationDate) {
+    //     dbTransaction.creationDate = transaction.creationDate
+    //     await dbTransaction.save()
+    //   }
+    // }
   }
 }
