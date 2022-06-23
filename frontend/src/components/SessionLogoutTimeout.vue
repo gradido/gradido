@@ -12,7 +12,7 @@
         </b-card-text>
       </b-card>
       <template #modal-footer>
-        <b-button size="sm" variant="danger" @click="this.$emit('logout')">
+        <b-button size="sm" variant="danger" @click="$emit('logout')">
           {{ $t('navigation.logout') }}
         </b-button>
         <b-button size="lg" variant="success" @click="handleOk">
