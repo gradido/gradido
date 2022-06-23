@@ -101,7 +101,7 @@
   },
   "redeemed": "eingelöst",
   "remove": "Entfernen",
-  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
+  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "status": "Status",
@@ -130,6 +130,16 @@
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
+  },
+  "userRole": {
+    "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
+    "selectLabel": "Rolle:",
+    "selectRoles": {
+      "admin": "Administrator",
+      "user": "einfacher Nutzer"
+    },
+    "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
+    "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",

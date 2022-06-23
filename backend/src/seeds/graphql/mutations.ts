@@ -98,6 +98,12 @@ export const confirmContribution = gql`
   }
 `
 
+export const setUserRole = gql`
+  mutation ($userId: Int!, $isAdmin: Boolean!) {
+    setUserRole(userId: $userId, isAdmin: $isAdmin)
+  }
+`
+
 export const deleteUser = gql`
   mutation ($userId: Int!) {
     deleteUser(userId: $userId)

@@ -13,6 +13,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
+  setUserRole,
   deleteUser,
   unDeleteUser,
   adminCreateContribution,
@@ -69,6 +70,161 @@ let user: User
 let creation: Contribution | void
 
 describe('AdminResolver', () => {
+  describe('set user role', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({ mutation: setUserRole, variables: { userId: 1, isAdmin: true } }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      describe('without admin rights', () => {
+        beforeAll(async () => {
+          user = await userFactory(testEnv, bibiBloxberg)
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        it('returns an error', async () => {
+          await expect(
+            mutate({ mutation: setUserRole, variables: { userId: user.id + 1, isAdmin: true } }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('401 Unauthorized')],
+            }),
+          )
+        })
+      })
+
+      describe('with admin rights', () => {
+        beforeAll(async () => {
+          admin = await userFactory(testEnv, peterLustig)
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+        })
+
+        describe('user to get a new role does not exist', () => {
+          it('throws an error', async () => {
+            await expect(
+              mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError(`Could not find user with userId: ${admin.id + 1}`)],
+              }),
+            )
+          })
+        })
+
+        describe('change role with success', () => {
+          beforeAll(async () => {
+            user = await userFactory(testEnv, bibiBloxberg)
+          })
+
+          describe('user gets new role', () => {
+            describe('to admin', () => {
+              it('returns date string', async () => {
+                const result = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
+                expect(result).toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: expect.any(String),
+                    },
+                  }),
+                )
+                expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
+              })
+            })
+
+            describe('to usual user', () => {
+              it('returns null', async () => {
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    data: {
+                      setUserRole: null,
+                    },
+                  }),
+                )
+              })
+            })
+          })
+        })
+
+        describe('change role with error', () => {
+          describe('is own role', () => {
+            it('throws an error', async () => {
+              await expect(
+                mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Administrator can not change his own role!')],
+                }),
+              )
+            })
+          })
+
+          describe('user has already role to be set', () => {
+            describe('to admin', () => {
+              it('throws an error', async () => {
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: true },
+                })
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: true } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User is already admin!')],
+                  }),
+                )
+              })
+            })
+
+            describe('to usual user', () => {
+              it('throws an error', async () => {
+                await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, isAdmin: false },
+                })
+                await expect(
+                  mutate({ mutation: setUserRole, variables: { userId: user.id, isAdmin: false } }),
+                ).resolves.toEqual(
+                  expect.objectContaining({
+                    errors: [new GraphQLError('User is already a usual user!')],
+                  }),
+                )
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe('delete user', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {

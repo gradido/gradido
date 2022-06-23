@@ -41,7 +41,7 @@
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
-      "created": "Created",
+      "creation": "Created",
       "noDecay": "No Decay",
       "receive": "Received",
       "send": "Sent"
@@ -57,8 +57,7 @@
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
-    "unknown-error": "Unknown error: ",
-    "user-already-exists": "A user with this data already exists."
+    "unknown-error": "Unknown error: "
   },
   "followUs": "follow us:",
   "footer": {
@@ -261,7 +260,7 @@
     "minutes": "Minutes",
     "months": "Months",
     "seconds": "Seconds",
-    "year": "Years"
+    "years": "Year"
   },
   "transaction": {
     "gdd-text": "Gradido Transactions",
