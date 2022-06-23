@@ -32,22 +32,7 @@
           </fade-transition>
         </div>
         <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-        <b-modal id="modalSessionTimeOut">
-          <b-card header-tag="header" footer-tag="footer">
-            <b-card-text>
-              <div class="p-3">{{ $t('session.warningText') }}</div>
-              <div class="p-3 text-danger">
-                {{ $t('session.lightText') }}
-                <b>{{ closeTime }}</b>
-                {{ $t('time.seconds') }}
-              </div>
-            </b-card-text>
-          </b-card>
-          <template #modal-footer>
-            <b-button size="sm" variant="success" @click="handleOk">verlängern</b-button>
-            <b-button size="sm" variant="danger" @click="logout">Logout</b-button>
-          </template>
-        </b-modal>
+        <session-logout-timeout @logout="logout"></session-logout-timeout>
       </div>
     </div>
   </div>
@@ -55,17 +40,18 @@
 <script>
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
+import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { logout, transactionsQuery } from '@/graphql/queries'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
-import { verifyLogin } from '../graphql/queries'
 
 export default {
   name: 'DashboardLayout',
   components: {
     Navbar,
     Sidebar,
+    SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
   },
@@ -79,10 +65,6 @@ export default {
       pending: true,
       visible: false,
       tunneledEmail: null,
-      time: 0,
-      millisecondsShowModal: 75000,
-      millisecondsCheckTokenInterval: 15000,
-      closeTime: 60,
     }
   },
   provide() {
@@ -91,41 +73,6 @@ export default {
     }
   },
   methods: {
-    timeout() {
-      if (this.closeTime > 0) {
-        this.closeTime = this.closeTime - 1
-      } else {
-        this.logout()
-      }
-    },
-    handleOk(bvModalEvent) {
-      // Prevent modal from closing
-      bvModalEvent.preventDefault()
-      this.$apollo
-        .query({
-          query: verifyLogin,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          clearInterval(this.$options.interval2)
-          this.$bvModal.hide('modalSessionTimeOut')
-          this.closeTime = 60
-        })
-        .catch(() => {
-          this.logout()
-        })
-    },
-    async log() {
-      if (this.$route.meta.requiresAuth) {
-        const now = new Date().getTime()
-        const exp = new Date(this.$store.state.tokenTime * 1000).getTime()
-        const diff = exp - now
-        if (diff < this.millisecondsShowModal) {
-          this.$bvModal.show('modalSessionTimeOut')
-          this.$options.interval2 = setInterval(this.timeout, 1000)
-        }
-      }
-    },
     async logout() {
       this.$apollo
         .query({
@@ -194,12 +141,6 @@ export default {
           : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
       )
     },
-  },
-  created() {
-    this.$options.interval = setInterval(this.log, this.millisecondsCheckTokenInterval)
-  },
-  beforeDestroy() {
-    clearInterval(this.$options.interval)
   },
 }
 </script>
