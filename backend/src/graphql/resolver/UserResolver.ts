@@ -7,6 +7,7 @@ import { getConnection } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
+import { communityDbUser } from '@/util/communityUser'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
 import { encode } from '@/auth/JWT'
@@ -18,6 +19,7 @@ import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -328,10 +330,35 @@ export class UserResolver {
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
+
     if (userFound) {
-      logger.error('User already exists with this email=' + email)
+      logger.info('User already exists with this email=' + email)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      throw new Error(`User already exists.`)
+
+      const user = new User(communityDbUser)
+      user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+      user.email = email
+      user.firstName = firstName
+      user.lastName = lastName
+      user.language = language
+      user.publisherId = publisherId
+      logger.debug('partly faked user=' + user)
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emailSent = await sendAccountMultiRegistrationEmail({
+        firstName,
+        lastName,
+        email,
+      })
+      logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
+      /* uncomment this, when you need the activation link on the console */
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        logger.debug(`Email not send!`)
+      }
+      logger.info('createUser() faked and send multi registration mail...')
+
+      return user
     }
 
     const passphrase = PassphraseGenerate()
@@ -417,6 +444,7 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+
     return new User(dbUser)
   }
 
