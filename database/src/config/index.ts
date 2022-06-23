@@ -6,7 +6,7 @@ dotenv.config()
 const constants = {
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v7.2022-06-15',
+    EXPECTED: 'v1.2022-03-18',
     CURRENT: '',
   },
 }
