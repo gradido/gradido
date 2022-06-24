@@ -32,6 +32,7 @@ export default {
       millisecondsShowModal: 75000,
       millisecondsCheckTokenInterval: 15000,
       closeTime: 60,
+      sound: new Audio('sound/Air-Plane-Ding-SoundBible.com-496729130.mp3'),
     }
   },
   methods: {
@@ -39,11 +40,12 @@ export default {
       if (this.closeTime > 0) {
         this.closeTime = this.closeTime - 1
       } else {
+        clearInterval(this.$options.interval2)
+        clearInterval(this.$options.interval3)
         this.$emit('logout')
       }
     },
     handleOk(bvModalEvent) {
-      // Prevent modal from closing
       bvModalEvent.preventDefault()
       this.$apollo
         .query({
@@ -66,18 +68,19 @@ export default {
         const now = new Date().getTime()
         const exp = new Date(this.$store.state.tokenTime * 1000).getTime()
         const diff = exp - now
+        // console.log(diff)
         if (diff < this.millisecondsShowModal) {
-          this.playSound()
+          this.closeTime = Math.floor(diff / 1000)
+          this.sound.play()
           this.$options.interval3 = setInterval(this.playSound, 13000)
-          this.$bvModal.show('modalSessionTimeOut')
           this.$options.interval2 = setInterval(this.timeout, 1000)
           clearInterval(this.$options.interval1)
+          this.$bvModal.show('modalSessionTimeOut')
         }
       }
     },
     playSound() {
-      const audio = new Audio('sound/Air-Plane-Ding-SoundBible.com-496729130.mp3')
-      audio.play()
+      this.sound.play()
     },
   },
   created() {
