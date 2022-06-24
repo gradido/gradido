@@ -1,15 +1,34 @@
 <template>
   <div class="session-logout-timeout">
-    <b-modal id="modalSessionTimeOut" class="bg-variant-danger">
+    <b-modal
+      id="modalSessionTimeOut"
+      class="bg-variant-danger"
+      hide-header-close
+      hide-header
+      hide-footer
+      no-close-on-backdrop
+    >
       <b-card header-tag="header" footer-tag="footer">
         <b-card-text>
-          <div class="p-3">{{ $t('session.warningText') }}</div>
-          <div class="p-3 text-danger">
+          <div class="p-3 h2">{{ $t('session.warningText') }}</div>
+          <div class="p-3 text-danger h3">
             {{ $t('session.lightText') }}
             <b>{{ closeTime }}</b>
             {{ $t('time.seconds') }}
           </div>
         </b-card-text>
+        <b-row>
+          <b-col>
+            <b-button size="lg" variant="danger" @click="$emit('logout')">
+              {{ $t('navigation.logout') }}
+            </b-button>
+          </b-col>
+          <b-col class="text-right">
+            <b-button size="lg" variant="success" @click="handleOk">
+              {{ $t('session.extend') }}
+            </b-button>
+          </b-col>
+        </b-row>
       </b-card>
       <template #modal-footer>
         <b-button size="sm" variant="danger" @click="$emit('logout')">
