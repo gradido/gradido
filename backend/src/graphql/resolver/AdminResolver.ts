@@ -46,11 +46,13 @@ import { checkOptInCode, activationLink, printTimeDuration } from './UserResolve
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
+import { getUserCreation } from './util/getUserCreation'
+import { isContributionValid } from './util/isContributionValid'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 const MAX_CREATION_AMOUNT = new Decimal(1000)
-const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
+export const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
 
 @Resolver()
 export class AdminResolver {
@@ -650,13 +652,7 @@ interface CreationMap {
   creations: Decimal[]
 }
 
-export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
-  logger.trace('getUserCreation', id, includePending)
-  const creations = await getUserCreations([id], includePending)
-  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
-}
-
-async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
+export async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
   logger.trace('getUserCreations:', ids, includePending)
   const months = getCreationMonths()
   logger.trace('getUserCreations months', months)
@@ -713,27 +709,6 @@ function updateCreations(creations: Decimal[], contribution: Contribution): Deci
   return creations
 }
 
-export const isContributionValid = (
-  creations: Decimal[],
-  amount: Decimal,
-  creationDate: Date,
-): boolean => {
-  logger.trace('isContributionValid', creations, amount, creationDate)
-  const index = getCreationIndex(creationDate.getMonth())
-
-  if (index < 0) {
-    throw new Error('No information for available creations for the given date')
-  }
-
-  if (amount.greaterThan(creations[index].toString())) {
-    throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
-    )
-  }
-
-  return true
-}
-
 const getCreationMonths = (): number[] => {
   const now = new Date(Date.now())
   return [
@@ -743,6 +718,6 @@ const getCreationMonths = (): number[] => {
   ].reverse()
 }
 
-const getCreationIndex = (month: number): number => {
+export const getCreationIndex = (month: number): number => {
   return getCreationMonths().findIndex((el) => el === month + 1)
 }
