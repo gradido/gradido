@@ -198,9 +198,10 @@
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "session": {
-    "extend": "Extend",
-    "lightText": "You will be automatically logged out in",
-    "warningText": "Are you still there?"
+    "extend": "Stay logged in",
+    "lightText": "If you have not entered anything for more than 10 minutes, you will be logged out for security reasons.",
+    "warningText": "Are you still there?",
+    "logoutIn": "Log out in "
   },
   "settings": {
     "language": {

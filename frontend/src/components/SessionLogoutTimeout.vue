@@ -11,8 +11,11 @@
       <b-card header-tag="header" footer-tag="footer">
         <b-card-text>
           <div class="p-3 h2">{{ $t('session.warningText') }}</div>
-          <div class="p-3 text-danger h3">
+          <div class="p-3">
             {{ $t('session.lightText') }}
+          </div>
+          <div class="p-3 h2 text-warning">
+            {{ $t('session.logoutIn') }}
             <b>{{ closeTime }}</b>
             {{ $t('time.seconds') }}
           </div>
