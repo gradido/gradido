@@ -11,6 +11,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -26,6 +27,13 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('@/mailer/sendAccountMultiRegistrationEmail', () => {
+  return {
+    __esModule: true,
+    sendAccountMultiRegistrationEmail: jest.fn(),
   }
 })
 
@@ -156,14 +164,33 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      it('throws and logs an error', async () => {
-        const mutation = await mutate({ mutation: createUser, variables })
+      let mutation: User
+      beforeAll(async () => {
+        mutation = await mutate({ mutation: createUser, variables })
+      })
+
+      it('logs an info', async () => {
+        expect(logger.info).toBeCalledWith('User already exists with this email=peter@lustig.de')
+      })
+
+      it('sends an account multi registration email', () => {
+        expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
+        })
+      })
+
+      it('results with partly faked user with random "id"', async () => {
         expect(mutation).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('User already exists.')],
+            data: {
+              createUser: {
+                id: expect.any(Number),
+              },
+            },
           }),
         )
-        expect(logger.error).toBeCalledWith('User already exists with this email=peter@lustig.de')
       })
     })
 

@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v7.2022-06-15',
+    EXPECTED: 'v8.2022-06-20',
     CURRENT: '',
   },
 }

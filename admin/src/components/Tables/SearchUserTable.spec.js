@@ -1,8 +1,6 @@
 import { mount } from '@vue/test-utils'
 import SearchUserTable from './SearchUserTable.vue'
 
-const date = new Date()
-
 const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({})
@@ -96,16 +94,29 @@ describe('SearchUserTable', () => {
         await wrapper.findAll('tbody > tr').at(1).trigger('click')
       })
 
+      describe('isAdmin', () => {
+        beforeEach(async () => {
+          await wrapper.find('div.change-user-role-formular').vm.$emit('updateIsAdmin', {
+            userId: 1,
+            isAdmin: new Date(),
+          })
+        })
+
+        it('emits updateIsAdmin', () => {
+          expect(wrapper.emitted('updateIsAdmin')).toEqual([[1, expect.any(Date)]])
+        })
+      })
+
       describe('deleted at', () => {
         beforeEach(async () => {
           await wrapper.find('div.deleted-user-formular').vm.$emit('updateDeletedAt', {
             userId: 1,
-            deletedAt: date,
+            deletedAt: new Date(),
           })
         })
 
         it('emits updateDeletedAt', () => {
-          expect(wrapper.emitted('updateDeletedAt')).toEqual([[1, date]])
+          expect(wrapper.emitted('updateDeletedAt')).toEqual([[1, expect.any(Date)]])
         })
       })
 

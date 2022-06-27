@@ -6,12 +6,16 @@
   "advanced-calculation": "Vorausberechnung",
   "auth": {
     "left": {
+      "dignity": "Würde",
+      "donation": "Gabe",
       "gratitude": "Dankbarkeit",
       "hasAccount": "Du hast schon einen Account?",
       "hereLogin": "Hier Anmelden",
       "learnMore": "Erfahre mehr …",
       "newCurrency": "Die neue Währung",
-      "oneAnotherNature": "FÜR EINANDER, FÜR ALLE, FÜR DIE NATUR"
+      "oneDignity": "Wir schenken einander und danken mit Gradido.",
+      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
+      "oneGratitude": "Die neue Währung. Für einander, für alle Menschen, für die Natur."
     },
     "navbar": {
       "aboutGradido": "Über Gradido"
@@ -41,7 +45,7 @@
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "total": "Gesamt",
     "types": {
-      "created": "Geschöpft",
+      "creation": "Geschöpft",
       "noDecay": "Keine Vergänglichkeit",
       "receive": "Empfangen",
       "send": "Gesendet"
@@ -57,8 +61,7 @@
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
-    "unknown-error": "Unbekanter Fehler: ",
-    "user-already-exists": "Ein Benutzer mit diesen Daten existiert bereits."
+    "unknown-error": "Unbekannter Fehler: "
   },
   "followUs": "folge uns:",
   "footer": {
@@ -261,7 +264,7 @@
     "minutes": "Minuten",
     "months": "Monate",
     "seconds": "Sekunden",
-    "year": "Jahre"
+    "years": "Jahr"
   },
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
