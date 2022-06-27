@@ -52,7 +52,11 @@ import { isContributionValid } from './util/isContributionValid'
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
 const MAX_CREATION_AMOUNT = new Decimal(1000)
-export const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
+export const FULL_CREATION_AVAILABLE = [
+  MAX_CREATION_AMOUNT,
+  MAX_CREATION_AMOUNT,
+  MAX_CREATION_AMOUNT,
+]
 
 @Resolver()
 export class AdminResolver {
@@ -652,7 +656,10 @@ interface CreationMap {
   creations: Decimal[]
 }
 
-export async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
+export async function getUserCreations(
+  ids: number[],
+  includePending = true,
+): Promise<CreationMap[]> {
   logger.trace('getUserCreations:', ids, includePending)
   const months = getCreationMonths()
   logger.trace('getUserCreations months', months)
