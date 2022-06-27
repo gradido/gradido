@@ -200,7 +200,7 @@
   "session": {
     "extend": "Verlängern",
     "lightText": "Du wirst automatisch abgemeldet in",
-    "warningText": "Die Session läuft gleich ab!"
+    "warningText": "Bist du noch da?"
   },
   "settings": {
     "language": {

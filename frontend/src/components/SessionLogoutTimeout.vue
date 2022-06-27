@@ -18,12 +18,7 @@
           </div>
         </b-card-text>
         <b-row>
-          <b-col>
-            <b-button size="lg" variant="danger" @click="$emit('logout')">
-              {{ $t('navigation.logout') }}
-            </b-button>
-          </b-col>
-          <b-col class="text-right">
+          <b-col class="text-center">
             <b-button size="lg" variant="success" @click="handleOk">
               {{ $t('session.extend') }}
             </b-button>

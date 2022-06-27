@@ -200,7 +200,7 @@
   "session": {
     "extend": "Extend",
     "lightText": "You will be automatically logged out in",
-    "warningText": "The session is about to expire!"
+    "warningText": "Are you still there?"
   },
   "settings": {
     "language": {
