@@ -13,9 +13,6 @@
           <auth-carousel class="carousel" />
         </div>
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
-          <div class="h0 text-white">{{ $t('auth.left.gratitude') }}</div>
-          <div class="h1 text-white">{{ $t('auth.left.newCurrency') }}</div>
-          <div class="h2 text-white">{{ $t('auth.left.oneAnotherNature') }}</div>
           <b-link :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
             <b-button variant="gradido">
               {{ $t('auth.left.learnMore') }}
@@ -150,19 +147,9 @@ export default {
 }
 
 .bg-txt-box {
-  margin-top: 317px;
+  margin-top: 520px;
   text-shadow: 2px 2px 8px #000000;
   max-width: 733px;
-}
-.bg-txt-box > .h0 {
-  font-size: 4em;
-  text-shadow: -2px -2px -8px #e4a907;
-}
-
-.bg-txt-box .h1,
-.bg-txt-box .h2 {
-  font-size: 1.5em;
-  text-shadow: -2px -2px -8px #e4a907;
 }
 
 .bg-img {
