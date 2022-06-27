@@ -27,8 +27,8 @@ export class UnconfirmedContribution {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => Number)
-  moderator: number
+  @Field(() => Number, { nullable: true })
+  moderator: number | null
 
   @Field(() => [Decimal])
   creation: Decimal[]
