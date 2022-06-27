@@ -1,3 +1,4 @@
+import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution } from '@entity/Contribution'
@@ -8,13 +9,12 @@ import { isContributionValid } from './util/isContributionValid'
 
 @Resolver()
 export class ContributionResolver {
-  @Authorized([])
-  @Mutation(() => Contribution)
+  @Authorized([RIGHTS.CREATE_CONTRIBUTION])
+  @Mutation(() => Boolean)
   async createContribution(
     @Args() { amount, memo, creationDate }: CreateContributionArgs,
     @Ctx() context: Context,
-  ): Promise<Contribution> {
-    logger.trace('createContribution..')
+  ): Promise<boolean> {
     const user = getUser(context)
     if (!user) {
       throw new Error(`Could not find user`)
@@ -40,6 +40,6 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
-    return contribution
+    return true
   }
 }
