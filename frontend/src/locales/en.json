@@ -198,9 +198,9 @@
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
   "session": {
-    "warningText": "The session is about to expire!",
+    "extend": "Extend",
     "lightText": "You will be automatically logged out in",
-    "extend":"Extend"
+    "warningText": "The session is about to expire!"
   },
   "settings": {
     "language": {
