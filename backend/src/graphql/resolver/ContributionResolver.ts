@@ -16,15 +16,6 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    if (!user) {
-      throw new Error(`Could not find user`)
-    }
-    if (user.deletedAt) {
-      throw new Error('This user was deleted. Cannot create a contribution.')
-    }
-    if (!user.emailChecked) {
-      throw new Error('Contribution could not be saved, Email is not activated')
-    }
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
