@@ -1,5 +1,4 @@
-/.dbeaver/*
-.dbeaver/*
+.dbeaver
 .project
 *.log
 *.bak

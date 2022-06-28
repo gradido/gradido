@@ -57,6 +57,10 @@ export const FULL_CREATION_AVAILABLE = [
   MAX_CREATION_AMOUNT,
   MAX_CREATION_AMOUNT,
 ]
+const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
+const CONTRIBUTIONLINK_NAME_MIN_CHARS = 5
+const CONTRIBUTIONLINK_MEMO_MAX_CHARS = 255
+const CONTRIBUTIONLINK_MEMO_MIN_CHARS = 5
 
 @Resolver()
 export class AdminResolver {
@@ -231,7 +235,6 @@ export class AdminResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
-    logger.trace('adminCreateContribution...')
     const user = await dbUser.findOne({ email }, { withDeleted: true })
     if (!user) {
       throw new Error(`Could not find user with email: ${email}`)
@@ -572,6 +575,39 @@ export class AdminResolver {
       maxPerCycle,
     }: ContributionLinkArgs,
   ): Promise<ContributionLink> {
+    isStartEndDateValid(validFrom, validTo)
+    if (!name) {
+      logger.error(`The name must be initialized!`)
+      throw new Error(`The name must be initialized!`)
+    }
+    if (
+      name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS ||
+      name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS
+    ) {
+      const msg = `The value of 'name' with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (!memo) {
+      logger.error(`The memo must be initialized!`)
+      throw new Error(`The memo must be initialized!`)
+    }
+    if (
+      memo.length < CONTRIBUTIONLINK_MEMO_MIN_CHARS ||
+      memo.length > CONTRIBUTIONLINK_MEMO_MAX_CHARS
+    ) {
+      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_MEMO_MIN_CHARS} and max=${CONTRIBUTIONLINK_MEMO_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (!amount) {
+      logger.error(`The amount must be initialized!`)
+      throw new Error('The amount must be initialized!')
+    }
+    if (!new Decimal(amount).isPositive()) {
+      logger.error(`The amount=${amount} must be initialized with a positiv value!`)
+      throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
+    }
     const dbContributionLink = new DbContributionLink()
     dbContributionLink.amount = amount
     dbContributionLink.name = name
@@ -584,6 +620,7 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
+    logger.debug(`createContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
 
@@ -613,6 +650,7 @@ export class AdminResolver {
       throw new Error('Contribution Link not found to given id.')
     }
     await contributionLink.softRemove()
+    logger.debug(`deleteContributionLink successful!`)
     const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
     return newContributionLink ? newContributionLink.deletedAt : null
   }
@@ -647,6 +685,7 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
+    logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
 }
@@ -714,6 +753,27 @@ function updateCreations(creations: Decimal[], contribution: Contribution): Deci
   }
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
+}
+
+const isStartEndDateValid = (
+  startDate: string | null | undefined,
+  endDate: string | null | undefined,
+): void => {
+  if (!startDate) {
+    logger.error('Start-Date is not initialized. A Start-Date must be set!')
+    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
+  }
+
+  if (!endDate) {
+    logger.error('End-Date is not initialized. An End-Date must be set!')
+    throw new Error('End-Date is not initialized. An End-Date must be set!')
+  }
+
+  // check if endDate is before startDate
+  if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
+    logger.error(`The value of validFrom must before or equals the validTo!`)
+    throw new Error(`The value of validFrom must before or equals the validTo!`)
+  }
 }
 
 const getCreationMonths = (): number[] => {
