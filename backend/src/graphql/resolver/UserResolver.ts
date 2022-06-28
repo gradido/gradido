@@ -23,6 +23,11 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { EventProtocolEmitter } from '@/event/EventProtocolEmitter'
+import { EventProtocolType } from '@/graphql/enum/EventProtocolType'
+
+
+const eventProtocol = new EventProtocolEmitter()
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -290,6 +295,7 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
+    eventProtocol.emit(EventProtocolType.LOGIN, new Date(Date.now()), user.id)
     logger.info('successful Login:' + user)
     return user
   }
@@ -384,12 +390,26 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
+          eventProtocol.emit(
+            EventProtocolType.REDEEM_REGISTER,
+            new Date(Date.now()),
+            dbUser.id,
+            null,
+            contributionLink.id,
+          )
         }
       } else {
         const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
+          eventProtocol.emit(
+            EventProtocolType.REDEEM_REGISTER,
+            new Date(Date.now()),
+            dbUser.id,
+            transactionLink.id,
+            null,
+          )
         }
       }
     }
@@ -444,6 +464,7 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+    eventProtocol.emit(EventProtocolType.REGISTER, new Date(Date.now()), dbUser.id)
 
     return new User(dbUser)
   }
