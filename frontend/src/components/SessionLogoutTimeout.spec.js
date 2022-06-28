@@ -34,12 +34,13 @@ describe('SessionLogoutTimeout', () => {
   const Wrapper = () => {
     return mount(SessionLogoutTimeout, { localVue, mocks })
   }
+
   describe('mount', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
 
-    it('renders the component div.transaction-link', () => {
+    it('renders the component div.session-logout-timeout', () => {
       expect(wrapper.find('div.session-logout-timeout').exists()).toBe(true)
     })
   })

@@ -16,7 +16,7 @@
           </div>
           <div class="p-3 h2 text-warning">
             {{ $t('session.logoutIn') }}
-            <b>{{ closeTime }}</b>
+            <b>{{ tokenExpiresInSeconds }}</b>
             {{ $t('time.seconds') }}
           </div>
         </b-card-text>
@@ -46,19 +46,27 @@ export default {
   name: 'SessionLogoutTimeout',
   data() {
     return {
-      millisecondsShowModal: 75000,
-      millisecondsCheckTokenInterval: 15000,
-      closeTime: 60,
-      sound: new Audio('sound/Air-Plane-Ding-SoundBible.com-496729130.mp3'),
+      now: new Date().getTime(),
     }
   },
+  timers: {
+    tokenExpires: {
+      time: 15000,
+      autostart: true,
+      repeat: true,
+      immediate: true,
+    },
+  },
   methods: {
-    timeout() {
-      if (this.closeTime > 0) {
-        this.closeTime = this.closeTime - 1
-      } else {
-        clearInterval(this.$options.interval2)
-        clearInterval(this.$options.interval3)
+    tokenExpires() {
+      this.now = new Date().getTime()
+      if (this.tokenExpiresInSeconds < 75 && this.timers.tokenExpires.time !== 1000) {
+        this.timers.tokenExpires.time = 1000
+        this.$timer.restart('tokenExpires')
+        this.$bvModal.show('modalSessionTimeOut')
+      }
+      if (this.tokenExpiresInSeconds <= 0) {
+        this.$timer.stop('tokenExpires')
         this.$emit('logout')
       }
     },
@@ -70,43 +78,23 @@ export default {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
-          clearInterval(this.$options.interval2)
-          clearInterval(this.$options.interval3)
+          this.timers.tokenExpires.time = 15000
+          this.$timer.restart('tokenExpires')
           this.$bvModal.hide('modalSessionTimeOut')
-          this.closeTime = 60
-          this.$options.interval1 = setInterval(this.log, this.millisecondsCheckTokenInterval)
         })
         .catch(() => {
+          this.$timer.stop('tokenExpires')
           this.$emit('logout')
         })
     },
-    log() {
-      if (this.$route.meta.requiresAuth) {
-        const now = new Date().getTime()
-        const exp = new Date(this.$store.state.tokenTime * 1000).getTime()
-        const diff = exp - now
-        // console.log(diff)
-        if (diff < this.millisecondsShowModal) {
-          this.closeTime = Math.floor(diff / 1000)
-          this.sound.play()
-          this.$options.interval3 = setInterval(this.playSound, 13000)
-          this.$options.interval2 = setInterval(this.timeout, 1000)
-          clearInterval(this.$options.interval1)
-          this.$bvModal.show('modalSessionTimeOut')
-        }
-      }
-    },
-    playSound() {
-      this.sound.play()
-    },
   },
-  created() {
-    this.$options.interval1 = setInterval(this.log, this.millisecondsCheckTokenInterval)
+  computed: {
+    tokenExpiresInSeconds() {
+      return Math.floor((new Date(this.$store.state.tokenTime * 1000).getTime() - this.now) / 1000)
+    },
   },
   beforeDestroy() {
-    clearInterval(this.$options.interval1)
-    clearInterval(this.$options.interval2)
-    clearInterval(this.$options.interval3)
+    this.$timer.stop('tokenExpires')
   },
 }
 </script>
