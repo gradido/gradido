@@ -10,14 +10,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0037-drop_server_user_table',
+  DB_VERSION: '0040-add_contribution_link_id_to_user',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2022-04-21',
+    EXPECTED: 'v8.2022-06-20',
     CURRENT: '',
   },
 }
@@ -54,6 +54,8 @@ const community = {
   COMMUNITY_URL: process.env.COMMUNITY_URL || 'http://localhost/',
   COMMUNITY_REGISTER_URL: process.env.COMMUNITY_REGISTER_URL || 'http://localhost/register',
   COMMUNITY_REDEEM_URL: process.env.COMMUNITY_REDEEM_URL || 'http://localhost/redeem/{code}',
+  COMMUNITY_REDEEM_CONTRIBUTION_URL:
+    process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
 }

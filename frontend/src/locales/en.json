@@ -6,12 +6,16 @@
   "advanced-calculation": "Advanced calculation",
   "auth": {
     "left": {
+      "dignity": "Dignity",
+      "donation": "Donation",
       "gratitude": "Gratitude",
       "hasAccount": "You already have an account?",
       "hereLogin": "Log in here",
       "learnMore": "Learn more …",
       "newCurrency": "The new currency",
-      "oneAnotherNature": "FOR EACH OTHER, FOR ALL, FOR NATURE"
+      "oneDignity": "We gift to each other and give thanks with Gradido.",
+      "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
+      "oneGratitude": "The new currency. For each other, for all people, for nature."
     },
     "navbar": {
       "aboutGradido": "About Gradido"
@@ -26,6 +30,9 @@
     "other-communities": "Other communities",
     "switch-to-this-community": "Switch to this community"
   },
+  "contribution-link": {
+    "thanksYouWith": "thanks you with"
+  },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -38,7 +45,7 @@
     "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
-      "created": "Created",
+      "creation": "Created",
       "noDecay": "No Decay",
       "receive": "Received",
       "send": "Sent"
@@ -54,8 +61,7 @@
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
-    "unknown-error": "Unknown error: ",
-    "user-already-exists": "A user with this data already exists."
+    "unknown-error": "Unknown error: "
   },
   "followUs": "follow us:",
   "footer": {
@@ -258,7 +264,7 @@
     "minutes": "Minutes",
     "months": "Months",
     "seconds": "Seconds",
-    "year": "Years"
+    "years": "Year"
   },
   "transaction": {
     "gdd-text": "Gradido Transactions",
