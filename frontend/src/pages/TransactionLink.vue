@@ -36,6 +36,7 @@ import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'TransactionLink',
+
   components: {
     TransactionLinkItem,
     RedeemLoggedOut,
@@ -56,6 +57,23 @@ export default {
         deletedAt: null,
       },
     }
+  },
+  metaInfo: {
+    refreshOnceOnNavigation: true,
+    waitOnDestroyed: true,
+    debounceWait: 50,
+    title: 'Transaction-Link',
+    titleTemplate: '%s - einlösen',
+    meta: [
+      {
+        name: 'description',
+        content: 'Bibi sendet dir 19,99 GDD',
+      },
+      {
+        name: 'og:title',
+        content: 'Transaction-Link',
+      },
+    ],
   },
   methods: {
     setTransactionLinkInformation() {
