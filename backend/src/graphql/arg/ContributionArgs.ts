@@ -3,7 +3,7 @@ import Decimal from 'decimal.js-light'
 
 @InputType()
 @ArgsType()
-export default class CreateContributionArgs {
+export default class ContributionArgs {
   @Field(() => Decimal)
   amount: Decimal
 

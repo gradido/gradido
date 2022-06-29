@@ -3,7 +3,7 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution } from '@entity/Contribution'
 import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
-import CreateContributionArgs from '../arg/CreateContributionArgs'
+import ContributionArgs from '../arg/ContributionArgs'
 import { getUserCreation } from './util/getUserCreation'
 import { isContributionValid } from './util/isContributionValid'
 
@@ -12,7 +12,7 @@ export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => Boolean)
   async createContribution(
-    @Args() { amount, memo, creationDate }: CreateContributionArgs,
+    @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
