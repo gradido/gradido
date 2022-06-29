@@ -28,8 +28,7 @@ import { executeTransaction } from './TransactionResolver'
 import { Order } from '@enum/Order'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { isContributionValid } from './util/isContributionValid'
-import { getUserCreation } from './util/getUserCreation'
+import { getUserCreation, isContributionValid } from './util/isContributionValid'
 import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -224,13 +223,7 @@ export class TransactionLinkResolver {
 
         const creations = await getUserCreation(user.id, false)
         logger.info('open creations', creations)
-        if (!isContributionValid(creations, contributionLink.amount, now)) {
-          logger.error(
-            'Amount of Contribution link exceeds available amount for this month',
-            contributionLink.amount,
-          )
-          throw new Error('Amount of Contribution link exceeds available amount')
-        }
+        isContributionValid(creations, contributionLink.amount, now)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now
