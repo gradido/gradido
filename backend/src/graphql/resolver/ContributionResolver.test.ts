@@ -6,7 +6,6 @@ import { createContribution } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
-import { User } from '@entity/User'
 import { userFactory } from '@/seeds/factory/user'
 
 let mutate: any, query: any, con: any
