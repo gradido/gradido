@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-carousel :interval="7000">
+    <b-carousel :interval="10000">
       <b-carousel-slide img-src="/img/template/Foto_01_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.gratitude') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneGratitude') }}</div>
