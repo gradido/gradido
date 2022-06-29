@@ -28,10 +28,10 @@ export const isContributionValid = (
   }
 }
 
-export async function getUserCreations(
+export const getUserCreations = async (
   ids: number[],
   includePending = true,
-): Promise<CreationMap[]> {
+): Promise<CreationMap[]> => {
   logger.trace('getUserCreations:', ids, includePending)
   const months = getCreationMonths()
   logger.trace('getUserCreations months', months)
