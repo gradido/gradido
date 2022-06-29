@@ -3,60 +3,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  interface TransactionDivData {
-    date: Date
-    memo: string
-  }
   // split creation transaction with 3000 GDD created in one transaction what isn't allowed
-  const transactionDivData: TransactionDivData[] = [
-    { date: new Date('2019-12-01T01:00:00'), memo: 'Aktives Grundeinkommen für GL. Dez' },
-    { date: new Date('2019-01-01T01:00:00'), memo: 'Aktives Grundeinkommen für GL. Jan' },
-    { date: new Date('2019-02-01T01:00:00'), memo: 'Aktives Grundeinkommen für GL. Feb' },
+  const transactionMemos: string[] = [
+    'Aktives Grundeinkommen für GL. Dez',
+    'Aktives Grundeinkommen für GL. Jan',
+    'Aktives Grundeinkommen für GL. Feb',
   ]
-  /*
-    | id                    | int(10) unsigned | NO   | PRI | NULL                | auto_increment |
-    | user_id               | int(10)          | YES  |     | NULL                |                |
-    | previous              | int(10) unsigned | YES  | UNI | NULL                |                |
-    | type_id               | int(10)          | YES  |     | NULL                |                |
-    | amount                | decimal(40,20)   | YES  |     | NULL                |                |
-    | balance               | decimal(40,20)   | YES  |     | NULL                |                |
-    | balance_date          | datetime         | NO   |     | current_timestamp() |                |
-    | decay                 | decimal(40,20)   | YES  |     | NULL                |                |
-    | decay_start           | datetime         | YES  |     | NULL                |                |
-    | memo                  | varchar(255)     | NO   |     | NULL                |                |
-    | creation_date         | datetime         | YES  |     | NULL                |                |
-    | linked_user_id        | int(10) unsigned | YES  |     | NULL                |                |
-    | linked_transaction_id | int(10)          | YES  |     | NULL                |                |
-    | transaction_link_id   | int(10) unsigned | YES  |     | NULL                |                |
+  const creationDate = new Date('2020-03-30 06:59:55')
 
-    */
-
-  transactionDivData.forEach((transactionDivData, index) => {
-    let sqlQuery = "INSERT INTO 'transactions'(user_id,"
-    let sqlValues = 'VALUES(275,'
-    if (index) {
-      sqlQuery += 'previous,'
-      sqlValues += 'LAST_INSERT_ID()'
-    }
-    sqlQuery += `type_id, amount, balance, 
-                      balance_date,  
-                      memo, creation_date`
-    sqlValues += '1, 1000, ?, ?, ?, ?'
-
-    sqlQuery += ')'
-    sqlValues += ')'
-    queryFn(sqlQuery + sqlValues, [
-      1000 * (index + 1),
-      transactionDivData.date,
-      transactionDivData.memo,
-      transactionDivData.date,
-    ])
-  })
-  // remove original transaction
-  queryFn("DELETE FROM 'transactions' where id = 150")
-
-  // update previous field of first transaction after splitted transaction
-  queryFn("UPDATE 'transactions' SET 'previous' = LAST_INSERT_ID() WHERE 'previous' = 150")
+  queryFn(`UPDATE 'transactions' set amount = 1000, memo = ? WHERE id = 150`, [transactionMemos[0]])
+  queryFn(
+    `INSERT INTO 'transactions'(
+            user_id, previous, type_id, amount, balance, balance_date, memo, creation_date
+          ) VALUES(
+            275, 150, 1, 1000, 2000, ?, ?, ?
+          )`,
+    [creationDate, transactionMemos[1], creationDate],
+  )
+  queryFn(
+    `INSERT INTO 'transactions'(
+            user_id, previous, type_id, amount, balance, balance_date, memo, creation_date
+          ) VALUES(
+            275, LAST_INSERT_ID(), 1, 1000, 3000, ?, ?, ?
+          )`,
+    [creationDate, transactionMemos[2], creationDate],
+  )
 
   // ----------------------------------------------------------------------------------------------
   // update creation_date for transactions with creation_date == balance_date
@@ -105,31 +76,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // remove in upgrade added transactions
-  const creationDates: Date[] = [
-    new Date('2019-12-01T01:00:00'),
-    new Date('2019-01-01T01:00:00'),
-    new Date('2019-02-01T01:00:00'),
-  ]
+  // remove added transaction
   queryFn(
-    "DELETE FROM 'transactions' WHERE 'user_id' = 275 AND 'creation_date' IN(?,?,?)",
-    creationDates,
+    "DELETE FROM 'transactions' WHERE 'user_id' = 275 AND 'balance' IN(2000, 3000) AND 'amount' = 1000",
   )
-  // put back removed transaction
+  // rewind transaction to split
   queryFn(
-    `INSERT INTO 'transactions'(
-      id, user_id, 
-      type_id, amount, 
-      balance, balance_date, 
-      memo, creation_date
-    ) VALUES(
-      150, 275,
-       1, 3000,
-       3000, '2020-03-30 06:59:55',
-       'Aktives Grundeinkommen für GL. Dez, Jan, Feb', '2020-03-30 06:59:55'
-    )`,
+    `UPDATE 'transactions' set amount = 3000, memo = 'Aktives Grundeinkommen für GL. Dez, Jan, Feb' WHERE id = 150`,
   )
-
-  // restore previous field of first transaction after splitted transaction
-  queryFn("UPDATE 'transactions' SET 'previous' = 150 WHERE 'id' = 278")
 }
