@@ -4,8 +4,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { Contribution } from '@entity/Contribution'
 import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import ContributionArgs from '../arg/ContributionArgs'
-import { getUserCreation } from './util/getUserCreation'
-import { isContributionValid } from './util/isContributionValid'
+import { isContributionValid, getUserCreation } from './util/isContributionValid'
 
 @Resolver()
 export class ContributionResolver {
