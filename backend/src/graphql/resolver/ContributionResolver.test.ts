@@ -46,70 +46,6 @@ describe('ContributionResolver', () => {
       })
     })
 
-    describe('authenticated with deleted user', () => {
-      beforeAll(async () => {
-        user = await userFactory(testEnv, stephenHawking)
-        await query({
-          query: login,
-          variables: { email: 'stephen@hawking.uk', password: 'Aa12345_' },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
-      })
-
-      it('throws unauthorized error', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
-      })
-    })
-
-    describe('authenticated with user that has not checked his email', () => {
-      beforeAll(async () => {
-        user = await userFactory(testEnv, garrickOllivander)
-        await query({
-          query: login,
-          variables: { email: 'garrick@ollivander.com', password: 'Aa12345_' },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
-      })
-
-      it('throws unauthorized error', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('401 Unauthorized')],
-          }),
-        )
-      })
-    })
-
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
         user = await userFactory(testEnv, bibiBloxberg)
@@ -124,59 +60,66 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('throws error when creationDate not-valid', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: 'not-valid',
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('No information for available creations for the given date')],
-          }),
-        )
+      describe('input not valid', () => {
+        it('throws error when creationDate not-valid', async () => {
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: 'not-valid',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError('No information for available creations for the given date'),
+              ],
+            }),
+          )
+        })
+
+        it('throws error when creationDate 3 month behind', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError('No information for available creations for the given date'),
+              ],
+            }),
+          )
+        })
       })
 
-      it('throws error when creationDate 3 month behind', async () => {
-        const date = new Date()
-        date.setMonth(date.getMonth() - 3)
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: date.toString(),
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('No information for available creations for the given date')],
-          }),
-        )
-      })
-
-      it('creates contribution', async () => {
-        await expect(
-          mutate({
-            mutation: createContribution,
-            variables: {
-              amount: 100.0,
-              memo: 'Test env contribution',
-              creationDate: new Date().toString(),
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              createContribution: true,
-            },
-          }),
-        )
+      describe('valid input', () => {
+        it('creates contribution', async () => {
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                createContribution: true,
+              },
+            }),
+          )
+        })
       })
     })
   })
