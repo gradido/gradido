@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createContribution } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
@@ -22,8 +25,6 @@ afterAll(async () => {
   await con.close()
 })
 
-let user: User
-
 describe('ContributionResolver', () => {
   describe('createContribution', () => {
     describe('unauthenticated', () => {
@@ -43,7 +44,7 @@ describe('ContributionResolver', () => {
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
-        user = await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, bibiBloxberg)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
