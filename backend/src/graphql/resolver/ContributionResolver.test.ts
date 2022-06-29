@@ -1,14 +1,10 @@
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { peterLustig } from '@/seeds/users/peter-lustig'
 import { createContribution } from '@/seeds/graphql/mutations'
 import { login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
-import { Contribution } from '@entity/Contribution'
 import { userFactory } from '@/seeds/factory/user'
-import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -27,7 +23,6 @@ afterAll(async () => {
 })
 
 let user: User
-let creation: Contribution | void
 
 describe('ContributionResolver', () => {
   describe('createContribution', () => {
