@@ -23,10 +23,8 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { EventProtocolEmitter } from '@/event/EventProtocolEmitter'
-import { EventProtocolType } from '@/graphql/enum/EventProtocolType'
-
-const eventProtocol = new EventProtocolEmitter()
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
