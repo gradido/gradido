@@ -110,7 +110,10 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                createContribution: true,
+                createContribution: {
+                  amount: '100',
+                  memo: 'Test env contribution',
+                },
               },
             }),
           )

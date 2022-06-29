@@ -233,6 +233,9 @@ export const deleteContributionLink = gql`
 
 export const createContribution = gql`
   mutation ($amount: Decimal!, $memo: String!, $creationDate: String!) {
-    createContribution(amount: $amount, memo: $memo, creationDate: $creationDate)
+    createContribution(amount: $amount, memo: $memo, creationDate: $creationDate) {
+      amount
+      memo
+    }
   }
 `
