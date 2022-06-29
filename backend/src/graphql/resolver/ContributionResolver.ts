@@ -4,16 +4,17 @@ import { backendLogger as logger } from '@/server/logger'
 import { Contribution } from '@entity/Contribution'
 import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import ContributionArgs from '../arg/ContributionArgs'
+import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
 import { isContributionValid, getUserCreation } from './util/isContributionValid'
 
 @Resolver()
 export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
-  @Mutation(() => Boolean)
+  @Mutation(() => UnconfirmedContribution)
   async createContribution(
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
-  ): Promise<boolean> {
+  ): Promise<UnconfirmedContribution> {
     const user = getUser(context)
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
@@ -29,6 +30,6 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
-    return true
+    return new UnconfirmedContribution(contribution, user, creations)
   }
 }
