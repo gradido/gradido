@@ -2,9 +2,10 @@ import { EventEmitter } from 'events'
 import { backendLogger as logger } from '@/server/logger'
 import { EventProtocolType } from './EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
+import { getConnection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
 
-class EventProtocolEmitter extends EventEmitter {}
+class EventProtocolEmitter extends EventEmitter { }
 export const eventProtocol = new EventProtocolEmitter()
 
 eventProtocol.on('error', (err) => {
@@ -310,20 +311,41 @@ async function writeEvent(
   contributionId: number | null,
   amount: Decimal | null,
 ) {
-  const event = new EventProtocol()
-  event.type = type
-  event.createdAt = createdAt
-  event.userId = userId
+  logger.info(
+    `writeEvent(type=${type}, createdAt=${createdAt}, userId=${userId}, xUserId=${xUserId}, xCommunityId=${xCommunityId}, contributionId=${contributionId}, transactionId=${transactionId}, amount=${amount})`,
+  )
+  const dbEvent = new EventProtocol()
+  dbEvent.type = type
+  dbEvent.createdAt = createdAt
+  dbEvent.userId = userId
   // eslint-disable-next-line no-unused-expressions
-  xUserId ? (event.xUserId = xUserId) : null
+  xUserId ? (dbEvent.xUserId = xUserId) : null
   // eslint-disable-next-line no-unused-expressions
-  xCommunityId ? (event.xCommunityId = xCommunityId) : null
+  xCommunityId ? (dbEvent.xCommunityId = xCommunityId) : null
   // eslint-disable-next-line no-unused-expressions
-  contributionId ? (event.contributionId = contributionId) : null
+  contributionId ? (dbEvent.contributionId = contributionId) : null
   // eslint-disable-next-line no-unused-expressions
-  transactionId ? (event.transactionId = transactionId) : null
+  transactionId ? (dbEvent.transactionId = transactionId) : null
   // eslint-disable-next-line no-unused-expressions
-  amount ? (event.amount = amount) : null
+  amount ? (dbEvent.amount = amount) : null
   // set event values here when having the result ...
-  await event.save()
+  //  await dbEvent.save()
+
+  const queryRunner = getConnection().createQueryRunner('master')
+  await queryRunner.connect()
+  await queryRunner.startTransaction('READ UNCOMMITTED')
+  try {
+    await queryRunner.manager.save(dbEvent).catch((error) => {
+      logger.error('Error while saving dbEvent', error)
+      throw new Error('error saving eventProtocol entry')
+    })
+    await queryRunner.commitTransaction()
+  } catch (e) {
+    logger.error(`error during write event with ${e}`)
+    await queryRunner.rollbackTransaction()
+    throw e
+  } finally {
+    await queryRunner.release()
+  }
 }
+
