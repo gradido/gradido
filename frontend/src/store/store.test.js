@@ -74,6 +74,7 @@ describe('Vuex store', () => {
           expect(state.tokenTime).toEqual('1234')
         })
       })
+      
       describe('token has null value', () => {
         it('sets the state of tokenTime to null', () => {
           jest.clearAllMocks()
