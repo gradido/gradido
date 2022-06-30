@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
+import jwtDecode from 'jwt-decode'
 
 Vue.use(Vuex)
 
@@ -26,6 +27,11 @@ export const mutations = {
   },
   token: (state, token) => {
     state.token = token
+    if (token) {
+      state.tokenTime = jwtDecode(token).exp
+    } else {
+      state.tokenTime = null
+    }
   },
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
@@ -85,6 +91,7 @@ try {
       lastName: '',
       // username: '',
       token: null,
+      tokenTime: null,
       isAdmin: false,
       newsletterState: null,
       hasElopage: false,
