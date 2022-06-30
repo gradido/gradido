@@ -1,10 +1,15 @@
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
-import { Contribution } from '@entity/Contribution'
-import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
+import { Contribution as dbContribution } from '@entity/Contribution'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { IsNull, Not } from '../../../../database/node_modules/typeorm'
 import ContributionArgs from '../arg/ContributionArgs'
+import Paginated from '../arg/Paginated'
+import { Order } from '../enum/Order'
+import { Contribution } from '../model/Contribution'
 import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
+import { User } from '../model/User'
 import { isContributionValid, getUserCreation } from './util/isContributionValid'
 
 @Resolver()
@@ -21,7 +26,7 @@ export class ContributionResolver {
     const creationDateObj = new Date(creationDate)
     isContributionValid(creations, amount, creationDateObj)
 
-    const contribution = Contribution.create()
+    const contribution = dbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
     contribution.createdAt = new Date()
@@ -29,7 +34,45 @@ export class ContributionResolver {
     contribution.memo = memo
 
     logger.trace('contribution to save', contribution)
-    await Contribution.save(contribution)
+    await dbContribution.save(contribution)
     return new UnconfirmedContribution(contribution, user, creations)
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
+  @Query(() => [Contribution])
+  async listContributions(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('filterConfirmed', () => Boolean)
+    filterConfirmed: boolean | null,
+    @Ctx() context: Context,
+  ): Promise<Contribution[]> {
+    const user = getUser(context)
+    let contribution
+    if (filterConfirmed) {
+      contribution = await dbContribution.find({
+        where: {
+          userId: user.id,
+          confirmedBy: IsNull(),
+        },
+        order: {
+          createdAt: order,
+        },
+        skip: (currentPage - 1) * pageSize,
+        take: pageSize,
+      })
+    } else {
+      contribution = await dbContribution.find({
+        where: {
+          userId: user.id,
+        },
+        order: {
+          createdAt: order,
+        },
+        skip: (currentPage - 1) * pageSize,
+        take: pageSize,
+      })
+    }
+    return contribution.map((contr) => new Contribution(contr, new User(user)))
   }
 }
