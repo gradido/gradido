@@ -24,6 +24,7 @@ export const ROLE_USER = new Role('user', [
   RIGHTS.LIST_TRANSACTION_LINKS,
   RIGHTS.GDT_BALANCE,
   RIGHTS.CREATE_CONTRIBUTION,
+  RIGHTS.LIST_CONTRIBUTIONS,
 ])
 export const ROLE_ADMIN = new Role('admin', Object.values(RIGHTS)) // all rights
 
