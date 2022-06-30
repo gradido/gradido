@@ -203,7 +203,7 @@
   "send_per_link": "GDD versenden per Link",
   "session": {
     "extend": "Angemeldet bleiben",
-    "lightText": "Wenn du länger als 10 Minuten keine Eingabe getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
+    "lightText": "Wenn du länger als {minutes} Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
     "warningText": "Bist du noch da?"
   },
