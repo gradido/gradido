@@ -11,6 +11,10 @@ import AuthLayout from '@/layouts/AuthLayout.vue'
 
 export default {
   name: 'App',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Wallet',
+  },
   components: {
     DashboardLayout,
     AuthLayout,

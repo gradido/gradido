@@ -1196,6 +1196,10 @@
 <script>
 export default {
   name: 'not-found',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - 404',
+  },
   data() {
     return {
       anime: {

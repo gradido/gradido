@@ -46,6 +46,10 @@ const textFields = {
 
 export default {
   name: 'ResetPassword',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Password reset',
+  },
   components: {
     InputPasswordConfirmation,
     Message,

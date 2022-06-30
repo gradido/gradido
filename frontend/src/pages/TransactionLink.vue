@@ -36,6 +36,10 @@ import { redeemTransactionLink } from '@/graphql/mutations'
 
 export default {
   name: 'TransactionLink',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: 'Jemand möchte dir Gradidos schenken!',
+  },
   components: {
     TransactionLinkItem,
     RedeemLoggedOut,

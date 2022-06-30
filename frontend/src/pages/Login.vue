@@ -47,6 +47,10 @@ import { login } from '@/graphql/queries'
 
 export default {
   name: 'Login',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Login',
+  },
   components: {
     InputPassword,
     InputEmail,

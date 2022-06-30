@@ -103,6 +103,10 @@ export default {
     Message,
   },
   name: 'Register',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Register',
+  },
   data() {
     return {
       form: {

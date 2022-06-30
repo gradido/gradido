@@ -19,6 +19,10 @@ import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 
 export default {
   name: 'Profile',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Profile',
+  },
   components: {
     UserCard,
     UserData,

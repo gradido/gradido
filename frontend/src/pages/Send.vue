@@ -71,6 +71,10 @@ export const SEND_TYPES = {
 
 export default {
   name: 'Send',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Send',
+  },
   components: {
     GddSend,
     TransactionForm,

@@ -37,6 +37,10 @@ import { listGDTEntriesQuery } from '@/graphql/queries'
 
 export default {
   name: 'Transactions',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Transactions',
+  },
   components: {
     GddTransactionList,
     GdtTransactionList,

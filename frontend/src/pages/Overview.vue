@@ -21,6 +21,10 @@ import GddTransactionListFooter from '@/components/GddTransactionListFooter.vue'
 
 export default {
   name: 'Overview',
+  metaInfo: {
+    title: 'Gradido',
+    titleTemplate: '%s - Overview',
+  },
   components: {
     GddTransactionList,
     GddTransactionListFooter,
