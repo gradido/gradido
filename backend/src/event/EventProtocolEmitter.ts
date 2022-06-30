@@ -4,8 +4,14 @@ import { EventProtocolType } from './EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
 import { getConnection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
+import CONFIG from '@/config'
 
-class EventProtocolEmitter extends EventEmitter { }
+class EventProtocolEmitter extends EventEmitter {
+  public isEnabled() {
+    logger.info(`EventProtocol - isEnabled=${CONFIG.EVENT_PROTOCOL_ENABLED}`)
+    return CONFIG.EVENT_PROTOCOL_ENABLED
+  }
+}
 export const eventProtocol = new EventProtocolEmitter()
 
 eventProtocol.on('error', (err) => {
@@ -329,11 +335,11 @@ async function writeEvent(
   // eslint-disable-next-line no-unused-expressions
   amount ? (dbEvent.amount = amount) : null
   // set event values here when having the result ...
-  //  await dbEvent.save()
+  // dbEvent.save()
 
   const queryRunner = getConnection().createQueryRunner('master')
   await queryRunner.connect()
-  await queryRunner.startTransaction('READ UNCOMMITTED')
+  await queryRunner.startTransaction('REPEATABLE READ')
   try {
     await queryRunner.manager.save(dbEvent).catch((error) => {
       logger.error('Error while saving dbEvent', error)
@@ -348,4 +354,3 @@ async function writeEvent(
     await queryRunner.release()
   }
 }
-

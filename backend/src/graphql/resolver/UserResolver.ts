@@ -387,26 +387,30 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventProtocol.emit(
-            EventProtocolType.REDEEM_REGISTER,
-            new Date(Date.now()),
-            dbUser.id,
-            null,
-            contributionLink.id,
-          )
+          if (eventProtocol.isEnabled()) {
+            eventProtocol.emit(
+              EventProtocolType.REDEEM_REGISTER,
+              new Date(Date.now()),
+              dbUser.id,
+              null,
+              contributionLink.id,
+            )
+          }
         }
       } else {
         const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventProtocol.emit(
-            EventProtocolType.REDEEM_REGISTER,
-            new Date(Date.now()),
-            dbUser.id,
-            transactionLink.id,
-            null,
-          )
+          if (eventProtocol.isEnabled()) {
+            eventProtocol.emit(
+              EventProtocolType.REDEEM_REGISTER,
+              new Date(Date.now()),
+              dbUser.id,
+              transactionLink.id,
+              null,
+            )
+          }
         }
       }
     }
@@ -461,8 +465,10 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
-    eventProtocol.emit(EventProtocolType.REGISTER, new Date(Date.now()), dbUser.id)
 
+    if (eventProtocol.isEnabled()) {
+      eventProtocol.emit(EventProtocolType.REGISTER, new Date(Date.now()), dbUser.id)
+    }
     return new User(dbUser)
   }
 

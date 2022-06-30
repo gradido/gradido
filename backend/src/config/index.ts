@@ -94,6 +94,11 @@ const webhook = {
   WEBHOOK_ELOPAGE_SECRET: process.env.WEBHOOK_ELOPAGE_SECRET || 'secret',
 }
 
+const eventProtocol = {
+  // global switch to enable writing of EventProtocol-Entries
+  EVENT_PROTOCOL_ENABLED: process.env.EVENT_PROTOCOL_ENABLED === 'true' || false,
+}
+
 // This is needed by graphql-directive-auth
 process.env.APP_SECRET = server.JWT_SECRET
 
@@ -118,6 +123,7 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...webhook,
+  ...eventProtocol,
 }
 
 export default CONFIG
