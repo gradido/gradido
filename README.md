@@ -121,6 +121,19 @@ After generating a new version you should commit the changes. This will be the C
 
 Note: The Changelog will be regenerated with all tags on release on the external builder tool, but will not be checked in there. The Changelog on the github release will therefore always be correct, on the repo it might be incorrect due to missing tags when executing the `yarn release` command.
 
+## How the different .env work on deploy
+
+Each component (frontend, admin, backend and database) has its own `.env` file. When running in development you usually do not have to care about the `.env`. The defaults are set by the respetive config file, found in the `src/config/` folder of each component. But if you have a local `.env`, the defaults set in the config are overwritten by the `.env`.
+
+Each component has a `.env.dist` file. This file contains all environment variables used by the component. If you want to use a local `.env`, copy the `.env.dist` and adjust the variables accordingly.
+
+Each component has a `.env.template` file. These files are very important on deploy.
+
+There is one `.env.dist` in the `deployment/bare_metal/` folder. This `.env` contains all variables used by the components. On deploy, we set all variables in this file. The deploy script loads this variables and provides them by the `.env.templates` of each component, creating a `.env` for each component.
+
+To avoid forgetting to update the global `.env` when deploying, we have a environment version variable inside the codebase of each component. You should update this version, when environment variables must be changed or added on deploy. The code checks, that the environement version provided by the `.env` is the one expected by the codebase.
+
+
 ## Troubleshooting
 
 | Problem                                          | Issue                                                | Solution                                                                      | Description                                                                 |
