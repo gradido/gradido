@@ -204,8 +204,8 @@
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Eingabe getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
-    "warningText": "Bist du noch da?",
-    "logoutIn": "Abmelden in "
+    "logoutIn": "Abmelden in ",
+    "warningText": "Bist du noch da?"
   },
   "settings": {
     "language": {
