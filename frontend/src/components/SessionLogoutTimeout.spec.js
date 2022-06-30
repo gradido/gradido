@@ -69,7 +69,7 @@ describe('SessionLogoutTimeout', () => {
         })
 
         it('emits logout', () => {
-          expect(wrapper.emitted('logout')).toBe(true)
+          expect(wrapper.emitted('logout')).toBeTruthy()
         })
       })
 
