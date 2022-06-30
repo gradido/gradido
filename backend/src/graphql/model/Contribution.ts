@@ -2,7 +2,6 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { User } from './User'
-import CONFIG from '@/config'
 
 @ObjectType()
 export class Contribution {
