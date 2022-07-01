@@ -1197,8 +1197,8 @@
 export default {
   name: 'not-found',
   metaInfo: {
-    title: 'Gradido',
-    titleTemplate: '%s - 404',
+    title: '404',
+    meta: [{ vmid: 'description', name: 'description', content: 'The 404 page' }],
   },
   data() {
     return {
