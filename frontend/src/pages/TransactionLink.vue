@@ -42,6 +42,7 @@ export default {
       {
         vmid: 'description',
         name: 'description',
+        lang: 'de',
         content:
           'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
       },
@@ -59,11 +60,13 @@ export default {
       {
         vmid: 'twitter:title',
         name: 'twitter:title',
+        lang: 'de',
         content: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein.',
       },
       {
         vmid: 'twitter:description',
         name: 'twitter:description',
+        lang: 'de',
         content:
           'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
       },

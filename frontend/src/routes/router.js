@@ -4,7 +4,9 @@ import routes from './routes'
 import VueMeta from 'vue-meta'
 
 Vue.use(VueRouter)
-Vue.use(VueMeta)
+Vue.use(VueMeta, {
+  refreshOnceOnNavigation: true,
+})
 
 const router = new VueRouter({
   base: '/',
