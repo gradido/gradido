@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events'
 import { backendLogger as logger } from '@/server/logger'
-import { EventProtocolType } from './EventProtocolType'
+// import { EventProtocolType } from './EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { getConnection } from '@dbTools/typeorm'
+// import { getConnection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
 import CONFIG from '@/config'
 
@@ -18,34 +18,35 @@ eventProtocol.on('error', (err) => {
   logger.error(`ERROR in EventProtocol: ${err}`)
 })
 
-eventProtocol.on(EventProtocolType.BASIC, (createdAt: Date, userId: number) => {
+/*
+eventProtocol.on(EventProtocolType.BASIC, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.BASIC}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.BASIC, createdAt, userId, null, null, null, null, null)
+  await writeEvent(EventProtocolType.BASIC, createdAt, userId, null, null, null, null, null)
 })
 
-eventProtocol.on(EventProtocolType.VISIT_GRADIDO, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.VISIT_GRADIDO, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.VISIT_GRADIDO}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.VISIT_GRADIDO, createdAt, userId, null, null, null, null, null)
+  await writeEvent(EventProtocolType.VISIT_GRADIDO, createdAt, userId, null, null, null, null, null)
 })
 
-eventProtocol.on(EventProtocolType.REGISTER, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.REGISTER, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.REGISTER}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.REGISTER, createdAt, userId, null, null, null, null, null)
+  await writeEvent(EventProtocolType.REGISTER, createdAt, userId, null, null, null, null, null)
 })
 
 eventProtocol.on(
   EventProtocolType.REDEEM_REGISTER,
-  (createdAt: Date, userId: number, transactionId: number, contributionId: number) => {
+  async (createdAt: Date, userId: number, transactionId: number, contributionId: number) => {
     logger.info(
       `EventProtocol - ${EventProtocolType.REDEEM_REGISTER}: createdAt=${createdAt}, userId=${userId}, transactionId=${transactionId}, contributionId=${contributionId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.REDEEM_REGISTER,
       createdAt,
       userId,
@@ -58,19 +59,12 @@ eventProtocol.on(
   },
 )
 
-eventProtocol.on(EventProtocolType.INACTIVE_ACCOUNT, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.INACTIVE_ACCOUNT, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.INACTIVE_ACCOUNT}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.INACTIVE_ACCOUNT, createdAt, userId, null, null, null, null, null)
-})
-
-eventProtocol.on(EventProtocolType.SEND_CONFIRMATION_EMAIL, (createdAt: Date, userId: number) => {
-  logger.info(
-    `EventProtocol - ${EventProtocolType.SEND_CONFIRMATION_EMAIL}: createdAt=${createdAt}, userId=${userId}`,
-  )
-  writeEvent(
-    EventProtocolType.SEND_CONFIRMATION_EMAIL,
+  await writeEvent(
+    EventProtocolType.INACTIVE_ACCOUNT,
     createdAt,
     userId,
     null,
@@ -81,43 +75,65 @@ eventProtocol.on(EventProtocolType.SEND_CONFIRMATION_EMAIL, (createdAt: Date, us
   )
 })
 
-eventProtocol.on(EventProtocolType.CONFIRM_EMAIL, (createdAt: Date, userId: number) => {
+eventProtocol.on(
+  EventProtocolType.SEND_CONFIRMATION_EMAIL,
+  async (createdAt: Date, userId: number) => {
+    logger.info(
+      `EventProtocol - ${EventProtocolType.SEND_CONFIRMATION_EMAIL}: createdAt=${createdAt}, userId=${userId}`,
+    )
+    await writeEvent(
+      EventProtocolType.SEND_CONFIRMATION_EMAIL,
+      createdAt,
+      userId,
+      null,
+      null,
+      null,
+      null,
+      null,
+    )
+  },
+)
+
+eventProtocol.on(EventProtocolType.CONFIRM_EMAIL, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.CONFIRM_EMAIL}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.CONFIRM_EMAIL, createdAt, userId, null, null, null, null, null)
+  await writeEvent(EventProtocolType.CONFIRM_EMAIL, createdAt, userId, null, null, null, null, null)
 })
 
-eventProtocol.on(EventProtocolType.REGISTER_EMAIL_KLICKTIPP, (createdAt: Date, userId: number) => {
-  logger.info(
-    `EventProtocol - ${EventProtocolType.REGISTER_EMAIL_KLICKTIPP}: createdAt=${createdAt}, userId=${userId}`,
-  )
-  writeEvent(
-    EventProtocolType.REGISTER_EMAIL_KLICKTIPP,
-    createdAt,
-    userId,
-    null,
-    null,
-    null,
-    null,
-    null,
-  )
-})
+eventProtocol.on(
+  EventProtocolType.REGISTER_EMAIL_KLICKTIPP,
+  async (createdAt: Date, userId: number) => {
+    logger.info(
+      `EventProtocol - ${EventProtocolType.REGISTER_EMAIL_KLICKTIPP}: createdAt=${createdAt}, userId=${userId}`,
+    )
+    await writeEvent(
+      EventProtocolType.REGISTER_EMAIL_KLICKTIPP,
+      createdAt,
+      userId,
+      null,
+      null,
+      null,
+      null,
+      null,
+    )
+  },
+)
 
-eventProtocol.on(EventProtocolType.LOGIN, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.LOGIN, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.LOGIN}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.LOGIN, createdAt, userId, null, null, null, null, null)
+  await writeEvent(EventProtocolType.LOGIN, createdAt, userId, null, null, null, null, null)
 })
 
 eventProtocol.on(
   EventProtocolType.REDEEM_LOGIN,
-  (createdAt: Date, userId: number, transactionId: number, contributionId: number) => {
+  async (createdAt: Date, userId: number, transactionId: number, contributionId: number) => {
     logger.info(
       `EventProtocol - ${EventProtocolType.REDEEM_LOGIN}: createdAt=${createdAt}, userId=${userId}, transactionId=${transactionId}, contributionId=${contributionId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.REDEEM_LOGIN,
       createdAt,
       userId,
@@ -130,33 +146,44 @@ eventProtocol.on(
   },
 )
 
-eventProtocol.on(EventProtocolType.ACTIVATE_ACCOUNT, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.ACTIVATE_ACCOUNT, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.ACTIVATE_ACCOUNT}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.ACTIVATE_ACCOUNT, createdAt, userId, null, null, null, null, null)
+  await writeEvent(
+    EventProtocolType.ACTIVATE_ACCOUNT,
+    createdAt,
+    userId,
+    null,
+    null,
+    null,
+    null,
+    null,
+  )
 })
 
-eventProtocol.on(EventProtocolType.PASSWORD_CHANGE, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.PASSWORD_CHANGE, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.PASSWORD_CHANGE}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.PASSWORD_CHANGE, createdAt, userId, null, null, null, null, null)
+  await writeEvent(
+    EventProtocolType.PASSWORD_CHANGE,
+    createdAt,
+    userId,
+    null,
+    null,
+    null,
+    null,
+    null,
+  )
 })
 
-eventProtocol.on(EventProtocolType.TRANSACTION_SEND, (createdAt: Date, userId: number) => {
+eventProtocol.on(EventProtocolType.TRANSACTION_SEND, async (createdAt: Date, userId: number) => {
   logger.info(
     `EventProtocol - ${EventProtocolType.TRANSACTION_SEND}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(EventProtocolType.TRANSACTION_SEND, createdAt, userId, null, null, null, null, null)
-})
-
-eventProtocol.on(EventProtocolType.TRANSACTION_SEND_REDEEM, (createdAt: Date, userId: number) => {
-  logger.info(
-    `EventProtocol - ${EventProtocolType.TRANSACTION_SEND_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
-  )
-  writeEvent(
-    EventProtocolType.TRANSACTION_SEND_REDEEM,
+  await writeEvent(
+    EventProtocolType.TRANSACTION_SEND,
     createdAt,
     userId,
     null,
@@ -168,12 +195,31 @@ eventProtocol.on(EventProtocolType.TRANSACTION_SEND_REDEEM, (createdAt: Date, us
 })
 
 eventProtocol.on(
+  EventProtocolType.TRANSACTION_SEND_REDEEM,
+  async (createdAt: Date, userId: number) => {
+    logger.info(
+      `EventProtocol - ${EventProtocolType.TRANSACTION_SEND_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
+    )
+    await writeEvent(
+      EventProtocolType.TRANSACTION_SEND_REDEEM,
+      createdAt,
+      userId,
+      null,
+      null,
+      null,
+      null,
+      null,
+    )
+  },
+)
+
+eventProtocol.on(
   EventProtocolType.TRANSACTION_REPEATE_REDEEM,
-  (createdAt: Date, userId: number) => {
+  async (createdAt: Date, userId: number) => {
     logger.info(
       `EventProtocol - ${EventProtocolType.TRANSACTION_REPEATE_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.TRANSACTION_REPEATE_REDEEM,
       createdAt,
       userId,
@@ -186,12 +232,31 @@ eventProtocol.on(
   },
 )
 
-eventProtocol.on(EventProtocolType.TRANSACTION_CREATION, (createdAt: Date, userId: number) => {
+eventProtocol.on(
+  EventProtocolType.TRANSACTION_CREATION,
+  async (createdAt: Date, userId: number) => {
+    logger.info(
+      `EventProtocol - ${EventProtocolType.TRANSACTION_CREATION}: createdAt=${createdAt}, userId=${userId}`,
+    )
+    await writeEvent(
+      EventProtocolType.TRANSACTION_CREATION,
+      createdAt,
+      userId,
+      null,
+      null,
+      null,
+      null,
+      null,
+    )
+  },
+)
+
+eventProtocol.on(EventProtocolType.TRANSACTION_RECEIVE, async (createdAt: Date, userId: number) => {
   logger.info(
-    `EventProtocol - ${EventProtocolType.TRANSACTION_CREATION}: createdAt=${createdAt}, userId=${userId}`,
+    `EventProtocol - ${EventProtocolType.TRANSACTION_RECEIVE}: createdAt=${createdAt}, userId=${userId}`,
   )
-  writeEvent(
-    EventProtocolType.TRANSACTION_CREATION,
+  await writeEvent(
+    EventProtocolType.TRANSACTION_RECEIVE,
     createdAt,
     userId,
     null,
@@ -202,20 +267,13 @@ eventProtocol.on(EventProtocolType.TRANSACTION_CREATION, (createdAt: Date, userI
   )
 })
 
-eventProtocol.on(EventProtocolType.TRANSACTION_RECEIVE, (createdAt: Date, userId: number) => {
-  logger.info(
-    `EventProtocol - ${EventProtocolType.TRANSACTION_RECEIVE}: createdAt=${createdAt}, userId=${userId}`,
-  )
-  writeEvent(EventProtocolType.TRANSACTION_RECEIVE, createdAt, userId, null, null, null, null, null)
-})
-
 eventProtocol.on(
   EventProtocolType.TRANSACTION_RECEIVE_REDEEM,
-  (createdAt: Date, userId: number) => {
+  async (createdAt: Date, userId: number) => {
     logger.info(
       `EventProtocol - ${EventProtocolType.TRANSACTION_RECEIVE_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.TRANSACTION_RECEIVE_REDEEM,
       createdAt,
       userId,
@@ -230,11 +288,11 @@ eventProtocol.on(
 
 eventProtocol.on(
   EventProtocolType.CONTRIBUTION_CREATE,
-  (createdAt: Date, userId: number, contributionId: number) => {
+  async (createdAt: Date, userId: number, contributionId: number) => {
     logger.info(
       `EventProtocol - ${EventProtocolType.CONTRIBUTION_CREATE}: createdAt=${createdAt}, userId=${userId}, contributionId=${contributionId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.CONTRIBUTION_CREATE,
       createdAt,
       userId,
@@ -249,7 +307,7 @@ eventProtocol.on(
 
 eventProtocol.on(
   EventProtocolType.CONTRIBUTION_CONFIRM,
-  (
+  async (
     createdAt: Date,
     userId: number,
     xUserId: number,
@@ -259,7 +317,7 @@ eventProtocol.on(
     logger.info(
       `EventProtocol - ${EventProtocolType.CONTRIBUTION_CONFIRM}: createdAt=${createdAt}, userId=${userId}, xUserId=${xUserId}, xCommunityId=${xCommunityId}, contributionId=${contributionId}`,
     )
-    writeEvent(
+    await writeEvent(
       EventProtocolType.CONTRIBUTION_CONFIRM,
       createdAt,
       userId,
@@ -272,30 +330,14 @@ eventProtocol.on(
   },
 )
 
-eventProtocol.on(EventProtocolType.CONTRIBUTION_LINK_DEFINE, (createdAt: Date, userId: number) => {
-  logger.info(
-    `EventProtocol - ${EventProtocolType.CONTRIBUTION_LINK_DEFINE}: createdAt=${createdAt}, userId=${userId}`,
-  )
-  writeEvent(
-    EventProtocolType.CONTRIBUTION_LINK_DEFINE,
-    createdAt,
-    userId,
-    null,
-    null,
-    null,
-    null,
-    null,
-  )
-})
-
 eventProtocol.on(
-  EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM,
-  (createdAt: Date, userId: number) => {
+  EventProtocolType.CONTRIBUTION_LINK_DEFINE,
+  async (createdAt: Date, userId: number) => {
     logger.info(
-      `EventProtocol - ${EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
+      `EventProtocol - ${EventProtocolType.CONTRIBUTION_LINK_DEFINE}: createdAt=${createdAt}, userId=${userId}`,
     )
-    writeEvent(
-      EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM,
+    await writeEvent(
+      EventProtocolType.CONTRIBUTION_LINK_DEFINE,
       createdAt,
       userId,
       null,
@@ -307,50 +349,58 @@ eventProtocol.on(
   },
 )
 
-async function writeEvent(
-  type: string,
-  createdAt: Date,
-  userId: number,
-  xUserId: number | null,
-  xCommunityId: number | null,
-  transactionId: number | null,
-  contributionId: number | null,
-  amount: Decimal | null,
-) {
-  logger.info(
-    `writeEvent(type=${type}, createdAt=${createdAt}, userId=${userId}, xUserId=${xUserId}, xCommunityId=${xCommunityId}, contributionId=${contributionId}, transactionId=${transactionId}, amount=${amount})`,
-  )
-  const dbEvent = new EventProtocol()
-  dbEvent.type = type
-  dbEvent.createdAt = createdAt
-  dbEvent.userId = userId
-  // eslint-disable-next-line no-unused-expressions
-  xUserId ? (dbEvent.xUserId = xUserId) : null
-  // eslint-disable-next-line no-unused-expressions
-  xCommunityId ? (dbEvent.xCommunityId = xCommunityId) : null
-  // eslint-disable-next-line no-unused-expressions
-  contributionId ? (dbEvent.contributionId = contributionId) : null
-  // eslint-disable-next-line no-unused-expressions
-  transactionId ? (dbEvent.transactionId = transactionId) : null
-  // eslint-disable-next-line no-unused-expressions
-  amount ? (dbEvent.amount = amount) : null
-  // set event values here when having the result ...
-  // dbEvent.save()
+eventProtocol.on(
+  EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM,
+  async (createdAt: Date, userId: number) => {
+    logger.info(
+      `EventProtocol - ${EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM}: createdAt=${createdAt}, userId=${userId}`,
+    )
+    await writeEvent(
+      EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM,
+      createdAt,
+      userId,
+      null,
+      null,
+      null,
+      null,
+      null,
+    )
+  },
+)
+*/
 
-  const queryRunner = getConnection().createQueryRunner('master')
-  await queryRunner.connect()
-  await queryRunner.startTransaction('REPEATABLE READ')
-  try {
-    await queryRunner.manager.save(dbEvent).catch((error) => {
-      logger.error('Error while saving dbEvent', error)
-      throw new Error('error saving eventProtocol entry')
-    })
-    await queryRunner.commitTransaction()
-  } catch (e) {
-    logger.error(`error during write event with ${e}`)
-    await queryRunner.rollbackTransaction()
-    throw e
-  } finally {
-    await queryRunner.release()
+export interface EventInterface {
+  type: string
+  createdAt: Date
+  userId: number
+  xUserId?: number
+  xCommunityId?: number
+  transactionId?: number
+  contributionId?: number
+  amount?: Decimal
+}
+
+eventProtocol.on('writeEvents', async (events: EventInterface[]) => {
+  for (let i = 0; i < events.length; i++) {
+    await writeEvent(events[i])
   }
+})
+
+eventProtocol.on('writeEvent', async (event: EventInterface) => {
+  await writeEvent(event)
+})
+
+const writeEvent = async (event: EventInterface): Promise<void> => {
+  // if (!eventProtocol.isEnabled()) return
+  logger.info(`writeEvent(${JSON.stringify(event)})`)
+  const dbEvent = new EventProtocol()
+  dbEvent.type = event.type
+  dbEvent.createdAt = event.createdAt
+  dbEvent.userId = event.userId
+  if (event.xUserId) dbEvent.xUserId = event.xUserId
+  if (event.xCommunityId) dbEvent.xCommunityId = event.xCommunityId
+  if (event.contributionId) dbEvent.contributionId = event.contributionId
+  if (event.transactionId) dbEvent.transactionId = event.transactionId
+  if (event.amount) dbEvent.amount = event.amount
+  await dbEvent.save()
 }

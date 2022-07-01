@@ -230,6 +230,8 @@ export const deleteContributionLink = gql`
     deleteContributionLink(id: $id)
   }
 `
+
+/*
 export const createEventProtocol = gql`
   mutation (
     $type: String!
@@ -261,3 +263,4 @@ export const createEventProtocol = gql`
     }
   }
 `
+*/

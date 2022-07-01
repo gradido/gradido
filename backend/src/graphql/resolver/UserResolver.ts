@@ -292,7 +292,11 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
-    eventProtocol.emit(EventProtocolType.LOGIN, new Date(Date.now()), user.id)
+    eventProtocol.emit('writeEvent', {
+      type: EventProtocolType.LOGIN,
+      createdAt: new Date(),
+      userId: user.id,
+    })
     logger.info('successful Login:' + user)
     return user
   }
@@ -387,30 +391,26 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          if (eventProtocol.isEnabled()) {
-            eventProtocol.emit(
-              EventProtocolType.REDEEM_REGISTER,
-              new Date(Date.now()),
-              dbUser.id,
-              null,
-              contributionLink.id,
-            )
-          }
+          /* eventProtocol.emit(
+            EventProtocolType.REDEEM_REGISTER,
+            new Date(Date.now()),
+            dbUser.id,
+            null,
+            contributionLink.id,
+          ) */
         }
       } else {
         const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          if (eventProtocol.isEnabled()) {
-            eventProtocol.emit(
-              EventProtocolType.REDEEM_REGISTER,
-              new Date(Date.now()),
-              dbUser.id,
-              transactionLink.id,
-              null,
-            )
-          }
+          /* eventProtocol.emit(
+            EventProtocolType.REDEEM_REGISTER,
+            new Date(Date.now()),
+            dbUser.id,
+            transactionLink.id,
+            null,
+          ) */
         }
       }
     }
@@ -466,9 +466,12 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
 
-    if (eventProtocol.isEnabled()) {
-      eventProtocol.emit(EventProtocolType.REGISTER, new Date(Date.now()), dbUser.id)
-    }
+    eventProtocol.emit('writeEvent', {
+      type: EventProtocolType.REGISTER,
+      createdAt: new Date(),
+      userId: dbUser.id,
+    })
+
     return new User(dbUser)
   }
 
