@@ -47,23 +47,23 @@ export default {
       },
       {
         vmid: 'og:title',
-        name: 'title',
+        property: 'og:title',
         content: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein.',
       },
       {
         vmid: 'og:description',
-        name: 'description',
+        property: 'og:description',
         content:
           'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
       },
       {
         vmid: 'twitter:title',
-        name: 'title',
+        name: 'twitter:title',
         content: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein.',
       },
       {
         vmid: 'twitter:description',
-        name: 'description',
+        name: 'twitter:description',
         content:
           'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
       },
