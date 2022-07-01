@@ -201,6 +201,12 @@
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
+  "session": {
+    "extend": "Angemeldet bleiben",
+    "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
+    "logoutIn": "Abmelden in ",
+    "warningText": "Bist du noch da?"
+  },
   "settings": {
     "language": {
       "changeLanguage": "Sprache ändern",
