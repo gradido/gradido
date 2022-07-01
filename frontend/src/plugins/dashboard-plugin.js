@@ -19,6 +19,8 @@ import 'vue-loading-overlay/dist/vue-loading.css'
 import VueApollo from 'vue-apollo'
 import VueMeta from 'vue-meta'
 
+import VueTimers from 'vue-timers'
+
 export default {
   install(Vue) {
     Vue.use(GlobalComponents)
@@ -37,5 +39,6 @@ export default {
       tagIDKeyName: 'vmid',
       refreshOnceOnNavigation: true,
     })
+    Vue.use(VueTimers)
   },
 }

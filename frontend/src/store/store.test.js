@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import Vue from 'vue'
 import i18n from '@/i18n.js'
 import { localeChanged } from 'vee-validate'
+import jwtDecode from 'jwt-decode'
 
 jest.mock('vuex')
 jest.mock('@/i18n.js')
@@ -10,6 +11,11 @@ jest.mock('vee-validate', () => {
   return {
     localeChanged: jest.fn(),
   }
+})
+jest.mock('jwt-decode', () => {
+  return jest.fn(() => {
+    return { exp: '1234' }
+  })
 })
 
 i18n.locale = 'blubb'
@@ -58,6 +64,25 @@ describe('Vuex store', () => {
         const state = { token: null }
         token(state, '1234')
         expect(state.token).toEqual('1234')
+      })
+
+      describe('token has a value', () => {
+        it('sets the state of tokenTime', () => {
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          expect(jwtDecode).toBeCalledWith('token')
+          expect(state.tokenTime).toEqual('1234')
+        })
+      })
+
+      describe('token has null value', () => {
+        it('sets the state of tokenTime to null', () => {
+          jest.clearAllMocks()
+          const state = { token: null, tokenTime: '123' }
+          token(state, null)
+          expect(jwtDecode).not.toBeCalled()
+          expect(state.tokenTime).toEqual(null)
+        })
       })
     })
 
