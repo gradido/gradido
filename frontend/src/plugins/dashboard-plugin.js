@@ -17,7 +17,6 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
 
 import VueApollo from 'vue-apollo'
-import VueMeta from 'vue-meta'
 
 import VueTimers from 'vue-timers'
 
@@ -32,13 +31,6 @@ export default {
     Vue.use(FlatPickr)
     Vue.use(Loading)
     Vue.use(VueApollo)
-    Vue.use(VueMeta, {
-      keyName: 'metaInfo',
-      attribute: 'data-vue-meta',
-      ssrAttribute: 'data-vue-meta-server-rendered',
-      tagIDKeyName: 'vmid',
-      refreshOnceOnNavigation: true,
-    })
     Vue.use(VueTimers)
   },
 }

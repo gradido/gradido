@@ -1,8 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './routes'
+import VueMeta from 'vue-meta'
 
 Vue.use(VueRouter)
+Vue.use(VueMeta)
 
 const router = new VueRouter({
   base: '/',

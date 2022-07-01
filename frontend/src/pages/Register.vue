@@ -104,8 +104,11 @@ export default {
   },
   name: 'Register',
   metaInfo: {
-    title: 'Gradido',
-    titleTemplate: '%s - Register',
+    title: 'Register',
+    meta: [
+      { vmid: 'description', name: 'description', content: 'The register page' },
+      { vmid: 'og:description', name: 'description', content: 'The register page' },
+    ],
   },
   data() {
     return {

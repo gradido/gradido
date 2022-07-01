@@ -36,8 +36,8 @@ import Message from '@/components/Message/Message'
 export default {
   name: 'ForgotPassword',
   metaInfo: {
-    title: 'Gradido',
-    titleTemplate: '%s - Password forgot ',
+    title: 'ForgotPassword',
+    meta: [{ vmid: 'description', name: 'description', content: 'The forgot password page' }],
   },
   components: {
     InputEmail,
