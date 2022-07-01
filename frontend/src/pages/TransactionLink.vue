@@ -37,10 +37,36 @@ import { redeemTransactionLink } from '@/graphql/mutations'
 export default {
   name: 'TransactionLink',
   metaInfo: {
-    title: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein. ',
+    title: 'Jemand dankt dir mit Gradidos! ',
     meta: [
-      { vmid: 'description', name: 'description', content: 'The TransactionLink page' },
-      { vmid: 'og:description', name: 'description', content: 'The TransactionLink page' },
+      {
+        vmid: 'description',
+        name: 'description',
+        content:
+          'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
+      },
+      {
+        vmid: 'og:title',
+        name: 'title',
+        content: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein.',
+      },
+      {
+        vmid: 'og:description',
+        name: 'description',
+        content:
+          'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
+      },
+      {
+        vmid: 'twitter:title',
+        name: 'title',
+        content: 'Jemand sendet dir Gradidos / GDD. Löse sie jetzt ein.',
+      },
+      {
+        vmid: 'twitter:description',
+        name: 'description',
+        content:
+          'Bitte klicke den link und nimm den Dank an! Wir schreiben dir die GDD auf deinem Konto zu. The TransactionLink page',
+      },
     ],
   },
   components: {
