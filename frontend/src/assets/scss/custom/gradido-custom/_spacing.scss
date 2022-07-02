@@ -33,8 +33,11 @@ $spacers: map.merge(
 $sizes: () !default;
 $sizes: map.merge(
   (
+    10: 10%,
+    15: 15%,
     25: 25%,
     50: 50%,
+    60: 60%,
     75: 75%,
     100: 100%
   ),
