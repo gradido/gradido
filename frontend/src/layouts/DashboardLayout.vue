@@ -20,9 +20,7 @@
       <div
         class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
       >
-        <b-button
-        
-        >
+        <b-button>
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </div>
