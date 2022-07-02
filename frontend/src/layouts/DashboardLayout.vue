@@ -15,7 +15,7 @@
       <b-container
         class="d-none d-lg-none d-md-block d-sm-none position-absolute h-100 width70 zindex10 bg-default"
       >
-        menu mobil
+        <!-- menu mobil -->
       </b-container>
       <div
         class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
@@ -35,10 +35,10 @@
             />
           </b-col>
           <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1 class="bg-warning navbar">
-            content header
+            <!-- content header -->
           </b-col>
           <b-col cols="12" lg="3" offset="0" offset-lg="0" class="bg-info navbar" order-2>
-            rechtebox
+            <!--rechtebox -->
           </b-col>
           <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1>
             <div class="main-content">
