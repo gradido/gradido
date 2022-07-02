@@ -1,39 +1,68 @@
 <template>
   <div>
-    <navbar
-      class="main-navbar"
-      :balance="balance"
-      :visible="visible"
-      :pending="pending"
-      :elopageUri="elopageUri"
-      @set-visible="setVisible"
-      @admin="admin"
-      @logout="logout"
-    />
-    <div class="content-gradido">
-      <div class="d-none d-sm-none d-md-none d-lg-flex shadow-lg gradido-width-300">
-        <sidebar class="main-sidebar" :elopageUri="elopageUri" @admin="admin" @logout="logout" />
-      </div>
+    <div class="position-absolute w-100 h-100 bg-blueviolet">
+      <navbar
+        class="main-navbar"
+        :balance="balance"
+        :visible="visible"
+        :pending="pending"
+        :elopageUri="elopageUri"
+        @set-visible="setVisible"
+        @admin="admin"
+        @logout="logout"
+      />
 
-      <div class="main-page w-100" @click="visible = false">
-        <div class="main-content">
-          <fade-transition :duration="200" origin="center top" mode="out-in">
-            <router-view
-              ref="router-view"
-              :balance="balance"
-              :gdt-balance="GdtBalance"
-              :transactions="transactions"
-              :transactionCount="transactionCount"
-              :transactionLinkCount="transactionLinkCount"
-              :pending="pending"
-              @update-transactions="updateTransactions"
-              @set-tunneled-email="setTunneledEmail"
-            ></router-view>
-          </fade-transition>
-        </div>
+      <b-container
+        class="d-none d-lg-none d-md-block d-sm-none position-absolute h-100 width70 zindex10 bg-default"
+      >
+        menu mobil
+      </b-container>
+      <div
+        class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
+      >
+        <b-button
+        
+        >
+          <span class="navbar-toggler-icon"></span>
+        </b-button>
+      </div>
+      <b-container fluid class="bg-primary pl-0 pl-lg-0 pl-md-6">
+        <b-row>
+          <b-col lg="2" class="d-none d-lg-block position-absolute h-100 bg-default">
+            <sidebar
+              class="main-sidebar"
+              :elopageUri="elopageUri"
+              @admin="admin"
+              @logout="logout"
+            />
+          </b-col>
+          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1 class="bg-warning navbar">
+            content header
+          </b-col>
+          <b-col cols="12" lg="3" offset="0" offset-lg="0" class="bg-info navbar" order-2>
+            rechtebox
+          </b-col>
+          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1>
+            <div class="main-content">
+              <fade-transition :duration="200" origin="center top" mode="out-in">
+                <router-view
+                  ref="router-view"
+                  :balance="balance"
+                  :gdt-balance="GdtBalance"
+                  :transactions="transactions"
+                  :transactionCount="transactionCount"
+                  :transactionLinkCount="transactionLinkCount"
+                  :pending="pending"
+                  @update-transactions="updateTransactions"
+                  @set-tunneled-email="setTunneledEmail"
+                ></router-view>
+              </fade-transition>
+            </div>
+          </b-col>
+        </b-row>
         <content-footer v-if="!$route.meta.hideFooter"></content-footer>
         <session-logout-timeout @logout="logout"></session-logout-timeout>
-      </div>
+      </b-container>
     </div>
   </div>
 </template>
@@ -157,6 +186,12 @@ export default {
   padding-left: 10px;
 }
 .bg-lightgrey {
-  background-color: #f0f0f0;
+  background-color: #f0f0f0 !important;
+}
+.bg-blueviolet {
+  background-color: blueviolet !important;
+}
+.width70 {
+  width: 70px;
 }
 </style>
