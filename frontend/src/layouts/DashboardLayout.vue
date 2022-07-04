@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="position-absolute w-100 h-100 bg-blueviolet">
-      <navbar
+    <div class="position-absolute w-100 h-100">
+      <!--<navbar
         class="main-navbar"
         :balance="balance"
         :visible="visible"
@@ -10,8 +10,8 @@
         @set-visible="setVisible"
         @admin="admin"
         @logout="logout"
-      />
-
+      />-->
+      <navbar-new class="main-navbar" :balance="balance"></navbar-new>
       <b-container
         class="d-none d-lg-none d-md-block d-sm-none position-absolute h-100 width70 zindex10 bg-default"
       >
@@ -65,7 +65,8 @@
   </div>
 </template>
 <script>
-import Navbar from '@/components/Menu/Navbar.vue'
+// import Navbar from '@/components/Menu/Navbar.vue'
+import NavbarNew from '@/components/Menu/NavbarNew.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { transactionsQuery } from '@/graphql/queries'
@@ -77,7 +78,8 @@ import CONFIG from '@/config'
 export default {
   name: 'DashboardLayout',
   components: {
-    Navbar,
+    // Navbar,
+    NavbarNew,
     Sidebar,
     SessionLogoutTimeout,
     ContentFooter,
