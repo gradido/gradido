@@ -8,6 +8,7 @@ import * as rules from 'vee-validate/dist/rules'
 import { messages } from 'vee-validate/dist/locale/en.json'
 
 import RegeneratorRuntime from 'regenerator-runtime'
+import VueTimers from 'vue-timers'
 
 import VueMoment from 'vue-moment'
 
@@ -46,6 +47,7 @@ global.localVue.use(Vuex)
 global.localVue.use(IconsPlugin)
 global.localVue.use(RegeneratorRuntime)
 global.localVue.use(VueMoment)
+global.localVue.use(VueTimers)
 global.localVue.component('validation-provider', ValidationProvider)
 global.localVue.component('validation-observer', ValidationObserver)
 // global.localVue.directive('click-outside', clickOutside)
