@@ -239,3 +239,17 @@ export const createContribution = gql`
     }
   }
 `
+
+export const updateContribution = gql`
+  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    updateContribution(
+      contributionId: $contributionId
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    ) {
+      amount
+      memo
+    }
+  }
+`

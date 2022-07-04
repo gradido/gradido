@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createContribution } from '@/seeds/graphql/mutations'
+import { createContribution, updateContribution } from '@/seeds/graphql/mutations'
 import { listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
@@ -207,6 +207,28 @@ describe('ContributionResolver', () => {
                 }),
               ]),
             },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('updateContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: updateContribution,
+            variables: {
+              contributionId: 1,
+              amount: 100.0,
+              memo: 'Test Contribution',
+              creationDate: 'not-valid',
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
       })
