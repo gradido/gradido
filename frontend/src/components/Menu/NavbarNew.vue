@@ -42,7 +42,9 @@
       </b-collapse>
     </b-navbar>
     <div class="alertBox">
-      <b-alert show dismissible variant="light" class="nav-alert text-dark">Light Alert</b-alert>
+      <b-alert show dismissible variant="light" class="nav-alert text-dark">
+        <!--Light Alert-->
+      </b-alert>
     </div>
   </div>
 </template>
