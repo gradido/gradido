@@ -50,9 +50,9 @@ import {
   getCreationIndex,
   getUserCreation,
   getUserCreations,
-  isContributionValid,
+  validateContribution,
   isStartEndDateValid,
-} from './util/isContributionValid'
+} from './util/creations'
 import {
   CONTRIBUTIONLINK_MEMO_MAX_CHARS,
   CONTRIBUTIONLINK_MEMO_MIN_CHARS,
@@ -252,7 +252,7 @@ export class AdminResolver {
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
     const contribution = Contribution.create()
     contribution.userId = user.id
     contribution.amount = amount
@@ -328,7 +328,7 @@ export class AdminResolver {
     }
 
     // all possible cases not to be true are thrown in this function
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -405,7 +405,7 @@ export class AdminResolver {
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
 
     const creations = await getUserCreation(contribution.userId, false)
-    isContributionValid(creations, contribution.amount, contribution.contributionDate)
+    validateContribution(creations, contribution.amount, contribution.contributionDate)
 
     const receivedCallDate = new Date()
 

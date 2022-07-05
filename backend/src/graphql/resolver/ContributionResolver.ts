@@ -5,7 +5,7 @@ import { Contribution } from '@entity/Contribution'
 import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import ContributionArgs from '../arg/ContributionArgs'
 import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
-import { isContributionValid, getUserCreation } from './util/isContributionValid'
+import { validateContribution, getUserCreation } from './util/creations'
 
 @Resolver()
 export class ContributionResolver {
@@ -19,7 +19,7 @@ export class ContributionResolver {
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
 
     const contribution = Contribution.create()
     contribution.userId = user.id
