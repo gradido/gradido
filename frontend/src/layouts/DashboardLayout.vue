@@ -12,11 +12,8 @@
         @logout="logout"
       />-->
       <navbar-new class="main-navbar" :balance="balance"></navbar-new>
-      <b-container
-        class="d-none d-lg-none d-md-block d-sm-none position-absolute h-100 width70 zindex10 bg-default"
-      >
-        <!-- menu mobil -->
-      </b-container>
+
+      <!-- menu mobil -->
       <div
         class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
       >
@@ -24,23 +21,42 @@
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </div>
-      <b-container fluid class="bg-primary pl-0 pl-lg-0 pl-md-6">
+      <b-container fluid class="bg-primary pl-0 pl-lg-0 pl-md-2">
         <b-row>
-          <b-col lg="2" class="d-none d-lg-block position-absolute h-100 bg-default">
-            <sidebar
+          <b-col
+            lg="2"
+            md="1"
+            class="d-none d-lg-block d-md-block position-absolute h-100 bg-default"
+          >
+            <!-- <sidebar
+              class="main-sidebar"
+              :elopageUri="elopageUri"
+              @admin="admin"
+              @logout="logout"
+            />-->
+            <sidebar-new
               class="main-sidebar"
               :elopageUri="elopageUri"
               @admin="admin"
               @logout="logout"
             />
           </b-col>
-          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1 class="bg-warning navbar">
+          <b-col
+            cols="12"
+            lg="7"
+            md="11"
+            offset="0"
+            offset-lg="2"
+            offset-md="1"
+            order-1
+            class="bg-warning navbar"
+          >
             <!-- content header -->
           </b-col>
-          <b-col cols="12" lg="3" offset="0" offset-lg="0" class="bg-info navbar" order-2>
+          <b-col cols="12" lg="3" md="11" offset="0" offset-lg="0" offset-md="1" class="bg-info navbar" order-2>
             <!--rechtebox -->
           </b-col>
-          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1>
+          <b-col cols="12" lg="7" md="11" offset="0" offset-lg="2" offset-md="1" order-1>
             <div class="main-content">
               <fade-transition :duration="200" origin="center top" mode="out-in">
                 <router-view
@@ -67,7 +83,8 @@
 <script>
 // import Navbar from '@/components/Menu/Navbar.vue'
 import NavbarNew from '@/components/Menu/NavbarNew.vue'
-import Sidebar from '@/components/Menu/Sidebar.vue'
+// import Sidebar from '@/components/Menu/Sidebar.vue'
+import SidebarNew from '@/components/Menu/SidebarNew.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { transactionsQuery } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
@@ -80,7 +97,8 @@ export default {
   components: {
     // Navbar,
     NavbarNew,
-    Sidebar,
+    // Sidebar,
+    SidebarNew,
     SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
