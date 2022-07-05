@@ -123,7 +123,7 @@ Note: The Changelog will be regenerated with all tags on release on the external
 
 ## How the different .env work on deploy
 
-Each component (frontend, admin, backend and database) has its own `.env` file. When running in development you usually do not have to care about the `.env`. The defaults are set by the respetive config file, found in the `src/config/` folder of each component. But if you have a local `.env`, the defaults set in the config are overwritten by the `.env`.
+Each component (frontend, admin, backend and database) has its own `.env` file. When running in development you usually do not have to care about the `.env`. The defaults are set by the respective config file, found in the `src/config/` folder of each component. But if you have a local `.env`, the defaults set in the config are overwritten by the `.env`.
 
 Each component has a `.env.dist` file. This file contains all environment variables used by the component. If you want to use a local `.env`, copy the `.env.dist` and adjust the variables accordingly.
 
