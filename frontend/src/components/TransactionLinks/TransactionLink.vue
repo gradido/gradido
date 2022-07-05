@@ -22,7 +22,11 @@
                 <b-icon icon="clipboard"></b-icon>
                 {{ $t('gdd_per_link.copy') }}
               </b-dropdown-item>
-              <b-dropdown-item v-if="validLink" class="test-copy-text pt-3" @click="copyLinkWithText()">
+              <b-dropdown-item
+                v-if="validLink"
+                class="test-copy-text pt-3"
+                @click="copyLinkWithText()"
+              >
                 <b-icon icon="clipboard-plus"></b-icon>
                 {{ $t('gdd_per_link.copy-with-text') }}
               </b-dropdown-item>
@@ -106,7 +110,7 @@ export default {
     copyLinkWithText() {
       navigator.clipboard
         .writeText(
-          ``${this.link}
+          `${this.link}
             ${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${
             this.amount
           }. Gradido
@@ -114,11 +118,12 @@ export default {
             ${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t(
             'gdd_per_link.validUntilDate',
             { date: this.$d(new Date(this.validUntil), 'short') },
-          )}`)
-      .then(() => {
-        this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
-      })
-      .catch(() => {
+          )}`,
+        )
+        .then(() => {
+          this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
+        })
+        .catch(() => {
           this.$bvModal.show('modalPopoverCopyError' + this.id)
           this.toastError(this.$t('gdd_per_link.not-copied'))
         })
