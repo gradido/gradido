@@ -47,7 +47,6 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
-  getCreationIndex,
   getUserCreation,
   getUserCreations,
   isContributionValid,
