@@ -2,7 +2,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution } from '@entity/Contribution'
-import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Resolver } from 'type-graphql'
 import ContributionArgs from '../arg/ContributionArgs'
 import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
 import { isContributionValid, getUserCreation } from './util/isContributionValid'
@@ -31,5 +31,16 @@ export class ContributionResolver {
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
     return new UnconfirmedContribution(contribution, user, creations)
+  }
+
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
+    const contribution = await Contribution.findOne(id)
+    if (!contribution) {
+      throw new Error('Contribution not found for given id.')
+    }
+    const res = await contribution.softRemove()
+    return !!res
   }
 }
