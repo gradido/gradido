@@ -9,14 +9,15 @@ const mockAPIcall = jest.fn()
 const navigatorClipboardMock = jest.fn()
 
 const mocks = {
-  $i18n: {
-    locale: 'en',
-  },
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => d),
-  $tc: jest.fn((tc) => tc),
   $apollo: {
     mutate: mockAPIcall,
+  },
+  $store: {
+    state: {
+      firstName: 'Testy',
+    },
   },
 }
 
@@ -103,9 +104,9 @@ describe('TransactionLink', () => {
           it('should call clipboard.writeText', () => {
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
               'http://localhost/redeem/c00000000c000000c0000\n' +
-              'Testy wants to send you 75 Gradido.\n' +
-              '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' + 
-              'For the Gradido to be credited, click on the link! The link is valid until 3/30/2022.',
+                'Testy transaction-link.send_you 75 Gradido.\n' +
+                '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' +
+                'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
             )
           })
           it('toasts success message', () => {
