@@ -109,7 +109,6 @@ export class ContributionResolver {
     contributionToUpdate.contributionDate = new Date(creationDate)
     dbContribution.save(contributionToUpdate)
 
-    const result = new UnconfirmedContribution(contributionToUpdate, user, creations)
-    return result
+    return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
 }
