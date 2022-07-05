@@ -53,7 +53,16 @@
           >
             <!-- content header -->
           </b-col>
-          <b-col cols="12" lg="3" md="11" offset="0" offset-lg="0" offset-md="1" class="bg-info navbar" order-2>
+          <b-col
+            cols="12"
+            lg="3"
+            md="11"
+            offset="0"
+            offset-lg="0"
+            offset-md="1"
+            class="bg-info navbar"
+            order-2
+          >
             <!--rechtebox -->
           </b-col>
           <b-col cols="12" lg="7" md="11" offset="0" offset-lg="2" offset-md="1" order-1>
