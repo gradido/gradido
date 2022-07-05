@@ -107,13 +107,17 @@ export default {
       navigator.clipboard
         .writeText(
           `${this.link}\n` +
-          `${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.\n` +
-          `\"${this.memo}\"\n` +
-          `${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {date: this.$d(new Date(this.validUntil), 'short')})}`
-          )
-      .then(
+            `${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${
+              this.amount
+              } Gradido.\n` +
+            `"${this.memo}"\n` +
+            `${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t(
+              'gdd_per_link.validUntilDate', {
+                date: this.$d(new Date(this.validUntil), 'short')})
+                }`)
+      .then(() => {
         this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
-      )
+      })
       .catch(() => {
           this.$bvModal.show('modalPopoverCopyError' + this.id)
           this.toastError(this.$t('gdd_per_link.not-copied'))
