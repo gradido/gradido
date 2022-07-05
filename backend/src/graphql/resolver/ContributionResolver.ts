@@ -35,10 +35,17 @@ export class ContributionResolver {
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async adminDeleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const user = getUser(context)
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
+    }
+    if (contribution.userId !== user.id) {
+      throw new Error('Can not delete contribution of another user')
     }
     const res = await contribution.softRemove()
     return !!res
