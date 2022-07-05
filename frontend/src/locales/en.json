@@ -125,7 +125,9 @@
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy": "copy",
+    "copy-with-text": "copy link and text",
     "created": "Link was created!",
+    "credit-your-gradido": "To credit your Gradido, click on the link!",
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
@@ -134,6 +136,7 @@
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
+    "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
     "link-overview": "Link overview",
@@ -149,7 +152,8 @@
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "validUntil": "Valid until"
+    "validUntil": "Valid until",
+    "validUntilDate": "They are valid until {date}."
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",

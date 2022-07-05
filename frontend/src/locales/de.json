@@ -125,7 +125,9 @@
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "copy": "kopieren",
+    "copy-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
+    "credit-your-gradido": "Um deine Gradido gutzuschreiben, klicke auf den Link!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
@@ -134,6 +136,7 @@
     "header": "Gradidos versenden per Link",
     "isFree": "Gradido ist weltweit kostenfrei.",
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
+    "link-and-text-copied": "Der Link und deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
     "link-overview": "Linkübersicht",
@@ -149,7 +152,8 @@
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "validUntil": "Gültig bis"
+    "validUntil": "Gültig bis",
+    "validUntilDate": "Sie sind bis zum {date} gültig."
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
