@@ -102,14 +102,14 @@ describe('TransactionLink', () => {
 
           it('should call clipboard.writeText', () => {
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-              `http://localhost/redeem/c00000000c000000c0000\n
-              Testy wants to send you 75 Gradido.\n
-              "Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n
-              For the Gradido to be credited, click on the link! The link is valid until 3/30/2022.`,
+              'http://localhost/redeem/c00000000c000000c0000\n' +
+              'Testy wants to send you 75 Gradido.\n' +
+              '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' + 
+              'For the Gradido to be credited, click on the link! The link is valid until 3/30/2022.',
             )
           })
           it('toasts success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-and-text-copied')
           })
         })
 
