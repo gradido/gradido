@@ -153,7 +153,7 @@
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "validUntil": "Valid until",
-    "validUntilDate": "They are valid until {date}."
+    "validUntilDate": "The link is valid until {date}."
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
