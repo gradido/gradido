@@ -43,7 +43,7 @@
     </b-navbar>
     <div class="alertBox">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
-        <!--Light Alert-->
+        <small>{{ $t('1000thanks') }}</small>
       </b-alert>
     </div>
   </div>
