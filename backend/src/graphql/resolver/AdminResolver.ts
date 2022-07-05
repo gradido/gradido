@@ -52,6 +52,7 @@ import {
   getUserCreations,
   isContributionValid,
   isStartEndDateValid,
+  updateCreations,
 } from './util/isContributionValid'
 import {
   CONTRIBUTIONLINK_MEMO_MAX_CHARS,
@@ -687,14 +688,4 @@ export class AdminResolver {
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
-}
-
-function updateCreations(creations: Decimal[], contribution: Contribution): Decimal[] {
-  const index = getCreationIndex(contribution.contributionDate.getMonth())
-
-  if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
-  }
-  creations[index] = creations[index].plus(contribution.amount.toString())
-  return creations
 }
