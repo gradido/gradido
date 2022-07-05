@@ -23,7 +23,7 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { EventInterface, eventProtocol } from '@/event/EventProtocolEmitter'
 import { EventProtocolType } from '@/event/EventProtocolType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -374,6 +374,9 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
+    let eventType = EventProtocolType.REGISTER
+    let eventContributionId = null
+    let eventTransactionId = null
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
@@ -391,6 +394,8 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
+          eventType = EventProtocolType.REDEEM_REGISTER
+          eventContributionId = contributionLink.id
           /* eventProtocol.emit(
             EventProtocolType.REDEEM_REGISTER,
             new Date(Date.now()),
@@ -404,6 +409,8 @@ export class UserResolver {
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
+          eventType = EventProtocolType.REDEEM_REGISTER
+          eventTransactionId = transactionLink.id
           /* eventProtocol.emit(
             EventProtocolType.REDEEM_REGISTER,
             new Date(Date.now()),
@@ -467,9 +474,13 @@ export class UserResolver {
     logger.info('createUser() successful...')
 
     eventProtocol.emit('writeEvent', {
-      type: EventProtocolType.REGISTER,
+      type: eventType,
       createdAt: new Date(),
       userId: dbUser.id,
+      xUserId: null,
+      xCommunityId: null,
+      transactionId: eventTransactionId,
+      contributionId: eventContributionId,
     })
 
     return new User(dbUser)
