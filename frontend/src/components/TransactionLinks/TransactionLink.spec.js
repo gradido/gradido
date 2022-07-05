@@ -25,6 +25,7 @@ const propsData = {
   link: 'http://localhost/redeem/c00000000c000000c0000',
   holdAvailableAmount: '5.13109484759482747111',
   id: 12,
+  firstname: 'Testy'
   memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
   validUntil: '2022-03-30T14:22:40.000Z',
 }
@@ -77,7 +78,7 @@ describe('TransactionLink', () => {
           navigator.clipboard = navigatorClipboard
         })
 
-        describe('copy with success', () => {
+        describe('copy link with success', () => {
           beforeEach(async () => {
             navigatorClipboardMock.mockResolvedValue()
             await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
@@ -93,10 +94,40 @@ describe('TransactionLink', () => {
           })
         })
 
-        describe('copy with error', () => {
+        describe('copy link and text with success', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockResolvedValue()
+            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
+          })
+
+          it('should call clipboard.writeText', () => {
+            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+              `http://localhost/redeem/c00000000c000000c0000\n
+              Testy wants to send you 75 Gradido.\n
+              "Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n
+              For the Gradido to be credited, click on the link! The link is valid until 3/30/2022.`,
+            )
+          })
+          it('toasts success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
+          })
+        })
+
+        describe('copy link with error', () => {
           beforeEach(async () => {
             navigatorClipboardMock.mockRejectedValue()
             await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
+          })
+
+          it('toasts an error', () => {
+            expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
+          })
+        })
+
+        describe('copy link and text with error', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockRejectedValue()
+            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
           })
 
           it('toasts an error', () => {
