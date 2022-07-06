@@ -24,8 +24,7 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
-import { EventProtocolType } from '@/event/EventProtocolType'
-import { Event, EventRedeemRegister, EventRegister } from '@/event/Event'
+import { Event, EventLogin, EventRedeemRegister, EventRegister } from '@/event/Event'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -293,11 +292,9 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
-    eventProtocol.emit('writeEvent', {
-      type: EventProtocolType.LOGIN,
-      createdAt: new Date(),
-      userId: user.id,
-    })
+    const ev = new EventLogin()
+    ev.userId = user.id
+    eventProtocol.writeEvent(new Event().setEventLogin(ev))
     logger.info('successful Login:' + user)
     return user
   }
@@ -460,10 +457,10 @@ export class UserResolver {
     const event = new Event()
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
-      eventProtocol.emit('writeEvent', event.setEventRedeemRegister(eventRedeemRegister))
+      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
     } else {
       eventRegister.userId = dbUser.id
-      eventProtocol.emit('writeEvent', event.setEventRegister(eventRegister))
+      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
     }
 
     return new User(dbUser)
