@@ -40,33 +40,33 @@ export class EventBasicRedeem extends EventBasicUserId {
   contributionId?: number
 }
 
-export class EventVisitGradido extends EventBasic { }
-export class EventRegister extends EventBasicUserId { }
-export class EventRedeemRegister extends EventBasicRedeem { }
-export class EventInactiveAccount extends EventBasicUserId { }
-export class EventSendConfirmationEmail extends EventBasicUserId { }
-export class EventConfirmationEmail extends EventBasicUserId { }
-export class EventRegisterEmailKlicktipp extends EventBasicUserId { }
-export class EventLogin extends EventBasicUserId { }
-export class EventRedeemLogin extends EventBasicRedeem { }
-export class EventActivateAccount extends EventBasicUserId { }
-export class EventPasswordChange extends EventBasicUserId { }
-export class EventTransactionSend extends EventBasicTx { }
-export class EventTransactionSendRedeem extends EventBasicTx { }
-export class EventTransactionRepeateRedeem extends EventBasicTx { }
+export class EventVisitGradido extends EventBasic {}
+export class EventRegister extends EventBasicUserId {}
+export class EventRedeemRegister extends EventBasicRedeem {}
+export class EventInactiveAccount extends EventBasicUserId {}
+export class EventSendConfirmationEmail extends EventBasicUserId {}
+export class EventConfirmationEmail extends EventBasicUserId {}
+export class EventRegisterEmailKlicktipp extends EventBasicUserId {}
+export class EventLogin extends EventBasicUserId {}
+export class EventRedeemLogin extends EventBasicRedeem {}
+export class EventActivateAccount extends EventBasicUserId {}
+export class EventPasswordChange extends EventBasicUserId {}
+export class EventTransactionSend extends EventBasicTx {}
+export class EventTransactionSendRedeem extends EventBasicTx {}
+export class EventTransactionRepeateRedeem extends EventBasicTx {}
 export class EventTransactionCreation extends EventBasicUserId {
   transactionId: number
   amount: decimal
 }
-export class EventTransactionReceive extends EventBasicTx { }
-export class EventTransactionReceiveRedeem extends EventBasicTx { }
-export class EventContributionCreate extends EventBasicCt { }
+export class EventTransactionReceive extends EventBasicTx {}
+export class EventTransactionReceiveRedeem extends EventBasicTx {}
+export class EventContributionCreate extends EventBasicCt {}
 export class EventContributionConfirm extends EventBasicCt {
   xUserId: number
   xCommunityId: number
 }
-export class EventContributionLinkDefine extends EventBasicCt { }
-export class EventContributionLinkActivateRedeem extends EventBasicCt { }
+export class EventContributionLinkDefine extends EventBasicCt {}
+export class EventContributionLinkActivateRedeem extends EventBasicCt {}
 
 export class Event {
   constructor()
@@ -84,15 +84,15 @@ export class Event {
     }
   }
 
-  public setEventBasic(ev?: EventBasic): Event {
+  public setEventBasic(): Event {
     this.type = EventProtocolType.BASIC
     this.createdAt = new Date()
 
     return this
   }
 
-  public setEventVisitGradido(ev?: EventVisitGradido): Event {
-    this.setEventBasic(ev)
+  public setEventVisitGradido(): Event {
+    this.setEventBasic()
     this.type = EventProtocolType.VISIT_GRADIDO
 
     return this
