@@ -23,8 +23,9 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { EventInterface, eventProtocol } from '@/event/EventProtocolEmitter'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { EventProtocolType } from '@/event/EventProtocolType'
+import { Event, EventRedeemRegister, EventRegister } from '@/event/Event'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -374,9 +375,8 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
-    let eventType = EventProtocolType.REGISTER
-    let eventContributionId = null
-    let eventTransactionId = null
+    const eventRegister = new EventRegister()
+    const eventRedeemRegister = new EventRedeemRegister()
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
@@ -394,30 +394,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
-          eventType = EventProtocolType.REDEEM_REGISTER
-          eventContributionId = contributionLink.id
-          /* eventProtocol.emit(
-            EventProtocolType.REDEEM_REGISTER,
-            new Date(Date.now()),
-            dbUser.id,
-            null,
-            contributionLink.id,
-          ) */
+          eventRedeemRegister.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
-          eventType = EventProtocolType.REDEEM_REGISTER
-          eventTransactionId = transactionLink.id
-          /* eventProtocol.emit(
-            EventProtocolType.REDEEM_REGISTER,
-            new Date(Date.now()),
-            dbUser.id,
-            transactionLink.id,
-            null,
-          ) */
+          eventRedeemRegister.transactionId = transactionLink.id
         }
       }
     }
@@ -473,15 +457,14 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
 
-    eventProtocol.emit('writeEvent', {
-      type: eventType,
-      createdAt: new Date(),
-      userId: dbUser.id,
-      xUserId: null,
-      xCommunityId: null,
-      transactionId: eventTransactionId,
-      contributionId: eventContributionId,
-    })
+    const event = new Event()
+    if (redeemCode) {
+      eventRedeemRegister.userId = dbUser.id
+      eventProtocol.emit('writeEvent', event.setEventRedeemRegister(eventRedeemRegister))
+    } else {
+      eventRegister.userId = dbUser.id
+      eventProtocol.emit('writeEvent', event.setEventRegister(eventRegister))
+    }
 
     return new User(dbUser)
   }
