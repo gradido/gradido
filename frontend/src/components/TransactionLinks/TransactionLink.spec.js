@@ -92,6 +92,17 @@ describe('TransactionLink', () => {
             expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
           })
         })
+
+        describe('copy with error', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockRejectedValue()
+            await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
+          })
+
+          it('toasts an error', () => {
+            expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
+          })
+        })
       })
 
       describe('qr code modal', () => {

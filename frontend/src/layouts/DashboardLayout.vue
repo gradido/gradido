@@ -32,6 +32,7 @@
           </fade-transition>
         </div>
         <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        <session-logout-timeout @logout="logout"></session-logout-timeout>
       </div>
     </div>
   </div>
@@ -39,6 +40,7 @@
 <script>
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
+import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { logout, transactionsQuery } from '@/graphql/queries'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
@@ -49,6 +51,7 @@ export default {
   components: {
     Navbar,
     Sidebar,
+    SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
   },
