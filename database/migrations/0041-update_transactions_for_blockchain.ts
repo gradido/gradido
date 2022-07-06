@@ -32,7 +32,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
             275, 150, 1, 1000, 2000,
             ?, 0, ?, ?
           )`,
-    [creationDate, transactionMemos[1], new Date(creationDate.getFullYear(), creationDate.getMonth() - 1, 1)],
+    [
+      creationDate,
+      transactionMemos[1],
+      new Date(creationDate.getFullYear(), creationDate.getMonth() - 1, 1),
+    ],
   )
   await queryFn(
     `INSERT INTO \`transactions\`(
@@ -42,7 +46,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
             275, LAST_INSERT_ID(), 1, 1000, 3000,
             ?, 0, ?, ?
           )`,
-    [creationDate, transactionMemos[2], creationDate],
+    [
+      creationDate,
+      transactionMemos[2],
+      new Date(creationDate.getFullYear(), creationDate.getMonth() - 2, 1),
+    ],
   )
   await queryFn(`UPDATE \`transactions\` set \`previous\` = LAST_INSERT_ID() WHERE \`id\` = 278`)
 
@@ -1221,16 +1229,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `UPDATE \`transactions\` SET creation_date = '2020-04-03 09:00:07' WHERE \`id\` = 222`,
   )
-
-  // Aktives Grundeinkommen für GL. Jan, original creation date: 2020-03-30 06:59:55
-  await queryFn(
-    `UPDATE \`transactions\` SET creation_date = '2020-01-30 06:59:55' WHERE \`id\` = 6869`,
-  )
-
-  // Aktives Grundeinkommen für GL. Feb, original creation date: 2020-03-30 06:59:55
-  await queryFn(
-    `UPDATE \`transactions\` SET creation_date = '2020-03-01 06:59:55' WHERE \`id\` = 6870`,
-  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -1901,14 +1899,6 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn(
     `UPDATE \`transactions\` SET creation_date = '2020-05-03 09:00:07' WHERE \`id\` = 222`,
-  )
-
-  // from upgrade added, could be also delete because nevertheless they will be deleted
-  await queryFn(
-    `UPDATE \`transactions\` SET creation_date = '2020-03-30 06:59:55' WHERE \`id\` = 6869`,
-  )
-  await queryFn(
-    `UPDATE \`transactions\` SET creation_date = '2020-03-30 06:59:55' WHERE \`id\` = 6870`,
   )
 
   // remove added transaction
