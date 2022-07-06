@@ -32,7 +32,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
             275, 150, 1, 1000, 2000,
             ?, 0, ?, ?
           )`,
-    [creationDate, transactionMemos[1], creationDate],
+    [creationDate, transactionMemos[1], new Date(creationDate.getFullYear(), creationDate.getMonth() - 1, 1)],
   )
   await queryFn(
     `INSERT INTO \`transactions\`(
