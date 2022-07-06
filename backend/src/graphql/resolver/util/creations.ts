@@ -10,7 +10,7 @@ interface CreationMap {
   creations: Decimal[]
 }
 
-export const isContributionValid = (
+export const validateContribution = (
   creations: Decimal[],
   amount: Decimal,
   creationDate: Date,

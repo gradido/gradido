@@ -10,7 +10,7 @@ import { Order } from '../enum/Order'
 import { Contribution } from '../model/Contribution'
 import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
 import { User } from '../model/User'
-import { isContributionValid, getUserCreation, updateCreations } from './util/isContributionValid'
+import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 
 @Resolver()
 export class ContributionResolver {
@@ -24,7 +24,7 @@ export class ContributionResolver {
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
@@ -103,7 +103,7 @@ export class ContributionResolver {
     }
 
     // all possible cases not to be true are thrown in this function
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
