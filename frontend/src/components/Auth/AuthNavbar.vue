@@ -46,7 +46,7 @@ export default {
 
 <style lang="scss">
 .authNavbar > .nav-link {
-  color: #383838 !important;
+  color: #0e79bc !important;
 }
 
 .navbar-toggler {
@@ -54,7 +54,7 @@ export default {
 }
 
 .authNavbar > .router-link-exact-active {
-  color: #0e79bc !important;
+  color: #383838 !important;
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {
