@@ -20,6 +20,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`amount\` bigint(20) NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
+/*
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`enum_event_type\` (
         \`key\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -93,10 +94,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     `INSERT INTO \`enum_event_type\` (\`key\`, \`value\`, \`description\`) VALUES ('CONTRIBUTION_LINK_ACTIVATE_REDEEM', 71, 'ContributionLinkActivateRedeemEvent: the user activates a received contributionLink to create a contribution entry for the contributionLink');`,
   )
+  */
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
   await queryFn(`DROP TABLE IF EXISTS \`event_protocol\`;`)
-  await queryFn(`DROP TABLE IF EXISTS \`enum_event_type\`;`)
+  // await queryFn(`DROP TABLE IF EXISTS \`enum_event_type\`;`)
 }
