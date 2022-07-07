@@ -131,7 +131,7 @@ Each component has a `.env.template` file. These files are very important on dep
 
 There is one `.env.dist` in the `deployment/bare_metal/` folder. This `.env.dist` contains all variables used by the components, e.g. unites all `.env.dist` from the components. On deploy, we copy this `.env.dist` to `.env` and set all variables in this new file. The deploy script loads this variables and provides them by the `.env.templates` of each component, creating an `.env` for each component (see in `deployment/bare_metal/start.sh` the `envsubst`).
 
-To avoid forgetting to update an existing `.env` in the `deployment/bare_metal/` folder when deploying, we have a environment version variable inside the codebase of each component. You should update this version, when environment variables must be changed or added on deploy. The code checks, that the environement version provided by the `.env` is the one expected by the codebase.
+To avoid forgetting to update an existing `.env` in the `deployment/bare_metal/` folder when deploying, we have an environment version variable inside the codebase of each component. You should update this version, when environment variables must be changed or added on deploy. The code checks, that the environement version provided by the `.env` is the one expected by the codebase.
 
 
 ## Troubleshooting
