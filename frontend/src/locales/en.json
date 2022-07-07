@@ -28,7 +28,9 @@
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
     "other-communities": "Other communities",
-    "switch-to-this-community": "Switch to this community"
+    "switch-to-this-community": "Switch to this community",
+    "writing":"Writing",
+    "myContributions":"My contributions"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"
@@ -200,7 +202,8 @@
     "profile": "My profile",
     "send": "Send",
     "support": "Support",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "community":"Community"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
