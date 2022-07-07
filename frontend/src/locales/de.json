@@ -32,6 +32,10 @@
     "writing":"Schreiben",
     "myContributions":"Meine Beiträge"
   },
+  "contribution": {
+    "activity":"Tätigkeit",
+    "submit":"Einreichen"
+  },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
   },
@@ -182,7 +186,10 @@
     "equal": "=",
     "exclaim": "!",
     "minus": "−",
-    "pipe": "|"
+    "pipe": "|",
+    "divide": "/",
+    "equalTo":"<"
+
   },
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
@@ -275,6 +282,7 @@
     "days": "Tage",
     "hours": "Stunden",
     "minutes": "Minuten",
+    "month": "Monat",
     "months": "Monate",
     "seconds": "Sekunden",
     "years": "Jahr"

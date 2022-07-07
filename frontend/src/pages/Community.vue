@@ -3,7 +3,7 @@
     <div>
       <b-tabs content-class="mt-3" align="center">
         <b-tab :title="$t('community.writing')" active>
-          <p>{{ $t('community.writing') }}</p>
+          <contribution-form />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
           <p>{{ $t('community.myContributions') }}</p>
@@ -16,7 +16,11 @@
   </div>
 </template>
 <script>
+import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 export default {
   name: 'Community',
+  components: {
+    ContributionForm,
+  },
 }
 </script>

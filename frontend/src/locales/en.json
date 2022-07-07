@@ -32,6 +32,10 @@
     "writing":"Writing",
     "myContributions":"My contributions"
   },
+  "contribution": {
+    "activity":"Activity",
+    "submit":"Submit"
+  },
   "contribution-link": {
     "thanksYouWith": "thanks you with"
   },
@@ -182,7 +186,9 @@
     "equal": "=",
     "exclaim": "!",
     "minus": "−",
-    "pipe": "|"
+    "pipe": "|",
+    "divide": "/",
+    "equalTo":"<"
   },
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
@@ -275,6 +281,7 @@
     "days": "Days",
     "hours": "Hours",
     "minutes": "Minutes",
+    "month": "Month",
     "months": "Months",
     "seconds": "Seconds",
     "years": "Year"
