@@ -13,7 +13,7 @@
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
         id="textarea"
-        v-model="form.text"
+        v-model="form.memo"
         placeholder="Enter something..."
         rows="3"
         max-rows="6"
@@ -22,10 +22,10 @@
       ></b-form-textarea>
       <div
         class="text-right"
-        :class="form.text.length < minlength ? 'text-danger' : 'text-success'"
+        :class="form.memo.length < minlength ? 'text-danger' : 'text-success'"
       >
-        {{ form.text.length }}
-        <span v-if="form.text.length < minlength">{{ $t('math.equalTo') }} {{ minlength }}</span>
+        {{ form.memo.length }}
+        <span v-if="form.memo.length < minlength">{{ $t('math.equalTo') }} {{ minlength }}</span>
         <span v-else>{{ $t('math.divide') }} {{ maxlength }}</span>
       </div>
       <label class="mt-3">{{ $t('form.amount') }}</label>
@@ -49,8 +49,9 @@ export default {
       minlength: 50,
       maxlength: 500,
       form: {
-        text: '',
         selected: this.$moment().format('MMMM'),
+        memo: '',
+
         amount: 0,
       },
       options: [
@@ -70,7 +71,7 @@ export default {
   },
   computed: {
     disable() {
-      if (this.form.text.length < this.minlength) return true
+      if (this.form.memo.length < this.minlength) return true
       if (this.form.amount < 1 && this.form.amount < 1000) return true
       return false
     },
