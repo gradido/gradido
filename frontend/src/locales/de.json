@@ -190,12 +190,17 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
+    "favourites": "Favoriten",
+    "lightmode": "Lightmode",
     "logout": "Abmelden",
+    "members": "Mitglieder",
     "members_area": "Mitgliederbereich",
     "overview": "Übersicht",
     "profile": "Mein Profil",
     "send": "Senden",
+    "settings": "Einstellung",
     "support": "Support",
+    "top_stories": "Top Stories",
     "transactions": "Transaktionen"
   },
   "qrCode": "QR Code",
