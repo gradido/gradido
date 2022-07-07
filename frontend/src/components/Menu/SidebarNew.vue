@@ -1,6 +1,6 @@
 <template>
   <div id="component-sidebar">
-    <div class="pl-lg-3">
+    <div class="pl-lg-1 gradido-border-radius bg-white shadow-default pt-2 mt-4">
       <p></p>
       <div class="mb-6">
         <b-nav vertical class="w-200">
@@ -8,6 +8,15 @@
             <b-icon icon="house" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
+          <b-nav-item to="#" class="mb-3">
+            <b-icon icon="card-heading" aria-hidden="true"></b-icon>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.top_stories') }}</span>
+          </b-nav-item>
+          <b-nav-item to="#" class="mb-3">
+            <b-icon icon="bookmark" aria-hidden="true"></b-icon>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.favourites') }}</span>
+          </b-nav-item>
+
           <b-nav-item to="/send" class="mb-3">
             <b-icon icon="arrow-left-right" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.send') }}</span>
@@ -17,12 +26,24 @@
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.transactions') }}</span>
           </b-nav-item>
           <b-nav-item to="/profile" class="mb-3">
-            <b-icon icon="gear" aria-hidden="true"></b-icon>
+            <b-icon icon="person" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.profile') }}</span>
+          </b-nav-item>
+          <b-nav-item to="#" class="mb-3">
+            <b-icon icon="people" aria-hidden="true"></b-icon>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.members') }}</span>
           </b-nav-item>
         </b-nav>
         <hr />
         <b-nav vertical class="w-100">
+          <b-nav-item to="#" class="mb-3">
+            <b-icon icon="toggle-off" aria-hidden="true"></b-icon>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.lightmode') }}</span>
+          </b-nav-item>
+          <b-nav-item to="#" class="mb-3">
+            <b-icon icon="gear" aria-hidden="true"></b-icon>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.settings') }}</span>
+          </b-nav-item>
           <b-nav-item class="mb-3" :href="elopageUri" target="_blank">
             <b-icon icon="link45deg" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2 mr-2">{{ $t('navigation.members_area') }}</span>
@@ -58,5 +79,9 @@ export default {
 .component-navbar .active,
 #component-sidebar .active {
   font-weight: bold;
+}
+#component-sidebar {
+  min-width: 53px;
+  max-width: 200px;
 }
 </style>

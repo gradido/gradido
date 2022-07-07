@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="position-absolute w-100 h-100">
+  <div class="bg-default">
+    <div class="position-absolute w-100 h-100 bg-default">
       <!--<navbar
         class="main-navbar"
         :balance="balance"
@@ -14,26 +14,27 @@
       <navbar-new class="main-navbar" :balance="balance"></navbar-new>
 
       <!-- menu mobil -->
-      <div
-        class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
-      >
-        <b-button>
-          <span class="navbar-toggler-icon"></span>
+      <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
+        <b-button @click="toogleMobilMenu">
+          <span v-if="hamburger" class="navbar-toggler-icon"></span>
+          <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
         </b-button>
       </div>
-      <b-container fluid class="bg-primary pl-0 pl-lg-0 pl-md-2">
+      <b-container fluid class="pl-0 pl-lg-0 pl-md-2">
         <b-row>
           <b-col
+            cols="1"
             lg="2"
             md="1"
-            class="d-none d-lg-block d-md-block position-absolute h-100 bg-default"
+            ref="sideMenu"
+            class="d-none d-lg-block d-md-block position-absolute h-100 zindex10"
           >
             <!-- <sidebar
               class="main-sidebar"
               :elopageUri="elopageUri"
               @admin="admin"
               @logout="logout"
-            />-->
+            /> -->
             <sidebar-new
               class="main-sidebar"
               :elopageUri="elopageUri"
@@ -122,6 +123,7 @@ export default {
       pending: true,
       visible: false,
       tunneledEmail: null,
+      hamburger: true,
     }
   },
   provide() {
@@ -186,6 +188,10 @@ export default {
     setTunneledEmail(email) {
       this.tunneledEmail = email
     },
+    toogleMobilMenu() {
+      this.$refs.sideMenu.classList.toggle('d-none')
+      this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
+    },
   },
   computed: {
     elopageUri() {
@@ -220,5 +226,8 @@ export default {
 }
 .width70 {
   width: 70px;
+}
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 </style>

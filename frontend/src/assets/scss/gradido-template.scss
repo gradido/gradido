@@ -7,6 +7,14 @@ body {
   cursor: pointer;
 }
 
+.bg-default {
+  background-color: rgba(245 245 245 / 75%) !important;
+}
+
+.shadow-default {
+  box-shadow: rgb(0 0 0 / 14%) 0 24px 80px;
+}
+
 .c-grey {
   color: #383838 !important;
 }
@@ -207,6 +215,10 @@ a:hover,
 
 .gradido-width-96 {
   width: 96%;
+}
+
+.gradido-border-radius {
+  border-radius: 26px;
 }
 
 .gradido-no-border-radius {
