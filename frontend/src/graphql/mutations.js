@@ -89,3 +89,12 @@ export const redeemTransactionLink = gql`
     redeemTransactionLink(code: $code)
   }
 `
+
+export const createContribution = gql`
+  mutation($creationDate: String!, $memo: String!, $amount: Decimal!) {
+    createContribution(creationDate: $creationDate, memo: $memo, amount: $amount) {
+      amount
+      memo
+    }
+  }
+`
