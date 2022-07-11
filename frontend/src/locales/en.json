@@ -34,15 +34,15 @@
   },
   "contribution": {
     "activity": "Activity",
-    "noDateSelected": "No date selected",
-    "submit": "Submit",
     "formText": {
       "h3": "Your Unconditional Participation!",
-      "text1": "You have the right to contribute to the community with your personal gifts. You are paid up to 50 hours per month at 20 Gradido per hour. This results in an active basic income of 1,000 gradido per month, which can be drawn for you.",
       "lastMonth": "For the last month you can still scoop up 200 GDD.",
-      "thisMonth": "This month you can still scoop 500 GDD",
-      "text2": "Fill out the form and describe your community activity. After a moderator of your community has confirmed your contribution, the amount can be credited to your account."
-    }
+      "text1": "You have the right to contribute to the community with your personal gifts. You are paid up to 50 hours per month at 20 Gradido per hour. This results in an active basic income of 1,000 gradido per month, which can be drawn for you.",
+      "text2": "Fill out the form and describe your community activity. After a moderator of your community has confirmed your contribution, the amount can be credited to your account.",
+      "thisMonth": "This month you can still scoop 500 GDD"
+    },
+    "noDateSelected": "No date selected",
+    "submit": "Submit"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"
