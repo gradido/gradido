@@ -34,7 +34,8 @@
   },
   "contribution": {
     "activity":"Activity",
-    "submit":"Submit"
+    "submit":"Submit",
+    "noDateSelected": "No date selected"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"

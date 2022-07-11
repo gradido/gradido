@@ -34,7 +34,8 @@
   },
   "contribution": {
     "activity":"Tätigkeit",
-    "submit":"Einreichen"
+    "submit":"Einreichen",
+    "noDateSelected": "Kein Datum ausgewählt"
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"

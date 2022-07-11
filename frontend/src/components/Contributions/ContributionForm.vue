@@ -1,15 +1,17 @@
 <template>
   <div class="container contribution-form">
-    <b-form @submit="submit">
+    <b-form @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
-      <b-form-radio-group
-        v-model="form.selected"
-        :options="options"
-        class="mb-3"
-        value-field="value"
-        text-field="name"
-        disabled-field="notEnabled"
-      ></b-form-radio-group>
+      <b-form-datepicker
+        v-model="form.date"
+        size="lg"
+        :max="max"
+        :min="min"
+        class="mb-4"
+        reset-value=""
+        :label-no-date-selected="$t('contribution.noDateSelected')"
+        required
+      ></b-form-datepicker>
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
         id="textarea"
@@ -19,6 +21,7 @@
         max-rows="6"
         required
         :minlength="minlength"
+        :maxlength="maxlength"
       ></b-form-textarea>
       <div
         class="text-right"
@@ -47,26 +50,19 @@ export default {
   data() {
     return {
       minlength: 50,
-      maxlength: 500,
+      maxlength: 255,
+      min: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1)),
+      max: new Date(),
       form: {
-        selected: this.$moment().format('MMMM'),
+        date: '',
         memo: '',
-
         amount: 0,
       },
-      options: [
-        {
-          name: this.$moment().subtract(1, 'months').format('MMMM'),
-          value: this.$moment().subtract(1, 'months').format('MMMM'),
-        },
-        { name: this.$moment().format('MMMM'), value: this.$moment().format('MMMM') },
-      ],
     }
   },
   methods: {
-    submit(event) {
-      event.preventDefault()
-      alert(JSON.stringify(this.form))
+    submit() {
+      this.$emit('set-contribution', this.form)
     },
   },
   computed: {
