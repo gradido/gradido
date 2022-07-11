@@ -12,10 +12,9 @@
       "hasAccount": "Du hast schon einen Account?",
       "hereLogin": "Hier Anmelden",
       "learnMore": "Erfahre mehr …",
-      "newCurrency": "Die neue Währung",
       "oneDignity": "Wir schenken einander und danken mit Gradido.",
       "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
-      "oneGratitude": "Die neue Währung. Für einander, für alle Menschen, für die Natur."
+      "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     },
     "navbar": {
       "aboutGradido": "Über Gradido"
@@ -125,7 +124,9 @@
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "copy": "kopieren",
+    "copy-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
+    "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
@@ -133,6 +134,7 @@
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Gradidos versenden per Link",
     "isFree": "Gradido ist weltweit kostenfrei.",
+    "link-and-text-copied": "Der Link und deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
@@ -149,7 +151,8 @@
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "validUntil": "Gültig bis"
+    "validUntil": "Gültig bis",
+    "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
@@ -284,6 +287,5 @@
     "send_you": "sendet dir"
   },
   "via_link": "über einen Link",
-  "welcome": "Willkommen",
-  "WelcomeBy": "bei {name}"
+  "welcome": "Willkommen in der Gemeinschaft"
 }
