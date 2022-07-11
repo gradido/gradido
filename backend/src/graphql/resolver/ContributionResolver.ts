@@ -48,31 +48,22 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Contribution[]> {
     const user = getUser(context)
-    let contributions
-    if (filterConfirmed) {
-      contributions = await dbContribution.find({
-        where: {
+    const where = filterConfirmed
+      ? {
           userId: user.id,
           confirmedBy: IsNull(),
-        },
-        order: {
-          createdAt: order,
-        },
-        skip: (currentPage - 1) * pageSize,
-        take: pageSize,
-      })
-    } else {
-      contributions = await dbContribution.find({
-        where: {
+        }
+      : {
           userId: user.id,
-        },
-        order: {
-          createdAt: order,
-        },
-        skip: (currentPage - 1) * pageSize,
-        take: pageSize,
-      })
-    }
+        }
+    const contributions = await dbContribution.find({
+      where,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
     return contributions.map((contribution) => new Contribution(contribution, new User(user)))
   }
 }
