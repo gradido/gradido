@@ -1,6 +1,18 @@
 <template>
   <div class="container contribution-form">
-    <b-form @submit.prevent="submit">
+    <div class="my-3">
+      <h3>{{ $t('contribution.formText.h3') }}</h3>
+      {{ $t('contribution.formText.text1') }}
+      <ul class="my-3">
+        <li>{{ $t('contribution.formText.lastMonth') }}</li>
+        <li>{{ $t('contribution.formText.thisMonth') }}</li>
+      </ul>
+
+      <div class="my-3">
+        <b>{{ $t('contribution.formText.text2') }}</b>
+      </div>
+    </div>
+    <b-form ref="form" @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
         v-model="form.date"
@@ -16,7 +28,6 @@
       <b-form-textarea
         id="textarea"
         v-model="form.memo"
-        placeholder="Enter something..."
         rows="3"
         max-rows="6"
         required
@@ -63,12 +74,18 @@ export default {
   methods: {
     submit() {
       this.$emit('set-contribution', this.form)
+      this.$refs.form.reset()
+      this.form.date = ''
     },
   },
   computed: {
     disable() {
-      if (this.form.memo.length < this.minlength) return true
-      if (this.form.amount < 1 && this.form.amount < 1000) return true
+      if (
+        this.form.memo.length < this.minlength ||
+        this.form.amount === 0 ||
+        this.form.amount > 1000
+      )
+        return true
       return false
     },
   },

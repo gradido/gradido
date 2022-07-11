@@ -35,7 +35,14 @@
   "contribution": {
     "activity": "Tätigkeit",
     "noDateSelected": "Kein Datum ausgewählt",
-    "submit": "Einreichen"
+    "submit": "Einreichen",
+    "formText": {
+      "h3": "Deine Bedingungslose Teilhabe!",
+      "text1": "Du hast das Recht, dich mit deiner ganz persönlichen Gaben in die Gemeinschaft einzubringen. Honoriert werden bis zu 50 Stunden im Monat zu je 20 Gradido pro Stunde. Daraus ergibt sich das aktive Grundeinkommen von 1.000 Gradido pro Monat welches für dich geschöpft werden kann.",
+      "lastMonth": "Für den letzten Monat kannst du noch 200 GDD Schöpfen",
+      "thisMonth": "In diesem Monat kannst du noch 500 GDD Schöpfen",
+      "text2": "Fülle das Formular aus und beschreibe deine gemeinschaftliche Tätigkeit. Nach dem ein Moderator deiner Community deinen Beitrag bestätigt hat kann der Betrag deinem Konto gut geschrieben werden."
+    }
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
