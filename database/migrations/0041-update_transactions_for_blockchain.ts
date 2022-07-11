@@ -1913,7 +1913,5 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
      WHERE \`id\` = 150`,
   )
 
-  await queryFn(`UPDATE \`transactions\` set \`previous\` = 150 WHERE \`id\` = 278`)
-  // drop temp table
-  await queryFn(`DROP TABLE IF EXISTS \`transactions_temp\``)
+  await queryFn(`UPDATE \`transactions\` set \`previous\` = 150 WHERE \`id\` = 278`)  
 }
