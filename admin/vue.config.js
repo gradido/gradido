@@ -8,6 +8,8 @@ const CONFIG = require('./src/config')
 module.exports = {
   devServer: {
     port: CONFIG.PORT,
+    // port: 80,
+    // host: 'localhost:80',
   },
   pluginOptions: {
     i18n: {

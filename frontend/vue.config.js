@@ -9,6 +9,9 @@ const CONFIG = require('./src/config')
 module.exports = {
   devServer: {
     port: CONFIG.PORT,
+    // client: {
+    //   progress: true,
+    // },
   },
   pluginOptions: {
     i18n: {
