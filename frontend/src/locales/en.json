@@ -27,15 +27,15 @@
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
+    "myContributions": "My contributions",
     "other-communities": "Other communities",
     "switch-to-this-community": "Switch to this community",
-    "writing":"Writing",
-    "myContributions":"My contributions"
+    "writing": "Writing"
   },
   "contribution": {
-    "activity":"Activity",
-    "submit":"Submit",
-    "noDateSelected": "No date selected"
+    "activity": "Activity",
+    "noDateSelected": "No date selected",
+    "submit": "Submit"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"
@@ -184,12 +184,12 @@
   "login": "Login",
   "math": {
     "aprox": "~",
+    "divide": "/",
     "equal": "=",
+    "equalTo": "<",
     "exclaim": "!",
     "minus": "−",
-    "pipe": "|",
-    "divide": "/",
-    "equalTo":"<"
+    "pipe": "|"
   },
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
@@ -203,14 +203,14 @@
   },
   "navigation": {
     "admin_area": "Admin Area",
+    "community": "Community",
     "logout": "Logout",
     "members_area": "Members area",
     "overview": "Overview",
     "profile": "My profile",
     "send": "Send",
     "support": "Support",
-    "transactions": "Transactions",
-    "community":"Community"
+    "transactions": "Transactions"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
