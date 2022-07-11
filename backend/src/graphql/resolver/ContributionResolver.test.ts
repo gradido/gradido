@@ -13,7 +13,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 let mutate: any, query: any, con: any
 let testEnv: any
-let result: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -195,6 +194,7 @@ describe('ContributionResolver', () => {
         beforeAll(async () => {
           await userFactory(testEnv, peterLustig)
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await creationFactory(testEnv, bibisCreation!)
           await query({
             query: login,
