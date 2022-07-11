@@ -202,7 +202,7 @@ describe('ContributionResolver', () => {
           })
         })
 
-        it('returns confirmed and unconfirmed creation', async () => {
+        it('filter confirmed is false', async () => {
           await expect(
             query({
               query: listContributions,
