@@ -3,7 +3,7 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-import { IsNull } from '@dbTools/typeorm'
+import { FindOperator, IsNull } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
@@ -48,14 +48,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Contribution[]> {
     const user = getUser(context)
-    const where = filterConfirmed
-      ? {
-          userId: user.id,
-          confirmedBy: IsNull(),
-        }
-      : {
-          userId: user.id,
-        }
+    const where: {
+      userId: number
+      confirmedBy?: FindOperator<any> | null
+    } = { userId: user.id }
+    if (filterConfirmed) where.confirmedBy = IsNull()
     const contributions = await dbContribution.find({
       where,
       order: {
