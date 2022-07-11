@@ -50,8 +50,7 @@ export class ContributionResolver {
     const user = getUser(context)
     const where: {
       userId: number
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      confirmedBy?: FindOperator<any> | null
+      confirmedBy?: FindOperator<number> | null
     } = { userId: user.id }
     if (filterConfirmed) where.confirmedBy = IsNull()
     const contributions = await dbContribution.find({
