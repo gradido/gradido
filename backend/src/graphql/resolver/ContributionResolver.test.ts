@@ -167,7 +167,7 @@ describe('ContributionResolver', () => {
           },
         })
       })
-      
+
       describe('filter confirmed is false', () => {
         it('returns creations', async () => {
           await expect(
