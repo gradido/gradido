@@ -285,6 +285,37 @@ describe('ContributionResolver', () => {
           )
         })
       })
+
+      describe('wrong user tries to update the contribution', () => {
+        beforeAll(async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+        })
+
+        it('throws an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 10.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'user of the pending contribution and send user does not correspond',
+                ),
+              ],
+            }),
+          )
+        })
+      })
     })
   })
 })
