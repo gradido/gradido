@@ -316,6 +316,37 @@ describe('ContributionResolver', () => {
           )
         })
       })
+
+      describe('update to much so that the limit is exceeded', () => {
+        beforeAll(async () => {
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        it('throws an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 1019.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                ),
+              ],
+            }),
+          )
+        })
+      })
     })
   })
 })
