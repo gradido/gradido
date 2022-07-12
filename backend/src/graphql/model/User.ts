@@ -1,10 +1,12 @@
 import { ObjectType, Field } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
+import Decimal from 'decimal.js-light'
+import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser) {
+  constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
     this.id = user.id
     this.email = user.email
     this.firstName = user.firstName
@@ -17,6 +19,7 @@ export class User {
     this.isAdmin = user.isAdmin
     this.klickTipp = null
     this.hasElopage = null
+    this.creation = creation
   }
 
   @Field(() => Number)
@@ -64,4 +67,7 @@ export class User {
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
+
+  @Field(() => [Decimal])
+  creation: Decimal[]
 }

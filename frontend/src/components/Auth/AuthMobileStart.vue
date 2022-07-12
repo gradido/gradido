@@ -6,7 +6,7 @@
       {{ $t('auth.left.gratitude') }}
     </div>
     <div class="position-absolute h2 text-white zindex1000 w-100 text-center mt-9">
-      {{ $t('auth.left.newCurrency') }}
+      {{ $t('auth.left.oneGratitude') }}
     </div>
     <img
       src="/img/template/Blaetter.png"
