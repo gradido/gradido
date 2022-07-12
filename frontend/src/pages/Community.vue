@@ -33,22 +33,23 @@ export default {
         {
           id: '0',
           date: '07/06/2022',
-          memo: 'sadd sd ad adad asd asd asd ad',
+          memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
           amount: 200,
           status: 'pending',
         },
         {
           id: '1',
           date: '06/22/2022',
-          memo: 'sadd sd ad adad asd asd asd ad',
+          memo: 'Ich habe 30 Stunden Frau Müller beim EInkaufen und im Haushalt geholfen.',
           amount: 600,
           status: 'pending',
         },
         {
           id: '2',
           date: '05/04/2022',
-          memo: 'sadd sd ad adad asd asd asd ad',
-          amount: 1200,
+          memo:
+            'Ich habe 50 Stunden den Nachbarkindern bei ihren Hausaufgaben geholfen und Nachhilfeunterricht gegeben.',
+          amount: 1000,
           status: 'pending',
         },
       ],

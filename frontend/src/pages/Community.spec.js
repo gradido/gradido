@@ -17,9 +17,6 @@ describe('Community', () => {
     $apollo: {
       mutate: apolloMutationMock,
     },
-    $route: {
-      query: {},
-    },
   }
 
   const Wrapper = () => {
@@ -34,7 +31,7 @@ describe('Community', () => {
       wrapper = Wrapper()
     })
 
-    it('has a components community-page', () => {
+    it('has a DIV .community-page', () => {
       expect(wrapper.find('div.community-page').exists()).toBe(true)
     })
   })
