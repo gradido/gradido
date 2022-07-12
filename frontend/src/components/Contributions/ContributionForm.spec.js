@@ -25,5 +25,9 @@ describe('ContributionForm', () => {
     it('has a DIV .contribution-form', () => {
       expect(wrapper.find('div.contribution-form').exists()).toBe(true)
     })
+
+    it('is submit button disable of true', () => {
+      expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
+    })
   })
 })

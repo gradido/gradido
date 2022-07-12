@@ -15,6 +15,7 @@
     <b-form ref="form" @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
+        id="testdate"
         v-model="form.date"
         size="lg"
         :max="max"
@@ -26,7 +27,7 @@
       ></b-form-datepicker>
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
-        id="textarea"
+        id="testmemo"
         v-model="form.memo"
         rows="3"
         max-rows="6"
@@ -44,13 +45,20 @@
       </div>
       <label class="mt-3">{{ $t('form.amount') }}</label>
       <b-input-group size="lg" prepend="GDD" append=".00">
-        <b-form-input v-model="form.amount" type="number" min="1" max="1000"></b-form-input>
+        <b-form-input
+          id="testamount"
+          v-model="form.amount"
+          type="number"
+          min="1"
+          max="1000"
+        ></b-form-input>
       </b-input-group>
 
       <div class="mt-3 text-right">
-        <b-button type="submit" variant="primary" :disabled="disable">
+        <b-button class="test-submit" type="submit" variant="primary" :disabled="disable">
           {{ $t('contribution.submit') }}
         </b-button>
+        {{ form }}
       </div>
     </b-form>
   </div>
