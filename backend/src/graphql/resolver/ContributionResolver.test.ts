@@ -169,6 +169,11 @@ describe('ContributionResolver', () => {
         })
       })
 
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
+      })
+
       describe('filter confirmed is false', () => {
         it('returns creations', async () => {
           await expect(
@@ -274,6 +279,11 @@ describe('ContributionResolver', () => {
             creationDate: new Date().toString(),
           },
         })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
       })
 
       describe('wrong contribution id', () => {
