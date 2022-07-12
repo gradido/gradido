@@ -5,7 +5,7 @@ A sample setup to show-case Playwright (using Typescript) as an end-to-end testi
 Here we have a simple UI-based happy path login test running against the DEV system.
 
 ## Precondition
-Since dependencies and configurations for Github Actions integration is not set up yet, please run
+Since dependencies and configurations for Github Actions integration is not set up yet, please run in root directory
 
 ```bash
 docker-compose up
