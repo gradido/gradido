@@ -23,6 +23,7 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { getUserCreation } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -224,7 +225,7 @@ export class UserResolver {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
-    const user = new User(userEntity)
+    const user = new User(userEntity, await getUserCreation(userEntity.id))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -274,7 +275,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
 
-    const user = new User(dbUser)
+    const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug('user=' + user)
 
     // Elopage Status & Stored PublisherId
