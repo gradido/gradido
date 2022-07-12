@@ -347,6 +347,29 @@ describe('ContributionResolver', () => {
           )
         })
       })
+
+      describe('update creation to a date that is older than 3 month', () => {
+        it('throws an error', async () => {
+          const date = new Date() // ,
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 1019.0,
+                memo: 'Test env contribution',
+                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError('No information for available creations for the given date'),
+              ],
+            }),
+          )
+        })
+      })
     })
   })
 })
