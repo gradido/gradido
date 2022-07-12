@@ -30,6 +30,7 @@ const {
   publisherId,
   isAdmin,
   hasElopage,
+  creation,
 } = mutations
 const { login, logout } = actions
 
@@ -139,6 +140,14 @@ describe('Vuex store', () => {
         expect(state.hasElopage).toBeTruthy()
       })
     })
+
+    describe('creation', () => {
+      it('sets the state of creation', () => {
+        const state = { creation: null }
+        creation(state, true)
+        expect(state.creation).toEqual(true)
+      })
+    })
   })
 
   describe('actions', () => {
@@ -156,11 +165,12 @@ describe('Vuex store', () => {
         hasElopage: false,
         publisherId: 1234,
         isAdmin: true,
+        creation: ['1000', '1000', '1000'],
       }
 
       it('calls nine commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(8)
+        expect(commit).toHaveBeenCalledTimes(9)
       })
 
       it('commits email', () => {
@@ -202,6 +212,11 @@ describe('Vuex store', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', true)
       })
+
+      it('commits creation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'creation', ['1000', '1000', '1000'])
+      })
     })
 
     describe('logout', () => {
@@ -210,7 +225,7 @@ describe('Vuex store', () => {
 
       it('calls nine commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(8)
+        expect(commit).toHaveBeenCalledTimes(9)
       })
 
       it('commits token', () => {
@@ -252,6 +267,12 @@ describe('Vuex store', () => {
         logout({ commit, state })
         expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', false)
       })
+
+      it('commits creation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'creation', null)
+      })
+
 
       // how to get this working?
       it.skip('calls localStorage.clear()', () => {
