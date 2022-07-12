@@ -13,6 +13,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 let mutate: any, query: any, con: any
 let testEnv: any
+let result: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -159,6 +160,14 @@ describe('ContributionResolver', () => {
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
       })
 
       afterAll(async () => {
@@ -231,6 +240,50 @@ describe('ContributionResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, peterLustig)
+        await userFactory(testEnv, bibiBloxberg)
+        // bibi needs GDDs
+        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await creationFactory(testEnv, bibisCreation!)
+        // await userFactory(testEnv, bibiBloxberg)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        result = await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+      })
+
+      describe('wrong contribution id', () => {
+        it('throws an error', async () => {
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: -1,
+                amount: 100.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('No contribution found to given id.')],
+            }),
+          )
+        })
       })
     })
   })
