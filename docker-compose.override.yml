@@ -5,7 +5,7 @@ services:
   # FRONTEND #############################################
   ########################################################
   frontend:
-    image: gradido/frontend:development
+    # image: gradido/frontend:development
     build:
       target: development
     environment:
@@ -22,7 +22,7 @@ services:
   # ADMIN INTERFACE ######################################
   ########################################################
   admin:
-    image: gradido/admin:development
+    # image: gradido/admin:development
     build:
       target: development
     environment:
@@ -39,7 +39,7 @@ services:
   # BACKEND ##############################################
   ########################################################
   backend:
-    image: gradido/backend:development
+    # image: gradido/backend:development
     build:
       target: development
     networks:
@@ -65,7 +65,7 @@ services:
     # feel free to change this behaviour if it seems useful
     # Due to problems with the volume caching the built files
     # we changed this to test build. This keeps the service running.
-    image: gradido/database:test_up
+    # image: gradido/database:test_up
     build:
       target: test_up
     environment:
