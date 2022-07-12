@@ -368,7 +368,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('update creation to a date that is older than 3 month', () => {
+      describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
           const date = new Date() // ,
           await expect(
