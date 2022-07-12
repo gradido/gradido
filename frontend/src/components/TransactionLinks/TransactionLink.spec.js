@@ -9,14 +9,15 @@ const mockAPIcall = jest.fn()
 const navigatorClipboardMock = jest.fn()
 
 const mocks = {
-  $i18n: {
-    locale: 'en',
-  },
   $t: jest.fn((t) => t),
   $d: jest.fn((d) => d),
-  $tc: jest.fn((tc) => tc),
   $apollo: {
     mutate: mockAPIcall,
+  },
+  $store: {
+    state: {
+      firstName: 'Testy',
+    },
   },
 }
 
@@ -77,7 +78,7 @@ describe('TransactionLink', () => {
           navigator.clipboard = navigatorClipboard
         })
 
-        describe('copy with success', () => {
+        describe('copy link with success', () => {
           beforeEach(async () => {
             navigatorClipboardMock.mockResolvedValue()
             await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
@@ -93,10 +94,40 @@ describe('TransactionLink', () => {
           })
         })
 
-        describe('copy with error', () => {
+        describe('copy link and text with success', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockResolvedValue()
+            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
+          })
+
+          it('should call clipboard.writeText', () => {
+            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+              'http://localhost/redeem/c00000000c000000c0000\n' +
+                'Testy transaction-link.send_you 75 Gradido.\n' +
+                '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' +
+                'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
+            )
+          })
+          it('toasts success message', () => {
+            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-and-text-copied')
+          })
+        })
+
+        describe('copy link with error', () => {
           beforeEach(async () => {
             navigatorClipboardMock.mockRejectedValue()
             await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
+          })
+
+          it('toasts an error', () => {
+            expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
+          })
+        })
+
+        describe('copy link and text with error', () => {
+          beforeEach(async () => {
+            navigatorClipboardMock.mockRejectedValue()
+            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
           })
 
           it('toasts an error', () => {

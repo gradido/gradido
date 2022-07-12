@@ -3,13 +3,13 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { IsNull } from '../../../../database/node_modules/typeorm'
-import ContributionArgs from '../arg/ContributionArgs'
-import Paginated from '../arg/Paginated'
-import { Order } from '../enum/Order'
-import { Contribution } from '../model/Contribution'
-import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
-import { User } from '../model/User'
+import { FindOperator, IsNull } from '@dbTools/typeorm'
+import ContributionArgs from '@arg/ContributionArgs'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { Contribution } from '@model/Contribution'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 
 @Resolver()
@@ -48,32 +48,20 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<Contribution[]> {
     const user = getUser(context)
-    let contribution
-    if (filterConfirmed) {
-      contribution = await dbContribution.find({
-        where: {
-          userId: user.id,
-          confirmedBy: IsNull(),
-        },
-        order: {
-          createdAt: order,
-        },
-        skip: (currentPage - 1) * pageSize,
-        take: pageSize,
-      })
-    } else {
-      contribution = await dbContribution.find({
-        where: {
-          userId: user.id,
-        },
-        order: {
-          createdAt: order,
-        },
-        skip: (currentPage - 1) * pageSize,
-        take: pageSize,
-      })
-    }
-    return contribution.map((contr) => new Contribution(contr, new User(user)))
+    const where: {
+      userId: number
+      confirmedBy?: FindOperator<number> | null
+    } = { userId: user.id }
+    if (filterConfirmed) where.confirmedBy = IsNull()
+    const contributions = await dbContribution.find({
+      where,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return contributions.map((contribution) => new Contribution(contribution, new User(user)))
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])

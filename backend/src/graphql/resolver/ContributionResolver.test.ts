@@ -115,6 +115,7 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               data: {
                 createContribution: {
+                  id: expect.any(Number),
                   amount: '100',
                   memo: 'Test env contribution',
                 },
@@ -149,13 +150,11 @@ describe('ContributionResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, peterLustig)
         await userFactory(testEnv, bibiBloxberg)
-        // bibi needs GDDs
+        await userFactory(testEnv, peterLustig)
         const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await creationFactory(testEnv, bibisCreation!)
-        // await userFactory(testEnv, bibiBloxberg)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -170,54 +169,65 @@ describe('ContributionResolver', () => {
         })
       })
 
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
+      describe('filter confirmed is false', () => {
+        it('returns creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: false,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            }),
+          )
+        })
       })
 
-      it('returns an empty array for unconfirmed creation filter', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: true,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listContributions: [],
-            },
-          }),
-        )
-      })
-
-      it('returns confirmed creation', async () => {
-        await expect(
-          query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listContributions: expect.arrayContaining([
-                expect.objectContaining({
-                  memo: 'Herzlich Willkommen bei Gradido!',
-                  amount: '1000',
-                }),
-              ]),
-            },
-          }),
-        )
+      describe('filter confirmed is true', () => {
+        it('returns only unconfirmed creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: true,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            }),
+          )
+        })
       })
     })
   })
