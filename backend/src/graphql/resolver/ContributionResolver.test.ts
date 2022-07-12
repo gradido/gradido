@@ -3,10 +3,13 @@
 
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createContribution } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
+import { listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
+import { creationFactory } from '@/seeds/factory/creation'
+import { creations } from '@/seeds/creation/index'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -111,9 +114,115 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               data: {
                 createContribution: {
+                  id: expect.any(Number),
                   amount: '100',
                   memo: 'Test env contribution',
                 },
+              },
+            }),
+          )
+        })
+      })
+    })
+  })
+
+  describe('listContributions', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await creationFactory(testEnv, bibisCreation!)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+      })
+
+      describe('filter confirmed is false', () => {
+        it('returns creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: false,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            }),
+          )
+        })
+      })
+
+      describe('filter confirmed is true', () => {
+        it('returns only unconfirmed creations', async () => {
+          await expect(
+            query({
+              query: listContributions,
+              variables: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+                filterConfirmed: true,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                listContributions: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
               },
             }),
           )
