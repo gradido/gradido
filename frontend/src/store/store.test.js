@@ -273,7 +273,6 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(9, 'creation', null)
       })
 
-
       // how to get this working?
       it.skip('calls localStorage.clear()', () => {
         const clearStorageMock = jest.fn()
