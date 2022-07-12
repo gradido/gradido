@@ -356,7 +356,7 @@ describe('ContributionResolver', () => {
               mutation: updateContribution,
               variables: {
                 contributionId: result.data.createContribution.id,
-                amount: 1019.0,
+                amount: 10.0,
                 memo: 'Test env contribution',
                 creationDate: date.setMonth(date.getMonth() - 3).toString(),
               },
