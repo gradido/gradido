@@ -24,7 +24,7 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
-import { Event, EventLogin, EventRedeemRegister, EventRegister } from '@/event/Event'
+import { Event, EventLogin, EventRedeemRegister, EventRegister, EventSendConfirmationEmail } from '@/event/Event'
 import { getUserCreation } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -375,6 +375,7 @@ export class UserResolver {
 
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
+    const eventSendConfirmEmail = new EventSendConfirmationEmail()
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
@@ -410,6 +411,7 @@ export class UserResolver {
     // loginUser.pubKey = keyPair[0]
     // loginUser.privKey = encryptedPrivkey
 
+    const event = new Event()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
@@ -439,6 +441,9 @@ export class UserResolver {
         duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      eventSendConfirmEmail.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
+
       /* uncomment this, when you need the activation link on the console */
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -455,7 +460,6 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
 
-    const event = new Event()
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
       eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
