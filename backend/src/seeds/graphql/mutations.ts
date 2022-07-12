@@ -249,6 +249,7 @@ export const updateContribution = gql`
       memo: $memo
       creationDate: $creationDate
     ) {
+      id
       amount
       memo
     }

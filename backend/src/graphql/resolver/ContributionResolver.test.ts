@@ -370,6 +370,32 @@ describe('ContributionResolver', () => {
           )
         })
       })
+
+      describe('valid input', () => {
+        it('updates contribution', async () => {
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 10.0,
+                memo: 'Test contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                updateContribution: {
+                  id: result.data.createContribution.id,
+                  amount: '10',
+                  memo: 'Test contribution',
+                },
+              },
+            }),
+          )
+        })
+      })
     })
   })
 })
