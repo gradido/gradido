@@ -12,10 +12,9 @@
       "hasAccount": "You already have an account?",
       "hereLogin": "Log in here",
       "learnMore": "Learn more …",
-      "newCurrency": "The new currency",
       "oneDignity": "We gift to each other and give thanks with Gradido.",
       "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
-      "oneGratitude": "The new currency. For each other, for all people, for nature."
+      "oneGratitude": "For each other, for all people, for nature."
     },
     "navbar": {
       "aboutGradido": "About Gradido"
@@ -125,7 +124,9 @@
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy": "copy",
+    "copy-with-text": "Copy link and text",
     "created": "Link was created!",
+    "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
@@ -133,6 +134,7 @@
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
+    "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
@@ -149,7 +151,8 @@
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "validUntil": "Valid until"
+    "validUntil": "Valid until",
+    "validUntilDate": "The link is valid until {date}."
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
@@ -284,6 +287,5 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome",
-  "WelcomeBy": "by {name}"
+  "welcome": "Welcome to the community"
 }
