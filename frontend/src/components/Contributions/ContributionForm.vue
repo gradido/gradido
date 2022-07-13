@@ -4,8 +4,8 @@
       <h3>{{ $t('contribution.formText.h3') }}</h3>
       {{ $t('contribution.formText.text1') }}
       <ul class="my-3">
-        <li>{{ $t('contribution.formText.lastMonth') }}</li>
-        <li>{{ $t('contribution.formText.thisMonth') }}</li>
+        <li v-html="$t('contribution.formText.lastMonth', lastMonthObject)"></li>
+        <li v-html="$t('contribution.formText.thisMonth', thisMonthObject)"></li>
       </ul>
 
       <div class="my-3">
@@ -64,12 +64,18 @@
   </div>
 </template>
 <script>
+/*
+* data.lastMonth = The date set back by one month.
+* data.min = The date is reset by one month to the 1st of the previous month.
+*
+*/
 export default {
   name: 'ContributionForm',
   data() {
     return {
       minlength: 50,
       maxlength: 255,
+      lastMonth: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1))),
       min: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1)),
       max: new Date(),
       form: {
@@ -96,6 +102,28 @@ export default {
         return true
       return false
     },
+    lastMonthObject(){
+      // If the current month is January then the current year must be counted back by -1.
+      if (new Date().getMonth === 1) {
+        return {
+        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: "long" }), 
+        year: new Date().getFullYear() - 1, 
+        creation: this.$store.state.creation[1]
+        }
+      }
+      return {
+        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: "long" }), 
+        year: new Date().getFullYear(), 
+        creation: this.$store.state.creation[1]
+        }
+    },
+    thisMonthObject() {
+      return {
+        month: new Date().toLocaleString(this.$i18n.locale, { month: "long" }),  
+        year: new Date().getFullYear(), 
+        creation: this.$store.state.creation[2]
+      }
+    }
   },
 }
 </script>
