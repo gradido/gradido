@@ -24,7 +24,13 @@ import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
-import { Event, EventLogin, EventRedeemRegister, EventRegister, EventSendConfirmationEmail } from '@/event/Event'
+import {
+  Event,
+  EventLogin,
+  EventRedeemRegister,
+  EventRegister,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
 import { getUserCreation } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
