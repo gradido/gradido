@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createContribution, updateContribution } from '@/seeds/graphql/mutations'
+import { adminUpdateContribution, createContribution, updateContribution } from '@/seeds/graphql/mutations'
 import { listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
@@ -327,6 +327,27 @@ describe('ContributionResolver', () => {
                   'user of the pending contribution and send user does not correspond',
                 ),
               ],
+            }),
+          )
+        })
+      })
+
+      describe('admin tries to update a user contribution', () => {
+        it('throws an error', async () => {
+          await expect(
+            mutate({
+              mutation: adminUpdateContribution,
+              variables: {
+                id: result.data.createContribution.id,
+                email: 'bibi@bloxberg.de',
+                amount: 10.0,
+                memo: 'Test env contribution',
+                creationDate: new Date().toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('An admin is not allowed to update a user contribution.')],
             }),
           )
         })
