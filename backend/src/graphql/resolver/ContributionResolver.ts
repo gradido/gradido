@@ -3,7 +3,6 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-<<<<<<< HEAD
 import { FindOperator, IsNull } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
@@ -11,15 +10,6 @@ import { Order } from '@enum/Order'
 import { Contribution } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
-=======
-import { IsNull, Not } from '../../../../database/node_modules/typeorm'
-import ContributionArgs from '../arg/ContributionArgs'
-import Paginated from '../arg/Paginated'
-import { Order } from '../enum/Order'
-import { Contribution } from '../model/Contribution'
-import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
-import { User } from '../model/User'
->>>>>>> 193c7927e (resolve conflict)
 import { validateContribution, getUserCreation } from './util/creations'
 
 @Resolver()
