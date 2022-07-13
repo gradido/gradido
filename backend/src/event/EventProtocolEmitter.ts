@@ -1,8 +1,6 @@
 import { Event } from '@/event/Event'
 import { backendLogger as logger } from '@/server/logger'
-// import { EventProtocolType } from './EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-// import { getConnection } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 
 class EventProtocolEmitter {
@@ -23,7 +21,7 @@ class EventProtocolEmitter {
   }
 
   public async writeEvent(event: Event): Promise<void> {
-    // if (!eventProtocol.isEnabled()) return
+    if (!eventProtocol.isEnabled()) return
     logger.info(`writeEvent(${JSON.stringify(event)})`)
     const dbEvent = new EventProtocol()
     dbEvent.type = event.type
@@ -38,19 +36,3 @@ class EventProtocolEmitter {
   }
 }
 export const eventProtocol = new EventProtocolEmitter()
-
-/*
-eventProtocol.on('error', (err) => {
-  logger.error(`ERROR in EventProtocol: ${err}`)
-})
-
-eventProtocol.on('writeEvents', async (events: Event[]) => {
-  for (let i = 0; i < events.length; i++) {
-    await writeEvent(events[i])
-  }
-})
-
-eventProtocol.on('writeEvent', async (event: Event) => {
-  await writeEvent(event)
-})
-*/

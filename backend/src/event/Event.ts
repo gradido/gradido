@@ -2,19 +2,6 @@ import { EventProtocol } from '@entity/EventProtocol'
 import decimal from 'decimal.js-light'
 import { EventProtocolType } from './EventProtocolType'
 
-/*
-export interface EventInterface {
-  type: string
-  createdAt: Date
-  userId: number
-  xUserId?: number
-  xCommunityId?: number
-  transactionId?: number
-  contributionId?: number
-  amount?: Decimal
-}
-*/
-
 export class EventBasic {
   type: string
   createdAt: Date
