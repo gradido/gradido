@@ -93,8 +93,7 @@ export default {
       const remainingSecs = Math.floor(
         (new Date(this.$store.state.tokenTime * 1000).getTime() - this.now) / 1000,
       )
-      if (remainingSecs <= 0) return 0
-      return remainingSecs
+      return remainingSecs  <= 0 ? 0 : remainingSecs
     },
   },
   beforeDestroy() {
