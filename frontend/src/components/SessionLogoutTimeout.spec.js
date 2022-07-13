@@ -68,7 +68,7 @@ describe('SessionLogoutTimeout', () => {
           wrapper = Wrapper()
         })
 
-        it('value for remaining seconds is 0', () => {
+        it('has value for remaining seconds equal 0', () => {
           expect(wrapper.tokenExpiresInSeconds === 0)
         })
 
