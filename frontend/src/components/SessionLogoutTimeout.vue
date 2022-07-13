@@ -65,7 +65,7 @@ export default {
         this.$timer.restart('tokenExpires')
         this.$bvModal.show('modalSessionTimeOut')
       }
-      if (this.tokenExpiresInSeconds <= 0) {
+      if (this.tokenExpiresInSeconds === 0) {
         this.$timer.stop('tokenExpires')
         this.$emit('logout')
       }
@@ -90,7 +90,11 @@ export default {
   },
   computed: {
     tokenExpiresInSeconds() {
-      return Math.floor((new Date(this.$store.state.tokenTime * 1000).getTime() - this.now) / 1000)
+      const remainingSecs = Math.floor(
+        (new Date(this.$store.state.tokenTime * 1000).getTime() - this.now) / 1000,
+      )
+      if (remainingSecs <= 0) return 0
+      return remainingSecs
     },
   },
   beforeDestroy() {
