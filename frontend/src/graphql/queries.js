@@ -181,6 +181,8 @@ export const listContributions = gql`
       memo
       createdAt
       deletedAt
+      confirmedBy
+      confirmedAt
     }
   }
 `
