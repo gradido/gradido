@@ -321,6 +321,10 @@ export class AdminResolver {
       throw new Error('user of the pending contribution and send user does not correspond')
     }
 
+    if (contributionToUpdate.moderatorId === null) {
+      throw new Error('An admin is not allowed to update a user contribution.')
+    }
+
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
