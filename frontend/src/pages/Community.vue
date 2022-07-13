@@ -67,7 +67,7 @@ export default {
           },
         })
         .then((result) => {
-          console.log('result', result.data)
+          // console.log('result', result.data)
           const {
             data: { listContributions },
           } = result

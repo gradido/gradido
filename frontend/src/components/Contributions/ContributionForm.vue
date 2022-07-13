@@ -101,12 +101,12 @@ export default {
       return false
     },
     lastMonthObject() {
-      // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month 
+      // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
-          month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
-          year: new Date().getMonth === 1 ? new Date().getFullYear() - 1 : new Date().getFullYear(),
-          creation: this.$store.state.creation[1],
-        }
+        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
+        year: new Date().getMonth === 1 ? new Date().getFullYear() - 1 : new Date().getFullYear(),
+        creation: this.$store.state.creation[1],
+      }
       return this.$t('contribution.formText.lastMonth', obj)
     },
     thisMonthObject() {
