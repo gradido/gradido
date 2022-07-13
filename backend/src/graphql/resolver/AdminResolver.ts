@@ -47,11 +47,11 @@ import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
-  getCreationIndex,
   getUserCreation,
   getUserCreations,
   validateContribution,
   isStartEndDateValid,
+  updateCreations,
 } from './util/creations'
 import {
   CONTRIBUTIONLINK_MEMO_MAX_CHARS,
@@ -319,6 +319,10 @@ export class AdminResolver {
 
     if (contributionToUpdate.userId !== user.id) {
       throw new Error('user of the pending contribution and send user does not correspond')
+    }
+
+    if (contributionToUpdate.moderatorId === null) {
+      throw new Error('An admin is not allowed to update a user contribution.')
     }
 
     const creationDateObj = new Date(creationDate)
@@ -687,14 +691,4 @@ export class AdminResolver {
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
-}
-
-function updateCreations(creations: Decimal[], contribution: Contribution): Decimal[] {
-  const index = getCreationIndex(contribution.contributionDate.getMonth())
-
-  if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
-  }
-  creations[index] = creations[index].plus(contribution.amount.toString())
-  return creations
 }
