@@ -1,6 +1,7 @@
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
+import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
 
@@ -116,4 +117,14 @@ export const isStartEndDateValid = (
     logger.error(`The value of validFrom must before or equals the validTo!`)
     throw new Error(`The value of validFrom must before or equals the validTo!`)
   }
+}
+
+export const updateCreations = (creations: Decimal[], contribution: Contribution): Decimal[] => {
+  const index = getCreationIndex(contribution.contributionDate.getMonth())
+
+  if (index < 0) {
+    throw new Error('You cannot create GDD for a month older than the last three months.')
+  }
+  creations[index] = creations[index].plus(contribution.amount.toString())
+  return creations
 }
