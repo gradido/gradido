@@ -4,8 +4,8 @@
       <h3>{{ $t('contribution.formText.h3') }}</h3>
       {{ $t('contribution.formText.text1') }}
       <ul class="my-3">
-        <li v-html="$t('contribution.formText.lastMonth', lastMonthObject)"></li>
-        <li v-html="$t('contribution.formText.thisMonth', thisMonthObject)"></li>
+        <li v-html="lastMonthObject"></li>
+        <li v-html="thisMonthObject"></li>
       </ul>
 
       <div class="my-3">
@@ -39,7 +39,6 @@
         class="text-right"
         :class="form.memo.length < minlength ? 'text-danger' : 'text-success'"
       >
-        {{ form.memo.length }}
         <span v-if="form.memo.length < minlength">{{ $t('math.equalTo') }} {{ minlength }}</span>
         <span v-else>{{ $t('math.divide') }} {{ maxlength }}</span>
       </div>
@@ -65,10 +64,10 @@
 </template>
 <script>
 /*
-* data.lastMonth = The date set back by one month.
-* data.min = The date is reset by one month to the 1st of the previous month.
-*
-*/
+ * data.lastMonth = The date set back by one month.
+ * data.min = The date is reset by one month to the 1st of the previous month.
+ *
+ */
 export default {
   name: 'ContributionForm',
   data() {
@@ -102,28 +101,30 @@ export default {
         return true
       return false
     },
-    lastMonthObject(){
+    lastMonthObject() {
+      let obj = {
+        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
+        year: new Date().getFullYear(),
+        creation: this.$store.state.creation[1],
+      }
       // If the current month is January then the current year must be counted back by -1.
       if (new Date().getMonth === 1) {
-        return {
-        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: "long" }), 
-        year: new Date().getFullYear() - 1, 
-        creation: this.$store.state.creation[1]
+        obj = {
+          month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
+          year: new Date().getFullYear() - 1,
+          creation: this.$store.state.creation[1],
         }
       }
-      return {
-        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: "long" }), 
-        year: new Date().getFullYear(), 
-        creation: this.$store.state.creation[1]
-        }
+      return this.$t('contribution.formText.lastMonth', obj)
     },
     thisMonthObject() {
-      return {
-        month: new Date().toLocaleString(this.$i18n.locale, { month: "long" }),  
-        year: new Date().getFullYear(), 
-        creation: this.$store.state.creation[2]
+      const obj = {
+        month: new Date().toLocaleString(this.$i18n.locale, { month: 'long' }),
+        year: new Date().getFullYear(),
+        creation: this.$store.state.creation[2],
       }
-    }
+      return this.$t('contribution.formText.thisMonth', obj)
+    },
   },
 }
 </script>
