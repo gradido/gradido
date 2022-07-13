@@ -57,7 +57,6 @@
         <b-button class="test-submit" type="submit" variant="primary" :disabled="disable">
           {{ $t('contribution.submit') }}
         </b-button>
-        {{ form }}
       </div>
     </b-form>
   </div>
@@ -102,19 +101,12 @@ export default {
       return false
     },
     lastMonthObject() {
-      let obj = {
-        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
-        year: new Date().getFullYear(),
-        creation: this.$store.state.creation[1],
-      }
-      // If the current month is January then the current year must be counted back by -1.
-      if (new Date().getMonth === 1) {
-        obj = {
+      // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month 
+      const obj = {
           month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
-          year: new Date().getFullYear() - 1,
+          year: new Date().getMonth === 1 ? new Date().getFullYear() - 1 : new Date().getFullYear(),
           creation: this.$store.state.creation[1],
         }
-      }
       return this.$t('contribution.formText.lastMonth', obj)
     },
     thisMonthObject() {

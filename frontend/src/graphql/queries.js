@@ -162,3 +162,25 @@ export const listTransactionLinks = gql`
     }
   }
 `
+
+export const listContributions = gql`
+  query(
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $filterConfirmed: Boolean = false
+  ) {
+    listContributions(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      filterConfirmed: $filterConfirmed
+    ) {
+      id
+      amount
+      memo
+      createdAt
+      deletedAt
+    }
+  }
+`
