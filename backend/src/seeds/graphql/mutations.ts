@@ -230,3 +230,13 @@ export const deleteContributionLink = gql`
     deleteContributionLink(id: $id)
   }
 `
+
+export const createContribution = gql`
+  mutation ($amount: Decimal!, $memo: String!, $creationDate: String!) {
+    createContribution(amount: $amount, memo: $memo, creationDate: $creationDate) {
+      id
+      amount
+      memo
+    }
+  }
+`
