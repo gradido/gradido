@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { adminUpdateContribution, createContribution, updateContribution } from '@/seeds/graphql/mutations'
+import {
+  adminUpdateContribution,
+  createContribution,
+  updateContribution,
+} from '@/seeds/graphql/mutations'
 import { listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
