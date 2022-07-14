@@ -2,7 +2,7 @@
   <div class="contribution-list container">
     {{ items.length }}
     <div class="list-group" v-for="item in items" :key="item.id">
-      <contribution-list-item v-bind="item" />
+      <contribution-list-item v-bind="item" @update-contribution="updateContribution" />
     </div>
     <b-pagination
       v-if="isPaginationVisible"
@@ -49,6 +49,9 @@ export default {
         pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)
+    },
+    updateContribution(item) {
+      this.$emit('update-contribution', item)
     },
   },
   computed: {

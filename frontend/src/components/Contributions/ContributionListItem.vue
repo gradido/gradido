@@ -11,11 +11,19 @@
           <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
         </div>
         <div class="mr-2">{{ memo }}</div>
-        <div v-if="type === 'pending'" class="text-right pointer">
+        <div
+          v-if="type === 'pending'"
+          class="text-right pointer"
+          @click="
+            $emit('update-contribution', {
+              id: id,
+              createdAt: createdAt,
+              memo: memo,
+              amount: amount,
+            })
+          "
+        >
           <b-icon icon="pencil" class="h2"></b-icon>
-        </div>
-        <div v-if="type === 'deleted'" class="text-right pointer">
-          <b-icon icon="trash-fill" class="h2"></b-icon>
         </div>
       </div>
     </slot>
@@ -67,6 +75,11 @@ export default {
       if (this.deletedAt !== null) return this.deletedAt
       if (this.confirmedAt !== null) return this.confirmedAt
       return this.createdAt
+    },
+  },
+  methods: {
+    updateContribution(item) {
+      this.$emit('update-contribution', item)
     },
   },
 }

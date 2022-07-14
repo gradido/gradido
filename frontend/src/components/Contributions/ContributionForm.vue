@@ -16,7 +16,7 @@
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
         id="testdate"
-        v-model="form.date"
+        v-model="date"
         size="lg"
         :max="max"
         :min="min"
@@ -28,7 +28,7 @@
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
         id="testmemo"
-        v-model="form.memo"
+        v-model="memo"
         rows="3"
         max-rows="6"
         required
@@ -46,7 +46,7 @@
       <b-input-group size="lg" prepend="GDD" append=".00">
         <b-form-input
           id="testamount"
-          v-model="form.amount"
+          v-model="amount"
           type="number"
           min="1"
           max="1000"
@@ -57,7 +57,7 @@
         <b-button class="test-submit" type="submit" variant="primary" :disabled="disable">
           {{ $t('contribution.submit') }}
         </b-button>
-        {{ $store.state }}
+        {{date}}, {{amount}}, {{ memo}}
       </div>
     </b-form>
   </div>
@@ -70,6 +70,12 @@
  */
 export default {
   name: 'ContributionForm',
+  props: {
+    id: { type: Number, required: false},
+    date: { type: String, required: true},
+    memo: { type: String, required: true},
+    amount: { type: String, required: true},
+  },
   data() {
     return {
       minlength: 50,
@@ -78,9 +84,9 @@ export default {
       min: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1)),
       max: new Date(),
       form: {
-        date: '',
-        memo: '',
-        amount: 0,
+        date: this.date,
+        memo: this.memo,
+        amount: this.amount,
       },
     }
   },
@@ -119,5 +125,11 @@ export default {
       return this.$t('contribution.formText.thisMonth', obj)
     },
   },
+  watch: {
+    id(newId, oldId){
+      console.log('eine id kommt mit')
+    }
+
+  }
 }
 </script>

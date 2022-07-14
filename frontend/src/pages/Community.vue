@@ -1,14 +1,15 @@
 <template>
   <div class="community-page">
     <div>
-      <b-tabs content-class="mt-3" align="center">
+      <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
         <b-tab :title="$t('community.writing')" active>
-          <contribution-form @set-contribution="setContribution" />
+          <contribution-form @set-contribution="setContribution" v-bind="form" />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
           <contribution-list
             :items="items"
             @update-list-contributions="updateListContributions"
+            @update-contribution="updateContribution"
             :contributionCount="contributionCount"
             :showPagination="true"
             :pageSize="pageSize"
@@ -33,10 +34,17 @@ export default {
   },
   data() {
     return {
+      tabIndex: 0,
       items: [],
       currentPage: 1,
       pageSize: 25,
       contributionCount: 0,
+      form: {
+        id: null,
+        date: '',
+        memo: '',
+        amount: '',
+      },
     }
   },
   methods: {
@@ -103,6 +111,12 @@ export default {
         .catch(() => {
           this.$emit('logout')
         })
+    },
+    updateContribution(item) {
+      this.tabIndex = 0
+      this.form.date = item.createdAt
+      this.form.memo = item.memo
+      this.form.amount = item.amount
     },
   },
   created() {
