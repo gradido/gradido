@@ -2,17 +2,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-<<<<<<< HEAD
-import { createContribution } from '@/seeds/graphql/mutations'
-import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
-=======
 import {
   adminUpdateContribution,
   createContribution,
   updateContribution,
 } from '@/seeds/graphql/mutations'
-import { listContributions, login } from '@/seeds/graphql/queries'
->>>>>>> master
+import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
@@ -246,19 +241,6 @@ describe('ContributionResolver', () => {
     })
   })
 
-<<<<<<< HEAD
-  describe('listAllContribution', () => {
-    describe('unauthenticated', () => {
-      it('returns an error', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-=======
   describe('updateContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
@@ -270,7 +252,6 @@ describe('ContributionResolver', () => {
               amount: 100.0,
               memo: 'Test Contribution',
               creationDate: 'not-valid',
->>>>>>> master
             },
           }),
         ).resolves.toEqual(
@@ -283,25 +264,13 @@ describe('ContributionResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-<<<<<<< HEAD
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        // await creationFactory(testEnv, creations!)
-=======
         await userFactory(testEnv, peterLustig)
         await userFactory(testEnv, bibiBloxberg)
->>>>>>> master
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-<<<<<<< HEAD
-        await mutate({
-=======
         result = await mutate({
->>>>>>> master
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -316,37 +285,6 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-<<<<<<< HEAD
-      it('returns allCreation', async () => {
-        await expect(
-          query({
-            query: listAllContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
-            },
-          }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              listAllContributions: expect.arrayContaining([
-                expect.objectContaining({
-                  id: expect.any(Number),
-                  memo: 'Herzlich Willkommen bei Gradido!',
-                  amount: '1000',
-                }),
-                expect.objectContaining({
-                  id: expect.any(Number),
-                  memo: 'Test env contribution',
-                  amount: '100',
-                }),
-              ]),
-            },
-          }),
-        )
-=======
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
           await expect(
@@ -497,8 +435,84 @@ describe('ContributionResolver', () => {
             }),
           )
         })
->>>>>>> master
       })
+
+      describe('listAllContribution', () => {
+        describe('unauthenticated', () => {
+          it('returns an error', async () => {
+            await expect(
+              query({
+                query: listAllContributions,
+                variables: {
+                  currentPage: 1,
+                  pageSize: 25,
+                  order: 'DESC',
+                  filterConfirmed: false,
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('401 Unauthorized')],
+              }),
+            )
+          })
+        })
+      })
+    })
+  })
+
+  describe('authenticated', () => {
+    beforeAll(async () => {
+      await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, peterLustig)
+      creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // await creationFactory(testEnv, creations!)
+      await userFactory(testEnv, peterLustig)
+      await userFactory(testEnv, bibiBloxberg)
+      await query({
+        query: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      result = await mutate({
+        mutation: createContribution,
+        variables: {
+          amount: 100.0,
+          memo: 'Test env contribution',
+          creationDate: new Date().toString(),
+        },
+      })
+    })
+
+    it('returns allCreation', async () => {
+      await expect(
+        query({
+          query: listAllContributions,
+          variables: {
+            currentPage: 1,
+            pageSize: 25,
+            order: 'DESC',
+            filterConfirmed: false,
+          },
+        }),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          data: {
+            listAllContributions: expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(Number),
+                memo: 'Herzlich Willkommen bei Gradido!',
+                amount: '1000',
+              }),
+              expect.objectContaining({
+                id: expect.any(Number),
+                memo: 'Test env contribution',
+                amount: '100',
+              }),
+            ]),
+          },
+        }),
+      )
     })
   })
 })
