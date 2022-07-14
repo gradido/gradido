@@ -3,7 +3,7 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { User as dbUser } from '@entity/User'
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { FindOperator, IsNull, Not } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
@@ -11,7 +11,7 @@ import { Order } from '@enum/Order'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
-import { validateContribution, getUserCreation } from './util/creations'
+import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 
 @Resolver()
 export class ContributionResolver {
@@ -96,5 +96,41 @@ export class ContributionResolver {
       contributions.push(new Contribution(dbContribution, users.get(dbContribution.userId)))
     })
     return new ContributionListResult(contributions.length, contributions)
+  }
+
+  @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
+  @Mutation(() => UnconfirmedContribution)
+  async updateContribution(
+    @Arg('contributionId', () => Int)
+    contributionId: number,
+    @Args() { amount, memo, creationDate }: ContributionArgs,
+    @Ctx() context: Context,
+  ): Promise<UnconfirmedContribution> {
+    const user = getUser(context)
+
+    const contributionToUpdate = await dbContribution.findOne({
+      where: { id: contributionId, confirmedAt: IsNull() },
+    })
+    if (!contributionToUpdate) {
+      throw new Error('No contribution found to given id.')
+    }
+    if (contributionToUpdate.userId !== user.id) {
+      throw new Error('user of the pending contribution and send user does not correspond')
+    }
+
+    const creationDateObj = new Date(creationDate)
+    let creations = await getUserCreation(user.id)
+    if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
+      creations = updateCreations(creations, contributionToUpdate)
+    }
+
+    // all possible cases not to be true are thrown in this function
+    validateContribution(creations, amount, creationDateObj)
+    contributionToUpdate.amount = amount
+    contributionToUpdate.memo = memo
+    contributionToUpdate.contributionDate = new Date(creationDate)
+    dbContribution.save(contributionToUpdate)
+
+    return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }
 }
