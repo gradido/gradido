@@ -14,6 +14,8 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -436,83 +438,84 @@ describe('ContributionResolver', () => {
           )
         })
       })
-
-      describe('listAllContribution', () => {
-        describe('unauthenticated', () => {
-          it('returns an error', async () => {
-            await expect(
-              query({
-                query: listAllContributions,
-                variables: {
-                  currentPage: 1,
-                  pageSize: 25,
-                  order: 'DESC',
-                  filterConfirmed: false,
-                },
-              }),
-            ).resolves.toEqual(
-              expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
-              }),
-            )
-          })
-        })
-      })
     })
   })
 
-  describe('authenticated', () => {
-    beforeAll(async () => {
-      await userFactory(testEnv, bibiBloxberg)
-      await userFactory(testEnv, peterLustig)
-      creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      // await creationFactory(testEnv, creations!)
-      await userFactory(testEnv, peterLustig)
-      await userFactory(testEnv, bibiBloxberg)
-      await query({
-        query: login,
-        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-      })
-      result = await mutate({
-        mutation: createContribution,
-        variables: {
-          amount: 100.0,
-          memo: 'Test env contribution',
-          creationDate: new Date().toString(),
-        },
+  describe('listAllContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
       })
     })
 
-    it('returns allCreation', async () => {
-      await expect(
-        query({
-          query: listAllContributions,
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        await userFactory(testEnv, raeuberHotzenplotz)
+        await userFactory(testEnv, bobBaumeister)
+        creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        result = await mutate({
+          mutation: createContribution,
           variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            filterConfirmed: false,
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
           },
-        }),
-      ).resolves.toEqual(
-        expect.objectContaining({
-          data: {
-            listAllContributions: expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(Number),
-                memo: 'Herzlich Willkommen bei Gradido!',
-                amount: '1000',
-              }),
-              expect.objectContaining({
-                id: expect.any(Number),
-                memo: 'Test env contribution',
-                amount: '100',
-              }),
-            ]),
-          },
-        }),
-      )
+        })
+      })
+
+      it('returns allCreation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                linkCount: 25,
+                linkList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
+      })
     })
   })
 })
