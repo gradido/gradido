@@ -65,9 +65,9 @@ export class ContributionResolver {
     return contributions.map((contribution) => new Contribution(contribution, new User(user)))
   }
 
-  @Authorized([RIGHTS.LIST_ALL_CONFIRMED_CONTRIBUTIONS])
+  @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
-  async listAllConfirmedContributions(
+  async listAllContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionListResult> {
