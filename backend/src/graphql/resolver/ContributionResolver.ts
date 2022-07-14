@@ -2,12 +2,13 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
+import { User as dbUser } from '@entity/User'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull } from '@dbTools/typeorm'
+import { FindOperator, IsNull, Not } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
-import { Contribution } from '@model/Contribution'
+import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation } from './util/creations'
@@ -62,5 +63,38 @@ export class ContributionResolver {
       take: pageSize,
     })
     return contributions.map((contribution) => new Contribution(contribution, new User(user)))
+  }
+
+  @Authorized([RIGHTS.LIST_ALL_CONFIRMED_CONTRIBUTIONS])
+  @Query(() => ContributionListResult)
+  async listAllConfirmedContributions(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionListResult> {
+    const dbContributions = await dbContribution.find({
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    const contributions: Contribution[] = []
+    const userIds: number[] = []
+    dbContributions.forEach(async (dbContribution) => {
+      userIds.push(dbContribution.userId)
+    })
+    userIds.filter((elem, index, self) => {
+      return index === self.indexOf(elem)
+    })
+    const users = new Map()
+    for (let i = 0; i < userIds.length; i++) {
+      const id = userIds[i]
+      const user = await dbUser.findOneOrFail({ id })
+      users.set(id, user)
+    }
+    dbContributions.forEach((dbContribution) => {
+      contributions.push(new Contribution(dbContribution, users.get(dbContribution.userId)))
+    })
+    return new ContributionListResult(contributions.length, contributions)
   }
 }
