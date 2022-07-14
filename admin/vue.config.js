@@ -8,6 +8,15 @@ const CONFIG = require('./src/config')
 module.exports = {
   devServer: {
     port: CONFIG.PORT,
+    // public: 'myapp.test:80',
+    // public: 'myapp.test:8080',
+    public: 'myapp.test:80/admin/',
+    // public: 'myapp.test:8080/admin/',
+    // webpack v5
+    // client: {
+    //   // webSocketURL: 'ws://0.0.0.0:8080/ws',
+    //   webSocketURL: 'ws://0.0.0.0:80/ws',
+    // },
     // port: 80,
     // host: 'localhost:80',
   },
