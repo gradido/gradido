@@ -468,6 +468,7 @@ describe('ContributionResolver', () => {
         await userFactory(testEnv, peterLustig)
         await userFactory(testEnv, raeuberHotzenplotz)
         await userFactory(testEnv, bobBaumeister)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
         await query({
           query: login,
