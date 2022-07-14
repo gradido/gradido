@@ -7,7 +7,9 @@ import { User } from './User'
 export class Contribution {
   constructor(contribution: dbContribution, user: User) {
     this.id = contribution.id
-    this.user = user
+    this.userId = user ? user.id : null
+    this.firstName = user ? user.firstName : null
+    this.lastName = user ? user.lastName : null
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -17,8 +19,14 @@ export class Contribution {
   @Field(() => Number)
   id: number
 
-  @Field(() => User)
-  user: User
+  @Field(() => Number, { nullable: true })
+  userId: number | null
+
+  @Field(() => String, { nullable: true })
+  firstName: string | null
+
+  @Field(() => String, { nullable: true })
+  lastName: string | null
 
   @Field(() => Decimal)
   amount: Decimal
