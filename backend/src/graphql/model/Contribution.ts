@@ -35,6 +35,11 @@ export class Contribution {
 
 @ObjectType()
 export class ContributionListResult {
+  constructor(count: number, list: Contribution[]) {
+    this.linkCount = count
+    this.linkList = list
+  }
+
   @Field(() => Int)
   linkCount: number
 
