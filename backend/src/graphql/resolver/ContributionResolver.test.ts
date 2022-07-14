@@ -170,7 +170,7 @@ describe('ContributionResolver', () => {
 
       afterAll(async () => {
         await cleanDB()
-        await con.close()
+        resetToken()
       })
 
       describe('filter confirmed is false', () => {
@@ -280,7 +280,7 @@ describe('ContributionResolver', () => {
 
       afterAll(async () => {
         await cleanDB()
-        await con.close()
+        resetToken()
       })
 
       it('returns allCreation', async () => {
