@@ -96,7 +96,7 @@ const webhook = {
 
 const eventProtocol = {
   // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_ENABLED: process.env.EVENT_PROTOCOL_ENABLED === 'true' || false,
+  EVENT_PROTOCOL_ENABLED: process.env.EVENT_PROTOCOL_ENABLED || true,
 }
 
 // This is needed by graphql-directive-auth
