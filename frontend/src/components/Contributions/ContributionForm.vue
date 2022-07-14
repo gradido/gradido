@@ -57,6 +57,7 @@
         <b-button class="test-submit" type="submit" variant="primary" :disabled="disable">
           {{ $t('contribution.submit') }}
         </b-button>
+        {{ $store.state }}
       </div>
     </b-form>
   </div>

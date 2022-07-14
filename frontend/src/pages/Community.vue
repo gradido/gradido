@@ -6,12 +6,15 @@
           <contribution-form @set-contribution="setContribution" />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
-          <contribution-list :items="items" />
+          <contribution-list
+            :items="items"
+            @update-list-contributions="updateListContributions"
+            :contributionCount="contributionCount"
+            :showPagination="true"
+            :pageSize="pageSize"
+          />
         </b-tab>
-        <b-tab :title="$t('navigation.community')">
-          <contribution-list :items="items" />
-          <contribution-list :items="items" />
-        </b-tab>
+        <b-tab :title="$t('navigation.community')"></b-tab>
       </b-tabs>
     </div>
   </div>
@@ -20,7 +23,7 @@
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import { createContribution } from '@/graphql/mutations'
-import { listContributions } from '@/graphql/queries'
+import { listContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
   name: 'Community',
@@ -30,9 +33,10 @@ export default {
   },
   data() {
     return {
+      items: [],
       currentPage: 1,
       pageSize: 25,
-      items: [],
+      contributionCount: 0,
     }
   },
   methods: {
@@ -51,19 +55,24 @@ export default {
         .then((result) => {
           // console.log('result', result.data)
           this.toastSuccess(result.data)
+          this.updateListContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
+          this.verifyLogin()
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
-    getListContributions(data) {
+    async updateListContributions(pagination) {
       this.$apollo
         .query({
           fetchPolicy: 'no-cache',
           query: listContributions,
           variables: {
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
+            currentPage: pagination.currentPage,
+            pageSize: pagination.pageSize,
           },
         })
         .then((result) => {
@@ -71,6 +80,7 @@ export default {
           const {
             data: { listContributions },
           } = result
+          this.contributionCount = listContributions.length
           this.items = listContributions
           // this.toastSuccess(result.data)
         })
@@ -78,9 +88,28 @@ export default {
           this.toastError(err.message)
         })
     },
+    verifyLogin() {
+      this.$apollo
+        .query({
+          query: verifyLogin,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          const {
+            data: { verifyLogin },
+          } = result
+          this.$store.dispatch('login', verifyLogin)
+        })
+        .catch(() => {
+          this.$emit('logout')
+        })
+    },
   },
   created() {
-    this.getListContributions()
+    this.updateListContributions({
+      currentPage: this.currentPage,
+      pageSize: this.pageSize,
+    })
   },
 }
 </script>
