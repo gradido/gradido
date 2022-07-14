@@ -7,7 +7,6 @@ import { User } from './User'
 export class Contribution {
   constructor(contribution: dbContribution, user: User) {
     this.id = contribution.id
-    this.userId = user ? user.id : null
     this.firstName = user ? user.firstName : null
     this.lastName = user ? user.lastName : null
     this.amount = contribution.amount
@@ -18,9 +17,6 @@ export class Contribution {
 
   @Field(() => Number)
   id: number
-
-  @Field(() => Number, { nullable: true })
-  userId: number | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
