@@ -1,0 +1,17 @@
+{
+  "name": "gradido-e2e-tests-cypress",
+  "version": "1.0.0",
+  "description": "End-to-end tests with Cypress",
+  "main": "yarn run cypress run",
+  "repository": "https://github.com/gradido/gradido/e2e-tests/cypress",
+  "author": "Mathias Lenz",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "cypress-e2e-tests": "yarn run cypress run",
+    "lint": "eslint --max-warnings=0 --ext .js,.ts ."
+  },
+  "dependencies": {
+    "cypress": "^10.3.0"
+  }
+}

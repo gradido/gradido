@@ -22,5 +22,5 @@ cd e2e-tests/cypress
 docker build -t gradido_e2e-tests-cypress .
 
 # run the Docker container and execute the given tests
-docker run -it gradido_e2e-tests-cypress cypress run
+docker run -it gradido_e2e-tests-cypress yarn run cypress-e2e-tests
 ```
