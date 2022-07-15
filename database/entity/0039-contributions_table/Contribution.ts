@@ -1,6 +1,15 @@
 import Decimal from 'decimal.js-light'
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, DeleteDateColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  DeleteDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+import { User } from '../User'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {
@@ -9,6 +18,10 @@ export class Contribution extends BaseEntity {
 
   @Column({ unsigned: true, nullable: false, name: 'user_id' })
   userId: number
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
