@@ -57,23 +57,23 @@ export default {
   },
   computed: {
     type() {
-      if (this.deletedAt !== null) return 'deleted'
-      if (this.confirmedAt !== null) return 'confirmed'
+      if (this.deletedAt) return 'deleted'
+      if (this.confirmedAt) return 'confirmed'
       return 'pending'
     },
     icon() {
-      if (this.deletedAt !== null) return 'x-circle'
-      if (this.confirmedAt !== null) return 'check'
+      if (this.deletedAt) return 'x-circle'
+      if (this.confirmedAt) return 'check'
       return 'bell-fill'
     },
     variant() {
-      if (this.deletedAt !== null) return 'danger'
-      if (this.confirmedAt !== null) return 'success'
+      if (this.deletedAt) return 'danger'
+      if (this.confirmedAt) return 'success'
       return 'primary'
     },
     date() {
-      if (this.deletedAt !== null) return this.deletedAt
-      if (this.confirmedAt !== null) return this.confirmedAt
+      if (this.deletedAt) return this.deletedAt
+      if (this.confirmedAt) return this.confirmedAt
       return this.createdAt
     },
   },

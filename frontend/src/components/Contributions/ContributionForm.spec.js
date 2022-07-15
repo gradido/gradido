@@ -11,7 +11,7 @@ describe('ContributionForm', () => {
     $d: jest.fn((d) => d),
     $store: {
       state: {
-        creation: ["1000","1000","1000"],
+        creation: ['1000', '1000', '1000'],
       },
     },
   }

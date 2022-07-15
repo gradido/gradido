@@ -73,7 +73,7 @@ export default {
           this.toastError(err.message)
         })
     },
-    async updateListContributions(pagination) {
+    updateListContributions(pagination) {
       this.$apollo
         .query({
           fetchPolicy: 'no-cache',
