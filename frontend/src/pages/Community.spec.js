@@ -1,11 +1,9 @@
 import { mount } from '@vue/test-utils'
 import Community from './Community'
-// import { createContribution } from '@/graphql/mutations'
-
-// import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
+const mockStoreDispach = jest.fn()
 const apolloMutationMock = jest.fn()
 apolloMutationMock.mockResolvedValue('success')
 
@@ -14,8 +12,12 @@ describe('Community', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $d: jest.fn((d) => d),
     $apollo: {
       mutate: apolloMutationMock,
+    },
+    $store: {
+      dispatch: mockStoreDispach,
     },
   }
 

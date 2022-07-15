@@ -118,12 +118,16 @@ export default {
       this.form.memo = item.memo
       this.form.amount = item.amount
     },
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
   },
   created() {
     this.updateListContributions({
       currentPage: this.currentPage,
       pageSize: this.pageSize,
     })
+    this.updateTransactions(0)
   },
 }
 </script>

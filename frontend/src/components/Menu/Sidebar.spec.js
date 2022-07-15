@@ -47,11 +47,11 @@ describe('Sidebar', () => {
       it('has first nav-item "navigation.transactions" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
       })
-      it('has first nav-item "navigation.profile" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('navigation.profile')
-      })
       it('has a link to the community area', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.community')
+        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('navigation.community')
+      })
+      it('has first nav-item "navigation.profile" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('navigation.profile')
       })
       it('has a link to the members area', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.members_area')
