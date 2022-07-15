@@ -12,6 +12,7 @@
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
-    "cypress": "^10.3.0"
+    "cypress": "^10.3.0",
+    "eslint": "^8.19.0"
   }
 }
