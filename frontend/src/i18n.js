@@ -84,6 +84,10 @@ const dateTimeFormats = {
     year: {
       year: 'numeric',
     },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
   },
   de: {
     short: {
@@ -106,6 +110,10 @@ const dateTimeFormats = {
       month: 'long',
     },
     year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
       year: 'numeric',
     },
   },

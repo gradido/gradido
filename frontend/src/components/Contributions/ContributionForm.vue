@@ -15,7 +15,7 @@
     <b-form ref="form" @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
-        id="testdate"
+        id="contribution-date"
         v-model="date"
         size="lg"
         :max="max"
@@ -27,7 +27,7 @@
       ></b-form-datepicker>
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
-        id="testmemo"
+        id="contribution-memo"
         v-model="memo"
         rows="3"
         max-rows="6"
@@ -45,7 +45,7 @@
       <label class="mt-3">{{ $t('form.amount') }}</label>
       <b-input-group size="lg" prepend="GDD" append=".00">
         <b-form-input
-          id="testamount"
+          id="contribution-amount"
           v-model="amount"
           type="number"
           min="1"
@@ -54,7 +54,7 @@
       </b-input-group>
 
       <div class="mt-3 text-right">
-        <b-button class="test-submit" type="submit" variant="primary" :disabled="disable">
+        <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
           {{ $t('contribution.submit') }}
         </b-button>
         {{date}}, {{amount}}, {{ memo}}
@@ -80,8 +80,6 @@ export default {
     return {
       minlength: 50,
       maxlength: 255,
-      lastMonth: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1))),
-      min: new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1)),
       max: new Date(),
       form: {
         date: this.date,
@@ -98,10 +96,16 @@ export default {
     },
   },
   computed: {
-    disable() {
+    lastMonth(){
+      return new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)))
+    },
+    min() {
+      return new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1))
+    },
+    disabled() {
       if (
         this.form.memo.length < this.minlength ||
-        this.form.amount === 0 ||
+        this.form.amount <= 0 ||
         this.form.amount > 1000
       )
         return true
@@ -110,16 +114,14 @@ export default {
     lastMonthObject() {
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
-        month: new Date(this.lastMonth).toLocaleString(this.$i18n.locale, { month: 'long' }),
-        year: new Date().getMonth === 1 ? new Date().getFullYear() - 1 : new Date().getFullYear(),
+        monthAndYear: this.$d(new Date(this.lastMonth), 'monthAndYear'),
         creation: this.$store.state.creation[1],
       }
       return this.$t('contribution.formText.lastMonth', obj)
     },
     thisMonthObject() {
       const obj = {
-        month: new Date().toLocaleString(this.$i18n.locale, { month: 'long' }),
-        year: new Date().getFullYear(),
+        monthAndYear: this.$d(new Date(), 'monthAndYear'),
         creation: this.$store.state.creation[2],
       }
       return this.$t('contribution.formText.thisMonth', obj)
