@@ -2,7 +2,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User as dbUser } from '@entity/User'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { FindOperator, IsNull } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
@@ -72,31 +71,20 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionListResult> {
-    const dbContributions = await dbContribution.find({
+    const [dbContributions, count] = await dbContribution.findAndCount({
+      relations: ['user'],
       order: {
         createdAt: order,
       },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-    const contributions: Contribution[] = []
-    const userIds: number[] = []
-    dbContributions.forEach(async (dbContribution) => {
-      userIds.push(dbContribution.userId)
-    })
-    userIds.filter((elem, index, self) => {
-      return index === self.indexOf(elem)
-    })
-    const users = new Map()
-    for (let i = 0; i < userIds.length; i++) {
-      const id = userIds[i]
-      const user = await dbUser.findOneOrFail({ id })
-      users.set(id, user)
-    }
-    dbContributions.forEach((dbContribution) => {
-      contributions.push(new Contribution(dbContribution, users.get(dbContribution.userId)))
-    })
-    return new ContributionListResult(contributions.length, contributions)
+    return new ContributionListResult(
+      count,
+      dbContributions.map(
+        (contribution) => new Contribution(contribution, new User(contribution.user)),
+      ),
+    )
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
