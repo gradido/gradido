@@ -1,6 +1,6 @@
 /* MIGRATION TO ADD GRADIDO_ID
  *
- * This migration adds new columns to the table `users` and creates the 
+ * This migration adds new columns to the table `users` and creates the
  * new table `user_contacts`
  */
 

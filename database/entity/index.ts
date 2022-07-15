@@ -5,6 +5,7 @@ import { Migration } from './Migration'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
+import { UserContact } from './UserContact'
 import { Contribution } from './Contribution'
 
 export const entities = [
@@ -16,4 +17,5 @@ export const entities = [
   Transaction,
   TransactionLink,
   User,
+  UserContact,
 ]
