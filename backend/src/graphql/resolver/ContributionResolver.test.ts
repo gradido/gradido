@@ -466,15 +466,14 @@ describe('ContributionResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await userFactory(testEnv, raeuberHotzenplotz)
-        await userFactory(testEnv, bobBaumeister)
+        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        creations.forEach(async (creation) => await creationFactory(testEnv, creation!))
+        await creationFactory(testEnv, bibisCreation!)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        result = await mutate({
+        await mutate({
           mutation: createContribution,
           variables: {
             amount: 100.0,
@@ -499,7 +498,7 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                linkCount: 25,
+                linkCount: 2,
                 linkList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
