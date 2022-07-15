@@ -9,7 +9,7 @@ class LoginPage {
   }
 
   enterPassword(password) {
-    cy.get('[id=Passwors-input-field]').clear().type(password)
+    cy.get('[id=Password-input-field]').clear().type(password)
     return this
   }
 
