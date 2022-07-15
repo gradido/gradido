@@ -12,7 +12,6 @@
         <b>{{ $t('contribution.formText.text2') }}</b>
       </div>
     </div>
-    {{ id }}
     <b-form ref="form" @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
@@ -66,21 +65,14 @@
 export default {
   name: 'ContributionForm',
   props: {
-    id: { type: Number, required: false, default: null },
-    date: { type: String, required: false },
-    memo: { type: String, required: false },
-    amount: { type: String, required: false },
+    value: { type: Object, required: true },
   },
   data() {
     return {
       minlength: 50,
       maxlength: 255,
       max: new Date(),
-      form: {
-        date: this.id === null ? '' : this.date,
-        memo: this.id === null ? '' : this.memo,
-        amount: this.id === null ? '' : this.amount,
-      },
+      form: this.value,
     }
   },
   methods: {
@@ -97,10 +89,10 @@ export default {
      *
      */
     lastMonth() {
-      return new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)))
+      return new Date(this.max.getFullYear(), this.max.getMonth() - 1, 1)
     },
     min() {
-      return new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)).setDate(1))
+      return new Date(this.max.getFullYear(), this.max.getMonth() - 1, 1)
     },
     disabled() {
       if (
@@ -125,11 +117,6 @@ export default {
         creation: this.$store.state.creation[2],
       }
       return this.$t('contribution.formText.thisMonth', obj)
-    },
-  },
-  watch: {
-    id(newId, oldId) {
-      alert('eine id kommt mit')
     },
   },
 }

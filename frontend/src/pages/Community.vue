@@ -3,7 +3,7 @@
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
         <b-tab :title="$t('community.writing')" active>
-          <contribution-form @set-contribution="setContribution" v-bind="form" />
+          <contribution-form @set-contribution="setContribution" v-model="form" />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
           <contribution-list
@@ -113,10 +113,11 @@ export default {
         })
     },
     updateContribution(item) {
-      this.tabIndex = 0
+      this.form.id = item.id
       this.form.date = item.createdAt
       this.form.memo = item.memo
       this.form.amount = item.amount
+      this.tabIndex = 0
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
