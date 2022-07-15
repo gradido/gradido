@@ -2,7 +2,7 @@
 
 ## Motivation
 
-To introduce the Gradido-ID base on the requirement to identify an user account per technical key instead of using an email-address. Such a technical key ensures an exact identification of an user account without giving detailed information for possible missusage.
+The introduction of the Gradido-ID base on the requirement to identify an user account per technical key instead of using an email-address. Such a technical key ensures an exact identification of an user account without giving detailed information for possible missusage.
 
 Additionally the Gradido-ID allows to administrade any user account data like changing the email address or define several email addresses without any side effects on the identification of the user account.
 
@@ -22,12 +22,12 @@ The second step is to decribe all concerning business logic processes, which hav
 
 The entity users has to be changed by adding the following columns.
 
-| Column                   | Type   | Description                                                                            |
-| ------------------------ | ------ | -------------------------------------------------------------------------------------- |
-| gradidoID                | String | technical unique key of the user as UUID (version 4)                                   |
-| alias                    | String | a business unique key of the user                                                      |
-| passphraseEncryptionType | int    | defines the type of encrypting the passphrase: 1 = email (default), 2 = gradidoID, ... |
-| emailID                  | int    | technical foreign key to the new entity Contact                                        |
+| Column                   | Type   | Description                                                                                                       |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| gradidoID                | String | technical unique key of the user as UUID (version 4)                                                              |
+| alias                    | String | a business unique key of the user                                                                                 |
+| passphraseEncryptionType | int    | defines the type of encrypting the passphrase: 1 = email (default), 2 = gradidoID, ...                            |
+| emailID                  | int    | technical foreign key to the entry with type Email and contactChannel=maincontact of the new entity UserContacts |
 
 ##### Email vs emailID
 
@@ -109,7 +109,7 @@ The logic of change password has to be adapted by
 
   * read the users email address from the `UsersContact `table
   * give the email address as input for the password decryption of the existing password
-  * use the `Users.userID` as input for the password encryption fo the new password
+  * use the `Users.userID` as input for the password encryption for the new password
   * change the `Users.passphraseEnrycptionType` to the new value =2
 * if the `Users.passphraseEncryptionType` = 2, then
 
@@ -129,11 +129,17 @@ A new logic has to be introduced to search the user identity per different input
 A new mapping logic will be necessary to allow using unmigrated APIs like GDT-servers api. So it must be possible to give this identity-mapping logic the following input to get the respective output:
 
 * email -> userID
+* email -> gradidoID
 * email -> alias
+* userID -> gradidoID
 * userID -> email
 * userID -> alias
+* alias -> gradidoID
 * alias -> email
 * alias -> userID
+* gradidoID -> email
+* gradidoID -> userID
+* gradidoID -> alias
 
 #### GDT-Access
 
