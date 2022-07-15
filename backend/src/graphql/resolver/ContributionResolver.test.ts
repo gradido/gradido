@@ -14,8 +14,6 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 let mutate: any, query: any, con: any
 let testEnv: any
