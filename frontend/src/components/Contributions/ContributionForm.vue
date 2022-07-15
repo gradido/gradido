@@ -12,11 +12,12 @@
         <b>{{ $t('contribution.formText.text2') }}</b>
       </div>
     </div>
+    {{ id }}
     <b-form ref="form" @submit.prevent="submit">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
         id="contribution-date"
-        v-model="date"
+        v-model="form.date"
         size="lg"
         :max="max"
         :min="min"
@@ -28,7 +29,7 @@
       <label class="mt-3">{{ $t('contribution.activity') }}</label>
       <b-form-textarea
         id="contribution-memo"
-        v-model="memo"
+        v-model="form.memo"
         rows="3"
         max-rows="6"
         required
@@ -46,7 +47,7 @@
       <b-input-group size="lg" prepend="GDD" append=".00">
         <b-form-input
           id="contribution-amount"
-          v-model="amount"
+          v-model="form.amount"
           type="number"
           min="1"
           max="1000"
@@ -57,24 +58,18 @@
         <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
           {{ $t('contribution.submit') }}
         </b-button>
-        {{date}}, {{amount}}, {{ memo}}
       </div>
     </b-form>
   </div>
 </template>
 <script>
-/*
- * data.lastMonth = The date set back by one month.
- * data.min = The date is reset by one month to the 1st of the previous month.
- *
- */
 export default {
   name: 'ContributionForm',
   props: {
-    id: { type: Number, required: false},
-    date: { type: String, required: true},
-    memo: { type: String, required: true},
-    amount: { type: String, required: true},
+    id: { type: Number, required: false, default: null },
+    date: { type: String, required: false },
+    memo: { type: String, required: false },
+    amount: { type: String, required: false },
   },
   data() {
     return {
@@ -82,9 +77,9 @@ export default {
       maxlength: 255,
       max: new Date(),
       form: {
-        date: this.date,
-        memo: this.memo,
-        amount: this.amount,
+        date: this.id === null ? '' : this.date,
+        memo: this.id === null ? '' : this.memo,
+        amount: this.id === null ? '' : this.amount,
       },
     }
   },
@@ -96,7 +91,12 @@ export default {
     },
   },
   computed: {
-    lastMonth(){
+    /*
+     * lastMonth() = The date set back by one month.
+     * min() = The date is reset by one month to the 1st of the previous month.
+     *
+     */
+    lastMonth() {
       return new Date(new Date(new Date().setMonth(new Date().getMonth() - 1)))
     },
     min() {
@@ -128,10 +128,9 @@ export default {
     },
   },
   watch: {
-    id(newId, oldId){
-      console.log('eine id kommt mit')
-    }
-
-  }
+    id(newId, oldId) {
+      alert('eine id kommt mit')
+    },
+  },
 }
 </script>
