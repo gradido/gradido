@@ -58,6 +58,7 @@ export class ContributionResolver {
       order: {
         createdAt: order,
       },
+      withDeleted: true,
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
