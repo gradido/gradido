@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
@@ -19,7 +20,7 @@ export class Contribution extends BaseEntity {
   @Column({ unsigned: true, nullable: false, name: 'user_id' })
   userId: number
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, (user) => user.contributions)
   @JoinColumn({ name: 'user_id' })
   user: User
 
