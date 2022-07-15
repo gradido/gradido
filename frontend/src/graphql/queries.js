@@ -13,6 +13,7 @@ export const login = gql`
       hasElopage
       publisherId
       isAdmin
+      creation
     }
   }
 `
@@ -30,6 +31,7 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       isAdmin
+      creation
     }
   }
 `
