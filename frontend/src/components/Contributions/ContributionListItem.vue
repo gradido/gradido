@@ -4,6 +4,7 @@
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
         <div class="d-inline-flex">
           <div class="mr-2"><b-icon :icon="icon" :variant="variant" class="h2"></b-icon></div>
+          <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
           <div class="mr-2" :class="type != 'deleted' ? 'font-weight-bold' : ''">
             {{ amount | GDD }}
           </div>
@@ -12,10 +13,10 @@
         </div>
         <div class="mr-2">{{ memo }}</div>
         <div
-          v-if="type === 'pending'"
+          v-if="type === 'pending' && !firstName"
           class="text-right pointer"
           @click="
-            $emit('update-contribution', {
+            $emit('update-contribution-form', {
               id: id,
               createdAt: createdAt,
               memo: memo,
@@ -41,6 +42,14 @@ export default {
     },
     memo: {
       type: String,
+    },
+    firstName: {
+      type: String,
+      require: false,
+    },
+    lastName: {
+      type: String,
+      require: false,
     },
     createdAt: {
       type: String,
@@ -78,8 +87,8 @@ export default {
     },
   },
   methods: {
-    updateContribution(item) {
-      this.$emit('update-contribution', item)
+    updateContributionForm(item) {
+      this.$emit('update-contribution-form', item)
     },
   },
 }
