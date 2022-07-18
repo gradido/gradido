@@ -1,13 +1,6 @@
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
-<<<<<<< HEAD
-import { Contribution } from '@entity/Contribution'
-import { Arg, Args, Authorized, Ctx, Int, Mutation, Resolver } from 'type-graphql'
-import ContributionArgs from '../arg/ContributionArgs'
-import { UnconfirmedContribution } from '../model/UnconfirmedContribution'
-import { validateContribution, getUserCreation } from './util/creations'
-=======
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { FindOperator, IsNull } from '@dbTools/typeorm'
@@ -18,7 +11,6 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
->>>>>>> master
 
 @Resolver()
 export class ContributionResolver {
@@ -46,15 +38,14 @@ export class ContributionResolver {
     return new UnconfirmedContribution(contribution, user, creations)
   }
 
-<<<<<<< HEAD
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(
+  async deleteContribution(
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const contribution = await Contribution.findOne(id)
+    const contribution = await dbContribution.findOne(id)
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
     }
@@ -63,7 +54,8 @@ export class ContributionResolver {
     }
     const res = await contribution.softRemove()
     return !!res
-=======
+  }
+
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
   @Query(() => [Contribution])
   async listContributions(
@@ -147,6 +139,5 @@ export class ContributionResolver {
     dbContribution.save(contributionToUpdate)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
->>>>>>> master
   }
 }
