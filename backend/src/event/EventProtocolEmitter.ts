@@ -15,13 +15,13 @@ class EventProtocolEmitter {
     return this.events
   }
 
-  public isEnabled() {
-    logger.info(`EventProtocol - isEnabled=${CONFIG.EVENT_PROTOCOL_ENABLED}`)
-    return CONFIG.EVENT_PROTOCOL_ENABLED === true
+  public isDisabled() {
+    logger.info(`EventProtocol - isDisabled=${CONFIG.EVENT_PROTOCOL_DISABLED}`)
+    return CONFIG.EVENT_PROTOCOL_DISABLED === true
   }
 
   public async writeEvent(event: Event): Promise<void> {
-    if (eventProtocol.isEnabled()) {
+    if (!eventProtocol.isDisabled()) {
       logger.info(`writeEvent(${JSON.stringify(event)})`)
       const dbEvent = new EventProtocol()
       dbEvent.type = event.type
