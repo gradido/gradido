@@ -39,21 +39,21 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
-  @Query(() => [Contribution])
+  @Query(() => ContributionListResult)
   async listContributions(
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Arg('filterConfirmed', () => Boolean)
     filterConfirmed: boolean | null,
     @Ctx() context: Context,
-  ): Promise<Contribution[]> {
+  ): Promise<ContributionListResult> {
     const user = getUser(context)
     const where: {
       userId: number
       confirmedBy?: FindOperator<number> | null
     } = { userId: user.id }
     if (filterConfirmed) where.confirmedBy = IsNull()
-    const contributions = await dbContribution.find({
+    const [contributions, count] = await dbContribution.findAndCount({
       where,
       order: {
         createdAt: order,
@@ -62,7 +62,10 @@ export class ContributionResolver {
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
-    return contributions.map((contribution) => new Contribution(contribution, new User(user)))
+    return new ContributionListResult(
+      count,
+      contributions.map((contribution) => new Contribution(contribution, new User(user))),
+    )
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])

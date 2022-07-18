@@ -193,18 +193,21 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                listContributions: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
+                listContributions: {
+                  contributionCount: 2,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Herzlich Willkommen bei Gradido!',
+                      amount: '1000',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test env contribution',
+                      amount: '100',
+                    }),
+                  ]),
+                },
               },
             }),
           )
@@ -226,13 +229,16 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                listContributions: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
+                listContributions: {
+                  contributionCount: 1,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test env contribution',
+                      amount: '100',
+                    }),
+                  ]),
+                },
               },
             }),
           )
@@ -496,8 +502,8 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                linkCount: 2,
-                linkList: expect.arrayContaining([
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
                     memo: 'Herzlich Willkommen bei Gradido!',
