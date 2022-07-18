@@ -14,6 +14,8 @@ const config: PlaywrightTestConfig = {
   viewport: { width: 1280, height: 720 },
   use: {
     baseURL: process.env.URL || 'http://localhost:3000',
+    browserName: 'webkit',
+
   },
 };
 export default config;
