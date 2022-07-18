@@ -7,18 +7,24 @@ import { User } from './User'
 export class Contribution {
   constructor(contribution: dbContribution, user: User) {
     this.id = contribution.id
-    this.user = user
+    this.firstName = user ? user.firstName : null
+    this.lastName = user ? user.lastName : null
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
     this.deletedAt = contribution.deletedAt
+    this.confirmedAt = contribution.confirmedAt
+    this.confirmedBy = contribution.confirmedBy
   }
 
   @Field(() => Number)
   id: number
 
-  @Field(() => User)
-  user: User
+  @Field(() => String, { nullable: true })
+  firstName: string | null
+
+  @Field(() => String, { nullable: true })
+  lastName: string | null
 
   @Field(() => Decimal)
   amount: Decimal
@@ -31,10 +37,21 @@ export class Contribution {
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
+
+  @Field(() => Date, { nullable: true })
+  confirmedAt: Date | null
+
+  @Field(() => Number, { nullable: true })
+  confirmedBy: number | null
 }
 
 @ObjectType()
 export class ContributionListResult {
+  constructor(count: number, list: Contribution[]) {
+    this.linkCount = count
+    this.linkList = list
+  }
+
   @Field(() => Int)
   linkCount: number
 
