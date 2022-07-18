@@ -55,22 +55,16 @@
         ></b-form-input>
       </b-input-group>
       <div
-        v-if="
-          (isThisMonth && form.amount > maxGddThisMonth) ||
-          (!isThisMonth && form.amount > maxGddLastMonth)
-        "
+        v-if="isThisMonth && parseInt(form.amount) > parseInt(maxGddThisMonth)"
         class="text-danger text-right"
       >
-        {{
-          isThisMonth && form.amount > maxGddThisMonth
-            ? $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth })
-            : ''
-        }}
-        {{
-          !isThisMonth && form.amount > maxGddLastMonth
-            ? $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth })
-            : ''
-        }}
+        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth }) }}
+      </div>
+      <div
+        v-if="!isThisMonth && parseInt(form.amount) > parseInt(maxGddLastMonth)"
+        class="text-danger text-right"
+      >
+        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth }) }}
       </div>
       <b-row class="mt-3">
         <b-col>
@@ -122,7 +116,6 @@ export default {
   },
   computed: {
     /*
-     * lastMonth() = The date set back by one month.
      * minimalDate() = The date is reset by one month to the 1st of the previous month.
      *
      */
@@ -134,8 +127,8 @@ export default {
         this.form.memo.length < this.minlength ||
         this.form.amount <= 0 ||
         this.form.amount > 1000 ||
-        (this.isThisMonth && this.form.amount > this.maxGddThisMonth) ||
-        (!this.isThisMonth && this.form.amount > this.maxGddlastMonth)
+        (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
+        (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddlastMonth))
       )
         return true
       return false
