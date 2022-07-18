@@ -7,7 +7,7 @@ import { FindOperator, IsNull } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
-import { Contribution } from '@model/Contribution'
+import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
@@ -63,6 +63,28 @@ export class ContributionResolver {
       take: pageSize,
     })
     return contributions.map((contribution) => new Contribution(contribution, new User(user)))
+  }
+
+  @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
+  @Query(() => ContributionListResult)
+  async listAllContributions(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionListResult> {
+    const [dbContributions, count] = await dbContribution.findAndCount({
+      relations: ['user'],
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return new ContributionListResult(
+      count,
+      dbContributions.map(
+        (contribution) => new Contribution(contribution, new User(contribution.user)),
+      ),
+    )
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
