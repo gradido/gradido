@@ -191,6 +191,24 @@ export const listContributions = gql`
     }
   }
 `
+
+export const listAllContributions = `
+query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  	linkCount
+    linkList {
+      id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      confirmedAt
+      confirmedBy
+    }
+	}
+}
+`
 // from admin interface
 
 export const listUnconfirmedContributions = gql`
