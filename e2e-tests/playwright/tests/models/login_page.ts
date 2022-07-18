@@ -11,8 +11,8 @@ export class LoginPage {
     this.page = page;
     this.url = './login';
     this.emailInput = page.locator('id=Email-input-field');
-    this.passwordInput = page.locator('id=Passwort-input-field');
-    this.submitBtn = page.locator('text=Anmeldung');
+    this.passwordInput = page.locator('id=Password-input-field');
+    this.submitBtn = page.locator('text=Login');
   }
 
   async goto() {
