@@ -7,7 +7,7 @@ import {
   createContribution,
   updateContribution,
 } from '@/seeds/graphql/mutations'
-import { listContributions, login } from '@/seeds/graphql/queries'
+import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
@@ -435,6 +435,84 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+      })
+    })
+  })
+
+  describe('listAllContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await creationFactory(testEnv, bibisCreation!)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+      })
+
+      it('returns allCreation', async () => {
+        await expect(
+          query({
+            query: listAllContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+              filterConfirmed: false,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              listAllContributions: {
+                linkCount: 2,
+                linkList: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Herzlich Willkommen bei Gradido!',
+                    amount: '1000',
+                  }),
+                  expect.objectContaining({
+                    id: expect.any(Number),
+                    memo: 'Test env contribution',
+                    amount: '100',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
       })
     })
   })
