@@ -36,10 +36,10 @@
     "formText": {
       "h3": "Dein Beitrag zum Gemeinwohl",
       "lastMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
+      "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
       "text1": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
       "text2": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
-      "thisMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
-      "maxGDDforMonth":"Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen."
+      "thisMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen."
     },
     "noDateSelected": "Kein Datum ausgewählt",
     "submit": "Einreichen"
