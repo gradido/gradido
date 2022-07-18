@@ -88,8 +88,8 @@ export default {
           const {
             data: { listContributions },
           } = result
-          this.contributionCount = listContributions.length
-          this.items = result.data.listContributions
+          this.contributionCount = listContributions.contributionCount
+          this.items = listContributions.contributionList
           // this.toastSuccess(result.data)
         })
         .catch((err) => {

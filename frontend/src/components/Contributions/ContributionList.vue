@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-list container">
-    {{ items.length }}
+    {{ contributionCount }}
     <div class="list-group" v-for="item in items" :key="item.id">
       <contribution-list-item v-bind="item" @update-contribution="updateContribution" />
     </div>

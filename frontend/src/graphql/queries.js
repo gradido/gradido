@@ -176,13 +176,17 @@ export const listContributions = gql`
       order: $order
       filterConfirmed: $filterConfirmed
     ) {
-      id
-      amount
-      memo
-      createdAt
-      deletedAt
-      confirmedBy
-      confirmedAt
+      contributionCount
+      contributionList {
+        id
+        firstName
+        lastName
+        amount
+        memo
+        createdAt
+        confirmedAt
+        confirmedBy
+      }
     }
   }
 `
