@@ -185,9 +185,12 @@ export const listContributions = gql`
       order: $order
       filterConfirmed: $filterConfirmed
     ) {
-      id
-      amount
-      memo
+      linkCount
+      linkList {
+        id
+        amount
+        memo
+      }
     }
   }
 `
