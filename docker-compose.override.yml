@@ -1,11 +1,13 @@
 version: "3.4"
 
 services:
+
   ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
-    # image: gradido/frontend:development
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/frontend:local-development
     build:
       target: development
     environment:
@@ -22,7 +24,8 @@ services:
   # ADMIN INTERFACE ######################################
   ########################################################
   admin:
-    # image: gradido/admin:development
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/admin:local-development
     build:
       target: development
     environment:
@@ -39,7 +42,8 @@ services:
   # BACKEND ##############################################
   ########################################################
   backend:
-    # image: gradido/backend:development
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/backend:local-development
     build:
       target: development
     networks:
@@ -62,10 +66,11 @@ services:
   ########################################################
   database:
     # we always run on production here since else the service lingers
-    # feel free to change this behaviour if it seems useful
-    # Due to problems with the volume caching the built files
-    # we changed this to test build. This keeps the service running.
-    # image: gradido/database:test_up
+    #  feel free to change this behaviour if it seems useful
+    #  Due to problems with the volume caching the built files
+    #  we changed this to test build. This keeps the service running.
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/database:local-test_up
     build:
       target: test_up
     environment:
