@@ -48,13 +48,13 @@ export class Contribution {
 @ObjectType()
 export class ContributionListResult {
   constructor(count: number, list: Contribution[]) {
-    this.linkCount = count
-    this.linkList = list
+    this.contributionCount = count
+    this.contributionList = list
   }
 
   @Field(() => Int)
-  linkCount: number
+  contributionCount: number
 
   @Field(() => [Contribution])
-  linkList: Contribution[]
+  contributionList: Contribution[]
 }
