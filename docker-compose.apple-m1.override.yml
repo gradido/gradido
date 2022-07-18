@@ -41,12 +41,3 @@ services:
   #########################################################
   nginx:
     platform: linux/amd64
-  
-networks:
-  external-net:
-  internal-net:
-    internal: true
-
-volumes:
-  db_vol: 
-  
