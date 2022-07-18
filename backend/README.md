@@ -58,7 +58,7 @@ You need to authenticate yourself in GraphQL Playground to be able to send queri
 }
 ```
 
-- search in Firefox under „Network Analysis" for the smallest size of a header and copy the token
+- search in Firefox under „Network Analysis" for the smallest size of a header and copy the value of the token
 - open the header section in GraphQL Playground and set your current token by filling in and replacing `XXX`:
 
 ```qgl
