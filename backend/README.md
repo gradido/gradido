@@ -38,7 +38,7 @@ Setting up the GraphQL Playground in our code requires the following steps:
 
 ### Authentication
 
-To authenticate yourself in GraphQL Playground to be able to send queries and mutations, follow the steps below:
+You need to authenticate yourself in GraphQL Playground to be able to send queries and mutations, to do so follow the steps below:
 
 - in Firefox go to "Network Analysis" and delete all entries
 - enter and send the login query:
