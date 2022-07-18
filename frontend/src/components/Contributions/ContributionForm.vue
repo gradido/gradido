@@ -12,14 +12,14 @@
         <b>{{ $t('contribution.formText.text2') }}</b>
       </div>
     </div>
-    <b-form ref="form" @submit.prevent="submit">
+    <b-form ref="form" @submit.prevent="submit" class="border p-3">
       <label>{{ $t('time.month') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
         size="lg"
-        :max="max"
-        :min="min"
+        :max="maximalDate"
+        :min="minimalDate"
         class="mb-4"
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
@@ -36,9 +36,11 @@
         :maxlength="maxlength"
       ></b-form-textarea>
       <div
+        v-show="form.memo.length > 0"
         class="text-right"
         :class="form.memo.length < minlength ? 'text-danger' : 'text-success'"
       >
+        {{ form.memo.length }}
         <span v-if="form.memo.length < minlength">{{ $t('math.equalTo') }} {{ minlength }}</span>
         <span v-else>{{ $t('math.divide') }} {{ maxlength }}</span>
       </div>
@@ -49,15 +51,39 @@
           v-model="form.amount"
           type="number"
           min="1"
-          max="1000"
+          :max="isThisMonth ? maxGddThisMonth : maxGddLastMonth"
         ></b-form-input>
       </b-input-group>
-
-      <div class="mt-3 text-right">
-        <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
-          {{ $t('contribution.submit') }}
-        </b-button>
+      <div
+        v-if="
+          (isThisMonth && form.amount > maxGddThisMonth) ||
+          (!isThisMonth && form.amount > maxGddLastMonth)
+        "
+        class="text-danger text-right"
+      >
+        {{
+          isThisMonth && form.amount > maxGddThisMonth
+            ? $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth })
+            : ''
+        }}
+        {{
+          !isThisMonth && form.amount > maxGddLastMonth
+            ? $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth })
+            : ''
+        }}
       </div>
+      <b-row class="mt-3">
+        <b-col>
+          <b-button type="button" variant="light" @click.prevent="reset">
+            {{ $t('form.reset') }}
+          </b-button>
+        </b-col>
+        <b-col class="text-right">
+          <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
+            {{ id === null ? $t('contribution.submit') : $t('form.edit') }}
+          </b-button>
+        </b-col>
+      </b-row>
     </b-form>
   </div>
 </template>
@@ -69,36 +95,47 @@ export default {
   },
   data() {
     return {
+      maxGddLastMonth: this.$store.state.creation[1],
+      maxGddThisMonth: this.$store.state.creation[2],
       minlength: 50,
       maxlength: 255,
-      max: new Date(),
+      maximalDate: new Date(),
       form: this.value,
+      id: this.value.id,
     }
   },
   methods: {
     submit() {
-      this.$emit('set-contribution', this.form)
+      if (this.id === null) {
+        this.$emit('set-contribution', this.form)
+      } else {
+        this.$emit('edit-contribution', this.value)
+      }
+      this.reset()
+    },
+    reset() {
       this.$refs.form.reset()
       this.form.date = ''
+      this.id = null
+      this.form.memo = ''
     },
   },
   computed: {
     /*
      * lastMonth() = The date set back by one month.
-     * min() = The date is reset by one month to the 1st of the previous month.
+     * minimalDate() = The date is reset by one month to the 1st of the previous month.
      *
      */
-    lastMonth() {
-      return new Date(this.max.getFullYear(), this.max.getMonth() - 1, 1)
-    },
-    min() {
-      return new Date(this.max.getFullYear(), this.max.getMonth() - 1, 1)
+    minimalDate() {
+      return new Date(this.maximalDate.getFullYear(), this.maximalDate.getMonth() - 1, 1)
     },
     disabled() {
       if (
         this.form.memo.length < this.minlength ||
         this.form.amount <= 0 ||
-        this.form.amount > 1000
+        this.form.amount > 1000 ||
+        (this.isThisMonth && this.form.amount > this.maxGddThisMonth) ||
+        (!this.isThisMonth && this.form.amount > this.maxGddlastMonth)
       )
         return true
       return false
@@ -106,7 +143,7 @@ export default {
     lastMonthObject() {
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
-        monthAndYear: this.$d(new Date(this.lastMonth), 'monthAndYear'),
+        monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
         creation: this.$store.state.creation[1],
       }
       return this.$t('contribution.formText.lastMonth', obj)
@@ -117,6 +154,9 @@ export default {
         creation: this.$store.state.creation[2],
       }
       return this.$t('contribution.formText.thisMonth', obj)
+    },
+    isThisMonth() {
+      return new Date(this.form.date).getMonth() === new Date().getMonth()
     },
   },
 }

@@ -38,7 +38,8 @@
       "lastMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "text1": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "text2": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
-      "thisMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD."
+      "thisMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
+      "maxGDDforMonth":"You can only submit a maximum of {amount} GDD for the selected month."
     },
     "noDateSelected": "No date selected",
     "submit": "Submit"
