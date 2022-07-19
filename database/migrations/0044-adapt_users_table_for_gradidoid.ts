@@ -23,7 +23,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
-  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` varchar(36) NULL AFTER `id`;')
+  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` UUID NOT NULL DEFAULT UUID() AFTER `id`;')
   await queryFn('ALTER TABLE `users` ADD COLUMN `alias` varchar(20) NULL AFTER `gradido_id`;')
   await queryFn(
     'ALTER TABLE `users` ADD COLUMN `passphrase_encrypt_type` varchar(36) NULL AFTER `privkey`;',
