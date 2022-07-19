@@ -38,6 +38,27 @@ export class ContributionResolver {
     return new UnconfirmedContribution(contribution, user, creations)
   }
 
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async deleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const user = getUser(context)
+    const contribution = await dbContribution.findOne(id)
+    if (!contribution) {
+      throw new Error('Contribution not found for given id.')
+    }
+    if (contribution.userId !== user.id) {
+      throw new Error('Can not delete contribution of another user')
+    }
+    if (contribution.confirmedAt) {
+      throw new Error('A confirmed contribution can not be deleted')
+    }
+    const res = await contribution.softRemove()
+    return !!res
+  }
+
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listContributions(
