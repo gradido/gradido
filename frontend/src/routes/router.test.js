@@ -97,6 +97,17 @@ describe('router', () => {
         })
       })
 
+      describe('community', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Community" page', async () => {
+          const component = await routes.find((r) => r.path === '/community').component()
+          expect(component.default.name).toBe('Community')
+        })
+      })
+
       describe('login', () => {
         it('loads the "Login" page', async () => {
           const component = await routes.find((r) => r.path === '/login/:code?').component()
