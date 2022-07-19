@@ -29,15 +29,6 @@ export class User extends BaseEntity {
   @Column({ name: 'privkey', type: 'binary', length: 80, default: null, nullable: true })
   privKey: Buffer
 
-  @Column({
-    name: 'passphrase_encrypt_type',
-    length: 36,
-    nullable: true,
-    default: null,
-    collation: 'utf8mb4_unicode_ci',
-  })
-  passphraseEncryptType: string
-
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string
 
@@ -67,9 +58,6 @@ export class User extends BaseEntity {
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
   password: BigInt
-
-  @Column({ name: 'email_hash', type: 'binary', length: 32, default: null, nullable: true })
-  emailHash: Buffer
 
   @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
