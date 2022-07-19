@@ -139,14 +139,14 @@ export default {
         monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
         creation: this.$store.state.creation[1],
       }
-      return this.$t('contribution.formText.lastMonth', obj)
+      return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     thisMonthObject() {
       const obj = {
         monthAndYear: this.$d(new Date(), 'monthAndYear'),
         creation: this.$store.state.creation[2],
       }
-      return this.$t('contribution.formText.thisMonth', obj)
+      return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     isThisMonth() {
       return new Date(this.form.date).getMonth() === new Date().getMonth()
