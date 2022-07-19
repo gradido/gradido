@@ -8,7 +8,10 @@ import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
