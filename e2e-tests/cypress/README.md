@@ -16,11 +16,9 @@ to boot up the DEV system, before running the test.
 ## Execute the test
 
 ```bash
-cd e2e-tests/cypress
-
 # build a Docker image from the Dockerfile
 docker build -t gradido_e2e-tests-cypress .
 
 # run the Docker container and execute the given tests
-docker run -it gradido_e2e-tests-cypress yarn run cypress-e2e-tests
+docker run -it --network=host gradido_e2e-tests-cypress yarn run cypress-e2e-tests
 ```
