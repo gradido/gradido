@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import Vue from 'vue'
 import i18n from '@/i18n.js'
 import { localeChanged } from 'vee-validate'
+import jwtDecode from 'jwt-decode'
 
 jest.mock('vuex')
 jest.mock('@/i18n.js')
@@ -10,6 +11,11 @@ jest.mock('vee-validate', () => {
   return {
     localeChanged: jest.fn(),
   }
+})
+jest.mock('jwt-decode', () => {
+  return jest.fn(() => {
+    return { exp: '1234' }
+  })
 })
 
 i18n.locale = 'blubb'
@@ -20,11 +26,11 @@ const {
   token,
   firstName,
   lastName,
-  coinanimation,
   newsletterState,
   publisherId,
   isAdmin,
   hasElopage,
+  creation,
 } = mutations
 const { login, logout } = actions
 
@@ -60,6 +66,25 @@ describe('Vuex store', () => {
         token(state, '1234')
         expect(state.token).toEqual('1234')
       })
+
+      describe('token has a value', () => {
+        it('sets the state of tokenTime', () => {
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          expect(jwtDecode).toBeCalledWith('token')
+          expect(state.tokenTime).toEqual('1234')
+        })
+      })
+
+      describe('token has null value', () => {
+        it('sets the state of tokenTime to null', () => {
+          jest.clearAllMocks()
+          const state = { token: null, tokenTime: '123' }
+          token(state, null)
+          expect(jwtDecode).not.toBeCalled()
+          expect(state.tokenTime).toEqual(null)
+        })
+      })
     })
 
     describe('firstName', () => {
@@ -75,14 +100,6 @@ describe('Vuex store', () => {
         const state = { lastName: null }
         lastName(state, 'Lustig')
         expect(state.lastName).toEqual('Lustig')
-      })
-    })
-
-    describe('coinanimation', () => {
-      it('sets the state of coinanimation', () => {
-        const state = { coinanimation: true }
-        coinanimation(state, false)
-        expect(state.coinanimation).toEqual(false)
       })
     })
 
@@ -123,6 +140,14 @@ describe('Vuex store', () => {
         expect(state.hasElopage).toBeTruthy()
       })
     })
+
+    describe('creation', () => {
+      it('sets the state of creation', () => {
+        const state = { creation: null }
+        creation(state, true)
+        expect(state.creation).toEqual(true)
+      })
+    })
   })
 
   describe('actions', () => {
@@ -134,13 +159,13 @@ describe('Vuex store', () => {
         language: 'de',
         firstName: 'Peter',
         lastName: 'Lustig',
-        coinanimation: false,
         klickTipp: {
           newsletterState: true,
         },
         hasElopage: false,
         publisherId: 1234,
         isAdmin: true,
+        creation: ['1000', '1000', '1000'],
       }
 
       it('calls nine commits', () => {
@@ -168,29 +193,29 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(4, 'lastName', 'Lustig')
       })
 
-      it('commits coinanimation', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(5, 'coinanimation', false)
-      })
-
       it('commits newsletterState', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', true)
+        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', true)
       })
 
       it('commits hasElopage', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', 1234)
+        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', 1234)
       })
 
       it('commits isAdmin', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', true)
+        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', true)
+      })
+
+      it('commits creation', () => {
+        login({ commit, state }, commitedData)
+        expect(commit).toHaveBeenNthCalledWith(9, 'creation', ['1000', '1000', '1000'])
       })
     })
 
@@ -223,29 +248,29 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenNthCalledWith(4, 'lastName', '')
       })
 
-      it('commits coinanimation', () => {
-        logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(5, 'coinanimation', true)
-      })
-
       it('commits newsletterState', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(6, 'newsletterState', null)
+        expect(commit).toHaveBeenNthCalledWith(5, 'newsletterState', null)
       })
 
       it('commits hasElopage', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(7, 'hasElopage', false)
+        expect(commit).toHaveBeenNthCalledWith(6, 'hasElopage', false)
       })
 
       it('commits publisherId', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(8, 'publisherId', null)
+        expect(commit).toHaveBeenNthCalledWith(7, 'publisherId', null)
       })
 
       it('commits isAdmin', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenNthCalledWith(9, 'isAdmin', false)
+        expect(commit).toHaveBeenNthCalledWith(8, 'isAdmin', false)
+      })
+
+      it('commits creation', () => {
+        logout({ commit, state })
+        expect(commit).toHaveBeenNthCalledWith(9, 'creation', null)
       })
 
       // how to get this working?

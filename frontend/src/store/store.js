@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
+import jwtDecode from 'jwt-decode'
 
 Vue.use(Vuex)
 
@@ -26,6 +27,11 @@ export const mutations = {
   },
   token: (state, token) => {
     state.token = token
+    if (token) {
+      state.tokenTime = jwtDecode(token).exp
+    } else {
+      state.tokenTime = null
+    }
   },
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
@@ -38,11 +44,11 @@ export const mutations = {
   isAdmin: (state, isAdmin) => {
     state.isAdmin = !!isAdmin
   },
-  coinanimation: (state, coinanimation) => {
-    state.coinanimation = coinanimation
-  },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
+  },
+  creation: (state, creation) => {
+    state.creation = creation
   },
 }
 
@@ -53,11 +59,11 @@ export const actions = {
     // commit('username', data.username)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
-    commit('coinanimation', data.coinanimation)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
+    commit('creation', data.creation)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -65,11 +71,11 @@ export const actions = {
     // commit('username', '')
     commit('firstName', '')
     commit('lastName', '')
-    commit('coinanimation', true)
     commit('newsletterState', null)
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
+    commit('creation', null)
     localStorage.clear()
   },
 }
@@ -90,11 +96,12 @@ try {
       lastName: '',
       // username: '',
       token: null,
+      tokenTime: null,
       isAdmin: false,
-      coinanimation: true,
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
+      creation: null,
     },
     getters: {},
     // Syncronous mutation of the state

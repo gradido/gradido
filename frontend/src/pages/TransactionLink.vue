@@ -1,18 +1,21 @@
 <template>
   <div class="show-transaction-link-informations">
-    <div class="text-center"><b-img :src="img" fluid alt="logo"></b-img></div>
     <b-container class="mt-4">
       <transaction-link-item :type="itemType">
         <template #LOGGED_OUT>
-          <redeem-logged-out v-bind="linkData" />
+          <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
         </template>
 
         <template #SELF_CREATOR>
-          <redeem-self-creator v-bind="linkData" />
+          <redeem-self-creator :linkData="linkData" />
         </template>
 
         <template #VALID>
-          <redeem-valid v-bind="linkData" @redeem-link="redeemLink" />
+          <redeem-valid
+            :linkData="linkData"
+            :isContributionLink="isContributionLink"
+            @redeem-link="redeemLink"
+          />
         </template>
 
         <template #TEXT>
@@ -44,6 +47,7 @@ export default {
     return {
       img: '/img/brand/green.png',
       linkData: {
+        __typename: 'TransactionLink',
         amount: '123.45',
         memo: 'memo',
         user: {
@@ -57,6 +61,7 @@ export default {
     setTransactionLinkInformation() {
       this.$apollo
         .query({
+          fetchPolicy: 'no-cache',
           query: queryTransactionLink,
           variables: {
             code: this.$route.params.code,
@@ -64,37 +69,45 @@ export default {
         })
         .then((result) => {
           this.linkData = result.data.queryTransactionLink
+          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
+            this.mutationLink(this.linkData.amount)
+          }
         })
         .catch((err) => {
           this.toastError(err.message)
         })
     },
+    mutationLink(amount) {
+      this.$apollo
+        .mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: this.$route.params.code,
+          },
+        })
+        .then(() => {
+          this.toastSuccess(
+            this.$t('gdd_per_link.redeemed', {
+              n: amount,
+            }),
+          )
+          this.$router.push('/overview')
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+          this.$router.push('/overview')
+        })
+    },
     redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: this.$route.params.code,
-              },
-            })
-            .then(() => {
-              this.toastSuccess(
-                this.$t('gdd_per_link.redeemed', {
-                  n: amount,
-                }),
-              )
-              this.$router.push('/overview')
-            })
-            .catch((err) => {
-              this.toastError(err.message)
-              this.$router.push('/overview')
-            })
+      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then((value) => {
+        if (value) this.mutationLink(amount)
       })
     },
   },
   computed: {
+    isContributionLink() {
+      return this.$route.params.code.search(/^CL-/) === 0
+    },
     itemType() {
       // link wurde gelöscht: am, von
       if (this.linkData.deletedAt) {
@@ -124,16 +137,12 @@ export default {
 
       if (this.$store.state.token) {
         // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.$store.state.email === this.linkData.user.email) {
+        if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
           return `SELF_CREATOR`
         }
 
         // logged in und berechtigt einzulösen
-        if (
-          this.$store.state.email !== this.linkData.user.email &&
-          !this.linkData.redeemedAt &&
-          !this.linkData.deletedAt
-        ) {
+        if (!this.linkData.redeemedAt && !this.linkData.deletedAt) {
           return `VALID`
         }
       }
@@ -143,6 +152,7 @@ export default {
   },
   created() {
     this.setTransactionLinkInformation()
+    this.$emit('set-mobile-start', false)
   },
 }
 </script>

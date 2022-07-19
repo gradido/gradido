@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -9,7 +9,7 @@ const localVue = global.localVue
 const storeCommitMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    getPendingCreations: [
+    listUnconfirmedContributions: [
       {
         id: 1,
         firstName: 'Bibi',
@@ -84,9 +84,9 @@ describe('CreationConfirm', () => {
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
-      it('calls the deletePendingCreation mutation', () => {
+      it('calls the adminDeleteContribution mutation', () => {
         expect(apolloMutateMock).toBeCalledWith({
-          mutation: deletePendingCreation,
+          mutation: adminDeleteContribution,
           variables: { id: 1 },
         })
       })
@@ -141,9 +141,9 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
-          it('calls the confirmPendingCreation mutation', () => {
+          it('calls the confirmContribution mutation', () => {
             expect(apolloMutateMock).toBeCalledWith({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: { id: 2 },
             })
           })

@@ -70,12 +70,23 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      creationUserData: {
+        amount: null,
+        date: null,
+        memo: null,
+        moderator: null,
+      },
+    }
+  },
   methods: {
     updateCreationData(data) {
-      this.creationUserData.amount = data.amount
-      this.creationUserData.date = data.date
-      this.creationUserData.memo = data.memo
-      this.creationUserData.moderator = data.moderator
+      this.creationUserData = data
+      // this.creationUserData.amount = data.amount
+      // this.creationUserData.date = data.date
+      // this.creationUserData.memo = data.memo
+      // this.creationUserData.moderator = data.moderator
       data.row.toggleDetails()
     },
     updateUserData(rowItem, newCreation) {

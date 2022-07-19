@@ -9,7 +9,7 @@
           :transactionCount="transactionCount"
           :transactionLinkCount="transactionLinkCount"
           :transactions="transactions"
-          :show-pagination="true"
+          :showPagination="true"
           @update-transactions="updateTransactions"
           v-on="$listeners"
         />

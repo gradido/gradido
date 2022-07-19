@@ -1,6 +1,35 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "contributionLink": {
+    "amount": "Amount",
+    "clear": "Clear",
+    "contributionLinks": "Contribution Links",
+    "create": "Create",
+    "cycle": "Cycle",
+    "deleteNow": "Do you really delete automatic creations?",
+    "maximumAmount": "Maximum amount",
+    "maxPerCycle": "Repetition",
+    "memo": "Memo",
+    "name": "Name",
+    "newContributionLink": "New contribution link",
+    "noContributionLinks": "No contribution link has been created.",
+    "noDateSelected": "No date selected",
+    "noEndDate": "No end-date",
+    "noStartDate": "No start-date",
+    "options": {
+      "cycle": {
+        "daily": "daily",
+        "hourly": "hourly",
+        "monthly": "monthly",
+        "once": "once",
+        "weekly": "weekly",
+        "yearly": "yearly"
+      }
+    },
+    "validFrom": "Start-date",
+    "validTo": "End-Date"
+  },
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
@@ -44,7 +73,8 @@
   "lastname": "Lastname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
@@ -71,7 +101,7 @@
   },
   "redeemed": "redeemed",
   "remove": "Remove",
-  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
+  "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
   "status": "Status",
@@ -100,6 +130,16 @@
     "success": "Successfully send the confirmation link to the user's email! ({email})",
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
+  },
+  "userRole": {
+    "notChangeYourSelf": "As an admin/moderator, you cannot change your own role.",
+    "selectLabel": "Role:",
+    "selectRoles": {
+      "admin": "administrator",
+      "user": "usual user"
+    },
+    "successfullyChangedTo": "User is now \"{role}\".",
+    "tabTitle": "User Role"
   },
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",

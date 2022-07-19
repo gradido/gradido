@@ -227,6 +227,36 @@ describe('TransactionLinkSummary', () => {
             fetchPolicy: 'network-only',
           })
         })
+
+        describe('close transaction link list', () => {
+          beforeEach(async () => {
+            wrapper.find('div.transaction-link-details').trigger('click')
+          })
+          describe('reopen transaction link list', () => {
+            beforeEach(async () => {
+              jest.clearAllMocks()
+              wrapper.find('div.transaction-link-details').trigger('click')
+            })
+
+            it('calls the API once', () => {
+              expect(apolloQueryMock).toBeCalledTimes(1)
+            })
+
+            it('calls the API with current page one', () => {
+              expect(apolloQueryMock).toBeCalledWith({
+                query: listTransactionLinks,
+                variables: {
+                  currentPage: 1,
+                },
+                fetchPolicy: 'network-only',
+              })
+            })
+
+            it('has four transactionLinks', () => {
+              expect(wrapper.vm.transactionLinks).toHaveLength(4)
+            })
+          })
+        })
       })
     })
 

@@ -1,1 +1,1 @@
-export { User } from './0034-drop_server_user_table/User'
+export { User } from './0040-add_contribution_link_id_to_user/User'

@@ -11,8 +11,15 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
+import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
+// import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { ContributionLink } from '@model/ContributionLink'
+// import { TransactionLink } from '@entity/TransactionLink'
+
+import { logger } from '@test/testSetup'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -20,6 +27,13 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+jest.mock('@/mailer/sendAccountMultiRegistrationEmail', () => {
+  return {
+    __esModule: true,
+    sendAccountMultiRegistrationEmail: jest.fn(),
   }
 })
 
@@ -43,7 +57,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -67,6 +81,7 @@ describe('UserResolver', () => {
 
     let result: any
     let emailOptIn: string
+    let user: User[]
 
     beforeAll(async () => {
       jest.clearAllMocks()
@@ -84,7 +99,6 @@ describe('UserResolver', () => {
     })
 
     describe('valid input data', () => {
-      let user: User[]
       let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
         user = await User.find()
@@ -112,6 +126,7 @@ describe('UserResolver', () => {
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
+              contributionLinkId: null,
             },
           ])
         })
@@ -149,10 +164,31 @@ describe('UserResolver', () => {
     })
 
     describe('email already exists', () => {
-      it('throws an error', async () => {
-        await expect(mutate({ mutation: createUser, variables })).resolves.toEqual(
+      let mutation: User
+      beforeAll(async () => {
+        mutation = await mutate({ mutation: createUser, variables })
+      })
+
+      it('logs an info', async () => {
+        expect(logger.info).toBeCalledWith('User already exists with this email=peter@lustig.de')
+      })
+
+      it('sends an account multi registration email', () => {
+        expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
+        })
+      })
+
+      it('results with partly faked user with random "id"', async () => {
+        expect(mutation).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('User already exists.')],
+            data: {
+              createUser: {
+                id: expect.any(Number),
+              },
+            },
           }),
         )
       })
@@ -190,6 +226,72 @@ describe('UserResolver', () => {
           ]),
         )
       })
+    })
+
+    describe('redeem codes', () => {
+      describe('contribution link', () => {
+        let link: ContributionLink
+        beforeAll(async () => {
+          // activate account of admin Peter Lustig
+          await mutate({
+            mutation: setPassword,
+            variables: { code: emailOptIn, password: 'Aa12345_' },
+          })
+          // make Peter Lustig Admin
+          const peter = await User.findOneOrFail({ id: user[0].id })
+          peter.isAdmin = new Date()
+          await peter.save()
+          // factory logs in as Peter Lustig
+          link = await contributionLinkFactory(testEnv, {
+            name: 'Dokumenta 2022',
+            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
+            amount: 200,
+            validFrom: new Date(2022, 5, 18),
+            validTo: new Date(2022, 8, 25),
+          })
+          resetToken()
+          await mutate({
+            mutation: createUser,
+            variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
+          })
+        })
+
+        it('sets the contribution link id', async () => {
+          await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
+            expect.objectContaining({
+              contributionLinkId: link.id,
+            }),
+          )
+        })
+      })
+
+      /* A transaction link requires GDD on account
+      describe('transaction link', () => {
+        let code: string
+        beforeAll(async () => {
+          // factory logs in as Peter Lustig
+          await transactionLinkFactory(testEnv, {
+            email: 'peter@lustig.de',
+            amount: 19.99,
+            memo: `Kein Trick, keine Zauberrei,
+bei Gradidio sei dabei!`,
+          })
+          const transactionLink = await TransactionLink.findOneOrFail()
+          resetToken()
+          await mutate({
+            mutation: createUser,
+            variables: { ...variables, email: 'neuer@user.de', redeemCode: transactionLink.code },
+          })          
+        })
+
+        it('sets the referrer id to Peter Lustigs id', async () => {
+          await expect(User.findOne({ email: 'neuer@user.de' })).resolves.toEqual(expect.objectContaining({
+            referrerId: user[0].id,
+          }))
+        })
+      })
+
+      */
     })
   })
 
@@ -340,7 +442,6 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
-                coinanimation: true,
                 email: 'bibi@bloxberg.de',
                 firstName: 'Bibi',
                 hasElopage: false,
@@ -475,7 +576,6 @@ describe('UserResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
-                  coinanimation: true,
                   klickTipp: {
                     newsletterState: false,
                   },

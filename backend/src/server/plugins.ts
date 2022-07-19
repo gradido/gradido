@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { ApolloLogPlugin, LogMutateData } from 'apollo-log'
-import cloneDeep from 'lodash.clonedeep'
+import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
   requestDidStart() {
@@ -22,24 +21,41 @@ const setHeadersPlugin = {
   },
 }
 
-const apolloLogPlugin = ApolloLogPlugin({
-  mutate: (data: LogMutateData) => {
-    // We need to deep clone the object in order to not modify the actual request
-    const dataCopy = cloneDeep(data)
+const filterVariables = (variables: any) => {
+  const vars = clonedeep(variables)
+  if (vars.password) vars.password = '***'
+  if (vars.passwordNew) vars.passwordNew = '***'
+  return vars
+}
 
-    // mask password if part of the query
-    if (dataCopy.context.request.variables && dataCopy.context.request.variables.password) {
-      dataCopy.context.request.variables.password = '***'
+const logPlugin = {
+  requestDidStart(requestContext: any) {
+    const { logger } = requestContext
+    const { query, mutation, variables, operationName } = requestContext.request
+    if (operationName !== 'IntrospectionQuery') {
+      logger.info(`Request:
+${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
-
-    // mask token at all times
-    dataCopy.context.context.token = '***'
-
-    return dataCopy
+    return {
+      willSendResponse(requestContext: any) {
+        if (operationName !== 'IntrospectionQuery') {
+          if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.response.data) {
+            logger.info('Response Success!')
+            logger.trace(`Response-Data:
+${JSON.stringify(requestContext.response.data, null, 2)}`)
+          }
+          if (requestContext.response.errors)
+            logger.error(`Response-Errors:
+${JSON.stringify(requestContext.response.errors, null, 2)}`)
+        }
+        return requestContext
+      },
+    }
   },
-})
+}
 
 const plugins =
-  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, apolloLogPlugin]
+  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
 
 export default plugins

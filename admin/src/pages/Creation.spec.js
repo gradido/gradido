@@ -71,8 +71,10 @@ describe('Creation', () => {
               searchText: '',
               currentPage: 1,
               pageSize: 25,
-              filterByActivated: true,
-              filterByDeleted: false,
+              filters: {
+                byActivated: true,
+                byDeleted: false,
+              },
             },
           }),
         )
@@ -271,8 +273,10 @@ describe('Creation', () => {
                 searchText: 'XX',
                 currentPage: 1,
                 pageSize: 25,
-                filterByActivated: true,
-                filterByDeleted: false,
+                filters: {
+                  byActivated: true,
+                  byDeleted: false,
+                },
               },
             }),
           )
@@ -288,8 +292,10 @@ describe('Creation', () => {
                   searchText: '',
                   currentPage: 1,
                   pageSize: 25,
-                  filterByActivated: true,
-                  filterByDeleted: false,
+                  filters: {
+                    byActivated: true,
+                    byDeleted: false,
+                  },
                 },
               }),
             )
@@ -305,8 +311,10 @@ describe('Creation', () => {
               searchText: '',
               currentPage: 2,
               pageSize: 25,
-              filterByActivated: true,
-              filterByDeleted: false,
+              filters: {
+                byActivated: true,
+                byDeleted: false,
+              },
             },
           }),
         )

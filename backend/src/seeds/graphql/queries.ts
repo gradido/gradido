@@ -8,7 +8,6 @@ export const login = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }
@@ -26,7 +25,6 @@ export const verifyLogin = gql`
       firstName
       lastName
       language
-      coinanimation
       klickTipp {
         newsletterState
       }
@@ -93,6 +91,31 @@ export const sendResetPasswordEmail = gql`
   }
 `
 
+export const searchUsers = gql`
+  query ($searchText: String!, $currentPage: Int, $pageSize: Int, $filters: SearchUsersFilters) {
+    searchUsers(
+      searchText: $searchText
+      currentPage: $currentPage
+      pageSize: $pageSize
+      filters: $filters
+    ) {
+      userCount
+      userList {
+        userId
+        firstName
+        lastName
+        email
+        creation
+        emailChecked
+        hasElopage
+        emailConfirmationSend
+        deletedAt
+        isAdmin
+      }
+    }
+  }
+`
+
 export const listGDTEntriesQuery = gql`
   query ($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
@@ -149,11 +172,51 @@ export const queryTransactionLink = gql`
   }
 `
 
+export const listContributions = gql`
+  query (
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+    $order: Order
+    $filterConfirmed: Boolean = false
+  ) {
+    listContributions(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      filterConfirmed: $filterConfirmed
+    ) {
+      contributionCount
+      contributionList {
+        id
+        amount
+        memo
+      }
+    }
+  }
+`
+
+export const listAllContributions = `
+query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  	contributionCount
+    contributionList {
+      id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      confirmedAt
+      confirmedBy
+    }
+	}
+}
+`
 // from admin interface
 
-export const getPendingCreations = gql`
+export const listUnconfirmedContributions = gql`
   query {
-    getPendingCreations {
+    listUnconfirmedContributions {
       id
       firstName
       lastName
@@ -163,6 +226,57 @@ export const getPendingCreations = gql`
       date
       moderator
       creation
+    }
+  }
+`
+
+export const listTransactionLinksAdmin = gql`
+  query (
+    $userId: Int!
+    $filters: TransactionLinkFilters
+    $currentPage: Int = 1
+    $pageSize: Int = 5
+  ) {
+    listTransactionLinksAdmin(
+      userId: $userId
+      filters: $filters
+      currentPage: $currentPage
+      pageSize: $pageSize
+    ) {
+      linkCount
+      linkList {
+        id
+        amount
+        holdAvailableAmount
+        memo
+        code
+        createdAt
+        validUntil
+        redeemedAt
+        deletedAt
+      }
+    }
+  }
+`
+
+export const listContributionLinks = gql`
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order) {
+    listContributionLinks(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        code
+        link
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
     }
   }
 `

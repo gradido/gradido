@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
-import { UserSetting } from '../UserSetting'
+import { UserSetting } from '../0002-add_settings/UserSetting'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('state_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })

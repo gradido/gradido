@@ -6,4 +6,3 @@ package-json.lock
 coverage
 # emacs
 *~
-/.nvmrc

@@ -407,29 +407,34 @@ describe('GddTransactionList', () => {
     })
 
     describe('pagination buttons', () => {
+      const createTransaction = (idx) => {
+        return {
+          amount: '3.14',
+          balanceDate: '2021-04-29T17:26:40+00:00',
+          decay: {
+            decay: '-477.01',
+            start: '2021-05-13T17:46:31.000Z',
+            end: '2022-04-20T06:51:25.000Z',
+            duration: 29509494,
+          },
+          memo: 'Kreiszahl PI',
+          linkedUser: {
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+          },
+          id: idx + 1,
+          typeId: 'RECEIVE',
+          balance: '33.33',
+        }
+      }
+
       beforeEach(async () => {
+        const transactionCount = 42
         await wrapper.setProps({
-          transactions: Array.from({ length: 42 }, (_, idx) => {
-            return {
-              amount: '3.14',
-              balanceDate: '2021-04-29T17:26:40+00:00',
-              decay: {
-                decay: '-477.01',
-                start: '2021-05-13T17:46:31.000Z',
-                end: '2022-04-20T06:51:25.000Z',
-                duration: 29509494,
-              },
-              memo: 'Kreiszahl PI',
-              linkedUser: {
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-              },
-              id: idx + 1,
-              typeId: 'RECEIVE',
-              balance: '33.33',
-            }
+          transactions: Array.from({ length: transactionCount }, (_, idx) => {
+            return createTransaction(idx)
           }),
-          transactionCount: 42,
+          transactionCount,
           decayStartBlock,
           pageSize: 25,
           showPagination: true,
@@ -449,21 +454,21 @@ describe('GddTransactionList', () => {
           )
         })
       })
-    })
 
-    describe('show no pagination', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          transactions: [],
-          transactionCount: 2,
-          decayStartBlock,
-          pageSize: 25,
-          showPagination: false,
+      describe('show no pagination', () => {
+        it('shows no pagination buttons', async () => {
+          const transactionCount = 2
+          await wrapper.setProps({
+            transactions: Array.from({ length: transactionCount }, (_, idx) => {
+              return createTransaction(idx)
+            }),
+            transactionCount,
+            decayStartBlock,
+            pageSize: 25,
+            showPagination: false,
+          })
+          expect(wrapper.find('ul.pagination').exists()).toBe(false)
         })
-      })
-
-      it('shows no pagination buttons', () => {
-        expect(wrapper.find('ul.pagination').exists()).toBe(false)
       })
     })
   })

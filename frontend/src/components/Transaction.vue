@@ -3,12 +3,12 @@
     <div class="list-group">
       <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
         <!-- icon  -->
-        <div class="text-right gradido-absolute">
+        <div class="text-right position-absolute">
           <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
         </div>
 
         <!-- collaps Button  -->
-        <div class="text-right gradido-width-96-absolute">
+        <div class="text-right gradido-width-96 position-absolute">
           <b-icon
             :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
             :class="getCollapseState(id) ? 'text-black' : 'text-muted'"

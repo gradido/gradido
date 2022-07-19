@@ -1,10 +1,12 @@
 import { ObjectType, Field } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
+import Decimal from 'decimal.js-light'
+import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser) {
+  constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
     this.id = user.id
     this.email = user.email
     this.firstName = user.firstName
@@ -15,10 +17,9 @@ export class User {
     this.language = user.language
     this.publisherId = user.publisherId
     this.isAdmin = user.isAdmin
-    // TODO
-    this.coinanimation = null
     this.klickTipp = null
     this.hasElopage = null
+    this.creation = creation
   }
 
   @Field(() => Number)
@@ -61,14 +62,12 @@ export class User {
   @Field(() => Date, { nullable: true })
   isAdmin: Date | null
 
-  // TODO this is a bit inconsistent with what we query from the database
-  // therefore all those fields are now nullable with default value null
-  @Field(() => Boolean, { nullable: true })
-  coinanimation: boolean | null
-
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
 
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
+
+  @Field(() => [Decimal])
+  creation: Decimal[]
 }

@@ -47,18 +47,6 @@ const routes = [
     component: () => import('@/pages/Register.vue'),
   },
   {
-    path: '/thx/:comingFrom/:code?',
-    component: () => import('@/pages/thx.vue'),
-    beforeEnter: (to, from, next) => {
-      const validFrom = ['forgot-password', 'reset-password', 'register', 'login', 'checkEmail']
-      if (!validFrom.includes(from.path.split('/')[1])) {
-        next({ path: '/login' })
-      } else {
-        next()
-      }
-    },
-  },
-  {
     path: '/forgot-password',
     component: () => import('@/pages/ForgotPassword.vue'),
   },

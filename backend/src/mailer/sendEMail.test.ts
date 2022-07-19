@@ -2,6 +2,8 @@ import { sendEMail } from './sendEMail'
 import { createTransport } from 'nodemailer'
 import CONFIG from '@/config'
 
+import { logger } from '@test/testSetup'
+
 CONFIG.EMAIL = false
 CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
 CONFIG.EMAIL_SMTP_PORT = '1234'
@@ -26,26 +28,17 @@ jest.mock('nodemailer', () => {
 describe('sendEMail', () => {
   let result: boolean
   describe('config email is false', () => {
-    // eslint-disable-next-line no-console
-    const consoleLog = console.log
-    const consoleLogMock = jest.fn()
-    // eslint-disable-next-line no-console
-    console.log = consoleLogMock
     beforeEach(async () => {
       result = await sendEMail({
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })
     })
 
-    afterAll(() => {
-      // eslint-disable-next-line no-console
-      console.log = consoleLog
-    })
-
-    it('logs warining to console', () => {
-      expect(consoleLogMock).toBeCalledWith('Emails are disabled via config')
+    it('logs warining', () => {
+      expect(logger.info).toBeCalledWith('Emails are disabled via config...')
     })
 
     it('returns false', () => {
@@ -58,6 +51,7 @@ describe('sendEMail', () => {
       CONFIG.EMAIL = true
       result = await sendEMail({
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })
@@ -80,6 +74,7 @@ describe('sendEMail', () => {
       expect((createTransport as jest.Mock).mock.results[0].value.sendMail).toBeCalledWith({
         from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })

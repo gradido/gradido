@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "1.8.1",
+  "version": "1.10.1",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
@@ -45,7 +45,7 @@
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.1",
     "jest-environment-jsdom-sixteen": "^2.0.0",
-    "particles-bg-vue": "1.2.3",
+    "jwt-decode": "^3.1.2",
     "portal-vue": "^2.1.7",
     "prettier": "^2.2.1",
     "qrcanvas-vue": "2.1.1",
@@ -60,6 +60,7 @@
     "vue-loading-overlay": "^3.4.2",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.0.6",
+    "vue-timers": "^2.0.4",
     "vue2-transitions": "^0.2.3",
     "vuex": "^3.6.0",
     "vuex-persistedstate": "^4.0.0-beta.3"
@@ -100,5 +101,6 @@
     "not ie <= 10"
   ],
   "author": "Gradido-Akademie - https://www.gradido.net/",
+  "license": "Apache-2.0",
   "description": "Gradido, the Natural Economy of Life, is a way to worldwide prosperity and peace in harmony with nature. - Gradido, die Natürliche Ökonomie des lebens, ist ein Weg zu weltweitem Wohlstand und Frieden in Harmonie mit der Natur."
 }

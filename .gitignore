@@ -1,4 +1,7 @@
+.dbeaver
+.project
 *.log
+*.bak
 /node_modules/*
 messages.pot
 nbproject
@@ -11,4 +14,9 @@ package-lock.json
 /deployment/bare_metal/nginx/update-page/updating.html
 /deployment/bare_metal/log
 /deployment/bare_metal/backup
-/.nvmrc
+
+# Node Version Manager configuration file
+.nvmrc
+
+# Apple macOS folder attribute file
+.DS_Store

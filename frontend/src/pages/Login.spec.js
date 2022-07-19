@@ -1,8 +1,7 @@
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import Login from './Login'
-
 import { toastErrorSpy } from '@test/testSetup'
+import Login from './Login'
 
 const localVue = global.localVue
 
@@ -60,23 +59,7 @@ describe('Login', () => {
     })
 
     it('renders the Login form', () => {
-      expect(wrapper.find('div.login-form').exists()).toBeTruthy()
-    })
-
-    describe('Login header', () => {
-      it('has a welcome message', () => {
-        expect(wrapper.find('div.header').text()).toBe('site.login.heading site.login.community')
-      })
-    })
-
-    it('has a Community name', () => {
-      expect(wrapper.find('.test-communitydata b').text()).toBe('Gradido Entwicklung')
-    })
-
-    it('has a Community description', () => {
-      expect(wrapper.find('.test-communitydata p').text()).toBe(
-        'Die lokale Entwicklungsumgebung von Gradido.',
-      )
+      expect(wrapper.find('div.login-form').exists()).toBe(true)
     })
 
     describe('links', () => {
@@ -85,37 +68,23 @@ describe('Login', () => {
           'settings.password.forgot_pwd',
         )
       })
-
-      it('links to /forgot-password when clicking "Forgot Password"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(0).props().to).toBe('/forgot-password')
-      })
-
-      it('has a link "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).text()).toEqual(
-          'site.login.new_wallet',
-        )
-      })
-
-      it('links to /register when clicking "Create new account"', () => {
-        expect(wrapper.findAllComponents(RouterLinkStub).at(1).props().to).toBe('/register')
-      })
     })
 
     describe('Login form', () => {
       it('has a login form', () => {
-        expect(wrapper.find('form').exists()).toBeTruthy()
+        expect(wrapper.find('form').exists()).toBe(true)
       })
 
       it('has an Email input field', () => {
-        expect(wrapper.find('input[placeholder="Email"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[placeholder="Email"]').exists()).toBe(true)
       })
 
       it('has an Password input field', () => {
-        expect(wrapper.find('input[placeholder="form.password"]').exists()).toBeTruthy()
+        expect(wrapper.find('input[placeholder="form.password"]').exists()).toBe(true)
       })
 
       it('has a Submit button', () => {
-        expect(wrapper.find('button[type="submit"]').exists()).toBeTruthy()
+        expect(wrapper.find('button[type="submit"]').exists()).toBe(true)
       })
     })
 
@@ -205,61 +174,111 @@ describe('Login', () => {
       })
 
       describe('login fails', () => {
-        beforeEach(async () => {
+        const createError = async (errorMessage) => {
+          apolloQueryMock.mockRejectedValue({
+            message: errorMessage,
+          })
+          wrapper = Wrapper()
           jest.clearAllMocks()
           await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
-          apolloQueryMock.mockRejectedValue({
-            message: '..No user with this credentials',
-          })
           await wrapper.find('form').trigger('submit')
           await flushPromises()
-        })
-
-        it('hides the spinner', () => {
-          expect(spinnerHideMock).toBeCalled()
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('error.no-account')
-        })
+        }
 
         describe('login fails with "User email not validated"', () => {
           beforeEach(async () => {
-            apolloQueryMock.mockRejectedValue({
-              message: 'User email not validated',
-            })
-            wrapper = Wrapper()
-            jest.clearAllMocks()
-            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-            await flushPromises()
-            await wrapper.find('form').trigger('submit')
-            await flushPromises()
+            await createError('GraphQL error: User email not validated.')
           })
 
-          it('redirects to /thx/login', () => {
-            expect(mockRouterPush).toBeCalledWith('/thx/login')
+          it('hides the spinner', () => {
+            expect(spinnerHideMock).toBeCalled()
+          })
+
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('message.activateEmail')
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+          })
+
+          it('button link directs to "/forgot-password"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe('/forgot-password')
+          })
+
+          it.skip('click redirects to "/forgot-password"', async () => {
+            // wrapper.find('.test-message-button').trigger('click')
+            // await flushPromises()
+            // await wrapper.vm.$nextTick()
+            // expect(mockRouterPush).toBeCalledWith('/forgot-password')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
           })
         })
 
         describe('login fails with "User has no password set yet"', () => {
           beforeEach(async () => {
-            apolloQueryMock.mockRejectedValue({
-              message: 'User has no password set yet',
-            })
-            wrapper = Wrapper()
-            jest.clearAllMocks()
-            await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
-            await wrapper.find('input[placeholder="form.password"]').setValue('1234')
-            await flushPromises()
-            await wrapper.find('form').trigger('submit')
-            await flushPromises()
+            await createError('GraphQL error: User has no password set yet.')
           })
 
-          it('redirects to /reset-password/login', () => {
-            expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+          it('shows error title, subtitle, login button', () => {
+            expect(wrapper.vm.showPageMessage).toBe(true)
+            expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
+            expect(wrapper.find('.test-message-subtitle').text()).toBe('message.unsetPassword')
+            expect(wrapper.find('.test-message-button').text()).toBe('settings.password.reset')
+          })
+
+          it('button link directs to "/reset-password/login"', () => {
+            expect(wrapper.find('.test-message-button').attributes('href')).toBe(
+              '/reset-password/login',
+            )
+          })
+
+          it.skip('click redirects to "/reset-password/login"', () => {
+            // expect(mockRouterPush).toBeCalledWith('/reset-password/login')
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-account')
+          })
+        })
+
+        describe('login fails with "No user with this credentials"', () => {
+          beforeEach(async () => {
+            await createError('GraphQL error: No user with this credentials.')
+          })
+
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.no-user')
+          })
+        })
+
+        describe('login fails with an unknow error', () => {
+          beforeEach(async () => {
+            await createError(' – Unknow error')
+          })
+
+          it('shows no error message on the page', () => {
+            // don't show any error on the page! against boots
+            expect(wrapper.vm.showPageMessage).toBe(false)
+            expect(wrapper.find('.test-message-headline').exists()).toBe(false)
+            expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
+            expect(wrapper.find('.test-message-button').exists()).toBe(false)
+          })
+
+          it('toasts the error message', () => {
+            expect(toastErrorSpy).toBeCalledWith('error.unknown-error – Unknow error')
           })
         })
       })

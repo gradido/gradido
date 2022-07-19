@@ -1,1 +1,1 @@
-export { Transaction } from './0032-add-transaction-link-to-transaction/Transaction'
+export { Transaction } from './0036-unique_previous_in_transactions/Transaction'

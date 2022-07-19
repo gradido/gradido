@@ -10,11 +10,12 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0035-admin_pending_creations_decimal',
+  DB_VERSION: '0043-add_event_protocol_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v7.2022-05-04',
+    EXPECTED: 'v10.2022-19-07',
     CURRENT: '',
   },
 }
@@ -104,6 +105,11 @@ if (
   )
 }
 
+const eventProtocol = {
+  // global switch to enable writing of EventProtocol-Entries
+  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
+}
+
 const federation = {
   DHT_TOPIC: process.env.DHT_TOPIC || null,
 }
@@ -117,6 +123,7 @@ const CONFIG = {
   ...email,
   ...loginServer,
   ...webhook,
+  ...eventProtocol,
   ...federation,
 }
 
