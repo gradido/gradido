@@ -52,6 +52,9 @@ export class ContributionResolver {
     if (contribution.userId !== user.id) {
       throw new Error('Can not delete contribution of another user')
     }
+    if (contribution.confirmedAt) {
+      throw new Error('A confirmed contribution can not be deleted')
+    }
     const res = await contribution.softRemove()
     return !!res
   }
