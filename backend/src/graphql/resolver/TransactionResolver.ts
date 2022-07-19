@@ -8,7 +8,7 @@ import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
+import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -156,6 +156,19 @@ export const executeTransaction = async (
     memo,
     overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
+  if (transactionLink) {
+    await sendTransactionLinkRedeemedEmail({
+      senderFirstName: recipient.firstName,
+      senderLastName: recipient.lastName,
+      recipientFirstName: sender.firstName,
+      recipientLastName: sender.lastName,
+      email: sender.email,
+      senderEmail: recipient.email,
+      amount,
+      memo,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    })
+  }
   logger.info(`finished executeTransaction successfully`)
   return true
 }
