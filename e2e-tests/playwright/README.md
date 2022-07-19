@@ -20,5 +20,5 @@ to boot up the DEV system, before running the test.
 docker build -t gradido_e2e-tests-playwright .
 
 # run the Docker container and execute the given tests
-docker run -it gradido_e2e-tests-playwright npx playwright test
+docker run -it gradido_e2e-tests-playwright yarn playwright-e2e-tests
 ```
