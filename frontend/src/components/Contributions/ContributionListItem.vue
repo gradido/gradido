@@ -45,11 +45,11 @@ export default {
     },
     firstName: {
       type: String,
-      require: false,
+      required: false,
     },
     lastName: {
       type: String,
-      require: false,
+      required: false,
     },
     createdAt: {
       type: String,
