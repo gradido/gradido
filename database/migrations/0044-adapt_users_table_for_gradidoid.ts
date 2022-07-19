@@ -12,7 +12,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       CREATE TABLE IF NOT EXISTS \`user_contacts\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
         \`type\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-        \`users_id\` int(10) unsigned NOT NULL,
+        \`user_id\` int(10) unsigned NOT NULL,
         \`email\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
         \`email_hash\` binary(32) NULL,
         \`email_checked\` tinyint(4) NOT NULL DEFAULT 0,
@@ -23,7 +23,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
-  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` varchar(36) NULL AFTER `id`;')
+  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` UUID NOT NULL DEFAULT UUID() AFTER `id`;')
   await queryFn('ALTER TABLE `users` ADD COLUMN `alias` varchar(20) NULL AFTER `gradido_id`;')
   await queryFn(
     'ALTER TABLE `users` ADD COLUMN `passphrase_encrypt_type` varchar(36) NULL AFTER `privkey`;',

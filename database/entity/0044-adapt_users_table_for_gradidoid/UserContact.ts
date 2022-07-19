@@ -14,8 +14,8 @@ export class UserContact extends BaseEntity {
   })
   type: string
 
-  @Column({ name: 'users_id', type: 'int', unsigned: true, nullable: false })
-  usersId?: number | null
+  @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
+  userId: number
 
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string

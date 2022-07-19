@@ -8,7 +8,7 @@ export class User extends BaseEntity {
   @Column({
     name: 'gradido_id',
     length: 36,
-    nullable: true,
+    nullable: false,
     default: null,
     collation: 'utf8mb4_unicode_ci',
   })
