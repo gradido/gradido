@@ -4,6 +4,7 @@
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
   adminUpdateContribution,
+  confirmContribution,
   createContribution,
   deleteContribution,
   updateContribution,
@@ -573,8 +574,8 @@ describe('ContributionResolver', () => {
       describe('wrong contribution id', () => {
         it('returns an error', async () => {
           await expect(
-            query({
-              query: deleteContribution,
+            mutate({
+              mutation: deleteContribution,
               variables: {
                 id: -1,
               },
@@ -594,8 +595,8 @@ describe('ContributionResolver', () => {
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await expect(
-            query({
-              query: deleteContribution,
+            mutate({
+              mutation: deleteContribution,
               variables: {
                 id: result.data.createContribution.id,
               },
@@ -611,13 +612,44 @@ describe('ContributionResolver', () => {
       describe('User deletes own contribution', () => {
         it('deletes successfully', async () => {
           await expect(
-            query({
-              query: deleteContribution,
+            mutate({
+              mutation: deleteContribution,
               variables: {
                 id: result.data.createContribution.id,
               },
             }),
           ).resolves.toBeTruthy()
+        })
+      })
+
+      describe('User deletes already confirmed contribution', () => {
+        it('throws an error', async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await mutate({
+            mutation: confirmContribution,
+            variables: {
+              id: result.data.createContribution.id,
+            },
+          })
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
+            }),
+          )
         })
       })
     })
