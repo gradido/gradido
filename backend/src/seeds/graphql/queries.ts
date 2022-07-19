@@ -185,9 +185,12 @@ export const listContributions = gql`
       order: $order
       filterConfirmed: $filterConfirmed
     ) {
-      id
-      amount
-      memo
+      contributionCount
+      contributionList {
+        id
+        amount
+        memo
+      }
     }
   }
 `
@@ -195,8 +198,8 @@ export const listContributions = gql`
 export const listAllContributions = `
 query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
   listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-  	linkCount
-    linkList {
+  	contributionCount
+    contributionList {
       id
       firstName
       lastName
