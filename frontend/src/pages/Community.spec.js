@@ -8,17 +8,20 @@ const apolloQueryMock = jest.fn()
 const apolloMutationMock = jest.fn()
 apolloQueryMock.mockResolvedValue({
   data: {
-    listContributions: [
-      {
-        id: 1555,
-        amount: '200',
-        memo: 'Fleisig, fleisig am Arbeiten mein Lieber Freund, 50 Zeichen sind viel',
-        createdAt: '2022-07-15T08:47:06.000Z',
-        deletedAt: null,
-        confirmedBy: null,
-        confirmedAt: null,
-      },
-    ],
+    listContributions: {
+      contributionList: [
+        {
+          id: 1555,
+          amount: '200',
+          memo: 'Fleisig, fleisig am Arbeiten mein Lieber Freund, 50 Zeichen sind viel',
+          createdAt: '2022-07-15T08:47:06.000Z',
+          deletedAt: null,
+          confirmedBy: null,
+          confirmedAt: null,
+        },
+      ],
+      contributionCount: 1,
+    },
   },
 })
 
