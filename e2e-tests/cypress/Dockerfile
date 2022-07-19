@@ -11,6 +11,9 @@
 ###############################################################################
 FROM cypress/base:16.14.2-slim
 
+ARG DOCKER_WORKDIR=/tests/
+WORKDIR $DOCKER_WORKDIR
+
 # install dependencies
 RUN apt-get -qq update > /dev/null && \
   apt-get -qq install -y bzip2 mplayer wget > /dev/null
@@ -27,6 +30,7 @@ RUN wget --no-verbose -O /tmp/firefox.tar.bz2 "https://download.mozilla.org/?pro
 # clean up
 RUN rm -rf /var/lib/apt/lists/* && apt-get -qq clean > /dev/null
 
-WORKDIR /tests
-COPY tests/ /tests
+COPY tests/package.json tests/yarn.lock $DOCKER_WORKDIR
+
 RUN yarn install
+COPY tests/ $DOCKER_WORKDIR
