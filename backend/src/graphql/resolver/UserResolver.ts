@@ -23,6 +23,15 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import {
+  Event,
+  EventLogin,
+  EventRedeemRegister,
+  EventRegister,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
+import { getUserCreation } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -224,7 +233,7 @@ export class UserResolver {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
-    const user = new User(userEntity)
+    const user = new User(userEntity, await getUserCreation(userEntity.id))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -274,7 +283,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
 
-    const user = new User(dbUser)
+    const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug('user=' + user)
 
     // Elopage Status & Stored PublisherId
@@ -290,6 +299,9 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
+    const ev = new EventLogin()
+    ev.userId = user.id
+    eventProtocol.writeEvent(new Event().setEventLogin(ev))
     logger.info('successful Login:' + user)
     return user
   }
@@ -367,6 +379,9 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
+    const eventRegister = new EventRegister()
+    const eventRedeemRegister = new EventRedeemRegister()
+    const eventSendConfirmEmail = new EventSendConfirmationEmail()
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
@@ -384,12 +399,14 @@ export class UserResolver {
         logger.info('redeemCode found contributionLink=' + contributionLink)
         if (contributionLink) {
           dbUser.contributionLinkId = contributionLink.id
+          eventRedeemRegister.contributionId = contributionLink.id
         }
       } else {
         const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
+          eventRedeemRegister.transactionId = transactionLink.id
         }
       }
     }
@@ -400,6 +417,7 @@ export class UserResolver {
     // loginUser.pubKey = keyPair[0]
     // loginUser.privKey = encryptedPrivkey
 
+    const event = new Event()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
@@ -429,6 +447,9 @@ export class UserResolver {
         duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      eventSendConfirmEmail.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
+
       /* uncomment this, when you need the activation link on the console */
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -444,6 +465,14 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+
+    if (redeemCode) {
+      eventRedeemRegister.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+    } else {
+      eventRegister.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+    }
 
     return new User(dbUser)
   }
