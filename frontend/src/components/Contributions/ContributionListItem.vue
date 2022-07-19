@@ -49,7 +49,7 @@ export default {
     },
     lastName: {
       type: String,
-      require: false,
+      required: false,
     },
     createdAt: {
       type: String,
