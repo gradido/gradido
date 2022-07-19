@@ -4,7 +4,9 @@
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
   adminUpdateContribution,
+  confirmContribution,
   createContribution,
+  deleteContribution,
   updateContribution,
 } from '@/seeds/graphql/mutations'
 import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
@@ -193,18 +195,21 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                listContributions: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Herzlich Willkommen bei Gradido!',
-                    amount: '1000',
-                  }),
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
+                listContributions: {
+                  contributionCount: 2,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Herzlich Willkommen bei Gradido!',
+                      amount: '1000',
+                    }),
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test env contribution',
+                      amount: '100',
+                    }),
+                  ]),
+                },
               },
             }),
           )
@@ -226,13 +231,16 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               data: {
-                listContributions: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: expect.any(Number),
-                    memo: 'Test env contribution',
-                    amount: '100',
-                  }),
-                ]),
+                listContributions: {
+                  contributionCount: 1,
+                  contributionList: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: expect.any(Number),
+                      memo: 'Test env contribution',
+                      amount: '100',
+                    }),
+                  ]),
+                },
               },
             }),
           )
@@ -481,6 +489,11 @@ describe('ContributionResolver', () => {
         })
       })
 
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
+      })
+
       it('returns allCreation', async () => {
         await expect(
           query({
@@ -496,8 +509,8 @@ describe('ContributionResolver', () => {
           expect.objectContaining({
             data: {
               listAllContributions: {
-                linkCount: 2,
-                linkList: expect.arrayContaining([
+                contributionCount: 2,
+                contributionList: expect.arrayContaining([
                   expect.objectContaining({
                     id: expect.any(Number),
                     memo: 'Herzlich Willkommen bei Gradido!',
@@ -513,6 +526,131 @@ describe('ContributionResolver', () => {
             },
           }),
         )
+      })
+    })
+  })
+
+  describe('deleteContribution', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          query({
+            query: deleteContribution,
+            variables: {
+              id: -1,
+            },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        result = await mutate({
+          mutation: createContribution,
+          variables: {
+            amount: 100.0,
+            memo: 'Test env contribution',
+            creationDate: new Date().toString(),
+          },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
+      })
+
+      describe('wrong contribution id', () => {
+        it('returns an error', async () => {
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: -1,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found for given id.')],
+            }),
+          )
+        })
+      })
+
+      describe('other user sends a deleteContribtuion', () => {
+        it('returns an error', async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Can not delete contribution of another user')],
+            }),
+          )
+        })
+      })
+
+      describe('User deletes own contribution', () => {
+        it('deletes successfully', async () => {
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toBeTruthy()
+        })
+      })
+
+      describe('User deletes already confirmed contribution', () => {
+        it('throws an error', async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          await mutate({
+            mutation: confirmContribution,
+            variables: {
+              id: result.data.createContribution.id,
+            },
+          })
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+          await expect(
+            mutate({
+              mutation: deleteContribution,
+              variables: {
+                id: result.data.createContribution.id,
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('A confirmed contribution can not be deleted')],
+            }),
+          )
+        })
       })
     })
   })
