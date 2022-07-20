@@ -54,5 +54,65 @@ describe('ContributionList', () => {
     it('has a DIV .contribution-list', () => {
       expect(wrapper.find('div.contribution-list').exists()).toBe(true)
     })
+
+    describe('pagination', () => {
+      describe('list count smaller than page size', () => {
+        it('has no pagination buttons', () => {
+          expect(wrapper.find('ul.pagination').exists()).toBe(false)
+        })
+      })
+
+      describe('list count greater than page size', () => {
+        beforeEach(() => {
+          wrapper.setProps({ contributionCount: 33 })
+        })
+
+        it('has pagination buttons', () => {
+          expect(wrapper.find('ul.pagination').exists()).toBe(true)
+        })
+      })
+
+      describe('switch page', () => {
+        const scrollToMock = jest.fn()
+        window.scrollTo = scrollToMock
+
+        beforeEach(async () => {
+          await wrapper.setProps({ contributionCount: 33 })
+          wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
+        })
+
+        it('emits update contribution list', () => {
+          expect(wrapper.emitted('update-list-contributions')).toEqual([
+            [{ currentPage: 2, pageSize: 25 }],
+          ])
+        })
+
+        it('scrolls to top', () => {
+          expect(scrollToMock).toBeCalledWith(0, 0)
+        })
+      })
+    })
+
+    describe('update contribution', () => {
+      beforeEach(() => {
+        wrapper
+          .findComponent({ name: 'ContributionListItem' })
+          .vm.$emit('update-contribution-form', 'item')
+      })
+
+      it('emits update contribution form', () => {
+        expect(wrapper.emitted('update-contribution-form')).toEqual([['item']])
+      })
+    })
+
+    describe('delete contribution', () => {
+      beforeEach(() => {
+        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('delete-contribution', 2)
+      })
+
+      it('emits delete contribution', () => {
+        expect(wrapper.emitted('delete-contribution')).toEqual([[{ id: 2 }]])
+      })
+    })
   })
 })
