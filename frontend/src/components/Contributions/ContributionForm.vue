@@ -79,6 +79,10 @@
         </b-col>
       </b-row>
     </b-form>
+    {{ typeof this.$store.state.creation[2] }}, {{ typeof this.form.amount }},
+    {{ typeof maxGddThisMonth }}({{ maxGddThisMonth }})
+    <br />
+    {{ isThisMonth }}
   </div>
 </template>
 <script>
@@ -89,8 +93,6 @@ export default {
   },
   data() {
     return {
-      maxGddLastMonth: this.$store.state.creation[1],
-      maxGddThisMonth: this.$store.state.creation[2],
       minlength: 50,
       maxlength: 255,
       maximalDate: new Date(),
@@ -137,19 +139,35 @@ export default {
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
         monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
-        creation: this.$store.state.creation[1],
+        creation: this.id
+          ? this.$store.state.creation[1] + this.form.amount
+          : this.$store.state.creation[1],
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     thisMonthObject() {
       const obj = {
         monthAndYear: this.$d(new Date(), 'monthAndYear'),
-        creation: this.$store.state.creation[2],
+        creation: this.id
+          ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
+          : this.$store.state.creation[2],
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     isThisMonth() {
       return new Date(this.form.date).getMonth() === new Date().getMonth()
+    },
+    maxGddLastMonth() {
+      // When edited, the amount is added back on top of the amount
+      return this.id
+        ? parseInt(this.$store.state.creation[1]) + parseInt(this.form.amount)
+        : this.$store.state.creation[1]
+    },
+    maxGddThisMonth() {
+      // When edited, the amount is added back on top of the amount
+      return this.id
+        ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
+        : this.$store.state.creation[2]
     },
   },
 }
