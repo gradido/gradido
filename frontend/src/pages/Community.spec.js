@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import Community from './Community'
 import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
-import { createContribution, updateContribution } from '@/graphql/mutations'
+import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 const localVue = global.localVue
@@ -299,6 +299,72 @@ describe('Community', () => {
       })
     })
 
+    describe('delete contribution', () => {
+      describe('with success', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloMutationMock.mockResolvedValue({
+            data: {
+              deleteContribution: true,
+            },
+          })
+          await wrapper
+            .findComponent({ name: 'ContributionForm' })
+            .vm.$emit('delete-contribution', 2)
+        })
+
+        it('calls the API', () => {
+          expect(apolloMutationMock).toBeCalledWith({
+            fetchPolicy: 'no-cache',
+            mutation: deleteContribution,
+            variables: {
+              id: 2,
+            },
+          })
+        })
+
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith({
+            deleteContribution: true,
+          })
+        })
+
+        it('updates the contribution list', () => {
+          expect(apolloQueryMock).toBeCalledWith({
+            fetchPolicy: 'no-cache',
+            query: listContributions,
+            variables: {
+              currentPage: 1,
+              pageSize: 25,
+            },
+          })
+        })
+
+        it('verifies the login (to get the new creations available)', () => {
+          expect(apolloQueryMock).toBeCalledWith({
+            query: verifyLogin,
+            fetchPolicy: 'network-only',
+          })
+        })
+      })
+
+      describe('with error', () => {
+        beforeEach(async () => {
+          jest.clearAllMocks()
+          apolloMutationMock.mockRejectedValue({
+            message: 'Oh my god!',
+          })
+          await wrapper
+            .findComponent({ name: 'ContributionForm' })
+            .vm.$emit('delete-contribution', 2)
+        })
+
+        it('toasts the error message', () => {
+          expect(toastErrorSpy).toBeCalledWith('Oh my god!')
+        })
+      })
+    })
+
     describe('update contribution form', () => {
       const now = new Date().toISOString()
       beforeEach(async () => {
@@ -307,7 +373,7 @@ describe('Community', () => {
           .findComponent({ name: 'ContributionList' })
           .vm.$emit('update-contribution-form', {
             id: 2,
-            createdAt: now,
+            contributionDate: now,
             memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
             amount: '400',
           })
