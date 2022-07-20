@@ -36,7 +36,7 @@
 <script>
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
-import { createContribution, updateContribution } from '@/graphql/mutations'
+import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
@@ -100,6 +100,28 @@ export default {
             creationDate: data.date,
             memo: data.memo,
             amount: data.amount,
+          },
+        })
+        .then((result) => {
+          // console.log('result', result.data)
+          this.toastSuccess(result.data)
+          this.updateListContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
+          this.verifyLogin()
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+        })
+    },
+    deleteContribution(id) {
+      this.$apollo
+        .mutate({
+          fetchPolicy: 'no-cache',
+          mutation: deleteContribution,
+          variables: {
+            id: id,
           },
         })
         .then((result) => {
