@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="contribution-list-item">
     <slot>
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
         <div class="d-inline-flex">
@@ -94,9 +94,6 @@ export default {
     },
   },
   methods: {
-    updateContributionForm(item) {
-      this.$emit('update-contribution-form', item)
-    },
     deleteContribution(id) {
       this.boxOne = ''
       this.$bvModal.msgBoxConfirm('Delete Contribution! Are you sure?').then((value) => {
