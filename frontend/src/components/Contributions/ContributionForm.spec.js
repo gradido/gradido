@@ -6,6 +6,15 @@ const localVue = global.localVue
 describe('ContributionForm', () => {
   let wrapper
 
+  const propsData = {
+    value: {
+      id: null,
+      date: '',
+      memo: '',
+      amount: '',
+    },
+  }
+
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
@@ -20,6 +29,7 @@ describe('ContributionForm', () => {
     return mount(ContributionForm, {
       localVue,
       mocks,
+      propsData,
     })
   }
 
