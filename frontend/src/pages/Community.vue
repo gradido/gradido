@@ -6,6 +6,7 @@
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
+            @delete-contribution="deleteContribution"
             v-model="form"
           />
         </b-tab>

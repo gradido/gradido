@@ -1,7 +1,11 @@
 <template>
   <div class="contribution-list container">
     <div class="list-group" v-for="item in items" :key="item.id">
-      <contribution-list-item v-bind="item" @update-contribution-form="updateContributionForm" />
+      <contribution-list-item
+        v-bind="item"
+        @update-contribution-form="updateContributionForm"
+        @delete-contribution="deleteContribution"
+      />
     </div>
     <b-pagination
       v-if="isPaginationVisible"
@@ -51,6 +55,11 @@ export default {
     },
     updateContributionForm(item) {
       this.$emit('update-contribution-form', item)
+    },
+    deleteContribution(id) {
+      this.$emit('delete-contribution', {
+        id: id,
+      })
     },
   },
   computed: {
