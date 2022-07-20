@@ -103,7 +103,7 @@ export default {
       if (this.id === null) {
         this.$emit('set-contribution', this.form)
       } else {
-        this.$emit('edit-contribution', this.value)
+        this.$emit('edit-contribution', this.form)
       }
       this.reset()
     },

@@ -65,7 +65,6 @@ export default {
   },
   methods: {
     setContribution(data) {
-      // console.log('setContribution', data)
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
@@ -77,7 +76,6 @@ export default {
           },
         })
         .then((result) => {
-          // console.log('result', result.data)
           this.toastSuccess(result.data)
           this.updateListContributions({
             currentPage: this.currentPage,
@@ -90,7 +88,6 @@ export default {
         })
     },
     updateContribution(data) {
-      // console.log('setContribution', data)
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
@@ -103,7 +100,6 @@ export default {
           },
         })
         .then((result) => {
-          // console.log('result', result.data)
           this.toastSuccess(result.data)
           this.updateListContributions({
             currentPage: this.currentPage,
@@ -126,13 +122,11 @@ export default {
           },
         })
         .then((result) => {
-          // console.log('result', result.data)
           const {
             data: { listAllContributions },
           } = result
           this.contributionCountAll = listAllContributions.contributionCount
           this.itemsAll = listAllContributions.contributionList
-          // this.toastSuccess(result.data)
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -149,13 +143,11 @@ export default {
           },
         })
         .then((result) => {
-          // console.log('result', result.data)
           const {
             data: { listContributions },
           } = result
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
-          // this.toastSuccess(result.data)
         })
         .catch((err) => {
           this.toastError(err.message)
