@@ -12,19 +12,23 @@
           <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
         </div>
         <div class="mr-2">{{ memo }}</div>
-        <div
-          v-if="type === 'pending' && !firstName"
-          class="text-right pointer"
-          @click="
-            $emit('update-contribution-form', {
-              id: id,
-              createdAt: createdAt,
-              memo: memo,
-              amount: amount,
-            })
-          "
-        >
-          <b-icon icon="pencil" class="h2"></b-icon>
+        <div v-if="type === 'pending' && !firstName" class="d-flex flex-row-reverse">
+          <div
+            class="pointer ml-5"
+            @click="
+              $emit('update-contribution-form', {
+                id: id,
+                contributionDate: contributionDate,
+                memo: memo,
+                amount: amount,
+              })
+            "
+          >
+            <b-icon icon="pencil" class="h2"></b-icon>
+          </div>
+          <div class="pointer" @click="deleteContribution(id)">
+            <b-icon icon="trash" class="h2"></b-icon>
+          </div>
         </div>
       </div>
     </slot>
@@ -52,6 +56,9 @@ export default {
       required: false,
     },
     createdAt: {
+      type: String,
+    },
+    contributionDate: {
       type: String,
     },
     deletedAt: {
@@ -83,12 +90,20 @@ export default {
     date() {
       if (this.deletedAt) return this.deletedAt
       if (this.confirmedAt) return this.confirmedAt
-      return this.createdAt
+      return this.contributionDate
     },
   },
   methods: {
     updateContributionForm(item) {
       this.$emit('update-contribution-form', item)
+    },
+    deleteContribution(id) {
+      this.boxOne = ''
+      this.$bvModal.msgBoxConfirm('Delete Contribution! Are you sure?').then((value) => {
+        this.$emit('delete-contribution', {
+          id: id,
+        })
+      })
     },
   },
 }

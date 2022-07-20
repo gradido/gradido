@@ -6,6 +6,7 @@
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
+            @delete-contribution="deleteContribution"
             v-model="form"
           />
         </b-tab>
@@ -36,7 +37,7 @@
 <script>
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
-import { createContribution, updateContribution } from '@/graphql/mutations'
+import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
@@ -111,6 +112,28 @@ export default {
           this.toastError(err.message)
         })
     },
+    deleteContribution(id) {
+      this.$apollo
+        .mutate({
+          fetchPolicy: 'no-cache',
+          mutation: deleteContribution,
+          variables: {
+            id: id,
+          },
+        })
+        .then((result) => {
+          // console.log('result', result.data)
+          this.toastSuccess(result.data)
+          this.updateListContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
+          this.verifyLogin()
+        })
+        .catch((err) => {
+          this.toastError(err.message)
+        })
+    },
     updateListAllContributions(pagination) {
       this.$apollo
         .query({
@@ -171,7 +194,7 @@ export default {
     },
     updateContributionForm(item) {
       this.form.id = item.id
-      this.form.date = item.createdAt
+      this.form.date = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
       this.tabIndex = 0

@@ -74,7 +74,7 @@
         </b-col>
         <b-col class="text-right">
           <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
-            {{ id === null ? $t('contribution.submit') : $t('form.edit') }}
+            {{ value.id ? $t('form.edit') : $t('contribution.submit') }}
           </b-button>
         </b-col>
       </b-row>
@@ -89,8 +89,6 @@ export default {
   },
   data() {
     return {
-      maxGddLastMonth: this.$store.state.creation[1],
-      maxGddThisMonth: this.$store.state.creation[2],
       minlength: 50,
       maxlength: 255,
       maximalDate: new Date(),
@@ -100,10 +98,10 @@ export default {
   },
   methods: {
     submit() {
-      if (this.id === null) {
-        this.$emit('set-contribution', this.form)
+      if (this.value.id) {
+        this.$emit('update-contribution', this.form)
       } else {
-        this.$emit('edit-contribution', this.form)
+        this.$emit('set-contribution', this.form)
       }
       this.reset()
     },
@@ -137,19 +135,35 @@ export default {
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
         monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
-        creation: this.$store.state.creation[1],
+        creation: this.id
+          ? this.$store.state.creation[1] + this.form.amount
+          : this.$store.state.creation[1],
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     thisMonthObject() {
       const obj = {
         monthAndYear: this.$d(new Date(), 'monthAndYear'),
-        creation: this.$store.state.creation[2],
+        creation: this.id
+          ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
+          : this.$store.state.creation[2],
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     isThisMonth() {
       return new Date(this.form.date).getMonth() === new Date().getMonth()
+    },
+    maxGddLastMonth() {
+      // When edited, the amount is added back on top of the amount
+      return this.id
+        ? parseInt(this.$store.state.creation[1]) + parseInt(this.form.amount)
+        : this.$store.state.creation[1]
+    },
+    maxGddThisMonth() {
+      // When edited, the amount is added back on top of the amount
+      return this.id
+        ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
+        : this.$store.state.creation[2]
     },
   },
 }
