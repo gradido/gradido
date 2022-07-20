@@ -179,7 +179,7 @@ export default {
     },
     updateContributionForm(item) {
       this.form.id = item.id
-      this.form.date = item.createdAt
+      this.form.date = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
       this.tabIndex = 0

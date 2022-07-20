@@ -182,8 +182,10 @@ export const listContributions = gql`
         amount
         memo
         createdAt
+        contributionDate
         confirmedAt
         confirmedBy
+        deletedAt
       }
     }
   }
@@ -200,6 +202,7 @@ export const listAllContributions = gql`
         amount
         memo
         createdAt
+        contributionDate
         confirmedAt
         confirmedBy
       }

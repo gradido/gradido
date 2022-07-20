@@ -18,7 +18,7 @@
           @click="
             $emit('update-contribution-form', {
               id: id,
-              createdAt: createdAt,
+              contributionDate: contributionDate,
               memo: memo,
               amount: amount,
             })
@@ -54,6 +54,9 @@ export default {
     createdAt: {
       type: String,
     },
+    contributionDate: {
+      type: String,
+    },
     deletedAt: {
       type: String,
     },
@@ -83,7 +86,7 @@ export default {
     date() {
       if (this.deletedAt) return this.deletedAt
       if (this.confirmedAt) return this.confirmedAt
-      return this.createdAt
+      return this.contributionDate
     },
   },
   methods: {

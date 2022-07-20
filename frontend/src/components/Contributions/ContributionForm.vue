@@ -74,15 +74,11 @@
         </b-col>
         <b-col class="text-right">
           <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
-            {{ id === null ? $t('contribution.submit') : $t('form.edit') }}
+            {{ value.id ? $t('form.edit') : $t('contribution.submit') }}
           </b-button>
         </b-col>
       </b-row>
     </b-form>
-    {{ typeof this.$store.state.creation[2] }}, {{ typeof this.form.amount }},
-    {{ typeof maxGddThisMonth }}({{ maxGddThisMonth }})
-    <br />
-    {{ isThisMonth }}
   </div>
 </template>
 <script>
@@ -102,10 +98,10 @@ export default {
   },
   methods: {
     submit() {
-      if (this.id === null) {
-        this.$emit('set-contribution', this.form)
+      if (this.value.id) {
+        this.$emit('update-contribution', this.form)
       } else {
-        this.$emit('edit-contribution', this.value)
+        this.$emit('set-contribution', this.form)
       }
       this.reset()
     },
