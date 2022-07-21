@@ -23,10 +23,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
-  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` UUID NOT NULL DEFAULT UUID() AFTER `id`;')
-  await queryFn('ALTER TABLE `users` ADD COLUMN `alias` varchar(20) NULL AFTER `gradido_id`;')
   await queryFn(
-    'ALTER TABLE `users` ADD COLUMN `passphrase_encrypt_type` varchar(36) NULL AFTER `privkey`;',
+    'ALTER TABLE `users` ADD COLUMN `gradido_id` varchar(36) NOT NULL UNIQUE DEFAULT UUID() AFTER `id`;',
+  )
+  await queryFn(
+    'ALTER TABLE `users` ADD COLUMN `alias` varchar(20) NULL UNIQUE AFTER `gradido_id`;',
   )
   await queryFn('ALTER TABLE `users` ADD COLUMN `email_id` int(10) NULL AFTER `email`;')
 }
@@ -37,6 +38,5 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
 
   await queryFn('ALTER TABLE `users` DROP COLUMN `gradido_id`;')
   await queryFn('ALTER TABLE `users` DROP COLUMN `alias`;')
-  await queryFn('ALTER TABLE `users` DROP COLUMN `passphrase_encrypt_type`;')
   await queryFn('ALTER TABLE `users` DROP COLUMN `email_id`;')
 }
