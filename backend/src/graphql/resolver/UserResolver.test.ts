@@ -111,13 +111,16 @@ describe('UserResolver', () => {
           expect(user).toEqual([
             {
               id: expect.any(Number),
+              gradidoID: expect.any(String),
+              alias: null,
               email: 'peter@lustig.de',
+              emailId: null,
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
               pubKey: null,
               privKey: null,
-              emailHash: expect.any(Buffer),
+              // emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
               emailChecked: false,
               passphrase: expect.any(String),

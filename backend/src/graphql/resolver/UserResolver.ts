@@ -377,7 +377,7 @@ export class UserResolver {
     // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    const emailHash = getEmailHash(email)
+    // const emailHash = getEmailHash(email)
 
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
@@ -386,7 +386,7 @@ export class UserResolver {
     dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
-    dbUser.emailHash = emailHash
+    //    dbUser.emailHash = emailHash
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
