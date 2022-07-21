@@ -77,7 +77,7 @@ export default {
           },
         })
         .then((result) => {
-          this.toastSuccess(result.data)
+          this.toastSuccess(this.$t('contribution.submitted'))
           this.updateListContributions({
             currentPage: this.currentPage,
             pageSize: this.pageSize,
@@ -101,7 +101,7 @@ export default {
           },
         })
         .then((result) => {
-          this.toastSuccess(result.data)
+          this.toastSuccess(this.$t('contribution.updated'))
           this.updateListContributions({
             currentPage: this.currentPage,
             pageSize: this.pageSize,
@@ -112,18 +112,17 @@ export default {
           this.toastError(err.message)
         })
     },
-    deleteContribution(id) {
+    deleteContribution(data) {
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
           mutation: deleteContribution,
           variables: {
-            id: id,
+            id: data.id,
           },
         })
         .then((result) => {
-          // console.log('result', result.data)
-          this.toastSuccess(result.data)
+          this.toastSuccess(this.$t('contribution.deleted'))
           this.updateListContributions({
             currentPage: this.currentPage,
             pageSize: this.pageSize,

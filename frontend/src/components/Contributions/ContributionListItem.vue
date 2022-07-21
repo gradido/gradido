@@ -26,7 +26,14 @@
           >
             <b-icon icon="pencil" class="h2"></b-icon>
           </div>
-          <div class="pointer" @click="deleteContribution(id)">
+          <div
+            class="pointer"
+            @click="
+              $emit('delete-contribution', {
+                id: id,
+              })
+            "
+          >
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
         </div>
@@ -96,7 +103,7 @@ export default {
   methods: {
     deleteContribution(id) {
       this.boxOne = ''
-      this.$bvModal.msgBoxConfirm('Delete Contribution! Are you sure?').then((value) => {
+      this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then((value) => {
         this.$emit('delete-contribution', {
           id: id,
         })

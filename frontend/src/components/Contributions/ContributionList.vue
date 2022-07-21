@@ -57,10 +57,8 @@ export default {
     updateContributionForm(item) {
       this.$emit('update-contribution-form', item)
     },
-    deleteContribution(id) {
-      this.$emit('delete-contribution', {
-        id: id,
-      })
+    deleteContribution(item) {
+      this.$emit('delete-contribution', item)
     },
   },
   computed: {

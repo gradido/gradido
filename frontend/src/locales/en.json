@@ -33,6 +33,8 @@
   },
   "contribution": {
     "activity": "Activity",
+    "delete": "Delete Contribution! Are you sure?",
+    "deleted": "The contribution has been deleted! But it will remain visible.",
     "formText": {
       "h3": "Your contribution to the common good",
       "maxGDDforMonth": "You can only submit a maximum of {amount} GDD for the selected month.",
@@ -41,7 +43,9 @@
       "text2": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account."
     },
     "noDateSelected": "No date selected",
-    "submit": "Submit"
+    "submit": "Submit",
+    "submitted":"The contribution was submitted.",
+    "updated":"The contribution was changed."
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"

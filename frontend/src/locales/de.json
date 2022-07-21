@@ -33,6 +33,8 @@
   },
   "contribution": {
     "activity": "Tätigkeit",
+    "delete": "Beitrag löschen! Bist du sicher?",
+    "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
       "h3": "Dein Beitrag zum Gemeinwohl",
       "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
@@ -41,7 +43,9 @@
       "text2": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben."
     },
     "noDateSelected": "Kein Datum ausgewählt",
-    "submit": "Einreichen"
+    "submit": "Einreichen",
+    "submitted":"Der Beitrag wurde eingereicht.",
+    "updated":"Der Beitrag wurde geändert."
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
