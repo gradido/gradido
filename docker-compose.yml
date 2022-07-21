@@ -6,11 +6,13 @@
 version: "3.4"
 
 services:
+
   ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
-    image: gradido/frontend:latest
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/frontend:local-production
     build:
       context: ./frontend
       target: production
@@ -35,7 +37,8 @@ services:
   # ADMIN INTERFACE ######################################
   ########################################################
   admin:
-    image: gradido/admin:latest
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/admin:local-production
     build:
       context: ./admin
       target: production
@@ -78,7 +81,8 @@ services:
   # BACKEND ##############################################
   ########################################################
   backend:
-    image: gradido/backend:latest
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/backend:local-production
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
@@ -112,7 +116,8 @@ services:
   # DATABASE #############################################
   ########################################################
   database:
-    #image: gradido/database:production_up
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/database:local-production_up
     build:
       context: ./database
       target: production_up
