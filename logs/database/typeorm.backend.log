@@ -1,3 +1,0 @@
-# This has to be exitst in git!
-#   If not then the mirroring with Docker Compose volumes will fail and a folder will be created with this name instead.
-#   But then the type of folder and the type file of the file to mirror will lead to a type error.

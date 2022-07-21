@@ -1,5 +1,2 @@
 *
 !.gitignore
-!database
-database/*
-!database/typeorm.backend.log
