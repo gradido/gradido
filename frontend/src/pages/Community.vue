@@ -6,21 +6,63 @@
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
-            @delete-contribution="deleteContribution"
             v-model="form"
           />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
+          <div>
+            <b-alert show dismissible fade variant="secondary" class="text-dark">
+              <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
+              <p>
+                {{ $t('contribution.alert.t1') }}
+              </p>
+              <ul class="h2">
+                <li>
+                  <b-icon icon="bell-fill" variant="primary"></b-icon>
+                  {{ $t('contribution.alert.li1') }}
+                </li>
+                <li>
+                  <b-icon icon="check" variant="success"></b-icon>
+                  {{ $t('contribution.alert.li2') }}
+                </li>
+                <li>
+                  <b-icon icon="x-circle" variant="danger"></b-icon>
+                  {{ $t('contribution.alert.li3') }}
+                </li>
+              </ul>
+              <hr />
+              <p class="mb-0">
+                {{ $t('contribution.alert.t2') }}
+              </p>
+            </b-alert>
+          </div>
           <contribution-list
             :items="items"
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
+            @delete-contribution="deleteContribution"
             :contributionCount="contributionCount"
             :showPagination="true"
             :pageSize="pageSize"
           />
         </b-tab>
         <b-tab :title="$t('navigation.community')">
+          <b-alert show dismissible fade variant="secondary" class="text-dark">
+            <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
+            <p>
+              {{ $t('contribution.alert.community') }}
+            </p>
+            <ul class="h2">
+              <li>
+                <b-icon icon="bell-fill" variant="primary"></b-icon>
+                {{ $t('contribution.alert.li1') }}
+              </li>
+              <li>
+                <b-icon icon="check" variant="success"></b-icon>
+                {{ $t('contribution.alert.li2') }}
+              </li>
+            </ul>
+          </b-alert>
           <contribution-list
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
@@ -113,6 +155,7 @@ export default {
         })
     },
     deleteContribution(data) {
+      alert('deleteContribution')
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',
