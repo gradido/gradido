@@ -1,15 +1,15 @@
 <template>
   <div class="container contribution-form">
     <div class="my-3">
-      <h3>{{ $t('contribution.formText.h3') }}</h3>
-      {{ $t('contribution.formText.text1') }}
+      <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
+      {{ $t('contribution.formText.bringYourTalentsTo') }}
       <ul class="my-3">
         <li v-html="lastMonthObject"></li>
         <li v-html="thisMonthObject"></li>
       </ul>
 
       <div class="my-3">
-        <b>{{ $t('contribution.formText.text2') }}</b>
+        <b>{{ $t('contribution.formText.describeYourCommunity') }}</b>
       </div>
     </div>
     <b-form ref="form" @submit.prevent="submit" class="border p-3">
@@ -114,7 +114,7 @@ export default {
   },
   computed: {
     /*
-     * minimalDate() = The date is reset by one month to the 1st of the previous month.
+     * minimalDate() = Sets the date to the 1st of the previous month.
      *
      */
     minimalDate() {
@@ -126,7 +126,7 @@ export default {
         this.form.amount <= 0 ||
         this.form.amount > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
-        (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddlastMonth))
+        (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
         return true
       return false
