@@ -34,12 +34,12 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "community": "Here you will find all submitted and confirmed contributions from all members of this community.",
-      "li1": "Submitted and waiting for confirmation",
-      "li2": "confirmed",
-      "li3": "deleted",
-      "t1": "Here you will find a chronological list of all your submitted contributions. There are three display types. There are three ways of displaying your posts. You can edit your contributions, which have not yet been confirmed, at any time.",
-      "t2": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support."
+      "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
+      "confirm": "confirmed",
+      "myContributionNoteList": "Here you will find a chronological list of all your submitted contributions. There are three display types. There are three ways of displaying your posts. You can edit your contributions, which have not yet been confirmed, at any time.",
+      "myContributionNoteSupport": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support.",
+      "pending": "Submitted and waiting for confirmation",
+      "rejected": "deleted"
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",

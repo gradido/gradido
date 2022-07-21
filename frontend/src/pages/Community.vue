@@ -14,25 +14,25 @@
             <b-alert show dismissible fade variant="secondary" class="text-dark">
               <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
               <p>
-                {{ $t('contribution.alert.t1') }}
+                {{ $t('contribution.alert.myContributionNoteList') }}
               </p>
               <ul class="h2">
                 <li>
                   <b-icon icon="bell-fill" variant="primary"></b-icon>
-                  {{ $t('contribution.alert.li1') }}
+                  {{ $t('contribution.alert.pending') }}
                 </li>
                 <li>
                   <b-icon icon="check" variant="success"></b-icon>
-                  {{ $t('contribution.alert.li2') }}
+                  {{ $t('contribution.alert.confirm') }}
                 </li>
                 <li>
                   <b-icon icon="x-circle" variant="danger"></b-icon>
-                  {{ $t('contribution.alert.li3') }}
+                  {{ $t('contribution.alert.rejected') }}
                 </li>
               </ul>
               <hr />
               <p class="mb-0">
-                {{ $t('contribution.alert.t2') }}
+                {{ $t('contribution.alert.myContributionNoteSupport') }}
               </p>
             </b-alert>
           </div>
@@ -50,16 +50,16 @@
           <b-alert show dismissible fade variant="secondary" class="text-dark">
             <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
             <p>
-              {{ $t('contribution.alert.community') }}
+              {{ $t('contribution.alert.communityNoteList') }}
             </p>
             <ul class="h2">
               <li>
                 <b-icon icon="bell-fill" variant="primary"></b-icon>
-                {{ $t('contribution.alert.li1') }}
+                {{ $t('contribution.alert.pending') }}
               </li>
               <li>
                 <b-icon icon="check" variant="success"></b-icon>
-                {{ $t('contribution.alert.li2') }}
+                {{ $t('contribution.alert.confirm') }}
               </li>
             </ul>
           </b-alert>

@@ -34,12 +34,12 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "community": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
-      "li1": "Eingereicht und wartet auf Bestätigung",
-      "li2": "bestätigt",
-      "li3": "gelöscht",
-      "t1": "Hier findest du chronologisch aufgelistet alle deine eingereichten Beiträge. Es gibt drei Darstellungsarten. Du kannst deine Beiträge, welche noch nicht bestätigt wurden, jederzeit bearbeiten.",
-      "t2": "Es wird bald an dieser Stelle die Möglichkeit geben das ein Dialog zwischen Moderatoren und dir stattfinden kann. Solltest du jetzt Probleme haben bitte nimm Kontakt mit dem Support auf."
+      "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
+      "confirm": "bestätigt",
+      "myContributionNoteList": "Hier findest du chronologisch aufgelistet alle deine eingereichten Beiträge. Es gibt drei Darstellungsarten. Du kannst deine Beiträge, welche noch nicht bestätigt wurden, jederzeit bearbeiten.",
+      "myContributionNoteSupport": "Es wird bald an dieser Stelle die Möglichkeit geben das ein Dialog zwischen Moderatoren und dir stattfinden kann. Solltest du jetzt Probleme haben bitte nimm Kontakt mit dem Support auf.",
+      "pending": "Eingereicht und wartet auf Bestätigung",
+      "rejected": "abgelehnt"
     },
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
