@@ -65,15 +65,6 @@ export class User extends BaseEntity {
   @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
 
-  @Column({
-    name: 'contribution_link_id',
-    type: 'int',
-    unsigned: true,
-    nullable: true,
-    default: null,
-  })
-  contributionLinkId?: number | null
-
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
 

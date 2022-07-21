@@ -240,3 +240,24 @@ export const createContribution = gql`
     }
   }
 `
+
+export const updateContribution = gql`
+  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    updateContribution(
+      contributionId: $contributionId
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    ) {
+      id
+      amount
+      memo
+    }
+  }
+`
+
+export const deleteContribution = gql`
+  mutation ($id: Int!) {
+    deleteContribution(id: $id)
+  }
+`
