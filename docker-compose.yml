@@ -132,6 +132,9 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
+    volumes:
+      # <host_machine_directy>:<container_directory> – mirror bidirectional path in local context with path in Docker container
+      - ./logs/database/typeorm.backend.log:/app/typeorm.backend.log
     
   #########################################################
   ## NGINX ################################################
