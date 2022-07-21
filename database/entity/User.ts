@@ -1,1 +1,1 @@
-export { User } from './0039-contributions_table/User'
+export { User } from './0044-adapt_users_table_for_gradidoid/User'

@@ -1,4 +1,13 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  DeleteDateColumn,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm'
+import { Contribution } from '../Contribution'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -9,7 +18,6 @@ export class User extends BaseEntity {
     name: 'gradido_id',
     length: 36,
     nullable: false,
-    default: null,
     collation: 'utf8mb4_unicode_ci',
   })
   gradidoID: string
@@ -94,4 +102,8 @@ export class User extends BaseEntity {
     default: null,
   })
   passphrase: string
+
+  @OneToMany(() => Contribution, (contribution) => contribution.user)
+  @JoinColumn({ name: 'user_id' })
+  contributions?: Contribution[]
 }

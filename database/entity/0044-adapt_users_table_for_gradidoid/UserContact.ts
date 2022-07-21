@@ -29,12 +29,12 @@ export class UserContact extends BaseEntity {
   @Column({ length: 255, unique: false, nullable: true, collation: 'utf8mb4_unicode_ci' })
   phone: string
 
-  @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'updated_at', nullable: true })
   updatedAt: Date | null
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null
 }
