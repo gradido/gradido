@@ -139,6 +139,7 @@ services:
     #  - ./frontend/.env
     volumes:
       # <host_machine_directy>:<container_directory> – mirror bidirectional path in local context with path in Docker container
+      # !!! this file has to exist !!! otherwise a folder is created at this path and we get a type error, because it's not a file
       - ./logs/database/typeorm.backend.log:/app/typeorm.backend.log
     
   #########################################################
