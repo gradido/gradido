@@ -103,6 +103,9 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
+    volumes:
+      # <host_machine_directy>:<container_directory> – mirror bidirectional path in local context with path in Docker container
+      - ./logs:/app/logs
 
   ########################################################
   # DATABASE #############################################
@@ -144,6 +147,8 @@ services:
       - admin 
     ports:
       - 80:80
+    volumes: 
+      - ./logs/nginx:/var/log/nginx 
   
 networks:
   external-net:
