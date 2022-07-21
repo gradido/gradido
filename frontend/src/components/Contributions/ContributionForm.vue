@@ -135,18 +135,14 @@ export default {
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
         monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
-        creation: this.id
-          ? this.$store.state.creation[1] + this.form.amount
-          : this.$store.state.creation[1],
+        creation: this.maxGddLastMonth,
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     thisMonthObject() {
       const obj = {
         monthAndYear: this.$d(new Date(), 'monthAndYear'),
-        creation: this.id
-          ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
-          : this.$store.state.creation[2],
+        creation: this.maxGddThisMonth,
       }
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
@@ -155,14 +151,14 @@ export default {
     },
     maxGddLastMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.id
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.form.amount)
+      return this.value.id
+        ? parseInt(this.$store.state.creation[1]) + parseInt(this.value.amount)
         : this.$store.state.creation[1]
     },
     maxGddThisMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.id
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.form.amount)
+      return this.value.id
+        ? parseInt(this.$store.state.creation[2]) + parseInt(this.value.amount)
         : this.$store.state.creation[2]
     },
   },
