@@ -44,8 +44,8 @@
     },
     "noDateSelected": "No date selected",
     "submit": "Submit",
-    "submitted":"The contribution was submitted.",
-    "updated":"The contribution was changed."
+    "submitted": "The contribution was submitted.",
+    "updated": "The contribution was changed."
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"

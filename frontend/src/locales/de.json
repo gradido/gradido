@@ -44,8 +44,8 @@
     },
     "noDateSelected": "Kein Datum ausgewählt",
     "submit": "Einreichen",
-    "submitted":"Der Beitrag wurde eingereicht.",
-    "updated":"Der Beitrag wurde geändert."
+    "submitted": "Der Beitrag wurde eingereicht.",
+    "updated": "Der Beitrag wurde geändert."
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
