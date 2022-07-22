@@ -21,6 +21,7 @@
 </template>
 <script>
 import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
+
 export default {
   name: 'ContributionList',
   components: {
