@@ -95,14 +95,9 @@ export default {
   },
   methods: {
     deleteContribution(item) {
-      this.$bvModal
-        .msgBoxConfirm(this.$t('contribution.delete'))
-        .then((value) => {
-          this.$emit('delete-contribution', item)
-        })
-        .catch((_err) => {
-          // An error occurred
-        })
+      this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {
+        if (value) this.$emit('delete-contribution', item)
+      })
     },
   },
 }
