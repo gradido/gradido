@@ -50,7 +50,8 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your contribution to the common good"
     },
-    "noDateSelected": "No date selected",
+    "noDateSelected": "Choose any date in the month",
+    "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
     "updated": "The contribution was changed."
@@ -204,8 +205,8 @@
     "aprox": "~",
     "divide": "/",
     "equal": "=",
-    "equalTo": "<",
     "exclaim": "!",
+    "lower": "<",
     "minus": "−",
     "pipe": "|"
   },

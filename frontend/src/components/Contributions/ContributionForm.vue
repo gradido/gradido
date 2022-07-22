@@ -78,9 +78,6 @@
           </b-button>
         </b-col>
       </b-row>
-      {{form}} <br />
-      {{id}} <br />
-      {{value}}, {{ updateAmount }}, {{ updateAmount === '' }}
     </b-form>
   </div>
 </template>
