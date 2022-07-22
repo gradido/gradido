@@ -47,19 +47,24 @@ describe('Sidebar', () => {
       it('has first nav-item "navigation.transactions" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
       })
-      it('has a link to the community area', () => {
+
+      it('has first nav-item "navigation.community" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toContain('navigation.community')
       })
+
       it('has first nav-item "navigation.profile" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('navigation.profile')
       })
+
       it('has a link to the members area', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.members_area')
         expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('#')
       })
+
       it('has first nav-item "navigation.admin_area" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.admin_area')
       })
+
       it('has first nav-item "navigation.logout" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.logout')
       })

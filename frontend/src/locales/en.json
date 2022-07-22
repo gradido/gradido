@@ -28,8 +28,8 @@
     "current-community": "Current community",
     "myContributions": "My contributions",
     "other-communities": "Other communities",
-    "switch-to-this-community": "Switch to this community",
-    "submitContribution": "Submit contribution"
+    "submitContribution": "Submit contribution",
+    "switch-to-this-community": "Switch to this community"
   },
   "contribution": {
     "activity": "Activity",
