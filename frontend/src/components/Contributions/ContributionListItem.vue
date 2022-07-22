@@ -26,14 +26,7 @@
           >
             <b-icon icon="pencil" class="h2"></b-icon>
           </div>
-          <div
-            class="pointer"
-            @click="
-              $emit('delete-contribution', {
-                id: id,
-              })
-            "
-          >
+          <div class="pointer" @click="deleteContribution({ id: id })">
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
         </div>
@@ -101,13 +94,15 @@ export default {
     },
   },
   methods: {
-    deleteContribution(id) {
-      this.boxOne = ''
-      this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then((value) => {
-        this.$emit('delete-contribution', {
-          id: id,
+    deleteContribution(item) {
+      this.$bvModal
+        .msgBoxConfirm(this.$t('contribution.delete'))
+        .then((value) => {
+          this.$emit('delete-contribution', item)
         })
-      })
+        .catch((_err) => {
+          // An error occurred
+        })
     },
   },
 }

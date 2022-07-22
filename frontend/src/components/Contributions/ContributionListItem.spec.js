@@ -132,7 +132,7 @@ describe('ContributionListItem', () => {
         })
 
         it('opens the modal', () => {
-          expect(spy).toBeCalledWith('Delete Contribution! Are you sure?')
+          expect(spy).toBeCalledWith('contribution.delete')
         })
 
         it('emits delete contribution', () => {

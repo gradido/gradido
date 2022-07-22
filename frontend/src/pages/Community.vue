@@ -155,7 +155,6 @@ export default {
         })
     },
     deleteContribution(data) {
-      alert('deleteContribution')
       this.$apollo
         .mutate({
           fetchPolicy: 'no-cache',

@@ -170,9 +170,7 @@ describe('Community', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith({
-            createContribution: true,
-          })
+          expect(toastSuccessSpy).toBeCalledWith('contribution.submitted')
         })
 
         it('updates the contribution list', () => {
@@ -252,9 +250,7 @@ describe('Community', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith({
-            updateContribution: true,
-          })
+          expect(toastSuccessSpy).toBeCalledWith('contribution.updated')
         })
 
         it('updates the contribution list', () => {
@@ -324,9 +320,7 @@ describe('Community', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith({
-            deleteContribution: true,
-          })
+          expect(toastSuccessSpy).toBeCalledWith('contribution.deleted')
         })
 
         it('updates the contribution list', () => {
