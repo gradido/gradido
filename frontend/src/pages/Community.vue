@@ -7,6 +7,7 @@
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
             v-model="form"
+            :updateAmount="updateAmount"
           />
         </b-tab>
         <b-tab :title="$t('community.myContributions')">
@@ -104,6 +105,7 @@ export default {
         memo: '',
         amount: '',
       },
+      updateAmount: '',
     }
   },
   methods: {
@@ -238,6 +240,7 @@ export default {
       this.form.date = item.contributionDate
       this.form.memo = item.memo
       this.form.amount = item.amount
+      this.updateAmount = item.amount
       this.tabIndex = 0
     },
     updateTransactions(pagination) {

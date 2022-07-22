@@ -13,7 +13,7 @@
       </div>
     </div>
     <b-form ref="form" @submit.prevent="submit" class="border p-3">
-      <label>{{ $t('time.month') }}</label>
+      <label>{{ $t('contribution.selectDate') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
@@ -41,7 +41,7 @@
         :class="form.memo.length < minlength ? 'text-danger' : 'text-success'"
       >
         {{ form.memo.length }}
-        <span v-if="form.memo.length < minlength">{{ $t('math.equalTo') }} {{ minlength }}</span>
+        <span v-if="form.memo.length < minlength">{{ $t('math.lower') }} {{ minlength }}</span>
         <span v-else>{{ $t('math.divide') }} {{ maxlength }}</span>
       </div>
       <label class="mt-3">{{ $t('form.amount') }}</label>
@@ -78,6 +78,9 @@
           </b-button>
         </b-col>
       </b-row>
+      {{form}} <br />
+      {{id}} <br />
+      {{value}}, {{ updateAmount }}, {{ updateAmount === '' }}
     </b-form>
   </div>
 </template>
@@ -86,6 +89,7 @@ export default {
   name: 'ContributionForm',
   props: {
     value: { type: Object, required: true },
+    updateAmount: { type: String, required: false },
   },
   data() {
     return {
@@ -152,14 +156,14 @@ export default {
     },
     maxGddLastMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.value.id
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.value.amount)
+      return this.value.id && !this.isThisMonth
+        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
         : this.$store.state.creation[1]
     },
     maxGddThisMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.value.id
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.value.amount)
+      return this.value.id && this.isThisMonth
+        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
         : this.$store.state.creation[2]
     },
   },
