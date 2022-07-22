@@ -245,6 +245,8 @@ export default {
     },
   },
   created() {
+    // verifyLogin is important at this point so that creation is updated if they are deleted in a session in the admin area.
+    this.verifyLogin()
     this.updateListContributions({
       currentPage: this.currentPage,
       pageSize: this.pageSize,
