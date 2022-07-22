@@ -122,6 +122,7 @@ export default {
     },
     disabled() {
       if (
+        this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.amount <= 0 ||
         this.form.amount > 1000 ||
