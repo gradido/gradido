@@ -63,12 +63,15 @@ export default {
     },
     deletedAt: {
       type: String,
+      required: false,
     },
     confirmedBy: {
       type: Number,
+      required: false,
     },
     confirmedAt: {
       type: String,
+      required: false,
     },
   },
   computed: {
