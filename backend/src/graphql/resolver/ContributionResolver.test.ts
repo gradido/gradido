@@ -66,6 +66,42 @@ describe('ContributionResolver', () => {
       })
 
       describe('input not valid', () => {
+        it('throws error when memo length smaller than 5 chars', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
+            }),
+          )
+        })
+
+        it('throws error when memo length greater than 255 chars', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
+            }),
+          )
+        })
+
         it('throws error when creationDate not-valid', async () => {
           await expect(
             mutate({
