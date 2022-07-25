@@ -28,7 +28,7 @@ const propsData = {
       amount: 210,
       memo: 'Aktives Grundeinkommen für Januar 2022',
       date: '2022-01-01T00:00:00.000Z',
-      moderator: 1,
+      moderator: null,
       creation: [790, 1000, 1000],
       __typename: 'PendingCreation',
     },
@@ -111,6 +111,10 @@ describe('OpenCreationsTable', () => {
 
     it('find first button.bi-pencil-square for open EditCreationFormular ', () => {
       expect(wrapper.findAll('tr').at(1).find('.bi-pencil-square').exists()).toBe(true)
+    })
+
+    it('has no button.bi-pencil-square for user contribution ', () => {
+      expect(wrapper.findAll('tr').at(2).find('.bi-pencil-square').exists()).toBe(false)
     })
 
     describe('show edit details', () => {
