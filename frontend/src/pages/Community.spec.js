@@ -296,6 +296,13 @@ describe('Community', () => {
     })
 
     describe('delete contribution', () => {
+      let contributionListComponent
+
+      beforeEach(async () => {
+        await wrapper.setData({ tabIndex: 1 })
+        contributionListComponent = await wrapper.findComponent({ name: 'ContributionList' })
+      })
+
       describe('with success', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
