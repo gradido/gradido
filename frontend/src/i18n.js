@@ -75,6 +75,19 @@ const dateTimeFormats = {
       hour: 'numeric',
       minute: 'numeric',
     },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
   },
   de: {
     short: {
@@ -89,6 +102,19 @@ const dateTimeFormats = {
       weekday: 'long',
       hour: 'numeric',
       minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
     },
   },
 }

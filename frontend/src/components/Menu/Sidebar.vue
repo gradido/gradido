@@ -16,6 +16,10 @@
             <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
             {{ $t('navigation.transactions') }}
           </b-nav-item>
+          <b-nav-item to="/community" class="mb-3">
+            <b-icon icon="people" aria-hidden="true"></b-icon>
+            {{ $t('navigation.community') }}
+          </b-nav-item>
           <b-nav-item to="/profile" class="mb-3">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             {{ $t('navigation.profile') }}

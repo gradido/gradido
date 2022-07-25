@@ -109,7 +109,7 @@ export default {
       return this.$route.params.code.search(/^CL-/) === 0
     },
     itemType() {
-      // link wurde gelöscht: am, von
+      // link is deleted: at, from
       if (this.linkData.deletedAt) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
