@@ -11,6 +11,7 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 
 @Resolver()
 export class ContributionResolver {
@@ -20,6 +21,16 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    if (memo.length > MEMO_MAX_CHARS) {
+      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+    }
+
+    if (memo.length < MEMO_MIN_CHARS) {
+      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+    }
+
     const user = getUser(context)
     const creations = await getUserCreation(user.id)
     logger.trace('creations', creations)
@@ -119,6 +130,16 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    if (memo.length > MEMO_MAX_CHARS) {
+      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+      throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
+    }
+
+    if (memo.length < MEMO_MIN_CHARS) {
+      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+      throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
+    }
+
     const user = getUser(context)
 
     const contributionToUpdate = await dbContribution.findOne({
