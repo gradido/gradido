@@ -11,9 +11,7 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
-
-const MEMO_MAX_CHARS = 255
-const MEMO_MIN_CHARS = 5
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 
 @Resolver()
 export class ContributionResolver {
