@@ -147,8 +147,7 @@ describe('ContributionListItem', () => {
           await wrapper.findAll('div.pointer').at(1).trigger('click')
         })
 
-        // why is this not working?
-        it.skip('does not emit delete contribution', () => {
+        it('does not emit delete contribution', () => {
           expect(wrapper.emitted('delete-contribution')).toBeFalsy()
         })
       })
