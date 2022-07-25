@@ -107,7 +107,9 @@ describe('ContributionList', () => {
 
     describe('delete contribution', () => {
       beforeEach(() => {
-        wrapper.findComponent({ name: 'ContributionListItem' }).vm.$emit('delete-contribution', { id: 2 })
+        wrapper
+          .findComponent({ name: 'ContributionListItem' })
+          .vm.$emit('delete-contribution', { id: 2 })
       })
 
       it('emits delete contribution', () => {
