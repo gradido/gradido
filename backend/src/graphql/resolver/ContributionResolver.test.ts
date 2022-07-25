@@ -349,6 +349,48 @@ describe('ContributionResolver', () => {
         })
       })
 
+      describe('Memo length smaller than 5 chars', () => {
+        it('throws error', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 100.0,
+                memo: 'Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
+            }),
+          )
+        })
+      })
+
+      describe('Memo length greater than 255 chars', () => {
+        it('throws error', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 100.0,
+                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
+            }),
+          )
+        })
+      })
+
       describe('wrong user tries to update the contribution', () => {
         beforeAll(async () => {
           await query({
