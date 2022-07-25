@@ -26,7 +26,7 @@
           >
             <b-icon icon="pencil" class="h2"></b-icon>
           </div>
-          <div class="pointer" @click="deleteContribution({ id: id })">
+          <div class="pointer" @click="deleteContribution({ id })">
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
         </div>
