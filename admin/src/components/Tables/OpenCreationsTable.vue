@@ -12,7 +12,13 @@
         </b-button>
       </template>
       <template #cell(editCreation)="row">
-        <b-button variant="info" size="md" @click="rowToggleDetails(row, 0)" class="mr-2">
+        <b-button
+          v-if="row.item.moderator"
+          variant="info"
+          size="md"
+          @click="rowToggleDetails(row, 0)"
+          class="mr-2"
+        >
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
       </template>
