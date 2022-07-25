@@ -353,9 +353,7 @@ describe('Community', () => {
           apolloMutationMock.mockRejectedValue({
             message: 'Oh my god!',
           })
-          await wrapper
-            .findComponent({ name: 'ContributionForm' })
-            .vm.$emit('delete-contribution', 2)
+          contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
         })
 
         it('toasts the error message', () => {
