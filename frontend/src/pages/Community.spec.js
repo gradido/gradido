@@ -304,9 +304,7 @@ describe('Community', () => {
               deleteContribution: true,
             },
           })
-          await wrapper
-            .findComponent({ name: 'ContributionForm' })
-            .vm.$emit('delete-contribution', 2)
+          contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
         })
 
         it('calls the API', () => {
