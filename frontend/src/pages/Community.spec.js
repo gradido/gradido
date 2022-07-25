@@ -190,6 +190,13 @@ describe('Community', () => {
             fetchPolicy: 'network-only',
           })
         })
+
+        it('set all data to the default values)', () => {
+          expect(wrapper.vm.form.id).toBe(null)
+          expect(wrapper.vm.form.date).toBe('')
+          expect(wrapper.vm.form.memo).toBe('')
+          expect(wrapper.vm.form.amount).toBe('0')
+        })
       })
 
       describe('with error', () => {
@@ -376,7 +383,7 @@ describe('Community', () => {
           })
       })
 
-      it('sets the form date to the new values', () => {
+      it('sets the form data to the new values', () => {
         expect(wrapper.vm.form.id).toBe(2)
         expect(wrapper.vm.form.date).toBe(now)
         expect(wrapper.vm.form.memo).toBe('Mein Beitrag zur Gemeinschaft für diesen Monat ...')

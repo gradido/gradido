@@ -111,6 +111,7 @@ export default {
       this.form.date = ''
       this.id = null
       this.form.memo = ''
+      this.form.amount = '0'
     },
   },
   computed: {
