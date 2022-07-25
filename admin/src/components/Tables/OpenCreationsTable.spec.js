@@ -66,7 +66,7 @@ const propsData = {
       },
     },
     { key: 'moderator', label: 'moderator' },
-    { key: 'edit_creation', label: 'edit' },
+    { key: 'editCreation', label: 'edit' },
     { key: 'confirm', label: 'save' },
   ],
   toggleDetails: false,

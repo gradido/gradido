@@ -114,7 +114,7 @@ export default {
           },
         },
         { key: 'moderator', label: this.$t('moderator') },
-        { key: 'edit_creation', label: this.$t('edit') },
+        { key: 'editCreation', label: this.$t('edit') },
         { key: 'confirm', label: this.$t('save') },
       ]
     },
