@@ -126,6 +126,10 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
+          this.updateListAllContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
           this.verifyLogin()
         })
         .catch((err) => {
@@ -150,6 +154,10 @@ export default {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
+          this.updateListAllContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
           this.verifyLogin()
         })
         .catch((err) => {
@@ -168,6 +176,10 @@ export default {
         .then((result) => {
           this.toastSuccess(this.$t('contribution.deleted'))
           this.updateListContributions({
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+          })
+          this.updateListAllContributions({
             currentPage: this.currentPage,
             pageSize: this.pageSize,
           })
