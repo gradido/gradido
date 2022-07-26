@@ -46,7 +46,7 @@ describe('ContributionForm', () => {
     })
 
     describe('empty form data', () => {
-      describe('has button', () => {
+      describe('buttons', () => {
         it('reset enabled', () => {
           expect(wrapper.find('button[type="reset"]').attributes('disabled')).toBeFalsy()
         })
