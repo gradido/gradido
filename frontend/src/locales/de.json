@@ -203,10 +203,8 @@
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
-    "divide": "/",
     "equal": "=",
     "exclaim": "!",
-    "lower": "<",
     "minus": "−",
     "pipe": "|"
   },

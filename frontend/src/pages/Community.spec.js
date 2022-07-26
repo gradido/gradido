@@ -26,6 +26,9 @@ describe('Community', () => {
         creation: ['1000', '1000', '1000'],
       },
     },
+    $i18n: {
+      locale: 'en',
+    },
   }
 
   const Wrapper = () => {

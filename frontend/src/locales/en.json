@@ -203,10 +203,8 @@
   "login": "Login",
   "math": {
     "aprox": "~",
-    "divide": "/",
     "equal": "=",
     "exclaim": "!",
-    "lower": "<",
     "minus": "−",
     "pipe": "|"
   },
