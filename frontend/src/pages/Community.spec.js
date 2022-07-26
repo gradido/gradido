@@ -195,7 +195,7 @@ describe('Community', () => {
           expect(wrapper.vm.form.id).toBe(null)
           expect(wrapper.vm.form.date).toBe('')
           expect(wrapper.vm.form.memo).toBe('')
-          expect(wrapper.vm.form.amount).toBe('0')
+          expect(wrapper.vm.form.amount).toBe('')
         })
       })
 
