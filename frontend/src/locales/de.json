@@ -41,6 +41,7 @@
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
+    "date": "Beitrag für:",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
