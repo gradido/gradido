@@ -68,8 +68,8 @@
       </div>
       <b-row class="mt-3">
         <b-col>
-          <b-button type="button" variant="light" @click.prevent="reset">
-            {{ $t('form.reset') }}
+          <b-button class="test-cancel" type="reset" variant="secondary" @click="reset">
+            {{ $t('form.cancel') }}
           </b-button>
         </b-col>
         <b-col class="text-right">
@@ -136,6 +136,7 @@ export default {
       return false
     },
     lastMonthObject() {
+      // Wolle: refine logic and melt with 'thisMonthObject'
       // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
       const obj = {
         monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
@@ -144,6 +145,7 @@ export default {
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     thisMonthObject() {
+      // Wolle: refine logic and melt with 'lastMonthObject'
       const obj = {
         monthAndYear: this.$d(new Date(), 'monthAndYear'),
         creation: this.maxGddThisMonth,
@@ -151,15 +153,18 @@ export default {
       return this.$t('contribution.formText.openAmountForMonth', obj)
     },
     isThisMonth() {
+      // Wolle: Jahr testen
       return new Date(this.form.date).getMonth() === new Date().getMonth()
     },
     maxGddLastMonth() {
+      // Wolle: refine logic and melt with 'maxGddThisMonth'
       // When edited, the amount is added back on top of the amount
       return this.form.id && !this.isThisMonth
         ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
         : this.$store.state.creation[1]
     },
     maxGddThisMonth() {
+      // Wolle: refine logic and melt with 'maxGddLastMonth'
       // When edited, the amount is added back on top of the amount
       return this.form.id && this.isThisMonth
         ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
