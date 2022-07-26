@@ -103,7 +103,7 @@ export default {
         id: null,
         date: '',
         memo: '',
-        amount: '',
+        amount: '0',
       },
       updateAmount: '',
     }
