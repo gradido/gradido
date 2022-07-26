@@ -74,7 +74,7 @@
         </b-col>
         <b-col class="text-right">
           <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
-            {{ value.id ? $t('form.edit') : $t('contribution.submit') }}
+            {{ form.id ? $t('form.change') : $t('contribution.submit') }}
           </b-button>
         </b-col>
       </b-row>
@@ -93,13 +93,13 @@ export default {
       minlength: 50,
       maxlength: 255,
       maximalDate: new Date(),
-      form: this.value,
-      id: this.value.id,
+      form: this.value, // includes 'id'
+      // Wolle: id: this.value.id,
     }
   },
   methods: {
     submit() {
-      if (this.value.id) {
+      if (this.form.id) {
         this.$emit('update-contribution', this.form)
       } else {
         this.$emit('set-contribution', this.form)
@@ -108,8 +108,9 @@ export default {
     },
     reset() {
       this.$refs.form.reset()
+      // Wolle: this.id = null
+      this.form.id = null
       this.form.date = ''
-      this.id = null
       this.form.memo = ''
       this.form.amount = ''
     },
@@ -154,13 +155,13 @@ export default {
     },
     maxGddLastMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.value.id && !this.isThisMonth
+      return this.form.id && !this.isThisMonth
         ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
         : this.$store.state.creation[1]
     },
     maxGddThisMonth() {
       // When edited, the amount is added back on top of the amount
-      return this.value.id && this.isThisMonth
+      return this.form.id && this.isThisMonth
         ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
         : this.$store.state.creation[2]
     },
