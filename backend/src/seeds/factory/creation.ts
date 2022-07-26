@@ -35,12 +35,17 @@ export const creationFactory = async (
   if (creation.confirmed) {
     await mutate({ mutation: confirmContribution, variables: { id: pendingCreation.id } })
 
+    const confirmedCreation = await Contribution.findOneOrFail({ id: pendingCreation.id })
+
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({
         where: { userId: user.id, creationDate: new Date(creation.creationDate) },
         order: { balanceDate: 'DESC' },
       })
       if (transaction.decay.equals(0) && transaction.creationDate) {
+        confirmedCreation.contributionDate = new Date(
+          nMonthsBefore(transaction.creationDate, creation.moveCreationDate),
+        )
         transaction.creationDate = new Date(
           nMonthsBefore(transaction.creationDate, creation.moveCreationDate),
         )
@@ -48,6 +53,7 @@ export const creationFactory = async (
           nMonthsBefore(transaction.balanceDate, creation.moveCreationDate),
         )
         await transaction.save()
+        await confirmedCreation.save()
       }
     }
   } else {
