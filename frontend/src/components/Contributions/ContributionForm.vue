@@ -94,7 +94,6 @@ export default {
       maxlength: 255,
       maximalDate: new Date(),
       form: this.value, // includes 'id'
-      // Wolle: id: this.value.id,
     }
   },
   methods: {
@@ -108,7 +107,6 @@ export default {
     },
     reset() {
       this.$refs.form.reset()
-      // Wolle: this.id = null
       this.form.id = null
       this.form.date = ''
       this.form.memo = ''
