@@ -14,8 +14,7 @@
         <div class="mr-2">
           <span>{{ $t('contribution.date') }}</span>
           <span>
-            {{ $d(new Date(contributionDate), 'month') }}
-            {{ $d(new Date(contributionDate), 'year') }}
+            {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </span>
         </div>
         <div class="mr-2">{{ memo }}</div>
