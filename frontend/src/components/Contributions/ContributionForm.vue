@@ -18,6 +18,7 @@
         id="contribution-date"
         v-model="form.date"
         size="lg"
+        :locale="$i18n.locale"
         :max="maximalDate"
         :min="minimalDate"
         class="mb-4"
@@ -168,3 +169,8 @@ export default {
   },
 }
 </script>
+<style>
+span.errors {
+  color: red;
+}
+</style>
