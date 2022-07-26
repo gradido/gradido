@@ -25,7 +25,10 @@
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
-      ></b-form-datepicker>
+      >
+        <template #nav-prev-year><span></span></template>
+        <template #nav-next-year><span></span></template>
+      </b-form-datepicker>
       <validation-provider
         :rules="{
           required: true,

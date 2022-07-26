@@ -26,7 +26,7 @@
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
-    "myContributions": "Meine Beiträge",
+    "myContributions": "Meine Beiträge zum Gemeinwohl",
     "other-communities": "Weitere Gemeinschaften",
     "submitContribution": "Beitrag einreichen",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
@@ -36,11 +36,12 @@
     "alert": {
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
-      "myContributionNoteList": "Hier findest du chronologisch aufgelistet alle deine eingereichten Beiträge. Es gibt drei Darstellungsarten. Du kannst deine Beiträge, welche noch nicht bestätigt wurden, jederzeit bearbeiten.",
+      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
       "myContributionNoteSupport": "Es wird bald an dieser Stelle die Möglichkeit geben das ein Dialog zwischen Moderatoren und dir stattfinden kann. Solltest du jetzt Probleme haben bitte nimm Kontakt mit dem Support auf.",
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
+    "date": "Beitrag für:",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
