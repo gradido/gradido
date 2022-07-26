@@ -34,20 +34,23 @@ export default {
   },
   methods: {
     removeCreation(item) {
-      this.$apollo
-        .mutate({
-          mutation: adminDeleteContribution,
-          variables: {
-            id: item.id,
-          },
-        })
-        .then((result) => {
-          this.updatePendingCreations(item.id)
-          this.toastSuccess(this.$t('creation_form.toasted_delete'))
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+      this.$bvModal.msgBoxConfirm(this.$t('creation_form.deleteNow')).then(async (value) => {
+        if (value)
+          await this.$apollo
+            .mutate({
+              mutation: adminDeleteContribution,
+              variables: {
+                id: item.id,
+              },
+            })
+            .then((result) => {
+              this.updatePendingCreations(item.id)
+              this.toastSuccess(this.$t('creation_form.toasted_delete'))
+            })
+            .catch((error) => {
+              this.toastError(error.message)
+            })
+      })
     },
     confirmCreation() {
       this.$apollo

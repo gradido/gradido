@@ -80,28 +80,54 @@ describe('CreationConfirm', () => {
     })
 
     describe('remove creation with success', () => {
-      beforeEach(async () => {
-        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-      })
+      let spy
 
-      it('calls the adminDeleteContribution mutation', () => {
-        expect(apolloMutateMock).toBeCalledWith({
-          mutation: adminDeleteContribution,
-          variables: { id: 1 },
+      describe('admin confirms deletion', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve('some value'))
+          await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+        })
+
+        it('opens a modal', () => {
+          expect(spy).toBeCalled()
+        })
+
+        it('calls the adminDeleteContribution mutation', () => {
+          expect(apolloMutateMock).toBeCalledWith({
+            mutation: adminDeleteContribution,
+            variables: { id: 1 },
+          })
+        })
+
+        it('commits openCreationsMinus to store', () => {
+          expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+        })
+
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
         })
       })
 
-      it('commits openCreationsMinus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-      })
+      describe('admin cancels deletion', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(false))
+          await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+        })
 
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
+        it('does not call the adminDeleteContribution mutation', () => {
+          expect(apolloMutateMock).not.toBeCalled()
+        })
       })
     })
 
     describe('remove creation with error', () => {
+      let spy
+
       beforeEach(async () => {
+        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        spy.mockImplementation(() => Promise.resolve('some value'))
         apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
