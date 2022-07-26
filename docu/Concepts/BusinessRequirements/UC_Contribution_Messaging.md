@@ -74,6 +74,16 @@ Mit diesem Service werden alle Contributions aber keine Messages, aller User gel
 
 Mit diesem Service kann eine Contribution im Status "eingereicht" und nur vom Ersteller selbst gelöscht werden. Dabei wird nur ein SoftDelete durchgeführt, indem das deletedAt-Datum auf den aktuellen Zeitpunkt gesetzt wird.
 
+### confirmContribution
+
+Über diesen Service kann der Moderator im AdminInterface eine "eingereichte" Contribution bestätigen. Dabei wird implizit das Attribut "confirmed_by" auf die UserId des Moderators gesetzt und das Attribut "confirmed_at" auf den aktuellen Zeitpunkt. Bei der Migrations-Variante-1 der Contribution-Tabelle wird implizit das Attribut "confirmed_state" auf TRUE gesetzt.
+
+### denyContribution
+
+Über diesen Service kann der Moderator im AdminInterface eine "eingereichte" Contribution ablehnen. Dabei wird bei der Migrations-Variante-1 implizit das Attribut "confirmed_by" auf die UserId des Moderators gesetzt, das Attribut "confirmed_at" auf den aktuellen Zeitpunkt und das Attribut "confirmed_state" auf FALSE gesetzt. Zusätzlich gibt der Moderator eine Begründung der Ablehnung ein, die in dem Attribut "denied_reason" gespeichert wird.
+
+Bei der Migrations-Variante-2 wird bei einer Ablehnung das Attribut "denied_by" auf die UserId des Moderators gesetzt, das Attribut "denied_at" auf den aktuellen Zeitpunkt und in das Attribut "denied_reason" wird die Begründung der Ablehnung gespeichert. Die Attribute "confirmed_by", "confirmed_at" bleiben leer bzw auf null, das Attribut "confirm_state" existiert nicht.
+
 ### searchContributionMessages
 
 Dieser Service liefert zu einer bestimmten Contribution alle gespeicherten Nachrichten chronologisch nach dem CreatedAt-Datum absteigend sortiert. Neben dem Nachrichtentext und dem CreatedAt-Datum wird auch der User, der die Nachricht erstellt hat, geliefert. Als User-Daten wird entweder der Vorname und Nachname oder falls vorhanden der Alias geliefert.
@@ -92,8 +102,20 @@ Das Class-Diagramm der beteiligten Tabellen gibt einen ersten Eindruck:
 
 Die Contribution-Tabelle benötigt für die Confirmation ein zusätzliches Attribut, das das Ergebnis der Confirmation - bestätigt oder abgelehnt - speichert. 
 
+#### Variante 1:
+
 confirmed_state:	speichert das Ergebnis der Confirmation, das entweder true für bestätigt oder false für abgelehnt
+
+denied_reason:	speichert die Begründung der Ablehnung, die der Moderator als Argumentation formuliert
+
+#### Variante 2:
+
+denied_at:		speichert den Zeitpunkt, wann die Ablehnung erfolgte
+
+denied_by:		speichert die UserId des Moderators, der die Ablehnung durchgeführt hat
+
+denied_reason:	speichert die Begründung der Ablehnung, die der Moderator als Argumentation formuliert
 
 ### ContributionMessages Tabelle
 
-Die ContributionMessages Tabelle ist gänzlich neu.
+Die ContributionMessages Tabelle ist gänzlich neu mit allen Attributen.
