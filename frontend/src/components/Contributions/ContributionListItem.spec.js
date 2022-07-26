@@ -85,7 +85,7 @@ describe('ContributionListItem', () => {
       })
     })
 
-    describe('contribution date', () => {
+    describe('date', () => {
       it('is equal to createdAt', () => {
         expect(wrapper.vm.date).toBe(wrapper.vm.createdAt)
       })
