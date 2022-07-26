@@ -41,6 +41,7 @@
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
+    "date": "Contribution for:",
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
     "formText": {
