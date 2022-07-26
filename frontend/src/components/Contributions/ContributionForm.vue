@@ -71,8 +71,8 @@
       </div>
       <b-row class="mt-3">
         <b-col>
-          <b-button type="button" variant="light" @click.prevent="reset">
-            {{ $t('form.reset') }}
+          <b-button class="test-cancel" type="reset" variant="secondary" @click="reset">
+            {{ $t('form.cancel') }}
           </b-button>
         </b-col>
         <b-col class="text-right">
