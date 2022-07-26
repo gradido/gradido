@@ -18,7 +18,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         amount: 500,
         memo: 'Danke für alles',
         date: new Date(),
-        moderator: 0,
+        moderator: 2,
       },
       {
         id: 2,
@@ -28,7 +28,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         amount: 1000000,
         memo: 'Gut Ergattert',
         date: new Date(),
-        moderator: 0,
+        moderator: 2,
       },
     ],
   },
