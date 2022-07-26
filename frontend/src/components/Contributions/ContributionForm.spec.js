@@ -51,7 +51,7 @@ describe('ContributionForm', () => {
           expect(wrapper.find('button[type="reset"]').attributes('disabled')).toBeFalsy()
         })
 
-        it('submit disabled', () => {
+        it('has submit disabled', () => {
           expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBe('disabled')
         })
       })
