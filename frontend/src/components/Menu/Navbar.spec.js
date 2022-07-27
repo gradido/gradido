@@ -17,7 +17,7 @@ const mocks = {
   $t: jest.fn((t) => t),
   $store: {
     state: {
-      hasElopage: false,
+      hasElopage: true,
       isAdmin: true,
     },
   },
@@ -39,7 +39,7 @@ describe('Navbar', () => {
       expect(wrapper.find('div.component-navbar').exists()).toBeTruthy()
     })
 
-    describe('navigation Navbar', () => {
+    describe('navigation Navbar (general elements)', () => {
       it('has .navbar-brand in the navbar', () => {
         expect(wrapper.find('.navbar-brand').exists()).toBeTruthy()
       })
@@ -66,7 +66,8 @@ describe('Navbar', () => {
       it('has first nav-item "navigation.profile" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.profile')
       })
-
+    })
+    describe('navigation Navbar (user has an elopage account)', () => {
       it('has a link to the members area', () => {
         expect(wrapper.findAll('.nav-item').at(7).text()).toContain('navigation.members_area')
         expect(wrapper.findAll('.nav-item').at(7).find('a').attributes('href')).toBe(
@@ -79,6 +80,18 @@ describe('Navbar', () => {
       })
       it('has first nav-item "navigation.logout" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
+      })
+    })
+    describe('navigation Navbar (user has no elopage account)', () => {
+      beforeAll(() => {
+        mocks.$store.state.hasElopage = false
+        wrapper = Wrapper()
+      })
+      it('has first nav-item "navigation.admin_area" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.admin_area')
+      })
+      it('has first nav-item "navigation.logout" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.logout')
       })
     })
   })
