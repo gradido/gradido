@@ -4,10 +4,10 @@
       <b-form-input :value="link" type="text" readonly></b-form-input>
       <b-input-group-append>
         <b-button size="sm" text="Button" variant="primary" @click="copyLinkWithText">
-          {{ $t('gdd_per_link.copy-with-text') }}
+          {{ $t('gdd_per_link.copy-link-with-text') }}
         </b-button>
         <b-button size="sm" text="Button" variant="primary" @click="CopyLink">
-          {{ $t('gdd_per_link.copy') }}
+          {{ $t('gdd_per_link.copy-link') }}
         </b-button>
         <b-button variant="primary" class="text-light" @click="$emit('show-qr-code-button')">
           <b-img src="img/svg/qr-code.svg" width="19" class="svg"></b-img>

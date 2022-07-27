@@ -12,6 +12,7 @@
       "hasAccount": "You already have an account?",
       "hereLogin": "Log in here",
       "learnMore": "Learn more …",
+
       "oneDignity": "We gift to each other and give thanks with Gradido.",
       "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
       "oneGratitude": "For each other, for all people, for nature."
@@ -151,7 +152,8 @@
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy": "copy",
-    "copy-with-text": "Copy link and text",
+    "copy-link": "Copy link",
+    "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "decay-14-day": "Decay for 14 days",
