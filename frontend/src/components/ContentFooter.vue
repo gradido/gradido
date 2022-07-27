@@ -35,12 +35,6 @@
             {{ $t('footer.privacy_policy') }}
           </b-nav-item>
           <b-nav-item
-            :href="`https://elopage.com/s/gradido/sign_in?locale=${$i18n.locale}`"
-            target="_blank"
-          >
-            {{ $t('navigation.members_area') }}
-          </b-nav-item>
-          <b-nav-item
             :href="
               $i18n.locale === 'de'
                 ? 'https://docs.google.com/document/d/1jZp-DiiMPI9ZPNXmjsvOQ1BtnfDFfx8BX7CDmA8KKjY/edit?usp=sharing'
