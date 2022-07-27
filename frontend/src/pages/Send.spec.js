@@ -20,9 +20,6 @@ describe('Send', () => {
     balance: 123.45,
     GdtBalance: 1234.56,
     pending: true,
-    amount: '15',
-    link: 'http://localhost/redeem/0123456789',
-    memo: 'Quis auctor elit sed vulputate mi sit amet mauris commodo quis imperdiet.',
   }
 
   const mocks = {
@@ -252,6 +249,46 @@ describe('Send', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockRejectedValue()
               await wrapper.findAll('button').at(1).trigger('click')
+            })
+
+            it('toasts error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
+            })
+          })
+        })
+
+        describe('copy link and text with success', () => {
+          const navigatorClipboard = navigator.clipboard
+          beforeAll(() => {
+            delete navigator.clipboard
+            navigator.clipboard = { writeText: navigatorClipboardMock }
+          })
+          afterAll(() => {
+            navigator.clipboard = navigatorClipboard
+          })
+
+          describe('copy link and text with success', () => {
+            beforeEach(async () => {
+              navigatorClipboardMock.mockResolvedValue()
+              await wrapper.findAll('button').at(0).trigger('click')
+            })
+
+            it('should call clipboard.writeText', () => {
+              expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+                'http://localhost/redeem/0123456789\n' +
+                  'Testy transaction-link.send_you 56.78 Gradido.\n' +
+                  '"Make the best of the link!"',
+              )
+            })
+            it('toasts success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-and-text-copied')
+            })
+          })
+
+          describe('copy link and text with error', () => {
+            beforeEach(async () => {
+              navigatorClipboardMock.mockRejectedValue()
+              await wrapper.findAll('button').at(0).trigger('click')
             })
 
             it('toasts error message', () => {
