@@ -3,7 +3,7 @@ import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { FindOperator, IsNull } from '@dbTools/typeorm'
+import { FindOperator, IsNull, getConnection } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
@@ -106,14 +106,15 @@ export class ContributionResolver {
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await dbContribution.findAndCount({
-      relations: ['user'],
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
+    const [dbContributions, count] = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(dbContribution, 'c')
+      .innerJoinAndSelect('c.user', 'u')
+      .orderBy('c.createdAt', order)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize)
+      .getManyAndCount()
     return new ContributionListResult(
       count,
       dbContributions.map(
