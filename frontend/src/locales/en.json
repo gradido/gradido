@@ -205,7 +205,6 @@
   "math": {
     "aprox": "~",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
