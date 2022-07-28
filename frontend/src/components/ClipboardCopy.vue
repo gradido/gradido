@@ -6,7 +6,7 @@
         <b-button size="sm" text="Button" variant="primary" @click="copyLinkWithText">
           {{ $t('gdd_per_link.copy-link-with-text') }}
         </b-button>
-        <b-button size="sm" text="Button" variant="primary" @click="CopyLink">
+        <b-button size="sm" text="Button" variant="primary" @click="copyLink">
           {{ $t('gdd_per_link.copy-link') }}
         </b-button>
         <b-button variant="primary" class="text-light" @click="$emit('show-qr-code-button')">
@@ -21,46 +21,10 @@
   </div>
 </template>
 <script>
+import { copyLinks } from '../mixins/copyLinks'
 export default {
   name: 'ClipboardCopy',
-  props: {
-    link: { type: String, required: true },
-    amount: { type: Number, required: true },
-    memo: { type: String, required: true },
-  },
-  data() {
-    return {
-      canCopyLink: true,
-    }
-  },
-  methods: {
-    CopyLink() {
-      navigator.clipboard
-        .writeText(this.link)
-        .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-copied'))
-        })
-        .catch(() => {
-          this.canCopyLink = false
-          this.toastError(this.$t('gdd_per_link.not-copied'))
-        })
-    },
-    copyLinkWithText() {
-      navigator.clipboard
-        .writeText(
-          `${this.link}
-${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
-"${this.memo}"`,
-        )
-        .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
-        })
-        .catch(() => {
-          this.canCopyLink = false
-          this.toastError(this.$t('gdd_per_link.not-copied'))
-        })
-    },
-  },
+  mixins: [copyLinks],
 }
 </script>
 <style>

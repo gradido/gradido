@@ -25,6 +25,7 @@ describe('Send', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $n: jest.fn((n) => String(n)),
+    $d: jest.fn((d) => d),
     $store: {
       state: {
         email: 'sender@example.org',
@@ -161,11 +162,15 @@ describe('Send', () => {
     })
 
     describe('transaction form link', () => {
+      const now = new Date().toISOString()
       beforeEach(async () => {
         apolloMutationMock.mockResolvedValue({
           data: {
             createTransactionLink: {
               link: 'http://localhost/redeem/0123456789',
+              amount: '56.78',
+              memo: 'Make the best of the link!',
+              validUntil: now,
             },
           },
         })
@@ -277,7 +282,8 @@ describe('Send', () => {
               expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
                 'http://localhost/redeem/0123456789\n' +
                   'Testy transaction-link.send_you 56.78 Gradido.\n' +
-                  '"Make the best of the link!"',
+                  '"Make the best of the link!"\n' +
+                  'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
               )
             })
             it('toasts success message', () => {
