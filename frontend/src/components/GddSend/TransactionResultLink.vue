@@ -7,6 +7,7 @@
           :link="link"
           :amount="amount"
           :memo="memo"
+          :validUntil="validUntil"
           @show-qr-code-button="showQrCodeButton"
         ></clipboard-copy>
 
@@ -33,8 +34,9 @@ export default {
   },
   props: {
     link: { type: String, required: true },
-    amount: { type: Number, required: true },
+    amount: { type: String, required: true },
     memo: { type: String, required: true },
+    validUntil: { type: String, required: true },
   },
   data() {
     return {
