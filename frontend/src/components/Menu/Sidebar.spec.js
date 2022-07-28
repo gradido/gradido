@@ -55,7 +55,7 @@ describe('Sidebar', () => {
     })
 
     describe('navigation Navbar (user has an elopage account)', () => {
-      it('has seven b-nav-item in the navbar', () => {
+      it('has eight b-nav-item in the navbar', () => {
         expect(wrapper.findAll('.nav-item')).toHaveLength(8)
       })
 
@@ -79,7 +79,7 @@ describe('Sidebar', () => {
         wrapper = Wrapper()
       })
 
-      it('has six b-nav-item in the navbar', () => {
+      it('has seven b-nav-item in the navbar', () => {
         expect(wrapper.findAll('.nav-item')).toHaveLength(7)
       })
 
