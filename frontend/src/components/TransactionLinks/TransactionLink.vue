@@ -18,14 +18,14 @@
                 <b-icon icon="three-dots-vertical"></b-icon>
               </template>
 
-              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copy">
+              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copyLink">
                 <b-icon icon="clipboard"></b-icon>
                 {{ $t('gdd_per_link.copy-link') }}
               </b-dropdown-item>
               <b-dropdown-item
                 v-if="validLink"
                 class="test-copy-text pt-3"
-                @click="copyLinkWithText()"
+                @click="copyLinkWithText"
               >
                 <b-icon icon="clipboard-plus"></b-icon>
                 {{ $t('gdd_per_link.copy-link-with-text') }}
@@ -76,9 +76,11 @@ import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
 import FigureQrCode from '@/components/QrCode/FigureQrCode.vue'
+import { copyLinks } from '@/mixins/copyLinks'
 
 export default {
   name: 'TransactionLink',
+  mixins: [copyLinks],
   components: {
     TypeIcon,
     AmountAndNameRow,
@@ -88,43 +90,10 @@ export default {
     FigureQrCode,
   },
   props: {
-    amount: { type: String, required: true },
-    link: { type: String, required: true },
     holdAvailableAmount: { type: String, required: true },
     id: { type: Number, required: true },
-    memo: { type: String, required: true },
-    validUntil: { type: String, required: true },
   },
   methods: {
-    copy() {
-      navigator.clipboard
-        .writeText(this.link)
-        .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-copied'))
-        })
-        .catch(() => {
-          this.$bvModal.show('modalPopoverCopyError' + this.id)
-          this.toastError(this.$t('gdd_per_link.not-copied'))
-        })
-    },
-    copyLinkWithText() {
-      navigator.clipboard
-        .writeText(
-          `${this.link}
-${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
-"${this.memo}"
-${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {
-            date: this.$d(new Date(this.validUntil), 'short'),
-          })}`,
-        )
-        .then(() => {
-          this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))
-        })
-        .catch(() => {
-          this.$bvModal.show('modalPopoverCopyError' + this.id)
-          this.toastError(this.$t('gdd_per_link.not-copied'))
-        })
-    },
     deleteLink() {
       this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.delete-the-link')).then(async (value) => {
         if (value)
