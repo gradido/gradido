@@ -57,7 +57,7 @@
           {{ $t('navigation.profile') }}
         </b-nav-item>
         <br />
-        <b-nav-item :href="elopageUri" class="mb-3" target="_blank">
+        <b-nav-item v-if="$store.state.hasElopage" :href="elopageUri" class="mb-3" target="_blank">
           <b-icon icon="link45deg" aria-hidden="true"></b-icon>
           {{ $t('navigation.members_area') }}
           <b-badge v-if="!$store.state.hasElopage" pill variant="danger">
