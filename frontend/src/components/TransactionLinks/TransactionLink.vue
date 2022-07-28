@@ -76,7 +76,7 @@ import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
 import FigureQrCode from '@/components/QrCode/FigureQrCode.vue'
-import { copyLinks } from '@/mixins/copyLinks'
+import { copyLinks } from '../../mixins/copyLinks'
 
 export default {
   name: 'TransactionLink',

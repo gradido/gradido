@@ -21,7 +21,7 @@
   </div>
 </template>
 <script>
-import { copyLinks } from '@/mixins/copyLinks'
+import { copyLinks } from '../mixins/copyLinks'
 export default {
   name: 'ClipboardCopy',
   mixins: [copyLinks],
