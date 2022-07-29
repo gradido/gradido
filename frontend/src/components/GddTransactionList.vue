@@ -69,7 +69,7 @@
       :per-page="pageSize"
       :total-rows="transactionCount"
       align="center"
-      hide-ellipsis="true"
+      :hide-ellipsis="true"
     ></b-pagination>
 
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
