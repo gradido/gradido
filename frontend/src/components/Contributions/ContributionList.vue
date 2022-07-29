@@ -16,6 +16,7 @@
       :per-page="pageSize"
       :total-rows="contributionCount"
       align="center"
+      hide-ellipsis="true"
     ></b-pagination>
   </div>
 </template>
