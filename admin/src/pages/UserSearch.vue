@@ -52,6 +52,7 @@
       per-page="perPage"
       :total-rows="rows"
       align="center"
+      :hide-ellipsis="true"
     ></b-pagination>
     <div></div>
   </div>
