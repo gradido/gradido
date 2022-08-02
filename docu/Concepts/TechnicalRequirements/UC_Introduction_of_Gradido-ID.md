@@ -39,14 +39,21 @@ The preferred and proper solution will be to add a new column `Users.emailId `as
 
 A new entity `UserContacts `is introduced to store several contacts of different types like email, telephone or other kinds of contact addresses.
 
-| Column          | Type   | Description                                                                                                                                                            |
-| --------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id              | int    | the technical key of a contact entity                                                                                                                                  |
-| type            | int    | Defines the type of contact entry as enum: Email, Phone, etc                                                                                                           |
-| usersID         | int    | Defines the foreign key to the `Users` table                                                                                                                         |
-| email           | String | defines the address of a contact entry of type Email                                                                                                                   |
-| phone           | String | defines the address of a contact entry of type Phone                                                                                                                   |
-| contactChannels | String | define the contact channel as comma separated list for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ... |
+| Column                | Type                | Description                                                                                                                                                            |
+| --------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id                    | int                 | the technical key of a contact entity                                                                                                                                  |
+| type                  | int                 | Defines the type of contact entry as enum: Email, Phone, etc                                                                                                           |
+| userID                | int                 | Defines the foreign key to the `Users` table                                                                                                                         |
+| email                 | String              | defines the address of a contact entry of type Email                                                                                                                   |
+| emailVerificationCode | unsinged bigint(20) | unique code to verify email or password reset                                                                                                                          |
+| emailOptInType        | int                 | REGISTER=1, RESET_PASSWORD=2                                                                                                                                           |
+| emailResendCount      | int                 | counter how often the email was resend                                                                                                                                 |
+| emailChecked          | boolean             | flag if email is verified and confirmed                                                                                                                                |
+| createdAt             | DateTime            | point of time the Contact was created                                                                                                                                  |
+| updatedAt             | DateTime            | point of time the Contact was updated                                                                                                                                  |
+| deletedAt             | DateTime            | point of time the Contact was soft deleted                                                                                                                             |
+| phone                 | String              | defines the address of a contact entry of type Phone                                                                                                                   |
+| contactChannels       | String              | define the contact channel as comma separated list for which this entry is confirmed by the user e.g. main contact (default), infomail, contracting, advertisings, ... |
 
 ### Database-Migration
 
@@ -58,18 +65,24 @@ In a one-time migration create for each entry of the `Users `tabel an unique UUI
 
 #### Primary Email Contact
 
-In a one-time migration read for each entry of the `Users `table the `Users.id` and `Users.email` and create for it a new entry in the `UsersContact `table, by initializing the contact-values with:
+In a one-time migration read for each entry of the `Users `table the `Users.id` and `Users.email`, select from the table `login_email_opt_in` the entry with the `login_email_opt_in.user_id` = `Users.id` and create a new entry in the `UsersContact `table, by initializing the contact-values with:
 
 * id = new technical key
 * type = Enum-Email
 * userID = `Users.id`
 * email = `Users.email`
+* emailVerifyCode = `login_email_opt_in.verification_code`
+* emailOptInType = `login_email_opt_in.email_opt_in_type_id`
+* emailResendCount = `login_email_opt_in.resent_count`
+* emailChecked = `Users.emailChecked`
+* createdAt = `login_email_opt_in.created_at`
+* updatedAt = `login_email_opt_in.updated_at`
 * phone = null
 * usedChannel = Enum-"main contact"
 
 and update the `Users `entry with `Users.emailId = UsersContact.Id` and `Users.passphraseEncryptionType = 1`
 
-After this one-time migration the column `Users.email` can be deleted.
+After this one-time migration and a verification, which ensures that all data are migrated, then the columns `Users.email`, `Users.emailChecked`, `Users.emailHash` and the table `login_email_opt_in` can be deleted.
 
 ### Adaption of BusinessLogic
 
