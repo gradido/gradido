@@ -15,6 +15,7 @@ export class Contribution {
     this.deletedAt = contribution.deletedAt
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
+    this.contributionDate = contribution.contributionDate
   }
 
   @Field(() => Number)
@@ -43,6 +44,9 @@ export class Contribution {
 
   @Field(() => Number, { nullable: true })
   confirmedBy: number | null
+
+  @Field(() => Date)
+  contributionDate: Date
 }
 
 @ObjectType()
