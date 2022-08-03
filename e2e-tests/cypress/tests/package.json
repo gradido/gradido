@@ -7,12 +7,21 @@
   "author": "Mathias Lenz",
   "license": "Apache-2.0",
   "private": false,
+  "cypress-cucumber-preprocessor": {
+    "nonGlobalStepDefinitions": true,
+    "json": {
+      "enabled": true
+    }
+  },
   "scripts": {
-    "cypress-e2e-tests": "yarn run cypress run",
+    "cypress-e2e-tests": "yarn run cypress run -e \"TAGS=not @skip\"",
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
-    "cypress": "^10.3.0",
-    "eslint": "^8.19.0"
+    "@badeball/cypress-cucumber-preprocessor": "^12.0.0",
+    "@cypress/browserify-preprocessor": "^3.0.2",
+    "cypress": "^10.4.0",
+    "eslint": "^8.19.0",
+    "typescript": "^4.7.4"
   }
 }
