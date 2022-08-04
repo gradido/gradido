@@ -14,6 +14,7 @@ export class UserAdmin {
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend
+    this.isAdmin = user.isAdmin
   }
 
   @Field(() => Number)
@@ -42,6 +43,9 @@ export class UserAdmin {
 
   @Field(() => String, { nullable: true })
   emailConfirmationSend?: string
+
+  @Field(() => Date, { nullable: true })
+  isAdmin: Date | null
 }
 
 @ObjectType()

@@ -35,9 +35,10 @@ describe('AuthLayout', () => {
     beforeEach(() => {
       wrapper = Wrapper()
     })
+
     describe('Mobile Version Start', () => {
       beforeEach(() => {
-        wrapper.vm.mobileStart = true
+        wrapper.findComponent({ name: 'AuthMobileStart' }).vm.$emit('set-mobile-start', true)
       })
 
       it('has Component AuthMobileStart', () => {

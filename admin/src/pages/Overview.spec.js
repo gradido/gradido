@@ -5,7 +5,7 @@ const localVue = global.localVue
 
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    getPendingCreations: [
+    listUnconfirmedContributions: [
       {
         pending: true,
       },
@@ -46,7 +46,7 @@ describe('Overview', () => {
       wrapper = Wrapper()
     })
 
-    it('calls getPendingCreations', () => {
+    it('calls listUnconfirmedContributions', () => {
       expect(apolloQueryMock).toBeCalled()
     })
 

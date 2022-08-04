@@ -122,9 +122,6 @@ export default {
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
-    commitStorePublisherId(val) {
-      this.$store.commit('publisherId', val)
-    },
     async onSubmit() {
       this.$apollo
         .mutate({
@@ -142,16 +139,7 @@ export default {
           this.showPageMessage = true
         })
         .catch((error) => {
-          let errorMessage
-          switch (error.message) {
-            case 'GraphQL error: User already exists.':
-              errorMessage = this.$t('error.user-already-exists')
-              break
-            default:
-              errorMessage = this.$t('error.unknown-error') + error.message
-              break
-          }
-          this.toastError(errorMessage)
+          this.toastError(this.$t('error.unknown-error') + error.message)
         })
     },
   },

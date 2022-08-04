@@ -22,7 +22,7 @@ module.exports = {
     '^.+\\.(js|jsx)?$': 'babel-jest',
     '<rootDir>/node_modules/vee-validate/dist/rules': 'babel-jest',
   },
-  setupFiles: ['<rootDir>/test/testSetup.js'],
+  setupFiles: ['<rootDir>/test/testSetup.js', 'jest-canvas-mock'],
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],

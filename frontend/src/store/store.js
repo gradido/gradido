@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import { localeChanged } from 'vee-validate'
 import i18n from '@/i18n.js'
+import jwtDecode from 'jwt-decode'
 
 Vue.use(Vuex)
 
@@ -26,6 +27,11 @@ export const mutations = {
   },
   token: (state, token) => {
     state.token = token
+    if (token) {
+      state.tokenTime = jwtDecode(token).exp
+    } else {
+      state.tokenTime = null
+    }
   },
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
@@ -41,6 +47,9 @@ export const mutations = {
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
   },
+  creation: (state, creation) => {
+    state.creation = creation
+  },
 }
 
 export const actions = {
@@ -54,6 +63,7 @@ export const actions = {
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('isAdmin', data.isAdmin)
+    commit('creation', data.creation)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -65,6 +75,7 @@ export const actions = {
     commit('hasElopage', false)
     commit('publisherId', null)
     commit('isAdmin', false)
+    commit('creation', null)
     localStorage.clear()
   },
 }
@@ -85,10 +96,12 @@ try {
       lastName: '',
       // username: '',
       token: null,
+      tokenTime: null,
       isAdmin: false,
       newsletterState: null,
       hasElopage: false,
       publisherId: null,
+      creation: null,
     },
     getters: {},
     // Syncronous mutation of the state

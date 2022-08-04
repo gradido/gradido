@@ -6,7 +6,7 @@ const localVue = global.localVue
 
 const apolloMutateMock = jest.fn().mockResolvedValue({
   data: {
-    updatePendingCreation: {
+    adminUpdateContribution: {
       creation: [0, 0, 0],
       amount: 500,
       date: new Date(),

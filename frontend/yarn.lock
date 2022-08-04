@@ -4615,20 +4615,10 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001109:
-  version "1.0.30001251"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001251.tgz"
-  integrity sha512-HOe1r+9VkU4TFmnU70z+r7OLmtR+/chB1rdcJUeQlAinjEeb0cKL20tlAtOagNZhbrtLnCvV19B4FmF1rgzl6A==
-
-caniuse-lite@^1.0.30001181, caniuse-lite@^1.0.30001280:
-  version "1.0.30001285"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001285.tgz#fe1e52229187e11d6670590790d669b9e03315b7"
-  integrity sha512-KAOkuUtcQ901MtmvxfKD+ODHH9YVDYnBt+TGYSz2KIfnq22CiArbUxXPN9067gNbgMlnNYRSwho8OPXZPALB9Q==
-
-caniuse-lite@^1.0.30001286:
-  version "1.0.30001303"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001303.tgz#9b168e4f43ccfc372b86f4bc5a551d9b909c95c9"
-  integrity sha512-/Mqc1oESndUNszJP0kx0UaQU9kEv9nNtJ7Kn8AdA0mNnH8eR1cj0kG+NbNuC1Wq/b21eA8prhKRA3bbkjONegQ==
+caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001181, caniuse-lite@^1.0.30001280, caniuse-lite@^1.0.30001286:
+  version "1.0.30001354"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001354.tgz"
+  integrity sha512-mImKeCkyGDAHNywYFA4bqnLAzTUvVkqPvhY4DV47X+Gl2c5Z8c3KNETnXp14GQt11LvxE8AwjzGxJ+rsikiOzg==
 
 capture-exit@^2.0.0:
   version "2.0.0"
@@ -9831,6 +9821,11 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
+jwt-decode@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-3.1.2.tgz#3fb319f3675a2df0c2895c8f5e9fa4b67b04ed59"
+  integrity sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==
+
 killable@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/killable/-/killable-1.0.1.tgz#4c8ce441187a061c7474fb87ca08e2a638194892"
@@ -14481,6 +14476,11 @@ vue-template-es2015-compiler@^1.6.0, vue-template-es2015-compiler@^1.9.0:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
+
+vue-timers@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/vue-timers/-/vue-timers-2.0.4.tgz#7e1c443abf2109db5eeab6e62b0f5a47e94cf70b"
+  integrity sha512-QOEVdO4V4o9WjFG6C0Kn9tfdTeeECjqvEQozcQlfL1Tn8v0qx4uUPhTYoc1+s6qoJnSbu8f68x8+nm1ZEir0kw==
 
 vue2-transitions@^0.2.3:
   version "0.2.3"

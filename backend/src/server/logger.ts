@@ -5,7 +5,8 @@ import { readFileSync } from 'fs'
 
 const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
 
-options.categories.default.level = CONFIG.LOG_LEVEL
+options.categories.backend.level = CONFIG.LOG_LEVEL
+options.categories.apollo.level = CONFIG.LOG_LEVEL
 
 log4js.configure(options)
 

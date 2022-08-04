@@ -7,7 +7,9 @@ import { getConnection } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
+import { communityDbUser } from '@/util/communityUser'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
 import { encode } from '@/auth/JWT'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
@@ -17,9 +19,19 @@ import { OptInType } from '@enum/OptInType'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import {
+  Event,
+  EventLogin,
+  EventRedeemRegister,
+  EventRegister,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
+import { getUserCreation } from './util/creations'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -221,7 +233,7 @@ export class UserResolver {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
-    const user = new User(userEntity)
+    const user = new User(userEntity, await getUserCreation(userEntity.id))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -271,7 +283,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
 
-    const user = new User(dbUser)
+    const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug('user=' + user)
 
     // Elopage Status & Stored PublisherId
@@ -287,6 +299,9 @@ export class UserResolver {
       key: 'token',
       value: encode(dbUser.pubKey),
     })
+    const ev = new EventLogin()
+    ev.userId = user.id
+    eventProtocol.writeEvent(new Event().setEventLogin(ev))
     logger.info('successful Login:' + user)
     return user
   }
@@ -327,10 +342,35 @@ export class UserResolver {
     // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
     const userFound = await DbUser.findOne({ email }, { withDeleted: true })
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
+
     if (userFound) {
-      logger.error('User already exists with this email=' + email)
+      logger.info('User already exists with this email=' + email)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
-      throw new Error(`User already exists.`)
+
+      const user = new User(communityDbUser)
+      user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+      user.email = email
+      user.firstName = firstName
+      user.lastName = lastName
+      user.language = language
+      user.publisherId = publisherId
+      logger.debug('partly faked user=' + user)
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emailSent = await sendAccountMultiRegistrationEmail({
+        firstName,
+        lastName,
+        email,
+      })
+      logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
+      /* uncomment this, when you need the activation link on the console */
+      // In case EMails are disabled log the activation link for the user
+      if (!emailSent) {
+        logger.debug(`Email not send!`)
+      }
+      logger.info('createUser() faked and send multi registration mail...')
+
+      return user
     }
 
     const passphrase = PassphraseGenerate()
@@ -339,6 +379,9 @@ export class UserResolver {
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
 
+    const eventRegister = new EventRegister()
+    const eventRedeemRegister = new EventRedeemRegister()
+    const eventSendConfirmEmail = new EventSendConfirmationEmail()
     const dbUser = new DbUser()
     dbUser.email = email
     dbUser.firstName = firstName
@@ -349,10 +392,22 @@ export class UserResolver {
     dbUser.passphrase = passphrase.join(' ')
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
-      const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
-      logger.info('redeemCode found transactionLink=' + transactionLink)
-      if (transactionLink) {
-        dbUser.referrerId = transactionLink.userId
+      if (redeemCode.match(/^CL-/)) {
+        const contributionLink = await dbContributionLink.findOne({
+          code: redeemCode.replace('CL-', ''),
+        })
+        logger.info('redeemCode found contributionLink=' + contributionLink)
+        if (contributionLink) {
+          dbUser.contributionLinkId = contributionLink.id
+          eventRedeemRegister.contributionId = contributionLink.id
+        }
+      } else {
+        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        logger.info('redeemCode found transactionLink=' + transactionLink)
+        if (transactionLink) {
+          dbUser.referrerId = transactionLink.userId
+          eventRedeemRegister.transactionId = transactionLink.id
+        }
       }
     }
     // TODO this field has no null allowed unlike the loginServer table
@@ -362,6 +417,7 @@ export class UserResolver {
     // loginUser.pubKey = keyPair[0]
     // loginUser.privKey = encryptedPrivkey
 
+    const event = new Event()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
@@ -391,6 +447,9 @@ export class UserResolver {
         duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      eventSendConfirmEmail.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
+
       /* uncomment this, when you need the activation link on the console */
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
@@ -406,6 +465,15 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+
+    if (redeemCode) {
+      eventRedeemRegister.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+    } else {
+      eventRegister.userId = dbUser.id
+      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+    }
+
     return new User(dbUser)
   }
 

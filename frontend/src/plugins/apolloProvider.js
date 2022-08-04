@@ -29,7 +29,11 @@ const authLink = new ApolloLink((operation, forward) => {
 
 const apolloClient = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    possibleTypes: {
+      QueryLinkResult: ['TransactionLink', 'ContributionLink'],
+    },
+  }),
 })
 
 export const apolloProvider = new VueApollo({

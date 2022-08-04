@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
-import { deletePendingCreation } from '../graphql/deletePendingCreation'
-import { confirmPendingCreation } from '../graphql/confirmPendingCreation'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
@@ -9,7 +9,7 @@ const localVue = global.localVue
 const storeCommitMock = jest.fn()
 const apolloQueryMock = jest.fn().mockResolvedValue({
   data: {
-    getPendingCreations: [
+    listUnconfirmedContributions: [
       {
         id: 1,
         firstName: 'Bibi',
@@ -18,7 +18,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         amount: 500,
         memo: 'Danke für alles',
         date: new Date(),
-        moderator: 0,
+        moderator: 2,
       },
       {
         id: 2,
@@ -28,7 +28,7 @@ const apolloQueryMock = jest.fn().mockResolvedValue({
         amount: 1000000,
         memo: 'Gut Ergattert',
         date: new Date(),
-        moderator: 0,
+        moderator: 2,
       },
     ],
   },
@@ -80,28 +80,54 @@ describe('CreationConfirm', () => {
     })
 
     describe('remove creation with success', () => {
-      beforeEach(async () => {
-        await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
-      })
+      let spy
 
-      it('calls the deletePendingCreation mutation', () => {
-        expect(apolloMutateMock).toBeCalledWith({
-          mutation: deletePendingCreation,
-          variables: { id: 1 },
+      describe('admin confirms deletion', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve('some value'))
+          await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+        })
+
+        it('opens a modal', () => {
+          expect(spy).toBeCalled()
+        })
+
+        it('calls the adminDeleteContribution mutation', () => {
+          expect(apolloMutateMock).toBeCalledWith({
+            mutation: adminDeleteContribution,
+            variables: { id: 1 },
+          })
+        })
+
+        it('commits openCreationsMinus to store', () => {
+          expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
+        })
+
+        it('toasts a success message', () => {
+          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
         })
       })
 
-      it('commits openCreationsMinus to store', () => {
-        expect(storeCommitMock).toBeCalledWith('openCreationsMinus', 1)
-      })
+      describe('admin cancels deletion', () => {
+        beforeEach(async () => {
+          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+          spy.mockImplementation(() => Promise.resolve(false))
+          await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
+        })
 
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_delete')
+        it('does not call the adminDeleteContribution mutation', () => {
+          expect(apolloMutateMock).not.toBeCalled()
+        })
       })
     })
 
     describe('remove creation with error', () => {
+      let spy
+
       beforeEach(async () => {
+        spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
+        spy.mockImplementation(() => Promise.resolve('some value'))
         apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
@@ -141,9 +167,9 @@ describe('CreationConfirm', () => {
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
-          it('calls the confirmPendingCreation mutation', () => {
+          it('calls the confirmContribution mutation', () => {
             expect(apolloMutateMock).toBeCalledWith({
-              mutation: confirmPendingCreation,
+              mutation: confirmContribution,
               variables: { id: 2 },
             })
           })

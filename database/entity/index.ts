@@ -5,10 +5,11 @@ import { Migration } from './Migration'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
-import { AdminPendingCreation } from './AdminPendingCreation'
+import { Contribution } from './Contribution'
+import { EventProtocol } from './EventProtocol'
 
 export const entities = [
-  AdminPendingCreation,
+  Contribution,
   ContributionLink,
   LoginElopageBuys,
   LoginEmailOptIn,
@@ -16,4 +17,5 @@ export const entities = [
   Transaction,
   TransactionLink,
   User,
+  EventProtocol,
 ]

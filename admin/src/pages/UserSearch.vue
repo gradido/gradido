@@ -42,6 +42,7 @@
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
+      @updateIsAdmin="updateIsAdmin"
       @updateDeletedAt="updateDeletedAt"
     />
     <b-pagination
@@ -51,6 +52,7 @@
       per-page="perPage"
       :total-rows="rows"
       align="center"
+      :hide-ellipsis="true"
     ></b-pagination>
     <div></div>
   </div>
@@ -110,6 +112,9 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    updateIsAdmin(userId, isAdmin) {
+      this.searchResult.find((obj) => obj.userId === userId).isAdmin = isAdmin
     },
     updateDeletedAt(userId, deletedAt) {
       this.searchResult.find((obj) => obj.userId === userId).deletedAt = deletedAt

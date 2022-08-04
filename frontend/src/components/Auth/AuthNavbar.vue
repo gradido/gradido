@@ -3,7 +3,7 @@
     <b-navbar toggleable="lg" class="pr-4">
       <b-navbar-brand>
         <b-img
-          class="imgLogo position-absolute ml--3 mt--3 p-2 zindex1000"
+          class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
           :src="logo"
           width="200"
           alt="..."
@@ -18,7 +18,7 @@
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
       <b-navbar-toggle target="nav-collapse" class="zindex1000"></b-navbar-toggle>
 
-      <b-collapse id="nav-collapse" is-nav class="mt-5 mt-lg-0">
+      <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto" right>
           <b-nav-item :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
             {{ $t('auth.navbar.aboutGradido') }}
@@ -46,11 +46,19 @@ export default {
 
 <style lang="scss">
 .authNavbar > .nav-link {
-  color: #383838 !important;
+  color: #0e79bc !important;
+}
+
+.navbar-toggler {
+  font-size: 2.25rem;
 }
 
 .authNavbar > .router-link-exact-active {
-  color: #0e79bc !important;
+  color: #383838 !important;
+}
+
+button.navbar-toggler > span.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 .auth-header {

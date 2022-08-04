@@ -31,6 +31,7 @@ describe('sendEMail', () => {
     beforeEach(async () => {
       result = await sendEMail({
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })
@@ -50,6 +51,7 @@ describe('sendEMail', () => {
       CONFIG.EMAIL = true
       result = await sendEMail({
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })
@@ -72,6 +74,7 @@ describe('sendEMail', () => {
       expect((createTransport as jest.Mock).mock.results[0].value.sendMail).toBeCalledWith({
         from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
         to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
       })

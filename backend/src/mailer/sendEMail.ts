@@ -5,10 +5,15 @@ import CONFIG from '@/config'
 
 export const sendEMail = async (emailDef: {
   to: string
+  cc?: string
   subject: string
   text: string
 }): Promise<boolean> => {
-  logger.info(`send Email: to=${emailDef.to}, subject=${emailDef.subject}, text=${emailDef.text}`)
+  logger.info(
+    `send Email: to=${emailDef.to}` +
+      (emailDef.cc ? `, cc=${emailDef.cc}` : '') +
+      `, subject=${emailDef.subject}, text=${emailDef.text}`,
+  )
 
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)

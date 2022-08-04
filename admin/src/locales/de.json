@@ -1,11 +1,41 @@
 {
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "contributionLink": {
+    "amount": "Betrag",
+    "clear": "Löschen",
+    "contributionLinks": "Beitragslinks",
+    "create": "Anlegen",
+    "cycle": "Zyklus",
+    "deleteNow": "Automatische Creations wirklich löschen?",
+    "maximumAmount": "maximaler Betrag",
+    "maxPerCycle": "Wiederholungen",
+    "memo": "Nachricht",
+    "name": "Name",
+    "newContributionLink": "Neuer Beitragslink",
+    "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
+    "noDateSelected": "Kein Datum ausgewählt",
+    "noEndDate": "Kein Enddatum gewählt.",
+    "noStartDate": "Kein Startdatum gewählt.",
+    "options": {
+      "cycle": {
+        "daily": "täglich",
+        "hourly": "stündlich",
+        "monthly": "monatlich",
+        "once": "einmalig",
+        "weekly": "wöchentlich",
+        "yearly": "jährlich"
+      }
+    },
+    "validFrom": "Startdatum",
+    "validTo": "Enddatum"
+  },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
+    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -44,7 +74,8 @@
   "lastname": "Nachname",
   "math": {
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
@@ -71,7 +102,7 @@
   },
   "redeemed": "eingelöst",
   "remove": "Entfernen",
-  "removeNotSelf": "Als Admin / Moderator kannst du dich nicht selber löschen.",
+  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "status": "Status",
@@ -100,6 +131,16 @@
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
+  },
+  "userRole": {
+    "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
+    "selectLabel": "Rolle:",
+    "selectRoles": {
+      "admin": "Administrator",
+      "user": "einfacher Nutzer"
+    },
+    "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
+    "tabTitle": "Nutzer-Rolle"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
