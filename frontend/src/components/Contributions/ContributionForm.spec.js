@@ -23,6 +23,9 @@ describe('ContributionForm', () => {
         creation: ['1000', '1000', '1000'],
       },
     },
+    $i18n: {
+      locale: 'en',
+    },
   }
 
   const Wrapper = () => {
@@ -43,14 +46,14 @@ describe('ContributionForm', () => {
     })
 
     describe('empty form data', () => {
-      describe('has button', () => {
-        it('reset enabled', () => {
+      describe('buttons', () => {
+        it('has reset enabled', () => {
           expect(
             wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
           ).toBeFalsy()
         })
 
-        it('submit disabled', () => {
+        it('has submit disabled', () => {
           expect(wrapper.find('button[data-test="button-submit"]').attributes('disabled')).toBe(
             'disabled',
           )
@@ -71,9 +74,9 @@ describe('ContributionForm', () => {
           await wrapper.find('#contribution-amount').find('input').setValue('200')
         })
 
-        describe('has button', () => {
+        describe('buttons', () => {
           describe('reset', () => {
-            it('enabled', () => {
+            it('has enabled', () => {
               expect(
                 wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
               ).toBeFalsy()
@@ -81,13 +84,13 @@ describe('ContributionForm', () => {
           })
 
           describe('submit', () => {
-            it('enabled', () => {
+            it('has enabled', () => {
               expect(
                 wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
               ).toBeFalsy()
             })
 
-            it('labeled with "contribution.submit"', () => {
+            it('has label "contribution.submit"', () => {
               expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
                 'contribution.submit',
               )
@@ -140,9 +143,9 @@ describe('ContributionForm', () => {
           await wrapper.find('#contribution-amount').find('input').setValue('200')
         })
 
-        describe('has button', () => {
+        describe('buttons', () => {
           describe('reset', () => {
-            it('enabled', () => {
+            it('has enabled', () => {
               expect(
                 wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
               ).toBeFalsy()
@@ -150,13 +153,13 @@ describe('ContributionForm', () => {
           })
 
           describe('submit', () => {
-            it('enabled', () => {
+            it('has enabled', () => {
               expect(
                 wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
               ).toBeFalsy()
             })
 
-            it('labeled with "form.change"', () => {
+            it('has label "form.change"', () => {
               expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
                 'form.change',
               )

@@ -18,32 +18,38 @@
         id="contribution-date"
         v-model="form.date"
         size="lg"
+        :locale="$i18n.locale"
         :max="maximalDate"
         :min="minimalDate"
         class="mb-4"
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
-      ></b-form-datepicker>
-      <label class="mt-3">{{ $t('contribution.activity') }}</label>
-      <b-form-textarea
-        id="contribution-memo"
-        v-model="form.memo"
-        rows="3"
-        max-rows="6"
-        required
-        :minlength="minlength"
-        :maxlength="maxlength"
-      ></b-form-textarea>
-      <div
-        v-show="form.memo.length > 0"
-        class="text-right"
-        :class="form.memo.length < minlength ? 'text-danger' : 'text-success'"
       >
-        {{ form.memo.length }}
-        <span v-if="form.memo.length < minlength">{{ $t('math.lower') }} {{ minlength }}</span>
-        <span v-else>{{ $t('math.divide') }} {{ maxlength }}</span>
-      </div>
+        <template #nav-prev-year><span></span></template>
+        <template #nav-next-year><span></span></template>
+      </b-form-datepicker>
+      <validation-provider
+        :rules="{
+          required: true,
+          min: minlength,
+          max: maxlength,
+        }"
+        :name="$t('form.message')"
+        v-slot="{ errors }"
+      >
+        <label class="mt-3">{{ $t('contribution.activity') }}</label>
+        <b-form-textarea
+          id="contribution-memo"
+          v-model="form.memo"
+          rows="3"
+          max-rows="6"
+          required
+        ></b-form-textarea>
+        <b-col v-if="errors">
+          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+        </b-col>
+      </validation-provider>
       <label class="mt-3">{{ $t('form.amount') }}</label>
       <b-input-group size="lg" prepend="GDD" append=".00">
         <b-form-input
@@ -90,7 +96,7 @@ export default {
   },
   data() {
     return {
-      minlength: 50,
+      minlength: 5,
       maxlength: 255,
       maximalDate: new Date(),
       form: this.value, // includes 'id'
@@ -170,3 +176,8 @@ export default {
   },
 }
 </script>
+<style>
+span.errors {
+  color: red;
+}
+</style>

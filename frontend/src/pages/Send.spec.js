@@ -25,9 +25,11 @@ describe('Send', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $n: jest.fn((n) => String(n)),
+    $d: jest.fn((d) => d),
     $store: {
       state: {
         email: 'sender@example.org',
+        firstName: 'Testy',
       },
     },
     $apollo: {
@@ -160,11 +162,15 @@ describe('Send', () => {
     })
 
     describe('transaction form link', () => {
+      const now = new Date().toISOString()
       beforeEach(async () => {
         apolloMutationMock.mockResolvedValue({
           data: {
             createTransactionLink: {
               link: 'http://localhost/redeem/0123456789',
+              amount: '56.78',
+              memo: 'Make the best of the link!',
+              validUntil: now,
             },
           },
         })
@@ -228,18 +234,64 @@ describe('Send', () => {
             navigator.clipboard = navigatorClipboard
           })
 
-          describe('copy with success', () => {
+          describe('copy link with success', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockResolvedValue()
-              await wrapper.findAll('button').at(0).trigger('click')
+              await wrapper.findAll('button').at(1).trigger('click')
             })
 
+            it('should call clipboard.writeText', () => {
+              expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+                'http://localhost/redeem/0123456789',
+              )
+            })
             it('toasts success message', () => {
               expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
             })
           })
 
-          describe('copy with error', () => {
+          describe('copy link with error', () => {
+            beforeEach(async () => {
+              navigatorClipboardMock.mockRejectedValue()
+              await wrapper.findAll('button').at(1).trigger('click')
+            })
+
+            it('toasts error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
+            })
+          })
+        })
+
+        describe('copy link and text with success', () => {
+          const navigatorClipboard = navigator.clipboard
+          beforeAll(() => {
+            delete navigator.clipboard
+            navigator.clipboard = { writeText: navigatorClipboardMock }
+          })
+          afterAll(() => {
+            navigator.clipboard = navigatorClipboard
+          })
+
+          describe('copy link and text with success', () => {
+            beforeEach(async () => {
+              navigatorClipboardMock.mockResolvedValue()
+              await wrapper.findAll('button').at(0).trigger('click')
+            })
+
+            it('should call clipboard.writeText', () => {
+              expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+                'http://localhost/redeem/0123456789\n' +
+                  'Testy transaction-link.send_you 56.78 Gradido.\n' +
+                  '"Make the best of the link!"\n' +
+                  'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
+              )
+            })
+            it('toasts success message', () => {
+              expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-and-text-copied')
+            })
+          })
+
+          describe('copy link and text with error', () => {
             beforeEach(async () => {
               navigatorClipboardMock.mockRejectedValue()
               await wrapper.findAll('button').at(0).trigger('click')
@@ -253,7 +305,7 @@ describe('Send', () => {
 
         describe('close button click', () => {
           beforeEach(async () => {
-            await wrapper.findAll('button').at(2).trigger('click')
+            await wrapper.findAll('button').at(3).trigger('click')
           })
 
           it('Shows the TransactionForm', () => {

@@ -11,6 +11,12 @@
           {{ $t('math.minus') }}
           <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
         </div>
+        <div class="mr-2">
+          <span>{{ $t('contribution.date') }}</span>
+          <span>
+            {{ $d(new Date(contributionDate), 'monthAndYear') }}
+          </span>
+        </div>
         <div class="mr-2">{{ memo }}</div>
         <div v-if="type === 'pending' && !firstName" class="d-flex flex-row-reverse">
           <div
@@ -91,9 +97,10 @@ export default {
       return 'primary'
     },
     date() {
-      if (this.deletedAt) return this.deletedAt
-      if (this.confirmedAt) return this.confirmedAt
-      return this.contributionDate
+      // if (this.deletedAt) return this.deletedAt
+      // if (this.confirmedAt) return this.confirmedAt
+      // return this.contributionDate
+      return this.createdAt
     },
   },
   methods: {

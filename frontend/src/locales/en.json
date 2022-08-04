@@ -26,7 +26,7 @@
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
-    "myContributions": "My contributions",
+    "myContributions": "My contributions to the common good",
     "other-communities": "Other communities",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
@@ -36,11 +36,12 @@
     "alert": {
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
-      "myContributionNoteList": "Here you will find a chronological list of all your submitted contributions. There are three display types. There are three ways of displaying your posts. You can edit your contributions, which have not yet been confirmed, at any time.",
+      "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
       "myContributionNoteSupport": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support.",
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
+    "date": "Contribution for:",
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
     "formText": {
@@ -150,8 +151,8 @@
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
-    "copy": "copy",
-    "copy-with-text": "Copy link and text",
+    "copy-link": "Copy link",
+    "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "decay-14-day": "Decay for 14 days",
@@ -203,10 +204,7 @@
   "login": "Login",
   "math": {
     "aprox": "~",
-    "divide": "/",
     "equal": "=",
-    "exclaim": "!",
-    "lower": "<",
     "minus": "−",
     "pipe": "|"
   },
