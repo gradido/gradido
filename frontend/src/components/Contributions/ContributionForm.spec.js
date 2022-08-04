@@ -72,16 +72,26 @@ describe('ContributionForm', () => {
         })
 
         describe('has button', () => {
-          it('reset enabled', () => {
-            expect(
-              wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-            ).toBeFalsy()
+          describe('reset', () => {
+            it('enabled', () => {
+              expect(
+                wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
+              ).toBeFalsy()
+            })
           })
 
-          it('submit enabled', () => {
-            expect(
-              wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-            ).toBeFalsy()
+          describe('submit', () => {
+            it('enabled', () => {
+              expect(
+                wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+              ).toBeFalsy()
+            })
+
+            it('labeled with "contribution.submit"', () => {
+              expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
+                'contribution.submit',
+              )
+            })
           })
         })
 
@@ -131,16 +141,26 @@ describe('ContributionForm', () => {
         })
 
         describe('has button', () => {
-          it('reset enabled', () => {
-            expect(
-              wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-            ).toBeFalsy()
+          describe('reset', () => {
+            it('enabled', () => {
+              expect(
+                wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
+              ).toBeFalsy()
+            })
           })
 
-          it('submit enabled', () => {
-            expect(
-              wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-            ).toBeFalsy()
+          describe('submit', () => {
+            it('enabled', () => {
+              expect(
+                wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+              ).toBeFalsy()
+            })
+
+            it('labeled with "form.change"', () => {
+              expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
+                'form.change',
+              )
+            })
           })
         })
 

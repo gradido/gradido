@@ -98,8 +98,10 @@ export default {
   },
   methods: {
     submit() {
-      // this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', this.form) // is not working for testing
-      this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form }) // this works for testing, why ever, we have to make a spread '...', to evaluate the values it looks like
+      // not working for testing:
+      // this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', this.form)
+      // works for testing, why ever, we have to make a spread '...', to evaluate the values it looks like: (I didn't find a solution in the test itmself)
+      this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
     reset() {
