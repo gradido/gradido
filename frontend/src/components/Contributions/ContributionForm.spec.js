@@ -7,7 +7,7 @@ const localVue = global.localVue
 describe('ContributionForm', () => {
   let wrapper
 
-  let propsData = {
+  const propsData = {
     value: {
       id: null,
       date: '',
@@ -103,37 +103,13 @@ describe('ContributionForm', () => {
         const now = new Date().toISOString()
 
         beforeEach(async () => {
-          // Wolle: await wrapper.setData({
-          //   form: {
-          //     id: 2,
-          //     date: now,
-          //     memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-          //     amount: '200',
-          //   },
-          // })
-          // await wrapper.setData({
-          //   form: {
-          //     id: 2,
-          //   },
-          // })
-          propsData = {
-            value: {
-              id: 2,
-              date: '',
-              memo: '',
-              amount: '',
-            },
-          }
           wrapper = Wrapper()
-          // await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+          await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
           await wrapper
             .find('#contribution-memo')
             .find('textarea')
             .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
           await wrapper.find('#contribution-amount').find('input').setValue('200')
-          await flushPromises()
-          // Wolle:
-          await wrapper.vm.$nextTick()
         })
 
         describe('has button', () => {
@@ -143,21 +119,24 @@ describe('ContributionForm', () => {
             ).toBeFalsy()
           })
 
-          it.only('submit enabled', () => {
+          it('submit enabled', () => {
             expect(
               wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
             ).toBeFalsy()
           })
         })
 
-        describe.skip('on trigger submit', () => {
+        describe('on trigger submit', () => {
           beforeEach(async () => {
             // await wrapper.find('.test-submit').trigger('click')
             // await wrapper.find('button[type="submit"]').trigger('click')
             await wrapper.find('form').trigger('submit')
+            await flushPromises()
+            // Wolle:
+            await wrapper.vm.$nextTick()
           })
 
-          it('emits "update-contribution"', () => {
+          it.only('emits "update-contribution"', () => {
             expect(wrapper.emitted('update-contribution')).toEqual(
               expect.arrayContaining([
                 expect.arrayContaining([
