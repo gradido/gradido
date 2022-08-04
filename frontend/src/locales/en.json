@@ -28,12 +28,11 @@
     "current-community": "Current community",
     "members": "Members",
     "moderators": "Moderators",
+    "myContributions": "My contributions to the common good",
     "openContributionLinks": "open Contribution links list",
     "openContributionLinkText": "The following automatic creations are currently provided by the '{_name_}' community.",
     "other-communities": "Other communities",
     "statistic": "Statistics",
-    "myContributions": "My contributions to the common good",
-    "other-communities": "Other communities",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
   },
@@ -227,6 +226,7 @@
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
+    "info": "Info",
     "logout": "Logout",
     "members_area": "Members area",
     "overview": "Overview",

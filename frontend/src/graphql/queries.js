@@ -176,8 +176,8 @@ export const listContributionLinks = gql`
       maxAmount
     }
   }
- `
- 
+`
+
 export const listContributions = gql`
   query(
     $currentPage: Int = 1
