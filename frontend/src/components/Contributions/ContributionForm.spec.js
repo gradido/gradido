@@ -138,15 +138,19 @@ describe('ContributionForm', () => {
 
         describe('has button', () => {
           it('reset enabled', () => {
-            expect(wrapper.find('button[type="reset"]').attributes('disabled')).toBeFalsy()
+            expect(
+              wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
+            ).toBeFalsy()
           })
 
-          it('submit enabled', () => {
-            expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeFalsy()
+          it.only('submit enabled', () => {
+            expect(
+              wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+            ).toBeFalsy()
           })
         })
 
-        describe.only('on trigger submit', () => {
+        describe.skip('on trigger submit', () => {
           beforeEach(async () => {
             // await wrapper.find('.test-submit').trigger('click')
             // await wrapper.find('button[type="submit"]').trigger('click')

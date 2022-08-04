@@ -68,12 +68,12 @@
       </div>
       <b-row class="mt-3">
         <b-col>
-          <b-button class="test-cancel" type="reset" variant="secondary" @click="reset">
+          <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
             {{ $t('form.cancel') }}
           </b-button>
         </b-col>
         <b-col class="text-right">
-          <b-button class="test-submit" type="submit" variant="primary" :disabled="disabled">
+          <b-button type="submit" variant="primary" :disabled="disabled" data-test="button-submit">
             {{ form.id ? $t('form.change') : $t('contribution.submit') }}
           </b-button>
         </b-col>
