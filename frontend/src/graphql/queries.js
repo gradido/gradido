@@ -171,8 +171,6 @@ export const listContributionLinks = gql`
         amount
         name
         memo
-        code
-        link
         createdAt
         validFrom
         validTo

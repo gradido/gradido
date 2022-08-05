@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="info-statistic">
     <b-container>
       <div class="h3">{{ $t('community.community') }}</div>
       <div class="h1">{{ CONFIG.COMMUNITY_NAME }}</div>
