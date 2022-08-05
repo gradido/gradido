@@ -15,9 +15,13 @@
     <b-container>
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
       <small>
-        {{ $t('community.openContributionLinkText', { _name_: CONFIG.COMMUNITY_NAME }) }}
+        {{
+          $t('community.openContributionLinkText', {
+            _name_: CONFIG.COMMUNITY_NAME,
+            _count_: count,
+          })
+        }}
       </small>
-      Momentan gibt es aktuell {{ count }} Aktionen.
       <ul>
         <li v-for="item in itemsContributionLinks" v-bind:key="item.id">
           <div>{{ item.name }}</div>

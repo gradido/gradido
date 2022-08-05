@@ -30,7 +30,7 @@
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge zum Gemeinwohl",
     "openContributionLinks": "öffentliche Beitragslinklist",
-    "openContributionLinkText": "Folgende automatische Schöpfungen werden zur Zeit durch die Gemeinschaft '{_name_}' bereitgestellt.",
+    "openContributionLinkText": "Folgende {_count_} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft '{_name_}' bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
     "statistic": "Statistik",
     "submitContribution": "Beitrag einreichen",
