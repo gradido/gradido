@@ -63,7 +63,8 @@
     "updated": "Der Beitrag wurde geändert."
   },
   "contribution-link": {
-    "thanksYouWith": "dankt dir mit"
+    "thanksYouWith": "dankt dir mit",
+    "unique":"( einmalig )"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",

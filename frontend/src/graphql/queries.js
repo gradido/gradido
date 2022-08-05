@@ -164,16 +164,23 @@ export const listTransactionLinks = gql`
 `
 
 export const listContributionLinks = gql`
-  query {
-    listContributionLinks {
-      startDate
-      endDate
-      name
-      memo
-      amount
-      cycle
-      repetition
-      maxAmount
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    listContributionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        code
+        link
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
     }
   }
 `

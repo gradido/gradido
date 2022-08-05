@@ -63,7 +63,8 @@
     "updated": "The contribution was changed."
   },
   "contribution-link": {
-    "thanksYouWith": "thanks you with"
+    "thanksYouWith": "thanks you with",
+    "unique":"( unique )"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
