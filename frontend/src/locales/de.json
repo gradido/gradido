@@ -33,6 +33,7 @@
   },
   "contribution": {
     "activity": "Tätigkeit",
+    "yourActivity":"Bitte trage eine Tätigkeit ein!",
     "alert": {
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
@@ -117,6 +118,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
+    "mandatoryField":"Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -206,7 +208,8 @@
     "aprox": "~",
     "equal": "=",
     "minus": "−",
-    "pipe": "|"
+    "pipe": "|",
+    "asterisk":"*"
   },
   "message": {
     "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",

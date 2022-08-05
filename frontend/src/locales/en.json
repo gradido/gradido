@@ -33,6 +33,7 @@
   },
   "contribution": {
     "activity": "Activity",
+    "yourActivity":"Please enter an activity!",
     "alert": {
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
@@ -117,6 +118,7 @@
     "from": "from",
     "generate_now": "Generate now",
     "lastname": "Lastname",
+    "mandatoryField":"mandatory field",
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
@@ -206,7 +208,8 @@
     "aprox": "~",
     "equal": "=",
     "minus": "−",
-    "pipe": "|"
+    "pipe": "|",
+    "asterisk":"*"
   },
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
