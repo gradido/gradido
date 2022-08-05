@@ -60,6 +60,10 @@
           <b-icon icon="gear" aria-hidden="true"></b-icon>
           {{ $t('navigation.profile') }}
         </b-nav-item>
+        <b-nav-item to="/info" class="mb-3">
+          <b-icon icon="info" aria-hidden="true"></b-icon>
+          {{ $t('navigation.info') }}
+        </b-nav-item>
         <br />
         <b-nav-item v-if="$store.state.hasElopage" :href="elopageUri" class="mb-3" target="_blank">
           <b-icon icon="link45deg" aria-hidden="true"></b-icon>

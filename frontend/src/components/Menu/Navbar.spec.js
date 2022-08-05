@@ -49,7 +49,7 @@ describe('Navbar', () => {
       })
 
       it('has ten b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(11)
+        expect(wrapper.findAll('.nav-item')).toHaveLength(12)
       })
 
       it('has first nav-item "amount GDD" in navbar', () => {
@@ -75,22 +75,26 @@ describe('Navbar', () => {
       it('has first nav-item "navigation.profile" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.profile')
       })
+
+      it('has first nav-item "navigation.info" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.info')
+      })
     })
 
     describe('navigation Navbar (user has an elopage account)', () => {
       it('has a link to the members area', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toContain('navigation.members_area')
-        expect(wrapper.findAll('.nav-item').at(8).find('a').attributes('href')).toBe(
+        expect(wrapper.findAll('.nav-item').at(9).text()).toContain('navigation.members_area')
+        expect(wrapper.findAll('.nav-item').at(9).find('a').attributes('href')).toBe(
           'https://elopage.com',
         )
       })
 
       it('has first nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.admin_area')
       })
 
       it('has first nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.logout')
       })
     })
 
@@ -101,11 +105,11 @@ describe('Navbar', () => {
       })
 
       it('has first nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.admin_area')
       })
 
       it('has first nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.logout')
       })
     })
   })

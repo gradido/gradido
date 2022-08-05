@@ -44,10 +44,6 @@
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             {{ $t('navigation.admin_area') }}
           </b-nav-item>
-          <b-nav-item to="/community" class="mb-3">
-            <b-icon icon="people" aria-hidden="true"></b-icon>
-            {{ $t('community.community') }}
-          </b-nav-item>
           <b-nav-item class="mb-3" @click="$emit('logout')">
             <b-icon icon="power" aria-hidden="true"></b-icon>
             {{ $t('navigation.logout') }}

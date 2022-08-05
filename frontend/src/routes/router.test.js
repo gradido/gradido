@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(17)
+        expect(routes).toHaveLength(18)
       })
 
       describe('overview', () => {
@@ -116,6 +116,17 @@ describe('router', () => {
         it('loads the "Community" page', async () => {
           const component = await routes.find((r) => r.path === '/community').component()
           expect(component.default.name).toBe('Community')
+        })
+      })
+
+      describe('info', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/info').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "InfoStatistic" page', async () => {
+          const component = await routes.find((r) => r.path === '/info').component()
+          expect(component.default.name).toBe('InfoStatistic')
         })
       })
 
