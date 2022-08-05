@@ -58,6 +58,7 @@
           type="number"
           min="1"
           :max="isThisMonth ? maxGddThisMonth : maxGddLastMonth"
+          :formatter="numberFormat"
         ></b-form-input>
       </b-input-group>
       <div
@@ -103,7 +104,11 @@ export default {
     }
   },
   methods: {
+    numberFormat(value) {
+      return (this.form.amount = value.replace(/\.|,/, ''))
+    },
     submit() {
+      this.numberFormat(this.form.amount)
       if (this.form.id) {
         this.$emit('update-contribution', this.form)
       } else {
