@@ -31,7 +31,6 @@
       </b-form-datepicker>
       <validation-provider
         :rules="{
-          required: true,
           min: minlength,
           max: maxlength,
         }"
@@ -44,7 +43,6 @@
           v-model="form.memo"
           rows="3"
           max-rows="6"
-          required
         ></b-form-textarea>
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
