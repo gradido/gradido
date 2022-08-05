@@ -10,6 +10,7 @@
     "release": "scripts/release.sh"
   },
   "dependencies": {
-    "auto-changelog": "^2.4.0"
+    "auto-changelog": "^2.4.0",
+    "uuid": "^8.3.2"
   }
 }
