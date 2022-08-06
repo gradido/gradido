@@ -255,3 +255,9 @@ export const updateContribution = gql`
     }
   }
 `
+
+export const deleteContribution = gql`
+  mutation ($id: Int!) {
+    deleteContribution(id: $id)
+  }
+`

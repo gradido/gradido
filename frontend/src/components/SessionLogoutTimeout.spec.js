@@ -62,10 +62,14 @@ describe('SessionLogoutTimeout', () => {
         })
       })
 
-      describe('token is expired', () => {
+      describe('token is expired for several seconds', () => {
         beforeEach(() => {
           mocks.$store.state.tokenTime = setTokenTime(-60)
           wrapper = Wrapper()
+        })
+
+        it('has value for remaining seconds equal 0', () => {
+          expect(wrapper.tokenExpiresInSeconds === 0)
         })
 
         it('emits logout', () => {
