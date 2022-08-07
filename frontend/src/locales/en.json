@@ -154,14 +154,6 @@
     },
     "your_amount": "Your amount"
   },
-  "statistic": {
-    "activeUsers": "active members",
-    "deletedUsers": "deleted members",
-    "totalGradidoCreated": "GDD total created",
-    "totalGradidoDecayed": "Total GDD decayed",
-    "totalGradidoAvailable": "Total GDD in circulation",
-    "totalGradidoUnbookedDecayed": "GDD not booked decayed"
-  },
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
@@ -308,6 +300,14 @@
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }
+  },
+  "statistic": {
+    "activeUsers": "active members",
+    "deletedUsers": "deleted members",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoCreated": "GDD total created",
+    "totalGradidoDecayed": "Total GDD decayed",
+    "totalGradidoUnbookedDecayed": "GDD not booked decayed"
   },
   "success": "Success",
   "time": {
