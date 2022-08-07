@@ -1,11 +1,13 @@
 import { mount } from '@vue/test-utils'
 import Transactions from './Transactions'
 import { GdtEntryType } from '@/graphql/enums'
+import flushPromises from 'flush-promises'
 
 import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
+const mockRouterReplace = jest.fn()
 const windowScrollToMock = jest.fn()
 window.scrollTo = windowScrollToMock
 
@@ -38,6 +40,9 @@ describe('Transactions', () => {
     },
     $apollo: {
       query: apolloMock,
+    },
+    $router: {
+      push: mockRouterReplace,
     },
   }
 
@@ -158,6 +163,7 @@ describe('Transactions', () => {
 
           describe('click on GDD tab', () => {
             beforeEach(() => {
+              flushPromises()
               wrapper.findAll('li[ role="presentation"]').at(0).find('a').trigger('click')
             })
 
