@@ -47,7 +47,31 @@
       <div>
         <div>
           {{ $t('community.members') }}
-          <span class="h4">{{ membersCount }}</span>
+          <span class="h4">{{ totalUsers }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.activeUsers') }}
+          <span class="h4">{{ activeUsers }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.deletedUsers') }}
+          <span class="h4">{{ deletedUsers }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.totalGradidoCreated') }}
+          <span class="h4">{{ totalGradidoCreated }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.totalGradidoDecayed') }}
+          <span class="h4">{{ totalGradidoDecayed }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.totalGradidoAvailable') }}
+          <span class="h4">{{ totalGradidoAvailable }}</span>
+        </div>
+        <div>
+          {{ $t('statistic.totalGradidoUnbookedDecayed') }}
+          <span class="h4">{{ totalGradidoUnbookedDecayed }}</span>
         </div>
       </div>
     </b-container>
@@ -55,7 +79,7 @@
 </template>
 <script>
 import CONFIG from '@/config'
-import { listContributionLinks } from '@/graphql/queries'
+import { listContributionLinks, communityStatistics } from '@/graphql/queries'
 
 export default {
   name: 'InfoStatistic',
@@ -71,6 +95,13 @@ export default {
       ],
       supportMail: 'support@supportemail.de',
       membersCount: '1203',
+      totalUsers: null,
+      activeUsers: null,
+      deletedUsers: null,
+      totalGradidoCreated: null,
+      totalGradidoDecayed: null,
+      totalGradidoAvailable: null,
+      totalGradidoUnbookedDecayed: null,
     }
   },
   methods: {
@@ -88,12 +119,33 @@ export default {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
+    async getCommunityStatistics() {
+      this.$apollo
+        .query({
+          query: communityStatistics,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.totalUsers = result.data.communityStatistics.totalUsers
+          this.activeUsers = result.data.communityStatistics.activeUsers
+          this.deletedUsers = result.data.communityStatistics.deletedUsers
+          this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+          this.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
+          this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
+          this.totalGradidoUnbookedDecayed =
+            result.data.communityStatistics.totalGradidoUnbookedDecayed
+        })
+        .catch(() => {
+          this.toastError('listContributionLinks has no result, use default data')
+        })
+    },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
   },
   created() {
     this.getContributionLinks()
+    this.getCommunityStatistics()
     this.updateTransactions(0)
   },
 }

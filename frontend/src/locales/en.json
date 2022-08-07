@@ -154,6 +154,14 @@
     },
     "your_amount": "Your amount"
   },
+  "statistic": {
+    "activeUsers":"active members",
+    "deletedUsers":"deleted members",
+    "totalGradidoCreated":"GDD total created",
+    "totalGradidoDecayed":"Total GDD decayed",
+    "totalGradidoAvailable":"Total GDD in circulation",
+    "totalGradidoUnbookedDecayed":"GDD not booked decayed"
+  },
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
