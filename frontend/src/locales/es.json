@@ -204,6 +204,7 @@
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",
+    "equal": "=",
     "minus": "−",
     "pipe": "|"
   },

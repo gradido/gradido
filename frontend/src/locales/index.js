@@ -12,7 +12,7 @@ const locales = [
     enabled: true,
   },
   {
-    name: 'Espanol',
+    name: 'Español',
     code: 'es',
     iso: 'es-ES',
     enabled: true,
