@@ -155,12 +155,12 @@
     "your_amount": "Your amount"
   },
   "statistic": {
-    "activeUsers":"active members",
-    "deletedUsers":"deleted members",
-    "totalGradidoCreated":"GDD total created",
-    "totalGradidoDecayed":"Total GDD decayed",
-    "totalGradidoAvailable":"Total GDD in circulation",
-    "totalGradidoUnbookedDecayed":"GDD not booked decayed"
+    "activeUsers": "active members",
+    "deletedUsers": "deleted members",
+    "totalGradidoCreated": "GDD total created",
+    "totalGradidoDecayed": "Total GDD decayed",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoUnbookedDecayed": "GDD not booked decayed"
   },
   "GDD": "GDD",
   "gdd_per_link": {

@@ -37,12 +37,12 @@
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
   "statistic": {
-    "activeUsers":"aktive Mitglieder",
-    "deletedUsers":"gelöschte Mitglieder",
-    "totalGradidoCreated":"GDD insgesamt geschöpft",
-    "totalGradidoDecayed":"GDD insgesamt verfallen",
-    "totalGradidoAvailable":"GDD insgesamt im Umflauf",
-    "totalGradidoUnbookedDecayed":"GDD nicht gebuchter verfall"
+    "activeUsers": "aktive Mitglieder",
+    "deletedUsers": "gelöschte Mitglieder",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoAvailable": "GDD insgesamt im Umflauf",
+    "totalGradidoUnbookedDecayed": "GDD nicht gebuchter verfall"
   },
   "contribution": {
     "activity": "Tätigkeit",
