@@ -50,7 +50,6 @@ export default {
       items: [],
       count: 0,
       statistics: {
-        membersCount: null,
         totalUsers: null,
         activeUsers: null,
         deletedUsers: null,
