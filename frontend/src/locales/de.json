@@ -60,7 +60,8 @@
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
-    "updated": "Der Beitrag wurde geändert."
+    "updated": "Der Beitrag wurde geändert.",
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit",
@@ -123,6 +124,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
+    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -210,6 +212,7 @@
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
