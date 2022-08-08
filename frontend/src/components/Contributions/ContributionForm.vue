@@ -13,7 +13,7 @@
       </div>
     </div>
     <b-form ref="form" @submit.prevent="submit" class="border p-3">
-      <label>{{ $t('contribution.selectDate') }}</label>
+      <label>{{ $t('contribution.selectDate') }} {{ $t('math.asterisk') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
@@ -31,26 +31,26 @@
       </b-form-datepicker>
       <validation-provider
         :rules="{
-          required: true,
           min: minlength,
           max: maxlength,
         }"
         :name="$t('form.message')"
         v-slot="{ errors }"
       >
-        <label class="mt-3">{{ $t('contribution.activity') }}</label>
+        <label class="mt-3">{{ $t('contribution.activity') }} {{ $t('math.asterisk') }}</label>
         <b-form-textarea
           id="contribution-memo"
           v-model="form.memo"
           rows="3"
           max-rows="6"
+          :placeholder="$t('contribution.yourActivity')"
           required
         ></b-form-textarea>
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
       </validation-provider>
-      <label class="mt-3">{{ $t('form.amount') }}</label>
+      <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
       <b-input-group size="lg" prepend="GDD" append=".00">
         <b-form-input
           id="contribution-amount"
@@ -85,6 +85,7 @@
         </b-col>
       </b-row>
     </b-form>
+    <p class="p-2">{{ $t('math.asterisk') }} {{ $t('form.mandatoryField') }}</p>
   </div>
 </template>
 <script>
