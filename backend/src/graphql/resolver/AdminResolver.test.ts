@@ -1858,24 +1858,14 @@ describe('AdminResolver', () => {
         })
 
         describe('listContributionLinks', () => {
-          it('returns an error', async () => {
+          it('returns an empty object', async () => {
             await expect(query({ query: listContributionLinks })).resolves.toEqual(
               expect.objectContaining({
                 data: {
-                  createContributionLink: expect.objectContaining({
-                    id: expect.any(Number),
-                    amount: '200',
-                    code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
-                    link: expect.stringMatching(/^.*?\/CL-[0-9a-f]{24,24}$/),
-                    createdAt: expect.any(String),
-                    name: 'Dokumenta 2022',
-                    memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
-                    validFrom: expect.any(String),
-                    validTo: expect.any(String),
-                    maxAmountPerMonth: '200',
-                    cycle: 'once',
-                    maxPerCycle: 1,
-                  }),
+                  listContributionLinks: {
+                    count: 0,
+                    links: [],
+                  },
                 },
               }),
             )
