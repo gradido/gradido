@@ -42,7 +42,7 @@ describe('Transactions', () => {
       query: apolloMock,
     },
     $router: {
-      push: mockRouterReplace,
+      replace: mockRouterReplace,
     },
   }
 
