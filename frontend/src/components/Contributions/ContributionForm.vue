@@ -4,8 +4,8 @@
       <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
       {{ $t('contribution.formText.bringYourTalentsTo') }}
       <ul class="my-3">
-        <li v-html="lastMonthObject"></li>
-        <li v-html="thisMonthObject"></li>
+        <li v-html="textForMonth(new Date(minimalDate), maxGddLastMonth)"></li>
+        <li v-html="textForMonth(new Date(), maxGddThisMonth)"></li>
       </ul>
 
       <div class="my-3">
@@ -106,7 +106,8 @@ export default {
     submit() {
       // not working for testing:
       // this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', this.form)
-      // works for testing, why ever, we have to make a spread '...', to evaluate the values it looks like: (I didn't find a solution in the test itmself)
+      // works for testing:
+      // why ever, we have to make a spread '...', to evaluate the values it looks like: (I didn't find a solution in the test itmself)
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
@@ -117,14 +118,20 @@ export default {
       this.form.memo = ''
       this.form.amount = ''
     },
+    textForMonth(date, availableAmount) {
+      const obj = {
+        monthAndYear: this.$d(date, 'monthAndYear'),
+        creation: availableAmount,
+      }
+      return this.$t('contribution.formText.openAmountForMonth', obj)
+    },
   },
   computed: {
-    /*
-     * minimalDate() = Sets the date to the 1st of the previous month.
-     *
-     */
+    // sets the date to the 1st of the previous month
     minimalDate() {
-      return new Date(this.maximalDate.getFullYear(), this.maximalDate.getMonth() - 1, 1)
+      const month = this.maximalDate.getMonth()
+      const year = this.maximalDate.getFullYear()
+      return new Date(year + (month === 0 ? -1 : 0), month === 0 ? 11 : month - 1, 1)
     },
     disabled() {
       return (
@@ -137,37 +144,22 @@ export default {
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
     },
-    lastMonthObject() {
-      // Wolle: refine logic and melt with 'thisMonthObject'
-      // new Date().getMonth === 1 If the current month is January, then one year must be gone back in the previous month
-      const obj = {
-        monthAndYear: this.$d(new Date(this.minimalDate), 'monthAndYear'),
-        creation: this.maxGddLastMonth,
-      }
-      return this.$t('contribution.formText.openAmountForMonth', obj)
-    },
-    thisMonthObject() {
-      // Wolle: refine logic and melt with 'lastMonthObject'
-      const obj = {
-        monthAndYear: this.$d(new Date(), 'monthAndYear'),
-        creation: this.maxGddThisMonth,
-      }
-      return this.$t('contribution.formText.openAmountForMonth', obj)
-    },
     isThisMonth() {
-      // Wolle: Jahr testen
-      return new Date(this.form.date).getMonth() === new Date().getMonth()
+      const formDate = new Date(this.form.date)
+      const actualDate = new Date()
+      return (
+        formDate.getFullYear() === actualDate.getFullYear() &&
+        formDate.getMonth() === actualDate.getMonth()
+      )
     },
     maxGddLastMonth() {
-      // Wolle: refine logic and melt with 'maxGddThisMonth'
-      // When edited, the amount is added back on top of the amount
+      // when existing contribution is edited, the amount is added back on top of the amount
       return this.form.id && !this.isThisMonth
         ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
         : this.$store.state.creation[1]
     },
     maxGddThisMonth() {
-      // Wolle: refine logic and melt with 'maxGddLastMonth'
-      // When edited, the amount is added back on top of the amount
+      // when existing contribution is edited, the amount is added back on top of the amount
       return this.form.id && this.isThisMonth
         ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
         : this.$store.state.creation[2]
