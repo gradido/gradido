@@ -73,6 +73,7 @@
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
+    "colon": ":",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
@@ -105,6 +106,16 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "active members",
+    "deletedUsers": "deleted members",
+    "name": "Statistic",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoCreated": "GDD total created",
+    "totalGradidoDecayed": "Total GDD decayed",
+    "totalGradidoUnbookedDecayed": "GDD not booked decayed",
+    "totalUsers": "Members"
+  },
   "status": "Status",
   "success": "Success",
   "text": "Text",
