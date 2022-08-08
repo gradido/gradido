@@ -66,56 +66,116 @@ describe('ContributionForm', () => {
         const now = new Date().toISOString()
 
         beforeEach(async () => {
-          await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-          await wrapper
-            .find('#contribution-memo')
-            .find('textarea')
-            .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-          await wrapper.find('#contribution-amount').find('input').setValue('200')
+          await wrapper.setData({
+            form: {
+              id: null,
+              date: '',
+              memo: '',
+              amount: '',
+            },
+          })
         })
 
-        describe('buttons', () => {
-          describe('reset', () => {
-            it('has enabled', () => {
-              expect(
-                wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-              ).toBeFalsy()
+        describe('invalid form data', () => {
+          beforeEach(async () => {
+            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper.find('#contribution-amount').find('input').setValue('200')
+          })
+
+          describe('memo lenght < 5, others are valid', () => {
+            beforeEach(async () => {
+              await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
+            })
+
+            describe('buttons', () => {
+              describe('submit', () => {
+                it('has disabled', () => {
+                  expect(
+                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                  ).toBe('disabled')
+                })
+              })
             })
           })
 
-          describe('submit', () => {
-            it('has enabled', () => {
-              expect(
-                wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-              ).toBeFalsy()
+          describe('memo lenght > 255, others are valid', () => {
+            beforeEach(async () => {
+              await wrapper
+                .find('#contribution-memo')
+                .find('textarea')
+                .setValue(
+                  '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
+                    '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
+                    '01234567890123456789012345678901234567890123456789012345',
+                )
+              await wrapper.vm.$nextTick()
             })
 
-            it('has label "contribution.submit"', () => {
-              expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
-                'contribution.submit',
+            describe('buttons', () => {
+              describe('submit', () => {
+                it('has disabled', () => {
+                  expect(
+                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                  ).toBe('disabled')
+                })
+              })
+            })
+          })
+        })
+
+        describe('valid form data', () => {
+          beforeEach(async () => {
+            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper
+              .find('#contribution-memo')
+              .find('textarea')
+              .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
+            await wrapper.find('#contribution-amount').find('input').setValue('200')
+          })
+
+          describe('buttons', () => {
+            describe('reset', () => {
+              it('has enabled', () => {
+                expect(
+                  wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
+                ).toBeFalsy()
+              })
+            })
+
+            describe('submit', () => {
+              it('has enabled', () => {
+                expect(
+                  wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                ).toBeFalsy()
+              })
+
+              it('has label "contribution.submit"', () => {
+                expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
+                  'contribution.submit',
+                )
+              })
+            })
+          })
+
+          describe('on trigger submit', () => {
+            beforeEach(async () => {
+              await wrapper.find('form').trigger('submit')
+            })
+
+            it('emits "set-contribution"', () => {
+              expect(wrapper.emitted('set-contribution')).toEqual(
+                expect.arrayContaining([
+                  expect.arrayContaining([
+                    {
+                      id: null,
+                      date: now,
+                      memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+                      amount: '200',
+                    },
+                  ]),
+                ]),
               )
             })
-          })
-        })
-
-        describe('on trigger submit', () => {
-          beforeEach(async () => {
-            await wrapper.find('form').trigger('submit')
-          })
-
-          it('emits "set-contribution"', () => {
-            expect(wrapper.emitted('set-contribution')).toEqual(
-              expect.arrayContaining([
-                expect.arrayContaining([
-                  {
-                    id: null,
-                    date: now,
-                    memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-                    amount: '200',
-                  },
-                ]),
-              ]),
-            )
           })
         })
       })
@@ -126,7 +186,6 @@ describe('ContributionForm', () => {
         const now = new Date().toISOString()
 
         beforeEach(async () => {
-          wrapper = Wrapper()
           await wrapper.setData({
             form: {
               id: 2,
@@ -135,56 +194,108 @@ describe('ContributionForm', () => {
               amount: '100',
             },
           })
-          await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-          await wrapper
-            .find('#contribution-memo')
-            .find('textarea')
-            .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-          await wrapper.find('#contribution-amount').find('input').setValue('200')
         })
 
-        describe('buttons', () => {
-          describe('reset', () => {
-            it('has enabled', () => {
-              expect(
-                wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-              ).toBeFalsy()
+        describe('invalid form data', () => {
+          beforeEach(async () => {
+            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper.find('#contribution-amount').find('input').setValue('200')
+          })
+
+          describe('memo lenght < 5, others are valid', () => {
+            beforeEach(async () => {
+              await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
+            })
+
+            describe('buttons', () => {
+              describe('submit', () => {
+                it('has disabled', () => {
+                  expect(
+                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                  ).toBe('disabled')
+                })
+              })
             })
           })
 
-          describe('submit', () => {
-            it('has enabled', () => {
-              expect(
-                wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-              ).toBeFalsy()
+          describe('memo lenght > 255, others are valid', () => {
+            beforeEach(async () => {
+              await wrapper
+                .find('#contribution-memo')
+                .find('textarea')
+                .setValue(
+                  '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
+                    '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
+                    '01234567890123456789012345678901234567890123456789012345',
+                )
+              await wrapper.vm.$nextTick()
             })
 
-            it('has label "form.change"', () => {
-              expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
-                'form.change',
+            describe('buttons', () => {
+              describe('submit', () => {
+                it('has disabled', () => {
+                  expect(
+                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                  ).toBe('disabled')
+                })
+              })
+            })
+          })
+        })
+
+        describe('valid form data', () => {
+          beforeEach(async () => {
+            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper
+              .find('#contribution-memo')
+              .find('textarea')
+              .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
+            await wrapper.find('#contribution-amount').find('input').setValue('200')
+          })
+
+          describe('buttons', () => {
+            describe('reset', () => {
+              it('has enabled', () => {
+                expect(
+                  wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
+                ).toBeFalsy()
+              })
+            })
+
+            describe('submit', () => {
+              it('has enabled', () => {
+                expect(
+                  wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
+                ).toBeFalsy()
+              })
+
+              it('has label "form.change"', () => {
+                expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
+                  'form.change',
+                )
+              })
+            })
+          })
+
+          describe('on trigger submit', () => {
+            beforeEach(async () => {
+              await wrapper.find('form').trigger('submit')
+            })
+
+            it('emits "update-contribution"', () => {
+              expect(wrapper.emitted('update-contribution')).toEqual(
+                expect.arrayContaining([
+                  expect.arrayContaining([
+                    {
+                      id: 2,
+                      date: now,
+                      memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+                      amount: '200',
+                    },
+                  ]),
+                ]),
               )
             })
-          })
-        })
-
-        describe('on trigger submit', () => {
-          beforeEach(async () => {
-            await wrapper.find('form').trigger('submit')
-          })
-
-          it('emits "update-contribution"', () => {
-            expect(wrapper.emitted('update-contribution')).toEqual(
-              expect.arrayContaining([
-                expect.arrayContaining([
-                  {
-                    id: 2,
-                    date: now,
-                    memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-                    amount: '200',
-                  },
-                ]),
-              ]),
-            )
           })
         })
       })

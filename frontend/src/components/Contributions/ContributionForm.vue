@@ -127,9 +127,11 @@ export default {
       return new Date(this.maximalDate.getFullYear(), this.maximalDate.getMonth() - 1, 1)
     },
     disabled() {
+      // Wolle: refactor
       if (
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
+        this.form.memo.length > this.maxlength ||
         this.form.amount <= 0 ||
         this.form.amount > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
