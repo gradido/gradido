@@ -106,7 +106,7 @@ export default {
   },
   methods: {
     numberFormat(value) {
-      return (this.form.amount = value.replace(/\.|,, ''))
+      return (this.form.amount = value.replace(/\.|,/, ''))
     },
     submit() {
       this.numberFormat(this.form.amount)
