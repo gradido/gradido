@@ -51,13 +51,11 @@
         </b-col>
       </validation-provider>
       <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
-      <b-input-group size="lg" prepend="GDD" append=".00">
+      <b-input-group size="lg" prepend="GDD">
         <b-form-input
           id="contribution-amount"
           v-model="form.amount"
-          type="number"
-          min="1"
-          :max="isThisMonth ? maxGddThisMonth : maxGddLastMonth"
+          type="text"
           :formatter="numberFormat"
         ></b-form-input>
       </b-input-group>
@@ -106,10 +104,10 @@ export default {
   },
   methods: {
     numberFormat(value) {
-      return (this.form.amount = value.replace(/\.|,/, ''))
+      return value.replace(/\D/g, '')
     },
     submit() {
-      this.numberFormat(this.form.amount)
+      this.form.amount = this.numberFormat(this.form.amount)
       if (this.form.id) {
         this.$emit('update-contribution', this.form)
       } else {
@@ -137,8 +135,8 @@ export default {
       if (
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
-        this.form.amount <= 0 ||
-        this.form.amount > 1000 ||
+        parseInt(this.form.amount) <= 0 ||
+        parseInt(this.form.amount) > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
