@@ -127,8 +127,7 @@ export default {
       return new Date(this.maximalDate.getFullYear(), this.maximalDate.getMonth() - 1, 1)
     },
     disabled() {
-      // Wolle: refactor
-      if (
+      return (
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.memo.length > this.maxlength ||
@@ -137,8 +136,6 @@ export default {
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
-        return true
-      return false
     },
     lastMonthObject() {
       // Wolle: refine logic and melt with 'thisMonthObject'
