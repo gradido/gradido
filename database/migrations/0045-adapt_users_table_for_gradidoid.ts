@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /*
@@ -117,84 +117,88 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         \`deleted_at\` datetime NULL DEFAULT NULL,
-        PRIMARY KEY (\`id\`),
-        UNIQUE KEY \`email_verification_code\` (\`email_verification_code\`),
-        UNIQUE KEY \`email\` (\`email\`)
+        PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
-  console.log('user_contacts created...')
+  // console.log('user_contacts created...')
 
   // First add gradido_id as nullable column without Default
-  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` CHAR(36) NULL UNIQUE AFTER `id`;')
-  console.log('users.gradido_id added...\n')
+  await queryFn('ALTER TABLE `users` ADD COLUMN `gradido_id` CHAR(36) NULL AFTER `id`;')
+  // console.log('users.gradido_id added...\n')
 
   // Second update gradido_id with ensured unique uuidv4
-  console.log('search for all users with gradido_id is null...\n')
-  const usersToUpdate = await queryFn(`SELECT 'u.id', 'u.gradido_id' FROM 'users' as u WHERE 'u.gradido_id' is null`)
+  // console.log('search for all users with gradido_id is null...\n')
+  const usersToUpdate = await queryFn('SELECT `id`, `gradido_id` FROM `users`') //  WHERE 'u.gradido_id' is null`,)
   for (const id in usersToUpdate) {
     const user = usersToUpdate[id]
-    console.log('found user: %s\n', user)
+    // console.log('found user: %s\n', user)
     let gradidoId = null
     let countIds = null
     do {
       gradidoId = uuidv4()
-      console.log('uuid: %s\n', gradidoId)
-      countIds = await queryFn('SELECT COUNT(*) FROM `users` as u WHERE u.gradido_id = ${gradidoId}')
-      console.log('found uuids: %d\n', countIds[0])
+      // console.log('uuid: %s\n', gradidoId)
+      countIds = await queryFn(
+        `SELECT COUNT(*) FROM \`users\` WHERE \`gradido_id\` = "${gradidoId}"`,
+      )
+      // console.log('found uuids: %d\n', countIds[0])
     } while (countIds[0] > 0)
-    await queryFn('UPDATE `users` SET `gradido_id` = ${gradidoId} WHERE `id` = ${user.id}')
-    console.log('update user with id=%d and gradidoId=%s\n', user.id, gradidoId)
+    await queryFn(
+      `UPDATE \`users\` SET \`gradido_id\` = "${gradidoId}" WHERE \`id\` = "${user.id}"`,
+    )
+    // console.log('update user with id=%d and gradidoId=%s\n', user.id, gradidoId)
   }
 
   // third modify gradido_id to not nullable and unique
   await queryFn('ALTER TABLE `users` MODIFY COLUMN `gradido_id` CHAR(36) NOT NULL UNIQUE;')
-  console.log('alter users.gradido_id to NOT NULL and UNIQUE...\n')
+  // console.log('alter users.gradido_id to NOT NULL and UNIQUE...\n')
 
   await queryFn(
     'ALTER TABLE `users` ADD COLUMN `alias` varchar(20) NULL UNIQUE AFTER `gradido_id`;',
   )
-  console.log('users.alias added...\n')
+  // console.log('users.alias added...\n')
 
   await queryFn('ALTER TABLE `users` ADD COLUMN `email_id` int(10) NULL AFTER `email`;')
-  console.log('users.email_id added...\n')
-  
+  // console.log('users.email_id added...\n')
+
   // merge values from login_email_opt_in table with users.email in new user_contacts table
   await queryFn(`
-  INSERT INTO 'user_contacts'
-  ('type', 'user_id', 'email', 'email_verification_code', 'email_opt_in_type_id', 'email_resent_count', 'email_checked', 'created_at', 'updated_at', 'deleted_at')
+  INSERT INTO user_contacts
+  (type, user_id, email, email_verification_code, email_opt_in_type_id, email_resend_count, email_checked, created_at, updated_at, deleted_at)
   SELECT 
-    "EMAIL" as 'type', 
-     'u.id' as 'user_id',
-     'u.email',
-     'e.verification_code' as 'email_verification_code',
-     'e.email_opt_in_type_id',
-     'e.resend_count' as 'email_resent_count',
-     'u.email_checked',
-     'e.created as created_at',
-     'e.updated as updated_at',
-     'u.deletedAt as deleted_at'
+    'EMAIL', 
+     u.id as user_id,
+     u.email,
+     e.verification_code as email_verification_code,
+     e.email_opt_in_type_id,
+     e.resend_count as email_resend_count,
+     u.email_checked,
+     e.created as created_at,
+     e.updated as updated_at,
+     u.deletedAt as deleted_at\
    FROM 
-     'users' as u, 
-     'login_email_opt_in' as e 
+     users as u,
+     login_email_opt_in as e
    WHERE 
-     'u.id' = 'e.user_id';`)
-  console.log('user_contacts inserted...\n')
-     
+     u.id = e.user_id;`)
+  // console.log('user_contacts inserted...\n')
+
   // insert in users table the email_id of the new created email-contacts
-  const contacts = await queryFn(`SELECT 'c.id', 'c.user_id' FROM 'user_contacts' as c`)
+  const contacts = await queryFn(`SELECT c.id, c.user_id FROM user_contacts as c`)
   for (const id in contacts) {
     const contact = contacts[id]
-    console.log('found contact: %s\n', contact)
-    await queryFn(`UPDATE 'users' as u SET 'u.email_id' = ${contact.id} WHERE 'u.id' = ${contact.user_id}`)
-    console.log('update users with id=%d and email_id=%d\n', contact.user_id, contact.id)
+    // console.log('found contact: %s\n', contact)
+    await queryFn(
+      `UPDATE users as u SET u.email_id = "${contact.id}" WHERE u.id = "${contact.user_id}"`,
+    )
+    // console.log('update users with id=%d and email_id=%d\n', contact.user_id, contact.id)
   }
-  console.log('upgrade finished...\n')
+  // console.log('upgrade finished...\n')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write downgrade logic as parameter of queryFn
-  await queryFn(`DROP TABLE IF EXISTS \`user_contacts\`;`)
+  await queryFn(`DROP TABLE IF EXISTS user_contacts;`)
 
-  await queryFn('ALTER TABLE `users` DROP COLUMN `gradido_id`;')
-  await queryFn('ALTER TABLE `users` DROP COLUMN `alias`;')
-  await queryFn('ALTER TABLE `users` DROP COLUMN `email_id`;')
+  await queryFn('ALTER TABLE users DROP COLUMN gradido_id;')
+  await queryFn('ALTER TABLE users DROP COLUMN alias;')
+  await queryFn('ALTER TABLE users DROP COLUMN email_id;')
 }
