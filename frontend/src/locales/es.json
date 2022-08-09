@@ -47,7 +47,7 @@
     "formText": {
       "bringYourTalentsTo": "¡Contribuye a la comunidad con tus talentos! Premiamos tu compromiso voluntario con 20 GDD por hora hasta un máximo de 1.000 GDD al mes..",
       "describeYourCommunity": "¡Describe tu contribución al bien-común con detalles de las horas e introduce una cantidad de 20 GDD por hora! Tras la confirmación de un moderador, el importe se abonará en tu cuenta.",
-      "maxGDDforMonth": "Sólo puede presentar un máximo de {amount} GDD para el mes seleccionado..",
+      "maxGDDforMonth": "Sólo puede presentar un máximo de {amount} GDD para el mes seleccionado.",
       "openAmountForMonth": "Para <b>{monthAndYear}</b> aún puedes presentar <b>{creation}</b> GDD.",
       "yourContribution": "Tu contribución a la comunidad."
     },
