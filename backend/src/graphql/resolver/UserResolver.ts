@@ -32,6 +32,8 @@ import {
   EventSendConfirmationEmail,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
+import { v4 as uuidv4 } from 'uuid'
+
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -224,6 +226,19 @@ export const activationLink = (optInCode: LoginEmailOptIn): string => {
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
+const newGradidoID = async (): Promise<string> => {
+  let gradidoId: string
+  let countIds: number
+  do {
+    gradidoId = uuidv4()
+    countIds = await DbUser.count({ where: { gradidoID: gradidoId } })
+    if (countIds > 0) {
+      logger.info('Gradido-ID creation conflict...')
+    }
+  } while (countIds > 0)
+  return gradidoId
+}
+
 @Resolver()
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
@@ -344,11 +359,13 @@ export class UserResolver {
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
 
     if (userFound) {
-      logger.info('User already exists with this email=' + email)
+      // ATTENTION: this logger-message will be exactly expected during tests
+      logger.info(`User already exists with this email=${email}`)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
       const user = new User(communityDbUser)
       user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+      user.gradidoID = '11111111-2222-4333-4444-55555555'
       user.email = email
       user.firstName = firstName
       user.lastName = lastName
@@ -378,11 +395,13 @@ export class UserResolver {
     // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
+    const gradidoID = await newGradidoID()
 
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
     const eventSendConfirmEmail = new EventSendConfirmationEmail()
     const dbUser = new DbUser()
+    dbUser.gradidoID = gradidoID
     dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
