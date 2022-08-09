@@ -34,7 +34,6 @@ import {
 import { getUserCreation } from './util/creations'
 import { v4 as uuidv4 } from 'uuid'
 
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
