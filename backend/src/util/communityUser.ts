@@ -2,13 +2,14 @@
 
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
+// import { UserContact as EmailContact } from '@entity/UserContact'
 import { User } from '@model/User'
 
 const communityDbUser: dbUser = {
   id: -1,
   gradidoID: '11111111-2222-3333-4444-55555555',
   alias: '',
-  email: 'support@gradido.net',
+  // email: 'support@gradido.net',
   firstName: 'Gradido',
   lastName: 'Akademie',
   pubKey: Buffer.from(''),
@@ -17,7 +18,7 @@ const communityDbUser: dbUser = {
   password: BigInt(0),
   //  emailHash: Buffer.from(''),
   createdAt: new Date(),
-  emailChecked: false,
+  // emailChecked: false,
   language: '',
   isAdmin: null,
   publisherId: 0,

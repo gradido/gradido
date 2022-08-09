@@ -20,8 +20,17 @@ export class UserContact extends BaseEntity {
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string
 
-  @Column({ name: 'email_hash', type: 'binary', length: 32, default: null, nullable: true })
-  emailHash: Buffer
+  @Column({ name: 'email_verification_code', type: 'bigint', unsigned: true, unique: true })
+  emailVerificationCode: BigInt
+
+  @Column({ name: 'email_opt_in_type_id' })
+  emailOptInTypeId: number
+
+  @Column({ name: 'email_resend_count' })
+  emailResendCount: number
+
+  // @Column({ name: 'email_hash', type: 'binary', length: 32, default: null, nullable: true })
+  // emailHash: Buffer
 
   @Column({ name: 'email_checked', type: 'bool', nullable: false, default: false })
   emailChecked: boolean

@@ -6,8 +6,10 @@ import {
   DeleteDateColumn,
   OneToMany,
   JoinColumn,
+  OneToOne,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
+import { UserContact } from '../UserContact'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -37,11 +39,18 @@ export class User extends BaseEntity {
   @Column({ name: 'privkey', type: 'binary', length: 80, default: null, nullable: true })
   privKey: Buffer
 
+  /*
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string
+  */
+  @OneToOne(() => UserContact, { primary: true, cascade: true })
+  @JoinColumn({ name: 'email_id' })
+  emailContact: UserContact
 
+  /*
   @Column({ name: 'email_id', type: 'int', unsigned: true, nullable: true, default: null })
   emailId?: number | null
+  */
 
   @Column({
     name: 'first_name',
@@ -69,9 +78,10 @@ export class User extends BaseEntity {
 
   @Column({ name: 'created', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
-
+  /*
   @Column({ name: 'email_checked', type: 'bool', nullable: false, default: false })
   emailChecked: boolean
+  */
 
   @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci', nullable: false })
   language: string
@@ -106,4 +116,8 @@ export class User extends BaseEntity {
   @OneToMany(() => Contribution, (contribution) => contribution.user)
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
+
+  @OneToMany(() => UserContact, (usercontact) => usercontact.userId)
+  @JoinColumn({ name: 'user_id' })
+  usercontacts?: UserContact[]
 }

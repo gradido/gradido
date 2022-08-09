@@ -8,12 +8,12 @@ import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 export class User {
   constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
     this.id = user.id
-    this.email = user.email
+    this.email = user.emailContact.email
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.deletedAt = user.deletedAt
     this.createdAt = user.createdAt
-    this.emailChecked = user.emailChecked
+    this.emailChecked = user.emailContact.emailChecked
     this.language = user.language
     this.publisherId = user.publisherId
     this.isAdmin = user.isAdmin
