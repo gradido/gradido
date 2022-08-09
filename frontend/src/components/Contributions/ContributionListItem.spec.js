@@ -13,6 +13,7 @@ describe('ContributionListItem', () => {
 
   const propsData = {
     id: 1,
+    createdAt: '26/07/2022',
     contributionDate: '07/06/2022',
     memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
     amount: '200',
@@ -84,21 +85,9 @@ describe('ContributionListItem', () => {
       })
     })
 
-    describe('contribution date', () => {
-      it('is contributionDate by default', () => {
-        expect(wrapper.vm.date).toBe(wrapper.vm.contributionDate)
-      })
-
-      it('is deletedAt when deletedAt is present', async () => {
-        const now = new Date().toISOString()
-        await wrapper.setProps({ deletedAt: now })
-        expect(wrapper.vm.date).toBe(now)
-      })
-
-      it('is confirmedAt at when confirmedAt is present', async () => {
-        const now = new Date().toISOString()
-        await wrapper.setProps({ confirmedAt: now })
-        expect(wrapper.vm.date).toBe(now)
+    describe('date', () => {
+      it('is equal to createdAt', () => {
+        expect(wrapper.vm.date).toBe(wrapper.vm.createdAt)
       })
     })
 

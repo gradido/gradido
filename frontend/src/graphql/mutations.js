@@ -74,6 +74,9 @@ export const createTransactionLink = gql`
   mutation($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       link
+      amount
+      memo
+      validUntil
     }
   }
 `
