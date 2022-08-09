@@ -55,7 +55,8 @@
     "selectDate": "¿Cuando fue tu contribución?",
     "submit": "Enviar",
     "submitted": "Tu contribución ha sido enviada.",
-    "updated": "La contribución se modificó."
+    "updated": "La contribución se modificó.",
+    "yourActivity": "¡Por favor, introduzca una actividad!"
   },
   "contribution-link": {
     "thanksYouWith": "agradecidos con"
@@ -117,6 +118,7 @@
     "from": "De",
     "generate_now": "crear ahora",
     "lastname": "Apellido",
+    "mandatoryField": "campo obligatorio",
     "memo": "Mensaje",
     "message": "Notcia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -204,6 +206,7 @@
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
