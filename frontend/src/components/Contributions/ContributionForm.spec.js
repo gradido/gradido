@@ -102,17 +102,13 @@ describe('ContributionForm', () => {
         })
       })
 
-      // jest-environment-jsdom-sixteen
-      // testEnvironment: 'jest-environment-jsdom-sixteen',
-      // https://www.npmjs.com/package/jest-environment-jsdom-sixteen
-      // https://dev.to/philw_/problems-with-using-usefaketimersmodern-in-a-create-react-app-cra-project-with-jest-26-and-lodashs-debounce-function-3ohd
       describe.skip('date in middle of year', () => {
         describe('same month', () => {
           beforeEach(async () => {
             jest.useFakeTimers('modern')
             jest.setSystemTime(new Date('2020-07-06'))
             const now = new Date().toISOString()
-            // Wolle: console.log('middle of year date – now:', now)
+            // console.log('middle of year date – now:', now)
             await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
           })
 
@@ -125,7 +121,7 @@ describe('ContributionForm', () => {
 
         describe('month before', () => {
           beforeEach(async () => {
-            // Wolle: console.log('middle of year date – now:', wrapper.vm.minimalDate)
+            // console.log('middle of year date – now:', wrapper.vm.minimalDate)
             await wrapper
               .findComponent({ name: 'BFormDatepicker' })
               .vm.$emit('input', wrapper.vm.minimalDate)
@@ -144,7 +140,7 @@ describe('ContributionForm', () => {
           beforeEach(async () => {
             jest.useFakeTimers('modern').setSystemTime(new Date('2020-01-12'))
             const now = new Date().toISOString()
-            // Wolle: console.log('in january date – now:', now)
+            // console.log('in january date – now:', now)
             await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
           })
 
@@ -157,7 +153,7 @@ describe('ContributionForm', () => {
 
         describe('month before', () => {
           beforeEach(async () => {
-            // Wolle: console.log('in january date – wrapper.vm.minimalDate:', wrapper.vm.minimalDate)
+            // console.log('in january date – wrapper.vm.minimalDate:', wrapper.vm.minimalDate)
             await wrapper
               .findComponent({ name: 'BFormDatepicker' })
               .vm.$emit('input', wrapper.vm.minimalDate)
