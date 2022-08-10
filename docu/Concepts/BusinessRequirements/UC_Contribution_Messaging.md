@@ -2,16 +2,54 @@
 
 Die Idee des *Contribution Messagings* besteht darin, dass ein User an eine existierende Contribution eine von ihm erfasste Nachricht anhängen kann. Als Ursprungsmotivation dieses *Contribution Messagings* ist eigentlich die Kommunikation zwischen dem Support-Mitarbeiter und dem Ersteller der Contribution gedacht. Doch es sind auch Nachrichten anderer User in dieser Kommunikationkette denkbar, um beispielsweise Bemerkungen, Kritik und Anregungen zu erstellten Contributions zu hinterlassen. Dadurch soll das Miteinander innerhalb einer Community für die geleisteten Gemeinwohl-Aktivitäten in den Vordergrund gerückt werden.
 
+## Hinweis
+
+In diesem Dokument werden alle zu dem Thema besprochenen und angedachten Anforderungen, unabhängig in welcher Ausbaustufe diese umgesetzt werden, beschrieben. Für die weitere Entwicklung und zur Erstellung der Technischen Tickets werden die einzelnen Anforderungen mit einem Hinweis - Beispiel [AS-1] für Ausbaustufe 1- zur geplanten Ausbaustufe direkt angeben. Die Markierung [AS-x] deutet auf eine Anforderung in einer nächsten Stufe hin. Wobei die Priorisierung und damit noch nicht klar ist, in welcher Ausbaustufe diese Anforderung letztendlich wirklich umgesetzt wird.
+
+
 ## Allgemeine Anforderungen
 
-* Die Nachrichten zu einer Contribution werden als Detail-Ansicht der Contribution zeitlich absteigend sortiert als Liste angezeigt, das heißt die neuste Nachricht steht oben.
-* Jeder beliebige User kann zu einer Contribution, egal in welchem Status diese sich befindet, eine Nachricht erstellen.
-* In den Anzeigen der Contribution-Listen "Meine Beiträge" und "Gemeinschaft" kann jede enthaltene Contribution analog der Detail-Ansicht einer Transaktion aufgeklappt werden, um die schon angehängten Nachrichten anzuzeigen.
-* Mit der Detail-Ansicht einer Contribution wird auch ein Button eingeblendet über den die Erfassung einer neuen Nachricht gestartet wird.
-* Mit der Anzeige einer Nachricht wird auch der Ersteller und der Erstellungszeitpunkt dieser Nachricht angezeigt.
-* Analog zur Detailansicht einer Contribution in der Wallet wird auch eine Detailansicht der Contributions im Admin-Bereich eingebaut.
-* Die Länge einer Nachricht wird auf maximal 2000 Zeichen begrenzt
-* Die Nachrichten werden als einfach verkettete Liste an die Contribution angehängt. Es wird keine Untertützung von Nachrichten an Nachrichten geben
+### Contribution
+
+* **[AS-1]** Eine Contribution bekommt zu den aktuell implementierten drei Status-Werten (eingereicht, bestätigt und abgelehnt) noch einen vierten Status (in Arbeit) hinzu
+
+  * eingereicht (pending): Die Contribution wurde vom User bzw. vom Moderator neu erfasst und wartet auf Bearbeitung der Moderatoren
+  * in Arbeit (inprogress): Die Contribution wurde von einem Moderator in Bearbeitung genommen, in dem er eine Rückfrage als Nachricht an den User erfasst hat und wartet auf Beantwortung vom User, dem die Contribution zugeordnet ist
+  * bestätigt (confirmed): Die Contribution wurde von einem Moderator genehmigt und der Betrag ist dem User der Contribution schon gutgeschrieben. Dies ist eine Ende-Zustand auf den keine weitere Bearbeitung mehr folgt. **[AS-x]** Es kann selbst nach einer Bestätigung der Contribution noch eine neue Nachricht dazu erfasst werden.
+  * abgelehnt (denied): die Contribution wurde vom Moderator abgelehnt und es hat keine Gutschrift des Betrages auf dem Konto des Users stattgefunden. Dies ist ein Ende-Zustand auf den keine weitere Bearbeitung mehr folgt. **[AS-x]** Es kann selbst nach einer Bestätigung der Contribution noch eine neue Nachricht dazu erfasst werden.
+* **[AS-1]** Sobald ein Moderator eine Contribution zur Bearbeitung anzeigt, wird sofort die ModeratorId und/oder der neue Status in die Contribution eingetragen, um diese für andere Moderatoren zu sperren. Dies ist notwendig, um fälschlicherweise ein paralleles Bearbeiten einer Contribution durch mehrere Moderatoren zu verhindern.
+* **[AS-1]** Bei der Ablehnung einer Contribution wird neben der Status-Änderung der Contribution eine neue Nachricht erzeugt, die einen Standard-Ablehnungtext beinhaltet und keine individuelle Begründung vom Moderator benötigt.
+* **[AS-1]** Zu einer Contribution kann nur der besitzende User und die Moderatoren eine Nachricht erfassen.
+* **[AS-1]** Eine Contribution kann nur vom User gelöscht werden, solange dieser keine Nachrichten zugeordnet sind.
+* [AS-1] Eine Contribution zeigt in der Normal-Ansicht per farblichem Icon bzw. textuell, ob
+
+  * noch keine Nachrichten existieren (graue Sprechblase)
+  * mindestens eine Nachricht existiert (blaue Sprechblase)
+  * **[AS-x]** Gesamtsanzahl der existierenden Nachrichten (z.B. Zahl im bzw. neben Sprechbalsen-Icon)
+  * **[AS-x]** Anzahl der ungelesenen Nachrichten (z.B. Zahl/Zahl im bzw. neben Sprechblasen-Icon)
+* **[AS-1]** Das Bearbeiten einer Contribution ist im Status *eingereicht* möglich. Solange noch keine Nachrichten anhängig sind, wird nach dem Bearbeiten keine weitere Aktion notwendig, es erfolgt noch keine Historisierung. Sobald aber schon mindestens eine Nachricht anhängig ist, muss eine Historisierung der Contribution-Bearbeitung erfolgen. Das bedeutet, dass beim Starten der Bearbeitung der Originaltext und Betrag als Nachricht mit besonderer Kennzeichnung als Historisierungsnachricht erzeugt und angehängt wird. Der geänderte bzw. neue Inhalt der Contribution wird in der Contribution selbst gespeichert. Die Reihenfolge der Historisierung ergibt sich aus dem Zeitstempel an dem die Historisierungs-Nachricht erzeugt wurde.
+* [AS-1] Folgende Status-Übergänge sind für eine Contribution möglich:
+
+  * pending -> confirmed
+  * pending -> denied
+  * pending -> delete
+  * inprogress -> confirmed
+  * inprogress -> denied
+  * inprogress -> pending
+  * (inprogress -> delete)
+
+### Nachrichten
+
+* **[AS-1]** Die Nachrichten zu einer Contribution werden als Detail-Ansicht der Contribution zeitlich absteigend sortiert als einfache Liste angezeigt, das heißt die neueste Nachricht steht oben.
+* **[AS-1]** Nur der User, dem die Contribution zugeordnet ist und alle Moderatoren können Nachrichten zu einer Contribution verfassen und bearbeiten. Alle anderen User haben nur Leserechte auf die Contributions und Nachrichten anderer User.
+* **[AS-x]** Jeder beliebige User kann zu einer Contribution, egal in welchem Status diese sich befindet, eine Nachricht erstellen.
+* **[AS-1]** In den Anzeigen der Contribution-Listen "Meine Beiträge" und "Gemeinschaft" kann jede enthaltene Contribution analog der Detail-Ansicht einer Transaktion aufgeklappt werden, um die schon angehängten Nachrichten anzuzeigen.
+* **[AS-1]** Mit der Detail-Ansicht einer Contribution wird auch ein Button eingeblendet über den die Erfassung einer neuen Nachricht gestartet wird.
+* **[AS-1]** Mit der Anzeige einer Nachricht wird auch der Ersteller und der Erstellungszeitpunkt dieser Nachricht angezeigt.
+* **[AS-1]** Analog zur Detailansicht einer Contribution in der Wallet wird auch eine Detailansicht der Contributions im Admin-Bereich eingebaut.
+* **[AS-1]** Die Länge einer Nachricht wird auf maximal 2000 Zeichen begrenzt
+* **[AS-1]** Die Nachrichten werden als einfach verkettete Liste an die Contribution angehängt. Es wird keine Untertützung von Nachrichten an Nachrichten geben
+* [AS-1]
 
 ## Contribution Ansichten
 
@@ -100,7 +138,7 @@ Das Class-Diagramm der beteiligten Tabellen gibt einen ersten Eindruck:
 
 ### Contributions Tabelle
 
-Die Contribution-Tabelle benötigt für die Confirmation ein zusätzliches Attribut, das das Ergebnis der Confirmation - bestätigt oder abgelehnt - speichert. 
+Die Contribution-Tabelle benötigt für die Confirmation ein zusätzliches Attribut, das das Ergebnis der Confirmation - bestätigt oder abgelehnt - speichert.
 
 #### Variante 1:
 
