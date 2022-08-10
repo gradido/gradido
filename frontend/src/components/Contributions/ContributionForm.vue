@@ -13,7 +13,7 @@
       </div>
     </div>
     <b-form ref="form" @submit.prevent="submit" class="border p-3">
-      <label>{{ $t('contribution.selectDate') }}</label>
+      <label>{{ $t('contribution.selectDate') }} {{ $t('math.asterisk') }}</label>
       <b-form-datepicker
         id="contribution-date"
         v-model="form.date"
@@ -31,33 +31,32 @@
       </b-form-datepicker>
       <validation-provider
         :rules="{
-          required: true,
           min: minlength,
           max: maxlength,
         }"
         :name="$t('form.message')"
         v-slot="{ errors }"
       >
-        <label class="mt-3">{{ $t('contribution.activity') }}</label>
+        <label class="mt-3">{{ $t('contribution.activity') }} {{ $t('math.asterisk') }}</label>
         <b-form-textarea
           id="contribution-memo"
           v-model="form.memo"
           rows="3"
           max-rows="6"
+          :placeholder="$t('contribution.yourActivity')"
           required
         ></b-form-textarea>
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
       </validation-provider>
-      <label class="mt-3">{{ $t('form.amount') }}</label>
-      <b-input-group size="lg" prepend="GDD" append=".00">
+      <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
+      <b-input-group size="lg" prepend="GDD">
         <b-form-input
           id="contribution-amount"
           v-model="form.amount"
-          type="number"
-          min="1"
-          :max="isThisMonth ? maxGddThisMonth : maxGddLastMonth"
+          type="text"
+          :formatter="numberFormat"
         ></b-form-input>
       </b-input-group>
       <div
@@ -85,6 +84,7 @@
         </b-col>
       </b-row>
     </b-form>
+    <p class="p-2">{{ $t('math.asterisk') }} {{ $t('form.mandatoryField') }}</p>
   </div>
 </template>
 <script>
@@ -103,7 +103,11 @@ export default {
     }
   },
   methods: {
+    numberFormat(value) {
+      return value.replace(/\D/g, '')
+    },
     submit() {
+      this.form.amount = this.numberFormat(this.form.amount)
       // not working for testing:
       // this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', this.form)
       // works for testing:
@@ -138,8 +142,8 @@ export default {
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.memo.length > this.maxlength ||
-        this.form.amount <= 0 ||
-        this.form.amount > 1000 ||
+        parseInt(this.form.amount) <= 0 ||
+        parseInt(this.form.amount) > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
