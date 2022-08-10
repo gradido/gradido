@@ -65,6 +65,19 @@ const numberFormats = {
       useGrouping: false,
     },
   },
+  es: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
 }
 
 const dateTimeFormats = {
@@ -97,6 +110,34 @@ const dateTimeFormats = {
     },
   },
   de: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+  },
+  es: {
     short: {
       day: 'numeric',
       month: 'numeric',
