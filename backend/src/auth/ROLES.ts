@@ -28,6 +28,7 @@ export const ROLE_USER = new Role('user', [
   RIGHTS.LIST_CONTRIBUTIONS,
   RIGHTS.LIST_ALL_CONTRIBUTIONS,
   RIGHTS.UPDATE_CONTRIBUTION,
+  RIGHTS.SEARCH_ADMIN_USERS,
 ])
 export const ROLE_ADMIN = new Role('admin', Object.values(RIGHTS)) // all rights
 
