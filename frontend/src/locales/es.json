@@ -104,7 +104,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
-    "amount": "Monto",
+    "amount": "Importe",
     "at": "am",
     "cancel": "Cancelar",
     "change": "Cambiar",
@@ -148,7 +148,7 @@
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
       "usernmae-unique": "Este nombre de usuario ya está adjudicado."
     },
-    "your_amount": "Tu monto"
+    "your_amount": "Tu importe"
   },
   "GDD": "GDD",
   "gdd_per_link": {
@@ -186,7 +186,7 @@
   },
   "gdt": {
     "calculation": "Cálculo del Gradido Transform",
-    "contribution": "Monto",
+    "contribution": "Importe",
     "conversion": "Conversión",
     "conversion-gdt-euro": "Conversión Euro / Gradido Transform (GDT)",
     "credit": "Abono",
@@ -212,7 +212,7 @@
     "pipe": "|"
   },
   "message": {
-    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo Aktivierungslink über die Password Reset Seite an.",
+    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo enlace de activación a través de la página  restablecer contraseña.",
     "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Puedes registrarte ahora.",
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "Atención!",
@@ -300,7 +300,7 @@
   },
   "success": "Lo lograste",
   "time": {
-    "days": "Dias",
+    "days": "Días",
     "hours": "Horas",
     "minutes": "Minutos",
     "month": "Mes",
