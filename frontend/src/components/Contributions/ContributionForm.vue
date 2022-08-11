@@ -133,16 +133,9 @@ export default {
   computed: {
     minimalDate() {
       // sets the date to the 1st of the previous month
-      const month = this.maximalDate.getMonth()
-      const year = this.maximalDate.getFullYear()
-      return new Date(year + (month === 0 ? -1 : 0), month === 0 ? 11 : month - 1, 1)
-
-      // // const date = new Date().setMonth(this.maximalDate.getMonth() - 1)
-      // console.log(new Date('Mon Jan 10 2022 16:32:58 GMT+0100'))
-      // const date = new Date('Mon Jan 10 2022 16:32:58 GMT+0100').setMonth(this.maximalDate.getMonth() - 1)
-      // // console.log(date.toISOString())
-      // console.log(new Date(date.getFullYear(), date.getMonth(), 1))
-      // return new Date(date.getFullYear(), date.getMonth(), 1)
+      let date = new Date(this.maximalDate) // has to be a new object, because of 'setMonth' changes the objects date
+      date = new Date(date.setMonth(date.getMonth() - 1))
+      return new Date(date.getFullYear(), date.getMonth(), 1)
     },
     disabled() {
       return (
@@ -157,10 +150,9 @@ export default {
     },
     isThisMonth() {
       const formDate = new Date(this.form.date)
-      const actualDate = new Date()
       return (
-        formDate.getFullYear() === actualDate.getFullYear() &&
-        formDate.getMonth() === actualDate.getMonth()
+        formDate.getFullYear() === this.maximalDate.getFullYear() &&
+        formDate.getMonth() === this.maximalDate.getMonth()
       )
     },
     maxGddLastMonth() {

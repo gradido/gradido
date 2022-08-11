@@ -73,7 +73,7 @@ describe('ContributionForm', () => {
         })
       })
 
-      describe.only('actual date', () => {
+      describe('actual date', () => {
         describe('same month', () => {
           beforeEach(async () => {
             const now = new Date().toISOString()
@@ -102,14 +102,22 @@ describe('ContributionForm', () => {
         })
       })
 
-      describe.skip('date in middle of year', () => {
+      describe('date in middle of year', () => {
         describe('same month', () => {
           beforeEach(async () => {
-            jest.useFakeTimers('modern')
-            jest.setSystemTime(new Date('2020-07-06'))
-            const now = new Date().toISOString()
-            // console.log('middle of year date – now:', now)
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            // jest.useFakeTimers('modern')
+            // jest.setSystemTime(new Date('2020-07-06'))
+            // await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper.setData({
+              maximalDate: new Date(2020, 6, 6),
+              form: { date: new Date(2020, 6, 6) },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2020-06-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
+            })
           })
 
           describe('isThisMonth', () => {
@@ -121,10 +129,22 @@ describe('ContributionForm', () => {
 
         describe('month before', () => {
           beforeEach(async () => {
+            // jest.useFakeTimers('modern')
+            // jest.setSystemTime(new Date('2020-07-06'))
             // console.log('middle of year date – now:', wrapper.vm.minimalDate)
-            await wrapper
-              .findComponent({ name: 'BFormDatepicker' })
-              .vm.$emit('input', wrapper.vm.minimalDate)
+            // await wrapper
+            //   .findComponent({ name: 'BFormDatepicker' })
+            //   .vm.$emit('input', wrapper.vm.minimalDate)
+            await wrapper.setData({
+              maximalDate: new Date(2020, 6, 6),
+              form: { date: new Date(2020, 5, 6) },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2020-06-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
+            })
           })
 
           describe('isThisMonth', () => {
@@ -135,13 +155,19 @@ describe('ContributionForm', () => {
         })
       })
 
-      describe.skip('date in january', () => {
+      describe('date in january', () => {
         describe('same month', () => {
           beforeEach(async () => {
-            jest.useFakeTimers('modern').setSystemTime(new Date('2020-01-12'))
-            const now = new Date().toISOString()
-            // console.log('in january date – now:', now)
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            await wrapper.setData({
+              maximalDate: new Date(2020, 0, 6),
+              form: { date: new Date(2020, 0, 6) },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2019-12-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
+            })
           })
 
           describe('isThisMonth', () => {
@@ -153,10 +179,22 @@ describe('ContributionForm', () => {
 
         describe('month before', () => {
           beforeEach(async () => {
-            // console.log('in january date – wrapper.vm.minimalDate:', wrapper.vm.minimalDate)
-            await wrapper
-              .findComponent({ name: 'BFormDatepicker' })
-              .vm.$emit('input', wrapper.vm.minimalDate)
+            // jest.useFakeTimers('modern')
+            // jest.setSystemTime(new Date('2020-07-06'))
+            // console.log('middle of year date – now:', wrapper.vm.minimalDate)
+            // await wrapper
+            //   .findComponent({ name: 'BFormDatepicker' })
+            //   .vm.$emit('input', wrapper.vm.minimalDate)
+            await wrapper.setData({
+              maximalDate: new Date(2020, 0, 6),
+              form: { date: new Date(2019, 11, 6) },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2019-12-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
+            })
           })
 
           describe('isThisMonth', () => {
