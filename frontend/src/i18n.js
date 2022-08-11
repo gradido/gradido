@@ -3,6 +3,7 @@ import VueI18n from 'vue-i18n'
 
 import en from 'vee-validate/dist/locale/en'
 import de from 'vee-validate/dist/locale/de'
+import es from 'vee-validate/dist/locale/es'
 
 Vue.use(VueI18n)
 
@@ -26,6 +27,12 @@ function loadLocaleMessages() {
           ...messages[locale],
         }
       }
+      if (locale === 'es') {
+        messages[locale] = {
+          validations: es,
+          ...messages[locale],
+        }
+      }
     }
   })
   return messages
@@ -46,6 +53,19 @@ const numberFormats = {
     },
   },
   de: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
+  es: {
     decimal: {
       style: 'decimal',
       minimumFractionDigits: 2,
@@ -90,6 +110,34 @@ const dateTimeFormats = {
     },
   },
   de: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+  },
+  es: {
     short: {
       day: 'numeric',
       month: 'numeric',
