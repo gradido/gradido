@@ -48,7 +48,7 @@ describe('Navbar', () => {
         expect(wrapper.find('.navbar-toggler').exists()).toBeTruthy()
       })
 
-      it('has ten b-nav-item in the navbar', () => {
+      it('has twelve b-nav-item in the navbar', () => {
         expect(wrapper.findAll('.nav-item')).toHaveLength(12)
       })
 
