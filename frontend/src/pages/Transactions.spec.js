@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Transactions from './Transactions'
 import { GdtEntryType } from '@/graphql/enums'
-import flushPromises from 'flush-promises'
 
 import { toastErrorSpy } from '@test/testSetup'
 
@@ -163,7 +162,6 @@ describe('Transactions', () => {
 
           describe('click on GDD tab', () => {
             beforeEach(() => {
-              flushPromises()
               wrapper.findAll('li[ role="presentation"]').at(0).find('a').trigger('click')
             })
 
