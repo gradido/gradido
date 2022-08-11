@@ -46,13 +46,7 @@ describe('ContributionForm', () => {
     })
 
     describe('empty form data', () => {
-      describe('buttons', () => {
-        it('has reset enabled', () => {
-          expect(
-            wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-          ).toBeFalsy()
-        })
-
+      describe('button', () => {
         it('has submit disabled', () => {
           expect(wrapper.find('button[data-test="button-submit"]').attributes('disabled')).toBe(
             'disabled',
@@ -232,7 +226,7 @@ describe('ContributionForm', () => {
               await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
             })
 
-            describe('buttons', () => {
+            describe('button', () => {
               describe('submit', () => {
                 it('has disabled', () => {
                   expect(
@@ -256,7 +250,7 @@ describe('ContributionForm', () => {
               await wrapper.vm.$nextTick()
             })
 
-            describe('buttons', () => {
+            describe('button', () => {
               describe('submit', () => {
                 it('has disabled', () => {
                   expect(
@@ -278,15 +272,7 @@ describe('ContributionForm', () => {
             await wrapper.find('#contribution-amount').find('input').setValue('200')
           })
 
-          describe('buttons', () => {
-            describe('reset', () => {
-              it('has enabled', () => {
-                expect(
-                  wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-                ).toBeFalsy()
-              })
-            })
-
+          describe('button', () => {
             describe('submit', () => {
               it('has enabled', () => {
                 expect(
@@ -352,7 +338,7 @@ describe('ContributionForm', () => {
               await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
             })
 
-            describe('buttons', () => {
+            describe('button', () => {
               describe('submit', () => {
                 it('has disabled', () => {
                   expect(
@@ -376,7 +362,7 @@ describe('ContributionForm', () => {
               await wrapper.vm.$nextTick()
             })
 
-            describe('buttons', () => {
+            describe('button', () => {
               describe('submit', () => {
                 it('has disabled', () => {
                   expect(
@@ -398,15 +384,7 @@ describe('ContributionForm', () => {
             await wrapper.find('#contribution-amount').find('input').setValue('200')
           })
 
-          describe('buttons', () => {
-            describe('reset', () => {
-              it('has enabled', () => {
-                expect(
-                  wrapper.find('button[data-test="button-cancel"]').attributes('disabled'),
-                ).toBeFalsy()
-              })
-            })
-
+          describe('button', () => {
             describe('submit', () => {
               it('has enabled', () => {
                 expect(
