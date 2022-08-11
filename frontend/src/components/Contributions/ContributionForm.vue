@@ -108,10 +108,7 @@ export default {
     },
     submit() {
       this.form.amount = this.numberFormat(this.form.amount)
-      // not working for testing:
-      // this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', this.form)
-      // works for testing:
-      // why ever, we have to make a spread '...', to evaluate the values it looks like: (I didn't find a solution in the test itmself)
+      // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
