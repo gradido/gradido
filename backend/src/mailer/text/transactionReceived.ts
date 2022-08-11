@@ -52,12 +52,8 @@ export const transactionLinkRedeemed = {
 ${data.senderFirstName} ${data.senderLastName} (${
         data.senderEmail
       }) hat soeben deinen Link eingelösst.
-Du hattest ihm ${data.amount.toFixed(2).replace('.', ',')} GDD,
-mit dem folgenden Text:
-
-${data.memo}
-
-gesendet.
+Betrag: ${data.amount.toFixed(2).replace('.', ',')} GDD,
+Memo: ${data.memo}
 
 Bitte antworte nicht auf diese E-Mail!
 
