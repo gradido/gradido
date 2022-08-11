@@ -66,10 +66,19 @@ describe('LanguageSwitch', () => {
             expect(wrapper.findAll('span.locales').at(1).text()).toBe('Deutsch')
           })
         })
-        describe('navigator language is "es-ES" (not supported)', () => {
+        describe('navigator language is "es-ES"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+          it('shows Español as language ', async () => {
+            languageGetter.mockReturnValue('es-ES')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+          })
+        })
+        describe('navigator language is "fr-FR" (not supported)', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
           it('shows English as language ', async () => {
-            languageGetter.mockReturnValue('es-ES')
+            languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
@@ -93,15 +102,26 @@ describe('LanguageSwitch', () => {
           expect(wrapper.findAll('span.locales').at(1).text()).toBe('Deutsch')
         })
       })
+      describe('language "es" in store', () => {
+        it('shows Español as language', async () => {
+          wrapper.vm.$store.state.language = 'es'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+        })
+      })
       describe('language menu', () => {
-        it('has English and German as languages to choose', () => {
-          expect(wrapper.findAll('span.locales')).toHaveLength(2)
+        it('has English, German and Español as languages to choose', () => {
+          expect(wrapper.findAll('span.locales')).toHaveLength(3)
         })
         it('has English as first language to choose', () => {
           expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
         })
         it('has German as second language to choose', () => {
           expect(wrapper.findAll('span.locales').at(1).text()).toBe('Deutsch')
+        })
+        it('has Español as third language to choose', () => {
+          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
         })
       })
     })

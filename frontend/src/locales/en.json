@@ -55,7 +55,8 @@
     "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
-    "updated": "The contribution was changed."
+    "updated": "The contribution was changed.",
+    "yourActivity": "Please enter an activity!"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with"
@@ -117,6 +118,7 @@
     "from": "from",
     "generate_now": "Generate now",
     "lastname": "Lastname",
+    "mandatoryField": "mandatory field",
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
@@ -204,6 +206,7 @@
   "login": "Login",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
     "minus": "−",
     "pipe": "|"
@@ -243,6 +246,7 @@
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
       "success": "Your language has been successfully updated."
     },
     "name": {
