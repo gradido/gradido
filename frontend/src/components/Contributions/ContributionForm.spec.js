@@ -73,7 +73,7 @@ describe('ContributionForm', () => {
         })
       })
 
-      describe('actual date', () => {
+      describe.only('actual date', () => {
         describe('same month', () => {
           beforeEach(async () => {
             const now = new Date().toISOString()
