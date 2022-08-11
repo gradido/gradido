@@ -45,7 +45,7 @@ describe('LanguageSwitch', () => {
       expect(wrapper.find('div.language-switch').exists()).toBeTruthy()
     })
 
-    describe('with locales en and de', () => {
+    describe('with locales en, de and es', () => {
       describe('empty store', () => {
         describe('navigator language is "en-US"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
@@ -69,11 +69,22 @@ describe('LanguageSwitch', () => {
           })
         })
 
-        describe('navigator language is "es-ES" (not supported)', () => {
+        describe('navigator language is "es-ES"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows Español as language ', async () => {
+            languageGetter.mockReturnValue('es-ES')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Español - es')
+          })
+        })
+
+        describe('navigator language is "fr-FR" (not supported)', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
           it('shows English as language ', async () => {
-            languageGetter.mockReturnValue('es-ES')
+            languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
@@ -101,9 +112,18 @@ describe('LanguageSwitch', () => {
         })
       })
 
+      describe('language "es" in store', () => {
+        it('shows Español as language', async () => {
+          wrapper.vm.$store.state.language = 'es'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Español - es')
+        })
+      })
+
       describe('dropdown menu', () => {
         it('has English and German as languages to choose', () => {
-          expect(wrapper.findAll('li')).toHaveLength(2)
+          expect(wrapper.findAll('li')).toHaveLength(3)
         })
 
         it('has English as first language to choose', () => {
@@ -112,6 +132,10 @@ describe('LanguageSwitch', () => {
 
         it('has German as second language to choose', () => {
           expect(wrapper.findAll('li').at(1).text()).toBe('Deutsch')
+        })
+
+        it('has Español as second language to choose', () => {
+          expect(wrapper.findAll('li').at(2).text()).toBe('Español')
         })
       })
     })
