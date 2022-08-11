@@ -31,7 +31,7 @@ export const klicktippNewsletterStateMiddleware: MiddlewareFn = async (
         klickTipp = new KlickTipp(klickTippUser)
       }
     } catch (err) {
-      logger.info(`There is no user for (email='${result.email}') ${err}`)
+      logger.error(`There is no user for (email='${result.email}') ${err}`)
     }
   }
   result.klickTipp = klickTipp
