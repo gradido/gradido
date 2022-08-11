@@ -35,6 +35,7 @@
   "creation_form": {
     "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
+    "deleteNow": "Do you really want to delete this contribution to the community?",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",

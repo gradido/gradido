@@ -37,9 +37,7 @@ import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualT
 import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
-
-const MEMO_MAX_CHARS = 255
-const MEMO_MIN_CHARS = 5
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 
 export const executeTransaction = async (
   amount: Decimal,
