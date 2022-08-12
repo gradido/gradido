@@ -501,7 +501,7 @@ export class AdminResolver {
       order: { updatedAt: 'DESC' },
     })
 
-    optInCode = await checkOptInCode(optInCode, user.id)
+    optInCode = await checkOptInCode(optInCode, user)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
