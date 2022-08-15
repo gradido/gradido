@@ -1,5 +1,5 @@
-import { User } from "@entity/User"
-import { Field, Int, ObjectType } from "type-graphql"
+import { User } from '@entity/User'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class AdminUser {
