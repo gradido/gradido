@@ -25,6 +25,14 @@
       "keepFileExt" : true,
       "fileNameSep" : "_" 
     },
+    "klicktipp": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/klicktipp.log",
+      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "keepFileExt" : true,
+      "fileNameSep" : "_" 
+    },
     "errorFile": 
     {
       "type": "dateFile",
@@ -84,6 +92,17 @@
       "appenders":
       [
         "backend",
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "klicktipp":
+    {
+      "appenders":
+      [
+        "klicktipp",
         "out",
         "errors"
       ],

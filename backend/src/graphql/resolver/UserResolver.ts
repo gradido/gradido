@@ -47,7 +47,7 @@ const isPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
-const LANGUAGES = ['de', 'en']
+const LANGUAGES = ['de', 'en', 'es']
 const DEFAULT_LANGUAGE = 'de'
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
@@ -191,7 +191,7 @@ const newEmailOptIn = (userId: number): LoginEmailOptIn => {
 // if optIn does not exits, it is created
 export const checkOptInCode = async (
   optInCode: LoginEmailOptIn | undefined,
-  userId: number,
+  user: DbUser,
   optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
 ): Promise<LoginEmailOptIn> => {
   logger.info(`checkOptInCode... ${optInCode}`)
@@ -211,15 +211,18 @@ export const checkOptInCode = async (
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
   } else {
-    logger.trace('create new OptIn for userId=' + userId)
-    optInCode = newEmailOptIn(userId)
+    logger.trace('create new OptIn for userId=' + user.id)
+    optInCode = newEmailOptIn(user.id)
   }
-  optInCode.emailOptInTypeId = optInType
+
+  if (user.emailChecked) {
+    optInCode.emailOptInTypeId = optInType
+  }
   await LoginEmailOptIn.save(optInCode).catch(() => {
     logger.error('Unable to save optin code= ' + optInCode)
     throw new Error('Unable to save optin code.')
   })
-  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${userId}`)
+  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${user.id}`)
   return optInCode
 }
 
@@ -497,7 +500,7 @@ export class UserResolver {
       userId: user.id,
     })
 
-    optInCode = await checkOptInCode(optInCode, user.id, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
+    optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
     logger.info(`optInCode for ${email}=${optInCode}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmailMailer({
