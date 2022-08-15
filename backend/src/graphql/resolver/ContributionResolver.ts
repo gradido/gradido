@@ -7,6 +7,7 @@ import { FindOperator, IsNull, getConnection } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
+import { ContributionType } from '@enum/ContributionType'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
@@ -43,6 +44,7 @@ export class ContributionResolver {
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
+    contribution.contributionType = ContributionType.USER
 
     logger.trace('contribution to save', contribution)
     await dbContribution.save(contribution)

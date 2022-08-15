@@ -36,6 +36,7 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { ContributionType } from '@enum/ContributionType'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
@@ -260,6 +261,7 @@ export class AdminResolver {
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
     contribution.moderatorId = moderator.id
+    contribution.contributionType = ContributionType.ADMIN
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)

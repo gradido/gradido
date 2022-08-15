@@ -26,6 +26,7 @@ import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
 import { executeTransaction } from './TransactionResolver'
 import { Order } from '@enum/Order'
+import { ContributionType } from '@enum/ContributionType'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { getUserCreation, validateContribution } from './util/creations'
@@ -231,6 +232,8 @@ export class TransactionLinkResolver {
         contribution.memo = contributionLink.memo
         contribution.amount = contributionLink.amount
         contribution.contributionLinkId = contributionLink.id
+        contribution.contributionType = ContributionType.LINK
+
         await queryRunner.manager.insert(DbContribution, contribution)
 
         const lastTransaction = await queryRunner.manager
