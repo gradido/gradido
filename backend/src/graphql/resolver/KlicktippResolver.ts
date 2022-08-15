@@ -7,6 +7,8 @@ import {
 } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
+import { User } from '@entity/User'
+import { backendLogger } from '@/server/logger'
 
 @Resolver()
 export class KlicktippResolver {
@@ -34,5 +36,22 @@ export class KlicktippResolver {
     @Args() { email, language }: SubscribeNewsletterArgs,
   ): Promise<boolean> {
     return await klicktippSignIn(email, language)
+  }
+
+  @Authorized([RIGHTS.ADMIN_RETRIEVE_NOT_REGISTERED_EMAILS])
+  @Query(() => [String])
+  async retrieveNotRegisteredEmails(): Promise<string[]> {
+    const users = await User.find()
+    const notRegisteredUser = []
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i]
+      try {
+        await getKlickTippUser(user.email)
+      } catch (err) {
+        notRegisteredUser.push(user.email)
+        backendLogger.error(`Error with email: ${user.email}; ${err}`)
+      }
+    }
+    return notRegisteredUser
   }
 }
