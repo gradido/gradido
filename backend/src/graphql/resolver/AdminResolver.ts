@@ -393,6 +393,7 @@ export class AdminResolver {
       throw new Error('Contribution not found for given id.')
     }
     contribution.contributionStatus = ContributionStatus.DELETED
+    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
