@@ -198,7 +198,7 @@ describe('UserResolver', () => {
       it('sets "de" as default language', async () => {
         await mutate({
           mutation: createUser,
-          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
+          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'fr' },
         })
         await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
