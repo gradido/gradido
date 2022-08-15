@@ -37,6 +37,7 @@ import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
@@ -262,6 +263,7 @@ export class AdminResolver {
     contribution.memo = memo
     contribution.moderatorId = moderator.id
     contribution.contributionType = ContributionType.ADMIN
+    contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
@@ -339,6 +341,7 @@ export class AdminResolver {
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.moderatorId = moderator.id
+    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
     await Contribution.save(contributionToUpdate)
     const result = new AdminUpdateContribution()
@@ -389,6 +392,7 @@ export class AdminResolver {
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
     }
+    contribution.contributionStatus = ContributionStatus.DELETED
     const res = await contribution.softRemove()
     return !!res
   }
@@ -456,6 +460,7 @@ export class AdminResolver {
       contribution.confirmedAt = receivedCallDate
       contribution.confirmedBy = moderatorUser.id
       contribution.transactionId = transaction.id
+      contribution.contributionStatus = ContributionStatus.CONFIRMED
       await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
 
       await queryRunner.commitTransaction()
