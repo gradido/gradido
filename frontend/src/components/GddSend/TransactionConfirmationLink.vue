@@ -42,7 +42,12 @@
         <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
       </b-col>
       <b-col class="text-right">
-        <b-button variant="primary" :disabled="disabled" @click="$emit('send-transaction')">
+        <b-button
+          class="send-button"
+          variant="primary"
+          :disabled="disabled"
+          @click="$emit('send-transaction')"
+        >
           {{ $t('form.generate_now') }}
         </b-button>
       </b-col>
