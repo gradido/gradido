@@ -21,4 +21,13 @@ export class Message extends BaseEntity {
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
+
+  @Column({ type: 'datetime', default: null, nullable: true, name: 'update_at' })
+  updateAt: Date
+
+  @Column({ type: 'datetime', default: null, nullable: true, name: 'deleted_at' })
+  deletedAt: Date
+
+  @Column({ name: 'deleted_by', default: null, unsigned: true, nullable: true })
+  deletedBy: number
 }
