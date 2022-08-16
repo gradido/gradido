@@ -70,7 +70,7 @@
     "decay_since_last_transaction": "Décroissance depuis la dernière transaction",
     "last_transaction": "Dernière transaction:",
     "past_time": "Le temps a expiré",
-    "Starting_block_decay": "Départ de la perte",
+    "Starting_block_decay": "Début de la décroissance",
     "total": "Total",
     "types": {
       "creation": "Créé",
