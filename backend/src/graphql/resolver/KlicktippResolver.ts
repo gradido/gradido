@@ -37,21 +37,4 @@ export class KlicktippResolver {
   ): Promise<boolean> {
     return await klicktippSignIn(email, language)
   }
-
-  @Authorized([RIGHTS.ADMIN_RETRIEVE_NOT_REGISTERED_EMAILS])
-  @Query(() => [String])
-  async retrieveNotRegisteredEmails(): Promise<string[]> {
-    const users = await User.find()
-    const notRegisteredUser = []
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i]
-      try {
-        await getKlickTippUser(user.email)
-      } catch (err) {
-        notRegisteredUser.push(user.email)
-        backendLogger.error(`Error with email: ${user.email}; ${err}`)
-      }
-    }
-    return notRegisteredUser
-  }
 }
