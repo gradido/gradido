@@ -152,7 +152,7 @@
   },
   "GDD": "GDD",
   "gdd_per_link": {
-    "choose-amount": "Sélectionnez le montant que vous souhaitez envoyer via le lien. Vous pouvez également joindre un message. Cliquez sur ‘créer maintenant’ pour établir un lien que vous pourrez partager.",
+    "choose-amount": "Sélectionnez le montant que vous souhaitez envoyer via lien. Vous pouvez également joindre un message. Cliquez sur ‘créer maintenant’ pour établir un lien que vous pourrez partager.",
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
     "created": "Le lien a été créé!",
