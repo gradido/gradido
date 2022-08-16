@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import SessionLogoutTimeout from './SessionLogoutTimeout'
 
-
 const localVue = global.localVue
 
 const apolloQueryMock = jest.fn()
