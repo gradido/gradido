@@ -74,7 +74,7 @@
     "total": "Total",
     "types": {
       "creation": "Créé",
-      "noDecay": "Aucune perte",
+      "noDecay": "Aucun déclin",
       "receive": "Reçu",
       "send": "Envoyé"
     }
