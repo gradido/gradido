@@ -232,7 +232,7 @@
     "support": "Aide",
     "transactions": "Transactions"
   },
-  "qrCode": "Code QR",
+  "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",
   "send_per_link": "Envoyer GDD via lien",
   "session": {
