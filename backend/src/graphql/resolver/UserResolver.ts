@@ -364,7 +364,7 @@ export class UserResolver {
 
       const user = new User(communityDbUser)
       user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-      user.gradidoID = '11111111-2222-4333-4444-55555555'
+      user.gradidoID = uuidv4()
       user.email = email
       user.firstName = firstName
       user.lastName = lastName
