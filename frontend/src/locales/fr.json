@@ -67,7 +67,7 @@
     "calculation_total": "Calcul du montant total",
     "decay": "Décroissance",
     "decay_introduced": "Décroissance engagée le:",
-    "decay_since_last_transaction": "Perte depuis la dernière transaction",
+    "decay_since_last_transaction": "Décroissance depuis la dernière transaction",
     "last_transaction": "Dernière transaction:",
     "past_time": "Le temps a expiré",
     "Starting_block_decay": "Départ de la perte",
