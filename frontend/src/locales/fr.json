@@ -93,7 +93,7 @@
   },
   "followUs": "Suivez-nous:",
   "footer": {
-    "app_version": "Version application {version}",
+    "app_version": "Version de l'application {version}",
     "copyright": {
       "link": "Académie Gradido",
       "year": "© {year}"
