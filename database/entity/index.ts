@@ -7,6 +7,7 @@ import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { Contribution } from './Contribution'
 import { EventProtocol } from './EventProtocol'
+import { Message } from './Message'
 
 export const entities = [
   Contribution,
@@ -18,4 +19,5 @@ export const entities = [
   TransactionLink,
   User,
   EventProtocol,
+  Message,
 ]
