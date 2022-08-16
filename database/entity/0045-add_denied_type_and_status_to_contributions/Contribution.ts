@@ -7,11 +7,9 @@ import {
   DeleteDateColumn,
   JoinColumn,
   ManyToOne,
-  OneToMany,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
-import { Message } from '../Message'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {
@@ -82,8 +80,4 @@ export class Contribution extends BaseEntity {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
-
-  @OneToMany(() => Message, (message) => message.contribution)
-  @JoinColumn({ name: 'contribution_id' })
-  messages?: Message[]
 }
