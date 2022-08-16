@@ -12,7 +12,8 @@ log4js.configure(options)
 
 const apolloLogger = log4js.getLogger('apollo')
 const backendLogger = log4js.getLogger('backend')
+const klickTippLogger = log4js.getLogger('klicktipp')
 
 backendLogger.addContext('user', 'unknown')
 
-export { apolloLogger, backendLogger }
+export { apolloLogger, backendLogger, klickTippLogger }
