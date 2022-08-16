@@ -63,7 +63,7 @@
   },
   "decay": {
     "before_startblock_transaction": "Cette transaction n´est pas péremptoire.",
-    "calculation_decay": "Calcul de la perte",
+    "calculation_decay": "Calcul de la décroissance",
     "calculation_total": "Calcul du montant total",
     "decay": "Perte",
     "decay_introduced": "Perte engagée le:",
