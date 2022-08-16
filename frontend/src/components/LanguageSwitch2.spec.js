@@ -77,7 +77,7 @@ describe('LanguageSwitch', () => {
         })
         describe('navigator language is "fr-FR"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
-          it('shows Español as language ', async () => {
+          it('shows French as language ', async () => {
             languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
@@ -86,7 +86,7 @@ describe('LanguageSwitch', () => {
         })
         describe('navigator language is "nl-NL"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
-          it('shows Español as language ', async () => {
+          it('shows Dutch as language ', async () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
@@ -126,6 +126,22 @@ describe('LanguageSwitch', () => {
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
           expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+        })
+      })
+      describe('language "fr" in store', () => {
+        it('shows French as language', async () => {
+          wrapper.vm.$store.state.language = 'fr'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
+        })
+      })
+      describe('language "nl" in store', () => {
+        it('shows Dutch as language', async () => {
+          wrapper.vm.$store.state.language = 'nl'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
         })
       })
       describe('language menu', () => {
