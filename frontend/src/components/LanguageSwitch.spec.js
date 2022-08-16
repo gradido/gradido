@@ -83,7 +83,7 @@ describe('LanguageSwitch', () => {
         describe('navigator language is "fr-FR"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
-          it('shows France as language ', async () => {
+          it('shows French as language ', async () => {
             languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
@@ -94,7 +94,7 @@ describe('LanguageSwitch', () => {
         describe('navigator language is "nl-NL"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
-          it('shows France as language ', async () => {
+          it('shows Dutch as language ', async () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
