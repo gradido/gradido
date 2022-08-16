@@ -81,7 +81,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.findAll('span.locales').at(3).text()).toBe('France')
+            expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
           })
         })
         describe('navigator language is "nl-NL"', () => {
@@ -90,7 +90,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Niederlande')
+            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
           })
         })
         describe('navigator language is "it-IT" (not supported)', () => {
@@ -130,7 +130,7 @@ describe('LanguageSwitch', () => {
       })
       describe('language menu', () => {
         it('has English, German and Español as languages to choose', () => {
-          expect(wrapper.findAll('span.locales')).toHaveLength(3)
+          expect(wrapper.findAll('span.locales')).toHaveLength(5)
         })
         it('has English as first language to choose', () => {
           expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
@@ -140,6 +140,12 @@ describe('LanguageSwitch', () => {
         })
         it('has Español as third language to choose', () => {
           expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+        })
+        it('has French as third language to choose', () => {
+          expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
+        })
+        it('has Dutch as third language to choose', () => {
+          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
         })
       })
     })
@@ -155,17 +161,6 @@ describe('LanguageSwitch', () => {
           }),
         )
       })
-
-      // it("with locale 'en'", () => {
-      //   wrapper.findAll('span.locales').at(0).trigger('click')
-      //   expect(updateUserInfosMutationMock).toBeCalledWith(
-      //     expect.objectContaining({
-      //       variables: {
-      //         locale: 'en',
-      //       },
-      //     }),
-      //   )
-      // })
     })
   })
 })
