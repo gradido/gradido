@@ -246,7 +246,9 @@
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
-      "es": "Español",
+      "es": "Spanish",
+      "fr": "French",
+      "nl": "Dutch",
       "success": "Your language has been successfully updated."
     },
     "name": {

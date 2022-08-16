@@ -80,11 +80,33 @@ describe('LanguageSwitch', () => {
           })
         })
 
-        describe('navigator language is "fr-FR" (not supported)', () => {
+        describe('navigator language is "fr-FR"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows France as language ', async () => {
+            languageGetter.mockReturnValue('fr-FR')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('France - fr')
+          })
+        })
+
+        describe('navigator language is "nl-NL"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows France as language ', async () => {
+            languageGetter.mockReturnValue('nl-NL')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Niederland - nl')
+          })
+        })
+
+        describe('navigator language is "it-IT" (not supported)', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
           it('shows English as language ', async () => {
-            languageGetter.mockReturnValue('fr-FR')
+            languageGetter.mockReturnValue('it-IT')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')

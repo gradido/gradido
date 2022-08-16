@@ -4,6 +4,8 @@ import VueI18n from 'vue-i18n'
 import en from 'vee-validate/dist/locale/en'
 import de from 'vee-validate/dist/locale/de'
 import es from 'vee-validate/dist/locale/es'
+import fr from 'vee-validate/dist/locale/fr'
+import nl from 'vee-validate/dist/locale/nl'
 
 Vue.use(VueI18n)
 
@@ -30,6 +32,18 @@ function loadLocaleMessages() {
       if (locale === 'es') {
         messages[locale] = {
           validations: es,
+          ...messages[locale],
+        }
+      }
+      if (locale === 'fr') {
+        messages[locale] = {
+          validations: fr,
+          ...messages[locale],
+        }
+      }
+      if (locale === 'nl') {
+        messages[locale] = {
+          validations: nl,
           ...messages[locale],
         }
       }
@@ -66,6 +80,32 @@ const numberFormats = {
     },
   },
   es: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
+  fr: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
+  nl: {
     decimal: {
       style: 'decimal',
       minimumFractionDigits: 2,
@@ -138,6 +178,62 @@ const dateTimeFormats = {
     },
   },
   es: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+  },
+  fr: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+  },
+  nl: {
     short: {
       day: 'numeric',
       month: 'numeric',

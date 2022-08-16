@@ -43,7 +43,7 @@ const isPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
-const LANGUAGES = ['de', 'en', 'es']
+const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)

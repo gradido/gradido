@@ -75,10 +75,28 @@ describe('LanguageSwitch', () => {
             expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
           })
         })
-        describe('navigator language is "fr-FR" (not supported)', () => {
+        describe('navigator language is "fr-FR"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+          it('shows Español as language ', async () => {
+            languageGetter.mockReturnValue('fr-FR')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.findAll('span.locales').at(3).text()).toBe('France')
+          })
+        })
+        describe('navigator language is "nl-NL"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+          it('shows Español as language ', async () => {
+            languageGetter.mockReturnValue('nl-NL')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Niederlande')
+          })
+        })
+        describe('navigator language is "it-IT" (not supported)', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
           it('shows English as language ', async () => {
-            languageGetter.mockReturnValue('fr-FR')
+            languageGetter.mockReturnValue('it-IT')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
