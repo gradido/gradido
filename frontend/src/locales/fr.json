@@ -122,7 +122,7 @@
     "memo": "Note",
     "message": "Message",
     "new_balance": "Montant du solde après confirmation",
-    "no_gdd_available": "Vous n´avez pas à envoyer de GDD.",
+    "no_gdd_available": "Vous n´avez pas de GDD à envoyer.",
     "password": "Mot de passe",
     "passwordRepeat": "Répétez le mot de passe",
     "password_new": "Nouveau mot de passe",
