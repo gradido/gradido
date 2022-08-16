@@ -11,7 +11,7 @@ import {
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
-import { Message } from './Message'
+import { Message } from '../Message'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {

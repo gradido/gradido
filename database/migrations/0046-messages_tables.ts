@@ -5,6 +5,8 @@
  * This is done to keep all data in the same place and is to be understood in conjunction with the next migration
  * `0046-messages_tables` which will fill the tables with the existing data
  */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
