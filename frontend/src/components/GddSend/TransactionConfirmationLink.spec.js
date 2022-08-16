@@ -46,5 +46,17 @@ describe('GddSend confirm', () => {
         expect(wrapper.findAll('div.confirm-box-link').at(0).exists()).toBeTruthy()
       })
     })
+
+    describe('has totalBalance under 0', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          balance: 0,
+        })
+      })
+
+      it('has button disable', () => {
+        expect(wrapper.find('.send-button').attributes('disabled')).toBe('disabled')
+      })
+    })
   })
 })
