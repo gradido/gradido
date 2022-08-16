@@ -34,6 +34,15 @@ const routes = [
   {
     path: '/transactions',
     component: () => import('@/pages/Transactions.vue'),
+    props: { gdt: false },
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/gdt',
+    component: () => import('@/pages/Transactions.vue'),
+    props: { gdt: true },
     meta: {
       requiresAuth: true,
     },

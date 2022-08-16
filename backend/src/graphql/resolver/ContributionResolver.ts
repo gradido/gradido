@@ -7,6 +7,8 @@ import { FindOperator, IsNull, getConnection } from '@dbTools/typeorm'
 import ContributionArgs from '@arg/ContributionArgs'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
@@ -43,6 +45,8 @@ export class ContributionResolver {
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
+    contribution.contributionType = ContributionType.USER
+    contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
     await dbContribution.save(contribution)
@@ -66,6 +70,8 @@ export class ContributionResolver {
     if (contribution.confirmedAt) {
       throw new Error('A confirmed contribution can not be deleted')
     }
+    contribution.contributionStatus = ContributionStatus.DELETED
+    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
@@ -164,6 +170,7 @@ export class ContributionResolver {
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
+    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     dbContribution.save(contributionToUpdate)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)

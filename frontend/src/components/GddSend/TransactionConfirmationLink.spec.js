@@ -47,6 +47,7 @@ describe('GddSend confirm', () => {
       })
     })
 
+
     describe('has totalBalance under 0', () => {
       beforeEach(async () => {
         await wrapper.setProps({
@@ -54,7 +55,7 @@ describe('GddSend confirm', () => {
         })
       })
 
-      it('has button disable', () => {
+      it('has send button disabled', () => {
         expect(wrapper.find('.send-button').attributes('disabled')).toBe('disabled')
       })
     })

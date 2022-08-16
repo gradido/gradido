@@ -127,6 +127,15 @@ describe('router', () => {
         it('loads the "InfoStatistic" page', async () => {
           const component = await routes.find((r) => r.path === '/info').component()
           expect(component.default.name).toBe('InfoStatistic')
+   
+      describe('gdt', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/gdt').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "GDT" page', async () => {
+          const component = await routes.find((r) => r.path === '/gdt').component()
+          expect(component.default.name).toBe('Transactions')
         })
       })
 
