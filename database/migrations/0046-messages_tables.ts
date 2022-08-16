@@ -16,6 +16,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`user_id\` int(10) unsigned NOT NULL,
       \`message\` varchar(2000) COLLATE utf8mb4_unicode_ci NOT NULL,
       \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      \`updated_at\` datetime DEFAULT NULL,
+      \`deleted_at\` datetime DEFAULT NULL,
+      \`deleted_by\` int(10) unsigned DEFAULT NULL,
       PRIMARY KEY (\`id\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `)
