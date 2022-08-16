@@ -45,7 +45,7 @@
     "delete": "Supprimer la contribution ! Êtes-vous sûr?",
     "deleted": "La contribution a été supprimée! Mais elle restera visible.",
     "formText": {
-      "bringYourTalentsTo": "Apportez vos talents à la communauté ! Votre participation bénévole sera récompensée de 20 GDD/heure jusqu´à un plafond de 1000 GDD/mois.",
+      "bringYourTalentsTo": "Apportez vos talents à la communauté! Votre participation bénévole sera récompensée de 20 GDD/heure jusqu´à un plafond de 1000 GDD/mois.",
       "describeYourCommunity": "Décrivez votre activité/service à la communauté en mentionnant le nombre d´heures, et calculez le montant à raison de 20 GDD/heure ! Après confirmation par l´un de nos collaborateurs, le montant sera crédité sur votre compte.",
       "maxGDDforMonth": "Vous pouvez seulement déclarer un montant maximum de (montant) GDD pour le mois sélectionné.",
       "openAmountForMonth": "Pour <b>{monthAndYear}</b>, vous pouvez encore déclarer <b>{creation}</b> GDD.",
