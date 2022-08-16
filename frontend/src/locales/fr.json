@@ -131,7 +131,7 @@
     "recipient": "Destinataire",
     "reset": "Réinitialiser",
     "save": "Sauvegarder",
-    "scann_code": "<strong>QR Code Scanner</strong> - Scannez le code QR de votre partenaire",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scannez le QR code de votre partenaire",
     "sender": " Expéditeur",
     "send_check": " Confirmez la transaction. Veuillez revérifier toutes les données svp!",
     "send_now": "Envoyez maintenant",
