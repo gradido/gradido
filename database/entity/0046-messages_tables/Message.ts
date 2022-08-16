@@ -2,7 +2,7 @@ import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColu
 import { Contribution } from '../Contribution'
 import { User } from '../User'
 
-@Entity('messages')
+@Entity('messages', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class Message extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
