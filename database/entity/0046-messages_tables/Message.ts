@@ -17,10 +17,6 @@ export class Message extends BaseEntity {
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
-  @ManyToOne(() => User, (user) => user.messages)
-  @JoinColumn({ name: 'user_id' })
-  user: User
-
   @Column({ length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string
 
