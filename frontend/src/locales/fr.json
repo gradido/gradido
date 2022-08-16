@@ -65,7 +65,7 @@
     "before_startblock_transaction": "Cette transaction n´est pas péremptoire.",
     "calculation_decay": "Calcul de la décroissance",
     "calculation_total": "Calcul du montant total",
-    "decay": "Perte",
+    "decay": "Décroissance",
     "decay_introduced": "Perte engagée le:",
     "decay_since_last_transaction": "Perte depuis la dernière transaction",
     "last_transaction": "Dernière transaction:",
