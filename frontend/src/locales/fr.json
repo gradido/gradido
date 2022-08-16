@@ -133,7 +133,7 @@
     "save": "Sauvegarder",
     "scann_code": "<strong>QR Code Scanner</strong> - Scannez le QR code de votre partenaire",
     "sender": " Expéditeur",
-    "send_check": " Confirmez la transaction. Veuillez revérifier toutes les données svp!",
+    "send_check": "Confirmez la transaction. Veuillez revérifier toutes les données svp!",
     "send_now": "Envoyez maintenant",
     "send_transaction_error": "Malheureusement, la transaction n´a pas pu être effectuée!",
     "send_transaction_success": "Votre transaction a été effectuée avec succès",
