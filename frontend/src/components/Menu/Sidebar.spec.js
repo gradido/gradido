@@ -45,31 +45,35 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
       })
 
+      it('has first nav-item "gdt.gdt" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('gdt.gdt')
+      })
+
       it('has first nav-item "navigation.community" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('navigation.community')
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('navigation.community')
       })
 
       it('has first nav-item "navigation.profile" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('navigation.profile')
+        expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.profile')
       })
     })
 
     describe('navigation Navbar (user has an elopage account)', () => {
       it('has eight b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(8)
+        expect(wrapper.findAll('.nav-item')).toHaveLength(9)
       })
 
       it('has a link to the members area', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.members_area')
-        expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('#')
+        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.members_area')
+        expect(wrapper.findAll('.nav-item').at(6).find('a').attributes('href')).toBe('#')
       })
 
       it('has first nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.admin_area')
       })
 
       it('has first nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.logout')
       })
     })
 
@@ -80,15 +84,15 @@ describe('Sidebar', () => {
       })
 
       it('has seven b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(7)
+        expect(wrapper.findAll('.nav-item')).toHaveLength(8)
       })
 
       it('has first nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.admin_area')
       })
 
       it('has first nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.logout')
       })
     })
   })
