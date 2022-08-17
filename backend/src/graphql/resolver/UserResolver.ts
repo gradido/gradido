@@ -793,7 +793,12 @@ export class UserResolver {
     )
     return {
       userCount: count,
-      userList: adminUsers,
+      userList: users.map((user) => {
+        return {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      }),
     }
   }
 }
