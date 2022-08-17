@@ -22,7 +22,7 @@ export class Message extends BaseEntity {
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
 
-  @Column({ type: 'datetime', default: null, nullable: true, name: 'update_at' })
+  @Column({ type: 'datetime', default: null, nullable: true, name: 'updated_at' })
   updateAt: Date
 
   @Column({ type: 'datetime', default: null, nullable: true, name: 'deleted_at' })
