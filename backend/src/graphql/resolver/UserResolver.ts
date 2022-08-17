@@ -776,21 +776,6 @@ export class UserResolver {
       take: pageSize,
     })
 
-    if (users.length === 0) {
-      return {
-        userCount: 0,
-        userList: [],
-      }
-    }
-
-    const adminUsers = await Promise.all(
-      users.map((user) => {
-        return {
-          firstName: user.firstName,
-          lastName: user.lastName,
-        }
-      }),
-    )
     return {
       userCount: count,
       userList: users.map((user) => {
