@@ -1,16 +1,16 @@
 <template>
   <div class="language-switch">
     <span
-      v-for="(lang, index) in locales"
+      v-for="lang in locales"
       @click.prevent="saveLocale(lang.code)"
       :key="lang.code"
-      class="pointer pr-2"
+      class="pointer"
       :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
     >
-      <span v-if="lang.code === $store.state.language" class="locales">{{ lang.name }}</span>
-      <span v-if="lang.code === $store.state.language" class="ml-3">
+      <span v-if="lang.code === $store.state.language" class="locales mr-1">{{ lang.name }}</span>
+      <!-- <span v-if="lang.code === $store.state.language" class="ml-3">
         {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
-      </span>
+      </span>-->
     </span>
     <b-icon v-b-toggle.collapse-1 icon="caret-down-fill" aria-hidden="true"></b-icon>
     <b-collapse id="collapse-1" class="mt-4">
@@ -18,11 +18,12 @@
         v-for="(lang, index) in locales"
         @click.prevent="saveLocale(lang.code)"
         :key="lang.code"
-        class="pointer pr-2"
+        class="pointer"
         :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
       >
         <span v-if="lang.code !== $store.state.language" class="locales">{{ lang.name }}</span>
-        <span v-if="lang.code !== $store.state.language" class="ml-3">
+
+        <span v-if="lang.code !== $store.state.language" class="ml-3 mr-3">
           {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
         </span>
       </span>
