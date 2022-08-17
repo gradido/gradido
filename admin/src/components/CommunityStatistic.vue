@@ -24,22 +24,22 @@
         </div>
         <div>
           {{ $t('statistic.totalGradidoCreated') }}{{ $t('math.colon') }}
-          <b>{{ Math.round(value.totalGradidoCreated) }} {{ $t('GDD') }}</b>
+          <b>{{ ($n(value.totalGradidoCreated), 'decimal') }} {{ $t('GDD') }}</b>
           <small class="ml-5">{{ value.totalGradidoCreated }}</small>
         </div>
         <div>
           {{ $t('statistic.totalGradidoDecayed') }}{{ $t('math.colon') }}
-          <b>{{ Math.round(value.totalGradidoDecayed) }} {{ $t('GDD') }}</b>
+          <b>{{ $n(value.totalGradidoDecayed, 'decimal') }} {{ $t('GDD') }}</b>
           <small class="ml-5">{{ value.totalGradidoDecayed }}</small>
         </div>
         <div>
           {{ $t('statistic.totalGradidoAvailable') }}{{ $t('math.colon') }}
-          <b>{{ Math.round(value.totalGradidoAvailable) }} {{ $t('GDD') }}</b>
+          <b>{{ $n(value.totalGradidoAvailable, 'decimal') }} {{ $t('GDD') }}</b>
           <small class="ml-5">{{ value.totalGradidoAvailable }}</small>
         </div>
         <div>
           {{ $t('statistic.totalGradidoUnbookedDecayed') }}{{ $t('math.colon') }}
-          <b>{{ Math.round(value.totalGradidoUnbookedDecayed) }} {{ $t('GDD') }}</b>
+          <b>{{ $n(value.totalGradidoUnbookedDecayed, 'decimal') }} {{ $t('GDD') }}</b>
           <small class="ml-5">{{ value.totalGradidoUnbookedDecayed }}</small>
         </div>
       </b-jumbotron>

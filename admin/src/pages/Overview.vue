@@ -37,7 +37,7 @@ import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import { communityStatistics } from '@/graphql/communityStatistics.js'
 import ContributionLink from '../components/ContributionLink.vue'
 import CommunityStatistic from '../components/CommunityStatistic.vue'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
 export default {
   name: 'overview',
@@ -61,7 +61,7 @@ export default {
     }
   },
   methods: {
-    async getPendingCreations() {
+    getPendingCreations() {
       this.$apollo
         .query({
           query: listUnconfirmedContributions,
@@ -71,7 +71,7 @@ export default {
           this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
     },
-    async getContributionLinks() {
+    getContributionLinks() {
       this.$apollo
         .query({
           query: listContributionLinks,
@@ -85,7 +85,7 @@ export default {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
-    async getCommunityStatistics() {
+    getCommunityStatistics() {
       this.$apollo
         .query({
           query: communityStatistics,
@@ -103,7 +103,7 @@ export default {
             result.data.communityStatistics.totalGradidoUnbookedDecayed
         })
         .catch(() => {
-          this.toastError('listContributionLinks has no result, use default data')
+          this.toastError('communityStatistics has no result, use default data')
         })
     },
   },
