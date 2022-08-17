@@ -141,7 +141,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'nl'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
+          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Français')
         })
       })
       describe('language menu', () => {
@@ -149,32 +149,28 @@ describe('LanguageSwitch', () => {
           expect(wrapper.findAll('span.locales')).toHaveLength(5)
         })
         it('has English as first language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
+          expect(wrapper.findAll('span.locales').at(0).text()).toBe('Holandés')
         })
         it('has German as second language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(1).text()).toBe('Deutsch')
+          expect(wrapper.findAll('span.locales').at(1).text()).toBe('English')
         })
         it('has Español as third language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Deutsch')
         })
         it('has French as third language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
+          expect(wrapper.findAll('span.locales').at(3).text()).toBe('Español')
         })
         it('has Dutch as third language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
+          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Français')
         })
       })
     })
 
     describe('calls the API', () => {
       it("with locale 'de'", () => {
-        wrapper.findAll('span.locales').at(1).trigger('click')
+        wrapper.findAll('span.locales').at(0).trigger('click')
         expect(updateUserInfosMutationMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              locale: 'de',
-            },
-          }),
+          expect.objectContaining({ variables: { locale: 'de' } }),
         )
       })
     })
