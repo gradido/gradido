@@ -6,6 +6,7 @@ import { toastErrorSpy } from '@test/testSetup'
 
 const localVue = global.localVue
 
+const mockRouterReplace = jest.fn()
 const windowScrollToMock = jest.fn()
 window.scrollTo = windowScrollToMock
 
@@ -38,6 +39,9 @@ describe('Transactions', () => {
     },
     $apollo: {
       query: apolloMock,
+    },
+    $router: {
+      replace: mockRouterReplace,
     },
   }
 
