@@ -1,12 +1,6 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 
-import en from 'vee-validate/dist/locale/en'
-import de from 'vee-validate/dist/locale/de'
-import es from 'vee-validate/dist/locale/es'
-import fr from 'vee-validate/dist/locale/fr'
-import nl from 'vee-validate/dist/locale/nl'
-
 Vue.use(VueI18n)
 
 function loadLocaleMessages() {
@@ -16,36 +10,9 @@ function loadLocaleMessages() {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i)
     if (matched && matched.length > 1) {
       const locale = matched[1]
-      messages[locale] = locales(key)
-      if (locale === 'de') {
-        messages[locale] = {
-          validations: de,
-          ...messages[locale],
-        }
-      }
-      if (locale === 'en') {
-        messages[locale] = {
-          validations: en,
-          ...messages[locale],
-        }
-      }
-      if (locale === 'es') {
-        messages[locale] = {
-          validations: es,
-          ...messages[locale],
-        }
-      }
-      if (locale === 'fr') {
-        messages[locale] = {
-          validations: fr,
-          ...messages[locale],
-        }
-      }
-      if (locale === 'nl') {
-        messages[locale] = {
-          validations: nl,
-          ...messages[locale],
-        }
+      messages[locale] = {
+        validations: require(`vee-validate/dist/locale/${locale}`),
+        ...locales(key),
       }
     }
   })
