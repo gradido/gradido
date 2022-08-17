@@ -6,6 +6,8 @@ import { User } from '@model/User'
 
 const communityDbUser: dbUser = {
   id: -1,
+  gradidoID: '11111111-2222-4333-4444-55555555',
+  alias: '',
   email: 'support@gradido.net',
   firstName: 'Gradido',
   lastName: 'Akademie',
