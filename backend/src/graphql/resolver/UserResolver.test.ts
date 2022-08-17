@@ -5,7 +5,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } fro
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin, queryOptIn } from '@/seeds/graphql/queries'
+import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
@@ -875,6 +875,19 @@ bei Gradidio sei dabei!`,
             )
           })
         })
+      })
+    })
+  })
+
+  describe('searchAdminUsers', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
       })
     })
   })
