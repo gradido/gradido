@@ -37,7 +37,9 @@
     <b-container>
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
-        <li v-for="item in itemsModerators" v-bind:key="item.id">{{ item.name }}</li>
+        <li v-for="item in itemsAdminUser" v-bind:key="item.id">
+          {{ item.firstName }} {{ item.lastName }}
+        </li>
       </ul>
       <b-link href="mailto: abc@example.com">{{ supportMail }}</b-link>
     </b-container>
@@ -79,7 +81,7 @@
 </template>
 <script>
 import CONFIG from '@/config'
-import { listContributionLinks, communityStatistics } from '@/graphql/queries'
+import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
 
 export default {
   name: 'InfoStatistic',
@@ -87,12 +89,9 @@ export default {
     return {
       CONFIG,
       count: null,
+      countAdminUser: null,
       itemsContributionLinks: [],
-      itemsModerators: [
-        { id: 1, name: 'name1' },
-        { id: 2, name: 'name2' },
-        { id: 3, name: 'name3' },
-      ],
+      itemsAdminUser: [],
       supportMail: 'support@supportemail.de',
       membersCount: '1203',
       totalUsers: null,
@@ -117,6 +116,20 @@ export default {
         })
         .catch(() => {
           this.toastError('listContributionLinks has no result, use default data')
+        })
+    },
+    async getAdminUsers() {
+      this.$apollo
+        .query({
+          query: searchAdminUsers,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.countAdminUser = result.data.searchAdminUsers.userCount
+          this.itemsAdminUser = result.data.searchAdminUsers.userList
+        })
+        .catch(() => {
+          this.toastError('searchAdminUsers has no result, use default data')
         })
     },
     async getCommunityStatistics() {
@@ -145,6 +158,7 @@ export default {
   },
   created() {
     this.getContributionLinks()
+    this.getAdminUsers()
     this.getCommunityStatistics()
     this.updateTransactions(0)
   },

@@ -243,3 +243,15 @@ export const communityStatistics = gql`
     }
   }
 `
+
+export const searchAdminUsers = gql`
+  query {
+    searchAdminUsers {
+      userCount
+      userList {
+        firstName
+        lastName
+      }
+    }
+  }
+`
