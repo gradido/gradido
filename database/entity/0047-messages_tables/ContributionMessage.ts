@@ -1,8 +1,10 @@
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Contribution } from '../Contribution'
 
-@Entity('messages', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
-export class Message extends BaseEntity {
+@Entity('contribution_messages', {
+  engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+})
+export class ContributionMessage extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
@@ -30,4 +32,7 @@ export class Message extends BaseEntity {
 
   @Column({ name: 'deleted_by', default: null, unsigned: true, nullable: true })
   deletedBy: number
+
+  @Column({ length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  type: string
 }

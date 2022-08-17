@@ -10,7 +10,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
-    CREATE TABLE IF NOT EXISTS \`messages\` (
+    CREATE TABLE IF NOT EXISTS \`contribution_messages\` (
       \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
       \`contribution_id\` int(10) unsigned NOT NULL,
       \`user_id\` int(10) unsigned NOT NULL,
@@ -19,11 +19,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`updated_at\` datetime DEFAULT NULL,
       \`deleted_at\` datetime DEFAULT NULL,
       \`deleted_by\` int(10) unsigned DEFAULT NULL,
+      \`type\` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT "DIALOG",
       PRIMARY KEY (\`id\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(`DROP TABLE IF EXISTS \`messages\`;`)
+  await queryFn(`DROP TABLE IF EXISTS \`contribution_messages\`;`)
 }

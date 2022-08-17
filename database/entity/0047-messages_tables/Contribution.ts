@@ -11,7 +11,7 @@ import {
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
-import { Message } from '../Message'
+import { ContributionMessage } from '../ContributionMessage'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {
@@ -83,7 +83,7 @@ export class Contribution extends BaseEntity {
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 
-  @OneToMany(() => Message, (message) => message.contribution)
+  @OneToMany(() => ContributionMessage, (message) => message.contribution)
   @JoinColumn({ name: 'contribution_id' })
-  messages?: Message[]
+  messages?: ContributionMessage[]
 }
