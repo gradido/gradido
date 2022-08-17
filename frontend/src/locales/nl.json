@@ -316,7 +316,7 @@
     "nullTransactions": "Je hebt nog geen transacties op jouw rekening.",
     "receiverDeleted": "De rekening van de ontvanger werd verwijderd",
     "receiverNotFound": "Ontvanger niet gevonden",
-    "show_all": "Alle <strong>{count}</strong> Transacties bekijken "
+    "show_all": "Alle <strong>{count}</strong> Transacties bekijken."
   },
   "transaction-link": {
     "send_you": "stuurt jou"
