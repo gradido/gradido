@@ -48,39 +48,39 @@ describe('Navbar', () => {
         expect(wrapper.find('.navbar-toggler').exists()).toBeTruthy()
       })
 
-      it('has twelve b-nav-item in the navbar', () => {
+      it('has thirteen b-nav-item in the navbar', () => {
         expect(wrapper.findAll('.nav-item')).toHaveLength(13)
       })
 
-      it('has first nav-item "amount GDD" in navbar', () => {
+      it('has nav-item "amount GDD" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('1234 GDD')
       })
 
-      it('has first nav-item "navigation.overview" in navbar', () => {
+      it('has nav-item "navigation.overview" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('navigation.overview')
       })
 
-      it('has first nav-item "navigation.send" in navbar', () => {
+      it('has nav-item "navigation.send" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('navigation.send')
       })
 
-      it('has first nav-item "navigation.transactions" in navbar', () => {
+      it('has nav-item "navigation.transactions" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.transactions')
       })
 
-      it('has first nav-item "gdt.gdt" in navbar', () => {
+      it('has nav-item "gdt.gdt" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('gdt.gdt')
       })
 
-      it('has first nav-item "navigation.community" in navbar', () => {
+      it('has nav-item "navigation.community" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.community')
       })
 
-      it('has first nav-item "navigation.profile" in navbar', () => {
+      it('has nav-item "navigation.profile" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.profile')
       })
 
-      it('has first nav-item "navigation.info" in navbar', () => {
+      it('has nav-item "navigation.info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.info')
       })
     })
@@ -93,11 +93,11 @@ describe('Navbar', () => {
         )
       })
 
-      it('has first nav-item "navigation.admin_area" in navbar', () => {
+      it('has nav-item "navigation.admin_area" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.admin_area')
       })
 
-      it('has first nav-item "navigation.logout" in navbar', () => {
+      it('has nav-item "navigation.logout" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(12).text()).toEqual('navigation.logout')
       })
     })
@@ -108,11 +108,11 @@ describe('Navbar', () => {
         wrapper = Wrapper()
       })
 
-      it('has first nav-item "navigation.admin_area" in navbar', () => {
+      it('has nav-item "navigation.admin_area" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.admin_area')
       })
 
-      it('has first nav-item "navigation.logout" in navbar', () => {
+      it('has nav-item "navigation.logout" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.logout')
       })
     })
