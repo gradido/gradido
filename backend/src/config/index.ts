@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0045-add_denied_type_and_status_to_contributions',
+  DB_VERSION: '0046-adapt_users_table_for_gradidoid',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
