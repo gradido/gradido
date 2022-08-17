@@ -81,7 +81,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
+            expect(wrapper.findAll('span.locales').at(3).text()).toBe('Français')
           })
         })
         describe('navigator language is "nl-NL"', () => {
@@ -90,7 +90,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Dutch')
+            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Holandés')
           })
         })
         describe('navigator language is "it-IT" (not supported)', () => {
@@ -117,7 +117,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'de'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.findAll('span.locales').at(1).text()).toBe('Deutsch')
+          expect(wrapper.findAll('span.locales').at(1).text()).toBe('English')
         })
       })
       describe('language "es" in store', () => {
@@ -125,7 +125,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'es'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Español')
+          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Deutsch')
         })
       })
       describe('language "fr" in store', () => {
@@ -133,7 +133,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'fr'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.findAll('span.locales').at(3).text()).toBe('French')
+          expect(wrapper.findAll('span.locales').at(3).text()).toBe('Español')
         })
       })
       describe('language "nl" in store', () => {
@@ -168,7 +168,7 @@ describe('LanguageSwitch', () => {
 
     describe('calls the API', () => {
       it("with locale 'de'", () => {
-        wrapper.findAll('span.locales').at(0).trigger('click')
+        wrapper.findAll('span.locales').at(2).trigger('click')
         expect(updateUserInfosMutationMock).toBeCalledWith(
           expect.objectContaining({ variables: { locale: 'de' } }),
         )

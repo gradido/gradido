@@ -87,7 +87,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('fr-FR')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.find('button.dropdown-toggle').text()).toBe('French - fr')
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Français - fr')
           })
         })
 
@@ -98,7 +98,7 @@ describe('LanguageSwitch', () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Dutch - nl')
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
           })
         })
 
@@ -148,7 +148,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'fr'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.find('button.dropdown-toggle').text()).toBe('French - fr')
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Français - fr')
         })
       })
 
@@ -157,7 +157,7 @@ describe('LanguageSwitch', () => {
           wrapper.vm.$store.state.language = 'nl'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Dutch - nl')
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
         })
       })
 
@@ -179,11 +179,11 @@ describe('LanguageSwitch', () => {
         })
 
         it('has French as second language to choose', () => {
-          expect(wrapper.findAll('li').at(3).text()).toBe('French')
+          expect(wrapper.findAll('li').at(3).text()).toBe('Français')
         })
 
         it('has Dutch as second language to choose', () => {
-          expect(wrapper.findAll('li').at(4).text()).toBe('Dutch')
+          expect(wrapper.findAll('li').at(4).text()).toBe('Holandés')
         })
       })
     })
