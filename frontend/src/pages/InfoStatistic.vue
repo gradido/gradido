@@ -61,19 +61,19 @@
         </div>
         <div>
           {{ $t('statistic.totalGradidoCreated') }}
-          <span class="h4">{{ totalGradidoCreated }}</span>
+          <span class="h4">{{ totalGradidoCreated | GDD }}</span>
         </div>
         <div>
           {{ $t('statistic.totalGradidoDecayed') }}
-          <span class="h4">{{ totalGradidoDecayed }}</span>
+          <span class="h4">{{ totalGradidoDecayed | GDD }}</span>
         </div>
         <div>
           {{ $t('statistic.totalGradidoAvailable') }}
-          <span class="h4">{{ totalGradidoAvailable }}</span>
+          <span class="h4">{{ totalGradidoAvailable | GDD }}</span>
         </div>
         <div>
           {{ $t('statistic.totalGradidoUnbookedDecayed') }}
-          <span class="h4">{{ totalGradidoUnbookedDecayed }}</span>
+          <span class="h4">{{ totalGradidoUnbookedDecayed | GDD }}</span>
         </div>
       </div>
     </b-container>
