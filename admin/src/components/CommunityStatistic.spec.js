@@ -5,6 +5,7 @@ const localVue = global.localVue
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $n: jest.fn((n) => n),
 }
 
 const propsData = {
