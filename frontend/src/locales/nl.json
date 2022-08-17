@@ -294,7 +294,7 @@
       "heading": " Schrijf je in door alle gegevens volledig en in de juiste velden in te vullen.",
       "lowercase": "Een kleine letter is noodzakelijk.",
       "minimum": "Minstens 8 tekens.",
-      "no-whitespace": "Geen spaties en tabs ",
+      "no-whitespace": "Geen spaties en tabs",
       "one_number": "Getal noodzakelijk.",
       "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
       "uppercase": "Hoofdletter noodzakelijk."
