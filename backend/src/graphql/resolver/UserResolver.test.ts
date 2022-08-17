@@ -21,6 +21,7 @@ import { ContributionLink } from '@model/ContributionLink'
 
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -886,6 +887,38 @@ bei Gradidio sei dabei!`,
         await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        await query({
+          query: login,
+          variables: {
+            email: 'bibi@bloxberg.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      it('finds peter@lustig.de', async () => {
+        await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              searchAdminUsers: {
+                userCount: 1,
+                userList: expect.arrayContaining([
+                  expect.objectContaining({
+                    firstName: 'Peter',
+                    lastName: 'Lustig',
+                  }),
+                ]),
+              },
+            },
           }),
         )
       })
