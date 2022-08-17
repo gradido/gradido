@@ -20,6 +20,7 @@ import { ContributionLink } from '@model/ContributionLink'
 // import { TransactionLink } from '@entity/TransactionLink'
 
 import { logger } from '@test/testSetup'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -111,6 +112,8 @@ describe('UserResolver', () => {
           expect(user).toEqual([
             {
               id: expect.any(Number),
+              gradidoID: expect.any(String),
+              alias: null,
               email: 'peter@lustig.de',
               firstName: 'Peter',
               lastName: 'Lustig',
@@ -129,6 +132,10 @@ describe('UserResolver', () => {
               contributionLinkId: null,
             },
           ])
+          const valUUID = validateUUID(user[0].gradidoID)
+          const verUUID = versionUUID(user[0].gradidoID)
+          expect(valUUID).toEqual(true)
+          expect(verUUID).toEqual(4)
         })
 
         it('creates an email optin', () => {
@@ -198,7 +205,7 @@ describe('UserResolver', () => {
       it('sets "de" as default language', async () => {
         await mutate({
           mutation: createUser,
-          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
+          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'fr' },
         })
         await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([

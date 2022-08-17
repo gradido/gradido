@@ -1857,11 +1857,17 @@ describe('AdminResolver', () => {
           })
         })
 
+        // TODO: Set this test in new location to have datas
         describe('listContributionLinks', () => {
-          it('returns an error', async () => {
+          it('returns an empty object', async () => {
             await expect(query({ query: listContributionLinks })).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('401 Unauthorized')],
+                data: {
+                  listContributionLinks: {
+                    count: 0,
+                    links: [],
+                  },
+                },
               }),
             )
           })
