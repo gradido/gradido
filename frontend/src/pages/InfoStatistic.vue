@@ -104,7 +104,7 @@ export default {
     }
   },
   methods: {
-    async getContributionLinks() {
+    getContributionLinks() {
       this.$apollo
         .query({
           query: listContributionLinks,
@@ -118,7 +118,7 @@ export default {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
-    async getAdminUsers() {
+    getAdminUsers() {
       this.$apollo
         .query({
           query: searchAdminUsers,
@@ -132,7 +132,7 @@ export default {
           this.toastError('searchAdminUsers has no result, use default data')
         })
     },
-    async getCommunityStatistics() {
+    getCommunityStatistics() {
       this.$apollo
         .query({
           query: communityStatistics,
@@ -149,7 +149,7 @@ export default {
             result.data.communityStatistics.totalGradidoUnbookedDecayed
         })
         .catch(() => {
-          this.toastError('listContributionLinks has no result, use default data')
+          this.toastError('communityStatistics has no result, use default data')
         })
     },
     updateTransactions(pagination) {
