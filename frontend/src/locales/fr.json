@@ -238,7 +238,7 @@
   "session": {
     "extend": "Rester connecter",
     "lightText": "S´il n´apparaît aucune activité pendant plus de 10 minutes, la session expirera pour des raisons de sécurité.",
-    "logoutIn": "Se déconnecter",
+    "logoutIn": "Se déconnecter ",
     "warningText": "Êtes-vous toujours connecté?"
   },
   "settings": {
