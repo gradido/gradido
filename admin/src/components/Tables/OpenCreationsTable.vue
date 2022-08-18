@@ -21,6 +21,9 @@
         >
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
+        <b-button v-else @click="rowToggleDetails(row, 0)">
+          <b-icon icon="chat-dots"></b-icon>
+        </b-button>
       </template>
       <template #cell(confirm)="row">
         <b-button variant="success" size="md" @click="$emit('show-overlay', row.item)" class="mr-2">
@@ -36,7 +39,7 @@
           @row-toggle-details="rowToggleDetails"
         >
           <template #show-creation>
-            <div>
+            <div v-if="row.item.moderator">
               <edit-creation-formular
                 type="singleCreation"
                 :creation="row.item.creation"
@@ -46,6 +49,14 @@
                 @update-creation-data="updateCreationData"
                 @update-user-data="updateUserData"
               />
+            </div>
+            <div v-else>
+              <contribution-messages-formular />
+              <hr />
+              <contribution-messages-list />
+              <br />
+              <br />
+              <br />
             </div>
           </template>
         </row-details>
@@ -58,6 +69,8 @@
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 import RowDetails from '../RowDetails.vue'
 import EditCreationFormular from '../EditCreationFormular.vue'
+import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular.vue'
+import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
 
 export default {
   name: 'OpenCreationsTable',
@@ -65,6 +78,8 @@ export default {
   components: {
     EditCreationFormular,
     RowDetails,
+    ContributionMessagesFormular,
+    ContributionMessagesList,
   },
   props: {
     items: {
