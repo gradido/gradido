@@ -39,6 +39,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "26.6.3",
     "jest-canvas-mock": "^2.3.1",
+    "jest-environment-jsdom-sixteen": "^2.0.0",
     "portal-vue": "^2.1.7",
     "qrcanvas-vue": "2.1.1",
     "regenerator-runtime": "^0.13.9",
