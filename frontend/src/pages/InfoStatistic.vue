@@ -17,8 +17,8 @@
       <small>
         {{
           $t('community.openContributionLinkText', {
-            _name_: CONFIG.COMMUNITY_NAME,
-            _count_: count,
+            name: CONFIG.COMMUNITY_NAME,
+            count,
           })
         }}
       </small>
