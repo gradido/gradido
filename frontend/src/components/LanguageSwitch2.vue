@@ -8,9 +8,6 @@
       :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
     >
       <span v-if="lang.code === $store.state.language" class="locales mr-1">{{ lang.name }}</span>
-      <!-- <span v-if="lang.code === $store.state.language" class="ml-3">
-        {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
-      </span>-->
     </span>
     <b-icon v-b-toggle.collapse-1 icon="caret-down-fill" aria-hidden="true"></b-icon>
     <b-collapse id="collapse-1" class="mt-4">
