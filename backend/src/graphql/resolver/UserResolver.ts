@@ -2,7 +2,7 @@ import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
@@ -33,6 +33,11 @@ import {
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
 import { UserContactType } from '../enum/UserContactType'
+import { UserRepository } from '@/typeorm/repository/User'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { v4 as uuidv4 } from 'uuid'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -44,7 +49,7 @@ const isPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
-const LANGUAGES = ['de', 'en']
+const LANGUAGES = ['de', 'en', 'es']
 const DEFAULT_LANGUAGE = 'de'
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
@@ -202,7 +207,7 @@ const newEmailOptIn = (userId: number): LoginEmailOptIn => {
 // if optIn does not exits, it is created
 export const checkOptInCode = async (
   optInCode: LoginEmailOptIn | undefined,
-  userId: number,
+  user: DbUser,
   optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
 ): Promise<LoginEmailOptIn> => {
   logger.info(`checkOptInCode... ${optInCode}`)
@@ -222,26 +227,33 @@ export const checkOptInCode = async (
     optInCode.updatedAt = new Date()
     optInCode.resendCount++
   } else {
-    logger.trace('create new OptIn for userId=' + userId)
-    optInCode = newEmailOptIn(userId)
+    logger.trace('create new OptIn for userId=' + user.id)
+    optInCode = newEmailOptIn(user.id)
   }
-  optInCode.emailOptInTypeId = optInType
+
+  if (user.emailChecked) {
+    optInCode.emailOptInTypeId = optInType
+  }
   await LoginEmailOptIn.save(optInCode).catch(() => {
     logger.error('Unable to save optin code= ' + optInCode)
     throw new Error('Unable to save optin code.')
   })
-  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${userId}`)
+  logger.debug(`checkOptInCode...successful: ${optInCode} for userid=${user.id}`)
   return optInCode
 }
 */
 export const checkEmailVerificationCode = async (
   emailContact: DbUserContact,
-  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER
+  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
 ): Promise<DbUserContact> => {
   logger.info(`checkEmailVerificationCode... ${emailContact}`)
   if (emailContact.updatedAt) {
     if (!canEmailResend(emailContact.updatedAt)) {
-      logger.error(`email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} minutes ago`)
+      logger.error(
+        `email already sent less than ${printTimeDuration(
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
+      )
       throw new Error(
         `email already sent less than ${printTimeDuration(
           CONFIG.EMAIL_CODE_REQUEST_TIME,
@@ -264,9 +276,22 @@ export const checkEmailVerificationCode = async (
   return emailContact
 }
 
-export const activationLink = (optInCode: LoginEmailOptIn): string => {
-  logger.debug(`activationLink(${LoginEmailOptIn})...`)
-  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
+export const activationLink = (verificationCode: BigInt): string => {
+  logger.debug(`activationLink(${verificationCode})...`)
+  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
+}
+
+const newGradidoID = async (): Promise<string> => {
+  let gradidoId: string
+  let countIds: number
+  do {
+    gradidoId = uuidv4()
+    countIds = await DbUser.count({ where: { gradidoID: gradidoId } })
+    if (countIds > 0) {
+      logger.info('Gradido-ID creation conflict...')
+    }
+  } while (countIds > 0)
+  return gradidoId
 }
 
 @Resolver()
@@ -407,11 +432,13 @@ export class UserResolver {
     logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
 
     if (foundUser) {
-      logger.info('User already exists with this email=' + email)
+      // ATTENTION: this logger-message will be exactly expected during tests
+      logger.info(`User already exists with this email=${email}`)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
       const user = new User(communityDbUser)
       user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+      user.gradidoID = uuidv4()
       user.email = email
       user.firstName = firstName
       user.lastName = lastName
@@ -441,6 +468,7 @@ export class UserResolver {
     // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     // const emailHash = getEmailHash(email)
+    const gradidoID = await newGradidoID()
 
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
@@ -450,6 +478,8 @@ export class UserResolver {
 
     const dbUser = new DbUser()
     // dbUser.emailContact = dbEmailContact
+    dbUser.gradidoID = gradidoID
+    // dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     //    dbUser.emailHash = emailHash
@@ -572,14 +602,17 @@ export class UserResolver {
     // let optInCode = await LoginEmailOptIn.findOne({
     //  userId: user.id,
     // })
-    let optInCode = user.emailContact.emailVerificationCode
-    optInCode = await checkEmailVerificationCode(user.emailContact, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
+    // let optInCode = user.emailContact.emailVerificationCode
+    const dbUserContact = await checkEmailVerificationCode(
+      user.emailContact,
+      OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
+    )
 
-    optInCode = await checkOptInCode(optInCode, user.id, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
-    logger.info(`optInCode for ${email}=${optInCode}`)
+    // optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
+    logger.info(`optInCode for ${email}=${dbUserContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink(optInCode),
+      link: activationLink(dbUserContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -589,7 +622,7 @@ export class UserResolver {
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(optInCode)}`)
+      logger.debug(`Reset password link: ${activationLink(dbUserContact.emailVerificationCode)}`)
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
@@ -611,13 +644,21 @@ export class UserResolver {
     }
 
     // Load code
+    /*
     const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: code }).catch(() => {
       logger.error('Could not login with emailVerificationCode')
       throw new Error('Could not login with emailVerificationCode')
     })
-    logger.debug('optInCode loaded...')
+    */
+    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: code }).catch(
+      () => {
+        logger.error('Could not login with emailVerificationCode')
+        throw new Error('Could not login with emailVerificationCode')
+      },
+    )
+    logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInValid(optInCode)) {
+    if (!isEmailVerificationCodeValid(userContact.updatedAt)) {
       logger.error(
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -628,7 +669,7 @@ export class UserResolver {
     logger.debug('optInCode is valid...')
 
     // load user
-    const user = await DbUser.findOneOrFail({ id: optInCode.userId }).catch(() => {
+    const user = await DbUser.findOneOrFail({ id: userContact.userId }).catch(() => {
       logger.error('Could not find corresponding Login User')
       throw new Error('Could not find corresponding Login User')
     })
@@ -652,10 +693,10 @@ export class UserResolver {
     logger.debug('Passphrase is valid...')
 
     // Activate EMail
-    user.emailChecked = true
+    userContact.emailChecked = true
 
     // Update Password
-    const passwordHash = SecretKeyCryptographyCreateKey(user.email, password) // return short and long hash
+    const passwordHash = SecretKeyCryptographyCreateKey(userContact.email, password) // return short and long hash
     const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
@@ -686,11 +727,11 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (optInCode.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
+    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
-        await klicktippSignIn(user.email, user.language, user.firstName, user.lastName)
+        await klicktippSignIn(userContact.email, user.language, user.firstName, user.lastName)
         logger.debug(
-          `klicktippSignIn(${user.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
+          `klicktippSignIn(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
         )
       } catch (e) {
         logger.error('Error subscribe to klicktipp:' + e)
@@ -709,10 +750,10 @@ export class UserResolver {
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
     logger.info(`queryOptIn(${optIn})...`)
-    const optInCode = await LoginEmailOptIn.findOneOrFail({ verificationCode: optIn })
-    logger.debug(`found optInCode=${optInCode}`)
+    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: optIn })
+    logger.debug(`found optInCode=${userContact}`)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
-    if (!isOptInValid(optInCode)) {
+    if (!isEmailVerificationCodeValid(userContact.updatedAt)) {
       logger.error(
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
@@ -760,7 +801,10 @@ export class UserResolver {
       }
 
       // TODO: This had some error cases defined - like missing private key. This is no longer checked.
-      const oldPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, password)
+      const oldPasswordHash = SecretKeyCryptographyCreateKey(
+        userEntity.emailContact.email,
+        password,
+      )
       if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
         logger.error(`Old password is invalid`)
         throw new Error(`Old password is invalid`)
@@ -768,7 +812,10 @@ export class UserResolver {
 
       const privKey = SecretKeyCryptographyDecrypt(userEntity.privKey, oldPasswordHash[1])
       logger.debug('oldPassword decrypted...')
-      const newPasswordHash = SecretKeyCryptographyCreateKey(userEntity.email, passwordNew) // return short and long hash
+      const newPasswordHash = SecretKeyCryptographyCreateKey(
+        userEntity.emailContact.email,
+        passwordNew,
+      ) // return short and long hash
       logger.debug('newPasswordHash created...')
       const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
       logger.debug('PrivateKey encrypted...')
@@ -813,6 +860,36 @@ export class UserResolver {
     logger.debug(`has ElopageBuys = ${elopageBuys}`)
     return elopageBuys
   }
+
+  @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
+  @Query(() => SearchAdminUsersResult)
+  async searchAdminUsers(
+    @Args()
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+  ): Promise<SearchAdminUsersResult> {
+    const userRepository = getCustomRepository(UserRepository)
+
+    const [users, count] = await userRepository.findAndCount({
+      where: {
+        isAdmin: Not(IsNull()),
+      },
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      userCount: count,
+      userList: users.map((user) => {
+        return {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      }),
+    }
+  }
 }
 
 async function findUserByEmail(email: string): Promise<DbUser> {
@@ -847,7 +924,10 @@ const isOptInValid = (optIn: LoginEmailOptIn): boolean => {
   return isTimeExpired(optIn, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 */
-const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
+const isEmailVerificationCodeValid = (updatedAt: Date | null): boolean => {
+  if (updatedAt == null) {
+    return true
+  }
   return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
 }
 /*
@@ -875,4 +955,3 @@ export const printTimeDuration = (duration: number): string => {
   if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
   return result
 }
-

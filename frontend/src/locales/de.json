@@ -55,7 +55,8 @@
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
-    "updated": "Der Beitrag wurde geändert."
+    "updated": "Der Beitrag wurde geändert.",
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
@@ -117,6 +118,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
+    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -151,8 +153,8 @@
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
-    "copy": "kopieren",
-    "copy-with-text": "Link und Text kopieren",
+    "copy-link": "Link kopieren",
+    "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
     "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
@@ -204,8 +206,8 @@
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
@@ -244,6 +246,7 @@
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {

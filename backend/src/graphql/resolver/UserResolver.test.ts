@@ -5,7 +5,7 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } fro
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin, queryOptIn } from '@/seeds/graphql/queries'
+import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
@@ -20,6 +20,8 @@ import { ContributionLink } from '@model/ContributionLink'
 // import { TransactionLink } from '@entity/TransactionLink'
 
 import { logger } from '@test/testSetup'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -132,6 +134,10 @@ describe('UserResolver', () => {
               contributionLinkId: null,
             },
           ])
+          const valUUID = validateUUID(user[0].gradidoID)
+          const verUUID = versionUUID(user[0].gradidoID)
+          expect(valUUID).toEqual(true)
+          expect(verUUID).toEqual(4)
         })
 
         it('creates an email optin', () => {
@@ -201,7 +207,7 @@ describe('UserResolver', () => {
       it('sets "de" as default language', async () => {
         await mutate({
           mutation: createUser,
-          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'es' },
+          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'fr' },
         })
         await expect(User.find()).resolves.toEqual(
           expect.arrayContaining([
@@ -871,6 +877,51 @@ bei Gradidio sei dabei!`,
             )
           })
         })
+      })
+    })
+  })
+
+  describe('searchAdminUsers', () => {
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, peterLustig)
+        await query({
+          query: login,
+          variables: {
+            email: 'bibi@bloxberg.de',
+            password: 'Aa12345_',
+          },
+        })
+      })
+
+      it('finds peter@lustig.de', async () => {
+        await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
+          expect.objectContaining({
+            data: {
+              searchAdminUsers: {
+                userCount: 1,
+                userList: expect.arrayContaining([
+                  expect.objectContaining({
+                    firstName: 'Peter',
+                    lastName: 'Lustig',
+                  }),
+                ]),
+              },
+            },
+          }),
+        )
       })
     })
   })

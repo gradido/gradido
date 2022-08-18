@@ -2,14 +2,16 @@
 
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
+import { UserContact } from '@entity/UserContact'
 // import { UserContact as EmailContact } from '@entity/UserContact'
 import { User } from '@model/User'
 
 const communityDbUser: dbUser = {
   id: -1,
-  gradidoID: '11111111-2222-3333-4444-55555555',
+  gradidoID: '11111111-2222-4333-4444-55555555',
   alias: '',
   // email: 'support@gradido.net',
+  emailContact: new UserContact(),
   firstName: 'Gradido',
   lastName: 'Akademie',
   pubKey: Buffer.from(''),

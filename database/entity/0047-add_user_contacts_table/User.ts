@@ -47,10 +47,8 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact
 
-  /*
   @Column({ name: 'email_id', type: 'int', unsigned: true, nullable: true, default: null })
   emailId?: number | null
-  */
 
   @Column({
     name: 'first_name',
