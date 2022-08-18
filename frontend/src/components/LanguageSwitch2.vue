@@ -2,7 +2,6 @@
   <div class="language-switch">
     <span
       v-for="lang in locales"
-      @click.prevent="saveLocale(lang.code)"
       :key="lang.code"
       class="pointer"
       :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
@@ -18,7 +17,9 @@
         class="pointer"
         :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
       >
-        <span v-if="lang.code !== $store.state.language" class="locales">{{ lang.name }}</span>
+        <span v-if="lang.code !== $store.state.language" v-b-toggle.collapse-1 class="locales">
+          {{ lang.name }}
+        </span>
         <span
           v-if="
             lang.code !== $store.state.language &&
