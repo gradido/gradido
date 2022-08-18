@@ -4,10 +4,6 @@
       <b-jumbotron bg-variant="info" text-variant="white" border-variant="dark">
         <template #header>{{ $t('statistic.name') }}</template>
 
-        <template #lead>
-          {{ CONFIG.COMMUNITY_NAME }}
-        </template>
-
         <hr class="my-4" />
 
         <div>

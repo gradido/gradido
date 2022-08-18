@@ -32,10 +32,6 @@ const endpoints = {
   WALLET_URL: process.env.WALLET_URL || 'http://localhost/login',
 }
 
-const community = {
-  COMMUNITY_NAME: process.env.COMMUNITY_NAME || 'Gradido Entwicklung',
-}
-
 const debug = {
   DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' || false,
 }
@@ -57,7 +53,6 @@ const CONFIG = {
   ...version,
   ...environment,
   ...endpoints,
-  ...community,
   ...debug,
 }
 
