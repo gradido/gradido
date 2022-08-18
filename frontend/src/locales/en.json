@@ -311,7 +311,7 @@
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "GDD total created",
     "totalGradidoDecayed": "Total GDD decayed",
-    "totalGradidoUnbookedDecayed": "GDD not booked decayed"
+    "totalGradidoUnbookedDecayed": "Total unbooked GDD decay"
   },
   "success": "Success",
   "time": {
