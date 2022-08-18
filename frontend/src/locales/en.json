@@ -30,7 +30,7 @@
     "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
     "openContributionLinks": "open Contribution links list",
-    "openContributionLinkText": "The following {_count_} automatic creations are currently provided by the '{_name_}' community.",
+    "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
     "statistic": "Statistics",
     "submitContribution": "Submit contribution",
