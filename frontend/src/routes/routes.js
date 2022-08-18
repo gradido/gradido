@@ -55,6 +55,13 @@ const routes = [
     },
   },
   {
+    path: '/information',
+    component: () => import('@/pages/InfoStatistic.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/login/:code?',
     component: () => import('@/pages/Login.vue'),
   },
