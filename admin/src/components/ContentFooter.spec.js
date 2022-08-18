@@ -22,7 +22,7 @@ describe('ContentFooter', () => {
       wrapper = Wrapper()
     })
 
-    it('renders the Div Element ".content-footer"', () => {
+    it('renders the div element ".content-footer"', () => {
       expect(wrapper.find('div.content-footer').exists()).toBe(true)
     })
   })
