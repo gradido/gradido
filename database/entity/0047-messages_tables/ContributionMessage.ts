@@ -28,7 +28,7 @@ export class ContributionMessage extends BaseEntity {
   updatedAt: Date
 
   @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date
+  deletedAt: Date | null
 
   @Column({ name: 'deleted_by', default: null, unsigned: true, nullable: true })
   deletedBy: number
