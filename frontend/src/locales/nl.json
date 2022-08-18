@@ -26,8 +26,13 @@
     "community": "Gemeenschap",
     "continue-to-registration": "Verder ter registratie",
     "current-community": "Actuele gemeenschap",
+    "members": "Leden",
+    "moderators": "Moderators",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
+    "openContributionLinks": "openbare lijst van bijdragen",
+    "openContributionLinkText": "De volgende {count} automatische creaties worden momenteel aangeboden door de gemeenschap \"{name}\".",
     "other-communities": "Verdere gemeenschappen",
+    "statistic": "Statistieken",
     "submitContribution": "Bijdrage indienen",
     "switch-to-this-community": "naar deze gemeenschap wisselen"
   },
@@ -59,7 +64,8 @@
     "yourActivity": "Voer een activiteit in!"
   },
   "contribution-link": {
-    "thanksYouWith": "bedankt jou met"
+    "thanksYouWith": "bedankt jou met",
+    "unique": "(uniek)"
   },
   "decay": {
     "before_startblock_transaction": "Deze transactie heeft geen vergankelijkheid.",
@@ -224,6 +230,7 @@
   "navigation": {
     "admin_area": "Beheerder",
     "community": "Gemeenschap",
+    "info": "Informatie",
     "logout": "Afmelden",
     "members_area": "Ledenbestand",
     "overview": "Overzicht",
@@ -299,6 +306,14 @@
       "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
       "uppercase": "Hoofdletter noodzakelijk."
     }
+  },
+  "statistic": {
+    "activeUsers": "Actieve leden",
+    "deletedUsers": "Verwijderde leden",
+    "totalGradidoAvailable": "Totaal GDD in omloop",
+    "totalGradidoCreated": "Totaal GDD geschept",
+    "totalGradidoDecayed": "Totaal GDD vervallen",
+    "totalGradidoUnbookedDecayed": "Totaal niet geboekte GDD vervallen"
   },
   "success": "Succes",
   "time": {

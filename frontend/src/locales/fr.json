@@ -26,8 +26,13 @@
     "community": "Communauté",
     "continue-to-registration": "Continuez l´inscription",
     "current-community": "Communauté actuelle",
+    "members": "Membres",
+    "moderators": "Modérateurs",
     "myContributions": "Mes contributions aux biens communs",
+    "openContributionLinks": "liste de liens de contribution publique",
+    "openContributionLinkText": "Les {count} créations automatiques suivantes sont actuellement fournies par la communauté \"{name}\".",
     "other-communities": "Autres communautés",
+    "statistic": "Statistiques",
     "submitContribution": "Donner une contribution",
     "switch-to-this-community": "Passer à cette communauté"
   },
@@ -59,7 +64,8 @@
     "yourActivity": "Veuillez saisir une activité!"
   },
   "contribution-link": {
-    "thanksYouWith": "vous remercie avec"
+    "thanksYouWith": "vous remercie avec",
+    "unique": "(unique)"
   },
   "decay": {
     "before_startblock_transaction": "Cette transaction n´est pas péremptoire.",
@@ -224,6 +230,7 @@
   "navigation": {
     "admin_area": "Partie administrative",
     "community": "Communauté",
+    "info": "Information",
     "logout": "Déconnexion",
     "members_area": "Partie réservée aux membres",
     "overview": "Aperçu",
@@ -299,6 +306,14 @@
       "special-char": "Un caractère spécial requis (e.g. _ or ä)",
       "uppercase": "Une lettre majuscule requise."
     }
+  },
+  "statistic": {
+    "activeUsers": "Membres actifs",
+    "deletedUsers": "Membres supprimés",
+    "totalGradidoAvailable": "GDD total en circulation",
+    "totalGradidoCreated": "GDD total épuisé",
+    "totalGradidoDecayed": "GDD total annulé",
+    "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé Expiration"
   },
   "success": "Avec succès",
   "time": {
