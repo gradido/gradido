@@ -129,7 +129,7 @@ describe('router', () => {
           expect(component.default.name).toBe('InfoStatistic')
         })
       })
-      
+
       describe('gdt', () => {
         it('requires authorization', () => {
           expect(routes.find((r) => r.path === '/gdt').meta.requiresAuth).toBeTruthy()
