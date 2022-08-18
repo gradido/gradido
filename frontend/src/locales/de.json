@@ -65,7 +65,7 @@
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit",
-    "unique": "( einmalig )"
+    "unique": "(einmalig)"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
