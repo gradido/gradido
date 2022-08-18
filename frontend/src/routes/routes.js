@@ -55,7 +55,7 @@ const routes = [
     },
   },
   {
-    path: '/info',
+    path: '/information',
     component: () => import('@/pages/InfoStatistic.vue'),
     meta: {
       requiresAuth: true,

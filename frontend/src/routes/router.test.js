@@ -121,11 +121,11 @@ describe('router', () => {
 
       describe('info', () => {
         it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/info').meta.requiresAuth).toBeTruthy()
+          expect(routes.find((r) => r.path === '/information').meta.requiresAuth).toBeTruthy()
         })
 
         it('loads the "InfoStatistic" page', async () => {
-          const component = await routes.find((r) => r.path === '/info').component()
+          const component = await routes.find((r) => r.path === '/information').component()
           expect(component.default.name).toBe('InfoStatistic')
         })
       })

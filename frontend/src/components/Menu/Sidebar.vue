@@ -28,7 +28,7 @@
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             {{ $t('navigation.profile') }}
           </b-nav-item>
-          <b-nav-item to="/info" class="mb-3">
+          <b-nav-item to="/information" class="mb-3">
             <b-icon icon="info-circle" aria-hidden="true"></b-icon>
             {{ $t('navigation.info') }}
           </b-nav-item>
