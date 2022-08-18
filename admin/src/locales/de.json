@@ -107,8 +107,8 @@
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
   "statistic": {
-    "activeUsers": "aktive Mitglieder",
-    "deletedUsers": "gelöschte Mitglieder",
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
     "name": "Statistik",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
