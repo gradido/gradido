@@ -26,5 +26,5 @@ module.exports = {
   testMatch: ['**/?(*.)+(spec|test).js?(x)'],
   // snapshotSerializers: ['jest-serializer-vue'],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!vee-validate/dist/rules)'],
-  // testEnvironment: 'jest-environment-jsdom-sixteen', // not needed anymore since jest@26, see: https://www.npmjs.com/package/jest-environment-jsdom-sixteen
+  testEnvironment: 'jest-environment-jsdom-sixteen', // why this is still needed? should not be needed anymore since jest@26, see: https://www.npmjs.com/package/jest-environment-jsdom-sixteen
 }

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinkForm from './ContributionLinkForm.vue'
+import { toastErrorSpy } from '../../test/testSetup'
 
 const localVue = global.localVue
 
@@ -8,9 +9,13 @@ global.alert = jest.fn()
 const propsData = {
   contributionLinkData: {},
 }
+const apolloMutateMock = jest.fn().mockResolvedValue()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $apollo: {
+    mutate: apolloMutateMock,
+  },
 }
 
 // const mockAPIcall = jest.fn()
@@ -98,5 +103,17 @@ describe('ContributionLinkForm', () => {
     //     expect(wrapper.find('div.display-username').text()).toEqual('@username')
     //   })
     // })
+  })
+
+  describe('send createContributionLink with error', () => {
+    beforeEach(() => {
+      apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
+      wrapper = Wrapper()
+      wrapper.vm.onSubmit()
+    })
+
+    it('toasts an error message', () => {
+      expect(toastErrorSpy).toBeCalledWith('contributionLink.noStartDate')
+    })
   })
 })
