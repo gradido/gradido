@@ -65,7 +65,7 @@
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with",
-    "unique": "( unique )"
+    "unique": "(unique)"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
