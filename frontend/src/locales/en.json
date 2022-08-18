@@ -310,7 +310,7 @@
     "deletedUsers": "deleted members",
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "GDD total created",
-    "totalGradidoDecayed": "Total GDD decayed",
+    "totalGradidoDecayed": "Total GDD decay",
     "totalGradidoUnbookedDecayed": "Total unbooked GDD decay"
   },
   "success": "Success",
