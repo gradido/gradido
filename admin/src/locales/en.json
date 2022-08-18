@@ -113,7 +113,7 @@
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "Total created GDD",
     "totalGradidoDecayed": "Total GDD decay",
-    "totalGradidoUnbookedDecayed": "GDD not booked decayed",
+    "totalGradidoUnbookedDecayed": "Unbooked GDD decay",
     "totalUsers": "Members"
   },
   "status": "Status",
