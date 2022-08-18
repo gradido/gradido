@@ -24,7 +24,7 @@
         </div>
         <div>
           {{ $t('statistic.totalGradidoCreated') }}{{ $t('math.colon') }}
-          <b>{{ ($n(value.totalGradidoCreated), 'decimal') }} {{ $t('GDD') }}</b>
+          <b>{{ $n(value.totalGradidoCreated, 'decimal') }} {{ $t('GDD') }}</b>
           <small class="ml-5">{{ value.totalGradidoCreated }}</small>
         </div>
         <div>
