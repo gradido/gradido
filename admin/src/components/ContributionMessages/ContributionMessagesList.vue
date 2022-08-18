@@ -1,10 +1,12 @@
 <template>
-  <div class="contribution-messages-list">ContributionMessagesList
+  <div class="contribution-messages-list">
+    ContributionMessagesList
 
-      <b-container>
-          <div v-for="message in messages">
-          {{message}}</div>
-      </b-container>
+    <b-container>
+      <div v-for="message in messages">
+        {{ message }}
+      </div>
+    </b-container>
   </div>
 </template>
 <script>
