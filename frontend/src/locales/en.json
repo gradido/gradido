@@ -26,8 +26,13 @@
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
+    "members": "Members",
+    "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
+    "openContributionLinks": "open Contribution links list",
+    "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
+    "statistic": "Statistics",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
   },
@@ -59,7 +64,8 @@
     "yourActivity": "Please enter an activity!"
   },
   "contribution-link": {
-    "thanksYouWith": "thanks you with"
+    "thanksYouWith": "thanks you with",
+    "unique": "(unique)"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
@@ -224,6 +230,7 @@
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
+    "info": "Information",
     "logout": "Logout",
     "members_area": "Members area",
     "overview": "Overview",
@@ -299,6 +306,14 @@
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }
+  },
+  "statistic": {
+    "activeUsers": "Active members",
+    "deletedUsers": "Deleted members",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoCreated": "Total created GDD",
+    "totalGradidoDecayed": "Total GDD decay",
+    "totalGradidoUnbookedDecayed": "Total unbooked GDD decay"
   },
   "success": "Success",
   "time": {

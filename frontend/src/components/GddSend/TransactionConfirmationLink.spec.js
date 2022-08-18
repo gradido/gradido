@@ -47,7 +47,7 @@ describe('GddSend confirm', () => {
       })
     })
 
-    describe('has total balance equal 0', () => {
+    describe('has totalBalance under 0', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           balance: 0,

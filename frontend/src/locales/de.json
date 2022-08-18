@@ -26,8 +26,13 @@
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
+    "members": "Mitglieder",
+    "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge zum Gemeinwohl",
+    "openContributionLinks": "öffentliche Beitrags-Linkliste",
+    "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
+    "statistic": "Statistik",
     "submitContribution": "Beitrag einreichen",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
@@ -59,7 +64,8 @@
     "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
-    "thanksYouWith": "dankt dir mit"
+    "thanksYouWith": "dankt dir mit",
+    "unique": "(einmalig)"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -224,6 +230,7 @@
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
+    "info": "Information",
     "logout": "Abmelden",
     "members_area": "Mitgliederbereich",
     "overview": "Übersicht",
@@ -299,6 +306,14 @@
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
       "uppercase": "Großbuchstabe erforderlich."
     }
+  },
+  "statistic": {
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
+    "totalGradidoAvailable": "GDD insgesamt im Umlauf",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoUnbookedDecayed": "Gesamter ungebuchter GDD Verfall"
   },
   "success": "Erfolg",
   "time": {
