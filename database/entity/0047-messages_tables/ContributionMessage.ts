@@ -25,7 +25,7 @@ export class ContributionMessage extends BaseEntity {
   createdAt: Date
 
   @Column({ type: 'datetime', default: null, nullable: true, name: 'updated_at' })
-  updateAt: Date
+  updatedAt: Date
 
   @Column({ type: 'datetime', default: null, nullable: true, name: 'deleted_at' })
   deletedAt: Date
