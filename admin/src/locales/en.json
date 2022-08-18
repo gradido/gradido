@@ -111,7 +111,7 @@
     "deletedUsers": "deleted members",
     "name": "Statistic",
     "totalGradidoAvailable": "Total GDD in circulation",
-    "totalGradidoCreated": "GDD total created",
+    "totalGradidoCreated": "Total created GDD",
     "totalGradidoDecayed": "Total GDD decayed",
     "totalGradidoUnbookedDecayed": "GDD not booked decayed",
     "totalUsers": "Members"
