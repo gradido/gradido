@@ -3,7 +3,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
@@ -32,6 +32,10 @@ import {
   EventSendConfirmationEmail,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
+import { UserRepository } from '@/typeorm/repository/User'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
 import { v4 as uuidv4 } from 'uuid'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -751,6 +755,36 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.email)
     logger.debug(`has ElopageBuys = ${elopageBuys}`)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
+  @Query(() => SearchAdminUsersResult)
+  async searchAdminUsers(
+    @Args()
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+  ): Promise<SearchAdminUsersResult> {
+    const userRepository = getCustomRepository(UserRepository)
+
+    const [users, count] = await userRepository.findAndCount({
+      where: {
+        isAdmin: Not(IsNull()),
+      },
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      userCount: count,
+      userList: users.map((user) => {
+        return {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      }),
+    }
   }
 }
 
