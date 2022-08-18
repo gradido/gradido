@@ -306,8 +306,8 @@
     }
   },
   "statistic": {
-    "activeUsers": "aktive Mitglieder",
-    "deletedUsers": "gelöschte Mitglieder",
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
     "totalGradidoDecayed": "GDD insgesamt verfallen",
