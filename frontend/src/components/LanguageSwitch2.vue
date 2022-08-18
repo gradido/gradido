@@ -22,8 +22,14 @@
         :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
       >
         <span v-if="lang.code !== $store.state.language" class="locales">{{ lang.name }}</span>
-
-        <span v-if="lang.code !== $store.state.language" class="ml-3 mr-3">
+        <span
+          v-if="
+            lang.code !== $store.state.language &&
+            (indexOfSelectedLocale !== indexOfLastLocale ||
+              (indexOfSelectedLocale === indexOfLastLocale && index !== indexOfSecondLastLocale))
+          "
+          class="ml-3 mr-3"
+        >
           {{ locales.length - 1 > index ? $t('math.pipe') : '' }}
         </span>
       </span>
@@ -84,6 +90,17 @@ export default {
       }
       this.setLocale(locale)
       this.currentLanguage = object
+    },
+  },
+  computed: {
+    indexOfSelectedLocale() {
+      return this.locales.findIndex((element) => element.code === this.$store.state.language)
+    },
+    indexOfSecondLastLocale() {
+      return this.locales.length - 2
+    },
+    indexOfLastLocale() {
+      return this.locales.length - 1
     },
   },
   created() {
