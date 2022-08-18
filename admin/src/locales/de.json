@@ -113,7 +113,7 @@
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
     "totalGradidoDecayed": "GDD insgesamt verfallen",
-    "totalGradidoUnbookedDecayed": "GDD nicht gebuchter verfall",
+    "totalGradidoUnbookedDecayed": "Ungebuchter GDD Verfall",
     "totalUsers": "Mitglieder"
   },
   "status": "Status",
