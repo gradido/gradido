@@ -51,12 +51,7 @@
               />
             </div>
             <div v-else>
-              <contribution-messages-formular />
-              <hr />
               <contribution-messages-list />
-              <br />
-              <br />
-              <br />
             </div>
           </template>
         </row-details>
@@ -69,7 +64,7 @@
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 import RowDetails from '../RowDetails.vue'
 import EditCreationFormular from '../EditCreationFormular.vue'
-import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular.vue'
+
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
 
 export default {
@@ -78,7 +73,6 @@ export default {
   components: {
     EditCreationFormular,
     RowDetails,
-    ContributionMessagesFormular,
     ContributionMessagesList,
   },
   props: {
