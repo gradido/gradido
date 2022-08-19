@@ -311,7 +311,7 @@
     "activeUsers": "Membres actifs",
     "deletedUsers": "Membres supprimés",
     "totalGradidoAvailable": "GDD total en circulation",
-    "totalGradidoCreated": "GDD total épuisé",
+    "totalGradidoCreated": "GDD total puisé",
     "totalGradidoDecayed": "Total de GDD écoulé",
     "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé écoulé"
   },
