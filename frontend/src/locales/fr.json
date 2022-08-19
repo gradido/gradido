@@ -313,7 +313,7 @@
     "totalGradidoAvailable": "GDD total en circulation",
     "totalGradidoCreated": "GDD total épuisé",
     "totalGradidoDecayed": "GDD total annulé",
-    "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé Expiration"
+    "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé écoulé"
   },
   "success": "Avec succès",
   "time": {
