@@ -1,7 +1,7 @@
 <template>
   <div class="auth-header position-sticky">
     <b-navbar :toggleable="false" class="pr-4">
-    <b-navbar-brand class="d-none d-lg-block">
+      <b-navbar-brand class="d-none d-lg-block">
         <b-img
           class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
           :src="logo"
