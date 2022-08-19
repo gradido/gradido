@@ -17,6 +17,8 @@ export default {
         { value: 'de', text: this.$t('settings.language.de') },
         { value: 'en', text: this.$t('settings.language.en') },
         { value: 'es', text: this.$t('settings.language.es') },
+        { value: 'fr', text: this.$t('settings.language.fr') },
+        { value: 'nl', text: this.$t('settings.language.nl') },
       ],
     }
   },
