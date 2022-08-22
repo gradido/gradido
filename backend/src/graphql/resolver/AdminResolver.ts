@@ -62,6 +62,9 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
+import { ContributionMessage } from '@entity/ContributionMessage'
+import ContributionMessageArgs from '../arg/ContributionMessageArgs'
+import { ContributionMessageType } from '../enum/MessageType'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -695,5 +698,45 @@ export class AdminResolver {
     await dbContributionLink.save()
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
+  @Mutation(() => ContributionMessage)
+  async adminCreateContributionMessage(
+    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Ctx() context: Context,
+  ): Promise<ContributionMessage> {
+    const user = getUser(context)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    const contributionMessage = new ContributionMessage()
+    try {
+      const contribution = await Contribution.findOneOrFail({ id: contributionId })
+
+      contributionMessage.contributionId = contributionId
+      contributionMessage.createdAt = new Date()
+      contributionMessage.message = message
+      contributionMessage.userId = user.id
+      contributionMessage.type = ContributionMessageType.DIALOG
+      await queryRunner.manager.insert(ContributionMessage, contributionMessage)
+
+      if (
+        contribution.contributionStatus === ContributionStatus.DELETED ||
+        contribution.contributionStatus === ContributionStatus.DENIED ||
+        contribution.contributionStatus === ContributionStatus.PENDING
+      ) {
+        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+        await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
+      }
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`ContributionMessage was not successful: ${e}`)
+      throw new Error(`Transaction was not successful: ${e}`)
+    } finally {
+      await queryRunner.release()
+    }
+    return contributionMessage
   }
 }
