@@ -50,7 +50,7 @@ describe('router', () => {
       })
 
       it('has sixteen routes defined', () => {
-        expect(routes).toHaveLength(17)
+        expect(routes).toHaveLength(19)
       })
 
       describe('overview', () => {
@@ -104,6 +104,39 @@ describe('router', () => {
 
         it('loads the "Transactions" page', async () => {
           const component = await routes.find((r) => r.path === '/transactions').component()
+          expect(component.default.name).toBe('Transactions')
+        })
+      })
+
+      describe('community', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Community" page', async () => {
+          const component = await routes.find((r) => r.path === '/community').component()
+          expect(component.default.name).toBe('Community')
+        })
+      })
+
+      describe('info', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/information').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "InfoStatistic" page', async () => {
+          const component = await routes.find((r) => r.path === '/information').component()
+          expect(component.default.name).toBe('InfoStatistic')
+        })
+      })
+
+      describe('gdt', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/gdt').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "GDT" page', async () => {
+          const component = await routes.find((r) => r.path === '/gdt').component()
           expect(component.default.name).toBe('Transactions')
         })
       })
