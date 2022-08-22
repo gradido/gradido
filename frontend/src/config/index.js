@@ -47,10 +47,10 @@ const meta = {
   META_TITLE_EN: process.env.META_TITLE_EN || 'Gradido - Your gratitude account',
   META_DESCRIPTION_DE:
     process.env.META_DESCRIPTION_DE ||
-    'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
+    'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle. Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!',
   META_DESCRIPTION_EN:
     process.env.META_DESCRIPTION_EN ||
-    'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
+    'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all. Attention: Anyone can redeem this link. Please do not share it!',
   META_KEYWORDS_DE:
     process.env.META_KEYWORDS_DE ||
     'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
