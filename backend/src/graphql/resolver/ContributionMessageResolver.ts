@@ -6,7 +6,7 @@ import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { Contribution } from '@entity/Contribution'
 import { ContributionMessageType } from '@enum/MessageType'
-import { ContributionStatus } from '../enum/ContributionStatus'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { getConnection } from '@dbTools/typeorm'
 
 @Resolver()
