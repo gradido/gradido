@@ -63,8 +63,8 @@ import {
   MEMO_MIN_CHARS,
 } from './const/const'
 import { ContributionMessage } from '@entity/ContributionMessage'
-import ContributionMessageArgs from '../arg/ContributionMessageArgs'
-import { ContributionMessageType } from '../enum/MessageType'
+import ContributionMessageArgs from '@arg/ContributionMessageArgs'
+import { ContributionMessageType } from '@enum/MessageType'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
