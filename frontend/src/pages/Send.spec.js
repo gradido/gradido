@@ -283,7 +283,8 @@ describe('Send', () => {
                 'http://localhost/redeem/0123456789\n' +
                   'Testy transaction-link.send_you 56.78 Gradido.\n' +
                   '"Make the best of the link!"\n' +
-                  'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
+                  'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate\n' +
+                  'gdd_per_link.link-hint',
               )
             })
             it('toasts success message', () => {
