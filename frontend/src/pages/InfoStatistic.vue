@@ -108,7 +108,6 @@ export default {
       this.$apollo
         .query({
           query: listContributionLinks,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.count = result.data.listContributionLinks.count
@@ -122,7 +121,6 @@ export default {
       this.$apollo
         .query({
           query: searchAdminUsers,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.countAdminUser = result.data.searchAdminUsers.userCount
@@ -136,7 +134,6 @@ export default {
       this.$apollo
         .query({
           query: communityStatistics,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.totalUsers = result.data.communityStatistics.totalUsers
