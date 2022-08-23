@@ -44,7 +44,7 @@ export class ContributionResolver {
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`ContributionMessage was not successful: ${e}`)
-      throw new Error(`Transaction was not successful: ${e}`)
+      throw new Error(`ContributionMessage was not successful: ${e}`)
     } finally {
       await queryRunner.release()
     }
