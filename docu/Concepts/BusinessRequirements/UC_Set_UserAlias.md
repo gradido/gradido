@@ -51,6 +51,8 @@ Die Erfassung des Alias erfolgt als zusätzliche Eingabe direkt bei der Registri
 
 ### Registrierung
 
+#### Ausbaustufe-1
+
 In der Eingabemaske der Registrierung wird nun zusätzlich das Feld *Alias* angezeigt, das der User als Pflichtfeld ausfüllen muss.
 
 ![img](./image/RegisterWithAlias.png)
@@ -65,14 +67,16 @@ Wurde vom User nun eine konfliktfreie *Alias*-Eingabe und alle Angaben der Regis
 
 ### Login
 
+#### Ausbaustufe-1
+
 Meldet sich ein schon registrierter User erfolgreich an - das passiert wie bisher noch mit seiner Email-Adresse - dann wird geprüft, ob für diesen User schon ein Alias gespeichert ist. Wenn nicht dann erfolgt direkt nach der Anzeige des Login-Dialoges die Anzeige der User-Profilseite.
 
 ![img](./image/LoginProfileWithAlias.png)
 
 Auf der erweiterten User-Profil-Seite sind folgende Elemente neu hinzugekommen bzw. erweitert:
 
-* **[AS-1]** Alias:	neu hinzugekommen ist die Gruppe Alias mit dem Label, dem Eingabefeld und dem Link "Alias ändern" mit Stift-Icon
-* **[AS-2]** E-Mail:	ergänzt wurde die Gruppe E-Mail, in dem das Label "E-Mail", das Eingabefeld, das Label "bestätigt" mit zugehörigem Icon darunter und dem Link "E-Mail ändern" mit Stift-Icon. in der Ausbaustufe-1 ist der Link "E-Mail ändern" und das Stift-Icon disabled, so dass das Eingabefeld der E-Mail lediglich zur Anzeige der aktuell gesetzten E-Mail dient. Da mit der Änderungsmöglichkeit der E-Mail gleichzeitig auch der Login-Prozess und die Passwort-Verschlüsselung angepasst werden muss, wird dieses Feature auf eine spätere Ausbaustufe verschoben.
+* Alias:	neu hinzugekommen ist die Gruppe Alias mit dem Label, dem Eingabefeld und dem Link "Alias ändern" mit Stift-Icon
+* E-Mail:	ergänzt wurde die Gruppe E-Mail, in dem das Label "E-Mail", das Eingabefeld, das Label "bestätigt" mit zugehörigem Icon darunter und dem Link "E-Mail ändern" mit Stift-Icon. In der **Ausbaustufe-1** ist der Link "E-Mail ändern" und das Stift-Icon **immer disabled**, so dass das Eingabefeld der E-Mail lediglich zur Anzeige der aktuell gesetzten E-Mail dient. Da mit der Änderungsmöglichkeit der E-Mail gleichzeitig auch der Login-Prozess und die Passwort-Verschlüsselung angepasst werden muss, wird dieses Feature auf eine spätere Ausbaustufe verschoben.
 
 Der Sprung nach der Login-Seite nach erfolgreichem Login auf die Profil-Seite öffnet diese schon direkt im Bearbeitungs-Modus des Alias, so dass der User direkt seine Eingabe des Alias vornehmen kann.
 
@@ -81,47 +85,65 @@ Der Sprung nach der Login-Seite nach erfolgreichem Login auf die Profil-Seite ö
 Im Eingabe-Modus des Alias hat das Eingabefeld den Fokus und darin wird:
 
 * wenn noch kein Alias für den User in der Datenbank vorhanden ist, vom System ein Vorschlag unterbreitet. Der Vorschlag basiert auf dem Vornamen des Users und wird durch folgende Logik ermittelt:
-  * es wird mit dem Vorname des Users eine Datenbankabfrage durchgeführt, die zählt, wieviele User-Aliase es schon mit diesem Vornamen gibt und direkt mit einer nachfolgenden Nummer als Postfix versehen sind.
+  * es wird mit dem Vorname des Users eine Datenbankabfrage durchgeführt, die zählt, wieviele User-Aliase es schon mit diesem Vornamen gibt und falls notwendig direkt mit einer nachfolgenden Nummer als Postfix versehen sind.
   * Aufgrund der Konvention, dass ein Alias mindestens 5 Zeichen lang sein muss, sind ggf. führende Nullen mitzuberücksichten.
-    * Beispiel: Max als Vorname
-    * in der Datenbank gibt es schon mehrer User mit den Aliasen: Maximilian, Max01, Max_M, Max-M, MaxMu und Max02.
-    * Dann  schlägt das System den Alias Max03 vor, da Max nur 3 Zeichen lang ist und es schon zwei Aliase Max gefolgt mit einer Nummer gibt
-    * Die Aliase Maximilian, Max_M und MaxMu werden nicht mitgezählt, das diese nach Max keine direkt folgende Ziffern haben
-* wenn schon ein Alias für den User in der Datenbank vorhanden ist, dann wird dieser ohne Systemvorschlag angezeigt.
+    * **Beispiel-1**: *Max* als Vorname
+      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Maximilian*, *Max01*, *Max_M*, *Max-M*, *MaxMu* und *Max02*.
+      * Dann  schlägt das System den Alias *Max03* vor, da *Max* nur 3 Zeichen lang ist und es schon zwei Aliase *Max* gefolgt mit einer Nummer gibt (*Max01* und *Max02*)
+      * Die Aliase *Maximilian*, *Max_M*, *Max-M* und *MaxMu* werden nicht mitgezählt, das diese nach *Max* keine direkt folgende Ziffern haben
+    * **Beispiel-2**: *August* als Vorname
+      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Augusta*, *Augustus*, *Augustinus*
+      * Dann schlägt das System den Alias *August* vor, da *August* schon 6 Zeichen lang ist und es noch keinen anderen User mit Alias *August* gibt
+      * die Aliase *Augusta*, *Augustus* und *Augustinus* werden nicht mit gezählt, da diese länger als 5 Zeichen sind und sich von *August* unterscheiden
+    * **Beispiel-3**: *Nick* als Vorname
+      * in der Datenbank gibt es schon mehrer User mit den Aliasen: *Nicko*, *Nickodemus*
+      * Dann schlägt das System den Alias *Nick1* vor, da *Nick* kürzer als 5 Zeichen ist und es noch keinen anderen User mit dem Alias *Nick1* gibt
+      * die Aliase *Nicko* und *Nickodemus* werden nicht mit gezählt, da diese länger als 5 Zeichen sind und sich von *Nick* unterscheiden
+* wenn schon ein Alias für den User in der Datenbank vorhanden ist, dann wird dieser unverändert aus der Datenbank und ohne Systemvorschlag einfach angezeigt.
 
 Der User kann nun den im Eingabefeld angezeigten Alias verändern, wobei die Alias-Konventionen, wie oben beschrieben einzuhalten und zu validieren sind.
 
 Mit dem Button "Eindeutigkeit prüfen" kann der im Eingabefeld stehende Alias auf Eindeutigkeit verifziert werden. Dabei wird dieser als Parameter einem Datenbank-Statement übergeben, das auf das Feld *Alias* in der *Users*-Tabelle ein Count mit dem übergebenen Parameter durchführt. Kommt als Ergebnis =0 zurück, ist der eingegebene Alias noch nicht vorhanden und kann genutzt werden. Liefert das Count-Statement einen Wert >0, dann ist dieser Alias schon von einem anderen User in Gebrauch und darf nicht gespeichert werden. Der User muss also seinen Alias erneut ändern.
 
-Mit dem "Speichern"-Button wird die Eindeutigkeitsprüfung erneut implizit durchgeführt, um sicherzustellen, dass keine Alias-Konflikte in der Datenbank gespeichert werden. Sollte widererwarten doch ein Konflikt bei der Eindeutigkeitsprüfung auftauchen, so bleibt der Dialog im Eingabe-Modus des Alias geöffnet und zeigt dem User eine aussagekräftige Fehlermeldung an.
+Mit dem "Speichern"-Button wird die Eindeutigkeitsprüfung erneut implizit durchgeführt, um sicherzustellen, dass keine Alias-Konflikte in der Datenbank gespeichert werden. Sollte wider erwarten doch ein Konflikt bei der Eindeutigkeitsprüfung auftauchen, so bleibt der Dialog im Eingabe-Modus des Alias geöffnet und zeigt dem User eine aussagekräftige Fehlermeldung an.
 
 Über das rote Icon (x) hinter dem Label "Alias ändern" kann die Eingabe bzw. das Ändern des Alias abgebrochen werden.
 
-**[AS-1]** Die erweiterte Gruppe E-Mail bleibt immer im Anzeige-Modus und kann selbst über den Link "E-Mail ändern" und das Stift-Icon, die beide disabled sind, nicht in den Bearbeitungsmodus versetzt werden. Die aktuell gesetzte E-Mail des Users wird im disabled Eingabefeld nur angezeigt. Das Icon unter dem Label "bestätigt" zeigt den Status der E-Mail, ob diese schon vom User bestätigt wurde oder nicht. Der Schalter für das Label "Informationen per E-Mail" bleibt von dem Switch zwischen Anzeige-Modus und Bearbeitungs-Modus unberührt, dh. es kann zu jeder Zeit vom User defniert werden, ob er über die gesetzte E-Mail Informationen erhält oder nicht.
+Die erweiterte Gruppe E-Mail bleibt immer im Anzeige-Modus und kann selbst über den Link "E-Mail ändern" und das Stift-Icon, die beide disabled sind, nicht in den Bearbeitungsmodus versetzt werden. Die aktuell gesetzte E-Mail des Users wird im disabled Eingabefeld nur angezeigt. Das Icon unter dem Label "bestätigt" zeigt den Status der E-Mail, ob diese schon vom User bestätigt wurde oder nicht. Der Schalter für das Label "Informationen per E-Mail" bleibt von dem Switch zwischen Anzeige-Modus und Bearbeitungs-Modus unberührt, dh. es kann zu jeder Zeit vom User definiert werden, ob er über die gesetzte E-Mail Informationen erhält oder nicht.
 
-**[AS-2]** In der weiteren Ausbaustufe, die erst möglich ist, sobald der Login-Prozess und die Passwort-Verschlüsselung darauf umgestellt ist, wird der Link "E-Mail ändern" und das Sift-Icon enabled. Damit kann der User dann das E-Mail Eingabefeld in den Bearbeitungs-Modus versetzen.
+Es gibt in dieser Ausbaustufe-1 noch keine Möglichkeit seine E-Mail-Adresse zu ändern, da vorher die Passwort-Verschlüsselung mit allen Auswirkungen auf den Registrierungs- und Login-Prozess umgebaut werden müssen.
+
+#### Ausbaustufe-x
+
+In der weiteren Ausbaustufe, die erst möglich ist, sobald der Login-Prozess und die Passwort-Verschlüsselung darauf umgestellt ist, wird der Link "E-Mail ändern" und das Sift-Icon enabled. Damit kann der User dann das E-Mail Eingabefeld in den Bearbeitungs-Modus versetzen.
 
 ![img](./image/LoginProfileEditEmail.png)
 
-**[AS-2]** Im Eingabe-Modus des E-Mail-Feldes kann der User seine E-Mail-Adresse ändern. Über den Button "Speichern & Bestätigen" wird die veränderte E-Mail gegenüber den bisher gespeicherten E-Mails aller User verifiziert, dass es keine Dupletten gibt.
+Im Eingabe-Modus des E-Mail-Feldes kann der User seine E-Mail-Adresse ändern. Sobald der User die vorhandene und schon bestätigte Email-Adresse ändert, wechselt die Anzeige des Icons unter dem Label "bestätigt" vom Icon (Hacken) zum Icon (X), um die Änderung dem User gleich sichtbar zu machen. Über den Button "Speichern & Bestätigen" wird die veränderte E-Mail gegenüber den bisher gespeicherten E-Mails aller User verifiziert, dass es keine Dupletten gibt.
 
-Ist diese Prüfung erfolgreich, dann wird die geänderte E-Mail-Adresse in der Datenbank gespeichert, das Flag E-Mail-Checked auf FALSE gesetzt, damit das Bestätigt-Icon von "bestätigt" auf "unbestätigt" dem User angezeigt wird und zurück in den Anzeige-Modus der Gruppe E-Mail gewechselt. Mit der Speicherung der geänderten E-Mail wird eine Comfirmation-Email an diese E-Mail-Adresse zur Bestätigung durch den User gesendet.
+Ist diese Eindeutigkeits-Prüfung erfolgreich, dann wird die geänderte E-Mail-Adresse in der Datenbank gespeichert, das Flag E-Mail-Checked auf FALSE gesetzt, damit das Bestätigt-Icon von "bestätigt" auf "unbestätigt" dem User angezeigt wird und zurück in den Anzeige-Modus der Gruppe E-Mail gewechselt. Mit der Speicherung der geänderten E-Mail wird eine Comfirmation-Email an diese E-Mail-Adresse zur Bestätigung durch den User gesendet.
 
-Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail schon in der Datenbank, dann wird das Speichern der geänderten E-Mail abgebrochen und es bleibt die zuvor gespeicherte E-Mail gültig. Ob und welche Meldung dem User in dieser Situation angezeigt wird, ist noch zu definieren, um kein Ausspionieren von anderen E-Mail-Adressen zu unterstützen. Ebenfalls noch offen ist, ob an die gefundene E-Mail-Duplette eine Info-Email geschickt wird, um den User, der diese bestätigte E-Mail-Adresse besitzt, zu informieren, dass es einen Versuch gab seine E-Mail zu verwenden.
+Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail schon in der Datenbank, dann wird das Speichern der geänderten E-Mail abgebrochen und es bleibt die zuvor gespeicherte E-Mail gültig und auch das E-Mail-Checked Flag bleibt auf dem vorherigen Status. Ob und welche Meldung dem User in dieser Situation angezeigt wird, ist noch zu definieren, um kein Ausspionieren von anderen E-Mail-Adressen zu unterstützen. Ebenfalls noch offen ist, ob an die gefundene E-Mail-Duplette eine Info-Email geschickt wird, um den User, der diese bestätigte E-Mail-Adresse besitzt, zu informieren, dass es einen Versuch gab seine E-Mail zu verwenden.
 
 
-## Login mit Alias [AS-3]
+## Backend-Services
 
-In der Ausbaustufe 3 wird der Login-Prozess so umgebaut, dass der User statt nur seiner E-Mail-Adresse zukünftig seinen Alias oder seine GradidoID oder seine E-Mail-Adresse verwenden kann.
+### UserResolver.createUser
 
-![img](./image/LoginWithAlias.png)
+Der Service *createUser* wird um den Pflicht-Parameter *alias: String* erweitert. Der Wert wurde, wie oben beschrieben, im Dialog Register erfasst und gemäß den Konventionen für das Feld *alias* auch validiert - Länge und erlaubte Zeichen.
 
-Hat der User seine Eingaben im Login-Dialog getätigt und klick auf den "Anmeldung"-Button erfolgt eine Verifzierung welchen Wert er verwendet hat:
+Es wird vor jeder anderen Aktion die Eindeutigkeitsprüfung des übergebenen alias-Wertes geprüft. Dazu wird der neue Service verifyUniqueAlias() im UserResolver aufgerufen, der auch direkt vom Frontend aufgerufen werden kann. 
 
-* enthält der erste Parameter ein @-Zeichen wird von einer E-Mail-Adresse ausgegangen
-* ist der erste Parameter eine valide UUID der Version 4, dann wird von der GradidoID ausgegangen
-* ansonsten wird unterstellt, dass der erste Parameter als Alias zu interpretieren ist
+Liefert diese Prüfung den Wert FALSE, dann wird das Anlegen und Speichern des neuen Users abgebrochen und mit entsprechend aussagekräftiger Fehlermeldung, dass der Alias nicht eindeutig ist, an das Frontend zurückgegeben.
 
-Je nach Typ des ersten Parameters wird in der Users-Tabelle nach dem User mit der E-Mail, der GradidoID oder dem Alias gesucht. Wird dieser User gefunden, dann erfolgt die Prüfung gegenüber dem zweiten Parameter als Passwort.
+Ist die Eindeutigkeitsprüfung hingegen erfolgreich, dann wird die existierende Logik zur Anlage eines neuen Users weiter ausgeführt. Dabei ist der neue Parameter alias in den neu angelegten User zu übertragen und in der Datenbank zu speichern. 
 
-Die interne Passwort-Verschlüsselung muss vorher neu überarbeitet werden.
+Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll und Emails sind ggf. um das neue Attribut alias zu ergänzen.
+
+### UserResolver.verifyUniqueAlias
+
+Dieser neue Service bekommt als Parameter das Attribut alias: String übergeben und liefert im Ergebnis TRUE, wenn der übergebene alias noch nicht in der Datenbank von einem anderen User verwendet wird, andernfalls FALSE.
+
+Dabei wird ein einfaches Datenbank-Statement auf die Users Tabelle abgesetzt mit einem 
+
+    SELECT count(*) FROM users where users.alias = {alias}
