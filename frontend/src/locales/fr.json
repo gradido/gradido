@@ -169,6 +169,7 @@
     "link-copied": "Le lien a été copié dans le presse-papier. Vous pouvez désormais le coller dans votre email ou votre message.",
     "link-deleted": "Le lien a été supprimé le on {date}.",
     "link-expired": "Le lien n´est plus valide. Sa validité a expiré le {date}.",
+    "link-hint": "Attention : tout le monde peut utiliser ce lien. Ne le partage pas, s'il te plaît!",
     "link-overview": "Aperçu du lien",
     "links_count": "Liens actifs",
     "links_sum": "Ouvrir les liens et les QR codes",

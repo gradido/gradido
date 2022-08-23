@@ -169,6 +169,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
+    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, no lo transmitan.",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_sum": "Enlaces abiertos y códigos QR",
