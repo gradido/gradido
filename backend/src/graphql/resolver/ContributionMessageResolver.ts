@@ -12,7 +12,7 @@ import { ContributionMessage } from '@model/ContributionMessage'
 import { User } from '@model/User'
 
 @Resolver()
-export class ContributionResolver {
+export class ContributionMessageResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION_MESSAGE])
   @Mutation(() => ContributionMessage)
   async createContributionMessage(
