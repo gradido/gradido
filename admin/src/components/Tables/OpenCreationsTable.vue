@@ -23,6 +23,7 @@
         </b-button>
         <b-button v-else @click="rowToggleDetails(row, 0)">
           <b-icon icon="chat-dots"></b-icon>
+          <b-icon icon="exclamation-circle-fill"></b-icon>
         </b-button>
       </template>
       <template #cell(confirm)="row">
@@ -36,7 +37,7 @@
           type="show-creation"
           slotName="show-creation"
           :index="0"
-          @row-toggle-details="rowToggleDetails"
+          @row-toggle-details="rowToggleDetails(row, 0)"
         >
           <template #show-creation>
             <div v-if="row.item.moderator">

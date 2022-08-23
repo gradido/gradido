@@ -69,6 +69,10 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "submit":"submit",
+    "reset": "reset"
+  },
   "GDD": "GDD",
   "hide_details": "Hide details",
   "lastname": "Lastname",
@@ -155,5 +159,6 @@
   },
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",
-  "user_search": "User search"
+  "user_search": "User search",
+  "preview":"Preview"
 }

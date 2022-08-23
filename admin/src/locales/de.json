@@ -69,6 +69,10 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "submit":"absenden",
+    "reset": "löschen"
+  },
   "GDD": "GDD",
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
@@ -155,5 +159,6 @@
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_recovered": "Nutzer ist wiederhergestellt.",
-  "user_search": "Nutzer-Suche"
+  "user_search": "Nutzer-Suche",
+  "preview":"Vorschau"
 }

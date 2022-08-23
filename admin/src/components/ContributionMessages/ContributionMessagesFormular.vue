@@ -1,16 +1,19 @@
 <template>
   <div class="contribution-messages-formular">
     <div v-if="form.text !== ''" class="mt-5">
-      <h4>Vorschau</h4>
+      <h4>{{ $t('preview') }}</h4>
       <div class="border border-info m-5">
         <b-row>
           <b-col cols="1"><b-avatar square text="AA"></b-avatar></b-col>
           <b-col cols="11">
-            <pre class="ml-3 mt-3 mb-5">
-              <span class="ml-2 mr-2">
-              {{ $store.state.moderator.firstName }} {{ $store.state.moderator.lastName }}
-            </span>
-            {{ form.text }}</pre>
+            <pre class="mt-2">
+            {{ $store.state.moderator.firstName }} {{ $store.state.moderator.lastName }}
+            </pre>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col>
+            <pre class="ml-3 mt-3 mb-5">{{ form.text }}</pre>
           </b-col>
         </b-row>
       </div>
@@ -24,8 +27,8 @@
           rows="3"
           max-rows="6"
         ></b-form-textarea>
-        <b-button type="submit" variant="primary">Submit</b-button>
-        <b-button type="reset" variant="danger">Reset</b-button>
+        <b-button type="submit" variant="primary">{{ $t('form.submit') }}</b-button>
+        <b-button type="reset" variant="danger">{{ $t('form.reset') }}</b-button>
       </b-form>
     </div>
   </div>

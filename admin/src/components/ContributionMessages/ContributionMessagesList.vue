@@ -1,6 +1,5 @@
 <template>
   <div class="contribution-messages-list">
-    ContributionMessagesList
     <b-container>
       <div v-for="message in messages" v-bind:key="message.id">
         <contribution-messages-list-item :typeId="message.isModerator">

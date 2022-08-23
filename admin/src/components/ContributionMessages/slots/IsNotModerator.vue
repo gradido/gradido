@@ -29,5 +29,6 @@ export default {
   background-color: aquamarine;
   width: 75%;
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 </style>
