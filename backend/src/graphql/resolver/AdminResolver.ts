@@ -62,9 +62,10 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
-import { ContributionMessage } from '@entity/ContributionMessage'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
+import { ContributionMessage } from '@model/ContributionMessage'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -710,16 +711,18 @@ export class AdminResolver {
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
-    const contributionMessage = new ContributionMessage()
+    const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await Contribution.findOneOrFail({ id: contributionId })
-
+      const contribution = await Contribution.findOne({ id: contributionId })
+      if (!contribution) {
+        throw new Error('Contribution not found')
+      }
       contributionMessage.contributionId = contributionId
       contributionMessage.createdAt = new Date()
       contributionMessage.message = message
       contributionMessage.userId = user.id
       contributionMessage.type = ContributionMessageType.DIALOG
-      await queryRunner.manager.insert(ContributionMessage, contributionMessage)
+      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
       if (
         contribution.contributionStatus === ContributionStatus.DELETED ||
@@ -737,6 +740,6 @@ export class AdminResolver {
     } finally {
       await queryRunner.release()
     }
-    return contributionMessage
+    return new ContributionMessage(contributionMessage, new User(user))
   }
 }
