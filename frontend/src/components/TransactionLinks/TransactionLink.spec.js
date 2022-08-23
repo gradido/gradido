@@ -105,7 +105,8 @@ describe('TransactionLink', () => {
               'http://localhost/redeem/c00000000c000000c0000\n' +
                 'Testy transaction-link.send_you 75 Gradido.\n' +
                 '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' +
-                'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate',
+                'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate\n' +
+                'gdd_per_link.link-hint',
             )
           })
           it('toasts success message', () => {
