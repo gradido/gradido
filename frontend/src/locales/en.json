@@ -309,7 +309,7 @@
   },
   "statistic": {
     "totalGradidoAvailable": "Total GDD in circulation",
-    "totalGradidoCreated": "Total created GDD",
+    "totalGradidoCreated": "Total GDD created",
     "totalGradidoDecayed": "Total GDD decay"
   },
   "success": "Success",
