@@ -86,7 +86,6 @@ describe('InfoStatistic', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: listContributionLinks,
-          fetchPolicy: 'network-only',
         }),
       )
     })
@@ -95,7 +94,6 @@ describe('InfoStatistic', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: searchAdminUsers,
-          fetchPolicy: 'network-only',
         }),
       )
     })
@@ -104,7 +102,6 @@ describe('InfoStatistic', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: communityStatistics,
-          fetchPolicy: 'network-only',
         }),
       )
     })
