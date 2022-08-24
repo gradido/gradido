@@ -63,8 +63,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  // reconstruct the previous email back from contacts to users table
+  // this step comes after verification and test
   await queryFn('ALTER TABLE users ADD COLUMN email varchar(255) NULL AFTER privkey;')
+
+  // reconstruct the previous email back from contacts to users table
   const contacts = await queryFn(`SELECT c.id, c.email, c.user_id FROM user_contacts as c`)
   for (const id in contacts) {
     const contact = contacts[id]
