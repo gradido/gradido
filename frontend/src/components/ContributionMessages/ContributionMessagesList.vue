@@ -19,10 +19,10 @@
   </div>
 </template>
 <script>
-import ContributionMessagesListItem from './slots/ContributionMessagesListItem.vue'
-import IsModerator from './slots/IsModerator.vue'
-import IsNotModerator from './slots/IsNotModerator.vue'
-import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular.vue'
+import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem.vue'
+import IsModerator from '@/components/ContributionMessages/slots/IsModerator.vue'
+import IsNotModerator from '@/components/ContributionMessages/slots/IsNotModerator.vue'
+import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular.vue'
 export default {
   name: 'ContributionMessagesList',
   components: {
