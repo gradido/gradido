@@ -70,7 +70,7 @@
     "short_hash": "({shortHash})"
   },
   "form": {
-    "submit":"submit",
+    "submit": "submit",
     "reset": "reset"
   },
   "GDD": "GDD",
@@ -160,5 +160,5 @@
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",
   "user_search": "User search",
-  "preview":"Preview"
+  "preview": "Preview"
 }
