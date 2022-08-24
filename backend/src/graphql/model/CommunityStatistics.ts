@@ -1,7 +1,13 @@
-import { ObjectType, Field } from 'type-graphql'
+import { Directive, ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 
+const oneDay = 60 * 60 * 24
+
 @ObjectType()
+@Directive(`@cacheControl(
+  maxAge: ${oneDay}
+  scope: PUBLIC
+)`)
 export class CommunityStatistics {
   @Field(() => Number)
   totalUsers: number
