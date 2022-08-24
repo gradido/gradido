@@ -52,7 +52,7 @@
               />
             </div>
             <div v-else>
-              <contribution-messages-list />
+              <contribution-messages-list :contributionId="row.item.id" />
             </div>
           </template>
         </row-details>

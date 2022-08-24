@@ -34,8 +34,16 @@
   </div>
 </template>
 <script>
+import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
+
 export default {
   name: 'ContributionMessagesFormular',
+  props: {
+    contributionId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       form: {
@@ -46,7 +54,20 @@ export default {
   methods: {
     onSubmit(event) {
       event.preventDefault()
-      alert(JSON.stringify(this.form))
+      this.$apollo
+        .mutate({
+          mutation: adminCreateContributionMessage,
+          variables: {
+            contributionId: this.contributionId,
+            message: this.form.text,
+          },
+        })
+        .then((result) => {
+          this.toastSuccess(result)
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
     onReset(event) {
       event.preventDefault()

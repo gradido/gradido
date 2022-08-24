@@ -15,7 +15,7 @@
     <br />
     <br />
     <br />
-    <contribution-messages-formular />
+    <contribution-messages-formular :contributionId="contributionId" />
   </div>
 </template>
 <script>
@@ -26,6 +26,12 @@ import ContributionMessagesFormular from '../ContributionMessages/ContributionMe
 
 export default {
   name: 'ContributionMessagesList',
+  props: {
+    contributionId: {
+      type: Number,
+      required: true,
+    },
+  },
   components: {
     ContributionMessagesListItem,
     IsModerator,
