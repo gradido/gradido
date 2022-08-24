@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
+import { User } from '../User'
 
 @Entity('contribution_messages', {
   engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
@@ -25,6 +27,10 @@ export class ContributionMessage extends BaseEntity {
 
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
+
+  @ManyToOne(() => User, (user) => user.messages)
+  @JoinColumn({ name: 'user_id' })
+  user: User
 
   @Column({ length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string

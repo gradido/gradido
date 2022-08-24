@@ -19,7 +19,7 @@ export class Contribution {
     this.contributionDate = contribution.contributionDate
     this.state = contribution.contributionStatus
     this.messages = contribution.messages
-      ? contribution.messages.map((message) => new ContributionMessage(message, user))
+      ? contribution.messages.map((message) => new ContributionMessage(message, message.user))
       : []
   }
 
