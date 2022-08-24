@@ -26,8 +26,13 @@
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
     "current-community": "Comunidad actual",
+    "members": "Miembros",
+    "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
+    "openContributionLinks": "lista de enlaces de contribuciones públicas",
+    "openContributionLinkText": "La comunidad \"{name}\" proporciona actualmente las siguientes {count} creaciones automáticas.",
     "other-communities": "Otras comunidades",
+    "statistic": "Estadísticas",
     "submitContribution": "Aportar una contribución",
     "switch-to-this-community": "cambiar a esta comunidad"
   },
@@ -59,7 +64,8 @@
     "yourActivity": "¡Por favor, introduce una actividad!"
   },
   "contribution-link": {
-    "thanksYouWith": "agradecidos con"
+    "thanksYouWith": "te agradece con",
+    "unique": "(único)"
   },
   "decay": {
     "before_startblock_transaction": "Esta transacción no implica disminución en su valor.",
@@ -168,6 +174,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
+    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, no lo transmitan.",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_sum": "Enlaces abiertos y códigos QR",
@@ -224,6 +231,7 @@
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",
+    "info": "Información",
     "logout": "Salir",
     "members_area": "Área de afiliados",
     "overview": "Resumen",
@@ -247,6 +255,8 @@
       "de": "Deutsch",
       "en": "English",
       "es": "Español",
+      "fr": "Francés",
+      "nl": "Holandés",
       "success": "Tu idioma ha sido cambiado con éxito."
     },
     "name": {
@@ -297,6 +307,14 @@
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
     }
+  },
+  "statistic": {
+    "activeUsers": "miembros activos",
+    "deletedUsers": "miembros eliminados",
+    "totalGradidoAvailable": "GDD total en circulación",
+    "totalGradidoCreated": "GDD total creado",
+    "totalGradidoDecayed": "GDD total decaído",
+    "totalGradidoUnbookedDecayed": "GDD no contabilizado decaído"
   },
   "success": "Lo lograste",
   "time": {
