@@ -26,11 +26,46 @@
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
+    "members": "Mitglieder",
+    "moderators": "Moderatoren",
+    "myContributions": "Meine Beiträge zum Gemeinwohl",
+    "openContributionLinks": "öffentliche Beitrags-Linkliste",
+    "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
+    "statistic": "Statistik",
+    "submitContribution": "Beitrag einreichen",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
+  "contribution": {
+    "activity": "Tätigkeit",
+    "alert": {
+      "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
+      "confirm": "bestätigt",
+      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
+      "myContributionNoteSupport": "Es wird bald an dieser Stelle die Möglichkeit geben das ein Dialog zwischen Moderatoren und dir stattfinden kann. Solltest du jetzt Probleme haben bitte nimm Kontakt mit dem Support auf.",
+      "pending": "Eingereicht und wartet auf Bestätigung",
+      "rejected": "abgelehnt"
+    },
+    "date": "Beitrag für:",
+    "delete": "Beitrag löschen! Bist du sicher?",
+    "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "formText": {
+      "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
+      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
+      "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
+      "yourContribution": "Dein Beitrag zum Gemeinwohl"
+    },
+    "noDateSelected": "Wähle irgendein Datum im Monat",
+    "selectDate": "Wann war dein Beitrag?",
+    "submit": "Einreichen",
+    "submitted": "Der Beitrag wurde eingereicht.",
+    "updated": "Der Beitrag wurde geändert.",
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
+  },
   "contribution-link": {
-    "thanksYouWith": "dankt dir mit"
+    "thanksYouWith": "dankt dir mit",
+    "unique": "(einmalig)"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -78,17 +113,18 @@
     "amount": "Betrag",
     "at": "am",
     "cancel": "Abbrechen",
+    "change": "Ändern",
     "check_now": "Jetzt prüfen",
     "close": "Schließen",
     "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
-    "edit": "Bearbeiten",
     "email": "E-Mail",
     "firstname": "Vorname",
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
+    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -123,8 +159,8 @@
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
-    "copy": "kopieren",
-    "copy-with-text": "Link und Text kopieren",
+    "copy-link": "Link kopieren",
+    "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
     "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
@@ -138,6 +174,7 @@
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
     "links_sum": "Offene Links und QR-Codes",
@@ -176,8 +213,8 @@
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
@@ -193,6 +230,8 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
+    "community": "Gemeinschaft",
+    "info": "Information",
     "logout": "Abmelden",
     "members_area": "Mitgliederbereich",
     "overview": "Übersicht",
@@ -215,6 +254,9 @@
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Dutch",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
@@ -266,11 +308,20 @@
       "uppercase": "Großbuchstabe erforderlich."
     }
   },
+  "statistic": {
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
+    "totalGradidoAvailable": "GDD insgesamt im Umlauf",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoUnbookedDecayed": "Gesamter ungebuchter GDD Verfall"
+  },
   "success": "Erfolg",
   "time": {
     "days": "Tage",
     "hours": "Stunden",
     "minutes": "Minuten",
+    "month": "Monat",
     "months": "Monate",
     "seconds": "Sekunden",
     "years": "Jahr"

@@ -52,17 +52,26 @@
           <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
           {{ $t('navigation.transactions') }}
         </b-nav-item>
+        <b-nav-item to="/gdt" class="mb-3">
+          <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
+          {{ $t('gdt.gdt') }}
+        </b-nav-item>
+        <b-nav-item to="/community" class="mb-3">
+          <b-icon icon="people" aria-hidden="true"></b-icon>
+          {{ $t('navigation.community') }}
+        </b-nav-item>
         <b-nav-item to="/profile" class="mb-3">
           <b-icon icon="gear" aria-hidden="true"></b-icon>
           {{ $t('navigation.profile') }}
         </b-nav-item>
+        <b-nav-item to="/information" class="mb-3">
+          <b-icon icon="info-circle" aria-hidden="true"></b-icon>
+          {{ $t('navigation.info') }}
+        </b-nav-item>
         <br />
-        <b-nav-item :href="elopageUri" class="mb-3" target="_blank">
+        <b-nav-item v-if="$store.state.hasElopage" :href="elopageUri" class="mb-3" target="_blank">
           <b-icon icon="link45deg" aria-hidden="true"></b-icon>
           {{ $t('navigation.members_area') }}
-          <b-badge v-if="!$store.state.hasElopage" pill variant="danger">
-            {{ $t('math.exclaim') }}
-          </b-badge>
         </b-nav-item>
         <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
           <b-icon icon="shield-check" aria-hidden="true"></b-icon>

@@ -185,11 +185,32 @@ export const listContributions = gql`
       order: $order
       filterConfirmed: $filterConfirmed
     ) {
-      id
-      amount
-      memo
+      contributionCount
+      contributionList {
+        id
+        amount
+        memo
+      }
     }
   }
+`
+
+export const listAllContributions = `
+query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  	contributionCount
+    contributionList {
+      id
+      firstName
+      lastName
+      amount
+      memo
+      createdAt
+      confirmedAt
+      confirmedBy
+    }
+	}
+}
 `
 // from admin interface
 
@@ -256,6 +277,18 @@ export const listContributionLinks = gql`
         maxPerCycle
       }
       count
+    }
+  }
+`
+
+export const searchAdminUsers = gql`
+  query {
+    searchAdminUsers {
+      userCount
+      userList {
+        firstName
+        lastName
+      }
     }
   }
 `

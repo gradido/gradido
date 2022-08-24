@@ -36,6 +36,8 @@ import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
@@ -54,11 +56,11 @@ import {
   updateCreations,
 } from './util/creations'
 import {
-  CONTRIBUTIONLINK_MEMO_MAX_CHARS,
-  CONTRIBUTIONLINK_MEMO_MIN_CHARS,
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
   CONTRIBUTIONLINK_NAME_MIN_CHARS,
   FULL_CREATION_AVAILABLE,
+  MEMO_MAX_CHARS,
+  MEMO_MIN_CHARS,
 } from './const/const'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -260,6 +262,8 @@ export class AdminResolver {
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
     contribution.moderatorId = moderator.id
+    contribution.contributionType = ContributionType.ADMIN
+    contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
@@ -337,6 +341,7 @@ export class AdminResolver {
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.moderatorId = moderator.id
+    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
     await Contribution.save(contributionToUpdate)
     const result = new AdminUpdateContribution()
@@ -387,6 +392,8 @@ export class AdminResolver {
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
     }
+    contribution.contributionStatus = ContributionStatus.DELETED
+    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
@@ -454,6 +461,7 @@ export class AdminResolver {
       contribution.confirmedAt = receivedCallDate
       contribution.confirmedBy = moderatorUser.id
       contribution.transactionId = transaction.id
+      contribution.contributionStatus = ContributionStatus.CONFIRMED
       await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
 
       await queryRunner.commitTransaction()
@@ -501,7 +509,7 @@ export class AdminResolver {
       order: { updatedAt: 'DESC' },
     })
 
-    optInCode = await checkOptInCode(optInCode, user.id)
+    optInCode = await checkOptInCode(optInCode, user)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
@@ -595,11 +603,8 @@ export class AdminResolver {
       logger.error(`The memo must be initialized!`)
       throw new Error(`The memo must be initialized!`)
     }
-    if (
-      memo.length < CONTRIBUTIONLINK_MEMO_MIN_CHARS ||
-      memo.length > CONTRIBUTIONLINK_MEMO_MAX_CHARS
-    ) {
-      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_MEMO_MIN_CHARS} and max=${CONTRIBUTIONLINK_MEMO_MAX_CHARS}`
+    if (memo.length < MEMO_MIN_CHARS || memo.length > MEMO_MAX_CHARS) {
+      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${MEMO_MIN_CHARS} and max=${MEMO_MAX_CHARS}`
       logger.error(`${msg}`)
       throw new Error(`${msg}`)
     }

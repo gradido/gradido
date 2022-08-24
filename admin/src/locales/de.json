@@ -35,6 +35,7 @@
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
+    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -72,6 +73,7 @@
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
+    "colon": ":",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
@@ -104,6 +106,16 @@
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
+    "name": "Statistik",
+    "totalGradidoAvailable": "GDD insgesamt im Umlauf",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoUnbookedDecayed": "Ungebuchter GDD Verfall",
+    "totalUsers": "Mitglieder"
+  },
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",

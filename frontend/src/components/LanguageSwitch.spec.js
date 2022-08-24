@@ -45,7 +45,7 @@ describe('LanguageSwitch', () => {
       expect(wrapper.find('div.language-switch').exists()).toBeTruthy()
     })
 
-    describe('with locales en and de', () => {
+    describe('with locales en, de and es', () => {
       describe('empty store', () => {
         describe('navigator language is "en-US"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
@@ -69,11 +69,44 @@ describe('LanguageSwitch', () => {
           })
         })
 
-        describe('navigator language is "es-ES" (not supported)', () => {
+        describe('navigator language is "es-ES"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows Español as language ', async () => {
+            languageGetter.mockReturnValue('es-ES')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Español - es')
+          })
+        })
+
+        describe('navigator language is "fr-FR"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows French as language ', async () => {
+            languageGetter.mockReturnValue('fr-FR')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Français - fr')
+          })
+        })
+
+        describe('navigator language is "nl-NL"', () => {
+          const languageGetter = jest.spyOn(navigator, 'language', 'get')
+
+          it('shows Dutch as language ', async () => {
+            languageGetter.mockReturnValue('nl-NL')
+            wrapper.vm.setCurrentLanguage()
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
+          })
+        })
+
+        describe('navigator language is "it-IT" (not supported)', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
           it('shows English as language ', async () => {
-            languageGetter.mockReturnValue('es-ES')
+            languageGetter.mockReturnValue('it-IT')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
             expect(wrapper.find('button.dropdown-toggle').text()).toBe('English - en')
@@ -101,9 +134,36 @@ describe('LanguageSwitch', () => {
         })
       })
 
+      describe('language "es" in store', () => {
+        it('shows Español as language', async () => {
+          wrapper.vm.$store.state.language = 'es'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Español - es')
+        })
+      })
+
+      describe('language "fr" in store', () => {
+        it('shows French as language', async () => {
+          wrapper.vm.$store.state.language = 'fr'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Français - fr')
+        })
+      })
+
+      describe('language "nl" in store', () => {
+        it('shows Dutch as language', async () => {
+          wrapper.vm.$store.state.language = 'nl'
+          wrapper.vm.setCurrentLanguage()
+          await wrapper.vm.$nextTick()
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
+        })
+      })
+
       describe('dropdown menu', () => {
         it('has English and German as languages to choose', () => {
-          expect(wrapper.findAll('li')).toHaveLength(2)
+          expect(wrapper.findAll('li')).toHaveLength(5)
         })
 
         it('has English as first language to choose', () => {
@@ -112,6 +172,18 @@ describe('LanguageSwitch', () => {
 
         it('has German as second language to choose', () => {
           expect(wrapper.findAll('li').at(1).text()).toBe('Deutsch')
+        })
+
+        it('has Español as second language to choose', () => {
+          expect(wrapper.findAll('li').at(2).text()).toBe('Español')
+        })
+
+        it('has French as second language to choose', () => {
+          expect(wrapper.findAll('li').at(3).text()).toBe('Français')
+        })
+
+        it('has Dutch as second language to choose', () => {
+          expect(wrapper.findAll('li').at(4).text()).toBe('Holandés')
         })
       })
     })
@@ -134,6 +206,39 @@ describe('LanguageSwitch', () => {
           expect.objectContaining({
             variables: {
               locale: 'de',
+            },
+          }),
+        )
+      })
+
+      it("with locale 'es'", () => {
+        wrapper.findAll('li').at(2).find('a').trigger('click')
+        expect(updateUserInfosMutationMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              locale: 'es',
+            },
+          }),
+        )
+      })
+
+      it("with locale 'fr'", () => {
+        wrapper.findAll('li').at(3).find('a').trigger('click')
+        expect(updateUserInfosMutationMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              locale: 'fr',
+            },
+          }),
+        )
+      })
+
+      it("with locale 'nl'", () => {
+        wrapper.findAll('li').at(4).find('a').trigger('click')
+        expect(updateUserInfosMutationMock).toBeCalledWith(
+          expect.objectContaining({
+            variables: {
+              locale: 'nl',
             },
           }),
         )

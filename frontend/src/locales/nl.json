@@ -1,0 +1,342 @@
+{
+  "100": "100%",
+  "1000thanks": "1000 dank, omdat je bij ons bent!",
+  "125": "125%",
+  "85": "85%",
+  "advanced-calculation": "Voorcalculatie",
+  "auth": {
+    "left": {
+      "dignity": "Waardigheid",
+      "donation": "Gift",
+      "gratitude": "Dankbaarheid",
+      "hasAccount": "Je hebt al een rekening?",
+      "hereLogin": "Hier aanmelden",
+      "learnMore": "Meer ervaren …",
+      "oneDignity": "We geven aan elkaar en bedanken met Gradido.",
+      "oneDonation": "Jij bent een geschenk voor de gemeenschap. 1000 dank dat je bij ons bent.",
+      "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
+    },
+    "navbar": {
+      "aboutGradido": "Over Gradido"
+    }
+  },
+  "back": "Terug",
+  "community": {
+    "choose-another-community": "Kies een andere gemeenschap",
+    "community": "Gemeenschap",
+    "continue-to-registration": "Verder ter registratie",
+    "current-community": "Actuele gemeenschap",
+    "members": "Leden",
+    "moderators": "Moderators",
+    "myContributions": "Mijn bijdragen voor het algemeen belang",
+    "openContributionLinks": "openbare lijst van bijdragen",
+    "openContributionLinkText": "De volgende {count} automatische creaties worden momenteel aangeboden door de gemeenschap \"{name}\".",
+    "other-communities": "Verdere gemeenschappen",
+    "statistic": "Statistieken",
+    "submitContribution": "Bijdrage indienen",
+    "switch-to-this-community": "naar deze gemeenschap wisselen"
+  },
+  "contribution": {
+    "activity": "Activiteit",
+    "alert": {
+      "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
+      "confirm": "bevestigt",
+      "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
+      "myContributionNoteSupport": "Hier heb je binnenkort de mogelijkheid een gesprek met een moderator te voeren. Mocht je nu problemen hebben, dan neem alsjeblieft contact op met Support.",
+      "pending": "Ingediend en wacht op bevestiging",
+      "rejected": "afgewezen"
+    },
+    "date": "Bijdrage voor:",
+    "delete": "Bijdrage verwijderen! Weet je het zeker?",
+    "deleted": "De bijdrage werd verwijderd! Blijft echter zichtbaar.",
+    "formText": {
+      "bringYourTalentsTo": "Bied je met jouw talenten in de gemeenschap aan! Jouw vrijwillige inzet belonen we met 20 GGD per uur, tot maximaal 1.000 GGD per maand.",
+      "describeYourCommunity": "Beschrijf jouw activiteit voor het algemeen belang met vermelding van het aantal uren en registreer een bedrag van 20 GDD per uur! Na bevestiging door een moderator wordt het bedrag op jouw rekening bijgeschreven.",
+      "maxGDDforMonth": "Je kunt voor de geselecteerde maand nog maximaal {amount} GDD indienen.",
+      "openAmountForMonth": "Voor <b>{monthAndYear}</b> kun je nog <b>{creation}</b> GDD indienen.",
+      "yourContribution": "Jouw bijdrage voor het algemeen belang"
+    },
+    "noDateSelected": "Kies een willekeurige datum in de maand",
+    "selectDate": "Wanneer was jouw bijdrage?",
+    "submit": "Indienen",
+    "submitted": "De bijdrage werd ingediend.",
+    "updated": "De bijdrage werd veranderd.",
+    "yourActivity": "Voer een activiteit in!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "bedankt jou met",
+    "unique": "(uniek)"
+  },
+  "decay": {
+    "before_startblock_transaction": "Deze transactie heeft geen vergankelijkheid.",
+    "calculation_decay": "Berekening van de vergankelijkheid",
+    "calculation_total": "Berekening van het totaalbedrag",
+    "decay": "Vergankelijkheid",
+    "decay_introduced": "De vergankelijkheid werd ingevoerd op:",
+    "decay_since_last_transaction": "Vergankelijkheid sinds de laatste transactie",
+    "last_transaction": "Laatste transactie",
+    "past_time": "Verlopen tijd",
+    "Starting_block_decay": "Startblok vergankelijkheid",
+    "total": "Totaal",
+    "types": {
+      "creation": "Gecreëerd",
+      "noDecay": "Geen vergankelijkheid",
+      "receive": "Ontvangen",
+      "send": "Verstuurd"
+    }
+  },
+  "delete": "Verwijderen",
+  "em-dash": "—",
+  "error": {
+    "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
+    "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",
+    "error": "Fout!",
+    "no-account": "Helaas kunnen we geen (geactiveerde) rekening met deze gegevens vinden.",
+    "no-transactionlist": "  Helaas was er een fout. Door de server werden er geen transacties overgedragen.",
+    "no-user": "Geen gebruiker met deze login gegevens.",
+    "session-expired": "De sessie werd om veiligheidsredenen beëindigd.",
+    "unknown-error": "Onbekende fout: "
+  },
+  "followUs": "volg ons:",
+  "footer": {
+    "app_version": "app versie {version}",
+    "copyright": {
+      "link": "Gradido-Academie",
+      "year": "© {year}"
+    },
+    "imprint": "Colofon",
+    "privacy_policy": "Privacyverklaring",
+    "short_hash": "({shortHash})",
+    "whitepaper": "Witboek"
+  },
+  "form": {
+    "amount": "Bedrag",
+    "at": "op",
+    "cancel": "Annuleren",
+    "change": "Wijzigen",
+    "check_now": "Nu controleren",
+    "close": "Sluiten",
+    "current_balance": "Actueel banksaldo",
+    "date": "Datum",
+    "description": "Beschrijving",
+    "email": "Email",
+    "firstname": "Voornaam",
+    "from": "Van",
+    "generate_now": "Nu genereren",
+    "lastname": "Achternaam",
+    "mandatoryField": "verplicht veld",
+    "memo": "Memo",
+    "message": "Bericht",
+    "new_balance": "Nieuw banksaldo na bevestiging",
+    "no_gdd_available": "Je hebt geen GDD om te versturen.",
+    "password": "Wachtwoord",
+    "passwordRepeat": "Wachtwoord herhalen",
+    "password_new": "Nieuw wachtwoord",
+    "password_new_repeat": "Nieuw wachtwoord herhalen",
+    "password_old": "Oud wachtwoord",
+    "recipient": "Ontvanger",
+    "reset": "Resetten",
+    "save": "Opslaan",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scan de QR Code van uw partner",
+    "sender": "Afzender",
+    "send_check": "Bevestig jouw transactie. Controleer alsjeblieft nogmaals alle gegevens!",
+    "send_now": "Nu versturen",
+    "send_transaction_error": "Helaas kon de transactie niet uitgevoerd worden!",
+    "send_transaction_success": " Jouw transactie werd succesvol uitgevoerd ",
+    "sorry": "Sorry",
+    "thx": "Dankjewel",
+    "time": "Tijd",
+    "to": "tot",
+    "to1": "aan",
+    "validation": {
+      "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
+      "is-not": "Je kunt geen Gradidos aan jezelf overmaken",
+      "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",
+      "usernmae-unique": "De gebruikersnaam is al bezet."
+    },
+    "your_amount": "Jouw bijdrage"
+  },
+  "GDD": "GDD",
+  "gdd_per_link": {
+    "choose-amount": "Kies een bedrag dat je per link versturen wil. Je kunt ook nog een bericht invullen. Wanneer je „Nu genereren“ klikt, wordt er een link gecreëerd die je kunt versturen.",
+    "copy-link": "Link kopiëren",
+    "copy-link-with-text": "Link en tekst kopiëren",
+    "created": "De link werd gecreëerd!",
+    "credit-your-gradido": "Om de Gradidos bijgeschreven te krijgen, klik op de link!",
+    "decay-14-day": "Vergankelijkheid voor 14 dagen",
+    "delete-the-link": "De link verwijderen?",
+    "deleted": "De link werd verwijderd!",
+    "expiredOn": "Afgelopen op",
+    "has-account": "Heb je al een Gradido rekening?",
+    "header": "Gradidos per link versturen",
+    "isFree": "Gradido is gratis wereldwijd.",
+    "link-and-text-copied": "De link en jouw bericht werden naar het klembord gekopieerd. Je kunt ze nu in een email of bericht invoegen.",
+    "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
+    "link-deleted": "De link werd op {date} verwijderd.",
+    "link-expired": "De link is niet meer geldig. De geldigheid is op {date} afgelopen.",
+    "link-hint": "Attentie: Iedereen kan deze link inwisselen. Geef het alsjeblieft niet door!",
+    "link-overview": "Overzicht links",
+    "links_count": "Actieve links",
+    "links_sum": "Open links en QR-Codes",
+    "no-account": "Je hebt nog geen Gradido rekening?",
+    "no-redeem": "Je mag je eigen link niet inwisselen!",
+    "not-copied": "Jouw apparaat laat het kopiëren helaas niet toe! Kopieer de link alsjeblieft met de hand!",
+    "redeem": "Inwisselen",
+    "redeem-text": "Wil je het bedrag nu inwisselen?",
+    "redeemed": "Succesvol ingewisseld! Op jouw rekening werden {n} GDD bijgeschreven.",
+    "redeemed-at": "De link werd al op {date} ingewisseld.",
+    "redeemed-title": "ingewisseld",
+    "to-login": "Inloggen",
+    "to-register": "Registreer een nieuwe rekening.",
+    "validUntil": "Geldig tot",
+    "validUntilDate": "De link is geldig tot {date}."
+  },
+  "gdt": {
+    "calculation": "Berekening van de Gradido Transform",
+    "contribution": "Bedrag",
+    "conversion": "Omrekening",
+    "conversion-gdt-euro": "Omrekening Euro / Gradido Transform (GDT)",
+    "credit": "Krediet",
+    "factor": "Factor",
+    "formula": "Berekeningsformule",
+    "funding": "Naar de donaties",
+    "gdt": "Gradido Transform",
+    "gdt-received": "Gradido Transform (GDT) ontvangen",
+    "no-transactions": "Je hebt nog geen Gradido Transform (GDT).",
+    "not-reachable": "De GDT server is niet bereikbaar.",
+    "publisher": "Jouw geworven lid heeft een bijdrage betaald ",
+    "raise": "Verhoging",
+    "recruited-member": "Uitgenodigd lid"
+  },
+  "language": "Taal",
+  "link-load": "de laatste link herladen | de laatste links herladen |  verdere {n} links herladen",
+  "login": "Aanmelding",
+  "math": {
+    "aprox": "~",
+    "asterisk": "*",
+    "equal": "=",
+    "minus": "−",
+    "pipe": "|"
+  },
+  "message": {
+    "activateEmail": "Jouw rekening werd nog niet geactiveerd. Controleer aljeblieft jouw email en klik de activeringslink. Of vraag een nieuwe activeringlink via de Wachtwoord-Reset-Pagina aan.",
+    "checkEmail": "Jouw email werd succesvol geverifieerd. Je kunt je nu aanmelden.",
+    "email": "We hebben jou een email gestuurd.",
+    "errorTitle": "Opgelet!",
+    "register": "Je bent nu geregistreerd. Controleer alsjeblieft je emails en klik op de activeringslink.",
+    "reset": "Jouw wachtwoord werd gewijzigd.",
+    "title": "Dankjewel!",
+    "unsetPassword": "Jouw wachtwoord werd nog niet ingesteld. Doe het alsjeblieft opnieuw."
+  },
+  "navigation": {
+    "admin_area": "Beheerder",
+    "community": "Gemeenschap",
+    "info": "Informatie",
+    "logout": "Afmelden",
+    "members_area": "Ledenbestand",
+    "overview": "Overzicht",
+    "profile": "Mijn profiel",
+    "send": "Sturen",
+    "support": "Support",
+    "transactions": "Transacties"
+  },
+  "qrCode": "QR Code",
+  "send_gdd": "GDD sturen",
+  "send_per_link": "GDD per link versturen",
+  "session": {
+    "extend": "Aangemeld blijven",
+    "lightText": "Wanneer je langer dan 10 minuten geen actie ondernomen hebt, word je om veiligheidsredenen afgemeld.",
+    "logoutIn": "Afmelden in ",
+    "warningText": "Ben je er nog?"
+  },
+  "settings": {
+    "language": {
+      "changeLanguage": "Taal veranderen",
+      "de": "Duits",
+      "en": "Engels",
+      "es": "Spaans",
+      "fr": "Frans",
+      "nl": "Nederlands",
+      "success": "Jouw taal werd succesvol veranderd."
+    },
+    "name": {
+      "change-name": "Naam veranderen",
+      "change-success": "Jouw naam werd succesvol veranderd."
+    },
+    "newsletter": {
+      "newsletter": "Informatie per email",
+      "newsletterFalse": "Je ontvangt geen informatie per email.",
+      "newsletterTrue": "Je ontvangt informatie per email."
+    },
+    "password": {
+      "change-password": "Wachtwoord veranderen",
+      "forgot_pwd": "Wachtwoord vergeten?",
+      "resend_subtitle": "Jouw activeringslink is afgelopen. Je kunt hier een nieuwe aanvragen.",
+      "reset": "Wachtwoord opnieuw instellen",
+      "reset-password": {
+        "text": "Stel een nieuw wachtwoord in, waarmee je je voortaan in jouw Gradido-rekening wilt aanmelden."
+      },
+      "send_now": "Nu versturen",
+      "set": "Wachtwoord instellen",
+      "set-password": {
+        "text": "Sla nu je nieuwe wachtwoord, waarmee je je voortaan in jouw Gradido-rekening kunt aanmelden, op."
+      },
+      "subtitle": "Wanneer je het wachtwoord hebt vergeten, kun je het hier opnieuw instellen."
+    }
+  },
+  "signin": "Aanmelden",
+  "signup": "Registreren",
+  "site": {
+    "forgotPassword": {
+      "heading": "Geef alsjeblieft jouw email, waarmee je bij Gradido aangemeld bent."
+    },
+    "login": {
+      "heading": "Meld je met jouw inloggegevens aan. Sla deze altijd veilig op!"
+    },
+    "resetPassword": {
+      "heading": "Vul alsjeblieft jouw wachtwoord in, en herhaal het."
+    },
+    "signup": {
+      "agree": "Ik ga akkoord met <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a>.",
+      "dont_match": "De wachtwoorden zijn niet gelijk.",
+      "heading": "Schrijf je in door alle gegevens volledig en in de juiste velden in te vullen.",
+      "lowercase": "Een kleine letter is noodzakelijk.",
+      "minimum": "Minstens 8 tekens.",
+      "no-whitespace": "Geen spaties en tabs",
+      "one_number": "Getal noodzakelijk.",
+      "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
+      "uppercase": "Hoofdletter noodzakelijk."
+    }
+  },
+  "statistic": {
+    "activeUsers": "Actieve leden",
+    "deletedUsers": "Verwijderde leden",
+    "totalGradidoAvailable": "Totaal GDD in omloop",
+    "totalGradidoCreated": "Totaal GDD geschept",
+    "totalGradidoDecayed": "Totaal GDD vervallen",
+    "totalGradidoUnbookedDecayed": "Totaal niet geboekte GDD vervallen"
+  },
+  "success": "Succes",
+  "time": {
+    "days": "Dagen",
+    "hours": "Uren",
+    "minutes": "Minuten",
+    "month": "Maand",
+    "months": "Maanden",
+    "seconds": "Seconden",
+    "years": "Jaar"
+  },
+  "transaction": {
+    "gdd-text": "Gradido transacties",
+    "gdt-text": "GradidoTransform transacties",
+    "nullTransactions": "Je hebt nog geen transacties op jouw rekening.",
+    "receiverDeleted": "De rekening van de ontvanger werd verwijderd",
+    "receiverNotFound": "Ontvanger niet gevonden",
+    "show_all": "Alle <strong>{count}</strong> Transacties bekijken."
+  },
+  "transaction-link": {
+    "send_you": "stuurt jou"
+  },
+  "via_link": "via een link",
+  "welcome": "Welkom in de gemeenschap"
+}

@@ -8,6 +8,8 @@ import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 export class User {
   constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
     this.id = user.id
+    this.gradidoID = user.gradidoID
+    this.alias = user.alias
     this.email = user.email
     this.firstName = user.firstName
     this.lastName = user.lastName
@@ -27,6 +29,12 @@ export class User {
 
   // `public_key` binary(32) DEFAULT NULL,
   // `privkey` binary(80) DEFAULT NULL,
+
+  @Field(() => String)
+  gradidoID: string
+
+  @Field(() => String, { nullable: true })
+  alias: string
 
   // TODO privacy issue here
   @Field(() => String)
