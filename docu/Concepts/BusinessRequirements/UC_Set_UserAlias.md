@@ -142,7 +142,7 @@ Liefert diese Prüfung den Wert FALSE, dann wird das Anlegen und Speichern des n
 
 Ist die Eindeutigkeitsprüfung hingegen erfolgreich, dann wird die existierende Logik zur Anlage eines neuen Users weiter ausgeführt. Dabei ist der neue Parameter alias in den neu angelegten User zu übertragen und in der Datenbank zu speichern. 
 
-Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll und Emails sind ggf. um das neue Attribut alias zu ergänzen.
+Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll und Emails sind entsprechend einzubauen, aber mindestens um das neue Attribut *alias* zu ergänzen.
 
 ### UserResolver.verifyUniqueAlias - neu
 
@@ -165,6 +165,8 @@ Die Parameter *firstName, lastName, language, password, passwordNew, alias* werd
 
 Sobald der *alias*-Parameter gesetzt ist, wird für diesen der Service *verifyUniqueAlias()* zur Eindeutigekeitsprüfung aufgerufen, um sicherzustellen, dass der übergebene *alias* wirklich nicht schon in der Datenbank existiert. Liefert das Ergebnis von *verifyUniqueAlias()* den Wert TRUE, dann kann der übergebene *alias* in der Datenbank gespeichert werden. Anderfalls muss mit einer aussagekräftigen Fehlermeldung abgebrochen werden und es wird keiner der übergebenen Parameter in die Datenbank geschrieben.
 
+Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll sind entsprechend einzubauen, aber mindestens um das neue Attribut *alias* zu ergänzen.
+
 #### Ausbaustufe-x
 
 Sobald in einer weiteren Ausbaustufe die Email auf der Profil-Seite vom User verändert werden kann, dann wird dieser Service um den optionalen Parameter *email: String* erweitert.
@@ -173,7 +175,9 @@ Sobald der *email*-Parameter gesetzt ist, wird für diesen der Service *verifyUn
 
 Mit dem Speichern der geänderten Email muss auch das Flag *emailChecked* auf FALSE gesetzt und gespeichert werden. Damit wird sichergestellt, dass die veränderte Email-Adresse erst noch vom User bestätigt werden muss. Dies wird direkt nach dem Speichern der Email-Adresse mit dem Versenden einer *confirmChangedEmail* an die neue Email-Adresse initiiert. Der darin enthaltene Bestätigungs-Link wird analog dem Aktivierungs-Link bei der Registrierung der Email gehandhabt. Die *confirmChangedEmail* muss nur inhaltlich vom Text anders formuliert werden als die *AccountActivation*-Email, aber bzgl. der Parameter und des enthaltenen Bestätigungslinks unterscheiden sich beide nicht.
 
-Sobald der User in seiner erhaltenen *confirmChangedEmail* den Link aktiviert, erfolgt der Aufruf des Service *UserResolver.queryOptIn*, um zu prüfen, ob der in dem Link enthaltene OptInCode valide und gültig ist. Falls ja, dann wird das Flag emailChecked auf TRUE gesetzt, anderfalls bleibt es auf FALSE und es wird mit einer aussagekräftigen Fehlermeldung abgebrochen.
+Sobald der User in seiner erhaltenen *confirmChangedEmail* den Link aktiviert, erfolgt der Aufruf des Service *UserResolver.queryOptIn*, um zu prüfen, ob der in dem Link enthaltene OptInCode valide und gültig ist. Falls ja, dann wird das Flag *emailChecked* auf TRUE gesetzt, anderfalls bleibt es auf FALSE und es wird mit einer aussagekräftigen Fehlermeldung abgebrochen.
+
+Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll sind entsprechend einzubauen, aber mindestens um das neue Attribut *email* zu ergänzen.
 
 ### UserResolver.verifyUniqueEmail - neu
 
