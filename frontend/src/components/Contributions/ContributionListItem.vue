@@ -35,14 +35,33 @@
           <div class="pointer" @click="deleteContribution({ id })">
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
+          <div v-if="inProcess && type === 'pending'" class="pointer">
+            <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
+          </div>
+        </div>
+
+        <div v-if="inProcess && type === 'pending'">
+          <b-button v-if="inProcess && id > 36" v-b-toggle="collapsId" variant="primary">
+            Bitte beantworte die Nachfrage
+          </b-button>
+          <b-collapse :id="collapsId" class="mt-2">
+            <b-card>
+              <contribution-messages-list />
+            </b-card>
+          </b-collapse>
         </div>
       </div>
     </slot>
   </div>
 </template>
 <script>
+import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
+
 export default {
   name: 'ContributionListItem',
+  components: {
+    ContributionMessagesList,
+  },
   props: {
     id: {
       type: Number,
@@ -80,6 +99,11 @@ export default {
       required: false,
     },
   },
+  data() {
+    return {
+      inProcess: true,
+    }
+  },
   computed: {
     type() {
       if (this.deletedAt) return 'deleted'
@@ -101,6 +125,9 @@ export default {
       // if (this.confirmedAt) return this.confirmedAt
       // return this.contributionDate
       return this.createdAt
+    },
+    collapsId() {
+      return 'collapse' + String(this.id)
     },
   },
   methods: {
