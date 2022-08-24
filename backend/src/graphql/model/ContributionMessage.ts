@@ -1,6 +1,6 @@
 import { Field, ObjectType } from 'type-graphql'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { User } from './User'
+import { User } from '@entity/User'
 
 @ObjectType()
 export class ContributionMessage {

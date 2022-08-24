@@ -740,6 +740,6 @@ export class AdminResolver {
     } finally {
       await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, new User(user))
+    return new ContributionMessage(contributionMessage, user)
   }
 }
