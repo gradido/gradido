@@ -96,13 +96,14 @@ export class ContributionResolver {
       order: {
         createdAt: order,
       },
+      relations: ['messages'],
       withDeleted: true,
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     })
     return new ContributionListResult(
       count,
-      contributions.map((contribution) => new Contribution(contribution, new User(user))),
+      contributions.map((contribution) => new Contribution(contribution, user)),
     )
   }
 
@@ -123,9 +124,7 @@ export class ContributionResolver {
       .getManyAndCount()
     return new ContributionListResult(
       count,
-      dbContributions.map(
-        (contribution) => new Contribution(contribution, new User(contribution.user)),
-      ),
+      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
     )
   }
 

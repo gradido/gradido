@@ -9,7 +9,6 @@ import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { getConnection } from '@dbTools/typeorm'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { User } from '@model/User'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -52,6 +51,6 @@ export class ContributionMessageResolver {
     } finally {
       await queryRunner.release()
     }
-    return new ContributionMessage(contributionMessage, new User(user))
+    return new ContributionMessage(contributionMessage, user)
   }
 }
