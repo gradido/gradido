@@ -49,6 +49,8 @@ Die Email wird weiterhin für einen Kommunikationskanal ausserhalb der Gradido-A
 
 Die Erfassung des Alias erfolgt als zusätzliche Eingabe direkt bei der Registrierung eines neuen Users oder als weiterer Schritt direkt nach dem Login.
 
+Dieser UseCase ist in die Ausbaustufe-1 und Ausbaustufe-x unterteilt. Alle beschriebenen Anforderungen der Ausbaustufe-1 können sofort mit Zuordnung der zugehörigen Tickets umgesetzt werden. Die beschriebenen Anforderungen der Ausbaustufe-x müssen solange verschoben werden, bis der UseCase "changeLoginProzess" konzeptioniert und umgesetzt ist. Erst dann kann auf der Profil-Seite die Email zur Bearbeitung durch den User freigegeben werden. Diese Abhängigkeit muss über die entsprechenden Abhängigkeiten der Tickets abgebildet werden.
+
 ### Registrierung
 
 #### Ausbaustufe-1
@@ -69,7 +71,7 @@ Wurde vom User nun eine konfliktfreie *Alias*-Eingabe und alle Angaben der Regis
 
 #### Ausbaustufe-1
 
-Meldet sich ein schon registrierter User erfolgreich an - das passiert wie bisher noch mit seiner Email-Adresse - dann wird geprüft, ob für diesen User schon ein Alias gespeichert ist. Wenn nicht dann erfolgt direkt nach der Anzeige des Login-Dialoges die Anzeige der User-Profilseite.
+Meldet sich ein schon registrierter User erfolgreich an - das passiert wie bisher noch mit seiner Email-Adresse - dann wird geprüft, ob für diesen User schon ein Alias gespeichert, sprich im aktuellen Context nach dem Login im User-Objekt das Attribut *alias* initialisiert ist. Wenn nicht dann erfolgt direkt nach dem Schließen des Login-Dialoges die Anzeige der User-Profilseite.
 
 ![img](./image/LoginProfileWithAlias.png)
 
@@ -101,7 +103,7 @@ Im Eingabe-Modus des Alias hat das Eingabefeld den Fokus und darin wird:
       * die Aliase *Nicko* und *Nickodemus* werden nicht mit gezählt, da diese länger als 5 Zeichen sind und sich von *Nick* unterscheiden
 * wenn schon ein Alias für den User in der Datenbank vorhanden ist, dann wird dieser unverändert aus der Datenbank und ohne Systemvorschlag einfach angezeigt.
 
-Der User kann nun den im Eingabefeld angezeigten Alias verändern, wobei die Alias-Konventionen, wie oben beschrieben einzuhalten und zu validieren sind.
+Der User kann nun den im Eingabefeld angezeigten Alias verändern, wobei die Alias-Konventionen, wie oben im ersten Kapitel beschrieben einzuhalten und zu validieren sind.
 
 Mit dem Button "Eindeutigkeit prüfen" kann der im Eingabefeld stehende Alias auf Eindeutigkeit verifziert werden. Dabei wird dieser als Parameter einem Datenbank-Statement übergeben, das auf das Feld *Alias* in der *Users*-Tabelle ein Count mit dem übergebenen Parameter durchführt. Kommt als Ergebnis =0 zurück, ist der eingegebene Alias noch nicht vorhanden und kann genutzt werden. Liefert das Count-Statement einen Wert >0, dann ist dieser Alias schon von einem anderen User in Gebrauch und darf nicht gespeichert werden. Der User muss also seinen Alias erneut ändern.
 
@@ -128,7 +130,9 @@ Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail schon
 
 ## Backend-Services
 
-### UserResolver.createUser
+### UserResolver.createUser - erweitern
+
+#### Ausbaustufe-1
 
 Der Service *createUser* wird um den Pflicht-Parameter *alias: String* erweitert. Der Wert wurde, wie oben beschrieben, im Dialog Register erfasst und gemäß den Konventionen für das Feld *alias* auch validiert - Länge und erlaubte Zeichen.
 
@@ -140,10 +144,48 @@ Ist die Eindeutigkeitsprüfung hingegen erfolgreich, dann wird die existierende 
 
 Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll und Emails sind ggf. um das neue Attribut alias zu ergänzen.
 
-### UserResolver.verifyUniqueAlias
+### UserResolver.verifyUniqueAlias - neu
 
-Dieser neue Service bekommt als Parameter das Attribut alias: String übergeben und liefert im Ergebnis TRUE, wenn der übergebene alias noch nicht in der Datenbank von einem anderen User verwendet wird, andernfalls FALSE.
+#### Ausbaustufe-1
 
-Dabei wird ein einfaches Datenbank-Statement auf die Users Tabelle abgesetzt mit einem 
+Dieser neue Service bekommt als Parameter das Attribut *alias: String* übergeben und liefert im Ergebnis TRUE, wenn der übergebene *alias* noch nicht in der Datenbank von einem anderen User verwendet wird, andernfalls FALSE.
 
-    SELECT count(*) FROM users where users.alias = {alias}
+Dabei wird ein einfaches Datenbank-Statement auf die *Users* Tabelle abgesetzt mit einem casesensitiven Vergleich auf den Parameter mit den Werten aus der Spalte *alias*
+
+    `SELECT count(*) FROM users where BINARY users.alias = {alias}`
+
+
+### UserResolver.updateUserInfos - erweitern
+
+#### Ausbaustufe-1
+
+Der schon existierende Service *updateUserInfos()* wird erweitert um den Parameter *alias: String*. Sobald der User nach dem Login automatisch oder selbst interaktiv auf die Profil-Seite navigiert und dort sein Profil, insbesonderen neu das Attribut *alias* erfasst oder ändert, wird dieser Service aufgerufen.
+
+Die Parameter *firstName, lastName, language, password, passwordNew, alias* werden alle als optional definiert, da der User auf der Profil-Seite auswählen kann, welche Profil-Parameter er verändern möchte und somit meist nie alle Parameter gleichzeitig dieses Service initialisiert sind.
+
+Sobald der *alias*-Parameter gesetzt ist, wird für diesen der Service *verifyUniqueAlias()* zur Eindeutigekeitsprüfung aufgerufen, um sicherzustellen, dass der übergebene *alias* wirklich nicht schon in der Datenbank existiert. Liefert das Ergebnis von *verifyUniqueAlias()* den Wert TRUE, dann kann der übergebene *alias* in der Datenbank gespeichert werden. Anderfalls muss mit einer aussagekräftigen Fehlermeldung abgebrochen werden und es wird keiner der übergebenen Parameter in die Datenbank geschrieben.
+
+#### Ausbaustufe-x
+
+Sobald in einer weiteren Ausbaustufe die Email auf der Profil-Seite vom User verändert werden kann, dann wird dieser Service um den optionalen Parameter *email: String* erweitert.
+
+Sobald der *email*-Parameter gesetzt ist, wird für diesen der Service *verifyUniqueEmail()* zur Eindeutigekeitsprüfung aufgerufen, um sicherzustellen, dass die übergebene *email* wirklich nicht schon für einen anderen User in der Datenbank existiert. Liefert das Ergebnis von *verifyUniqueEmail()* den Wert TRUE, dann kann die übergebene *email* in der Datenbank gespeichert werden. Anderfalls muss mit einer aussagekräftigen Fehlermeldung abgebrochen werden und es wird keiner der übergebenen Parameter in die Datenbank geschrieben.
+
+Mit dem Speichern der geänderten Email muss auch das Flag *emailChecked* auf FALSE gesetzt und gespeichert werden. Damit wird sichergestellt, dass die veränderte Email-Adresse erst noch vom User bestätigt werden muss. Dies wird direkt nach dem Speichern der Email-Adresse mit dem Versenden einer *confirmChangedEmail* an die neue Email-Adresse initiiert. Der darin enthaltene Bestätigungs-Link wird analog dem Aktivierungs-Link bei der Registrierung der Email gehandhabt. Die *confirmChangedEmail* muss nur inhaltlich vom Text anders formuliert werden als die *AccountActivation*-Email, aber bzgl. der Parameter und des enthaltenen Bestätigungslinks unterscheiden sich beide nicht.
+
+Sobald der User in seiner erhaltenen *confirmChangedEmail* den Link aktiviert, erfolgt der Aufruf des Service *UserResolver.queryOptIn*, um zu prüfen, ob der in dem Link enthaltene OptInCode valide und gültig ist. Falls ja, dann wird das Flag emailChecked auf TRUE gesetzt, anderfalls bleibt es auf FALSE und es wird mit einer aussagekräftigen Fehlermeldung abgebrochen.
+
+### UserResolver.verifyUniqueEmail - neu
+
+#### Ausbaustufe-x
+
+Dieser neue Service bekommt als Parameter das Attribut *email: String* übergeben und liefert im Ergebnis TRUE, wenn die übergebene *email* noch nicht in der Datenbank von einem anderen User verwendet wird, andernfalls FALSE.
+
+Dabei wird ein einfaches Datenbank-Statement auf die *Users* Tabelle abgesetzt mit einem casesensitiven Vergleich auf den Parameter mit den Werten aus der Spalte *email*
+
+    `SELECT count(*) FROM users where BINARY users.email = {email}`
+
+
+## Datenbank-Migration
+
+Es ist für diesen UseCase keine Datenbank-Migration notwendig, da im Rahmen der Einführung der GradidoID die Spalte *alias* schon in die *Users*-Tabelle mit aufgenommen wurde.
