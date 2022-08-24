@@ -4,7 +4,12 @@
       <h4>{{ $t('preview') }}</h4>
       <div class="border border-info m-5">
         <b-row>
-          <b-col cols="1"><b-avatar square text="AA"></b-avatar></b-col>
+          <b-col cols="1">
+            <b-avatar
+              :text="`${$store.state.firstName[0]} ${$store.state.lastName[0]}`"
+              variant="info"
+            ></b-avatar>
+          </b-col>
           <b-col cols="11">
             <pre class="mt-2">
             {{ $store.state.firstName }} {{ $store.state.lastName }}
@@ -34,7 +39,7 @@
   </div>
 </template>
 <script>
-import {createContributionMessage} from '../../graphql/mutations.js'
+import { createContributionMessage } from '../../graphql/mutations.js'
 
 export default {
   name: 'ContributionMessagesFormular',

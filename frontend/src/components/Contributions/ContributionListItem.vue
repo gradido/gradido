@@ -23,6 +23,7 @@
           class="d-flex flex-row-reverse"
         >
           <div
+            v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
             class="pointer ml-5"
             @click="
               $emit('update-contribution-form', {
@@ -35,15 +36,20 @@
           >
             <b-icon icon="pencil" class="h2"></b-icon>
           </div>
-          <div class="pointer" @click="deleteContribution({ id })">
+          <div
+            v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
+            class="pointer"
+            @click="deleteContribution({ id })"
+          >
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
-          <div v-if="messages" class="pointer">
+          <div v-if="messages.length" class="pointer">
             <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
           </div>
         </div>
         <div v-if="messages">
-          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="primary">
+          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="dark">
+            <b-icon icon="circle-fill" animation="throb" font-scale="1" variant="warning"></b-icon>
             Bitte beantworte die Nachfrage
           </b-button>
           <b-collapse :id="collapsId" class="mt-2">
@@ -111,6 +117,9 @@ export default {
     messages: {
       type: Array,
       required: false,
+      default() {
+        return []
+      },
     },
     contributionId: {
       type: Number,
