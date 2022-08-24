@@ -100,6 +100,7 @@ export class ContributionResolver {
       .from(dbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .leftJoinAndSelect('m.user', 'u')
+      .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
