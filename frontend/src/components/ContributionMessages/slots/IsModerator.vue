@@ -1,7 +1,7 @@
 <template>
   <div class="slot-is-moderator">
     <b-avatar square text="AA"></b-avatar>
-    <span class="ml-2 mr-2">{{ message.firstName }} {{ message.lastName }}</span>
+    <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
     <div class="mt-2">{{ message }}</div>
   </div>
 </template>

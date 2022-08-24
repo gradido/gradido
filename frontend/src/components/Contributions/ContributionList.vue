@@ -1,8 +1,10 @@
 <template>
   <div class="contribution-list container">
     <div class="list-group" v-for="item in items" :key="item.id">
+    {{item}}
       <contribution-list-item
         v-bind="item"
+        :contributionId="item.id"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
       />

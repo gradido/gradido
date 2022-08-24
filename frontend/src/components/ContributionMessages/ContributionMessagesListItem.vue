@@ -8,7 +8,7 @@ export default {
   name: 'ContributionMessagesListItem',
   props: {
     typeId: {
-      type: Number,
+      type: String,
       required: true,
     },
   },

@@ -7,7 +7,7 @@
           <b-col cols="1"><b-avatar square text="AA"></b-avatar></b-col>
           <b-col cols="11">
             <pre class="mt-2">
-            {{ $store.state.moderator.firstName }} {{ $store.state.moderator.lastName }}
+            {{ $store.state.firstName }} {{ $store.state.lastName }}
             </pre>
           </b-col>
         </b-row>
@@ -34,8 +34,16 @@
   </div>
 </template>
 <script>
+import {createContributionMessage} from '../../graphql/mutations.js'
+
 export default {
   name: 'ContributionMessagesFormular',
+  props: {
+    contributionId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       form: {
@@ -46,7 +54,20 @@ export default {
   methods: {
     onSubmit(event) {
       event.preventDefault()
-      alert(JSON.stringify(this.form))
+      this.$apollo
+        .mutate({
+          mutation: createContributionMessage,
+          variables: {
+            contributionId: this.contributionId,
+            message: this.form.text,
+          },
+        })
+        .then((result) => {
+          this.toastSuccess(result)
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
     onReset(event) {
       event.preventDefault()

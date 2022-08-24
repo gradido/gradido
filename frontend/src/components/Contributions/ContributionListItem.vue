@@ -5,7 +5,7 @@
         <div class="d-inline-flex">
           <div class="mr-2"><b-icon :icon="icon" :variant="variant" class="h2"></b-icon></div>
           <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
-          <div class="mr-2" :class="type != 'deleted' ? 'font-weight-bold' : ''">
+          <div class="mr-2" :class="state !== 'DELETED' ? 'font-weight-bold' : ''">
             {{ amount | GDD }}
           </div>
           {{ $t('math.minus') }}
@@ -18,7 +18,10 @@
           </span>
         </div>
         <div class="mr-2">{{ memo }}</div>
-        <div v-if="type === 'pending' && !firstName" class="d-flex flex-row-reverse">
+        <div
+          v-if="(state !== 'DELETED' && !firstName) || (state !== 'CONFIRMED' && !firstName)"
+          class="d-flex flex-row-reverse"
+        >
           <div
             class="pointer ml-5"
             @click="
@@ -35,18 +38,21 @@
           <div class="pointer" @click="deleteContribution({ id })">
             <b-icon icon="trash" class="h2"></b-icon>
           </div>
-          <div v-if="inProcess && type === 'pending'" class="pointer">
+          <div v-if="messages" class="pointer">
             <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
           </div>
         </div>
-
-        <div v-if="inProcess && type === 'pending'">
-          <b-button v-if="inProcess && id > 36" v-b-toggle="collapsId" variant="primary">
+        <div v-if="messages">
+          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="primary">
             Bitte beantworte die Nachfrage
           </b-button>
           <b-collapse :id="collapsId" class="mt-2">
             <b-card>
-              <contribution-messages-list />
+              <contribution-messages-list
+                :messages="messages"
+                :state="state"
+                :contributionId="contributionId"
+              />
             </b-card>
           </b-collapse>
         </div>
@@ -98,6 +104,18 @@ export default {
       type: String,
       required: false,
     },
+    state: {
+      type: String,
+      required: false,
+    },
+    messages: {
+      type: Array,
+      required: false,
+    },
+    contributionId: {
+      type: Number,
+      required: true,
+    },
   },
   data() {
     return {
@@ -105,11 +123,6 @@ export default {
     }
   },
   computed: {
-    type() {
-      if (this.deletedAt) return 'deleted'
-      if (this.confirmedAt) return 'confirmed'
-      return 'pending'
-    },
     icon() {
       if (this.deletedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
@@ -121,9 +134,6 @@ export default {
       return 'primary'
     },
     date() {
-      // if (this.deletedAt) return this.deletedAt
-      // if (this.confirmedAt) return this.confirmedAt
-      // return this.contributionDate
       return this.createdAt
     },
     collapsId() {

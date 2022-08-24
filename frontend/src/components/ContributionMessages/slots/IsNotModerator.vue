@@ -2,7 +2,9 @@
   <div class="slot-is-not-moderator">
     <div class="text-right">
       <b-avatar text="BV"></b-avatar>
-      <span class="ml-2 mr-2 text-bold">{{ message.firstName }} {{ message.lastName }}</span>
+      <span class="ml-2 mr-2 text-bold">
+        {{ message.userFirstName }} {{ message.userLastName }}
+      </span>
       <div class="mt-2">{{ message }}</div>
     </div>
   </div>
