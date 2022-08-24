@@ -14,6 +14,7 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { ContributionMessage } from '@entity/ContributionMessage'
 
 @Resolver()
 export class ContributionResolver {
@@ -90,17 +91,20 @@ export class ContributionResolver {
       userId: number
       confirmedBy?: FindOperator<number> | null
     } = { userId: user.id }
+
     if (filterConfirmed) where.confirmedBy = IsNull()
-    const [contributions, count] = await dbContribution.findAndCount({
-      where,
-      order: {
-        createdAt: order,
-      },
-      relations: ['messages'],
-      withDeleted: true,
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
+
+    const [contributions, count] = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(dbContribution, 'c')
+      .innerJoinAndSelect('c.messages', 'm')
+      .innerJoinAndSelect('m.user', 'u')
+      .orderBy('c.createdAt', order)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize)
+      .getManyAndCount()
+
     return new ContributionListResult(
       count,
       contributions.map((contribution) => new Contribution(contribution, user)),
