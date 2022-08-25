@@ -15,6 +15,7 @@ export class UnconfirmedContribution {
     this.firstName = user ? user.firstName : ''
     this.lastName = user ? user.lastName : ''
     this.email = user ? user.email : ''
+    this.moderator = contribution.moderatorId
     this.creation = creations
     this.state = contribution.contributionStatus
     this.messages = contribution.messages
