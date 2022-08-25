@@ -9,8 +9,8 @@ import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { getConnection } from '@dbTools/typeorm'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
-import Paginated from '../arg/Paginated'
-import { Order } from '../enum/Order'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
 
 @Resolver()
 export class ContributionMessageResolver {
