@@ -6,7 +6,8 @@
       variant="warning"
     ></b-avatar>
     <span class="ml-2 mr-2">
-      {{ message.userFirstName }} {{ message.userLastName }} (Moderator)
+      {{ message.userFirstName }} {{ message.userLastName }}
+      <small class="ml-4 text-success">{{ $t('moderator') }}</small>
     </span>
     <div class="mt-2 text-bold h4">{{ message.message }}</div>
   </div>
