@@ -9,15 +9,10 @@
       "dignity": "Würde",
       "donation": "Gabe",
       "gratitude": "Dankbarkeit",
-      "hasAccount": "Du hast schon einen Account?",
-      "hereLogin": "Hier Anmelden",
       "learnMore": "Erfahre mehr …",
       "oneDignity": "Wir schenken einander und danken mit Gradido.",
       "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
-    },
-    "navbar": {
-      "aboutGradido": "Über Gradido"
     }
   },
   "back": "Zurück",
@@ -174,6 +169,7 @@
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
     "links_sum": "Offene Links und QR-Codes",
@@ -308,12 +304,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Aktive Mitglieder",
-    "deletedUsers": "Gelöschte Mitglieder",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
-    "totalGradidoDecayed": "GDD insgesamt verfallen",
-    "totalGradidoUnbookedDecayed": "Gesamter ungebuchter GDD Verfall"
+    "totalGradidoDecayed": "GDD insgesamt verfallen"
   },
   "success": "Erfolg",
   "time": {
