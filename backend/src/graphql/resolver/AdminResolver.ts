@@ -366,7 +366,6 @@ export class AdminResolver {
       .select('c')
       .from(Contribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
-      .leftJoinAndSelect('m.user', 'u')
       .where({ confirmedAt: IsNull() })
       .getMany()
 
