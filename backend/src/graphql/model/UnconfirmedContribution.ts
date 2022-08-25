@@ -2,7 +2,6 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
-import { ContributionMessage } from '@model/ContributionMessage'
 
 @ObjectType()
 export class UnconfirmedContribution {
@@ -18,9 +17,7 @@ export class UnconfirmedContribution {
     this.moderator = contribution.moderatorId
     this.creation = creations
     this.state = contribution.contributionStatus
-    this.messages = contribution.messages
-      ? contribution.messages.map((message) => new ContributionMessage(message, message.user))
-      : []
+    this.messageCount = contribution.messages ? contribution.messages.length : 0
   }
 
   @Field(() => String)
@@ -56,6 +53,6 @@ export class UnconfirmedContribution {
   @Field(() => String)
   state: string
 
-  @Field(() => [ContributionMessage])
-  messages: ContributionMessage[]
+  @Field(() => Number)
+  messageCount: number
 }
