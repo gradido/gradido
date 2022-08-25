@@ -11,10 +11,8 @@ import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { ContributionMessage } from '@entity/ContributionMessage'
 
 @Resolver()
 export class ContributionResolver {
