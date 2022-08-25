@@ -2,13 +2,15 @@ import { backendLogger as logger } from '@/server/logger'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Context, getUser } from '@/server/context'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { Contribution } from '@entity/Contribution'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { getConnection } from '@dbTools/typeorm'
-import { ContributionMessage } from '@model/ContributionMessage'
+import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
+import Paginated from '../arg/Paginated'
+import { Order } from '../enum/Order'
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -52,5 +54,31 @@ export class ContributionMessageResolver {
       await queryRunner.release()
     }
     return new ContributionMessage(contributionMessage, user)
+  }
+
+  @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
+  @Query(() => ContributionMessageListResult)
+  async listContributionMessages(
+    @Arg('contributionId') contributionId: number,
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionMessageListResult> {
+    const [contributionMessages, count] = await getConnection()
+      .createQueryBuilder()
+      .select('cm')
+      .from(DbContributionMessage, 'cm')
+      .leftJoinAndSelect('cm.user', 'u')
+      .where({ contributionId: contributionId })
+      .orderBy('cm.createdAt', order)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize)
+      .getManyAndCount()
+
+    return {
+      count,
+      messages: contributionMessages.map(
+        (message) => new ContributionMessage(message, message.user),
+      ),
+    }
   }
 }
