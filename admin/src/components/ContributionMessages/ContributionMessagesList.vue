@@ -1,13 +1,9 @@
 <template>
   <div class="contribution-messages-list">
     <b-container>
-      {{ messagesCount }}
+      {{ messages.lenght }}
       <div v-for="message in messages" v-bind:key="message.id">
-        <b-container>
-          <div v-for="message in messages" v-bind:key="message.id">
-            <contribution-messages-list-item :message="message" />
-          </div>
-        </b-container>
+        <contribution-messages-list-item :message="message" />
 
         <!-- <contribution-messages-list-item :typeId="message.isModerator">
           <template #1>
@@ -28,6 +24,7 @@
 <script>
 import ContributionMessagesListItem from './slots/ContributionMessagesListItem.vue'
 import ContributionMessagesFormular from '../ContributionMessages/ContributionMessagesFormular.vue'
+import { listContributionMessages } from '../../graphql/listContributionMessages.js'
 
 export default {
   name: 'ContributionMessagesList',
@@ -40,14 +37,34 @@ export default {
       type: Number,
       required: true,
     },
-    messagesCount: {
-      type: Number,
-      required: true,
+  },
+  data() {
+    return {
+      messages: [],
+    }
+  },
+  methods: {
+    getListContributionMessages(id) {
+      // console.log('getListContributionMessages', id)
+      this.messages = []
+      this.$apollo
+        .query({
+          query: listContributionMessages,
+          variables: {
+            contributionId: id,
+          },
+        })
+        .then((result) => {
+          // console.log('result', result.data.listContributionMessages)
+          this.messages = result.data.listContributionMessages.messages
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
-    messages: {
-      type: Array,
-      required: true,
-    },
+  },
+  created() {
+    this.getListContributionMessages(this.contributionId)
   },
 }
 </script>

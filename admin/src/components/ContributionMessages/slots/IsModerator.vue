@@ -1,8 +1,14 @@
 <template>
   <div class="slot-is-moderator">
-    <b-avatar square text="AA"></b-avatar>
-    <span class="ml-2 mr-2">{{ message.firstName }} {{ message.lastName }}</span>
-    <div class="mt-2">{{ message }}</div>
+    <b-avatar
+      square
+      :text="`${message.userFirstName[0]} ${message.userLastName[0]}`"
+      variant="warning"
+    ></b-avatar>
+    <span class="ml-2 mr-2">
+      {{ message.userFirstName }} {{ message.userLastName }} (Moderator)
+    </span>
+    <div class="mt-2 text-bold h4">{{ message.message }}</div>
   </div>
 </template>
 <script>
@@ -20,7 +26,6 @@ export default {
 <style>
 .slot-is-moderator {
   clear: both;
-  background-color: rgb(250, 158, 207);
   width: 75%;
   margin-top: 20px;
 }
