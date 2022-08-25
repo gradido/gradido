@@ -35,3 +35,11 @@ export class ContributionMessage {
   @Field(() => String, { nullable: true })
   userLastName: string | null
 }
+@ObjectType()
+export class ContributionMessageListResult {
+  @Field(() => Number)
+  count: number
+
+  @Field(() => [ContributionMessage])
+  messages: ContributionMessage[]
+}
