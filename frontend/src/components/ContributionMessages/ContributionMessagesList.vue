@@ -8,7 +8,10 @@
     <br />
     <br />
     <br />
-    <contribution-messages-formular v-if="state === 'PENDING' || state === 'IN_PROGRESS'" :contributionId="contributionId" />
+    <contribution-messages-formular
+      v-if="state === 'PENDING' || state === 'IN_PROGRESS'"
+      :contributionId="contributionId"
+    />
   </div>
 </template>
 <script>
