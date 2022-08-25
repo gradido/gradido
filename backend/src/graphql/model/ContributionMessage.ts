@@ -47,11 +47,3 @@ export class ContributionMessageListResult {
   @Field(() => [ContributionMessage])
   messages: ContributionMessage[]
 }
-@ObjectType()
-export class ContributionMessageListResult {
-  @Field(() => Number)
-  count: number
-
-  @Field(() => [ContributionMessage])
-  messages: ContributionMessage[]
-}
