@@ -23,7 +23,16 @@
         </b-button>
         <b-button v-else @click="rowToggleDetails(row, 0)">
           <b-icon icon="chat-dots"></b-icon>
-          <b-icon icon="exclamation-circle-fill"></b-icon>
+          <b-icon
+            v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
+            icon="exclamation-circle-fill"
+            variant="warning"
+          ></b-icon> 
+          <b-icon
+            v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
+            icon="question-diamond"
+            variant="light"
+          ></b-icon>
         </b-button>
       </template>
       <template #cell(confirm)="row">
