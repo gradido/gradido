@@ -2,55 +2,64 @@
   <div class="contribution-list-item">
     <slot>
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
-        <div class="d-inline-flex">
-          <div class="mr-2"><b-icon :icon="icon" :variant="variant" class="h2"></b-icon></div>
-          <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
-          <div class="mr-2" :class="state !== 'DELETED' ? 'font-weight-bold' : ''">
-            {{ amount | GDD }}
+        <div v-b-toggle="messages.length ? collapsId : ''">
+          <div class="d-inline-flex">
+            <div class="mr-2">
+              <b-icon
+                v-if="state === 'IN_PROGRESS'"
+                icon="question-square"
+                font-scale="2"
+                variant="warning"
+              ></b-icon>
+              <b-icon v-else :icon="icon" :variant="variant" class="h2"></b-icon>
+            </div>
+            <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
+            <div class="mr-2" :class="state !== 'DELETED' ? 'font-weight-bold' : ''">
+              {{ amount | GDD }}
+            </div>
+            {{ $t('math.minus') }}
+            <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
           </div>
-          {{ $t('math.minus') }}
-          <div class="mx-2">{{ $d(new Date(date), 'short') }}</div>
-        </div>
-        <div class="mr-2">
-          <span>{{ $t('contribution.date') }}</span>
-          <span>
-            {{ $d(new Date(contributionDate), 'monthAndYear') }}
-          </span>
-        </div>
-        <div class="mr-2">{{ memo }}</div>
-        <div
-          v-if="(state !== 'DELETED' && !firstName) || (state !== 'CONFIRMED' && !firstName)"
-          class="d-flex flex-row-reverse"
-        >
+          <div class="mr-2">
+            <span>{{ $t('contribution.date') }}</span>
+            <span>
+              {{ $d(new Date(contributionDate), 'monthAndYear') }}
+            </span>
+          </div>
+          <div class="mr-2">{{ memo }}</div>
           <div
-            v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
-            class="pointer ml-5"
-            @click="
-              $emit('update-contribution-form', {
-                id: id,
-                contributionDate: contributionDate,
-                memo: memo,
-                amount: amount,
-              })
-            "
+            v-if="(state !== 'DELETED' && !firstName) || (state !== 'CONFIRMED' && !firstName)"
+            class="d-flex flex-row-reverse"
           >
-            <b-icon icon="pencil" class="h2"></b-icon>
-          </div>
-          <div
-            v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
-            class="pointer"
-            @click="deleteContribution({ id })"
-          >
-            <b-icon icon="trash" class="h2"></b-icon>
-          </div>
-          <div v-if="messages.length" class="pointer">
-            <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
+            <div
+              v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
+              class="pointer ml-5"
+              @click="
+                $emit('update-contribution-form', {
+                  id: id,
+                  contributionDate: contributionDate,
+                  memo: memo,
+                  amount: amount,
+                })
+              "
+            >
+              <b-icon icon="pencil" class="h2"></b-icon>
+            </div>
+            <div
+              v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
+              class="pointer"
+              @click="deleteContribution({ id })"
+            >
+              <b-icon icon="trash" class="h2"></b-icon>
+            </div>
+            <div v-if="messages.length" class="pointer">
+              <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
+            </div>
           </div>
         </div>
         <div v-if="messages">
-          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="dark">
-            <b-icon icon="circle-fill" animation="throb" font-scale="1" variant="warning"></b-icon>
-            Bitte beantworte die Nachfrage
+          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="warning">
+            {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
           <b-collapse :id="collapsId" class="mt-2">
             <b-card>
@@ -58,6 +67,7 @@
                 :messages="messages"
                 :state="state"
                 :contributionId="contributionId"
+                @toggle-contribution-messages-box="toggleContributionMessagesBox"
               />
             </b-card>
           </b-collapse>
@@ -140,6 +150,7 @@ export default {
     variant() {
       if (this.deletedAt) return 'danger'
       if (this.confirmedAt) return 'success'
+      if (this.state === 'IN_PROGRESS') return 'warning'
       return 'primary'
     },
     date() {
@@ -154,6 +165,9 @@ export default {
       this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {
         if (value) this.$emit('delete-contribution', item)
       })
+    },
+    toggleContributionMessagesBox(id) {
+      alert('toggleContributionMessagesBox(' + id + ')')
     },
   },
 }

@@ -1,28 +1,5 @@
 <template>
   <div class="contribution-messages-formular">
-    <div v-if="form.text !== ''" class="mt-5">
-      <h4>{{ $t('preview') }}</h4>
-      <div class="border border-info m-5">
-        <b-row>
-          <b-col cols="1">
-            <b-avatar
-              :text="`${$store.state.firstName[0]} ${$store.state.lastName[0]}`"
-              variant="info"
-            ></b-avatar>
-          </b-col>
-          <b-col cols="11">
-            <pre class="mt-2">
-            {{ $store.state.firstName }} {{ $store.state.lastName }}
-            </pre>
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-col>
-            <pre class="ml-3 mt-3 mb-5">{{ form.text }}</pre>
-          </b-col>
-        </b-row>
-      </div>
-    </div>
     <div>
       <b-form @submit="onSubmit" @reset="onReset">
         <b-form-textarea
@@ -32,8 +9,14 @@
           rows="3"
           max-rows="6"
         ></b-form-textarea>
-        <b-button type="submit" variant="primary">{{ $t('form.submit') }}</b-button>
-        <b-button type="reset" variant="danger">{{ $t('form.reset') }}</b-button>
+        <b-row class="mt-4 mb-6">
+          <b-col>
+            <b-button type="reset" variant="danger">{{ $t('form.reset') }}</b-button>
+          </b-col>
+          <b-col class="text-right">
+            <b-button type="submit" variant="primary">{{ $t('form.submit') }}</b-button>
+          </b-col>
+        </b-row>
       </b-form>
     </div>
   </div>
@@ -77,6 +60,9 @@ export default {
     onReset(event) {
       event.preventDefault()
       this.form.text = ''
+    },
+    toggleContributionMessagesBox() {
+      this.$emit('toggle-contribution-messages-box', this.contributionId)
     },
   },
 }

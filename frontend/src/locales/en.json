@@ -38,9 +38,10 @@
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
-      "myContributionNoteSupport": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support.",
       "pending": "Submitted and waiting for confirmation",
-      "rejected": "deleted"
+      "rejected": "deleted",
+      "in_progress":"Es gibt eine Rückfrage der Moderatoren.",
+      "answerQuestion": "Please answer the question"
     },
     "date": "Contribution for:",
     "delete": "Delete Contribution! Are you sure?",

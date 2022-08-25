@@ -38,9 +38,10 @@
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
-      "myContributionNoteSupport": "Pronto existirá la posibilidad de que puedas dialogar con los moderadores. Si tienes algún problema ahora, ponte en contacto con el equipo de asistencia.",
       "pending": "Enviado y a la espera de confirmación",
-      "rejected": "rechazado"
+      "rejected": "rechazado",
+      "in_progress":"Es gibt eine Rückfrage der Moderatoren.",
+      "answerQuestion": "Please answer the question"
     },
     "date": "Contribución para:",
     "delete": "Eliminar la contribución. ¿Estás seguro?",

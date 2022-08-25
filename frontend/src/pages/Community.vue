@@ -23,6 +23,10 @@
                   {{ $t('contribution.alert.pending') }}
                 </li>
                 <li>
+                  <b-icon icon="question-square" variant="warning"></b-icon>
+                  {{ $t('contribution.alert.in_progress') }}
+                </li>
+                <li>
                   <b-icon icon="check" variant="success"></b-icon>
                   {{ $t('contribution.alert.confirm') }}
                 </li>
@@ -32,9 +36,6 @@
                 </li>
               </ul>
               <hr />
-              <p class="mb-0">
-                {{ $t('contribution.alert.myContributionNoteSupport') }}
-              </p>
             </b-alert>
           </div>
           <contribution-list

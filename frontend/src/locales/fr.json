@@ -38,9 +38,10 @@
       "communityNoteList": "Vous trouverez ci-contre toutes les contributions versées et certifiées de tous les membres de cette communauté.",
       "confirm": " Approuvé",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
-      "myContributionNoteSupport": "Vous aurez bientôt la possibilité de dialoguer avec un médiateur. Si vous rencontrez un problème maintenant, merci de contacter l´aide en ligne.",
       "pending": "Inscription en attente de validation",
-      "rejected": "supprimé"
+      "rejected": "supprimé",
+      "in_progress":"Es gibt eine Rückfrage der Moderatoren.",
+      "answerQuestion": "Please answer the question"
     },
     "date": "Contribution pour:",
     "delete": "Supprimer la contribution! Êtes-vous sûr?",

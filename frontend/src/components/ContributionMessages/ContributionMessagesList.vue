@@ -5,12 +5,11 @@
         <contribution-messages-list-item :message="message" />
       </div>
     </b-container>
-    <br />
-    <br />
-    <br />
     <contribution-messages-formular
       v-if="state === 'PENDING' || state === 'IN_PROGRESS'"
+      class="mt-5"
       :contributionId="contributionId"
+      @toggle-contribution-messages-box="toggleContributionMessagesBox"
     />
   </div>
 </template>
@@ -36,6 +35,11 @@ export default {
     messages: {
       type: Array,
       required: true,
+    },
+  },
+  methods: {
+    toggleContributionMessagesBox(id) {
+      this.$emit('toggle-contribution-messages-box', id)
     },
   },
 }

@@ -15,9 +15,7 @@
         </contribution-messages-list-item> -->
       </div>
     </b-container>
-    <br />
-    <br />
-    <br />
+
     <contribution-messages-formular :contributionId="contributionId" />
   </div>
 </template>
