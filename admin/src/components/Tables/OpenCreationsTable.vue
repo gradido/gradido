@@ -27,7 +27,7 @@
             v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
             icon="exclamation-circle-fill"
             variant="warning"
-          ></b-icon> 
+          ></b-icon>
           <b-icon
             v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
             icon="question-diamond"
