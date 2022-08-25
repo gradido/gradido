@@ -122,7 +122,9 @@ export default {
         })
         .then((result) => {
           this.totalUsers = result.data.communityStatistics.totalUsers
-          this.totalGradidoCreated = Number(result.data.communityStatistics.totalGradidoCreated) - Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+          this.totalGradidoCreated =
+            Number(result.data.communityStatistics.totalGradidoCreated) -
+            Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
           this.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
           this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
         })
