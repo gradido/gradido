@@ -361,7 +361,15 @@ export class AdminResolver {
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
   async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
-    const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
+    const contributions = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(Contribution, 'c')
+      .leftJoinAndSelect('c.messages', 'm')
+      .leftJoinAndSelect('m.user', 'u')
+      .where({ confirmedAt: IsNull() })
+      .getMany()
+
     if (contributions.length === 0) {
       return []
     }
@@ -374,18 +382,11 @@ export class AdminResolver {
       const user = users.find((u) => u.id === contribution.userId)
       const creation = userCreations.find((c) => c.id === contribution.userId)
 
-      return {
-        id: contribution.id,
-        userId: contribution.userId,
-        date: contribution.contributionDate,
-        memo: contribution.memo,
-        amount: contribution.amount,
-        moderator: contribution.moderatorId,
-        firstName: user ? user.firstName : '',
-        lastName: user ? user.lastName : '',
-        email: user ? user.email : '',
-        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      }
+      return new UnconfirmedContribution(
+        contribution,
+        user,
+        creation ? creation.creations : FULL_CREATION_AVAILABLE,
+      )
     })
   }
 
