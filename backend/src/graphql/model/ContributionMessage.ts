@@ -12,6 +12,7 @@ export class ContributionMessage {
     this.type = contributionMessage.type
     this.userFirstName = user.firstName
     this.userLastName = user.lastName
+    this.userId = user.id
   }
 
   @Field(() => Number)
@@ -34,6 +35,9 @@ export class ContributionMessage {
 
   @Field(() => String, { nullable: true })
   userLastName: string | null
+
+  @Field(() => Number, { nullable: true })
+  userId: number | null
 }
 @ObjectType()
 export class ContributionMessageListResult {
