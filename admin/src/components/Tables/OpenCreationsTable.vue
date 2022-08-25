@@ -2,6 +2,7 @@
   <div class="open-creations-table">
     <b-table-lite :items="items" :fields="fields" caption-top striped hover stacked="md">
       <template #cell(bookmark)="row">
+        {{ row.item }}
         <b-button
           variant="danger"
           size="md"
@@ -21,7 +22,10 @@
         >
           <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
         </b-button>
-        <b-button v-else @click="rowToggleDetails(row, 0)">
+        <b-button
+          v-else
+          @click="rowToggleDetails(row, 0), getListContributionMessages(row.item.id)"
+        >
           <b-icon icon="chat-dots"></b-icon>
           <b-icon icon="exclamation-circle-fill"></b-icon>
         </b-button>
@@ -52,7 +56,11 @@
               />
             </div>
             <div v-else>
-              <contribution-messages-list :contributionId="row.item.id" />
+              <contribution-messages-list
+                :contributionId="row.item.id"
+                :messages="messages"
+                :messagesCount="messagesCount"
+              />
             </div>
           </template>
         </row-details>
@@ -65,8 +73,8 @@
 import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 import RowDetails from '../RowDetails.vue'
 import EditCreationFormular from '../EditCreationFormular.vue'
-
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList.vue'
+import { listContributionMessages } from '../../graphql/listContributionMessages.js'
 
 export default {
   name: 'OpenCreationsTable',
@@ -93,10 +101,30 @@ export default {
         date: null,
         memo: null,
         moderator: null,
+        messagesCount: 0,
+        messages: [],
       },
     }
   },
   methods: {
+    getListContributionMessages(id) {
+      console.log('getListContributionMessages', id)
+      this.$apollo
+        .query({
+          query: listContributionMessages,
+          variables: {
+            contributionId: id,
+          },
+        })
+        .then((result) => {
+          console.log('result', result.data.listContributionMessages)
+          this.messagesCount = result.data.getListContributionMessages.count
+          this.messages = result.data.getListContributionMessages.messages
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
+    },
     updateCreationData(data) {
       this.creationUserData = data
       // this.creationUserData.amount = data.amount

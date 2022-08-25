@@ -17,6 +17,7 @@
 <script>
 import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem.vue'
 import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular.vue'
+
 export default {
   name: 'ContributionMessagesList',
   components: {
