@@ -9,15 +9,10 @@
       "dignity": "Dignité",
       "donation": "Donation",
       "gratitude": "Gratitude",
-      "hasAccount": "Avez-vous déjà un compte?",
-      "hereLogin": "Connectez-vous ici",
       "learnMore": "Pour plus de détails …",
       "oneDignity": "Nous nous donnons mutuellement et rendons grâce avec Gradido.",
       "oneDonation": "Vous êtes précieux pour la communauté. 1000 mercis d’être parmi nous.",
       "oneGratitude": "Les uns pour les autres, pour tout le monde, pour la nature."
-    },
-    "navbar": {
-      "aboutGradido": "À propos de Gradido"
     }
   },
   "back": "Retour",
@@ -309,12 +304,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Membres actifs",
-    "deletedUsers": "Membres supprimés",
     "totalGradidoAvailable": "GDD total en circulation",
     "totalGradidoCreated": "GDD total puisé",
-    "totalGradidoDecayed": "Total de GDD écoulé",
-    "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé écoulé"
+    "totalGradidoDecayed": "Total de GDD écoulé"
   },
   "success": "Avec succès",
   "time": {

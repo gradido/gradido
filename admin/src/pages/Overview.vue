@@ -89,7 +89,6 @@ export default {
       this.$apollo
         .query({
           query: communityStatistics,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.statistics.totalUsers = result.data.communityStatistics.totalUsers
