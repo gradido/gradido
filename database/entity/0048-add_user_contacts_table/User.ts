@@ -43,12 +43,12 @@ export class User extends BaseEntity {
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string
   */
-  @OneToOne(() => UserContact, { primary: true, cascade: true })
+  @OneToOne(() => UserContact)
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact
 
   @Column({ name: 'email_id', type: 'int', unsigned: true, nullable: true, default: null })
-  emailId?: number | null
+  emailId: number | null
 
   @Column({
     name: 'first_name',

@@ -44,7 +44,7 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
-import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
+import { checkEmailVerificationCode, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
@@ -62,6 +62,7 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
+import { UserContact } from '@entity/UserContact'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -118,7 +119,8 @@ export class AdminResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         let emailConfirmationSend = ''
-        if (!user.emailChecked) {
+        if (!user.emailContact.emailChecked) {
+          /*
           const emailOptIn = await LoginEmailOptIn.findOne(
             {
               userId: user.id,
@@ -138,12 +140,18 @@ export class AdminResolver {
               emailConfirmationSend = emailOptIn.createdAt.toISOString()
             }
           }
+          */
+          if (user.emailContact.updatedAt) {
+            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+          } else {
+            emailConfirmationSend = user.emailContact.createdAt.toISOString()
+          }
         }
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
-          await hasElopageBuys(user.email),
+          await hasElopageBuys(user.emailContact.email),
           emailConfirmationSend,
         )
         return adminUser
@@ -239,24 +247,27 @@ export class AdminResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
-    const user = await dbUser.findOne({ email }, { withDeleted: true })
-    if (!user) {
+    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
+    if (!emailContact) {
+      logger.error(`Could not find user with email: ${email}`)
       throw new Error(`Could not find user with email: ${email}`)
     }
-    if (user.deletedAt) {
-      throw new Error('This user was deleted. Cannot create a contribution.')
+    if (emailContact.deletedAt) {
+      logger.error('This emailContact was deleted. Cannot create a contribution.')
+      throw new Error('This emailContact was deleted. Cannot create a contribution.')
     }
-    if (!user.emailChecked) {
+    if (!emailContact.emailChecked) {
+      logger.error('Contribution could not be saved, Email is not activated')
       throw new Error('Contribution could not be saved, Email is not activated')
     }
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(user.id)
+    const creations = await getUserCreation(emailContact.userId)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
     validateContribution(creations, amount, creationDateObj)
     const contribution = Contribution.create()
-    contribution.userId = user.id
+    contribution.userId = emailContact.userId
     contribution.amount = amount
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
@@ -267,7 +278,7 @@ export class AdminResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
-    return getUserCreation(user.id)
+    return getUserCreation(emailContact.userId)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -303,11 +314,18 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
-    const user = await dbUser.findOne({ email }, { withDeleted: true })
+    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
+    if (!emailContact) {
+      logger.error(`Could not find UserContact with email: ${email}`)
+      throw new Error(`Could not find UserContact with email: ${email}`)
+    }
+    const user = await dbUser.findOne({ id: emailContact.userId }, { withDeleted: true })
     if (!user) {
-      throw new Error(`Could not find user with email: ${email}`)
+      logger.error(`Could not find User to emailContact: ${email}`)
+      throw new Error(`Could not find User to emailContact: ${email}`)
     }
     if (user.deletedAt) {
+      logger.error(`User was deleted (${email})`)
       throw new Error(`User was deleted (${email})`)
     }
 
@@ -318,14 +336,17 @@ export class AdminResolver {
     })
 
     if (!contributionToUpdate) {
+      logger.error('No contribution found to given id.')
       throw new Error('No contribution found to given id.')
     }
 
     if (contributionToUpdate.userId !== user.id) {
+      logger.error('user of the pending contribution and send user does not correspond')
       throw new Error('user of the pending contribution and send user does not correspond')
     }
 
     if (contributionToUpdate.moderatorId === null) {
+      logger.error('An admin is not allowed to update a user contribution.')
       throw new Error('An admin is not allowed to update a user contribution.')
     }
 
@@ -379,7 +400,7 @@ export class AdminResolver {
         moderator: contribution.moderatorId,
         firstName: user ? user.firstName : '',
         lastName: user ? user.lastName : '',
-        email: user ? user.email : '',
+        email: user ? user.emailContact.email : '',
         creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
       }
     })
@@ -390,10 +411,10 @@ export class AdminResolver {
   async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
+      logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
     contribution.contributionStatus = ContributionStatus.DELETED
-    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
@@ -406,15 +427,19 @@ export class AdminResolver {
   ): Promise<boolean> {
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
+      logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found to given id.')
     }
     const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId)
+    if (moderatorUser.id === contribution.userId) {
+      logger.error('Moderator can not confirm own contribution')
       throw new Error('Moderator can not confirm own contribution')
-
+    }
     const user = await dbUser.findOneOrFail({ id: contribution.userId }, { withDeleted: true })
-    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
-
+    if (user.deletedAt) {
+      logger.error('This user was deleted. Cannot confirm a contribution.')
+      throw new Error('This user was deleted. Cannot confirm a contribution.')
+    }
     const creations = await getUserCreation(contribution.userId, false)
     validateContribution(creations, contribution.amount, contribution.contributionDate)
 
@@ -501,6 +526,18 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     email = email.trim().toLowerCase()
+    const emailContact = await UserContact.findOne({ email: email })
+    if (!emailContact) {
+      logger.error(`Could not find UserContact with email: ${email}`)
+      throw new Error(`Could not find UserContact with email: ${email}`)
+    }
+    const user = await dbUser.findOne({ id: emailContact.userId })
+    if (!user) {
+      logger.error(`Could not find User to emailContact: ${email}`)
+      throw new Error(`Could not find User to emailContact: ${email}`)
+    }
+
+    /*
     const user = await dbUser.findOneOrFail({ email: email })
 
     // can be both types: REGISTER and RESET_PASSWORD
@@ -510,23 +547,21 @@ export class AdminResolver {
     })
 
     optInCode = await checkOptInCode(optInCode, user)
+    */
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(optInCode),
+      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
       duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    /*  uncomment this, when you need the activation link on the console
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-    // eslint-disable-next-line no-console
-    console.log(`Account confirmation link: ${activationLink}`)
+      logger.info(`Account confirmation link: ${activationLink}`)
     }
-    */
 
     return true
   }

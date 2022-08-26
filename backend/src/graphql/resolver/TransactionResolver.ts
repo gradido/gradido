@@ -35,6 +35,7 @@ import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { UserContact } from '@entity/UserContact'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -148,8 +149,8 @@ export const executeTransaction = async (
     senderLastName: sender.lastName,
     recipientFirstName: recipient.firstName,
     recipientLastName: recipient.lastName,
-    email: recipient.email,
-    senderEmail: sender.email,
+    email: recipient.emailContact.email,
+    senderEmail: sender.emailContact.email,
     amount,
     memo,
     overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
@@ -171,7 +172,7 @@ export class TransactionResolver {
     const user = getUser(context)
 
     logger.addContext('user', user.id)
-    logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.email})`)
+    logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
@@ -293,16 +294,22 @@ export class TransactionResolver {
     }
 
     // validate recipient user
-    const recipientUser = await dbUser.findOne({ email: email }, { withDeleted: true })
+    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
+    if (!emailContact) {
+      logger.error(`Could not find UserContact with email: ${email}`)
+      throw new Error(`Could not find UserContact with email: ${email}`)
+    }
+
+    const recipientUser = await dbUser.findOne({ id: emailContact.userId })
     if (!recipientUser) {
-      logger.error(`recipient not known: email=${email}`)
-      throw new Error('recipient not known')
+      logger.error(`unknown recipient to UserContact: email=${email}`)
+      throw new Error('unknown recipient')
     }
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
     }
-    if (!recipientUser.emailChecked) {
+    if (!emailContact.emailChecked) {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
     }

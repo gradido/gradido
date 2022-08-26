@@ -13,7 +13,7 @@ export class UnconfirmedContribution {
     this.date = contribution.contributionDate
     this.firstName = user ? user.firstName : ''
     this.lastName = user ? user.lastName : ''
-    this.email = user ? user.email : ''
+    this.email = user ? user.emailContact.email : ''
     this.creation = creations
   }
 

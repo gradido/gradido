@@ -22,7 +22,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`email_checked\` tinyint(4) NOT NULL DEFAULT 0,
         \`phone\` varchar(255) COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
         \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        \`updated_at\` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
         \`deleted_at\` datetime NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)

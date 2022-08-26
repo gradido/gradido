@@ -30,6 +30,7 @@
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { UserResolver } from '@/graphql/resolver/UserResolver'
 import { User as dbUser } from '@entity/User'
+import { UserContact as dbUserContact } from '@entity/UserContact'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   // eslint-disable-next-line no-console
@@ -127,7 +128,8 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     }
 
     // Do we already have such a user?
-    if ((await dbUser.count({ email })) !== 0) {
+    // if ((await dbUser.count({ email })) !== 0) {
+    if ((await dbUserContact.count({ email })) !== 0) {
       // eslint-disable-next-line no-console
       console.log(`Did not create User - already exists with email: ${email}`)
       return

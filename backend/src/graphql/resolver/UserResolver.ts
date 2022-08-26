@@ -29,6 +29,7 @@ import {
   EventLogin,
   EventRedeemRegister,
   EventRegister,
+  EventSendAccountMultiRegistrationEmail,
   EventSendConfirmationEmail,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
@@ -417,50 +418,55 @@ export class UserResolver {
     )
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
+    const event = new Event()
 
     // Validate Language (no throw)
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
 
-    // Validate email unique
+    // check if user with email still exists?
     email = email.trim().toLowerCase()
-    const foundUser = await findUserByEmail(email)
+    if (await checkEmailExists(email)) {
+      const foundUser = await findUserByEmail(email)
+      logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
 
-    // TODO we cannot use repository.count(), since it does not allow to specify if you want to include the soft deletes
-    // const userFound = await DbUser.findOne({ email }, { withDeleted: true })
-    logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
+      if (foundUser) {
+        // ATTENTION: this logger-message will be exactly expected during tests
+        logger.info(`User already exists with this email=${email}`)
+        // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
-    if (foundUser) {
-      // ATTENTION: this logger-message will be exactly expected during tests
-      logger.info(`User already exists with this email=${email}`)
-      // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
+        const user = new User(communityDbUser)
+        user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+        user.gradidoID = uuidv4()
+        user.email = email
+        user.firstName = firstName
+        user.lastName = lastName
+        user.language = language
+        user.publisherId = publisherId
+        logger.debug('partly faked user=' + user)
 
-      const user = new User(communityDbUser)
-      user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-      user.gradidoID = uuidv4()
-      user.email = email
-      user.firstName = firstName
-      user.lastName = lastName
-      user.language = language
-      user.publisherId = publisherId
-      logger.debug('partly faked user=' + user)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const emailSent = await sendAccountMultiRegistrationEmail({
+          firstName,
+          lastName,
+          email,
+        })
+        const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
+        eventSendAccountMultiRegistrationEmail.userId = foundUser.id
+        eventProtocol.writeEvent(
+          event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail),
+        )
+        logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
+        /* uncomment this, when you need the activation link on the console */
+        // In case EMails are disabled log the activation link for the user
+        if (!emailSent) {
+          logger.debug(`Email not send!`)
+        }
+        logger.info('createUser() faked and send multi registration mail...')
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const emailSent = await sendAccountMultiRegistrationEmail({
-        firstName,
-        lastName,
-        email,
-      })
-      logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
-      /* uncomment this, when you need the activation link on the console */
-      // In case EMails are disabled log the activation link for the user
-      if (!emailSent) {
-        logger.debug(`Email not send!`)
+        return user
       }
-      logger.info('createUser() faked and send multi registration mail...')
-
-      return user
     }
 
     const passphrase = PassphraseGenerate()
@@ -473,16 +479,11 @@ export class UserResolver {
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
     const eventSendConfirmEmail = new EventSendConfirmationEmail()
-    // const dbEmailContact = new DbUserContact()
-    // dbEmailContact.email = email
 
-    const dbUser = new DbUser()
-    // dbUser.emailContact = dbEmailContact
+    let dbUser = new DbUser()
     dbUser.gradidoID = gradidoID
-    // dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
-    //    dbUser.emailHash = emailHash
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passphrase = passphrase.join(' ')
@@ -513,22 +514,22 @@ export class UserResolver {
     // loginUser.pubKey = keyPair[0]
     // loginUser.privKey = encryptedPrivkey
 
-    const event = new Event()
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
     try {
-      await queryRunner.manager.save(dbUser).catch((error) => {
+      dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         logger.error('Error while saving dbUser', error)
         throw new Error('error saving user')
       })
-      const emailContact = newEmailContact(email, dbUser.id)
-      await queryRunner.manager.save(emailContact).catch((error) => {
+      let emailContact = newEmailContact(email, dbUser.id)
+      emailContact = await queryRunner.manager.save(emailContact).catch((error) => {
         logger.error('Error while saving emailContact', error)
         throw new Error('error saving email user contact')
       })
 
       dbUser.emailContact = emailContact
+      dbUser.emailId = emailContact.id
       await queryRunner.manager.save(dbUser).catch((error) => {
         logger.error('Error while updating dbUser', error)
         throw new Error('error updating user')
@@ -559,8 +560,6 @@ export class UserResolver {
       eventSendConfirmEmail.userId = dbUser.id
       eventProtocol.writeEvent(event.setEventSendConfirmationEmail(eventSendConfirmEmail))
 
-      /* uncomment this, when you need the activation link on the console */
-      // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
         logger.debug(`Account confirmation link: ${activationLink}`)
       }
@@ -893,18 +892,28 @@ export class UserResolver {
 }
 
 async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUserContact = await DbUserContact.findOneOrFail(email, { withDeleted: true }).catch(
-    () => {
-      logger.error(`UserContact with email=${email} does not exists`)
-      throw new Error('No user with this credentials')
-    },
-  )
-  const userId = dbUserContact.userId
-  const dbUser = await DbUser.findOneOrFail(userId).catch(() => {
-    logger.error(`User with emeilContact=${email} connected per userId=${userId} does not exist`)
+  const dbUserContact = await DbUserContact.findOneOrFail(
+    { email: email },
+    { withDeleted: true },
+  ).catch(() => {
+    logger.error(`UserContact with email=${email} does not exists`)
     throw new Error('No user with this credentials')
   })
+  const userId = dbUserContact.userId
+  const dbUser = await DbUser.findOneOrFail(userId).catch(() => {
+    logger.error(`User with emailContact=${email} connected per userId=${userId} does not exist`)
+    throw new Error('No user with this credentials')
+  })
+  dbUser.emailContact = dbUserContact
   return dbUser
+}
+
+async function checkEmailExists(email: string): Promise<boolean> {
+  const userContact = await DbUserContact.findOne({ email: email }, { withDeleted: true })
+  if (userContact) {
+    return true
+  }
+  return false
 }
 
 /*

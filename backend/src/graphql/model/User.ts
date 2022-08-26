@@ -3,6 +3,7 @@ import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
 import Decimal from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
+import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
@@ -10,8 +11,9 @@ export class User {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
-    // this.email = user.email
+    this.emailId = user.emailId
     this.email = user.emailContact.email
+    this.emailContact = user.emailContact
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.deletedAt = user.deletedAt
@@ -35,11 +37,17 @@ export class User {
   gradidoID: string
 
   @Field(() => String, { nullable: true })
-  alias: string
+  alias?: string
+
+  @Field(() => Number, { nullable: true })
+  emailId: number | null
 
   // TODO privacy issue here
   @Field(() => String)
   email: string
+
+  @Field(() => UserContact)
+  emailContact: UserContact
 
   @Field(() => String, { nullable: true })
   firstName: string | null

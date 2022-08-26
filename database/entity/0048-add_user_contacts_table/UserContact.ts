@@ -1,4 +1,13 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  DeleteDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm'
+import { User } from './User'
 
 @Entity('user_contacts', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class UserContact extends BaseEntity {
@@ -13,6 +22,10 @@ export class UserContact extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   type: string
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User
 
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
   userId: number

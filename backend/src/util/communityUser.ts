@@ -12,6 +12,7 @@ const communityDbUser: dbUser = {
   alias: '',
   // email: 'support@gradido.net',
   emailContact: new UserContact(),
+  emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
   pubKey: Buffer.from(''),
