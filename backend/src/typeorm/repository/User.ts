@@ -4,15 +4,9 @@ import { User } from '@entity/User'
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    const user = await this.createQueryBuilder('user')
+    return await this.createQueryBuilder('user')
       .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
-    /*
-    user.emailContact = await this.createQueryBuilder('userContact')
-      .where('userContact.id = :user.emailId', { user.emailId })
-      .getOneOrFail() 
-    */
-    return user
   }
 
   async findBySearchCriteriaPagedFiltered(
