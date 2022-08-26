@@ -1,12 +1,20 @@
 import { Brackets, EntityRepository, ObjectLiteral, Repository } from '@dbTools/typeorm'
-import { User } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 
-@EntityRepository(User)
-export class UserRepository extends Repository<User> {
-  async findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return await this.createQueryBuilder('user')
+@EntityRepository(DbUser)
+export class UserRepository extends Repository<DbUser> {
+  async findByPubkeyHex(pubkeyHex: string): Promise<DbUser> {
+    const dbUser = await this.createQueryBuilder('user')
       .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
+    /*
+    const dbUser = await this.findOneOrFail(`hex(user.pubKey) = { pubkeyHex }`)
+    const emailContact = await this.query(
+      `SELECT * from user_contacts where id = { dbUser.emailId }`,
+    )
+    dbUser.emailContact = emailContact
+    */
+    return dbUser
   }
 
   async findBySearchCriteriaPagedFiltered(
@@ -15,7 +23,7 @@ export class UserRepository extends Repository<User> {
     filterCriteria: ObjectLiteral[],
     currentPage: number,
     pageSize: number,
-  ): Promise<[User[], number]> {
+  ): Promise<[DbUser[], number]> {
     const query = await this.createQueryBuilder('user')
       .select(select)
       .withDeleted()
