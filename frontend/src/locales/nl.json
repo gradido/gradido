@@ -304,12 +304,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Actieve leden",
-    "deletedUsers": "Verwijderde leden",
     "totalGradidoAvailable": "Totaal GDD in omloop",
     "totalGradidoCreated": "Totaal GDD geschept",
-    "totalGradidoDecayed": "Totaal GDD vervallen",
-    "totalGradidoUnbookedDecayed": "Totaal niet geboekte GDD vervallen"
+    "totalGradidoDecayed": "Totaal GDD vervallen"
   },
   "success": "Succes",
   "time": {
