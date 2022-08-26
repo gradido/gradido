@@ -5,6 +5,7 @@ import { User as DbUser } from '@entity/User'
 export class UserRepository extends Repository<DbUser> {
   async findByPubkeyHex(pubkeyHex: string): Promise<DbUser> {
     const dbUser = await this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
     /*
@@ -24,7 +25,7 @@ export class UserRepository extends Repository<DbUser> {
     currentPage: number,
     pageSize: number,
   ): Promise<[DbUser[], number]> {
-    const query = await this.createQueryBuilder('user')
+    const query = this.createQueryBuilder('user')
       .select(select)
       .withDeleted()
       .where(

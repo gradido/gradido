@@ -23,8 +23,7 @@ export class UserContact extends BaseEntity {
   })
   type: string
 
-  @OneToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @OneToOne(() => User, (user) => user.emailContact)
   user: User
 
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })

@@ -12,13 +12,15 @@ export class User {
     this.gradidoID = user.gradidoID
     this.alias = user.alias
     this.emailId = user.emailId
-    this.email = user.emailContact.email
-    this.emailContact = user.emailContact
+    if (user.emailContact) {
+      this.email = user.emailContact.email
+      this.emailContact = user.emailContact
+      this.emailChecked = user.emailContact.emailChecked
+    }
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.deletedAt = user.deletedAt
     this.createdAt = user.createdAt
-    this.emailChecked = user.emailContact.emailChecked
     this.language = user.language
     this.publisherId = user.publisherId
     this.isAdmin = user.isAdmin
