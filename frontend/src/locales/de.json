@@ -304,12 +304,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Aktive Mitglieder",
-    "deletedUsers": "Gelöschte Mitglieder",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
-    "totalGradidoDecayed": "GDD insgesamt verfallen",
-    "totalGradidoUnbookedDecayed": "Gesamter ungebuchter GDD Verfall"
+    "totalGradidoDecayed": "GDD insgesamt verfallen"
   },
   "success": "Erfolg",
   "time": {
