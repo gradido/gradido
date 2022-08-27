@@ -51,6 +51,8 @@ export default {
           },
         })
         .then((result) => {
+          this.$emit('get-list-contribution-messages', this.contributionId)
+          this.form.text = ''
           this.toastSuccess(result)
         })
         .catch((error) => {

@@ -47,6 +47,7 @@ export default {
   data() {
     return {
       currentPage: 1,
+      messages: [],
     }
   },
   methods: {

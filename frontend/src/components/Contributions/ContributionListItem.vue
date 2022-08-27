@@ -2,7 +2,7 @@
   <div class="contribution-list-item">
     <slot>
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
-        <div v-b-toggle="messages.length ? collapsId : ''">
+        <div v-b-toggle="messages.length ? collapsId : ''" @click="getListContributionMessages">
           <div class="d-inline-flex">
             <div class="mr-2">
               <b-icon
@@ -64,10 +64,11 @@
           <b-collapse :id="collapsId" class="mt-2">
             <b-card>
               <contribution-messages-list
-                :messages="messages"
+                :messages="messages_get"
                 :state="state"
                 :contributionId="contributionId"
                 @toggle-contribution-messages-box="toggleContributionMessagesBox"
+                @get-list-contribution-messages="getListContributionMessages"
               />
             </b-card>
           </b-collapse>
@@ -78,6 +79,7 @@
 </template>
 <script>
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
+import { listContributionMessages } from '../../graphql/queries.js'
 
 export default {
   name: 'ContributionListItem',
@@ -139,6 +141,7 @@ export default {
   data() {
     return {
       inProcess: true,
+      messages_get: [],
     }
   },
   computed: {
@@ -168,6 +171,24 @@ export default {
     },
     toggleContributionMessagesBox(id) {
       alert('toggleContributionMessagesBox(' + id + ')')
+    },
+    getListContributionMessages() {
+      console.log('getListContributionMessages', this.contributionId)
+      this.$apollo
+        .query({
+          query: listContributionMessages,
+          variables: {
+            contributionId: this.contributionId,
+          },
+          fetchPolicy: 'no-cache',
+        })
+        .then((result) => {
+          console.log('result', result.data.listContributionMessages.messages)
+          this.messages_get = result.data.listContributionMessages.messages
+        })
+        .catch((error) => {
+          this.toastError(error.message)
+        })
     },
   },
 }

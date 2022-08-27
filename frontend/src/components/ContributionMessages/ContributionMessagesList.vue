@@ -10,6 +10,7 @@
       class="mt-5"
       :contributionId="contributionId"
       @toggle-contribution-messages-box="toggleContributionMessagesBox"
+      @get-list-contribution-messages="getListContributionMessages"
     />
   </div>
 </template>
@@ -40,6 +41,9 @@ export default {
   methods: {
     toggleContributionMessagesBox(id) {
       this.$emit('toggle-contribution-messages-box', id)
+    },
+    getListContributionMessages() {
+      this.$emit('get-list-contribution-messages', this.contributionId)
     },
   },
 }
