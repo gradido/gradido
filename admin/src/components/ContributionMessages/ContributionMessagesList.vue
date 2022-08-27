@@ -16,7 +16,10 @@
       </div>
     </b-container>
 
-    <contribution-messages-formular :contributionId="contributionId" />
+    <contribution-messages-formular
+      :contributionId="contributionId"
+      @get-list-contribution-messages="getListContributionMessages"
+    />
   </div>
 </template>
 <script>
@@ -51,6 +54,7 @@ export default {
           variables: {
             contributionId: id,
           },
+          fetchPolicy: 'no-cache',
         })
         .then((result) => {
           // console.log('result', result.data.listContributionMessages)

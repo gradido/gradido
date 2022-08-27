@@ -23,12 +23,6 @@ export default {
       },
     },
   },
-  data() {
-    return {
-      // storeName: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-      moderationName: `${this.message.userFirstName} ${this.message.userLastName}`,
-    }
-  },
   computed: {
     isModerator() {
       return this.$store.state.moderator.id === this.message.userId
