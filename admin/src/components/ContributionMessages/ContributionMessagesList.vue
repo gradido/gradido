@@ -4,21 +4,13 @@
       {{ messages.lenght }}
       <div v-for="message in messages" v-bind:key="message.id">
         <contribution-messages-list-item :message="message" />
-
-        <!-- <contribution-messages-list-item :typeId="message.isModerator">
-          <template #1>
-            <is-moderator :message="message"></is-moderator>
-          </template>
-          <template #0>
-            <is-not-moderator :message="message" class="text-right"></is-not-moderator>
-          </template>
-        </contribution-messages-list-item> -->
       </div>
     </b-container>
 
     <contribution-messages-formular
       :contributionId="contributionId"
       @get-list-contribution-messages="getListContributionMessages"
+      @update-state="updateState"
     />
   </div>
 </template>
@@ -46,7 +38,6 @@ export default {
   },
   methods: {
     getListContributionMessages(id) {
-      // console.log('getListContributionMessages', id)
       this.messages = []
       this.$apollo
         .query({
@@ -57,12 +48,14 @@ export default {
           fetchPolicy: 'no-cache',
         })
         .then((result) => {
-          // console.log('result', result.data.listContributionMessages)
           this.messages = result.data.listContributionMessages.messages
         })
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
   created() {

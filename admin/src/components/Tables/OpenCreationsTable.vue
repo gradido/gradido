@@ -57,11 +57,14 @@
                 :row="row"
                 :creationUserData="creationUserData"
                 @update-creation-data="updateCreationData"
-                @update-user-data="updateUserData"
               />
             </div>
             <div v-else>
-              <contribution-messages-list :contributionId="row.item.id" />
+              <contribution-messages-list
+                :contributionId="row.item.id"
+                @update-state="updateState"
+                @update-user-data="updateUserData"
+              />
             </div>
           </template>
         </row-details>
@@ -115,6 +118,9 @@ export default {
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
 }
