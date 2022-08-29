@@ -850,11 +850,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     logger.info(`hasElopage()...`)
-    const userEntity = context.user
-    if (!userEntity) {
-      logger.info('missing context.user for EloPage-check')
-      return false
-    }
+    const userEntity = getUser(context)
     const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug(`has ElopageBuys = ${elopageBuys}`)
     return elopageBuys

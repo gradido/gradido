@@ -14,7 +14,7 @@ export class User {
     this.emailId = user.emailId
     if (user.emailContact) {
       this.email = user.emailContact.email
-      this.emailContact = user.emailContact
+      this.emailContact = new UserContact(user.emailContact)
       this.emailChecked = user.emailContact.emailChecked
     }
     this.firstName = user.firstName

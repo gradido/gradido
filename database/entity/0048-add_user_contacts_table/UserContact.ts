@@ -53,7 +53,7 @@ export class UserContact extends BaseEntity {
   @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
 
-  @DeleteDateColumn({ name: 'updated_at', nullable: true })
+  @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })
   updatedAt: Date | null
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })

@@ -43,7 +43,7 @@ export class User extends BaseEntity {
   @Column({ length: 255, unique: true, nullable: false, collation: 'utf8mb4_unicode_ci' })
   email: string
   */
-  @OneToOne(() => UserContact, (emailContact) => emailContact.userId)
+  @OneToOne(() => UserContact, (emailContact) => emailContact.user)
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact
 
@@ -115,7 +115,7 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
 
-  @OneToMany(() => UserContact, (usercontact) => usercontact.userId)
+  @OneToMany(() => UserContact, (usercontact) => usercontact.user)
   @JoinColumn({ name: 'user_id' })
   usercontacts?: UserContact[]
 }

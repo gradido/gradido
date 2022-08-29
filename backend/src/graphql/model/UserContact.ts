@@ -1,9 +1,9 @@
 import { ObjectType, Field } from 'type-graphql'
-import { UserContact as dbUserCOntact} from '@entity/UserContact'
+import { UserContact as dbUserContact} from '@entity/UserContact'
 
 @ObjectType()
 export class UserContact {
-  constructor(userContact: dbUserCOntact) {
+  constructor(userContact: dbUserContact) {
     this.id = userContact.id
     this.type = userContact.type
     this.userId = userContact.userId
