@@ -67,7 +67,6 @@
                 :messages="messages_get"
                 :state="state"
                 :contributionId="contributionId"
-                @toggle-contribution-messages-box="toggleContributionMessagesBox"
                 @get-list-contribution-messages="getListContributionMessages"
               />
             </b-card>
@@ -168,9 +167,6 @@ export default {
       this.$bvModal.msgBoxConfirm(this.$t('contribution.delete')).then(async (value) => {
         if (value) this.$emit('delete-contribution', item)
       })
-    },
-    toggleContributionMessagesBox(id) {
-      alert('toggleContributionMessagesBox(' + id + ')')
     },
     getListContributionMessages() {
       // console.log('getListContributionMessages', this.contributionId)

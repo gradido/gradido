@@ -9,7 +9,6 @@
       v-if="state === 'PENDING' || state === 'IN_PROGRESS'"
       class="mt-5"
       :contributionId="contributionId"
-      @toggle-contribution-messages-box="toggleContributionMessagesBox"
       @get-list-contribution-messages="getListContributionMessages"
     />
   </div>
@@ -39,9 +38,6 @@ export default {
     },
   },
   methods: {
-    toggleContributionMessagesBox(id) {
-      this.$emit('toggle-contribution-messages-box', id)
-    },
     getListContributionMessages() {
       this.$emit('get-list-contribution-messages', this.contributionId)
     },
