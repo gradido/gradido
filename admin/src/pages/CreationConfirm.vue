@@ -80,7 +80,6 @@ export default {
         .then((result) => {
           this.$store.commit('resetOpenCreations')
           this.pendingCreations = result.data.listUnconfirmedContributions
-          console.log(this.pendingCreations)
           this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
         .catch((error) => {
@@ -96,8 +95,6 @@ export default {
       this.item = item
     },
     updateState(id) {
-      console.log('admin updateState', id)
-      console.log(this.pendingCreations)
       this.pendingCreations.find((item) => item.id === id).state = 'IN_PROGRESS'
     },
   },
