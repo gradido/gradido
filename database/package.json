@@ -18,8 +18,7 @@
     "dev_reset": "cross-env TZ=UTC ts-node src/index.ts reset",
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js config",
-    "seed": "cross-env TZ=UTC ts-node src/index.ts seed",
-    "syncronize": "cross-env TZ=UTC typeorm schema:sync"
+    "seed": "cross-env TZ=UTC ts-node src/index.ts seed"
   },
   "devDependencies": {
     "@types/faker": "^5.5.9",

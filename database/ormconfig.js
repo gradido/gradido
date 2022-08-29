@@ -10,5 +10,4 @@ module.export = {
   username: CONFIG.DB_USER,
   password: CONFIG.DB_PASSWORD,
   database: CONFIG.DB_DATABASE,
-  cache: true,
 }
