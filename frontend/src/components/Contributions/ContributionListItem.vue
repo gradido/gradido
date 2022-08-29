@@ -2,7 +2,7 @@
   <div class="contribution-list-item">
     <slot>
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
-        <div v-b-toggle="messages.length ? collapsId : ''" @click="getListContributionMessages">
+        <div @click="getListContributionMessages">
           <div class="d-inline-flex">
             <div class="mr-2">
               <b-icon
