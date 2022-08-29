@@ -1,18 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
-import { userFactory } from '@/seeds/factory/user'
-import { creationFactory } from '@/seeds/factory/creation'
-import { creations } from '@/seeds/creation/index'
-import { peterLustig } from '@/seeds/users/peter-lustig'
 import { createContributionMessage } from '@/seeds/graphql/mutations'
+import { listContributionMessages } from '@/seeds/graphql/queries'
 
 let mutate: any, query: any, con: any
 let testEnv: any
-let result: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -35,6 +30,23 @@ describe('ContributionMessageResolver', () => {
           mutate({
             mutation: createContributionMessage,
             variables: { contributionId: 1, message: 'This is a test message' },
+          }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+  })
+
+  describe('listContributionMessages', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        await expect(
+          mutate({
+            mutation: listContributionMessages,
+            variables: { contributionId: 1 },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
