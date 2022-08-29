@@ -2,7 +2,7 @@
   <div class="contribution-list-item">
     <slot>
       <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
-        <div @click="getListContributionMessages">
+        <div>
           <div class="d-inline-flex">
             <div class="mr-2">
               <b-icon
@@ -53,12 +53,22 @@
               <b-icon icon="trash" class="h2"></b-icon>
             </div>
             <div v-if="messages.length" class="pointer">
-              <b-icon v-b-toggle="collapsId" icon="chat-dots" class="h2 mr-5"></b-icon>
+              <b-icon
+                v-b-toggle="collapsId"
+                icon="chat-dots"
+                class="h2 mr-5"
+                @click="getListContributionMessages"
+              ></b-icon>
             </div>
           </div>
         </div>
         <div v-if="messages">
-          <b-button v-if="state === 'IN_PROGRESS'" v-b-toggle="collapsId" variant="warning">
+          <b-button
+            v-if="state === 'IN_PROGRESS'"
+            v-b-toggle="collapsId"
+            variant="warning"
+            @click="getListContributionMessages"
+          >
             {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
           <b-collapse :id="collapsId" class="mt-2">

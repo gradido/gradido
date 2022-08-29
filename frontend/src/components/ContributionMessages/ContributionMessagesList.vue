@@ -12,6 +12,10 @@
       @get-list-contribution-messages="getListContributionMessages"
       @update-state="updateState"
     />
+    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer h2">
+      <b-icon icon="arrow-up-short"></b-icon>
+      {{ $t('form.close') }}
+    </div>
   </div>
 </template>
 <script>

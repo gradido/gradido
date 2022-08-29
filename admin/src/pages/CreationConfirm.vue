@@ -98,6 +98,7 @@ export default {
       this.pendingCreations.find((value) => {
         value.state = 'IN_PROGRESS'
         value.messageCount = value.messageCount + 1
+        return null
       })
     },
   },
