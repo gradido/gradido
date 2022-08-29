@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="contribution-messages-list-item">
     <is-not-moderator v-if="isNotModerator" :message="message"></is-not-moderator>
     <is-moderator v-else :message="message"></is-moderator>
   </div>
