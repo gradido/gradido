@@ -70,8 +70,8 @@
     "short_hash": "({shortHash})"
   },
   "form": {
-    "submit": "submit",
-    "reset": "reset"
+    "reset": "reset",
+    "submit": "submit"
   },
   "GDD": "GDD",
   "hide_details": "Hide details",
