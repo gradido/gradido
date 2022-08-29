@@ -40,7 +40,6 @@ describe('ContributionListItem', () => {
       expect(wrapper.find('div.contribution-list-item').exists()).toBe(true)
     })
 
-
     describe('contribution icon', () => {
       it('is bell-fill by default', () => {
         expect(wrapper.vm.icon).toBe('bell-fill')
