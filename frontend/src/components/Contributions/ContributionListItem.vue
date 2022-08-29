@@ -173,7 +173,7 @@ export default {
       alert('toggleContributionMessagesBox(' + id + ')')
     },
     getListContributionMessages() {
-      console.log('getListContributionMessages', this.contributionId)
+      // console.log('getListContributionMessages', this.contributionId)
       this.$apollo
         .query({
           query: listContributionMessages,
@@ -183,7 +183,7 @@ export default {
           fetchPolicy: 'no-cache',
         })
         .then((result) => {
-          console.log('result', result.data.listContributionMessages.messages)
+          // console.log('result', result.data.listContributionMessages.messages)
           this.messages_get = result.data.listContributionMessages.messages
         })
         .catch((error) => {

@@ -63,9 +63,6 @@ export default {
       event.preventDefault()
       this.form.text = ''
     },
-    toggleContributionMessagesBox() {
-      this.$emit('toggle-contribution-messages-box', this.contributionId)
-    },
   },
 }
 </script>
