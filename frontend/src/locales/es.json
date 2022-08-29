@@ -35,13 +35,13 @@
   "contribution": {
     "activity": "Actividad",
     "alert": {
+      "answerQuestion": "Please answer the question",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
+      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación",
-      "rejected": "rechazado",
-      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
-      "answerQuestion": "Please answer the question"
+      "rejected": "rechazado"
     },
     "date": "Contribución para:",
     "delete": "Eliminar la contribución. ¿Estás seguro?",

@@ -35,13 +35,13 @@
   "contribution": {
     "activity": "Activiteit",
     "alert": {
+      "answerQuestion": "Please answer the question",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
+      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging",
-      "rejected": "afgewezen",
-      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
-      "answerQuestion": "Please answer the question"
+      "rejected": "afgewezen"
     },
     "date": "Bijdrage voor:",
     "delete": "Bijdrage verwijderen! Weet je het zeker?",
