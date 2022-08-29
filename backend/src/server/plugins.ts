@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import clonedeep from 'lodash.clonedeep'
+import responseCachePlugin from 'apollo-server-plugin-response-cache'
 
 const setHeadersPlugin = {
   requestDidStart() {
@@ -55,7 +56,11 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
   },
 }
 
-const plugins =
-  process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
+const cachePlugin = responseCachePlugin()
+
+const plugins: any[] =
+  process.env.NODE_ENV === 'development'
+    ? [cachePlugin, setHeadersPlugin]
+    : [cachePlugin, setHeadersPlugin, logPlugin]
 
 export default plugins
