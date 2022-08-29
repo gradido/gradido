@@ -12,6 +12,9 @@ describe('ContributionListItem', () => {
   }
 
   const propsData = {
+    contributionId: 42,
+    state: 'PENDING',
+    messagesCount: 2,
     id: 1,
     createdAt: '26/07/2022',
     contributionDate: '07/06/2022',
@@ -37,21 +40,6 @@ describe('ContributionListItem', () => {
       expect(wrapper.find('div.contribution-list-item').exists()).toBe(true)
     })
 
-    describe('contribution type', () => {
-      it('is pending by default', () => {
-        expect(wrapper.vm.type).toBe('pending')
-      })
-
-      it('is deleted when deletedAt is present', async () => {
-        await wrapper.setProps({ deletedAt: new Date().toISOString() })
-        expect(wrapper.vm.type).toBe('deleted')
-      })
-
-      it('is confirmed when confirmedAt is present', async () => {
-        await wrapper.setProps({ confirmedAt: new Date().toISOString() })
-        expect(wrapper.vm.type).toBe('confirmed')
-      })
-    })
 
     describe('contribution icon', () => {
       it('is bell-fill by default', () => {
@@ -82,6 +70,11 @@ describe('ContributionListItem', () => {
       it('is success at when confirmedAt is present', async () => {
         await wrapper.setProps({ confirmedAt: new Date().toISOString() })
         expect(wrapper.vm.variant).toBe('success')
+      })
+
+      it('is warning at when state is IN_PROGRESS', async () => {
+        await wrapper.setProps({ state: 'IN_PROGRESS' })
+        expect(wrapper.vm.variant).toBe('warning')
       })
     })
 
@@ -133,7 +126,7 @@ describe('ContributionListItem', () => {
         beforeEach(async () => {
           spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findAll('div.pointer').at(1).trigger('click')
+          await wrapper.findAll('div.pointer').at(2).trigger('click')
         })
 
         it('does not emit delete contribution', () => {

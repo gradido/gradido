@@ -35,7 +35,7 @@ export default {
     },
     state: {
       type: String,
-      required: false,
+      required: true,
     },
     messages: {
       type: Array,
