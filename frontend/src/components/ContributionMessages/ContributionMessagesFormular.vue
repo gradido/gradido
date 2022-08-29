@@ -52,6 +52,7 @@ export default {
         })
         .then((result) => {
           this.$emit('get-list-contribution-messages', this.contributionId)
+          this.$emit('update-state', this.contributionId)
           this.form.text = ''
           this.toastSuccess(result)
         })

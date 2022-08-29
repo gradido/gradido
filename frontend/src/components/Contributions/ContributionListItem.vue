@@ -68,6 +68,7 @@
                 :state="state"
                 :contributionId="contributionId"
                 @get-list-contribution-messages="getListContributionMessages"
+                @update-state="updateState"
               />
             </b-card>
           </b-collapse>
@@ -185,6 +186,9 @@ export default {
         .catch((error) => {
           this.toastError(error.message)
         })
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
 }

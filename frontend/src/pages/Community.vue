@@ -43,6 +43,7 @@
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
             @delete-contribution="deleteContribution"
+            @update-state="updateState"
             :contributionCount="contributionCount"
             :showPagination="true"
             :pageSize="pageSize"
@@ -258,6 +259,9 @@ export default {
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
+    },
+    updateState(id) {
+      this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
   created() {

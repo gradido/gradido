@@ -6,6 +6,7 @@
         :contributionId="item.id"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
+        @update-state="updateState"
       />
     </div>
     <b-pagination
@@ -63,6 +64,9 @@ export default {
     },
     deleteContribution(item) {
       this.$emit('delete-contribution', item)
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
   computed: {

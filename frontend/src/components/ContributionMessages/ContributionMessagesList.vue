@@ -10,6 +10,7 @@
       class="mt-5"
       :contributionId="contributionId"
       @get-list-contribution-messages="getListContributionMessages"
+      @update-state="updateState"
     />
   </div>
 </template>
@@ -40,6 +41,9 @@ export default {
   methods: {
     getListContributionMessages() {
       this.$emit('get-list-contribution-messages', this.contributionId)
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
 }
