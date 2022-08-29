@@ -97,7 +97,6 @@ export class ContributionResolver {
       .select('c')
       .from(dbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
-      .leftJoinAndSelect('m.user', 'u')
       .where(where)
       .orderBy('c.createdAt', order)
       .limit(pageSize)
