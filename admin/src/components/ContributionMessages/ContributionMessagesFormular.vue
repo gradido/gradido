@@ -1,7 +1,7 @@
 <template>
   <div class="contribution-messages-formular">
     <div>
-      <b-form @submit="onSubmit" @reset="onReset">
+      <b-form @submit.prevent="onSubmit" @reset.prevent="onReset">
         <b-form-textarea
           id="textarea"
           v-model="form.text"
@@ -41,7 +41,6 @@ export default {
   },
   methods: {
     onSubmit(event) {
-      event.preventDefault()
       this.$apollo
         .mutate({
           mutation: adminCreateContributionMessage,
@@ -61,7 +60,6 @@ export default {
         })
     },
     onReset(event) {
-      event.preventDefault()
       this.form.text = ''
     },
   },
