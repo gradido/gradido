@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { cleanDB, testEnvironment } from '@test/helpers'
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { createContributionMessage } from '@/seeds/graphql/mutations'
-import { listContributionMessages } from '@/seeds/graphql/queries'
+import { listContributionMessages, login } from '@/seeds/graphql/queries'
+import { userFactory } from '@/seeds/factory/user'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -38,6 +40,39 @@ describe('ContributionMessageResolver', () => {
         )
       })
     })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
+      })
+
+      describe('input not valid', () => {
+        it('throws error when contribution does not exist', async () => {
+          await expect(
+            mutate({
+              mutation: createContributionMessage,
+              variables: {
+                contributionId: -1,
+                message: 'Test',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Contribution not found')],
+            }),
+          )
+        })
+      })
+    })
   })
 
   describe('listContributionMessages', () => {
@@ -53,6 +88,21 @@ describe('ContributionMessageResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
+      })
+    })
+
+    describe('authenticated', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await query({
+          query: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+        resetToken()
       })
     })
   })
