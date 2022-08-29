@@ -95,7 +95,10 @@ export default {
       this.item = item
     },
     updateState(id) {
-      this.pendingCreations.find((item) => item.id === id).state = 'IN_PROGRESS'
+      this.pendingCreations.find((value) => {
+        value.state = 'IN_PROGRESS'
+        value.messageCount = value.messageCount + 1
+      })
     },
   },
   computed: {
