@@ -207,15 +207,7 @@ export const listContributions = gql`
         confirmedBy
         deletedAt
         state
-        messages {
-          id
-          message
-          createdAt
-          updatedAt
-          type
-          userFirstName
-          userLastName
-        }
+        messagesCount
       }
     }
   }

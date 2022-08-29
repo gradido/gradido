@@ -52,7 +52,7 @@
             >
               <b-icon icon="trash" class="h2"></b-icon>
             </div>
-            <div v-if="messages.length" class="pointer">
+            <div v-if="messagesCount > 0" class="pointer">
               <b-icon
                 v-b-toggle="collapsId"
                 icon="chat-dots"
@@ -62,7 +62,7 @@
             </div>
           </div>
         </div>
-        <div v-if="messages">
+        <div v-if="messagesCount > 0">
           <b-button
             v-if="state === 'IN_PROGRESS'"
             v-b-toggle="collapsId"
@@ -136,12 +136,9 @@ export default {
       type: String,
       required: false,
     },
-    messages: {
-      type: Array,
+    messagesCount: {
+      type: Number,
       required: false,
-      default() {
-        return []
-      },
     },
     contributionId: {
       type: Number,
