@@ -67,7 +67,11 @@ describe('ContributionMessageResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('Contribution not found')],
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not successful: Error: Contribution not found',
+                ),
+              ],
             }),
           )
         })
@@ -88,21 +92,6 @@ describe('ContributionMessageResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
-      })
-    })
-
-    describe('authenticated', () => {
-      beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-        resetToken()
       })
     })
   })
