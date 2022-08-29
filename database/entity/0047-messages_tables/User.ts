@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
+import { ContributionMessage } from '../ContributionMessage'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -108,4 +109,8 @@ export class User extends BaseEntity {
   @OneToMany(() => Contribution, (contribution) => contribution.user)
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
+
+  @OneToMany(() => ContributionMessage, (message) => message.user)
+  @JoinColumn({ name: 'user_id' })
+  messages?: ContributionMessage[]
 }
