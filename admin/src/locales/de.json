@@ -70,7 +70,7 @@
     "short_hash": "({shortHash})"
   },
   "form": {
-    "reset": "Abbrechen",
+    "cancel": "Abbrechen",
     "submit": "Senden"
   },
   "GDD": "GDD",
