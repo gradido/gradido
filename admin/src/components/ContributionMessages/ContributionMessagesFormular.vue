@@ -5,7 +5,7 @@
         <b-form-textarea
           id="textarea"
           v-model="form.text"
-          placeholder="Enter something..."
+          :placeholder="$t('contributionLink.memo')"
           rows="3"
           max-rows="6"
         ></b-form-textarea>
