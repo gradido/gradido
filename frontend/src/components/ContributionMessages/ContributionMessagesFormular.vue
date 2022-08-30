@@ -11,7 +11,7 @@
         ></b-form-textarea>
         <b-row class="mt-4 mb-6">
           <b-col>
-            <b-button type="reset" variant="danger">{{ $t('form.reset') }}</b-button>
+            <b-button type="reset" variant="danger">{{ $t('form.cancel') }}</b-button>
           </b-col>
           <b-col class="text-right">
             <b-button type="submit" variant="primary">{{ $t('form.reply') }}</b-button>
