@@ -53,7 +53,7 @@ export default {
           this.$emit('get-list-contribution-messages', this.contributionId)
           this.$emit('update-state', this.contributionId)
           this.form.text = ''
-          this.toastSuccess(undefined)
+          this.toastSuccess(this.$t('message.reply'))
         })
         .catch((error) => {
           this.toastError(error.message)
