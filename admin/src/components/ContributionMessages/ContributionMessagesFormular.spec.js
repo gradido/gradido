@@ -58,12 +58,12 @@ describe('ContributionMessagesFormular', () => {
     })
 
     describe('call onSubmit', () => {
-      it('response with the contribution message', () => {
-        wrapper.vm.onSubmit()
+      it('response with the contribution message', async () => {
+        await wrapper.find('form').trigger('submit')
       })
     })
 
-    describe('send createContributionLink with error', () => {
+    describe('send contribution message with error', () => {
       beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
         wrapper = Wrapper()
@@ -75,7 +75,7 @@ describe('ContributionMessagesFormular', () => {
       })
     })
 
-    describe('send createContributionLink with success', () => {
+    describe('send contribution message with success', () => {
       beforeEach(async () => {
         wrapper.setData({
           form: {

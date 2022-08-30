@@ -38,7 +38,6 @@ export default {
   },
   methods: {
     getListContributionMessages(id) {
-      this.messages = []
       this.$apollo
         .query({
           query: listContributionMessages,
