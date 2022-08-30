@@ -371,7 +371,7 @@ export class UserResolver {
     logger.debug('login credentials valid...')
 
     const user = new User(dbUser, await getUserCreation(dbUser.id))
-    logger.debug('user=' + user)
+    logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
@@ -389,7 +389,7 @@ export class UserResolver {
     const ev = new EventLogin()
     ev.userId = user.id
     eventProtocol.writeEvent(new Event().setEventLogin(ev))
-    logger.info('successful Login:' + user)
+    logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
 
@@ -665,14 +665,14 @@ export class UserResolver {
         `email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
-    logger.debug('optInCode is valid...')
+    logger.debug('EmailVerificationCode is valid...')
 
     // load user
     const user = await DbUser.findOneOrFail({ id: userContact.userId }).catch(() => {
       logger.error('Could not find corresponding Login User')
       throw new Error('Could not find corresponding Login User')
     })
-    logger.debug('user with optInCode found...')
+    logger.debug('user with EmailVerificationCode found...')
 
     // Generate Passphrase if needed
     if (!user.passphrase) {
@@ -713,12 +713,17 @@ export class UserResolver {
         logger.error('error saving user: ' + error)
         throw new Error('error saving user: ' + error)
       })
+      // Save userContact
+      await queryRunner.manager.save(userContact).catch((error) => {
+        logger.error('error saving userContact: ' + error)
+        throw new Error('error saving userContact: ' + error)
+      })
 
       await queryRunner.commitTransaction()
-      logger.info('User data written successfully...')
+      logger.info('User and UserContact data written successfully...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
-      logger.error('Error on writing User data:' + e)
+      logger.error('Error on writing User and UserContact data:' + e)
       throw e
     } finally {
       await queryRunner.release()
@@ -896,7 +901,7 @@ async function findUserByEmail(email: string): Promise<DbUser> {
     throw new Error('No user with this credentials')
   })
   const userId = dbUserContact.userId
-  const dbUser = await DbUser.findOneOrFail(userId).catch(() => {
+  const dbUser = await DbUser.findOneOrFail({ id: userId }, { withDeleted: true }).catch(() => {
     logger.error(`User with emailContact=${email} connected per userId=${userId} does not exist`)
     throw new Error('No user with this credentials')
   })
