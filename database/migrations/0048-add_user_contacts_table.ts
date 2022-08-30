@@ -10,6 +10,7 @@
 import { v4 as uuidv4 } from 'uuid'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`user_contacts\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -21,13 +22,25 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         \`email_resend_count\` int DEFAULT '0',
         \`email_checked\` tinyint(4) NOT NULL DEFAULT 0,
         \`phone\` varchar(255) COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-        \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        \`updated_at\` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-        \`deleted_at\` datetime NULL DEFAULT NULL,
+        \`created_at\` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        \`updated_at\` datetime(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
+        \`deleted_at\` datetime(3) NULL DEFAULT NULL,
         PRIMARY KEY (\`id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
   await queryFn('ALTER TABLE `users` ADD COLUMN `email_id` int(10) NULL AFTER `email`;')
+  // define datetime column with a precision of 3 milliseconds
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `created` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER `email_hash`;',
+  )
+  // define datetime column with a precision of 3 milliseconds
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `deletedAt` datetime(3) NULL DEFAULT NULL AFTER `last_name`;',
+  )
+  // define datetime column with a precision of 3 milliseconds
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `is_admin` datetime(3) NULL DEFAULT NULL AFTER `language`;',
+  )
 
   // merge values from login_email_opt_in table with users.email in new user_contacts table
   await queryFn(`
@@ -58,13 +71,26 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       `UPDATE users as u SET u.email_id = "${contact.id}" WHERE u.id = "${contact.user_id}"`,
     )
   }
-  // this step comes after verification and test
+  // these steps comes after verification and test
   await queryFn('ALTER TABLE users DROP COLUMN email;')
+  await queryFn('ALTER TABLE users DROP COLUMN email_checked;')
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // this step comes after verification and test
   await queryFn('ALTER TABLE users ADD COLUMN email varchar(255) NULL AFTER privkey;')
+  await queryFn(
+    'ALTER TABLE users ADD COLUMN email_checked tinyint(4) NOT NULL DEFAULT 0 AFTER email;',
+  )
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `email_hash`;',
+  )
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `deletedAt` datetime NULL DEFAULT NULL AFTER `last_name`;',
+  )
+  await queryFn(
+    'ALTER TABLE `users` MODIFY COLUMN `is_admin` datetime NULL DEFAULT NULL AFTER `language`;',
+  )
 
   // reconstruct the previous email back from contacts to users table
   const contacts = await queryFn(`SELECT c.id, c.email, c.user_id FROM user_contacts as c`)
