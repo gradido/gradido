@@ -41,13 +41,13 @@ describe('ContributionMessagesFormular', () => {
     })
 
     describe('call onReset', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         wrapper.setData({
           form: {
             text: 'text form message',
           },
         })
-        wrapper.vm.onReset()
+        await wrapper.find('form').trigger('reset')
       })
 
       it('form has the set data', () => {
@@ -64,10 +64,10 @@ describe('ContributionMessagesFormular', () => {
     })
 
     describe('send createContributionLink with error', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
         wrapper = Wrapper()
-        wrapper.vm.onSubmit()
+        await wrapper.find('form').trigger('submit')
       })
 
       it('toasts an error message', () => {
@@ -76,18 +76,18 @@ describe('ContributionMessagesFormular', () => {
     })
 
     describe('send createContributionLink with success', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         wrapper.setData({
           form: {
             text: 'text form message',
           },
         })
         wrapper = Wrapper()
-        wrapper.vm.onSubmit()
+        await wrapper.find('form').trigger('submit')
       })
 
       it('toasts an success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith(undefined)
+        expect(toastSuccessSpy).toBeCalledWith('message.request')
       })
     })
   })
