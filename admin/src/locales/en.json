@@ -82,6 +82,9 @@
     "pipe": "|",
     "plus": "+"
   },
+  "message": {
+    "request": "Request has been sent."
+  },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",

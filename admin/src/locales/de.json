@@ -82,6 +82,9 @@
     "pipe": "|",
     "plus": "+"
   },
+  "message": {
+    "request": "Request has been sent."
+  },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
