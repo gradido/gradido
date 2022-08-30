@@ -41,15 +41,16 @@ describe('ContributionMessagesFormular', () => {
     })
 
     describe('call onReset', () => {
-      it('form has the set data', () => {
-        beforeEach(() => {
-          wrapper.setData({
-            form: {
-              text: 'text form message',
-            },
-          })
-          wrapper.vm.onReset()
+      beforeEach(() => {
+        wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
         })
+        wrapper.vm.onReset()
+      })
+
+      it('form has the set data', () => {
         expect(wrapper.vm.form).toEqual({
           text: '',
         })
