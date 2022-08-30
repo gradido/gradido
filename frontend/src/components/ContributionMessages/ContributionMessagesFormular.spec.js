@@ -15,7 +15,6 @@ describe('ContributionMessagesFormular', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
     $apollo: {
       mutate: apolloMutateMock,
     },
