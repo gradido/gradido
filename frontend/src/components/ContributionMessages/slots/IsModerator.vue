@@ -1,10 +1,9 @@
 <template>
   <div class="slot-is-moderator">
     <b-avatar square :text="moderatorName" variant="warning"></b-avatar>
-    <span class="ml-2 mr-2">
-      {{ message.userFirstName }} {{ message.userLastName }}
-      <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
-    </span>
+    <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+    <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+    <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
     <div class="mt-2 h3">{{ message.message }}</div>
   </div>
 </template>
