@@ -2,7 +2,7 @@
   <div class="community-page">
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')" active>
+        <b-tab :title="$t('community.submitContribution')">
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
@@ -10,7 +10,17 @@
             :updateAmount="updateAmount"
           />
         </b-tab>
-        <b-tab :title="$t('community.myContributions')">
+        <b-tab>
+          <template #title>
+            <b-icon
+              v-if="pleaseReply"
+              icon="circle-fill"
+              animation="throb"
+              font-scale="1"
+              variant="warning"
+            ></b-icon>
+            {{ $t('community.myContributions') }}
+          </template>
           <div>
             <b-alert show dismissible fade variant="secondary" class="text-dark">
               <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
@@ -108,6 +118,7 @@ export default {
         amount: '',
       },
       updateAmount: '',
+      pleaseReply: false,
     }
   },
   methods: {
@@ -228,6 +239,13 @@ export default {
           } = result
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
+          if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+            this.tabIndex = 1
+            this.pleaseReply = true
+          } else {
+            this.tabIndex = 0
+            this.pleaseReply = false
+          }
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -276,6 +294,7 @@ export default {
       pageSize: this.pageSize,
     })
     this.updateTransactions(0)
+    this.tabIndex = 1
   },
 }
 </script>
