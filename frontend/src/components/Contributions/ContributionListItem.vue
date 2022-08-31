@@ -46,7 +46,7 @@
               <b-icon icon="pencil" class="h2"></b-icon>
             </div>
             <div
-              v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
+              v-if="!['CONFIRMED', 'DELETED'].includes(state)"
               class="pointer"
               @click="deleteContribution({ id })"
             >
