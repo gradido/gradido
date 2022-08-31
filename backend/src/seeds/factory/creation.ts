@@ -24,15 +24,16 @@ export const creationFactory = async (
   logger.trace('creationFactory...')
   await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
   logger.trace('creationFactory... after login')
-
   // TODO it would be nice to have this mutation return the id
   await mutate({ mutation: adminCreateContribution, variables: { ...creation } })
   logger.trace('creationFactory... after adminCreateContribution')
 
-  const userContact = await UserContact.findOneOrFail({ where: { email: creation.email } })
+  const userContact = await UserContact.findOneOrFail({
+    where: { email: creation.email },
+    relations: ['user'],
+  })
   logger.trace('creationFactory... after UserContact.findOneOrFail userContact=', userContact)
-  const user = await User.findOneOrFail({ where: { id: userContact.userId } })
-  logger.trace('creationFactory... after User.findOneOrFail user=', user)
+  const user = userContact.user
 
   const pendingCreation = await Contribution.findOneOrFail({
     where: { userId: user.id, amount: creation.amount },
@@ -42,12 +43,10 @@ export const creationFactory = async (
     'creationFactory... after Contribution.findOneOrFail pendingCreation=',
     pendingCreation,
   )
-
   if (creation.confirmed) {
     logger.trace('creationFactory... creation.confirmed=', creation.confirmed)
     await mutate({ mutation: confirmContribution, variables: { id: pendingCreation.id } })
     logger.trace('creationFactory... after confirmContribution')
-
     const confirmedCreation = await Contribution.findOneOrFail({ id: pendingCreation.id })
     logger.trace(
       'creationFactory... after Contribution.findOneOrFail confirmedCreation=',
@@ -61,6 +60,7 @@ export const creationFactory = async (
         order: { balanceDate: 'DESC' },
       })
       logger.trace('creationFactory... after Transaction.findOneOrFail transaction=', transaction)
+
       if (transaction.decay.equals(0) && transaction.creationDate) {
         confirmedCreation.contributionDate = new Date(
           nMonthsBefore(transaction.creationDate, creation.moveCreationDate),

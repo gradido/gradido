@@ -75,24 +75,24 @@ export class AdminResolver {
     { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-
+    /*
     const filterCriteria: ObjectLiteral[] = []
     if (filters) {
       if (filters.byActivated !== null) {
-        filterCriteria.push({ emailChecked: filters.byActivated })
+        filterCriteria.push({ 'emailContact.emailChecked': filters.byActivated })
       }
 
       if (filters.byDeleted !== null) {
         filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
       }
     }
-
+    */
     const userFields = [
       'id',
       'firstName',
       'lastName',
-      'email',
-      'emailChecked',
+      'emailId',
+      'emailContact',
       'deletedAt',
       'isAdmin',
     ]
@@ -101,7 +101,7 @@ export class AdminResolver {
         return 'user.' + fieldName
       }),
       searchText,
-      filterCriteria,
+      filters,
       currentPage,
       pageSize,
     )
@@ -249,7 +249,11 @@ export class AdminResolver {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
-    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
+    const emailContact = await UserContact.findOne({
+      where: { email },
+      withDeleted: true,
+      relations: ['user'],
+    })
     if (!emailContact) {
       logger.error(`Could not find user with email: ${email}`)
       throw new Error(`Could not find user with email: ${email}`)
@@ -257,6 +261,10 @@ export class AdminResolver {
     if (emailContact.deletedAt) {
       logger.error('This emailContact was deleted. Cannot create a contribution.')
       throw new Error('This emailContact was deleted. Cannot create a contribution.')
+    }
+    if (emailContact.user.deletedAt) {
+      logger.error('This user was deleted. Cannot create a contribution.')
+      throw new Error('This user was deleted. Cannot create a contribution.')
     }
     if (!emailContact.emailChecked) {
       logger.error('Contribution could not be saved, Email is not activated')
@@ -317,12 +325,16 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
-    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
+    const emailContact = await UserContact.findOne({
+      where: { email },
+      withDeleted: true,
+      relations: ['user'],
+    })
     if (!emailContact) {
       logger.error(`Could not find UserContact with email: ${email}`)
       throw new Error(`Could not find UserContact with email: ${email}`)
     }
-    const user = await dbUser.findOne({ id: emailContact.userId }, { withDeleted: true })
+    const user = emailContact.user
     if (!user) {
       logger.error(`Could not find User to emailContact: ${email}`)
       throw new Error(`Could not find User to emailContact: ${email}`)
@@ -388,7 +400,11 @@ export class AdminResolver {
 
     const userIds = contributions.map((p) => p.userId)
     const userCreations = await getUserCreations(userIds)
-    const users = await dbUser.find({ where: { id: In(userIds) }, withDeleted: true })
+    const users = await dbUser.find({
+      where: { id: In(userIds) },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
 
     return contributions.map((contribution) => {
       const user = users.find((u) => u.id === contribution.userId)

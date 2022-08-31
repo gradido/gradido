@@ -1,4 +1,5 @@
-import { Brackets, EntityRepository, ObjectLiteral, Repository } from '@dbTools/typeorm'
+import SearchUsersFilters from '@/graphql/arg/SearchUsersFilters'
+import { Brackets, EntityRepository, IsNull, Not, Repository } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 @EntityRepository(DbUser)
@@ -21,17 +22,18 @@ export class UserRepository extends Repository<DbUser> {
   async findBySearchCriteriaPagedFiltered(
     select: string[],
     searchCriteria: string,
-    filterCriteria: ObjectLiteral[],
+    filters: SearchUsersFilters,
     currentPage: number,
     pageSize: number,
   ): Promise<[DbUser[], number]> {
     const query = this.createQueryBuilder('user')
       .select(select)
+      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .withDeleted()
       .where(
         new Brackets((qb) => {
           qb.where(
-            'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+            'user.firstName like :name or user.lastName like :lastName or emailContact.email like :email',
             {
               name: `%${searchCriteria}%`,
               lastName: `%${searchCriteria}%`,
@@ -40,9 +42,23 @@ export class UserRepository extends Repository<DbUser> {
           )
         }),
       )
+    /*
     filterCriteria.forEach((filter) => {
       query.andWhere(filter)
     })
+    */
+    if (filters) {
+      if (filters.byActivated !== null) {
+        query.andWhere('emailContact.emailChecked = :value', { value: filters.byActivated })
+        // filterCriteria.push({ 'emailContact.emailChecked': filters.byActivated })
+      }
+
+      if (filters.byDeleted !== null) {
+        // filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
+        query.andWhere({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
+      }
+    }
+
     return query
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
