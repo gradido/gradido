@@ -22,6 +22,9 @@ import { ContributionLink } from '@model/ContributionLink'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { UserContact } from '@entity/UserContact'
+import { OptInType } from '../enum/OptInType'
+import { UserContactType } from '../enum/UserContactType'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -82,7 +85,7 @@ describe('UserResolver', () => {
     }
 
     let result: any
-    let emailOptIn: string
+    let emailVerificationCode: string
     let user: User[]
 
     beforeAll(async () => {
@@ -101,11 +104,11 @@ describe('UserResolver', () => {
     })
 
     describe('valid input data', () => {
-      let loginEmailOptIn: LoginEmailOptIn[]
+      // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find()
-        loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        user = await User.find({ relations: ['emailContact'] })
+        // loginEmailOptIn = await LoginEmailOptIn.find()
+        emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
 
       describe('filling all tables', () => {
@@ -115,8 +118,8 @@ describe('UserResolver', () => {
               id: expect.any(Number),
               gradidoID: expect.any(String),
               alias: null,
-              email: 'peter@lustig.de',
-              emailId: null,
+              emailContact: expect.any(UserContact), // 'peter@lustig.de',
+              emailId: expect.any(Number),
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
@@ -124,7 +127,7 @@ describe('UserResolver', () => {
               privKey: null,
               // emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
-              emailChecked: false,
+              // emailChecked: false,
               passphrase: expect.any(String),
               language: 'de',
               isAdmin: null,
@@ -141,17 +144,20 @@ describe('UserResolver', () => {
         })
 
         it('creates an email optin', () => {
-          expect(loginEmailOptIn).toEqual([
-            {
-              id: expect.any(Number),
-              userId: user[0].id,
-              verificationCode: expect.any(String),
-              emailOptInTypeId: 1,
-              createdAt: expect.any(Date),
-              resendCount: 0,
-              updatedAt: expect.any(Date),
-            },
-          ])
+          expect(user[0].emailContact).toEqual({
+            id: expect.any(Number),
+            type: UserContactType.USER_CONTACT_EMAIL,
+            userId: user[0].id,
+            email: 'peter@lustig.de',
+            emailChecked: false,
+            emailVerificationCode: expect.any(String),
+            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+            emailResendCount: 0,
+            phone: null,
+            createdAt: expect.any(Date),
+            deletedAt: null,
+            updatedAt: null,
+          })
         })
       })
     })
@@ -160,7 +166,7 @@ describe('UserResolver', () => {
       it('sends an account activation email', () => {
         const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
           /{optin}/g,
-          emailOptIn,
+          emailVerificationCode,
         ).replace(/{code}/g, '')
         expect(sendAccountActivationEmail).toBeCalledWith({
           link: activationLink,
@@ -244,7 +250,7 @@ describe('UserResolver', () => {
           // activate account of admin Peter Lustig
           await mutate({
             mutation: setPassword,
-            variables: { code: emailOptIn, password: 'Aa12345_' },
+            variables: { code: emailVerificationCode, password: 'Aa12345_' },
           })
           // make Peter Lustig Admin
           const peter = await User.findOneOrFail({ id: user[0].id })
@@ -266,7 +272,9 @@ describe('UserResolver', () => {
         })
 
         it('sets the contribution link id', async () => {
-          await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
+          await expect(
+            UserContact.findOne({ email: 'ein@besucher.de' }, { relations: ['user'] }),
+          ).resolves.toEqual(
             expect.objectContaining({
               contributionLinkId: link.id,
             }),
@@ -616,13 +624,13 @@ bei Gradidio sei dabei!`,
 
     describe('user exists in DB', () => {
       let result: any
-      let loginEmailOptIn: LoginEmailOptIn[]
+      let emailContact: UserContact
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await resetEntity(LoginEmailOptIn)
+        // await resetEntity(LoginEmailOptIn)
         result = await mutate({ mutation: forgotPassword, variables })
-        loginEmailOptIn = await LoginEmailOptIn.find()
+        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
@@ -630,18 +638,12 @@ bei Gradidio sei dabei!`,
       })
 
       it('returns true', async () => {
-        await expect(result).toEqual(
-          expect.objectContaining({
-            data: {
-              forgotPassword: true,
-            },
-          }),
-        )
+        expect(result).toEqual(expect.objectContaining({ data: { forgotPassword: true } }))
       })
 
       it('sends reset password email', () => {
         expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(loginEmailOptIn[0]),
+          link: activationLink(emailContact.emailVerificationCode),
           firstName: 'Bibi',
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',

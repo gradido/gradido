@@ -896,17 +896,19 @@ export class UserResolver {
 async function findUserByEmail(email: string): Promise<DbUser> {
   const dbUserContact = await DbUserContact.findOneOrFail(
     { email: email },
-    { withDeleted: true },
+    { withDeleted: true, relations: ['user'] },
   ).catch(() => {
     logger.error(`UserContact with email=${email} does not exists`)
     throw new Error('No user with this credentials')
   })
-  const userId = dbUserContact.userId
+  const dbUser = dbUserContact.user
+  /*
   const dbUser = await DbUser.findOneOrFail({ id: userId }, { withDeleted: true }).catch(() => {
     logger.error(`User with emailContact=${email} connected per userId=${userId} does not exist`)
     throw new Error('No user with this credentials')
   })
   dbUser.emailContact = dbUserContact
+  */
   return dbUser
 }
 
