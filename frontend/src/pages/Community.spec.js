@@ -92,6 +92,8 @@ describe('Community', () => {
       it('has three tabs', () => {
         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
       })
+
+      it.todo('check for correct tabIndex if state is "IN_PROGRESS" or not')
     })
 
     describe('API calls after creation', () => {
