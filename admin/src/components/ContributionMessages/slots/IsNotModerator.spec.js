@@ -8,6 +8,7 @@ describe('IsNotModerator', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $d: jest.fn((d) => d),
   }
 
   const propsData = {

@@ -8,6 +8,7 @@ describe('ContributionMessagesList', () => {
 
   const mocks = {
     $t: jest.fn((t) => t),
+    $d: jest.fn((d) => d),
     $store: {
       state: {
         firstName: 'Peter',

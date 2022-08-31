@@ -40,7 +40,7 @@ describe('ContributionMessagesFormular', () => {
       expect(wrapper.find('div.contribution-messages-formular').exists()).toBe(true)
     })
 
-    describe('call onReset', () => {
+    describe('on trigger reset', () => {
       beforeEach(async () => {
         wrapper.setData({
           form: {
@@ -50,16 +50,33 @@ describe('ContributionMessagesFormular', () => {
         await wrapper.find('form').trigger('reset')
       })
 
-      it('form has the set data', () => {
+      it('form has empty text', () => {
         expect(wrapper.vm.form).toEqual({
           text: '',
         })
       })
     })
 
-    describe('call onSubmit', () => {
-      it('response with the contribution message', async () => {
+    describe('on trigger submit', () => {
+      beforeEach(async () => {
+        wrapper.setData({
+          form: {
+            text: 'text form message',
+          },
+        })
         await wrapper.find('form').trigger('submit')
+      })
+
+      it('emitted "get-list-contribution-messages" with data', async () => {
+        expect(wrapper.emitted('get-list-contribution-messages')).toEqual(
+          expect.arrayContaining([expect.arrayContaining([42])]),
+        )
+      })
+
+      it('emitted "update-state" with data', async () => {
+        expect(wrapper.emitted('update-state')).toEqual(
+          expect.arrayContaining([expect.arrayContaining([42])]),
+        )
       })
     })
 

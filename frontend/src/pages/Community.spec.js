@@ -92,10 +92,6 @@ describe('Community', () => {
       it('has three tabs', () => {
         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
       })
-
-      it('has first tab active by default', () => {
-        expect(wrapper.findAll('div[role="tabpanel"]').at(0).classes('active')).toBe(true)
-      })
     })
 
     describe('API calls after creation', () => {
