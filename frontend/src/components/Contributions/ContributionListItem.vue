@@ -28,7 +28,7 @@
           </div>
           <div class="mr-2">{{ memo }}</div>
           <div
-            v-if="(state !== 'DELETED' && !firstName) || (state !== 'CONFIRMED' && !firstName)"
+            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !firstName"
             class="d-flex flex-row-reverse"
           >
             <div
