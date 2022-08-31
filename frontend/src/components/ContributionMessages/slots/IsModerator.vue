@@ -1,6 +1,6 @@
 <template>
   <div class="slot-is-moderator">
-    <b-avatar square :text="moderatorName" variant="warning"></b-avatar>
+    <b-avatar square :text="initialLetters" variant="warning"></b-avatar>
     <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
     <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
     <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
@@ -18,7 +18,7 @@ export default {
     },
   },
   computed: {
-    moderatorName() {
+    initialLetters() {
       return `${this.message.userFirstName[0]} ${this.message.userLastName[0]}`
     },
   },

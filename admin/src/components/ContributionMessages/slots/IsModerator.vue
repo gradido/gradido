@@ -1,11 +1,7 @@
 <template>
   <div class="slot-is-moderator">
     <div class="text-right">
-      <b-avatar
-        square
-        :text="`${message.userFirstName[0]} ${message.userLastName[0]}`"
-        variant="warning"
-      ></b-avatar>
+      <b-avatar square :text="initialLetters" variant="warning"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
       <small class="ml-4 text-success">{{ $t('moderator') }}</small>
@@ -21,6 +17,11 @@ export default {
       default() {
         return {}
       },
+    },
+  },
+  computed: {
+    initialLetters() {
+      return `${this.message.userFirstName[0]} ${this.message.userLastName[0]}`
     },
   },
 }

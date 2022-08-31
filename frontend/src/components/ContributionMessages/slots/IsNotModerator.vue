@@ -1,7 +1,7 @@
 <template>
   <div class="slot-is-not-moderator">
     <div class="text-right">
-      <b-avatar :text="userName" variant="info"></b-avatar>
+      <b-avatar :text="initialLetters" variant="info"></b-avatar>
       <span class="ml-2 mr-2 text-bold">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
@@ -21,7 +21,7 @@ export default {
     },
   },
   computed: {
-    userName() {
+    initialLetters() {
       return `${this.message.userFirstName[0]} ${this.message.userLastName[0]}`
     },
   },
