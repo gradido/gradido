@@ -10,17 +10,7 @@
             :updateAmount="updateAmount"
           />
         </b-tab>
-        <b-tab>
-          <template #title>
-            <b-icon
-              v-if="pleaseReply"
-              icon="circle-fill"
-              animation="throb"
-              font-scale="1"
-              variant="warning"
-            ></b-icon>
-            {{ $t('community.myContributions') }}
-          </template>
+        <b-tab :title="$t('community.myContributions')">
           <div>
             <b-alert show dismissible fade variant="secondary" class="text-dark">
               <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
@@ -118,7 +108,6 @@ export default {
         amount: '',
       },
       updateAmount: '',
-      pleaseReply: false,
     }
   },
   methods: {
@@ -241,10 +230,8 @@ export default {
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
-            this.pleaseReply = true
           } else {
             this.tabIndex = 0
-            this.pleaseReply = false
           }
         })
         .catch((err) => {
