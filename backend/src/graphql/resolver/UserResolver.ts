@@ -16,7 +16,6 @@ import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { OptInType } from '@enum/OptInType'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
@@ -148,6 +147,7 @@ const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[
   return [encryptionKeyHash, encryptionKey]
 }
 
+/*
 const getEmailHash = (email: string): Buffer => {
   logger.trace('getEmailHash...')
   const emailHash = Buffer.alloc(sodium.crypto_generichash_BYTES)
@@ -155,6 +155,7 @@ const getEmailHash = (email: string): Buffer => {
   logger.debug(`getEmailHash...successful: ${emailHash}`)
   return emailHash
 }
+*/
 
 const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buffer): Buffer => {
   logger.trace('SecretKeyCryptographyEncrypt...')
@@ -191,7 +192,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   logger.debug(`newEmailContact...successful: ${emailContact}`)
   return emailContact
 }
-
+/*
 const newEmailOptIn = (userId: number): LoginEmailOptIn => {
   logger.trace('newEmailOptIn...')
   const emailOptIn = new LoginEmailOptIn()
@@ -201,7 +202,7 @@ const newEmailOptIn = (userId: number): LoginEmailOptIn => {
   logger.debug(`newEmailOptIn...successful: ${emailOptIn}`)
   return emailOptIn
 }
-
+*/
 /*
 // needed by AdminResolver
 // checks if given code exists and can be resent

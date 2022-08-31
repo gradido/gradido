@@ -32,7 +32,6 @@ import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
 import { Contribution } from '@entity/Contribution'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -44,7 +43,7 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
-import { checkEmailVerificationCode, activationLink, printTimeDuration } from './UserResolver'
+import { activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
@@ -247,6 +246,9 @@ export class AdminResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
+    logger.info(
+      `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
+    )
     const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
     if (!emailContact) {
       logger.error(`Could not find user with email: ${email}`)
@@ -263,8 +265,9 @@ export class AdminResolver {
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
     const creations = await getUserCreation(emailContact.userId)
-    logger.trace('creations', creations)
+    logger.trace('creations:', creations)
     const creationDateObj = new Date(creationDate)
+    logger.trace('creationDateObj:', creationDateObj)
     validateContribution(creations, amount, creationDateObj)
     const contribution = Contribution.create()
     contribution.userId = emailContact.userId
