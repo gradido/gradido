@@ -32,7 +32,7 @@
             class="d-flex flex-row-reverse"
           >
             <div
-              v-if="state !== 'CONFIRMED' && state !== 'DELETED'"
+              v-if="!['CONFIRMED', 'DELETED'].includes(state)"
               class="pointer ml-5"
               @click="
                 $emit('update-contribution-form', {
