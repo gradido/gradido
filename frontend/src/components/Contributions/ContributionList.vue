@@ -3,8 +3,10 @@
     <div class="list-group" v-for="item in items" :key="item.id">
       <contribution-list-item
         v-bind="item"
+        :contributionId="item.id"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
+        @update-state="updateState"
       />
     </div>
     <b-pagination
@@ -46,6 +48,7 @@ export default {
   data() {
     return {
       currentPage: 1,
+      messages: [],
     }
   },
   methods: {
@@ -61,6 +64,9 @@ export default {
     },
     deleteContribution(item) {
       this.$emit('delete-contribution', item)
+    },
+    updateState(id) {
+      this.$emit('update-state', id)
     },
   },
   computed: {

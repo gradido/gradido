@@ -2,7 +2,7 @@
   <div class="community-page">
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')" active>
+        <b-tab :title="$t('community.submitContribution')">
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
@@ -23,6 +23,10 @@
                   {{ $t('contribution.alert.pending') }}
                 </li>
                 <li>
+                  <b-icon icon="question-square" variant="warning"></b-icon>
+                  {{ $t('contribution.alert.in_progress') }}
+                </li>
+                <li>
                   <b-icon icon="check" variant="success"></b-icon>
                   {{ $t('contribution.alert.confirm') }}
                 </li>
@@ -32,9 +36,6 @@
                 </li>
               </ul>
               <hr />
-              <p class="mb-0">
-                {{ $t('contribution.alert.myContributionNoteSupport') }}
-              </p>
             </b-alert>
           </div>
           <contribution-list
@@ -42,6 +43,7 @@
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
             @delete-contribution="deleteContribution"
+            @update-state="updateState"
             :contributionCount="contributionCount"
             :showPagination="true"
             :pageSize="pageSize"
@@ -226,6 +228,11 @@ export default {
           } = result
           this.contributionCount = listContributions.contributionCount
           this.items = listContributions.contributionList
+          if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
+            this.tabIndex = 1
+          } else {
+            this.tabIndex = 0
+          }
         })
         .catch((err) => {
           this.toastError(err.message)
@@ -258,6 +265,9 @@ export default {
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
+    updateState(id) {
+      this.items.find((item) => item.id === id).state = 'PENDING'
+    },
   },
   created() {
     // verifyLogin is important at this point so that creation is updated on reload if they are deleted in a session in the admin area.
@@ -271,6 +281,7 @@ export default {
       pageSize: this.pageSize,
     })
     this.updateTransactions(0)
+    this.tabIndex = 1
   },
 }
 </script>

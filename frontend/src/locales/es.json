@@ -22,6 +22,7 @@
     "continue-to-registration": "Continuar con el registro",
     "current-community": "Comunidad actual",
     "members": "Miembros",
+    "moderator": "Moderador",
     "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
     "openContributionLinks": "lista de enlaces de contribuciones públicas",
@@ -34,10 +35,11 @@
   "contribution": {
     "activity": "Actividad",
     "alert": {
+      "answerQuestion": "Por favor,  contesta las preguntas",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
+      "in_progress": "Hay una pregunta de los moderatores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
-      "myContributionNoteSupport": "Pronto existirá la posibilidad de que puedas dialogar con los moderadores. Si tienes algún problema ahora, ponte en contacto con el equipo de asistencia.",
       "pending": "Enviado y a la espera de confirmación",
       "rejected": "rechazado"
     },
@@ -130,6 +132,7 @@
     "password_new_repeat": "Repetir contraseña nueva",
     "password_old": "contraseña antigua",
     "recipient": "Destinatario",
+    "reply": "Respuesta",
     "reset": "Restablecer",
     "save": "Guardar",
     "scann_code": "<strong>QR Code Scanner</strong> - Escanea el código QR de tu pareja",
@@ -219,6 +222,7 @@
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "Atención!",
     "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
     "title": "Gracias!",
     "unsetPassword": "Tu contraseña aún no ha sido configurada. Por favor reinícialo."

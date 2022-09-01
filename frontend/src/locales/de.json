@@ -22,6 +22,7 @@
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
     "members": "Mitglieder",
+    "moderator": "Moderator",
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge zum Gemeinwohl",
     "openContributionLinks": "öffentliche Beitrags-Linkliste",
@@ -34,10 +35,11 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
+      "answerQuestion": "Bitte beantworte die Nachfrage",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
+      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
       "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
-      "myContributionNoteSupport": "Es wird bald an dieser Stelle die Möglichkeit geben das ein Dialog zwischen Moderatoren und dir stattfinden kann. Solltest du jetzt Probleme haben bitte nimm Kontakt mit dem Support auf.",
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
@@ -130,6 +132,7 @@
     "password_new_repeat": "Neues Passwort wiederholen",
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
+    "reply": "Antworten",
     "reset": "Zurücksetzen",
     "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
@@ -219,6 +222,7 @@
     "email": "Wir haben dir eine E-Mail gesendet.",
     "errorTitle": "Achtung!",
     "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
+    "reply": "Danke, Deine Antwort wurde abgesendet.",
     "reset": "Dein Passwort wurde geändert.",
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."

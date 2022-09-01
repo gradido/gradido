@@ -22,6 +22,7 @@
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
     "members": "Members",
+    "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
     "openContributionLinks": "open Contribution links list",
@@ -34,10 +35,11 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
+      "answerQuestion": "Please answer the question",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
+      "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
-      "myContributionNoteSupport": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support.",
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
@@ -130,6 +132,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
@@ -219,6 +222,7 @@
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."

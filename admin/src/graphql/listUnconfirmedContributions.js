@@ -12,6 +12,8 @@ export const listUnconfirmedContributions = gql`
       date
       moderator
       creation
+      state
+      messageCount
     }
   }
 `
