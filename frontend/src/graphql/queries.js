@@ -206,6 +206,8 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
+        state
+        messagesCount
       }
     }
   }
