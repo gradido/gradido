@@ -69,8 +69,7 @@ describe('ContributionMessageResolver', () => {
         })
       })
 
-      afterAll(async () => {
-        await cleanDB()
+      afterAll(() => {
         resetToken()
       })
 
@@ -142,24 +141,13 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
       })
 
-      afterAll(async () => {
-        await cleanDB()
+      afterAll(() => {
         resetToken()
       })
 
@@ -217,18 +205,13 @@ describe('ContributionMessageResolver', () => {
           })
         })
 
-        afterAll(async () => {
-          await cleanDB()
-          resetToken()
-        })
-
         it('creates ContributionMessage', async () => {
           await expect(
             mutate({
               mutation: createContributionMessage,
               variables: {
                 contributionId: result.data.createContribution.id,
-                message: 'Test',
+                message: 'User Test',
               },
             }),
           ).resolves.toEqual(
@@ -236,7 +219,7 @@ describe('ContributionMessageResolver', () => {
               data: {
                 createContributionMessage: expect.objectContaining({
                   id: expect.any(Number),
-                  message: 'Test',
+                  message: 'User Test',
                   type: 'DIALOG',
                   userFirstName: 'Bibi',
                   userLastName: 'Bloxberg',
@@ -267,46 +250,13 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        result = await mutate({
-          mutation: createContribution,
-          variables: {
-            amount: 100.0,
-            memo: 'Test env contribution',
-            creationDate: new Date().toString(),
-          },
-        })
-        await query({
-          query: login,
-          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
-        })
-        await mutate({
-          mutation: adminCreateContributionMessage,
-          variables: {
-            contributionId: result.data.createContribution.id,
-            message: 'Admin Test',
-          },
-        })
-        await query({
-          query: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        await mutate({
-          mutation: createContributionMessage,
-          variables: {
-            contributionId: result.data.createContribution.id,
-            message: 'User Test',
-          },
         })
       })
 
-      afterAll(async () => {
-        await cleanDB()
+      afterAll(() => {
         resetToken()
       })
 
