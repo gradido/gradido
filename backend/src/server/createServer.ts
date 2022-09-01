@@ -70,6 +70,7 @@ const createServer = async (
     schema: await schema(),
     playground: CONFIG.GRAPHIQL,
     introspection: CONFIG.GRAPHIQL,
+    cacheControl: true,
     context,
     plugins,
     logger,
