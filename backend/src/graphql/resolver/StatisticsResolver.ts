@@ -14,8 +14,7 @@ import { calculateDecay } from '@/util/decay'
 export class StatisticsResolver {
   @Authorized([RIGHTS.COMMUNITY_STATISTICS])
   @Query(() => CommunityStatistics)
-  async communityStatistics(@Info() info: any): Promise<CommunityStatistics> {
-
+  async communityStatistics(): Promise<CommunityStatistics> {
     const allUsers = await DbUser.count({ withDeleted: true })
     const totalUsers = await DbUser.count()
     const deletedUsers = allUsers - totalUsers
