@@ -43,6 +43,7 @@
       </ul>
       <b-link href="mailto: abc@example.com">{{ supportMail }}</b-link>
     </b-container>
+    <!-- 
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.statistic') }}</div>
@@ -65,6 +66,7 @@
         </div>
       </div>
     </b-container>
+    -->
   </div>
 </template>
 <script>
@@ -139,7 +141,7 @@ export default {
   created() {
     this.getContributionLinks()
     this.getAdminUsers()
-    this.getCommunityStatistics()
+    // this.getCommunityStatistics()
     this.updateTransactions(0)
   },
 }
