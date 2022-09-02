@@ -215,10 +215,12 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
-        await expect(User.find()).resolves.toEqual(
+        await expect(User.find({ relations: ['emailContact'] }, )).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              email: 'bibi@bloxberg.de',
+              emailContact: expect.objectContaining({
+                email: 'bibi@bloxberg.de',
+              }),
               language: 'de',
             }),
           ]),
@@ -232,10 +234,12 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(User.find()).resolves.toEqual(
+        await expect(User.find({ relations: ['emailContact'] }, )).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              email: 'raeuber@hotzenplotz.de',
+              emailContact: expect.objectContaining({
+                email: 'raeuber@hotzenplotz.de',
+              }),
               publisherId: null,
             }),
           ]),
@@ -276,7 +280,9 @@ describe('UserResolver', () => {
             UserContact.findOne({ email: 'ein@besucher.de' }, { relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
-              contributionLinkId: link.id,
+              user: expect.objectContaining({
+                 contributionLinkId: link.id,
+              }),
             }),
           )
         })
@@ -322,20 +328,20 @@ bei Gradidio sei dabei!`,
     }
 
     let result: any
-    let emailOptIn: string
+    let emailVerificationCode: string
 
     describe('valid optin code and valid password', () => {
-      let newUser: any
+      let newUser: User
 
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
-          variables: { code: emailOptIn, password: 'Aa12345_' },
+          variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
-        newUser = await User.find()
+        newUser = await User.findOneOrFail({ id: emailContact.userId }, { relations: ['emailContact'] })
       })
 
       afterAll(async () => {
@@ -343,11 +349,11 @@ bei Gradidio sei dabei!`,
       })
 
       it('sets email checked to true', () => {
-        expect(newUser[0].emailChecked).toBeTruthy()
+        expect(newUser.emailContact.emailChecked).toBeTruthy()
       })
 
       it('updates the password', () => {
-        expect(newUser[0].password).toEqual('3917921995996627700')
+        expect(newUser.password).toEqual('3917921995996627700')
       })
 
       /*
@@ -369,11 +375,11 @@ bei Gradidio sei dabei!`,
     describe('no valid password', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
-          variables: { code: emailOptIn, password: 'not-valid' },
+          variables: { code: emailVerificationCode, password: 'not-valid' },
         })
       })
 

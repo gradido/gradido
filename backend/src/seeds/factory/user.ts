@@ -17,10 +17,10 @@ export const userFactory = async (
   } = await mutate({ mutation: createUser, variables: user })
   // console.log('creatUser:', { id }, { user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ id })
+  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact']})
   // console.log('dbUser:', dbUser)
 
-  const emailContact = await UserContact.findOneOrFail({ userId: id })
+  const emailContact = dbUser.emailContact
   // console.log('emailContact:', emailContact)
 
   if (user.emailChecked) {

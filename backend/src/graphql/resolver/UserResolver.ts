@@ -324,25 +324,6 @@ export class UserResolver {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
-    /*
-    const dbUserContact = await DbUserContact.findOneOrFail({ email }, { withDeleted: true }).catch(
-      () => {
-        logger.error(`UserContact with email=${email} does not exists`)
-        throw new Error('No user with this credentials')
-      },
-    )
-    const userId = dbUserContact.userId
-    const dbUser = await DbUser.findOneOrFail(userId).catch(() => {
-      logger.error(`User with emeilContact=${email} connected per userId=${userId} does not exist`)
-      throw new Error('No user with this credentials')
-    })
-    */
-    /*
-    const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
-      logger.error(`User with email=${email} does not exists`)
-      throw new Error('No user with this credentials')
-    })
-    */
     if (dbUser.deletedAt) {
       logger.error('The User was permanently deleted in database.')
       throw new Error('This user was permanently deleted. Contact support for questions.')
@@ -591,8 +572,9 @@ export class UserResolver {
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email)
-    // const user = await DbUser.findOne({ email })
+    const user = await findUserByEmail(email).catch(() => {
+      logger.warn(`fail on find UserContact per ${email}`)
+    })
     if (!user) {
       logger.warn(`no user found with ${email}`)
       return true
@@ -650,12 +632,13 @@ export class UserResolver {
       throw new Error('Could not login with emailVerificationCode')
     })
     */
-    const userContact = await DbUserContact.findOneOrFail({ emailVerificationCode: code }).catch(
-      () => {
-        logger.error('Could not login with emailVerificationCode')
-        throw new Error('Could not login with emailVerificationCode')
-      },
-    )
+    const userContact = await DbUserContact.findOneOrFail(
+      { emailVerificationCode: code },
+      { relations: ['user'] },
+    ).catch(() => {
+      logger.error('Could not login with emailVerificationCode')
+      throw new Error('Could not login with emailVerificationCode')
+    })
     logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt)) {
@@ -669,10 +652,7 @@ export class UserResolver {
     logger.debug('EmailVerificationCode is valid...')
 
     // load user
-    const user = await DbUser.findOneOrFail({ id: userContact.userId }).catch(() => {
-      logger.error('Could not find corresponding Login User')
-      throw new Error('Could not find corresponding Login User')
-    })
+    const user = userContact.user
     logger.debug('user with EmailVerificationCode found...')
 
     // Generate Passphrase if needed
@@ -902,13 +882,7 @@ async function findUserByEmail(email: string): Promise<DbUser> {
     throw new Error('No user with this credentials')
   })
   const dbUser = dbUserContact.user
-  /*
-  const dbUser = await DbUser.findOneOrFail({ id: userId }, { withDeleted: true }).catch(() => {
-    logger.error(`User with emailContact=${email} connected per userId=${userId} does not exist`)
-    throw new Error('No user with this credentials')
-  })
   dbUser.emailContact = dbUserContact
-  */
   return dbUser
 }
 
