@@ -71,7 +71,8 @@
 </template>
 <script>
 import CONFIG from '@/config'
-import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
+import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+// , communityStatistics
 
 export default {
   name: 'InfoStatistic',
@@ -117,23 +118,25 @@ export default {
           this.toastError('searchAdminUsers has no result, use default data')
         })
     },
-    getCommunityStatistics() {
-      this.$apollo
+    /*
+        getCommunityStatistics() {
+        this.$apollo
         .query({
-          query: communityStatistics,
+        query: communityStatistics,
         })
         .then((result) => {
-          this.totalUsers = result.data.communityStatistics.totalUsers
-          this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-          this.totalGradidoDecayed =
-            Number(result.data.communityStatistics.totalGradidoDecayed) +
-            Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
-          this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
+        this.totalUsers = result.data.communityStatistics.totalUsers
+        this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+        this.totalGradidoDecayed =
+        Number(result.data.communityStatistics.totalGradidoDecayed) +
+        Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+        this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
         })
         .catch(() => {
-          this.toastError('communityStatistics has no result, use default data')
+        this.toastError('communityStatistics has no result, use default data')
         })
-    },
+        },
+      */
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
