@@ -7,7 +7,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
 import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
@@ -215,7 +214,7 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
-        await expect(User.find({ relations: ['emailContact'] }, )).resolves.toEqual(
+        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               emailContact: expect.objectContaining({
@@ -234,7 +233,7 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(User.find({ relations: ['emailContact'] }, )).resolves.toEqual(
+        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               emailContact: expect.objectContaining({
@@ -281,7 +280,7 @@ describe('UserResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               user: expect.objectContaining({
-                 contributionLinkId: link.id,
+                contributionLinkId: link.id,
               }),
             }),
           )
@@ -341,7 +340,10 @@ bei Gradidio sei dabei!`,
           mutation: setPassword,
           variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
-        newUser = await User.findOneOrFail({ id: emailContact.userId }, { relations: ['emailContact'] })
+        newUser = await User.findOneOrFail(
+          { id: emailContact.userId },
+          { relations: ['emailContact'] },
+        )
       })
 
       afterAll(async () => {
@@ -616,35 +618,63 @@ bei Gradidio sei dabei!`,
 
   describe('forgotPassword', () => {
     const variables = { email: 'bibi@bloxberg.de' }
+    const emailCodeRequestTime = CONFIG.EMAIL_CODE_REQUEST_TIME
+
     describe('user is not in DB', () => {
-      it('returns true', async () => {
-        await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              forgotPassword: true,
-            },
-          }),
-        )
+      describe('duration not expired', () => {
+        it('returns true', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                forgotPassword: true,
+              },
+            }),
+          )
+        })
       })
     })
 
     describe('user exists in DB', () => {
-      let result: any
       let emailContact: UserContact
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         // await resetEntity(LoginEmailOptIn)
-        result = await mutate({ mutation: forgotPassword, variables })
         emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
         await cleanDB()
+        CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
       })
 
-      it('returns true', async () => {
-        expect(result).toEqual(expect.objectContaining({ data: { forgotPassword: true } }))
+      describe('duration not expired', () => {
+        it('returns true', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  `email already sent less than ${printTimeDuration(
+                    CONFIG.EMAIL_CODE_REQUEST_TIME,
+                  )} minutes ago`,
+                ),
+              ],
+            }),
+          )
+        })
+      })
+
+      describe('duration reset to 0', () => {
+        it('returns true', async () => {
+          CONFIG.EMAIL_CODE_REQUEST_TIME = 0
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                forgotPassword: true,
+              },
+            }),
+          )
+        })
       })
 
       it('sends reset password email', () => {
@@ -659,6 +689,7 @@ bei Gradidio sei dabei!`,
 
       describe('request reset password again', () => {
         it('thows an error', async () => {
+          CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
@@ -670,11 +701,13 @@ bei Gradidio sei dabei!`,
   })
 
   describe('queryOptIn', () => {
-    let loginEmailOptIn: LoginEmailOptIn[]
+    // let loginEmailOptIn: LoginEmailOptIn[]
+    let emailContact: UserContact
 
     beforeAll(async () => {
       await userFactory(testEnv, bibiBloxberg)
-      loginEmailOptIn = await LoginEmailOptIn.find()
+      // loginEmailOptIn = await LoginEmailOptIn.find()
+      emailContact = await UserContact.findOneOrFail({ email: bibiBloxberg.email })
     })
 
     afterAll(async () => {
@@ -689,8 +722,8 @@ bei Gradidio sei dabei!`,
           expect.objectContaining({
             errors: [
               // keep Whitspace in error message!
-              new GraphQLError(`Could not find any entity of type "LoginEmailOptIn" matching: {
-    "verificationCode": "not-valid"
+              new GraphQLError(`Could not find any entity of type "UserContact" matching: {
+    "emailVerificationCode": "not-valid"
 }`),
             ],
           }),
@@ -703,7 +736,7 @@ bei Gradidio sei dabei!`,
         await expect(
           query({
             query: queryOptIn,
-            variables: { optIn: loginEmailOptIn[0].verificationCode.toString() },
+            variables: { optIn: emailContact.emailVerificationCode.toString() },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
