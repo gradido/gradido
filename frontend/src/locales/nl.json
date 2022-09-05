@@ -251,10 +251,10 @@
   "settings": {
     "language": {
       "changeLanguage": "Taal veranderen",
-      "de": "Duits",
-      "en": "Engels",
-      "es": "Spaans",
-      "fr": "Frans",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
       "nl": "Nederlands",
       "success": "Jouw taal werd succesvol veranderd."
     },
