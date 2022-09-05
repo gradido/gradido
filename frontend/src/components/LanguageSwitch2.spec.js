@@ -86,11 +86,11 @@ describe('LanguageSwitch', () => {
         })
         describe('navigator language is "nl-NL"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
-          it('shows Dutch as language ', async () => {
+          it('shows Nederlands as language ', async () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Holandés')
+            expect(wrapper.findAll('span.locales').at(4).text()).toBe('Nederlands')
           })
         })
         describe('navigator language is "it-IT" (not supported)', () => {
@@ -137,7 +137,7 @@ describe('LanguageSwitch', () => {
         })
       })
       describe('language "nl" in store', () => {
-        it('shows Dutch as language', async () => {
+        it('shows Nederlands as language', async () => {
           wrapper.vm.$store.state.language = 'nl'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
@@ -149,7 +149,7 @@ describe('LanguageSwitch', () => {
           expect(wrapper.findAll('span.locales')).toHaveLength(5)
         })
         it('has English as first language to choose', () => {
-          expect(wrapper.findAll('span.locales').at(0).text()).toBe('Holandés')
+          expect(wrapper.findAll('span.locales').at(0).text()).toBe('Nederlands')
         })
         it('has German as second language to choose', () => {
           expect(wrapper.findAll('span.locales').at(1).text()).toBe('English')
@@ -160,7 +160,7 @@ describe('LanguageSwitch', () => {
         it('has French as third language to choose', () => {
           expect(wrapper.findAll('span.locales').at(3).text()).toBe('Español')
         })
-        it('has Dutch as third language to choose', () => {
+        it('has Nederlands as third language to choose', () => {
           expect(wrapper.findAll('span.locales').at(4).text()).toBe('Français')
         })
       })
