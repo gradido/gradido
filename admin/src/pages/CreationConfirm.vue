@@ -9,6 +9,7 @@
       :fields="fields"
       @remove-creation="removeCreation"
       @show-overlay="showOverlay"
+      @update-state="updateState"
     />
   </div>
 </template>
@@ -92,6 +93,10 @@ export default {
     showOverlay(item) {
       this.overlay = true
       this.item = item
+    },
+    updateState(id) {
+      this.pendingCreations.find((obj) => obj.id === id).messagesCount++
+      this.pendingCreations.find((obj) => obj.id === id).state = 'IN_PROGRESS'
     },
   },
   computed: {

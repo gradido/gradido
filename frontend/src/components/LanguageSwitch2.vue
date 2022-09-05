@@ -1,14 +1,18 @@
 <template>
   <div class="language-switch">
-    <span
-      v-for="lang in locales"
-      :key="lang.code"
-      class="pointer"
-      :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
-    >
-      <span v-if="lang.code === $store.state.language" class="locales mr-1">{{ lang.name }}</span>
-    </span>
-    <b-icon v-b-toggle.collapse-1 icon="caret-down-fill" aria-hidden="true"></b-icon>
+    <div v-b-toggle.collapse-1>
+      <span
+        v-for="lang in locales"
+        :key="lang.code"
+        class="pointer"
+        :class="$store.state.language === lang.code ? 'c-grey' : 'c-blau'"
+      >
+        <span v-if="lang.code === $store.state.language" class="locales mr-1">
+          {{ lang.name }}
+        </span>
+      </span>
+      <b-icon icon="caret-down-fill" aria-hidden="true"></b-icon>
+    </div>
     <b-collapse id="collapse-1" class="mt-4">
       <span
         v-for="(lang, index) in locales"

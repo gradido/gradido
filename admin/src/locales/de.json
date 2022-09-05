@@ -69,6 +69,10 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Abbrechen",
+    "submit": "Senden"
+  },
   "GDD": "GDD",
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
@@ -77,6 +81,9 @@
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
+  },
+  "message": {
+    "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",

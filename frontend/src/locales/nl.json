@@ -9,15 +9,10 @@
       "dignity": "Waardigheid",
       "donation": "Gift",
       "gratitude": "Dankbaarheid",
-      "hasAccount": "Je hebt al een rekening?",
-      "hereLogin": "Hier aanmelden",
       "learnMore": "Meer ervaren …",
       "oneDignity": "We geven aan elkaar en bedanken met Gradido.",
       "oneDonation": "Jij bent een geschenk voor de gemeenschap. 1000 dank dat je bij ons bent.",
       "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
-    },
-    "navbar": {
-      "aboutGradido": "Over Gradido"
     }
   },
   "back": "Terug",
@@ -27,6 +22,7 @@
     "continue-to-registration": "Verder ter registratie",
     "current-community": "Actuele gemeenschap",
     "members": "Leden",
+    "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
     "openContributionLinks": "openbare lijst van bijdragen",
@@ -39,10 +35,11 @@
   "contribution": {
     "activity": "Activiteit",
     "alert": {
+      "answerQuestion": "Please answer the question",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
+      "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
-      "myContributionNoteSupport": "Hier heb je binnenkort de mogelijkheid een gesprek met een moderator te voeren. Mocht je nu problemen hebben, dan neem alsjeblieft contact op met Support.",
       "pending": "Ingediend en wacht op bevestiging",
       "rejected": "afgewezen"
     },
@@ -135,6 +132,7 @@
     "password_new_repeat": "Nieuw wachtwoord herhalen",
     "password_old": "Oud wachtwoord",
     "recipient": "Ontvanger",
+    "reply": "Antwoord",
     "reset": "Resetten",
     "save": "Opslaan",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan de QR Code van uw partner",
@@ -224,6 +222,7 @@
     "email": "We hebben jou een email gestuurd.",
     "errorTitle": "Opgelet!",
     "register": "Je bent nu geregistreerd. Controleer alsjeblieft je emails en klik op de activeringslink.",
+    "reply": "Dank u, uw antwoord is verzonden.",
     "reset": "Jouw wachtwoord werd gewijzigd.",
     "title": "Dankjewel!",
     "unsetPassword": "Jouw wachtwoord werd nog niet ingesteld. Doe het alsjeblieft opnieuw."
@@ -309,12 +308,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Actieve leden",
-    "deletedUsers": "Verwijderde leden",
     "totalGradidoAvailable": "Totaal GDD in omloop",
     "totalGradidoCreated": "Totaal GDD geschept",
-    "totalGradidoDecayed": "Totaal GDD vervallen",
-    "totalGradidoUnbookedDecayed": "Totaal niet geboekte GDD vervallen"
+    "totalGradidoDecayed": "Totaal GDD vervallen"
   },
   "success": "Succes",
   "time": {

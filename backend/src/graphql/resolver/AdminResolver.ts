@@ -62,6 +62,10 @@ import {
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import ContributionMessageArgs from '@arg/ContributionMessageArgs'
+import { ContributionMessageType } from '@enum/MessageType'
+import { ContributionMessage } from '@model/ContributionMessage'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -357,7 +361,14 @@ export class AdminResolver {
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
   async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
-    const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
+    const contributions = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(Contribution, 'c')
+      .leftJoinAndSelect('c.messages', 'm')
+      .where({ confirmedAt: IsNull() })
+      .getMany()
+
     if (contributions.length === 0) {
       return []
     }
@@ -370,18 +381,11 @@ export class AdminResolver {
       const user = users.find((u) => u.id === contribution.userId)
       const creation = userCreations.find((c) => c.id === contribution.userId)
 
-      return {
-        id: contribution.id,
-        userId: contribution.userId,
-        date: contribution.contributionDate,
-        memo: contribution.memo,
-        amount: contribution.amount,
-        moderator: contribution.moderatorId,
-        firstName: user ? user.firstName : '',
-        lastName: user ? user.lastName : '',
-        email: user ? user.email : '',
-        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      }
+      return new UnconfirmedContribution(
+        contribution,
+        user,
+        creation ? creation.creations : FULL_CREATION_AVAILABLE,
+      )
     })
   }
 
@@ -695,5 +699,47 @@ export class AdminResolver {
     await dbContributionLink.save()
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
+  @Mutation(() => ContributionMessage)
+  async adminCreateContributionMessage(
+    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Ctx() context: Context,
+  ): Promise<ContributionMessage> {
+    const user = getUser(context)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    const contributionMessage = DbContributionMessage.create()
+    try {
+      const contribution = await Contribution.findOne({ id: contributionId })
+      if (!contribution) {
+        throw new Error('Contribution not found')
+      }
+      contributionMessage.contributionId = contributionId
+      contributionMessage.createdAt = new Date()
+      contributionMessage.message = message
+      contributionMessage.userId = user.id
+      contributionMessage.type = ContributionMessageType.DIALOG
+      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
+
+      if (
+        contribution.contributionStatus === ContributionStatus.DELETED ||
+        contribution.contributionStatus === ContributionStatus.DENIED ||
+        contribution.contributionStatus === ContributionStatus.PENDING
+      ) {
+        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+        await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
+      }
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`ContributionMessage was not successful: ${e}`)
+      throw new Error(`ContributionMessage was not successful: ${e}`)
+    } finally {
+      await queryRunner.release()
+    }
+    return new ContributionMessage(contributionMessage, user)
   }
 }
