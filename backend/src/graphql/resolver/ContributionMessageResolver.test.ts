@@ -93,6 +93,38 @@ describe('ContributionMessageResolver', () => {
             }),
           )
         })
+
+        it('throws error when contribution.userId equals user.id', async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          const result2 = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          await expect(
+            mutate({
+              mutation: adminCreateContributionMessage,
+              variables: {
+                contributionId: result2.data.createContribution.id,
+                message: 'Test',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not successful: Error: Admin can not answer on own contribution',
+                ),
+              ],
+            }),
+          )
+        })
       })
 
       describe('valid input', () => {
