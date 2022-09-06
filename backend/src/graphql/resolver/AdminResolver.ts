@@ -722,6 +722,7 @@ export class AdminResolver {
       contributionMessage.message = message
       contributionMessage.userId = user.id
       contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.isModerator = true
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
       if (
