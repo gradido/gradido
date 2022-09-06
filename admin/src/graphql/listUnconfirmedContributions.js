@@ -6,6 +6,7 @@ export const listUnconfirmedContributions = gql`
       id
       firstName
       lastName
+      userId
       email
       amount
       memo
