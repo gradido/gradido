@@ -717,6 +717,9 @@ export class AdminResolver {
       if (!contribution) {
         throw new Error('Contribution not found')
       }
+      if (contribution.userId === user.id) {
+        throw new Error('Admin can not answer on own contribution')
+      }
       contributionMessage.contributionId = contributionId
       contributionMessage.createdAt = new Date()
       contributionMessage.message = message
