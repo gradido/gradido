@@ -20,7 +20,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`deleted_at\` datetime DEFAULT NULL,
       \`deleted_by\` int(10) unsigned DEFAULT NULL,
       \`type\` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT "DIALOG",
-      \`is_moderator\` boolean NOT NULL DEFAULT false,
       PRIMARY KEY (\`id\`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `)

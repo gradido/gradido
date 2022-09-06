@@ -48,4 +48,7 @@ export class ContributionMessage extends BaseEntity {
 
   @Column({ length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
   type: string
+
+  @Column({ name: 'is_moderator', type: 'bool', nullable: false, default: false })
+  isModerator: boolean
 }
