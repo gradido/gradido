@@ -40,7 +40,7 @@ export class ContributionMessage {
   @Field(() => Number, { nullable: true })
   userId: number | null
 
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => Boolean)
   isModerator: boolean
 }
 @ObjectType()
