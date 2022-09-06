@@ -39,6 +39,7 @@ export class ContributionMessageResolver {
       contributionMessage.message = message
       contributionMessage.userId = user.id
       contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.isModerator = false
       await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
       if (contribution.contributionStatus === ContributionStatus.IN_PROGRESS) {
