@@ -12,33 +12,42 @@
         </b-button>
       </template>
       <template #cell(editCreation)="row">
-        <b-button
-          v-if="row.item.moderator"
-          variant="info"
-          size="md"
-          @click="rowToggleDetails(row, 0)"
-          class="mr-2"
-        >
-          <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
-        </b-button>
-        <b-button v-else @click="rowToggleDetails(row, 0)">
-          <b-icon icon="chat-dots"></b-icon>
-          <b-icon
-            v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
-            icon="exclamation-circle-fill"
-            variant="warning"
-          ></b-icon>
-          <b-icon
-            v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
-            icon="question-diamond"
-            variant="light"
-          ></b-icon>
-        </b-button>
+        <div v-if="$store.state.moderator.id !== row.item.userId">
+          <b-button
+            v-if="row.item.moderator"
+            variant="info"
+            size="md"
+            @click="rowToggleDetails(row, 0)"
+            class="mr-2"
+          >
+            <b-icon :icon="row.detailsShowing ? 'x' : 'pencil-square'" aria-label="Help"></b-icon>
+          </b-button>
+          <b-button v-else @click="rowToggleDetails(row, 0)">
+            <b-icon icon="chat-dots"></b-icon>
+            <b-icon
+              v-if="row.item.state === 'PENDING' && row.item.messageCount > 0"
+              icon="exclamation-circle-fill"
+              variant="warning"
+            ></b-icon>
+            <b-icon
+              v-if="row.item.state === 'IN_PROGRESS' && row.item.messageCount > 0"
+              icon="question-diamond"
+              variant="light"
+            ></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #cell(confirm)="row">
-        <b-button variant="success" size="md" @click="$emit('show-overlay', row.item)" class="mr-2">
-          <b-icon icon="check" scale="2" variant=""></b-icon>
-        </b-button>
+        <div v-if="$store.state.moderator.id !== row.item.userId">
+          <b-button
+            variant="success"
+            size="md"
+            @click="$emit('show-overlay', row.item)"
+            class="mr-2"
+          >
+            <b-icon icon="check" scale="2" variant=""></b-icon>
+          </b-button>
+        </div>
       </template>
       <template #row-details="row">
         <row-details
