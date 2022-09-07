@@ -45,7 +45,7 @@ describe('LanguageSwitch', () => {
       expect(wrapper.find('div.language-switch').exists()).toBeTruthy()
     })
 
-    describe('with locales en, de and es', () => {
+    describe('with locales en, de, es, fr, and nl', () => {
       describe('empty store', () => {
         describe('navigator language is "en-US"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
@@ -94,11 +94,11 @@ describe('LanguageSwitch', () => {
         describe('navigator language is "nl-NL"', () => {
           const languageGetter = jest.spyOn(navigator, 'language', 'get')
 
-          it('shows Dutch as language ', async () => {
+          it('shows Nederlands as language ', async () => {
             languageGetter.mockReturnValue('nl-NL')
             wrapper.vm.setCurrentLanguage()
             await wrapper.vm.$nextTick()
-            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
+            expect(wrapper.find('button.dropdown-toggle').text()).toBe('Nederlands - nl')
           })
         })
 
@@ -153,16 +153,16 @@ describe('LanguageSwitch', () => {
       })
 
       describe('language "nl" in store', () => {
-        it('shows Dutch as language', async () => {
+        it('shows Nederlands as language', async () => {
           wrapper.vm.$store.state.language = 'nl'
           wrapper.vm.setCurrentLanguage()
           await wrapper.vm.$nextTick()
-          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Holandés - nl')
+          expect(wrapper.find('button.dropdown-toggle').text()).toBe('Nederlands - nl')
         })
       })
 
       describe('dropdown menu', () => {
-        it('has English and German as languages to choose', () => {
+        it('has five languages to choose from', () => {
           expect(wrapper.findAll('li')).toHaveLength(5)
         })
 
@@ -174,16 +174,16 @@ describe('LanguageSwitch', () => {
           expect(wrapper.findAll('li').at(1).text()).toBe('Deutsch')
         })
 
-        it('has Español as second language to choose', () => {
+        it('has Español as third language to choose', () => {
           expect(wrapper.findAll('li').at(2).text()).toBe('Español')
         })
 
-        it('has French as second language to choose', () => {
+        it('has French as fourth language to choose', () => {
           expect(wrapper.findAll('li').at(3).text()).toBe('Français')
         })
 
-        it('has Dutch as second language to choose', () => {
-          expect(wrapper.findAll('li').at(4).text()).toBe('Holandés')
+        it('has Nederlands as fith language to choose', () => {
+          expect(wrapper.findAll('li').at(4).text()).toBe('Nederlands')
         })
       })
     })
