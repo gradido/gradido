@@ -7,8 +7,6 @@ import {
 } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import SubscribeNewsletterArgs from '@arg/SubscribeNewsletterArgs'
-import { User } from '@entity/User'
-import { backendLogger } from '@/server/logger'
 
 @Resolver()
 export class KlicktippResolver {
