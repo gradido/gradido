@@ -9,15 +9,10 @@
       "dignity": "Dignidad",
       "donation": "Donación",
       "gratitude": "Gratitud",
-      "hasAccount": "Ya estas registrado?",
-      "hereLogin": "Regístrate aquí",
       "learnMore": "Infórmate aquí …",
       "oneDignity": "Damos los unos a los otros y agradecemos con Gradido.",
       "oneDonation": "Eres un regalo para la comunidad. 1000 gracias por estar con nosotros.",
       "oneGratitude": "Por los demás, por toda la humanidad, por la naturaleza."
-    },
-    "navbar": {
-      "aboutGradido": "Sobre Gradido"
     }
   },
   "back": "Volver",
@@ -26,18 +21,25 @@
     "community": "Comunidad",
     "continue-to-registration": "Continuar con el registro",
     "current-community": "Comunidad actual",
+    "members": "Miembros",
+    "moderator": "Moderador",
+    "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
+    "openContributionLinks": "lista de enlaces de contribuciones públicas",
+    "openContributionLinkText": "La comunidad \"{name}\" proporciona actualmente las siguientes {count} creaciones automáticas.",
     "other-communities": "Otras comunidades",
+    "statistic": "Estadísticas",
     "submitContribution": "Aportar una contribución",
     "switch-to-this-community": "cambiar a esta comunidad"
   },
   "contribution": {
     "activity": "Actividad",
     "alert": {
+      "answerQuestion": "Por favor,  contesta las preguntas",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
+      "in_progress": "Hay una pregunta de los moderatores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
-      "myContributionNoteSupport": "Pronto existirá la posibilidad de que puedas dialogar con los moderadores. Si tienes algún problema ahora, ponte en contacto con el equipo de asistencia.",
       "pending": "Enviado y a la espera de confirmación",
       "rejected": "rechazado"
     },
@@ -59,7 +61,8 @@
     "yourActivity": "¡Por favor, introduce una actividad!"
   },
   "contribution-link": {
-    "thanksYouWith": "agradecidos con"
+    "thanksYouWith": "te agradece con",
+    "unique": "(único)"
   },
   "decay": {
     "before_startblock_transaction": "Esta transacción no implica disminución en su valor.",
@@ -129,6 +132,7 @@
     "password_new_repeat": "Repetir contraseña nueva",
     "password_old": "contraseña antigua",
     "recipient": "Destinatario",
+    "reply": "Respuesta",
     "reset": "Restablecer",
     "save": "Guardar",
     "scann_code": "<strong>QR Code Scanner</strong> - Escanea el código QR de tu pareja",
@@ -168,6 +172,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
+    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, no lo transmitan.",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_sum": "Enlaces abiertos y códigos QR",
@@ -217,6 +222,7 @@
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "Atención!",
     "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
     "title": "Gracias!",
     "unsetPassword": "Tu contraseña aún no ha sido configurada. Por favor reinícialo."
@@ -224,6 +230,7 @@
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",
+    "info": "Información",
     "logout": "Salir",
     "members_area": "Área de afiliados",
     "overview": "Resumen",
@@ -247,6 +254,8 @@
       "de": "Deutsch",
       "en": "English",
       "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
       "success": "Tu idioma ha sido cambiado con éxito."
     },
     "name": {
@@ -297,6 +306,11 @@
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
     }
+  },
+  "statistic": {
+    "totalGradidoAvailable": "GDD total en circulación",
+    "totalGradidoCreated": "GDD total creado",
+    "totalGradidoDecayed": "GDD total decaído"
   },
   "success": "Lo lograste",
   "time": {

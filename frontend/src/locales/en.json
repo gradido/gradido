@@ -9,15 +9,10 @@
       "dignity": "Dignity",
       "donation": "Donation",
       "gratitude": "Gratitude",
-      "hasAccount": "You already have an account?",
-      "hereLogin": "Log in here",
       "learnMore": "Learn more …",
       "oneDignity": "We gift to each other and give thanks with Gradido.",
       "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
       "oneGratitude": "For each other, for all people, for nature."
-    },
-    "navbar": {
-      "aboutGradido": "About Gradido"
     }
   },
   "back": "Back",
@@ -26,7 +21,11 @@
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
+    "moderator": "Moderator",
+    "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
+    "openContributionLinks": "open Contribution links list",
+    "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
@@ -34,10 +33,11 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
+      "answerQuestion": "Please answer the question",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
+      "in_progress": "There is a question from the moderators.",
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
-      "myContributionNoteSupport": "Soon there will be the possibility for a dialogue between moderators and you. If you have any problems now, please contact the support.",
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
@@ -59,7 +59,8 @@
     "yourActivity": "Please enter an activity!"
   },
   "contribution-link": {
-    "thanksYouWith": "thanks you with"
+    "thanksYouWith": "thanks you with",
+    "unique": "(unique)"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
@@ -129,6 +130,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
@@ -168,6 +170,7 @@
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
+    "link-hint": "Attention: Anyone can redeem this link. Please do not share it!",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Open links and QR codes",
@@ -217,6 +220,7 @@
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
@@ -224,6 +228,7 @@
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
+    "info": "Information",
     "logout": "Logout",
     "members_area": "Members area",
     "overview": "Overview",
@@ -247,6 +252,8 @@
       "de": "Deutsch",
       "en": "English",
       "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "name": {

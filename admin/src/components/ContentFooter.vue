@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="content-footer">
     <hr />
     <b-row align-v="center" class="mt-4 justify-content-lg-between">
       <b-col>

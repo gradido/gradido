@@ -3,7 +3,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
-import { getConnection } from '@dbTools/typeorm'
+import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
@@ -32,6 +32,11 @@ import {
   EventSendConfirmationEmail,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
+import { UserRepository } from '@/typeorm/repository/User'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import Paginated from '@arg/Paginated'
+import { Order } from '@enum/Order'
+import { v4 as uuidv4 } from 'uuid'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -43,7 +48,7 @@ const isPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
-const LANGUAGES = ['de', 'en', 'es']
+const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
@@ -227,6 +232,19 @@ export const activationLink = (optInCode: LoginEmailOptIn): string => {
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, optInCode.verificationCode.toString())
 }
 
+const newGradidoID = async (): Promise<string> => {
+  let gradidoId: string
+  let countIds: number
+  do {
+    gradidoId = uuidv4()
+    countIds = await DbUser.count({ where: { gradidoID: gradidoId } })
+    if (countIds > 0) {
+      logger.info('Gradido-ID creation conflict...')
+    }
+  } while (countIds > 0)
+  return gradidoId
+}
+
 @Resolver()
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
@@ -347,11 +365,13 @@ export class UserResolver {
     logger.info(`DbUser.findOne(email=${email}) = ${userFound}`)
 
     if (userFound) {
-      logger.info('User already exists with this email=' + email)
+      // ATTENTION: this logger-message will be exactly expected during tests
+      logger.info(`User already exists with this email=${email}`)
       // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
       const user = new User(communityDbUser)
       user.id = sodium.randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
+      user.gradidoID = uuidv4()
       user.email = email
       user.firstName = firstName
       user.lastName = lastName
@@ -381,11 +401,13 @@ export class UserResolver {
     // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     const emailHash = getEmailHash(email)
+    const gradidoID = await newGradidoID()
 
     const eventRegister = new EventRegister()
     const eventRedeemRegister = new EventRedeemRegister()
     const eventSendConfirmEmail = new EventSendConfirmationEmail()
     const dbUser = new DbUser()
+    dbUser.gradidoID = gradidoID
     dbUser.email = email
     dbUser.firstName = firstName
     dbUser.lastName = lastName
@@ -733,6 +755,36 @@ export class UserResolver {
     const elopageBuys = hasElopageBuys(userEntity.email)
     logger.debug(`has ElopageBuys = ${elopageBuys}`)
     return elopageBuys
+  }
+
+  @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
+  @Query(() => SearchAdminUsersResult)
+  async searchAdminUsers(
+    @Args()
+    { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+  ): Promise<SearchAdminUsersResult> {
+    const userRepository = getCustomRepository(UserRepository)
+
+    const [users, count] = await userRepository.findAndCount({
+      where: {
+        isAdmin: Not(IsNull()),
+      },
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      userCount: count,
+      userList: users.map((user) => {
+        return {
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      }),
+    }
   }
 }
 

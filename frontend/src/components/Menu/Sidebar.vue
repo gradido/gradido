@@ -16,6 +16,10 @@
             <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
             {{ $t('navigation.transactions') }}
           </b-nav-item>
+          <b-nav-item to="/gdt" class="mb-3">
+            <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
+            {{ $t('gdt.gdt') }}
+          </b-nav-item>
           <b-nav-item to="/community" class="mb-3">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             {{ $t('navigation.community') }}
@@ -23,6 +27,10 @@
           <b-nav-item to="/profile" class="mb-3">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             {{ $t('navigation.profile') }}
+          </b-nav-item>
+          <b-nav-item to="/information" class="mb-3">
+            <b-icon icon="info-circle" aria-hidden="true"></b-icon>
+            {{ $t('navigation.info') }}
           </b-nav-item>
         </b-nav>
         <hr />

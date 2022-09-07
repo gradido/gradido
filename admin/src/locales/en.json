@@ -69,13 +69,21 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Cancel",
+    "submit": "Send"
+  },
   "GDD": "GDD",
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
+    "colon": ":",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
+  },
+  "message": {
+    "request": "Request has been sent."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
@@ -105,6 +113,16 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "Active members",
+    "deletedUsers": "Deleted members",
+    "name": "Statistic",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoCreated": "Total created GDD",
+    "totalGradidoDecayed": "Total GDD decay",
+    "totalGradidoUnbookedDecayed": "Unbooked GDD decay",
+    "totalUsers": "Members"
+  },
   "status": "Status",
   "success": "Success",
   "text": "Text",
