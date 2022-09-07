@@ -20,6 +20,7 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
     }
   }
   await con.close()
+  // eslint-disable-next-line no-console
   console.log('User die nicht bei KlickTipp vorhanden sind: ', notRegisteredUser)
   return notRegisteredUser
 }
