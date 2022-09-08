@@ -29,26 +29,39 @@
       </b-card-text>
     </b-card>
     <contribution-link :items="items" :count="count" />
+    <community-statistic class="mt-5" v-model="statistics" />
   </div>
 </template>
 <script>
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
+import { communityStatistics } from '@/graphql/communityStatistics.js'
 import ContributionLink from '../components/ContributionLink.vue'
-import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
+import CommunityStatistic from '../components/CommunityStatistic.vue'
+import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
 export default {
   name: 'overview',
   components: {
     ContributionLink,
+    CommunityStatistic,
   },
   data() {
     return {
       items: [],
       count: 0,
+      statistics: {
+        totalUsers: null,
+        activeUsers: null,
+        deletedUsers: null,
+        totalGradidoCreated: null,
+        totalGradidoDecayed: null,
+        totalGradidoAvailable: null,
+        totalGradidoUnbookedDecayed: null,
+      },
     }
   },
   methods: {
-    async getPendingCreations() {
+    getPendingCreations() {
       this.$apollo
         .query({
           query: listUnconfirmedContributions,
@@ -58,7 +71,7 @@ export default {
           this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
         })
     },
-    async getContributionLinks() {
+    getContributionLinks() {
       this.$apollo
         .query({
           query: listContributionLinks,
@@ -72,9 +85,30 @@ export default {
           this.toastError('listContributionLinks has no result, use default data')
         })
     },
+    getCommunityStatistics() {
+      this.$apollo
+        .query({
+          query: communityStatistics,
+        })
+        .then((result) => {
+          this.statistics.totalUsers = result.data.communityStatistics.totalUsers
+          this.statistics.activeUsers = result.data.communityStatistics.activeUsers
+          this.statistics.deletedUsers = result.data.communityStatistics.deletedUsers
+          this.statistics.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+          this.statistics.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
+          this.statistics.totalGradidoAvailable =
+            result.data.communityStatistics.totalGradidoAvailable
+          this.statistics.totalGradidoUnbookedDecayed =
+            result.data.communityStatistics.totalGradidoUnbookedDecayed
+        })
+        .catch(() => {
+          this.toastError('communityStatistics has no result, use default data')
+        })
+    },
   },
   created() {
     this.getPendingCreations()
+    this.getCommunityStatistics()
     this.getContributionLinks()
   },
 }

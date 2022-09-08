@@ -1,6 +1,6 @@
 <template>
   <div class="navbar-small">
-    <b-navbar>
+    <b-navbar class="navi">
       <b-navbar-nav>
         <b-nav-item to="/register" class="authNavbar">{{ $t('signup') }}</b-nav-item>
         <span class="mt-1">{{ $t('math.pipe') }}</span>
@@ -15,3 +15,9 @@ export default {
   name: 'AuthNavbarSmall',
 }
 </script>
+<style scoped>
+.navi {
+  margin-left: 0px;
+  padding-left: 0px;
+}
+</style>

@@ -93,9 +93,7 @@ describe('Community', () => {
         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
       })
 
-      it('has first tab active by default', () => {
-        expect(wrapper.findAll('div[role="tabpanel"]').at(0).classes('active')).toBe(true)
-      })
+      it.todo('check for correct tabIndex if state is "IN_PROGRESS" or not')
     })
 
     describe('API calls after creation', () => {

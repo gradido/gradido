@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User } from './User'
+import { User } from '@entity/User'
 
 @ObjectType()
 export class Contribution {
@@ -16,6 +16,8 @@ export class Contribution {
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
     this.contributionDate = contribution.contributionDate
+    this.state = contribution.contributionStatus
+    this.messagesCount = contribution.messages ? contribution.messages.length : 0
   }
 
   @Field(() => Number)
@@ -47,6 +49,12 @@ export class Contribution {
 
   @Field(() => Date)
   contributionDate: Date
+
+  @Field(() => Number)
+  messagesCount: number
+
+  @Field(() => String)
+  state: string
 }
 
 @ObjectType()

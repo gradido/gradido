@@ -163,6 +163,26 @@ export const listTransactionLinks = gql`
   }
 `
 
+export const listContributionLinks = gql`
+  query($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    listContributionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+      links {
+        id
+        amount
+        name
+        memo
+        createdAt
+        validFrom
+        validTo
+        maxAmountPerMonth
+        cycle
+        maxPerCycle
+      }
+      count
+    }
+  }
+`
+
 export const listContributions = gql`
   query(
     $currentPage: Int = 1
@@ -186,6 +206,8 @@ export const listContributions = gql`
         confirmedAt
         confirmedBy
         deletedAt
+        state
+        messagesCount
       }
     }
   }
@@ -205,6 +227,55 @@ export const listAllContributions = gql`
         contributionDate
         confirmedAt
         confirmedBy
+      }
+    }
+  }
+`
+
+export const communityStatistics = gql`
+  query {
+    communityStatistics {
+      totalUsers
+      activeUsers
+      deletedUsers
+      totalGradidoCreated
+      totalGradidoDecayed
+      totalGradidoAvailable
+      totalGradidoUnbookedDecayed
+    }
+  }
+`
+
+export const searchAdminUsers = gql`
+  query {
+    searchAdminUsers {
+      userCount
+      userList {
+        firstName
+        lastName
+      }
+    }
+  }
+`
+
+export const listContributionMessages = gql`
+  query($contributionId: Float!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+    listContributionMessages(
+      contributionId: $contributionId
+      pageSize: $pageSize
+      currentPage: $currentPage
+      order: $order
+    ) {
+      count
+      messages {
+        id
+        message
+        createdAt
+        updatedAt
+        type
+        userFirstName
+        userLastName
+        userId
       }
     }
   }
