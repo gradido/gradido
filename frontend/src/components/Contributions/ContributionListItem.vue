@@ -27,10 +27,7 @@
             </span>
           </div>
           <div class="mr-2">{{ memo }}</div>
-          <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !firstName"
-            class="d-flex flex-row-reverse"
-          >
+          <div class="d-flex flex-row-reverse">
             <div
               v-if="!['CONFIRMED', 'DELETED'].includes(state)"
               class="pointer ml-5"
