@@ -7,7 +7,6 @@
     </b-container>
     <contribution-messages-formular
       v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
-      class="mt-5"
       :contributionId="contributionId"
       @get-list-contribution-messages="getListContributionMessages"
       @update-state="updateState"
