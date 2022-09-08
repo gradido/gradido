@@ -18,6 +18,7 @@ export const listContributionMessages = gql`
         userFirstName
         userLastName
         userId
+        isModerator
       }
     }
   }
