@@ -20,3 +20,4 @@ package-lock.json
 
 # Apple macOS folder attribute file
 .DS_Store
+/node_modules/
