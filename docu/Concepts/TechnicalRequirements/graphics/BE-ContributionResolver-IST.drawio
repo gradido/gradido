@@ -17,7 +17,7 @@
                     <mxGeometry x="135" y="647.5" width="60" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="17" value="model" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="395" y="610" width="335" height="200" as="geometry"/>
+                    <mxGeometry x="395" y="610" width="335" height="220" as="geometry"/>
                 </mxCell>
                 <mxCell id="24" value="auth" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="55" y="697.5" width="155" height="80" as="geometry"/>
@@ -32,7 +32,7 @@
                     <mxGeometry x="62.5" y="1063" width="60" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="28" value="arg" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="742.5" y="840.5" width="340" height="202.5" as="geometry"/>
+                    <mxGeometry x="742.5" y="840.5" width="340" height="259.5" as="geometry"/>
                 </mxCell>
                 <mxCell id="29" value="AdminCreate&lt;br&gt;ContributionArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="752.5" y="880.5" width="100" height="30" as="geometry"/>
@@ -47,7 +47,7 @@
                     <mxGeometry x="860" y="920.5" width="100" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="34" value="entity" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="1097.5" y="610" width="260" height="200" as="geometry"/>
+                    <mxGeometry x="1097.5" y="610" width="260" height="220" as="geometry"/>
                 </mxCell>
                 <mxCell id="35" value="Transaction" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1102.5" y="650" width="75" height="30" as="geometry"/>
@@ -71,7 +71,7 @@
                     <mxGeometry x="1185" y="730" width="75" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="48" value="enum" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="745" y="610" width="340" height="200" as="geometry"/>
+                    <mxGeometry x="745" y="610" width="340" height="220" as="geometry"/>
                 </mxCell>
                 <mxCell id="49" value="Transaction&lt;br&gt;TypeId" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="755" y="640" width="100" height="30" as="geometry"/>
@@ -119,7 +119,7 @@
                     <mxGeometry x="975" y="640" width="100" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="70" value="type-graphql" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="225" y="607.5" width="115" height="202.5" as="geometry"/>
+                    <mxGeometry x="225" y="607.5" width="115" height="222.5" as="geometry"/>
                 </mxCell>
                 <mxCell id="72" value="dbTools" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="222.5" y="1023" width="115" height="80" as="geometry"/>
@@ -132,9 +132,6 @@
                 </mxCell>
                 <mxCell id="77" value="Query" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="290" y="647.5" width="40" height="22.5" as="geometry"/>
-                </mxCell>
-                <mxCell id="78" value="UseMiddleware" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="757.5" width="90" height="23.75" as="geometry"/>
                 </mxCell>
                 <mxCell id="79" value="Arg" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="230" y="672.5" width="50" height="17.5" as="geometry"/>
@@ -253,12 +250,6 @@
                 <mxCell id="120" value="Transaction&lt;br&gt;Link" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="132.5" y="1103" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="122" value="uuid" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="612.5" y="1023" width="115" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="123" value="v4" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
-                    <mxGeometry x="632.5" y="1063" width="60" height="30" as="geometry"/>
-                </mxCell>
                 <mxCell id="124" value="util" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="347.5" y="843" width="380" height="120" as="geometry"/>
                 </mxCell>
@@ -295,29 +286,59 @@
                 <mxCell id="136" value="Community" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="560" y="767.5" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="137" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;ContributionResolver&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ createContribution():&amp;nbsp;UnconfirmedContribution&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ deleteContribution(): boolean&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ deleteContribution(): ContributionListResult&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ listContributions(): ContributionListResult&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ updateContribution(): UnconfirmedContribution&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+                <mxCell id="145" style="edgeStyle=none;html=1;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="137" target="133">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="137" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;ContributionResolver&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ createContribution():&amp;nbsp;UnconfirmedContribution&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ deleteContribution(): boolean&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ deleteContribution(): ContributionListResult&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ listContributions(): ContributionListResult&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;&lt;span&gt;+ updateContribution(): UnconfirmedContribution&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
                     <mxGeometry x="405" y="180" width="345" height="140" as="geometry"/>
                 </mxCell>
-                <mxCell id="138" value="Contribution&lt;br&gt;Message" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="138" value="Contribution&lt;br&gt;Message" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1267.5" y="650" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="139" value="Contribution" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="139" value="Contribution" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="1187.5" y="687.5" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="140" value="MessageType" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="140" value="MessageType" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="975" y="640" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="141" value="Contribution&lt;br&gt;Status" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="141" value="Contribution&lt;br&gt;Status" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="865" y="640" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="142" value="Order" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="142" value="Order" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="865" y="680" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="143" value="Contribution&lt;br&gt;Message" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="143" value="Contribution&lt;br&gt;Message" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="645" y="727.5" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="144" value="Paginated" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="144" value="Paginated" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="752.5" y="960.5" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="146" value="Subscribe&lt;br&gt;NewsletterArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="972.5" y="1000.5" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="147" value="Community&lt;br&gt;Statistics" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="645" y="767.5" width="75" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="148" value="UseMiddleware" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="757.5" width="100" height="23.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="149" value="createUnionType" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="790" width="100" height="23.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="150" value="Transaction&lt;br&gt;LinkArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="752.5" y="1040" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="151" value="uuid" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="1023" width="77.5" height="77" as="geometry"/>
+                </mxCell>
+                <mxCell id="152" value="v4" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="1063" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="153" value="crypto" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="1023" width="95" height="77" as="geometry"/>
+                </mxCell>
+                <mxCell id="154" value="randomBytes" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="1063" width="77.5" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

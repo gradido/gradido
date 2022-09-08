@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="ShO7q3t4R8ToIVqjYavh" name="Seite-1">
-        <mxGraphModel dx="1683" dy="1067" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+        <mxGraphModel dx="1022" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -61,7 +61,7 @@
                     <mxGeometry x="62.5" y="1073" width="60" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="89" value="arg" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="742.5" y="850.5" width="340" height="202.5" as="geometry"/>
+                    <mxGeometry x="742.5" y="850.5" width="340" height="249.5" as="geometry"/>
                 </mxCell>
                 <mxCell id="90" value="AdminCreate&lt;br&gt;ContributionArgs" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="752.5" y="890.5" width="100" height="30" as="geometry"/>
@@ -157,7 +157,7 @@
                     <mxGeometry x="645" y="727.5" width="75" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="128" value="type-graphql" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry x="225" y="607.5" width="115" height="182.5" as="geometry"/>
+                    <mxGeometry x="225" y="607.5" width="115" height="232.5" as="geometry"/>
                 </mxCell>
                 <mxCell id="131" value="Resolver" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="230" y="647.5" width="50" height="22.5" as="geometry"/>
@@ -192,125 +192,143 @@
                 <mxCell id="141" value="&lt;p style=&quot;margin: 0px ; margin-top: 4px ; text-align: center&quot;&gt;&lt;b&gt;UserResolver&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ checkOptInCode:&amp;nbsp;LoginEmailOptIn&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;activationLink: string&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;printTimeDuration: string&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+ verifyLogin(): User&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;login(): User&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;logout(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;createUser(): User&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;forgotPassword(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;setPassword(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;queryOptIn(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;updateUserInfos(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;hasElopage(): boolean&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;searchAdminUsers():&amp;nbsp;SearchAdminUsersResult&lt;/p&gt;&lt;p style=&quot;margin: 0px ; margin-left: 4px&quot;&gt;+&amp;nbsp;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1025" y="280" width="285" height="260" as="geometry"/>
                 </mxCell>
-                <mxCell id="142" value="auth" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="142" value="auth" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="55" y="697.5" width="155" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="143" value="RIGHTS" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="143" value="RIGHTS" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="65" y="737.5" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="144" value="JWT" style="html=1;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" vertex="1" parent="1">
+                <mxCell id="144" value="JWT" style="html=1;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" parent="1" vertex="1">
                     <mxGeometry x="140" y="737.5" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="145" value="UseMiddleware" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
-                    <mxGeometry x="230" y="757.5" width="90" height="23.75" as="geometry"/>
-                </mxCell>
-                <mxCell id="146" value="dbTools" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="146" value="dbTools" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="222.5" y="1033" width="115" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="147" value="typeorm" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="147" value="typeorm" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="242.5" y="1073" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="148" value="fs" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="148" value="fs" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="222.5" y="945.5" width="115" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="149" value="fs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="149" value="fs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="242.5" y="985.5" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="150" value="OptInType" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="150" value="OptInType" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="975" y="680" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="151" value="CreateUserArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="151" value="CreateUserArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="972.5" y="930.5" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="152" value="Unsecure&lt;br&gt;LoginArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="152" value="Unsecure&lt;br&gt;LoginArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="972.5" y="970.5" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="153" value="mailer" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="153" value="mailer" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="1097.5" y="940.5" width="290" height="112.5" as="geometry"/>
                 </mxCell>
-                <mxCell id="154" value="sendAccount&lt;br&gt;ActivationEmail" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="154" value="sendAccount&lt;br&gt;ActivationEmail" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="1107.5" y="970.5" width="95" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="155" value="middleware" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="155" value="middleware" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="1097.5" y="853" width="115" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="156" value="klicktipp&lt;br&gt;Middleware" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="156" value="klicktipp&lt;br&gt;Middleware" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1107.5" y="893" width="95" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="157" value="sendReset&lt;br&gt;PasswordEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="157" value="sendReset&lt;br&gt;PasswordEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1107.5" y="1010.5" width="95" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="158" value="sendAccountMulti&lt;br&gt;RegistrationEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="158" value="sendAccountMulti&lt;br&gt;RegistrationEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1210" y="970.5" width="107.5" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="159" value="event" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="159" value="event" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="1227.5" y="853" width="160" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="160" value="EventProtocol&lt;br&gt;Emitter" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="160" value="EventProtocol&lt;br&gt;Emitter" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1237.5" y="893" width="80" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="161" value="Event" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="161" value="Event" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1327.5" y="893" width="55" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="162" value="UpdateUser&lt;br&gt;InfosArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="162" value="UpdateUser&lt;br&gt;InfosArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="752.5" y="1010.5" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="165" value="AdminUser" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="165" value="AdminUser" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="562.5" y="643.75" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="168" value="sendTransaction&lt;br&gt;ReceivedEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="168" value="sendTransaction&lt;br&gt;ReceivedEmail" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1210" y="1010.5" width="107.5" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="169" value="Transaction&lt;br&gt;SendArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="169" value="Transaction&lt;br&gt;SendArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="860" y="1010.5" width="100" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="170" value="Transaction&lt;br&gt;Link" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="170" value="Transaction&lt;br&gt;Link" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="132.5" y="1113" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="174" value="util" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="174" value="util" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="347.5" y="853" width="380" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="175" value="decay" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="175" value="decay" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="357.5" y="893" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="176" value="hasElopage&lt;br&gt;Buys" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="176" value="hasElopage&lt;br&gt;Buys" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="427.5" y="893" width="80" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="177" value="community&lt;br&gt;User" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="177" value="community&lt;br&gt;User" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="517.5" y="893" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="178" value="creations" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="178" value="creations" style="html=1;fillColor=#dae8fc;gradientColor=#7ea6e0;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="587.5" y="893" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="179" value="validate" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="179" value="validate" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="657.5" y="893" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="180" value="virtual&lt;br&gt;Transactions" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="180" value="virtual&lt;br&gt;Transactions" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="427.5" y="933" width="80" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="181" value="Balance" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="181" value="Balance" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="400" y="767.5" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="182" value="GdtEnrtyList" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="182" value="GdtEnrtyList" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="480" y="767.5" width="75" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="183" value="apis" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                <mxCell id="183" value="apis" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" parent="1" vertex="1">
                     <mxGeometry x="347.5" y="1023" width="162.5" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="184" value="Klicktipp&lt;br&gt;Controller" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="184" value="Klicktipp&lt;br&gt;Controller" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="367.5" y="1063" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="185" value="uuid" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
-                    <mxGeometry x="612.5" y="1023" width="115" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="186" value="v4" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
-                    <mxGeometry x="632.5" y="1063" width="60" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="187" value="Http&lt;br&gt;Request" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="187" value="Http&lt;br&gt;Request" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="437.5" y="1063" width="60" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="188" value="Community" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                <mxCell id="188" value="Community" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="560" y="767.5" width="75" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="189" value="Subscribe&lt;br&gt;NewsletterArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="972.5" y="1010.5" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="190" value="Community&lt;br&gt;Statistics" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="645" y="767.5" width="75" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="191" value="UseMiddleware" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="757.5" width="100" height="23.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="192" value="createUnionType" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="790" width="100" height="23.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="193" value="Transaction&lt;br&gt;LinkArgs" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="752.5" y="1048" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="194" value="uuid" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="1023" width="77.5" height="77" as="geometry"/>
+                </mxCell>
+                <mxCell id="195" value="v4" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="1063" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="196" value="crypto" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;align=left;verticalAlign=top;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="1023" width="95" height="77" as="geometry"/>
+                </mxCell>
+                <mxCell id="197" value="randomBytes" style="html=1;fillColor=#f8cecc;gradientColor=#ea6b66;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="1063" width="77.5" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
