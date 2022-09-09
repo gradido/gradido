@@ -1,6 +1,13 @@
 import { sendAddedContributionMessageEmail } from './sendAddedContributionMessageEmail'
 import { sendEMail } from './sendEMail'
 
+jest.mock('./sendEMail', () => {
+  return {
+    __esModule: true,
+    sendEMail: jest.fn(),
+  }
+})
+
 describe('sendAddedContributionMessageEmail', () => {
   beforeEach(async () => {
     await sendAddedContributionMessageEmail({
