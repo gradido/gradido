@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-messages-formular">
-    <div>
+    <div class="mt-5">
       <b-form @submit.prevent="onSubmit" @reset.prevent="onReset">
         <b-form-textarea
           id="textarea"
