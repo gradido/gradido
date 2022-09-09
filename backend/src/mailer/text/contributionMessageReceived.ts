@@ -12,10 +12,10 @@ export const contributionMessageReceived = {
       message: string
       overviewURL: string
     }): string =>
-      `Hallo ${data.recipientFirstName} ${data.recipientLastName}
+      `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-Du hast soeben eine nachfrage zur Schöpfung "${data.contributionMemo}" von ${data.senderFirstName} ${data.senderLastName} erhalten.
-${data.senderFirstName} ${data.senderLastName} schreibt:
+Du hast soeben zu deinem eingereichten Gradido Schöpfungsantrag "${data.contributionMemo}" eine Rückfrage von ${data.senderFirstName} ${data.senderLastName} erhalten.
+Die Rückfrage lautet:
 
 ${data.message}
 
