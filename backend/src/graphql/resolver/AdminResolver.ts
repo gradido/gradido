@@ -66,6 +66,7 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -737,6 +738,20 @@ export class AdminResolver {
         await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
       }
       await queryRunner.commitTransaction()
+      const contributionUser = await dbUser.findOne({ id: contribution.userId })
+      if (contributionUser) {
+        await sendAddedContributionMessageEmail({
+          senderFirstName: user.firstName,
+          senderLastName: user.lastName,
+          recipientFirstName: contributionUser.firstName,
+          recipientLastName: contributionUser.lastName,
+          recipientEmail: contributionUser.email,
+          senderEmail: user.email,
+          contribution.memo,
+          message,
+          overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+        })
+      }
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`ContributionMessage was not successful: ${e}`)
