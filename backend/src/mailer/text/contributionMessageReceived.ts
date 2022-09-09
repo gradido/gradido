@@ -14,7 +14,7 @@ export const contributionMessageReceived = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName}
 
-Du hast soeben eine nachfrage zur Schöpfung "${data.contributionMemo}" von ${data.senderFirstName} ${data.senderLastName} (${data.senderEmail}) erhalten.
+Du hast soeben eine nachfrage zur Schöpfung "${data.contributionMemo}" von ${data.senderFirstName} ${data.senderLastName} erhalten.
 ${data.senderFirstName} ${data.senderLastName} schreibt:
 
 ${data.message}
