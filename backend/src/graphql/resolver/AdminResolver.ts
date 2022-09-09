@@ -66,7 +66,7 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendTransactionReceivedEmail'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
