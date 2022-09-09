@@ -2,7 +2,6 @@ import { backendLogger as logger } from '@/server/logger'
 import Decimal from 'decimal.js-light'
 import { sendEMail } from './sendEMail'
 import { transactionReceived } from './text/transactionReceived'
-import { contributionMessageReceived } from './text/contributionMessageReceived'
 
 export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string
