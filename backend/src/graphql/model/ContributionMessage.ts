@@ -13,6 +13,7 @@ export class ContributionMessage {
     this.userFirstName = user.firstName
     this.userLastName = user.lastName
     this.userId = user.id
+    this.isModerator = contributionMessage.isModerator
   }
 
   @Field(() => Number)
@@ -38,6 +39,9 @@ export class ContributionMessage {
 
   @Field(() => Number, { nullable: true })
   userId: number | null
+
+  @Field(() => Boolean)
+  isModerator: boolean
 }
 @ObjectType()
 export class ContributionMessageListResult {

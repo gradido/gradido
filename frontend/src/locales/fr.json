@@ -251,11 +251,11 @@
   "settings": {
     "language": {
       "changeLanguage": "Changer la langue",
-      "de": "Allemand",
-      "en": "Anglais",
-      "es": "Espagnol",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
       "fr": "Français",
-      "nl": "Néerlandais",
+      "nl": "Nederlands",
       "success": "Votre langue de préférence a bien été actualisée."
     },
     "name": {
