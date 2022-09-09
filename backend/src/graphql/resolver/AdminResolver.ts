@@ -747,7 +747,7 @@ export class AdminResolver {
           recipientLastName: contributionUser.lastName,
           recipientEmail: contributionUser.email,
           senderEmail: user.email,
-          contribution.memo,
+          contributionMemo: contribution.memo,
           message,
           overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
         })
