@@ -43,6 +43,7 @@
       </ul>
       <b-link href="mailto: abc@example.com">{{ supportMail }}</b-link>
     </b-container>
+    <!-- 
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.statistic') }}</div>
@@ -65,11 +66,13 @@
         </div>
       </div>
     </b-container>
+    -->
   </div>
 </template>
 <script>
 import CONFIG from '@/config'
-import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
+import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+// , communityStatistics
 
 export default {
   name: 'InfoStatistic',
@@ -115,23 +118,25 @@ export default {
           this.toastError('searchAdminUsers has no result, use default data')
         })
     },
-    getCommunityStatistics() {
-      this.$apollo
+    /*
+        getCommunityStatistics() {
+        this.$apollo
         .query({
-          query: communityStatistics,
+        query: communityStatistics,
         })
         .then((result) => {
-          this.totalUsers = result.data.communityStatistics.totalUsers
-          this.totalGradidoCreated =
-            Number(result.data.communityStatistics.totalGradidoCreated) -
-            Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
-          this.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
-          this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
+        this.totalUsers = result.data.communityStatistics.totalUsers
+        this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+        this.totalGradidoDecayed =
+        Number(result.data.communityStatistics.totalGradidoDecayed) +
+        Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+        this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
         })
         .catch(() => {
-          this.toastError('communityStatistics has no result, use default data')
+        this.toastError('communityStatistics has no result, use default data')
         })
-    },
+        },
+      */
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
@@ -139,7 +144,7 @@ export default {
   created() {
     this.getContributionLinks()
     this.getAdminUsers()
-    this.getCommunityStatistics()
+    // this.getCommunityStatistics()
     this.updateTransactions(0)
   },
 }

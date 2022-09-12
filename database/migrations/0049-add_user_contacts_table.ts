@@ -61,7 +61,30 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      users as u,
      login_email_opt_in as e
    WHERE 
-     u.id = e.user_id;`)
+     u.id = e.user_id AND
+     e.id in (
+       WITH opt_in AS ( 
+         SELECT 
+           le.id, le.user_id, le.created, le.updated, ROW_NUMBER() OVER (PARTITION BY le.user_id ORDER BY le.created DESC) AS row_num
+         FROM 
+           login_email_opt_in as le
+       )
+       SELECT 
+         opt_in.id
+       FROM 
+         opt_in
+       WHERE
+         row_num = 1);`)
+  /*         
+      // SELECT 
+      //   le.id 
+      // FROM 
+      //   login_email_opt_in as le
+      // WHERE
+      //   le.user_id = u.id  
+      // ORDER BY 
+      //   le.updated DESC, le.created DESC LIMIT 1);`)
+      */
 
   // insert in users table the email_id of the new created email-contacts
   const contacts = await queryFn(`SELECT c.id, c.user_id FROM user_contacts as c`)

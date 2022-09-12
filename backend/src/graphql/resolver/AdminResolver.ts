@@ -62,6 +62,10 @@ import {
   MEMO_MIN_CHARS,
 } from './const/const'
 import { UserContact } from '@entity/UserContact'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import ContributionMessageArgs from '@arg/ContributionMessageArgs'
+import { ContributionMessageType } from '@enum/MessageType'
+import { ContributionMessage } from '@model/ContributionMessage'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -393,7 +397,14 @@ export class AdminResolver {
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
   async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
-    const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
+    const contributions = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(Contribution, 'c')
+      .leftJoinAndSelect('c.messages', 'm')
+      .where({ confirmedAt: IsNull() })
+      .getMany()
+
     if (contributions.length === 0) {
       return []
     }
@@ -406,6 +417,12 @@ export class AdminResolver {
       relations: ['emailContact'],
     })
 
+      return new UnconfirmedContribution(
+        contribution,
+        user,
+        creation ? creation.creations : FULL_CREATION_AVAILABLE,
+      )
+    /*
     return contributions.map((contribution) => {
       const user = users.find((u) => u.id === contribution.userId)
       const creation = userCreations.find((c) => c.id === contribution.userId)
@@ -423,6 +440,7 @@ export class AdminResolver {
         creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
       }
     })
+    */
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
@@ -749,5 +767,51 @@ export class AdminResolver {
     await dbContributionLink.save()
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
+  @Mutation(() => ContributionMessage)
+  async adminCreateContributionMessage(
+    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Ctx() context: Context,
+  ): Promise<ContributionMessage> {
+    const user = getUser(context)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ UNCOMMITTED')
+    const contributionMessage = DbContributionMessage.create()
+    try {
+      const contribution = await Contribution.findOne({ id: contributionId })
+      if (!contribution) {
+        throw new Error('Contribution not found')
+      }
+      if (contribution.userId === user.id) {
+        throw new Error('Admin can not answer on own contribution')
+      }
+      contributionMessage.contributionId = contributionId
+      contributionMessage.createdAt = new Date()
+      contributionMessage.message = message
+      contributionMessage.userId = user.id
+      contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.isModerator = true
+      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
+
+      if (
+        contribution.contributionStatus === ContributionStatus.DELETED ||
+        contribution.contributionStatus === ContributionStatus.DENIED ||
+        contribution.contributionStatus === ContributionStatus.PENDING
+      ) {
+        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+        await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
+      }
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`ContributionMessage was not successful: ${e}`)
+      throw new Error(`ContributionMessage was not successful: ${e}`)
+    } finally {
+      await queryRunner.release()
+    }
+    return new ContributionMessage(contributionMessage, user)
   }
 }

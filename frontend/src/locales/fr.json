@@ -22,6 +22,7 @@
     "continue-to-registration": "Continuez l´inscription",
     "current-community": "Communauté actuelle",
     "members": "Membres",
+    "moderator": "Modérateur",
     "moderators": "Modérateurs",
     "myContributions": "Mes contributions aux biens communs",
     "openContributionLinks": "liste de liens de contribution publique",
@@ -34,10 +35,11 @@
   "contribution": {
     "activity": "Activité",
     "alert": {
+      "answerQuestion": "S'il te plais répond à la question",
       "communityNoteList": "Vous trouverez ci-contre toutes les contributions versées et certifiées de tous les membres de cette communauté.",
       "confirm": " Approuvé",
+      "in_progress": "Il y a une question du modérateur.",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
-      "myContributionNoteSupport": "Vous aurez bientôt la possibilité de dialoguer avec un médiateur. Si vous rencontrez un problème maintenant, merci de contacter l´aide en ligne.",
       "pending": "Inscription en attente de validation",
       "rejected": "supprimé"
     },
@@ -130,6 +132,7 @@
     "password_new_repeat": "Répétez le nouveau mot de passe",
     "password_old": "Ancien mot de passe",
     "recipient": "Destinataire",
+    "reply": "Répondre",
     "reset": "Réinitialiser",
     "save": "Sauvegarder",
     "scann_code": "<strong>QR Code Scanner</strong> - Scannez le QR code de votre partenaire",
@@ -219,6 +222,7 @@
     "email": "Nous vous avons envoyé un email.",
     "errorTitle": "Attention!",
     "register": "Vous êtes enregistré maintenant, merci de vérifier votre boîte mail et cliquer sur le lien d´activation.",
+    "reply": "Merci, ta réponse a été envoyée.",
     "reset": "Votre mot de passe a été modifié.",
     "title": "Merci!",
     "unsetPassword": "Votre mot de passe n´a pas été accepté. Merci de le réinitialiser."
@@ -247,11 +251,11 @@
   "settings": {
     "language": {
       "changeLanguage": "Changer la langue",
-      "de": "Allemand",
-      "en": "Anglais",
-      "es": "Espagnol",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
       "fr": "Français",
-      "nl": "Néerlandais",
+      "nl": "Nederlands",
       "success": "Votre langue de préférence a bien été actualisée."
     },
     "name": {

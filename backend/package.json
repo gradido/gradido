@@ -1,6 +1,6 @@
 {
   "name": "gradido-backend",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -14,7 +14,8 @@
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --coverage --forceExit --detectOpenHandles",
-    "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts"
+    "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
+    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts"
   },
   "dependencies": {
     "@types/jest": "^27.0.2",
