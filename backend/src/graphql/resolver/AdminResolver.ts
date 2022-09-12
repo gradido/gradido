@@ -417,30 +417,16 @@ export class AdminResolver {
       relations: ['emailContact'],
     })
 
+    return contributions.map((contribution) => {
+      const user = users.find((u) => u.id === contribution.userId)
+      const creation = userCreations.find((c) => c.id === contribution.userId)
+
       return new UnconfirmedContribution(
         contribution,
         user,
         creation ? creation.creations : FULL_CREATION_AVAILABLE,
       )
-    /*
-    return contributions.map((contribution) => {
-      const user = users.find((u) => u.id === contribution.userId)
-      const creation = userCreations.find((c) => c.id === contribution.userId)
-
-      return {
-        id: contribution.id,
-        userId: contribution.userId,
-        date: contribution.contributionDate,
-        memo: contribution.memo,
-        amount: contribution.amount,
-        moderator: contribution.moderatorId,
-        firstName: user ? user.firstName : '',
-        lastName: user ? user.lastName : '',
-        email: user ? user.emailContact.email : '',
-        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      }
     })
-    */
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
