@@ -29,7 +29,6 @@
 
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { UserResolver } from '@/graphql/resolver/UserResolver'
-import { User as dbUser } from '@entity/User'
 import { UserContact as dbUserContact } from '@entity/UserContact'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {

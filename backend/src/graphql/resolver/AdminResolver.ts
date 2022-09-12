@@ -4,8 +4,6 @@ import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type
 import {
   getCustomRepository,
   IsNull,
-  Not,
-  ObjectLiteral,
   getConnection,
   In,
   MoreThan,

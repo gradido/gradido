@@ -2,7 +2,6 @@ import { createUser, setPassword } from '@/seeds/graphql/mutations'
 import { User } from '@entity/User'
 import { UserInterface } from '@/seeds/users/UserInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { UserContact } from '@entity/UserContact'
 
 export const userFactory = async (
   client: ApolloServerTestClient,
@@ -17,7 +16,7 @@ export const userFactory = async (
   } = await mutate({ mutation: createUser, variables: user })
   // console.log('creatUser:', { id }, { user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact']})
+  let dbUser = await User.findOneOrFail({ id }, { relations: ['emailContact'] })
   // console.log('dbUser:', dbUser)
 
   const emailContact = dbUser.emailContact

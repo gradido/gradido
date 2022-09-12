@@ -6,7 +6,6 @@ import { adminCreateContribution, confirmContribution } from '@/seeds/graphql/mu
 import { login } from '@/seeds/graphql/queries'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { User } from '@entity/User'
 import { Transaction } from '@entity/Transaction'
 import { Contribution } from '@entity/Contribution'
 import { UserContact } from '@entity/UserContact'

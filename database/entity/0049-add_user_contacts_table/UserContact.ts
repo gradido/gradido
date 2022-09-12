@@ -5,7 +5,6 @@ import {
   Column,
   DeleteDateColumn,
   OneToOne,
-  JoinColumn,
 } from 'typeorm'
 import { User } from './User'
 
