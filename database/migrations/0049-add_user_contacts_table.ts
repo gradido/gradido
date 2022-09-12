@@ -7,10 +7,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { v4 as uuidv4 } from 'uuid'
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`user_contacts\` (
         \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,
