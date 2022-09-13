@@ -4,6 +4,7 @@
       <contribution-list-item
         v-bind="item"
         :contributionId="item.id"
+        :allContribution="allContribution"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-state="updateState"
@@ -44,6 +45,11 @@ export default {
       required: true,
     },
     pageSize: { type: Number, default: 25 },
+    allContribution: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   data() {
     return {
