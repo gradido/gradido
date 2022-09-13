@@ -1,0 +1,199 @@
+<mxfile host="65bd71144e">
+    <diagram id="aZ0_eiOEaOPeLiDtg86Z" name="Seite-1">
+        <mxGraphModel dx="1022" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="4" style="edgeStyle=none;html=1;entryX=0;entryY=0.12;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="2" target="3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="email_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4">
+                    <mxGeometry x="0.2425" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;users&lt;/div&gt;&lt;div&gt;&lt;div&gt;+ id:&amp;nbsp;int(10)&lt;/div&gt;&lt;div&gt;+ gradido_id: char(36)&lt;/div&gt;&lt;div&gt;+ alias: varchar(20)&lt;/div&gt;&lt;div&gt;+ public_key: binary(32)&lt;/div&gt;&lt;div&gt;+ privkey: binary(80)&lt;/div&gt;&lt;div&gt;+ email_id: int(10)&lt;/div&gt;&lt;div&gt;+ first_name: varchar(255)&lt;/div&gt;&lt;div&gt;+ last_name: varchar(255)&lt;/div&gt;&lt;div&gt;+ deletedAt: datetime(3)&lt;/div&gt;&lt;div&gt;+ password: bigint(20)&lt;/div&gt;&lt;div&gt;+ email_hash: binary(32)&lt;/div&gt;&lt;div&gt;+ created: datetime(3)&lt;/div&gt;&lt;div&gt;+ language: varchar(4)&lt;/div&gt;&lt;div&gt;+ is_admin: datetime(3)&lt;/div&gt;&lt;div&gt;+ referrer_id: int(10)&lt;/div&gt;&lt;div&gt;+ contribution_link_id: int(10)&lt;/div&gt;&lt;div&gt;+ publisher_id: int(11)&lt;/div&gt;&lt;div&gt;+ passphrase: text&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="80" width="170" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" style="edgeStyle=none;html=1;entryX=1.006;entryY=0.364;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="3" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6">
+                    <mxGeometry x="-0.4493" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;user_contatcs&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ type: varchar(100)&lt;/div&gt;&lt;div&gt;+ user_id: int(10)&lt;/div&gt;&lt;div&gt;+ email: varchar(255)&lt;/div&gt;&lt;div&gt;+ email_verification_code: bigint(20)&lt;/div&gt;&lt;div&gt;+ email_opt_in_type_id: int(11)&lt;/div&gt;&lt;div&gt;+ email_resend_count: int(11)&lt;/div&gt;&lt;div&gt;+ email_checked: tinyint(4)&lt;/div&gt;&lt;div&gt;+ phone: varchar(255)&lt;/div&gt;&lt;div&gt;+ created_at: datetime(3)&lt;/div&gt;&lt;div&gt;+ updated_at: datetime(3)&lt;/div&gt;&lt;div&gt;+ deleted_at: datetime(3)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="80" width="200" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="8" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="9">
+                    <mxGeometry x="-0.375" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" style="edgeStyle=none;html=1;entryX=1.006;entryY=0.711;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="8" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="link_user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="11">
+                    <mxGeometry x="-0.3187" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" style="edgeStyle=none;html=1;entryX=0.396;entryY=-0.006;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="8" target="15">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="transaction_link_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="18">
+                    <mxGeometry x="-0.3887" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;transactions&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ user_id: int(10)&lt;/div&gt;&lt;div&gt;+ previous: int(10)&lt;/div&gt;&lt;div&gt;+ type_id: int(10)&lt;/div&gt;&lt;div&gt;+ amount: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ balance: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ balance_date: datetime&lt;/div&gt;&lt;div&gt;+ decay: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ decay_start: datetime&lt;/div&gt;&lt;div&gt;+ memo: varchar(255)&lt;/div&gt;&lt;div&gt;+ creation_date: datetime&lt;/div&gt;&lt;div&gt;+ linked_user_id: int(10)&lt;/div&gt;&lt;div&gt;+ linked_transaction_id: int(10)&lt;/div&gt;&lt;div&gt;+ transaction_link_id: int(10)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="756.77" y="320" width="180" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" style="edgeStyle=none;html=1;entryX=1;entryY=0.364;entryDx=0;entryDy=0;exitX=1.006;exitY=0.141;exitDx=0;exitDy=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="8" target="8">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="986.77" y="350"/>
+                            <mxPoint x="986.77" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="previous" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="13">
+                    <mxGeometry x="-0.1818" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" style="edgeStyle=none;html=1;entryX=0.888;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="15" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="userId" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="16">
+                    <mxGeometry x="-0.5158" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" style="edgeStyle=none;html=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="15" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="redeemedBy" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="20">
+                    <mxGeometry x="-0.5416" y="1" relative="1" as="geometry">
+                        <mxPoint x="-12" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;transaction_links&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ userId: int(10)&lt;/div&gt;&lt;div&gt;+ amount: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ hold_available_amount: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ memo: varchar(255)&lt;/div&gt;&lt;div&gt;+ code: varchar(24)&lt;/div&gt;&lt;div&gt;+ createdAt: datetime&lt;/div&gt;&lt;div&gt;+ deletedAt: datetime&lt;/div&gt;&lt;div&gt;+ validUntil: datetime&lt;/div&gt;&lt;div&gt;+ redeemedAt: datetime&lt;/div&gt;&lt;div&gt;+ redeemedBy: int(10)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="756.77" y="600" width="230" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" style="edgeStyle=none;html=1;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="22" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="23">
+                    <mxGeometry x="-0.3739" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="25" style="edgeStyle=none;html=1;entryX=-0.006;entryY=0.843;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="22" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="moderator_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="25">
+                    <mxGeometry x="-0.4207" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="22" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="confirmed_by" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="27">
+                    <mxGeometry x="-0.3684" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="29" style="edgeStyle=none;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="22" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="denied_by" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="29">
+                    <mxGeometry x="-0.7571" relative="1" as="geometry">
+                        <mxPoint x="-7" y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" style="edgeStyle=none;html=1;entryX=-0.006;entryY=0.545;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="22" target="8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="transaction_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="31">
+                    <mxGeometry x="-0.5329" relative="1" as="geometry">
+                        <mxPoint x="-17" y="-3" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="34" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="22" target="33">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="contribution_link_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="34">
+                    <mxGeometry x="-0.5065" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;contributions&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ user_id: int(10)&lt;/div&gt;&lt;div&gt;+ created_at: datetime&lt;/div&gt;&lt;div&gt;+ contribution_date: datetime&lt;/div&gt;&lt;div&gt;+ memo: varchar(255)&lt;/div&gt;&lt;div&gt;+ amount: decimal(40,20)&lt;/div&gt;&lt;div&gt;+ moderator_id: int(10)&lt;/div&gt;&lt;div&gt;+ contribution_link_id: int(10)&lt;/div&gt;&lt;div&gt;+ confirmed_by: int(10)&lt;/div&gt;&lt;div&gt;+ confirmed_at: datetime&lt;/div&gt;&lt;div&gt;+ denied_at: datetime&lt;/div&gt;&lt;div&gt;+ denied_by: int(10)&lt;/div&gt;&lt;div&gt;+ contribution_type: varchar(12)&lt;/div&gt;&lt;div&gt;+ contribution_status: varchar(12)&lt;/div&gt;&lt;div&gt;+ deleted_at: datetime&lt;/div&gt;&lt;div&gt;+ transaction_id: int(10)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="320" width="190" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;contribution_links&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ name: varchar(100)&lt;/div&gt;&lt;div&gt;+ memo: varchar(255)&lt;/div&gt;&lt;div&gt;+ valid_from: datetime&lt;/div&gt;&lt;div&gt;+ valid_to: datetime&lt;/div&gt;&lt;div&gt;+ amount: bigint(20)&lt;/div&gt;&lt;div&gt;+ cycle: varchar(12)&lt;/div&gt;&lt;div&gt;+ max_per_cycle: int(10)&lt;/div&gt;&lt;div&gt;+ max_amount_per_month: bigint(20)&lt;/div&gt;&lt;div&gt;+ total_max_count_of_contribution: int(10)&lt;/div&gt;&lt;div&gt;+ max_account_balance: bigint(20)&lt;/div&gt;&lt;div&gt;+ min_gap_hours: int(10)&lt;/div&gt;&lt;div&gt;+ created_at: datetime&lt;/div&gt;&lt;div&gt;+ deleted_at: datetime&lt;/div&gt;&lt;div&gt;+ code: varchar(24)&lt;/div&gt;&lt;div&gt;+ link_enabled: tinyint(4)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="17.5" y="720" width="235" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" style="edgeStyle=none;html=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="36" target="22">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="contribution_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="37">
+                    <mxGeometry x="-0.3617" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="39" style="edgeStyle=none;html=1;entryX=0.394;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="36" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="39">
+                    <mxGeometry x="-0.7079" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-11" y="12" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="41" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="36" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="deleted_by" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="41">
+                    <mxGeometry x="-0.4898" relative="1" as="geometry">
+                        <mxPoint x="-3" y="72" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="36" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;contribution_messages&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ contribution_id: int(10)&lt;/div&gt;&lt;div&gt;+ user_id: int(10)&lt;/div&gt;&lt;div&gt;+ message: varchar(2000)&lt;/div&gt;&lt;div&gt;+ created_at: datetime&lt;/div&gt;&lt;div&gt;+ updated_at: datetime&lt;/div&gt;&lt;div&gt;+ deleted_at: datetime&lt;/div&gt;&lt;div&gt;+ deleted_by: int(10)&lt;/div&gt;&lt;div&gt;+ type: varchar(12)&lt;/div&gt;&lt;div&gt;+ is_moderator: tinyint(1)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="290" y="720" width="150" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" style="edgeStyle=none;html=1;entryX=0.624;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="43" target="2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="user_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="44">
+                    <mxGeometry x="-0.4029" relative="1" as="geometry">
+                        <mxPoint x="3" y="36" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="46" style="edgeStyle=none;html=1;entryX=0;entryY=0.655;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.6;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="43" target="8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="transaction_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="46">
+                    <mxGeometry x="-0.5687" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="48" style="edgeStyle=none;html=1;entryX=1;entryY=0.612;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="43" target="22">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="contribution_id" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="48">
+                    <mxGeometry x="-0.6243" relative="1" as="geometry">
+                        <mxPoint x="27" y="9" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="43" value="&lt;div style=&quot;box-sizing: border-box ; width: 100% ; background: #e4e4e4 ; padding: 2px&quot;&gt;event_protocol&lt;/div&gt;&lt;div&gt;+ id: int(10)&lt;/div&gt;&lt;div&gt;+ type: varchar(100)&lt;/div&gt;&lt;div&gt;+ created_at: datetime&lt;/div&gt;&lt;div&gt;+ user_id: int(10)&lt;/div&gt;&lt;div&gt;+ x_user_id: int(10)&lt;/div&gt;&lt;div&gt;+ x_community_id: int(10)&lt;/div&gt;&lt;div&gt;+ transaction_id: int(10)&lt;/div&gt;&lt;div&gt;+ contribution_id: int(10)&lt;/div&gt;&lt;div&gt;+ amount: bigint(20)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="720" width="160" height="150" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

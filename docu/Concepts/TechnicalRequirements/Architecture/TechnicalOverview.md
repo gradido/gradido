@@ -36,7 +36,7 @@ The current implementation of the business logic is concentrated in Resolver cla
 
 ## current Business-Layer
 
-At first the following pictures will show for each current existing resolver class its usage of the backend components. Afterwards an overview picture shows the dependencies between all resolver classes.
+At first the following pictures will show for each current existing resolver class its usage of the backend components - used = marked blue, not used = marked red. Afterwards an overview picture shows the dependencies between all resolver classes.
 
 ### AdminResolver
 
@@ -103,3 +103,75 @@ The business logic, which is currently implemented in the resolver classes too s
 The following picture shows an overview and reorganisation of all business layer components including the new data-access-layer with the DAO classes. Next to the UI-Resolver-Layer there is a Community-Resolver-Layer planed for the requirements of the multi community readyness.
 
 ![img](../image/BE-Overview-SOLL.png)
+
+### Persistence-Layer
+
+The persistence layer contains the relational database model, which is mapped with the typeorm model of entities between the javascript and database world. The entity model mirrors all database tables and their relations by using the typeorm dbTools. The following picture will give an overview about these two models and their associations.
+
+#### ORM-Model
+
+![img](../image/BE-PersistenceLayer.png)
+
+#### Entity-Model
+
+![img](../image/BE-EntityLayer.png)
+
+### GraphQL-Model
+
+The GraphQL-Model is used in the API between frontend and backend. It fulfills the requirements for the different frontend requests triggered by the user interface and the admin interface.
+
+![img](../image/BE-GraphQLModel.png)
+
+### DAO-Layer
+
+The DAO-Layer will contain data-access classes, which encapsulate all data access on the persistence layer. They will offer a business oriented API for the upper resolver classes and business logic.
+
+The following programming convention has to be observed:
+
+* a data access class must be located in the modul `backend `in the directory `src/dao`
+* a data access class must have the postfix `DAO`
+* no other classes than DAO-classes are allowed to import `dbTools/typeorm`
+* no other classes than DAO-classes or repository classes are allowed to referre to entity classes
+* the api of a DAO-class must be designed with objects of type `graphql/model/*` or basic typescript/javascript types
+* a DAO method with write access must handle a user transaction, means using a still existing user transaction in case of cascaded DAO invocation or open an user transaction
+* the only allowed isolation levels of an user transaction are ~~"READ UNCOMMITTED"~~ | "READ COMMITTED" | "REPEATABLE READ" | "SERIALIZABLE", suggestion would be "REPEATABLE READ"
+
+#### AbstractDAO
+
+This DAO class should contain all general necessary parts like api definitions and implementations, which have to be used by the real implementation DAO classes like a super class. That means all predefined public api methods of this abstract class must be at least implemented by the derived classes. If not only a signature of a method but also an implementation exists, the derived class must implement a method with the same signature, but must invoke the same method of the AbstractDAO internally like a super class.
+
+##### startTx
+
+##### commitTx
+
+##### rollbackTx
+
+#### ContributionDAO
+
+##### create
+
+* **Input:**	of type `graphql/model/Contribution` with at least mandatory initialized attributes
+* **Output:**	of type `graphql/model/Contribution `with all mandatory and default initialized attributes
+* **Error:**	throws an exception if the contribution could not be written
+
+##### count
+
+##### read
+
+##### save
+
+##### delete
+
+#### ContributionLinkDAO
+
+#### ContributionMessageDAO
+
+#### EventProtocolDAO
+
+#### TransactionDAO
+
+#### TransactionLinkDAO
+
+#### UserDAO
+
+#### UserContactDAO
