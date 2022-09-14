@@ -40,12 +40,22 @@ import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { Any } from '@dbTools/typeorm'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
   return {
     __esModule: true,
     sendAccountActivationEmail: jest.fn(),
+  }
+})
+
+// mock account activation email to avoid console spam
+jest.mock('@/mailer/sendContributionConfirmedEmail', () => {
+  return {
+    __esModule: true,
+    sendContributionConfirmedEmail: jest.fn(),
   }
 })
 
@@ -1449,6 +1459,20 @@ describe('AdminResolver', () => {
               expect(transaction[0].previous).toEqual(null)
               expect(transaction[0].linkedUserId).toEqual(null)
               expect(transaction[0].typeId).toEqual(1)
+            })
+
+            it('calls sendContributionConfirmedEmail', async () => {
+              expect(sendContributionConfirmedEmail).toBeCalledWith(
+                expect.objectContaining({
+                  contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                  overviewURL: 'http://localhost/overview',
+                  recipientEmail: 'bibi@bloxberg.de',
+                  recipientFirstName: 'Bibi',
+                  recipientLastName: 'Bloxberg',
+                  senderFirstName: 'Peter',
+                  senderLastName: 'Lustig',
+                }),
+              )
             })
           })
 
