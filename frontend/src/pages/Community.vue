@@ -73,6 +73,7 @@
             :contributionCount="contributionCountAll"
             :showPagination="true"
             :pageSize="pageSizeAll"
+            :allContribution="true"
           />
         </b-tab>
       </b-tabs>
