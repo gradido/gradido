@@ -30,7 +30,7 @@ describe('sendAddedContributionMessageEmail', () => {
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining('Peter Lustig') &&
-        expect.stringContaining('Vielen herzlichen Dank für den neuen Hexenbesen!') &&
+        expect.stringContaining('Du hast soeben zu deinem eingereichten Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" eine Rückfrage von Peter Lustig erhalten.') &&
         expect.stringContaining('Was für ein Besen ist es geworden?') &&
         expect.stringContaining('http://localhost/overview'),
     })
