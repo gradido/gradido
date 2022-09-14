@@ -6,12 +6,15 @@ export const listUnconfirmedContributions = gql`
       id
       firstName
       lastName
+      userId
       email
       amount
       memo
       date
       moderator
       creation
+      state
+      messageCount
     }
   }
 `

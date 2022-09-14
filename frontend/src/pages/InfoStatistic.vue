@@ -43,6 +43,7 @@
       </ul>
       <b-link href="mailto: abc@example.com">{{ supportMail }}</b-link>
     </b-container>
+    <!-- 
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.statistic') }}</div>
@@ -50,14 +51,6 @@
         <div>
           {{ $t('community.members') }}
           <span class="h4">{{ totalUsers }}</span>
-        </div>
-        <div>
-          {{ $t('statistic.activeUsers') }}
-          <span class="h4">{{ activeUsers }}</span>
-        </div>
-        <div>
-          {{ $t('statistic.deletedUsers') }}
-          <span class="h4">{{ deletedUsers }}</span>
         </div>
         <div>
           {{ $t('statistic.totalGradidoCreated') }}
@@ -71,17 +64,15 @@
           {{ $t('statistic.totalGradidoAvailable') }}
           <span class="h4">{{ totalGradidoAvailable | GDD }}</span>
         </div>
-        <div>
-          {{ $t('statistic.totalGradidoUnbookedDecayed') }}
-          <span class="h4">{{ totalGradidoUnbookedDecayed | GDD }}</span>
-        </div>
       </div>
     </b-container>
+    -->
   </div>
 </template>
 <script>
 import CONFIG from '@/config'
-import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
+import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+// , communityStatistics
 
 export default {
   name: 'InfoStatistic',
@@ -95,12 +86,9 @@ export default {
       supportMail: 'support@supportemail.de',
       membersCount: '1203',
       totalUsers: null,
-      activeUsers: null,
-      deletedUsers: null,
       totalGradidoCreated: null,
       totalGradidoDecayed: null,
       totalGradidoAvailable: null,
-      totalGradidoUnbookedDecayed: null,
     }
   },
   methods: {
@@ -108,7 +96,6 @@ export default {
       this.$apollo
         .query({
           query: listContributionLinks,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.count = result.data.listContributionLinks.count
@@ -122,7 +109,6 @@ export default {
       this.$apollo
         .query({
           query: searchAdminUsers,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.countAdminUser = result.data.searchAdminUsers.userCount
@@ -132,26 +118,25 @@ export default {
           this.toastError('searchAdminUsers has no result, use default data')
         })
     },
-    getCommunityStatistics() {
-      this.$apollo
+    /*
+        getCommunityStatistics() {
+        this.$apollo
         .query({
-          query: communityStatistics,
-          fetchPolicy: 'network-only',
+        query: communityStatistics,
         })
         .then((result) => {
-          this.totalUsers = result.data.communityStatistics.totalUsers
-          this.activeUsers = result.data.communityStatistics.activeUsers
-          this.deletedUsers = result.data.communityStatistics.deletedUsers
-          this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-          this.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
-          this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
-          this.totalGradidoUnbookedDecayed =
-            result.data.communityStatistics.totalGradidoUnbookedDecayed
+        this.totalUsers = result.data.communityStatistics.totalUsers
+        this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+        this.totalGradidoDecayed =
+        Number(result.data.communityStatistics.totalGradidoDecayed) +
+        Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+        this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
         })
         .catch(() => {
-          this.toastError('communityStatistics has no result, use default data')
+        this.toastError('communityStatistics has no result, use default data')
         })
-    },
+        },
+      */
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
     },
@@ -159,7 +144,7 @@ export default {
   created() {
     this.getContributionLinks()
     this.getAdminUsers()
-    this.getCommunityStatistics()
+    // this.getCommunityStatistics()
     this.updateTransactions(0)
   },
 }
