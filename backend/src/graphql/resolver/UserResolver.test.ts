@@ -142,7 +142,7 @@ describe('UserResolver', () => {
           expect(verUUID).toEqual(4)
         })
 
-        it('creates an email optin', () => {
+        it('creates an email contact', () => {
           expect(user[0].emailContact).toEqual({
             id: expect.any(Number),
             type: UserContactType.USER_CONTACT_EMAIL,
