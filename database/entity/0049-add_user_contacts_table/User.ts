@@ -122,5 +122,5 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserContact, (userContact: UserContact) => userContact.user)
   @JoinColumn({ name: 'user_id' })
-  usercontacts?: UserContact[]
+  userContacts?: UserContact[]
 }
