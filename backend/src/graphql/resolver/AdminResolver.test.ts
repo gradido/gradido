@@ -41,7 +41,6 @@ import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
-import { Any } from '@dbTools/typeorm'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
