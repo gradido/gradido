@@ -93,3 +93,288 @@ Es kommt zu einem **Fehler im Backend**, da im Schöpfungsmonate-Array kein Sept
 * 
 
 ## Entscheidung
+
+* in den HTTP-Request-Header wird generell der aktuelle Timestamp des Clients eingetragen, sodass die aktuelle Uhrzeit des Users ohne weitere Signatur-Änderungen in jedem Aufruf am Backend ankommt. Moritz erstellt Ticket
+* es wird eine Analyse aller Backend-Aufrufe gemacht, die die Auswertung der User-Time und dessen evtl. Timezone-Differenz in der Logik des Backend-Aufrufs benötigt.
+* diese Backend-Methoden müssen fachlich so überarbeitet werden, dass immer aus dem Timezone-Offset die korrekte fachliche Logik als Ergebnis heraus kommt. In der Datanbank wird aber immer die UTC-Zeit gespeichert.
+* Es werden keine zusätzlichen Datanbank-Attribute zur Speicherung des User-TimeOffsets benötigt.
+
+
+## Analyse der Backend-Aufrufe
+
+Es werden alle Resolver und ihre Methoden sowie im Resolver exportierte Attribute/Methoden untersucht. 
+
+Mit + gekennzeichnet sind diese, die mit dem UserTimeOffset interagieren und überarbeitet werden müssen.
+
+Mit - gekennzeichnet sind diese, die keiner weiteren Aktion bedürfen.
+
+
+### AdminResolver
+
+#### + adminCreateContribution
+
+Hier wird der User zur übergebenen Email inklusive der Summen über die letzten drei Schöpfungsmonate aus seinen vorhandenen Contributions, egal ob bestätigt oder noch offen ermittelt.
+
+Hier muss der User-TimeOffset berücksichtigt werden, um die korrekten drei Schöpfungsmonate und dann daraus die korrekten Beträge der Contributions zu ermitteln.
+
+Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem User-TimeOffset unterliegt. Auch dieses muss entsprechend beachtet und beim internen Aufruf von *validateContribution()* und der Initialisierung der Contribution berücksichtigt werden.
+
+#### - adminCreateContributionMessage
+
+nothing to do
+
+#### + adminCreateContributions
+
+Hier wird eine Liste von übergebenen Contributions über den internen Aufruf von *adminCreateContribution()* verarbeitet. Da dort eine Berücksichtigung des User-TimeOffsets notwendig ist, muss hier die UserTime entsprechen im Context weitergereicht werden.
+
+#### - adminDeleteContribution
+
+nothing to do
+
+#### + adminUpdateContribution
+
+analog adminCreateContribution() muss hier der User-TimeOffset berücksichtigt werden.
+
+#### + confirmContribution
+
+Hier wird intern *getUserCreation()* und *validateContribution()* aufgerufen, daher analog adminCreateContribution()
+
+#### + createContributionLink
+
+Hier werden zwar ein *ValidFrom* und ein *ValidTo* Datum übergeben, doch dürften diese keiner Beachtung eines User-TimezoneOffsets unterliegen. Trotzdem bitte noch einmal verifizieren.
+
+#### - creationTransactionList
+
+nothing to do
+
+#### - deleteContributionLink
+
+Es wird zwar der *deletedAt*-Zeitpunkt als Rückgabewert geliefert, doch m.E. dürft hier keine Berücksichtigung des User-TimezoneOffsets notwendig sein.
+
+#### - deleteUser
+
+Es wird zwar der *deletedAt*-Zeitpunkt als Rückgabewert geliefert, doch m.E. dürft hier keine Berücksichtigung des User-TimezoneOffsets notwendig sein.
+
+#### - listContributionLinks
+
+nothing to do
+
+#### + listTransactionLinksAdmin
+
+Hier wird die BE-Zeit für die Suche nach ValidUntil verwendet. Dies sollte nocheinmal verifiziert werden.
+
+#### + listUnconfirmedContributions
+
+Hier wird intern *getUserCreations()* aufgerufen für die Summen der drei Schöpfungsmonate, somit ist der User-TimezoneOffset zu berücksichtigen.
+
+#### + searchUsers
+
+Hier wird intern *getUserCreations()* aufgerufen für die Summen der drei Schöpfungsmonate, somit ist der User-TimezoneOffset zu berücksichtigen.
+
+#### - sendActivationEmail
+
+analog *UserResolver.checkOptInCode*
+
+#### - setUserRole
+
+nothing to do
+
+#### - unDeleteUser
+
+nothing to do
+
+#### + updateContributionLink
+
+Hier werden zwar ein *ValidFrom* und ein *ValidTo* Datum übergeben, doch dürften diese keiner Beachtung eines User-TimezoneOffsets unterliegen. Trotzdem bitte noch einmal verifizieren.
+
+
+### BalanceResolver
+
+#### + balance
+
+Hier wird der aktuelle Zeitpunkt des BE verwendet, um den Decay und die Summen der Kontostände zu ermitteln. Dies müsste eigentlich von dem User-TimezoneOffset unabhängig sein. Sollte aber noch einmal dahingehend verifiziert werden.
+
+
+### CommunityResolver
+
+#### - communities
+
+nothing to do
+
+#### - getCommunityInfo
+
+nothing to do
+
+
+### ContributionMessageResolver
+
+#### - createContributionMessage
+
+nothing to do
+
+#### - listContributionMessages
+
+nothing to do
+
+
+### ContributionResolver
+
+#### + createContribution
+
+Hier wird der User inklusive der Summen über die letzten drei Schöpfungsmonate aus seinen vorhandenen Contributions, egal ob bestätigt oder noch offen ermittelt.
+
+Hier muss der User-TimeOffset berücksichtigt werden, um die korrekten drei Schöpfungsmonate und dann daraus die korrekten Beträge der Contributions zu ermitteln.
+
+Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem User-TimeOffset unterliegt. Auch dieses muss entsprechend beachtet und beim internen Aufruf von *validateContribution()* und der Initialisierung der Contribution berücksichtigt werden.
+
+#### - deleteContribution
+
+nothing to do
+
+#### - listAllContributions
+
+nothing to do
+
+#### - listContributions
+
+nothing to do
+
+#### + updateContribution
+
+Hier werden die Contributions des Users inklusive der Summen über die letzten drei Schöpfungsmonate aus seinen vorhandenen Contributions, egal ob bestätigt oder noch offen ermittelt.
+
+Hier muss der User-TimeOffset berücksichtigt werden, um die korrekten drei Schöpfungsmonate und dann daraus die korrekten Beträge der Contributions zu ermitteln.
+
+Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem User-TimeOffset unterliegt. Auch dieses muss entsprechend beachtet und beim internen Aufruf von *validateContribution()* und dem Update der Contribution berücksichtigt werden.
+
+
+### GdtResolver
+
+#### - existPid
+
+nothing to do
+
+#### - gdtBalance
+
+nothing to do
+
+#### - listGDTEntries
+
+nothing to do
+
+
+### KlicktippResolver
+
+nothing to do
+
+
+### StatisticsResolver
+
+#### + communityStatistics
+
+Hier werden die Daten zum aktuellen BE-Zeitpunkt ermittelt und dem User angezeigt. Aber der User hat ggf. einen anderen TimeOffset. Daher die Frage, ob die Ermittlung der Statistik-Daten mit dem User-TimeOffset stattfinden muss.
+
+
+### TransactionLinkResolver
+
+#### - transactionLinkCode
+
+nothing to do
+
+#### - transactionLinkExpireDate
+
+nothing to do
+
+#### - createTransactionLink
+
+nothing to do
+
+#### - deleteTransactionLink
+
+nothing to do
+
+#### - listTransactionLinks
+
+nothing to do
+
+#### - queryTransactionLink
+
+nothing to do
+
+#### - redeemTransactionLink
+
+nothing to do
+
+
+### TransactionResolver
+
+#### - executeTransaction
+
+nothing to do
+
+#### - sendCoins
+
+nothing to do
+
+#### + transactionList
+
+Hier wird der aktuelle BE-Zeitpunkt verwendet, um die Summen der vorhandenen Transactions bis zu diesem Zeitpunkt zu ermitteln. Nach ersten Einschätzungen dürfte es hier nichts zu tun geben. Aber es sollte noch einmal geprüft werden.
+
+
+### UserResolver
+
+#### - activationLink
+
+nothing to do
+
+#### - checkOptInCode
+
+Hier wird der übergebene OptIn-Code geprüft, ob schon wieder eine erneute Email gesendet werden kann. Die Zeiten werden auf reiner BE-Zeit verglichen, von daher gibt es hier nichts zu tun.
+
+#### - createUser
+
+nothing to do
+
+#### -  forgotPassword
+
+In dieser Methode wird am Ende in der Methode *sendResetPasswordEmailMailer()* die Zeit berechnet, wie lange der OptIn-Code im Link gültig ist, default 1440 min oder 24 h.
+
+Es ist keine User-TimeOffset zu berücksichten, da der OptInCode direkt als Parameter im Aufruf von queryOptIn verwendet und dann dort mit der BE-Time verglichen wird.
+
+#### - hasElopage
+
+nothing to do
+
+#### - login
+
+nothing to do
+
+#### - logout
+
+nothing to do
+
+#### - queryOptIn
+
+Hier wird der OptIn-Code aus der *sendResetPasswordEmailMailer()* als Parameter geliefert. Da dessen Gültigkeit zuvor in forgotPassword mit der BE-Zeit gesetzt wurde, benögt man hier keine Berücksichtigung des User-TimeOffsets.
+
+#### - searchAdminUsers
+
+nothing to do
+
+#### - setPassword
+
+nothing to do, analog *queryOptIn*
+
+#### - printTimeDuration
+
+nothing to do
+
+#### - updateUserInfos
+
+nothing to do
+
+#### + verifyLogin
+
+Hier wird der User inklusive der Summen über die letzten drei Schöpfungsmonate aus seinen vorhandenen Contribtutions, egal ob bestätigt oder noch offen ermittelt.
+
+Hier muss der User-TimeOffset berücksichtigt werden, um die korrekten drei Schöpfungsmonate und dann daraus die korrekten Beträge der Contributions zu ermitteln.
