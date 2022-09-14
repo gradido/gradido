@@ -714,7 +714,10 @@ export class AdminResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
     const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await Contribution.findOne({ id: contributionId })
+      const contribution = await Contribution.findOne({
+        where: { id: contributionId },
+        relations: ['user'],
+      })
       if (!contribution) {
         throw new Error('Contribution not found')
       }
@@ -738,20 +741,18 @@ export class AdminResolver {
         await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
       }
       await queryRunner.commitTransaction()
-      const contributionUser = await dbUser.findOne({ id: contribution.userId })
-      if (contributionUser) {
-        await sendAddedContributionMessageEmail({
-          senderFirstName: user.firstName,
-          senderLastName: user.lastName,
-          recipientFirstName: contributionUser.firstName,
-          recipientLastName: contributionUser.lastName,
-          recipientEmail: contributionUser.email,
-          senderEmail: user.email,
-          contributionMemo: contribution.memo,
-          message,
-          overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-        })
-      }
+
+      await sendAddedContributionMessageEmail({
+        senderFirstName: user.firstName,
+        senderLastName: user.lastName,
+        recipientFirstName: contribution.user.firstName,
+        recipientLastName: contribution.user.lastName,
+        recipientEmail: contribution.user.email,
+        senderEmail: user.email,
+        contributionMemo: contribution.memo,
+        message,
+        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`ContributionMessage was not successful: ${e}`)
