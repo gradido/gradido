@@ -77,18 +77,6 @@ export class AdminResolver {
     { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-    /*
-    const filterCriteria: ObjectLiteral[] = []
-    if (filters) {
-      if (filters.byActivated !== null) {
-        filterCriteria.push({ 'emailContact.emailChecked': filters.byActivated })
-      }
-
-      if (filters.byDeleted !== null) {
-        filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
-      }
-    }
-    */
     const userFields = [
       'id',
       'firstName',
@@ -121,27 +109,6 @@ export class AdminResolver {
       users.map(async (user) => {
         let emailConfirmationSend = ''
         if (!user.emailContact.emailChecked) {
-          /*
-          const emailOptIn = await LoginEmailOptIn.findOne(
-            {
-              userId: user.id,
-            },
-            {
-              order: {
-                updatedAt: 'DESC',
-                createdAt: 'DESC',
-              },
-              select: ['updatedAt', 'createdAt'],
-            },
-          )
-          if (emailOptIn) {
-            if (emailOptIn.updatedAt) {
-              emailConfirmationSend = emailOptIn.updatedAt.toISOString()
-            } else {
-              emailConfirmationSend = emailOptIn.createdAt.toISOString()
-            }
-          }
-          */
           if (user.emailContact.updatedAt) {
             emailConfirmationSend = user.emailContact.updatedAt.toISOString()
           } else {
@@ -557,18 +524,6 @@ export class AdminResolver {
       logger.error(`Could not find User to emailContact: ${email}`)
       throw new Error(`Could not find User to emailContact: ${email}`)
     }
-
-    /*
-    const user = await dbUser.findOneOrFail({ email: email })
-
-    // can be both types: REGISTER and RESET_PASSWORD
-    let optInCode = await LoginEmailOptIn.findOne({
-      where: { userId: user.id },
-      order: { updatedAt: 'DESC' },
-    })
-
-    optInCode = await checkOptInCode(optInCode, user)
-    */
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
