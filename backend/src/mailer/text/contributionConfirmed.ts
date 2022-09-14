@@ -14,9 +14,9 @@ export const contributionConfirmed = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-Deine Gradido Schöpfungsantrag "${data.contributionMemo}" wurde soeben von ${
-        data.senderFirstName
-      } ${data.senderLastName} bestätigt.
+Dein Gradido Schöpfungsantrag "${data.contributionMemo}" wurde soeben von ${data.senderFirstName} ${
+        data.senderLastName
+      } bestätigt.
 Betrag: ${data.contributionAmount.toFixed(2).replace('.', ',')} GDD
 
 Bitte antworte nicht auf diese E-Mail!

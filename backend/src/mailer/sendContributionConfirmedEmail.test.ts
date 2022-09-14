@@ -30,7 +30,7 @@ describe('sendContributionConfirmedEmail', () => {
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining(
-          'Deine Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben bestätigt.',
+          'Dein Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben bestätigt.',
         ) &&
         expect.stringContaining('Betrag: 200,00 GDD') &&
         expect.stringContaining('Link zu deinem Konto: http://localhost/overview'),
