@@ -66,6 +66,7 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
+import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -471,6 +472,16 @@ export class AdminResolver {
 
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
+      sendContributionConfirmedEmail({
+        senderFirstName: moderatorUser.firstName,
+        senderLastName: moderatorUser.lastName,
+        recipientFirstName: user.firstName,
+        recipientLastName: user.lastName,
+        recipientEmail: user.email,
+        contributionMemo: contribution.memo,
+        contributionAmount: contribution.amount,
+        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Creation was not successful: ${e}`)
