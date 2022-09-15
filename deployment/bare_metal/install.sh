@@ -90,7 +90,7 @@ sudo certbot
 # Install logrotate
 sudo apt-get install -y logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
-sudo mv $SCRIPT_DIR/logrotate/gradido.conf.template /etc/logrotate.d/gradido.conf
+sudo cp $SCRIPT_DIR/logrotate/gradido.conf.template /etc/logrotate.d/gradido.conf
 sudo chown root:root /etc/logrotate.d/gradido.conf
 
 # Install mysql autobackup
