@@ -8,7 +8,7 @@ import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Transaction } from '@entity/Transaction'
 import { Contribution } from '@entity/Contribution'
-import { UserContact } from '@entity/UserContact'
+import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 // import CONFIG from '@/config/index'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {
@@ -27,12 +27,7 @@ export const creationFactory = async (
   await mutate({ mutation: adminCreateContribution, variables: { ...creation } })
   logger.trace('creationFactory... after adminCreateContribution')
 
-  const userContact = await UserContact.findOneOrFail({
-    where: { email: creation.email },
-    relations: ['user'],
-  })
-  logger.trace('creationFactory... after UserContact.findOneOrFail userContact=', userContact)
-  const user = userContact.user
+  const user = await findUserByEmail(creation.email) // userContact.user
 
   const pendingCreation = await Contribution.findOneOrFail({
     where: { userId: user.id, amount: creation.amount },
