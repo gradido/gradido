@@ -31,12 +31,15 @@ export default defineConfig({
     excludeSpecPattern: "*.js",
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: false,
-    supportFile: false,
+    supportFile: 'cypress/support/index.ts',
     viewportHeight: 720,
     viewportWidth: 1280,
     retries: {
       runMode: 2,
       openMode: 0
+    },
+    env: {
+      backendURL: 'http://localhost:4000',
     },
     setupNodeEvents
   }

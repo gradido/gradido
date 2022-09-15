@@ -3,8 +3,8 @@
     "target": "es2016",
     "lib": ["es6", "dom"],
     "baseUrl": "../node_modules",
-     "types": ["cypress", "node"],
-     "strict": true
+    "types": ["cypress", "node"],
+    "strict": true
   },
   "include": ["**/*.ts"]
 }
