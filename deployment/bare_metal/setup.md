@@ -95,5 +95,17 @@
 > cp .env.dist .env
 > nano .env
 >> Adjust values accordingly
+
 # TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
-> ./install.sh
+
+!!! ATTENTION:
+
+- NGINX:
+  - Be aware to set the values for NGINX in the following files according to your needs before you install NGINX!
+    - `./nginx/sites-available/gradido.conf`
+    - `./nginx/sites-available/update-page.conf`
+- Commands in `./install.sh`:
+  - The commands for setting the paths in the used env variables are not working directly in the terminal, consider the out commented commands for this purpose, see below.
+
+Follow the commands in `./install.sh`.
+
