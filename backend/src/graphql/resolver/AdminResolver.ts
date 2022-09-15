@@ -67,6 +67,7 @@ import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -724,7 +725,10 @@ export class AdminResolver {
     await queryRunner.startTransaction('READ UNCOMMITTED')
     const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await Contribution.findOne({ id: contributionId })
+      const contribution = await Contribution.findOne({
+        where: { id: contributionId },
+        relations: ['user'],
+      })
       if (!contribution) {
         throw new Error('Contribution not found')
       }
@@ -748,6 +752,18 @@ export class AdminResolver {
         await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
       }
       await queryRunner.commitTransaction()
+
+      await sendAddedContributionMessageEmail({
+        senderFirstName: user.firstName,
+        senderLastName: user.lastName,
+        recipientFirstName: contribution.user.firstName,
+        recipientLastName: contribution.user.lastName,
+        recipientEmail: contribution.user.email,
+        senderEmail: user.email,
+        contributionMemo: contribution.memo,
+        message,
+        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`ContributionMessage was not successful: ${e}`)
