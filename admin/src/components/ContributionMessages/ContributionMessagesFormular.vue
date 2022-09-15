@@ -14,7 +14,9 @@
             <b-button type="reset" variant="danger">{{ $t('form.cancel') }}</b-button>
           </b-col>
           <b-col class="text-right">
-            <b-button type="submit" variant="primary">{{ $t('form.submit') }}</b-button>
+            <b-button type="submit" variant="primary" :disabled="disabled">
+              {{ $t('form.submit') }}
+            </b-button>
           </b-col>
         </b-row>
       </b-form>
@@ -61,6 +63,14 @@ export default {
     },
     onReset(event) {
       this.form.text = ''
+    },
+  },
+  computed: {
+    disabled() {
+      if (this.form.text !== '') {
+        return false
+      }
+      return true
     },
   },
 }
