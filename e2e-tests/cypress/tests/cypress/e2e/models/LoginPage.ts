@@ -2,11 +2,11 @@
 
 export class LoginPage {
   // selectors
-  emailInputSelector = '[id=Email-input-field]';
-  passwordInputSelector = '[id=Passwort-input-field]';
-  submitBtnSelector = '[type=submit]';
-  emailHintSelector = '[id=vee_Email]';
-  passwordHintSelector = '[id=vee_Passwort]';
+  emailInput = '#Email-input-field';
+  passwordInput = '#Passwort-input-field';
+  submitBtn = '[type=submit]';
+  emailHint = '#vee_Email';
+  passwordHint = '#vee_Passwort';
 
   goto() {
     cy.visit('/');
@@ -14,17 +14,17 @@ export class LoginPage {
   }
 
   enterEmail(email: string) {
-    cy.get(this.emailInputSelector).clear().type(email);
+    cy.get(this.emailInput).clear().type(email);
     return this;
   }
 
   enterPassword(password: string) {
-    cy.get(this.passwordInputSelector).clear().type(password);
+    cy.get(this.passwordInput).clear().type(password);
     return this;
   }
 
   submitLogin() {
-    cy.get(this.submitBtnSelector).click();
+    cy.get(this.submitBtn).click();
     return this;
   }
 }
