@@ -41,7 +41,7 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { communityUser } from '@/util/communityUser'
-import { activationLink, printTimeDuration } from './UserResolver'
+import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
@@ -403,6 +403,7 @@ export class AdminResolver {
       throw new Error('Contribution not found for given id.')
     }
     contribution.contributionStatus = ContributionStatus.DELETED
+    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
@@ -514,15 +515,20 @@ export class AdminResolver {
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     email = email.trim().toLowerCase()
-    const emailContact = await UserContact.findOne({ email: email })
-    if (!emailContact) {
-      logger.error(`Could not find UserContact with email: ${email}`)
-      throw new Error(`Could not find UserContact with email: ${email}`)
-    }
-    const user = await dbUser.findOne({ id: emailContact.userId })
+    // const user = await dbUser.findOne({ id: emailContact.userId })
+    const user = await findUserByEmail(email)
     if (!user) {
       logger.error(`Could not find User to emailContact: ${email}`)
       throw new Error(`Could not find User to emailContact: ${email}`)
+    }
+    if (user.deletedAt) {
+      logger.error(`User with emailContact: ${email} is deleted.`)
+      throw new Error(`User with emailContact: ${email} is deleted.`)
+    }
+    const emailContact = user.emailContact
+    if (emailContact.deletedAt) {
+      logger.error(`The emailContact: ${email} of htis User is deleted.`)
+      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -283,7 +283,10 @@ export class TransactionLinkResolver {
       return true
     } else {
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      const linkedUser = await dbUser.findOneOrFail(
+        { id: transactionLink.userId },
+        { relations: ['user'] },
+      )
 
       if (user.id === linkedUser.id) {
         throw new Error('Cannot redeem own transaction link.')

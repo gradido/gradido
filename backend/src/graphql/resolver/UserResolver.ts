@@ -873,7 +873,7 @@ export class UserResolver {
   }
 }
 
-async function findUserByEmail(email: string): Promise<DbUser> {
+export async function findUserByEmail(email: string): Promise<DbUser> {
   const dbUserContact = await DbUserContact.findOneOrFail(
     { email: email },
     { withDeleted: true, relations: ['user'] },

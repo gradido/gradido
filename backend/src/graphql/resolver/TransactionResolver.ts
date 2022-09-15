@@ -36,6 +36,7 @@ import Decimal from 'decimal.js-light'
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { UserContact } from '@entity/UserContact'
+import { findUserByEmail } from './UserResolver'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -294,13 +295,15 @@ export class TransactionResolver {
     }
 
     // validate recipient user
+    const recipientUser = await findUserByEmail(email)
+    /*
     const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
     if (!emailContact) {
       logger.error(`Could not find UserContact with email: ${email}`)
       throw new Error(`Could not find UserContact with email: ${email}`)
     }
-
-    const recipientUser = await dbUser.findOne({ id: emailContact.userId })
+    */
+    // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
     if (!recipientUser) {
       logger.error(`unknown recipient to UserContact: email=${email}`)
       throw new Error('unknown recipient')
@@ -309,6 +312,7 @@ export class TransactionResolver {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
     }
+    const emailContact = recipientUser.emailContact
     if (!emailContact.emailChecked) {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
