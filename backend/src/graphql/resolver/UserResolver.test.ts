@@ -19,6 +19,8 @@ import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { ContributionLink } from '@model/ContributionLink'
 // import { TransactionLink } from '@entity/TransactionLink'
 
+import { EventProtocolType } from '@/event/EventProtocolType'
+import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -168,6 +170,14 @@ describe('UserResolver', () => {
           email: 'peter@lustig.de',
           duration: expect.any(String),
         })
+      })
+
+      it('stores the send confirmation event in the database', () => {
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
+          }),
+        )
       })
     })
 
@@ -383,6 +393,10 @@ bei Gradidio sei dabei!`,
           }),
         )
       })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Password entered is lexically invalid')
+      })
     })
 
     describe('no valid optin code', () => {
@@ -404,6 +418,10 @@ bei Gradidio sei dabei!`,
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
         )
+      })
+
+      it('logs the error found', () => {
+        expect(logger.error).toBeCalledWith('Could not login with emailVerificationCode')
       })
     })
   })
@@ -432,6 +450,10 @@ bei Gradidio sei dabei!`,
             errors: [new GraphQLError('No user with this credentials')],
           }),
         )
+      })
+
+      it('logs the error found', () => {
+        expect(logger.error).toBeCalledWith('User with email=bibi@bloxberg.de does not exist')
       })
     })
 
@@ -475,6 +497,7 @@ bei Gradidio sei dabei!`,
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
+        result = await query({ query: login, variables: { ...variables, password: 'wrong' } })
       })
 
       afterAll(async () => {
@@ -482,13 +505,15 @@ bei Gradidio sei dabei!`,
       })
 
       it('returns an error', () => {
-        expect(
-          query({ query: login, variables: { ...variables, password: 'wrong' } }),
-        ).resolves.toEqual(
+        expect(result).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
         )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('The User has no valid credentials.')
       })
     })
   })
@@ -595,6 +620,14 @@ bei Gradidio sei dabei!`,
             }),
           )
         })
+
+        it('stores the login event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.LOGIN,
+            }),
+          )
+        })
       })
     })
   })
@@ -649,12 +682,16 @@ bei Gradidio sei dabei!`,
       })
 
       describe('request reset password again', () => {
-        it('thows an error', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`email already sent less than 10 minutes minutes ago`)
         })
       })
     })
@@ -766,7 +803,7 @@ bei Gradidio sei dabei!`,
       })
 
       describe('language is not valid', () => {
-        it('thows an error', async () => {
+        it('throws an error', async () => {
           await expect(
             mutate({
               mutation: updateUserInfos,
@@ -779,6 +816,10 @@ bei Gradidio sei dabei!`,
               errors: [new GraphQLError(`"not-valid" isn't a valid language`)],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`"not-valid" isn't a valid language`)
         })
       })
 
@@ -798,6 +839,10 @@ bei Gradidio sei dabei!`,
                 errors: [new GraphQLError('Old password is invalid')],
               }),
             )
+          })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith(`Old password is invalid`)
           })
         })
 
@@ -821,6 +866,10 @@ bei Gradidio sei dabei!`,
               }),
             )
           })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith('newPassword does not fullfil the rules')
+          })
         })
 
         describe('correct old and new password', () => {
@@ -840,7 +889,7 @@ bei Gradidio sei dabei!`,
             )
           })
 
-          it('can login wtih new password', async () => {
+          it('can login with new password', async () => {
             await expect(
               query({
                 query: login,
@@ -860,7 +909,7 @@ bei Gradidio sei dabei!`,
             )
           })
 
-          it('cannot login wtih old password', async () => {
+          it('cannot login with old password', async () => {
             await expect(
               query({
                 query: login,
@@ -874,6 +923,10 @@ bei Gradidio sei dabei!`,
                 errors: [new GraphQLError('No user with this credentials')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The User has no valid credentials.')
           })
         })
       })
