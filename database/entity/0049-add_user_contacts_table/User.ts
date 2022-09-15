@@ -120,7 +120,7 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   messages?: ContributionMessage[]
 
-  @OneToMany(() => UserContact, (usercontact: UserContact) => usercontact.user)
+  @OneToMany(() => UserContact, (userContact: UserContact) => userContact.user)
   @JoinColumn({ name: 'user_id' })
-  usercontacts?: UserContact[]
+  userContacts?: UserContact[]
 }
