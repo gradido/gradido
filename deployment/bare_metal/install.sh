@@ -4,6 +4,12 @@
 # How to do this is described in detail in [setup.md](./setup.md)
 
 # Find current directory & configure paths
+## For manualy use in terminal
+## set -o allexport
+## SCRIPT_DIR=$(pwd)
+## PROJECT_ROOT=$SCRIPT_DIR/../..
+## set +o allexport
+# Use here in script
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
