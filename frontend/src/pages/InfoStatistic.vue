@@ -83,7 +83,7 @@ export default {
       countAdminUser: null,
       itemsContributionLinks: [],
       itemsAdminUser: [],
-      supportMail: 'support@supportemail.de',
+      supportMail: 'support@gradido.net',
       membersCount: '1203',
       totalUsers: null,
       totalGradidoCreated: null,
