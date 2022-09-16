@@ -75,6 +75,13 @@ const createServer = async (
     logger,
   })
   apollo.applyMiddleware({ app, path: '/' })
+  logger.info(
+    `running in environment PRODUCTION = ${CONFIG.PRODUCTION} with TEST_MODUS = ${CONFIG.TEST_MODUS} ...`,
+  )
+  if (CONFIG.PRODUCTION && CONFIG.TEST_MODUS === 'true') {
+    logger.error(`### RUNNING ENVIRONMENT Production IN TEST_MODE IS NOT ALLOWED ###`)
+    throw new Error(`### RUNNING ENVIRONMENT Production IN TEST_MODE IS NOT ALLOWED ###`)
+  }
   logger.debug('createServer...successful')
   return { apollo, app, con }
 }
