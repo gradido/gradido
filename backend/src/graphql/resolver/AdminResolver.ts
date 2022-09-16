@@ -426,7 +426,10 @@ export class AdminResolver {
       logger.error('Moderator can not confirm own contribution')
       throw new Error('Moderator can not confirm own contribution')
     }
-    const user = await dbUser.findOneOrFail({ id: contribution.userId }, { withDeleted: true })
+    const user = await dbUser.findOneOrFail(
+      { id: contribution.userId },
+      { withDeleted: true, relations: ['emailContact'] },
+    )
     if (user.deletedAt) {
       logger.error('This user was deleted. Cannot confirm a contribution.')
       throw new Error('This user was deleted. Cannot confirm a contribution.')
@@ -438,7 +441,7 @@ export class AdminResolver {
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
     try {
       const lastTransaction = await queryRunner.manager
         .createQueryBuilder()
@@ -487,7 +490,7 @@ export class AdminResolver {
         senderLastName: moderatorUser.lastName,
         recipientFirstName: user.firstName,
         recipientLastName: user.lastName,
-        recipientEmail: user.email,
+        recipientEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
         overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
@@ -733,6 +736,9 @@ export class AdminResolver {
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
     const user = getUser(context)
+    if (!user.emailContact) {
+      user.emailContact = await UserContact.findOneOrFail({ where: { id: user.emailId } })
+    }
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
@@ -747,6 +753,11 @@ export class AdminResolver {
       }
       if (contribution.userId === user.id) {
         throw new Error('Admin can not answer on own contribution')
+      }
+      if (!contribution.user.emailContact) {
+        contribution.user.emailContact = await UserContact.findOneOrFail({
+          where: { id: contribution.user.emailId },
+        })
       }
       contributionMessage.contributionId = contributionId
       contributionMessage.createdAt = new Date()
@@ -764,19 +775,19 @@ export class AdminResolver {
         contribution.contributionStatus = ContributionStatus.IN_PROGRESS
         await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
       }
-      await queryRunner.commitTransaction()
 
       await sendAddedContributionMessageEmail({
         senderFirstName: user.firstName,
         senderLastName: user.lastName,
         recipientFirstName: contribution.user.firstName,
         recipientLastName: contribution.user.lastName,
-        recipientEmail: contribution.user.email,
-        senderEmail: user.email,
+        recipientEmail: contribution.user.emailContact.email,
+        senderEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         message,
         overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
+      await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`ContributionMessage was not successful: ${e}`)

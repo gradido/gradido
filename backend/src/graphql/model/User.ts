@@ -45,7 +45,7 @@ export class User {
   emailId: number | null
 
   // TODO privacy issue here
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   email: string
 
   @Field(() => UserContact)

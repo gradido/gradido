@@ -38,7 +38,6 @@ import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { UserContact } from '@entity/UserContact'
 import { findUserByEmail } from './UserResolver'
 
 export const executeTransaction = async (
@@ -165,8 +164,8 @@ export const executeTransaction = async (
       senderLastName: recipient.lastName,
       recipientFirstName: sender.firstName,
       recipientLastName: sender.lastName,
-      email: sender.email,
-      senderEmail: recipient.email,
+      email: sender.emailContact.email,
+      senderEmail: recipient.emailContact.email,
       amount,
       memo,
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
