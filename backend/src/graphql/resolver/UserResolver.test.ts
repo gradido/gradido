@@ -261,14 +261,21 @@ describe('UserResolver', () => {
           const peter = await User.findOneOrFail({ id: user[0].id })
           peter.isAdmin = new Date()
           await peter.save()
+
+          // date statement
+          const actualDate = new Date()
+          const futureDate = new Date() // Create a future day from the executed day
+          futureDate.setDate(futureDate.getDate() + 1)
+
           // factory logs in as Peter Lustig
           link = await contributionLinkFactory(testEnv, {
             name: 'Dokumenta 2022',
             memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
             amount: 200,
-            validFrom: new Date(2022, 5, 18),
-            validTo: new Date(2022, 8, 25),
+            validFrom: actualDate,
+            validTo: futureDate,
           })
+
           resetToken()
           await mutate({
             mutation: createUser,
