@@ -75,7 +75,7 @@
   },
   "GDD": "GDD",
   "help": {
-    "help":"Help",
+    "help": "Help",
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
       "submitted": "For which period was submitted by the user."
@@ -88,7 +88,7 @@
     "exclaim": "!",
     "pipe": "|",
     "plus": "+",
-    "equals":"="
+    "equals": "="
   },
   "message": {
     "request": "Request has been sent."

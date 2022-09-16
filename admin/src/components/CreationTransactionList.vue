@@ -3,10 +3,16 @@
     <div class="h3">{{ $t('transactionlist.title') }}</div>
     <b-table striped hover :fields="fields" :items="items"></b-table>
     <div>
-      <b-button v-b-toggle.collapse-1 variant="light" size="sm">Hilfe</b-button>
+      <b-button v-b-toggle.collapse-1 variant="light" size="sm">{{ $t('help.help') }}</b-button>
       <b-collapse id="collapse-1" class="mt-2">
-        <div>{{ $t('transactionlist.submitted') }} {{ $t('math.equals') }} {{ $t('help.transactionlist.submitted') }}</div>
-        <div>{{ $t('transactionlist.confirmed') }} {{ $t('math.equals') }} {{ $t('help.transactionlist.confirmed') }}</div>
+        <div>
+          {{ $t('transactionlist.submitted') }} {{ $t('math.equals') }}
+          {{ $t('help.transactionlist.submitted') }}
+        </div>
+        <div>
+          {{ $t('transactionlist.confirmed') }} {{ $t('math.equals') }}
+          {{ $t('help.transactionlist.confirmed') }}
+        </div>
       </b-collapse>
     </div>
   </div>
