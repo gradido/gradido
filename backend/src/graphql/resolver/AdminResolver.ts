@@ -741,7 +741,7 @@ export class AdminResolver {
     }
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
     const contributionMessage = DbContributionMessage.create()
     try {
       const contribution = await Contribution.findOne({

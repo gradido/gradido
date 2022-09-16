@@ -498,7 +498,7 @@ export class UserResolver {
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
     try {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         logger.error('Error while saving dbUser', error)
@@ -686,7 +686,7 @@ export class UserResolver {
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
       // Save user
@@ -812,7 +812,7 @@ export class UserResolver {
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
       await queryRunner.manager.save(userEntity).catch((error) => {

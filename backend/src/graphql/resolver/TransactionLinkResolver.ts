@@ -178,7 +178,7 @@ export class TransactionLinkResolver {
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
-      await queryRunner.startTransaction('SERIALIZABLE')
+      await queryRunner.startTransaction('REPEATABLE READ')
       try {
         const contributionLink = await queryRunner.manager
           .createQueryBuilder()

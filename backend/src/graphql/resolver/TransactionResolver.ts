@@ -82,7 +82,7 @@ export const executeTransaction = async (
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
-  await queryRunner.startTransaction('READ UNCOMMITTED')
+  await queryRunner.startTransaction('REPEATABLE READ')
   logger.debug(`open Transaction to write...`)
   try {
     // transaction
