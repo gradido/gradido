@@ -282,7 +282,6 @@ describe('TransactionLink', () => {
       })
 
       describe('redeem link with success', () => {
-
         beforeEach(async () => {
           apolloMutateMock.mockResolvedValue()
           await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
@@ -310,7 +309,6 @@ describe('TransactionLink', () => {
       })
 
       describe('redeem link with error', () => {
-
         beforeEach(async () => {
           apolloMutateMock.mockRejectedValue({ message: 'Oh Noo!' })
           await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
