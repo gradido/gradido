@@ -85,10 +85,10 @@
   "lastname": "Nachname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
-    "plus": "+",
-    "equals": "="
+    "plus": "+"
   },
   "message": {
     "request": "Die Anfrage wurde gesendet."
@@ -141,11 +141,10 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "confirmed": "Bestätigt",
-    "confirmed": "Bestätigt",
     "community": "Gemeinschaft",
-    "submitted": "Eingereicht",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",

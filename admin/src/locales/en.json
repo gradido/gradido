@@ -85,10 +85,10 @@
   "lastname": "Lastname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
-    "plus": "+",
-    "equals": "="
+    "plus": "+"
   },
   "message": {
     "request": "Request has been sent."
@@ -141,10 +141,10 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "confirmed": "Confirmed",
     "community": "Community",
-    "submitted": "Submitted",
+    "confirmed": "Confirmed",
     "memo": "Message",
+    "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
   "undelete_user": "Undelete User",
