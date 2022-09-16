@@ -2,6 +2,13 @@
   <div class="component-creation-transaction-list">
     <div class="h3">{{ $t('transactionlist.title') }}</div>
     <b-table striped hover :fields="fields" :items="items"></b-table>
+    <div>
+      <b-button v-b-toggle.collapse-1 variant="light" size="sm">Hilfe</b-button>
+      <b-collapse id="collapse-1" class="mt-2">
+        <div>{{ $t('transactionlist.submitted') }} {{ $t('math.equals') }} {{ $t('help.transactionlist.submitted') }}</div>
+        <div>{{ $t('transactionlist.confirmed') }} {{ $t('math.equals') }} {{ $t('help.transactionlist.confirmed') }}</div>
+      </b-collapse>
+    </div>
   </div>
 </template>
 <script>
@@ -16,7 +23,14 @@ export default {
       fields: [
         {
           key: 'creationDate',
-          label: this.$t('transactionlist.date'),
+          label: this.$t('transactionlist.submitted'),
+          formatter: (value, key, item) => {
+            return this.$d(new Date(value))
+          },
+        },
+        {
+          key: 'balanceDate',
+          label: this.$t('transactionlist.confirmed'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
@@ -36,13 +50,6 @@ export default {
           },
         },
         { key: 'memo', label: this.$t('transactionlist.memo') },
-        {
-          key: 'balanceDate',
-          label: this.$t('transactionlist.balanceDate'),
-          formatter: (value, key, item) => {
-            return this.$d(new Date(value))
-          },
-        },
       ],
       items: [],
     }

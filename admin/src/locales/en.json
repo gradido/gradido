@@ -74,13 +74,21 @@
     "submit": "Send"
   },
   "GDD": "GDD",
+  "help": {
+    "help":"Help",
+    "transactionlist": {
+      "confirmed": "When was it confirmed by a moderator / admin.",
+      "submitted": "For which period was submitted by the user."
+    }
+  },
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
     "colon": ":",
     "exclaim": "!",
     "pipe": "|",
-    "plus": "+"
+    "plus": "+",
+    "equals":"="
   },
   "message": {
     "request": "Request has been sent."
@@ -133,9 +141,9 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "balanceDate": "Creation date",
+    "confirmed": "Confirmed",
     "community": "Community",
-    "date": "Date",
+    "submitted": "Submitted",
     "memo": "Message",
     "title": "All creation-transactions for the user"
   },
