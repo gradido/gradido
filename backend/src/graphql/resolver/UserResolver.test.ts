@@ -24,6 +24,8 @@ import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { TransactionLink } from '@entity/TransactionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -261,13 +263,19 @@ describe('UserResolver', () => {
           const peter = await User.findOneOrFail({ id: user[0].id })
           peter.isAdmin = new Date()
           await peter.save()
+
+          // date statement
+          const actualDate = new Date()
+          const futureDate = new Date() // Create a future day from the executed day
+          futureDate.setDate(futureDate.getDate() + 1)
+
           // factory logs in as Peter Lustig
           link = await contributionLinkFactory(testEnv, {
             name: 'Dokumenta 2022',
             memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
             amount: 200,
-            validFrom: new Date(2022, 5, 18),
-            validTo: new Date(2022, 8, 25),
+            validFrom: actualDate,
+            validTo: futureDate,
           })
           resetToken()
           await mutate({
@@ -290,6 +298,39 @@ describe('UserResolver', () => {
               type: EventProtocolType.ACTIVATE_ACCOUNT,
               userId: expect.any(Number), // as it is randomly generated
             }),
+          )
+        })
+
+        it('stores the redeem register event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: expect.any(Number), // as it is randomly generated
+            }),
+          )
+        })
+      })
+
+      describe('transaction link', () => {
+        beforeAll(async () => {
+          await transactionLinkFactory(testEnv, {
+            email: 'peter@lustig.de',
+            amount: 19.99,
+            memo: `Kein Trick, keine Zauberrei,
+          bei Gradidio sei dabei!`,
+          })
+
+          const transactionLink = await TransactionLink.findOneOrFail()
+          resetToken()
+          await mutate({
+            mutation: createUser,
+            variables: { ...variables, email: 'neuer@user.de', redeemCode: transactionLink.code },
+          })
+        })
+
+        it('sets the referrer id to Peter Lustigs id', () => {
+          expect(User.findOne({ email: 'neuer@user.de' })).resolves.toEqual(
+            expect.objectContaining({ referrerId: user[0].id }),
           )
         })
       })
