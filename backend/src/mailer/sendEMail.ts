@@ -19,6 +19,12 @@ export const sendEMail = async (emailDef: {
     logger.info(`Emails are disabled via config...`)
     return false
   }
+  if (CONFIG.TEST_MODUS) {
+    logger.info(
+      `Testmodus=ON: change receiver from ${emailDef.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
+    )
+    emailDef.to = CONFIG.EMAIL_TEST_RECEIVER
+  }
   const transporter = createTransport({
     host: CONFIG.EMAIL_SMTP_URL,
     port: Number(CONFIG.EMAIL_SMTP_PORT),
