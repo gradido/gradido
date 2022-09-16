@@ -30,6 +30,7 @@ import {
   EventRedeemRegister,
   EventRegister,
   EventSendConfirmationEmail,
+  EventActivateAccount,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
 import { UserRepository } from '@/typeorm/repository/User'
@@ -611,6 +612,8 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
+    const event = new Event()
+
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
@@ -619,6 +622,9 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
+      const eventActivateAccount = new EventActivateAccount()
+      eventActivateAccount.userId = user.id
+      eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
       logger.info('User data written successfully...')
     } catch (e) {
       await queryRunner.rollbackTransaction()

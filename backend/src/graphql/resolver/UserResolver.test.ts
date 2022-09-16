@@ -176,6 +176,7 @@ describe('UserResolver', () => {
         expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
+            userId: expect.any(Number), // as it is randomly generated
           }),
         )
       })
@@ -255,6 +256,7 @@ describe('UserResolver', () => {
             mutation: setPassword,
             variables: { code: emailOptIn, password: 'Aa12345_' },
           })
+
           // make Peter Lustig Admin
           const peter = await User.findOneOrFail({ id: user[0].id })
           peter.isAdmin = new Date()
@@ -278,6 +280,15 @@ describe('UserResolver', () => {
           await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
             expect.objectContaining({
               contributionLinkId: link.id,
+            }),
+          )
+        })
+
+        it('stores the account activated event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.ACTIVATE_ACCOUNT,
+              userId: expect.any(Number), // as it is randomly generated
             }),
           )
         })
@@ -625,6 +636,7 @@ bei Gradidio sei dabei!`,
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
+              userId: expect.any(Number), // as it is randomly generated
             }),
           )
         })
