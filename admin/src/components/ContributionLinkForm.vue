@@ -163,7 +163,6 @@ export default {
       if (this.form.validFrom === null)
         return this.toastError(this.$t('contributionLink.noStartDate'))
       if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))
-      // alert(JSON.stringify(this.form))
       this.$apollo
         .mutate({
           mutation: createContributionLink,
@@ -182,6 +181,8 @@ export default {
           this.link = result.data.createContributionLink.link
           this.toastSuccess(this.link)
           this.onReset()
+          this.$root.$emit('bv::toggle::collapse', 'newContribution')
+          this.$emit('get-contribution-links')
         })
         .catch((error) => {
           this.toastError(error.message)
