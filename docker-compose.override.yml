@@ -103,8 +103,11 @@ services:
     image: gradido/blockchain_connector:master
     networks: 
      - internal-net
+     - external-net
     environment:
-      - DB_SQLITE=':memory:'
+      - DB_SQLITE='db.sqlite'
+      - CRYPTO_JWT_PRIVATE='7c8c277ed8204e71ae4fcd8d2bcd9202c5233cb804aa582ac4db28ea324684a9'
+      - JSON_SERVER_PORT=1271
 
   #########################################################
   ## PHPMYADMIN ###########################################
