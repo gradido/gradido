@@ -43,39 +43,54 @@ export const getUserCreations = async (
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
   logger.trace('getUserCreations dateFilter', dateFilter)
 
-  const unionString = includePending
-    ? `
-    UNION
-      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}
-        AND confirmed_at IS NULL AND deleted_at IS NULL`
-    : ''
-
-  const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
-      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TransactionTypeId.CREATION}
-        AND creation_date >= ${dateFilter}
-      ${unionString}) AS result
-    GROUP BY month, userId
-    ORDER BY date DESC
-  `)
-
+  /** 
+  SELECT MONTH(contribution_date) as month, user_id, created_at, sum(amount), confirmed_at, deleted_at 
+   FROM `contributions`
+   where user_id = 776
+   and contribution_date >= last_day(curdate() - interval 3 month) + interval 1 day
+   and deleted_at IS NULL
+   if(!includePending) and confirmed_at IS NOT NULL
+   group by month, user_id; 
+  */
+  const bookedCreationQuery = queryRunner.manager
+    .createQueryBuilder(Contribution, 'c')
+    .select('month(contribution_date)', 'month')
+    .addSelect('user_id', 'userId')
+    .addSelect('sum(amount)', 'sum')
+    .where(`user_id in (${ids.toString()})`)
+    .andWhere(`contribution_date >= ${dateFilter}`)
+    .andWhere('deleted_at IS NULL')
+    .groupBy('month')
+    .addGroupBy('userId')
+  if (!includePending) {
+    bookedCreationQuery.andWhere('confirmed_at IS NOT NULL')
+  }
+  const bookedCreation = await bookedCreationQuery.getRawMany()
+  // eslint-disable-next-line no-console
+  console.log('openCreation', bookedCreation)
   await queryRunner.release()
 
   return ids.map((id) => {
     return {
       id,
       creations: months.map((month) => {
-        const creation = unionQuery.find(
-          (raw: { month: string; id: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.id) === id,
+        const creation = bookedCreation.find(
+          (raw: { month: string; userId: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
         return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
     }
+    // const creations = months.map((month) => {
+    //   const creation = openCreation.find(
+    //     (raw: { month: string; userId: string; creation: number[] }) =>
+    //       parseInt(raw.month) === month && parseInt(raw.userId) === id,
+    //   )
+    //   return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
+    // })
+    // // eslint-disable-next-line no-console
+    // console.log('id: ', id, 'creations: ', creations.toString())
+    // return { id, creations }
   })
 }
 
