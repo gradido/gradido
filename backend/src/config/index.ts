@@ -60,10 +60,10 @@ const community = {
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
   COMMUNITY_PUBLIC_KEY:
     process.env.COMMUNITY_PUBLIC_KEY ||
-    '0a891989c84357cb13f91a9573e0182269b991624d66f292f76f411e21b29f25',
+    'f7bf12696ca09c7a348dc48c82894eacbfb955029125f28fd226510def83d53d',
   COMMUNITY_PRIVATE_KEY:
     process.env.COMMUNITY_PRIVATE_KEY ||
-    '3e7e54dc04935ed4a776bff0fbbf5c90f09291dc76f436a0f72fd1a5e4bf11f6',
+    '09e552a127f999cc2d339d220f6afa6a31cfbcbcf2c25f10ff9af09c29b49dac',
 }
 
 const loginServer = {
