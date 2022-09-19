@@ -32,3 +32,34 @@ dein Gradido-Team
 Link zu deinem Konto: ${data.overviewURL}`,
   },
 }
+
+export const transactionLinkRedeemed = {
+  de: {
+    subject: 'Gradido link eingelösst',
+    text: (data: {
+      email: string
+      senderFirstName: string
+      senderLastName: string
+      recipientFirstName: string
+      recipientLastName: string
+      senderEmail: string
+      amount: Decimal
+      memo: string
+      overviewURL: string
+    }): string =>
+      `Hallo ${data.recipientFirstName} ${data.recipientLastName}
+
+${data.senderFirstName} ${data.senderLastName} (${
+        data.senderEmail
+      }) hat soeben deinen Link eingelösst.
+Betrag: ${data.amount.toFixed(2).replace('.', ',')} GDD,
+Memo: ${data.memo}
+
+Bitte antworte nicht auf diese E-Mail!
+
+Mit freundlichen Grüßen,
+dein Gradido-Team
+
+Link zu deinem Konto: ${data.overviewURL}`,
+  },
+}
