@@ -176,7 +176,7 @@ describe('UserResolver', () => {
         expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
-            userId: expect.any(Number), // as it is randomly generated
+            userId: user.id,
           }),
         )
       })
