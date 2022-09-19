@@ -176,7 +176,7 @@ describe('UserResolver', () => {
         expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
-            userId: user.id,
+            userId: user[0].id,
           }),
         )
       })
@@ -295,7 +295,7 @@ describe('UserResolver', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
-              userId: expect.any(Number), // as it is randomly generated
+              userId: user[0].id,
             }),
           )
         })
@@ -605,6 +605,8 @@ bei Gradidio sei dabei!`,
       })
 
       describe('authenticated', () => {
+        let user: User[]
+
         const variables = {
           email: 'bibi@bloxberg.de',
           password: 'Aa12345_',
@@ -612,6 +614,7 @@ bei Gradidio sei dabei!`,
 
         beforeAll(async () => {
           await query({ query: login, variables })
+          user = await User.find()
         })
 
         afterAll(() => {
@@ -643,7 +646,7 @@ bei Gradidio sei dabei!`,
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
-              userId: expect.any(Number), // as it is randomly generated
+              userId: user[0].id,
             }),
           )
         })
