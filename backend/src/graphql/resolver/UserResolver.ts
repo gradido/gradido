@@ -277,6 +277,8 @@ export class UserResolver {
       logger.error(`User with email=${email} does not exist`)
       throw new Error('No user with this credentials')
     })
+    logger.addContext('user', dbUser.id)
+    logger.info(`validation of user still ongoing...`)
     if (dbUser.deletedAt) {
       logger.error('The User was permanently deleted in database.')
       throw new Error('This user was permanently deleted. Contact support for questions.')
@@ -303,7 +305,7 @@ export class UserResolver {
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
-    logger.debug('login credentials valid...')
+    logger.debug('validation of login credentials successful...')
 
     const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug('user=' + user)
@@ -348,6 +350,7 @@ export class UserResolver {
     @Args()
     { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
+    logger.addContext('user', 'unknown')
     logger.info(
       `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode =${redeemCode})`,
     )
@@ -483,6 +486,7 @@ export class UserResolver {
       }
 
       await queryRunner.commitTransaction()
+      logger.addContext('user', dbUser.id)
     } catch (e) {
       logger.error(`error during create user with ${e}`)
       await queryRunner.rollbackTransaction()
