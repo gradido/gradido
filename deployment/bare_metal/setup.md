@@ -95,5 +95,8 @@
 > cp .env.dist .env
 > nano .env
 >> Adjust values accordingly
+# Define name of gradido environment
+> the env variable GRADIDO_ENV_NAME have to be set during system installation manually to "development, stage1, stage2, stage3, production"
+> export GRADIDO_ENV_NAME=development 
 # TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
 > ./install.sh
