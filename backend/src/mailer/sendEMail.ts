@@ -19,7 +19,7 @@ export const sendEMail = async (emailDef: {
     logger.info(`Emails are disabled via config...`)
     return false
   }
-  if (CONFIG.TEST_MODUS) {
+  if (CONFIG.EMAIL_TEST_MODUS) {
     logger.info(
       `Testmodus=ON: change receiver from ${emailDef.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
     )
