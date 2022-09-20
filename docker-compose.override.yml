@@ -100,13 +100,13 @@ services:
   ## BLOCKCHAIN CONNECTOR #################################
   #########################################################
   blockchain-connector:
-    image: gradido/blockchain_connector:master
+    image: gradido/blockchain_connector:0.1
     networks: 
      - internal-net
      - external-net
     environment:
       - DB_SQLITE='db.sqlite'
-      - CRYPTO_JWT_PRIVATE='7c8c277ed8204e71ae4fcd8d2bcd9202c5233cb804aa582ac4db28ea324684a9'
+      - CRYPTO_JWT_PRIVATE='09e552a127f999cc2d339d220f6afa6a31cfbcbcf2c25f10ff9af09c29b49dacf'
       - JSON_SERVER_PORT=1271
 
   #########################################################
