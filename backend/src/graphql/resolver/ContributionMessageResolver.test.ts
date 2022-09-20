@@ -12,6 +12,14 @@ import { listContributionMessages, login } from '@/seeds/graphql/queries'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+
+jest.mock('@/mailer/sendAddedContributionMessageEmail', () => {
+  return {
+    __esModule: true,
+    sendAddedContributionMessageEmail: jest.fn(),
+  }
+})
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -150,6 +158,20 @@ describe('ContributionMessageResolver', () => {
               },
             }),
           )
+        })
+
+        it('calls sendAddedContributionMessageEmail', async () => {
+          expect(sendAddedContributionMessageEmail).toBeCalledWith({
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            recipientFirstName: 'Bibi',
+            recipientLastName: 'Bloxberg',
+            recipientEmail: 'bibi@bloxberg.de',
+            senderEmail: 'peter@lustig.de',
+            contributionMemo: 'Test env contribution',
+            message: 'Admin Test',
+            overviewURL: 'http://localhost/overview',
+          })
         })
       })
     })
