@@ -78,7 +78,7 @@ const createServer = async (
   logger.info(
     `running in environment PRODUCTION = ${CONFIG.PRODUCTION} with EMAIL_TEST_MODUS = ${CONFIG.EMAIL_TEST_MODUS} ...`,
   )
-  if (CONFIG.PRODUCTION && CONFIG.TEST_MODUS === 'true') {
+  if (CONFIG.PRODUCTION && CONFIG.EMAIL_TEST_MODUS === 'true') {
     logger.error(`### RUNNING ENVIRONMENT Production IN TEST_MODE IS NOT ALLOWED ###`)
     throw new Error(`### RUNNING ENVIRONMENT Production IN TEST_MODE IS NOT ALLOWED ###`)
   }
