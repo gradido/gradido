@@ -75,7 +75,7 @@ pm2 startup
 sudo apt-get install -y certbot
 sudo apt-get install -y python3-certbot-nginx
 sudo certbot
-> Enter email address (used for urgent renewal and security notices) > support@gradido.net
+> Enter email address (used for urgent renewal and security notices) > e.g. support@supportmail.com
 > Please read the Terms of Service at > Y
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
