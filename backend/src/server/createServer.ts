@@ -24,6 +24,7 @@ import { Connection } from '@dbTools/typeorm'
 
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
+import { openCommunication } from '@/federation/CommunityCommunication'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -76,6 +77,12 @@ const createServer = async (
   })
   apollo.applyMiddleware({ app, path: '/' })
   logger.debug('createServer...successful')
+  // test login on blockchain connector
+  const jwt = await openCommunication(
+    CONFIG.BLOCKCHAIN_CONNECTOR_PUBLIC_KEY,
+    CONFIG.BLOCKCHAIN_CONNECTOR_API_URL,
+  )
+  logger.debug('jwt token from blockchain connector received: ' + jwt)
   return { apollo, app, con }
 }
 
