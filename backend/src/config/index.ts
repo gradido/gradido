@@ -29,6 +29,7 @@ const server = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
+  ENV_NAME: process.env.NODE_ENV || 'production',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
