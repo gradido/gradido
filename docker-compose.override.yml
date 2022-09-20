@@ -106,7 +106,7 @@ services:
      - external-net
     environment:
       - DB_SQLITE='db.sqlite'
-      - CRYPTO_JWT_PRIVATE='09e552a127f999cc2d339d220f6afa6a31cfbcbcf2c25f10ff9af09c29b49dacf'
+      - CRYPTO_JWT_PRIVATE='d7c682d1bc9ef8ab35176e8bd5644a088cc7ab7c3c03c5fe40a4c58db8a3e4c2d930443eab996244813dd184105b58d490ae131cfb5ed464768939261031b875'
       - JSON_SERVER_PORT=1271
 
   #########################################################
