@@ -15,7 +15,7 @@ const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
-  TEST_MODUS: process.env.TEST_MODUS === 'true' || 'false',
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || 'false',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
     EXPECTED: 'v9.2022-07-07',
