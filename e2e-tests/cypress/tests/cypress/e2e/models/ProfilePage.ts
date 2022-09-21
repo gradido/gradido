@@ -4,8 +4,8 @@ export class ProfilePage {
   // selectors
   openChangePassword = "[data-test=open-password-change-form]";
   oldPasswordInput = "#password-input-field";
-  newPasswordInput = "#Neues-Passwort-input-field";
-  newPasswordRepeatInput = "#Neues-Passwort-wiederholen-input-field";
+  newPasswordInput = "#New-password-input-field";
+  newPasswordRepeatInput = "#Repeat-new-password-input-field";
   submitNewPasswordBtn = "[data-test=submit-new-password-btn]";
 
   goto() {
