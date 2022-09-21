@@ -331,7 +331,6 @@ describe('UserResolver', () => {
       describe('transaction link', () => {
         let contribution: any
         let bob: any
-        let peter: any
         let transactionLink: TransactionLink
         let newUser: any
 
