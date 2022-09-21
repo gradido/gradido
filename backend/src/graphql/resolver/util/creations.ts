@@ -1,4 +1,3 @@
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
@@ -49,10 +48,11 @@ export const getUserCreations = async (
    where user_id = 776
    and contribution_date >= last_day(curdate() - interval 3 month) + interval 1 day
    and deleted_at IS NULL
+   and denied_at IS NULL
    if(!includePending) and confirmed_at IS NOT NULL
    group by month, user_id; 
   */
-  const bookedCreationQuery = queryRunner.manager
+  const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
     .createQueryBuilder(Contribution, 'c')
     .select('month(contribution_date)', 'month')
     .addSelect('user_id', 'userId')
@@ -60,21 +60,22 @@ export const getUserCreations = async (
     .where(`user_id in (${ids.toString()})`)
     .andWhere(`contribution_date >= ${dateFilter}`)
     .andWhere('deleted_at IS NULL')
+    .andWhere('denied_at IS NULL')
     .groupBy('month')
     .addGroupBy('userId')
   if (!includePending) {
-    bookedCreationQuery.andWhere('confirmed_at IS NOT NULL')
+    sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
   }
-  const bookedCreation = await bookedCreationQuery.getRawMany()
-  // eslint-disable-next-line no-console
-  console.log('openCreation', bookedCreation)
+  const sumAmountContributionPerUserAndLast3Month =
+    await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
+
   await queryRunner.release()
 
   return ids.map((id) => {
     return {
       id,
       creations: months.map((month) => {
-        const creation = bookedCreation.find(
+        const creation = sumAmountContributionPerUserAndLast3Month.find(
           (raw: { month: string; userId: string; creation: number[] }) =>
             parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
