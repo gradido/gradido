@@ -48,8 +48,10 @@ export const getUserCreations = async (
     .addSelect('user_id', 'userId')
     .addSelect('sum(amount)', 'sum')
     .where(`user_id in (${ids.toString()})`)
-    .andWhere(`contribution_date > DATE_SUB(last_day('${clientRequestTime}'), INTERVAL 3 MONTH)`)
-    .andWhere('deleted_at IS NULL')
+    .andWhere(
+      `contribution_date > DATE_SUB(last_day('${clientRequestTime.toISOString()}'), INTERVAL 3 MONTH)`,
+    )
+    .andWhere('denied_at IS NULL')
     .groupBy('month')
     .addGroupBy('userId')
   if (!includePending) {

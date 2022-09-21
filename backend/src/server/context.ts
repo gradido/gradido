@@ -40,7 +40,7 @@ export const getUser = (context: Context): dbUser => {
 }
 
 export const getClientRequestTime = (context: Context): Date => {
-  console.log('context:', context)
+  // console.log('context:', context)
   if (context.clientRequestTime) {
     logger.info(`context with clientRequestTime=${context.clientRequestTime}`)
     return new Date(context.clientRequestTime)
