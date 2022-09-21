@@ -8,10 +8,7 @@ import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection } from '@dbTools/typeorm'
 
-import {
-  sendTransactionLinkRedeemedEmail,
-  sendTransactionReceivedEmail,
-} from '@/mailer/sendTransactionReceivedEmail'
+import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -38,6 +35,7 @@ import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -154,7 +152,6 @@ export const executeTransaction = async (
     email: recipient.email,
     senderEmail: sender.email,
     amount,
-    memo,
     overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
   if (transactionLink) {
