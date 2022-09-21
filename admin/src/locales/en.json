@@ -144,6 +144,8 @@
     "community": "Community",
     "confirmed": "Confirmed",
     "memo": "Message",
+    "period": "Period",
+    "state": "State",
     "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },

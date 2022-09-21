@@ -28,31 +28,39 @@ export default {
     return {
       fields: [
         {
-          key: 'creationDate',
+          key: 'createdAt',
           label: this.$t('transactionlist.submitted'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
         },
         {
-          key: 'balanceDate',
-          label: this.$t('transactionlist.confirmed'),
+          key: 'contributionDate',
+          label: this.$t('transactionlist.period'),
           formatter: (value, key, item) => {
             return this.$d(new Date(value))
           },
+        },
+        {
+          key: 'confirmedAt',
+          label: this.$t('transactionlist.confirmed'),
+          formatter: (value, key, item) => {
+            if (value) {
+              return this.$d(new Date(value))
+            } else {
+              return null
+            }
+          },
+        },
+        {
+          key: 'state',
+          label: this.$t('transactionlist.state'),
         },
         {
           key: 'amount',
           label: this.$t('transactionlist.amount'),
           formatter: (value, key, item) => {
             return `${value} GDD`
-          },
-        },
-        {
-          key: 'linkedUser',
-          label: this.$t('transactionlist.community'),
-          formatter: (value, key, item) => {
-            return `${value.firstName} ${value.lastName}`
           },
         },
         { key: 'memo', label: this.$t('transactionlist.memo') },
@@ -73,7 +81,7 @@ export default {
           },
         })
         .then((result) => {
-          this.items = result.data.creationTransactionList
+          this.items = result.data.creationTransactionList.contributionList
         })
         .catch((error) => {
           this.toastError(error.message)
