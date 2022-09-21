@@ -40,6 +40,7 @@ export default defineConfig({
     },
     env: {
       backendURL: 'http://localhost:4000',
+      loginQuery: 'query ($email: String!, $password: String!, $publisherId: Int) {\n  login(email: $email, password: $password, publisherId: $publisherId) {\n    email\n    firstName\n    lastName\n    language\n    klickTipp {\n      newsletterState\n      __typename\n    }\n    hasElopage\n    publisherId\n    isAdmin\n    creation\n    __typename\n  }\n}\n'
     },
     setupNodeEvents
   }

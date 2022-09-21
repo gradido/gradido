@@ -1,3 +1,5 @@
+import jwtDecode from 'jwt-decode'
+
 Cypress.Commands.add('login', (email, password) => {
     Cypress.LocalStorage.clear
     
@@ -10,17 +12,28 @@ Cypress.Commands.add('login', (email, password) => {
                     "email": email,
                     "password": password
                 },
-                "query": "query ($email: String!, $password: String!, $publisherId: Int) {\n  login(email: $email, password: $password, publisherId: $publisherId) {\n    email\n    firstName\n    lastName\n    language\n    klickTipp {\n      newsletterState\n      __typename\n    }\n    hasElopage\n    publisherId\n    isAdmin\n    creation\n    __typename\n  }\n}\n"
+                "query": Cypress.env('loginQuery')
         }
     })
-    .then((response) => {
+    .then(async (response) => {
+        const token = response.headers.token
+        let tokenTime
+
+        // to avoid JWT InvalidTokenError, the decoding of the token is wrapped
+        // in a try-catch block (see
+        // https://github.com/auth0/jwt-decode/issues/65#issuecomment-395493807)
+        try {
+            tokenTime = jwtDecode(token).exp
+        } catch (tokenDecodingError) {
+            cy.log('JWT decoding error: ', tokenDecodingError)
+        }
+
         let vuexToken = {
-            token : JSON.parse(JSON.stringify(response.headers))['token'],
-            // TODO: how to compute the token time from the token im response?
-            tokenTime : 1663224487
+            token : token,
+            tokenTime : tokenTime
         };
 
-        cy.visit('/');
-        window.localStorage.setItem('vuex', JSON.stringify(vuexToken));
+        cy.visit('/')
+        window.localStorage.setItem('vuex', JSON.stringify(vuexToken))
     })
 })
