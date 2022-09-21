@@ -1,4 +1,4 @@
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTime, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
@@ -119,7 +119,10 @@ export class AdminResolver {
       }
     }
 
-    const creations = await getUserCreations(users.map((u) => u.id))
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      new Date(Date.now()),
+    )
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
@@ -257,10 +260,12 @@ export class AdminResolver {
     }
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(user.id)
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
+    const creations = await getUserCreation(user.id, clientRequestTime)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     const contribution = Contribution.create()
     contribution.userId = user.id
     contribution.amount = amount
@@ -273,7 +278,7 @@ export class AdminResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
-    return getUserCreation(user.id)
+    return getUserCreation(user.id, clientRequestTime)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -318,6 +323,8 @@ export class AdminResolver {
     }
 
     const moderator = getUser(context)
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
 
     const contributionToUpdate = await Contribution.findOne({
       where: { id, confirmedAt: IsNull() },
@@ -336,13 +343,13 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientRequestTime)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creations, contributionToUpdate, clientRequestTime)
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -355,7 +362,7 @@ export class AdminResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(user.id)
+    result.creation = await getUserCreation(user.id, clientRequestTime)
 
     return result
   }
@@ -376,7 +383,7 @@ export class AdminResolver {
     }
 
     const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds)
+    const userCreations = await getUserCreations(userIds, new Date(Date.now()))
     const users = await dbUser.find({ where: { id: In(userIds) }, withDeleted: true })
 
     return contributions.map((contribution) => {
@@ -417,12 +424,19 @@ export class AdminResolver {
     const moderatorUser = getUser(context)
     if (moderatorUser.id === contribution.userId)
       throw new Error('Moderator can not confirm own contribution')
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
 
     const user = await dbUser.findOneOrFail({ id: contribution.userId }, { withDeleted: true })
     if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
 
-    const creations = await getUserCreation(contribution.userId, false)
-    validateContribution(creations, contribution.amount, contribution.contributionDate)
+    const creations = await getUserCreation(contribution.userId, clientRequestTime, false)
+    validateContribution(
+      creations,
+      contribution.amount,
+      contribution.contributionDate,
+      clientRequestTime,
+    )
 
     const receivedCallDate = new Date()
 

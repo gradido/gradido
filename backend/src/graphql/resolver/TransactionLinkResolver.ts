@@ -1,5 +1,5 @@
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTime, getUser } from '@/server/context'
 import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
@@ -172,6 +172,8 @@ export class TransactionLinkResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
     const now = new Date()
 
     if (code.match(/^CL-/)) {
@@ -191,7 +193,7 @@ export class TransactionLinkResolver {
           throw new Error('No contribution link found')
         }
         logger.info('...contribution link found with id', contributionLink.id)
-        if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
+        if (new Date(contributionLink.validFrom).getTime() > clientRequestTime.getTime()) {
           logger.error(
             'contribution link is not valid yet. Valid from: ',
             contributionLink.validFrom,
@@ -199,7 +201,9 @@ export class TransactionLinkResolver {
           throw new Error('Contribution link not valid yet')
         }
         if (contributionLink.validTo) {
-          if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
+          if (
+            new Date(contributionLink.validTo).setHours(23, 59, 59) < clientRequestTime.getTime()
+          ) {
             logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
             throw new Error('Contribution link is depricated')
           }
@@ -223,9 +227,9 @@ export class TransactionLinkResolver {
           throw new Error('Contribution link already redeemed')
         }
 
-        const creations = await getUserCreation(user.id, false)
+        const creations = await getUserCreation(user.id, clientRequestTime, false)
         logger.info('open creations', creations)
-        validateContribution(creations, contributionLink.amount, now)
+        validateContribution(creations, contributionLink.amount, now, clientRequestTime)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now

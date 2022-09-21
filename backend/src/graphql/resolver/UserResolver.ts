@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
 
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTime, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
@@ -255,7 +255,9 @@ export class UserResolver {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
-    const user = new User(userEntity, await getUserCreation(userEntity.id))
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
+    const user = new User(userEntity, await getUserCreation(userEntity.id, clientRequestTime))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -304,8 +306,10 @@ export class UserResolver {
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
 
-    const user = new User(dbUser, await getUserCreation(dbUser.id))
+    const user = new User(dbUser, await getUserCreation(dbUser.id, clientRequestTime))
     logger.debug('user=' + user)
 
     // Elopage Status & Stored PublisherId

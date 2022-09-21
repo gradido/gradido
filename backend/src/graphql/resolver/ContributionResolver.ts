@@ -1,5 +1,5 @@
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTime, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -33,10 +33,12 @@ export class ContributionResolver {
     }
 
     const user = getUser(context)
-    const creations = await getUserCreation(user.id)
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
+    const creations = await getUserCreation(user.id, clientRequestTime)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
@@ -149,6 +151,8 @@ export class ContributionResolver {
     }
 
     const user = getUser(context)
+    const clientRequestTime = getClientRequestTime(context)
+    logger.trace('clientRequestTimee: ', clientRequestTime)
 
     const contributionToUpdate = await dbContribution.findOne({
       where: { id: contributionId, confirmedAt: IsNull() },
@@ -161,13 +165,13 @@ export class ContributionResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientRequestTime)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creations, contributionToUpdate, clientRequestTime)
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
