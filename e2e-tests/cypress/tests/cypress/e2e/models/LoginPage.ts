@@ -2,14 +2,14 @@
 
 export class LoginPage {
   // selectors
-  emailInput = '#Email-input-field';
-  passwordInput = '#Password-input-field';
-  submitBtn = '[type=submit]';
-  emailHint = '#vee_Email';
-  passwordHint = '#vee_Password';
+  emailInput = "#Email-input-field";
+  passwordInput = "#Password-input-field";
+  submitBtn = "[type=submit]";
+  emailHint = "#vee_Email";
+  passwordHint = "#vee_Password";
 
   goto() {
-    cy.visit('/');
+    cy.visit("/");
     return this;
   }
 
