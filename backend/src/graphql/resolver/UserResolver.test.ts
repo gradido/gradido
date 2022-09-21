@@ -4,7 +4,15 @@
 import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
+import {
+  createUser,
+  setPassword,
+  forgotPassword,
+  updateUserInfos,
+  createTransactionLink,
+  createContribution,
+  confirmContribution,
+} from '@/seeds/graphql/mutations'
 import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
@@ -15,17 +23,18 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-// import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-// import { TransactionLink } from '@entity/TransactionLink'
+import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { TransactionLink } from '@entity/TransactionLink'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { creationFactory } from '@/seeds/factory/creation'
+import { creations } from '@/seeds/creation'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -250,40 +259,47 @@ describe('UserResolver', () => {
     })
 
     describe('redeem codes', () => {
-      describe('contribution link', () => {
-        let link: ContributionLink
-        beforeAll(async () => {
-          // activate account of admin Peter Lustig
-          await mutate({
-            mutation: setPassword,
-            variables: { code: emailOptIn, password: 'Aa12345_' },
-          })
-
-          // make Peter Lustig Admin
-          const peter = await User.findOneOrFail({ id: user[0].id })
-          peter.isAdmin = new Date()
-          await peter.save()
-
-          // date statement
-          const actualDate = new Date()
-          const futureDate = new Date() // Create a future day from the executed day
-          futureDate.setDate(futureDate.getDate() + 1)
-
-          // factory logs in as Peter Lustig
-          link = await contributionLinkFactory(testEnv, {
-            name: 'Dokumenta 2022',
-            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
-            amount: 200,
-            validFrom: actualDate,
-            validTo: futureDate,
-          })
-          resetToken()
-          await mutate({
-            mutation: createUser,
-            variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
-          })
+      let result: any
+      let link: ContributionLink
+      beforeAll(async () => {
+        // activate account of admin Peter Lustig
+        await mutate({
+          mutation: setPassword,
+          variables: { code: emailOptIn, password: 'Aa12345_' },
         })
 
+        // make Peter Lustig Admin
+        const peter = await User.findOneOrFail({ id: user[0].id })
+        peter.isAdmin = new Date()
+        await peter.save()
+
+        // date statement
+        const actualDate = new Date()
+        const futureDate = new Date() // Create a future day from the executed day
+        futureDate.setDate(futureDate.getDate() + 1)
+
+        // factory logs in as Peter Lustig
+        link = await contributionLinkFactory(testEnv, {
+          name: 'Dokumenta 2022',
+          memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
+          amount: 100,
+          validFrom: actualDate,
+          validTo: futureDate,
+        })
+
+        resetToken()
+
+        result = await mutate({
+          mutation: createUser,
+          variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      describe('contribution link', () => {
         it('sets the contribution link id', async () => {
           await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
             expect.objectContaining({
@@ -296,7 +312,7 @@ describe('UserResolver', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
-              userId: expect.any(Number), // as it is randomly generated
+              userId: user[0].id,
             }),
           )
         })
@@ -305,32 +321,92 @@ describe('UserResolver', () => {
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
-              userId: expect.any(Number), // as it is randomly generated
+              userId: result.data.createUser.id,
+              contributionId: link.id,
             }),
           )
         })
       })
 
       describe('transaction link', () => {
+        let contribution: any
+        let bob: any
+        let peter: any
+        let transactionLink: TransactionLink
+        let newUser: any
+
+        const bobData = {
+          email: 'bob@baumeister.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        const peterData = {
+          email: 'peter@lustig.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
         beforeAll(async () => {
-          await transactionLinkFactory(testEnv, {
-            email: 'peter@lustig.de',
-            amount: 19.99,
-            memo: `Kein Trick, keine Zauberrei,
-          bei Gradidio sei dabei!`,
+          await userFactory(testEnv, bobBaumeister)
+          await query({ query: login, variables: bobData })
+
+          // create contribution as user bob
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
           })
 
-          const transactionLink = await TransactionLink.findOneOrFail()
-          resetToken()
-          await mutate({
-            mutation: createUser,
-            variables: { ...variables, email: 'neuer@user.de', redeemCode: transactionLink.code },
+          // login as admin
+          await query({ query: login, variables: peterData })
+
+          // confirm the contribution
+          contribution = await mutate({
+            mutation: confirmContribution,
+            variables: { id: contribution.data.createContribution.id },
           })
+
+          // login as user bob
+          bob = await query({ query: login, variables: bobData })
+
+          // create transaction link
+          await transactionLinkFactory(testEnv, {
+            email: 'bob@baumeister.de',
+            amount: 19.99,
+            memo: `testing transaction link`,
+          })
+
+          transactionLink = await TransactionLink.findOneOrFail()
+
+          resetToken()
+
+          // create new user using transaction link of bob
+          newUser = await mutate({
+            mutation: createUser,
+            variables: {
+              ...variables,
+              email: 'which@ever.de',
+              redeemCode: transactionLink.code,
+            },
+          })
+
+          console.log(await User.find())
+          console.log(await EventProtocol.find())
         })
 
-        it('sets the referrer id to Peter Lustigs id', () => {
-          expect(User.findOne({ email: 'neuer@user.de' })).resolves.toEqual(
-            expect.objectContaining({ referrerId: user[0].id }),
+        it('sets the referrer id to bob baumeister id', () => {
+          expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
+            expect.objectContaining({ referrerId: bob.data.login.id }),
+          )
+        })
+
+        // THIS ONE FAILS WITHOUT CONSOLE LOGS
+        it('stores the redeem register event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: newUser.data.createUser.id,
+            }),
           )
         })
       })
