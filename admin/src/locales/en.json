@@ -141,7 +141,6 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "community": "Community",
     "confirmed": "Confirmed",
     "memo": "Message",
     "period": "Period",

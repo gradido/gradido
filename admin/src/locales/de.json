@@ -141,11 +141,10 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "community": "Gemeinschaft",
     "confirmed": "Bestätigt",
     "memo": "Nachricht",
     "period": "Zeitraum",
-    "state": "Status",  
+    "state": "Status",
     "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
