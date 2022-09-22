@@ -31,6 +31,7 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       isAdmin
+      creation
     }
   }
 `
