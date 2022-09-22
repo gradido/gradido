@@ -9,4 +9,5 @@ export interface UserInterface {
   deletedAt?: Date
   publisherId?: number
   isAdmin?: boolean
+  password?: string
 }

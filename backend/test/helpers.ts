@@ -16,6 +16,7 @@ const context = {
     push: headerPushMock,
     forEach: jest.fn(),
   },
+  clientRequestTime: '',
 }
 
 export const cleanDB = async () => {
@@ -45,4 +46,12 @@ export const resetEntity = async (entity: any) => {
 
 export const resetToken = () => {
   context.token = ''
+}
+
+export const setClientRequestTime = (tm: Date) => {
+  context.clientRequestTime = tm.toISOString()
+}
+
+export const resetClientRequestTime = () => {
+  context.clientRequestTime = ''
 }

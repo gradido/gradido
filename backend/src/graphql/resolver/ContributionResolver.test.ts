@@ -9,13 +9,21 @@ import {
   deleteContribution,
   updateContribution,
 } from '@/seeds/graphql/mutations'
-import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { listAllContributions, listContributions, login, verifyLogin } from '@/seeds/graphql/queries'
+import {
+  cleanDB,
+  resetClientRequestTime,
+  resetToken,
+  setClientRequestTime,
+  testEnvironment,
+} from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { contributionFactory } from '@/seeds/factory/contribution'
+import { capturedContribution100OneMonthBefore } from '@/seeds/contribution/capturedContribution100OneMonthBefore'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -164,6 +172,101 @@ describe('ContributionResolver', () => {
               },
             }),
           )
+        })
+      })
+    })
+    describe('with ClientRequestTime at first day of next month before server', () => {
+      beforeAll(async () => {
+        await userFactory(testEnv, bibiBloxberg)
+        await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthBefore)
+        const clientRequestTime = new Date()
+        clientRequestTime.setDate(1)
+        clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
+        setClientRequestTime(clientRequestTime)
+      })
+      describe('createContribution', () => {
+        describe('authenticated with valid user', () => {
+          beforeAll(async () => {
+            await query({
+              query: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+          })
+
+          afterAll(async () => {
+            await cleanDB()
+            resetToken()
+            resetClientRequestTime()
+          })
+
+          describe('full contributions only for the last two month', () => {
+            it('returns a user with array of creations', async () => {
+              await expect(query({ query: verifyLogin })).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    verifyLogin: {
+                      email: 'bibi@bloxberg.de',
+                      firstName: 'Bibi',
+                      lastName: 'Bloxberg',
+                      language: 'de',
+                      klickTipp: {
+                        newsletterState: false,
+                      },
+                      hasElopage: false,
+                      publisherId: 1234,
+                      isAdmin: null,
+                      creation: [900, 1000, 1000],
+                    },
+                  },
+                }),
+              )
+            })
+
+            it('throws error when creationDate 3 month behind', async () => {
+              const date = new Date()
+              await expect(
+                mutate({
+                  mutation: createContribution,
+                  variables: {
+                    amount: 100.0,
+                    memo: 'Test env contribution',
+                    creationDate: date.setMonth(date.getMonth() - 3).toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [
+                    new GraphQLError('No information for available creations for the given date'),
+                  ],
+                }),
+              )
+            })
+          })
+
+          describe('valid input', () => {
+            it('creates contribution', async () => {
+              await expect(
+                mutate({
+                  mutation: createContribution,
+                  variables: {
+                    amount: 100.0,
+                    memo: 'Test env contribution',
+                    creationDate: new Date().toString(),
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  data: {
+                    createContribution: {
+                      id: expect.any(Number),
+                      amount: '100',
+                      memo: 'Test env contribution',
+                    },
+                  },
+                }),
+              )
+            })
+          })
         })
       })
     })

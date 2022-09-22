@@ -8,4 +8,5 @@ export const bibiBloxberg: UserInterface = {
   emailChecked: true,
   language: 'de',
   publisherId: 1234,
+  password: 'Aa12345_',
 }
