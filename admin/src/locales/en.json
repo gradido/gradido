@@ -7,12 +7,8 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-<<<<<<< HEAD
-    "deleteNow": "Delete automatic creations '{name}'?",
-=======
     "deleteNow": "Do you really delete automatic creations '{name}'?",
     "deleted":"Automatic creation deleted!",
->>>>>>> f12288eff (add success deleted messages)
     "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
