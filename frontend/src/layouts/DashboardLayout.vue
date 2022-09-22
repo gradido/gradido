@@ -84,7 +84,6 @@ export default {
           this.$router.push('/login')
         })
         .catch(() => {
-          console.log('TESTTEST')
           this.$store.dispatch('logout')
           if (this.$router.currentRoute.path !== '/login') this.$router.push('/login')
         })
