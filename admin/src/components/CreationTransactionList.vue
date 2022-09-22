@@ -1,7 +1,14 @@
 <template>
   <div class="component-creation-transaction-list">
     <div class="h3">{{ $t('transactionlist.title') }}</div>
-    <b-table striped hover :fields="fields" :items="items"></b-table>
+    <b-table striped hover :fields="fields" :items="items">
+      <template #cell(contributionDate)="data">
+        <div class="font-weight-bold">
+          {{ $d(new Date(data.item.contributionDate), 'month') }}
+        </div>
+        <div>{{ $d(new Date(data.item.contributionDate)) }}</div>
+      </template>
+    </b-table>
     <div>
       <b-pagination
         pills
@@ -46,7 +53,7 @@ export default {
       items: [],
       rows: 0,
       currentPage: 1,
-      perPage: 25,
+      perPage: 10,
       fields: [
         {
           key: 'createdAt',
@@ -58,9 +65,6 @@ export default {
         {
           key: 'contributionDate',
           label: this.$t('transactionlist.period'),
-          formatter: (value, key, item) => {
-            return this.$d(new Date(value))
-          },
         },
         {
           key: 'confirmedAt',
