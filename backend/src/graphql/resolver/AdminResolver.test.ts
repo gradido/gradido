@@ -1498,7 +1498,7 @@ describe('AdminResolver', () => {
             })
 
             // In the futrue this should not throw anymore
-            it('and throws an error for the second confirmation', async () => {
+            it('throws an error for the second confirmation', async () => {
               const r1 = mutate({
                 mutation: confirmContribution,
                 variables: {
