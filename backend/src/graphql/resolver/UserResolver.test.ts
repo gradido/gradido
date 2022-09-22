@@ -701,12 +701,10 @@ bei Gradidio sei dabei!`,
   })
 
   describe('queryOptIn', () => {
-    // let loginEmailOptIn: LoginEmailOptIn[]
     let emailContact: UserContact
 
     beforeAll(async () => {
       await userFactory(testEnv, bibiBloxberg)
-      // loginEmailOptIn = await LoginEmailOptIn.find()
       emailContact = await UserContact.findOneOrFail({ email: bibiBloxberg.email })
     })
 

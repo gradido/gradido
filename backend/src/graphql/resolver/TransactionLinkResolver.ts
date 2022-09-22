@@ -285,7 +285,7 @@ export class TransactionLinkResolver {
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
       const linkedUser = await dbUser.findOneOrFail(
         { id: transactionLink.userId },
-        { relations: ['user'] },
+        { relations: ['emailContact'] },
       )
 
       if (user.id === linkedUser.id) {
