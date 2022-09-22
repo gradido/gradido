@@ -154,3 +154,9 @@ export const login = gql`
     }
   }
 `
+
+export const logout = gql`
+  mutation {
+    logout
+  }
+`
