@@ -263,7 +263,6 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}, ${user.email}`)
-    console.log('VerifyLogin:', user)
     return user
   }
 
@@ -330,7 +329,6 @@ export class UserResolver {
     ev.userId = user.id
     eventProtocol.writeEvent(new Event().setEventLogin(ev))
     logger.info('successful Login:' + user)
-    console.log('Login:', user)
     return user
   }
 
