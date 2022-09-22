@@ -134,6 +134,12 @@ describe('ContributionResolver', () => {
           )
         })
 
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations for the given date',
+          )
+        })
+
         it('throws error when creationDate 3 month behind', async () => {
           const date = new Date()
           await expect(
@@ -151,6 +157,12 @@ describe('ContributionResolver', () => {
                 new GraphQLError('No information for available creations for the given date'),
               ],
             }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations for the given date',
           )
         })
       })
@@ -369,6 +381,10 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('No contribution found to given id')
+        })
       })
 
       describe('Memo length smaller than 5 chars', () => {
@@ -390,6 +406,10 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5)')
+        })
       })
 
       describe('Memo length greater than 255 chars', () => {
@@ -410,6 +430,10 @@ describe('ContributionResolver', () => {
               errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255)')
         })
       })
 
@@ -442,6 +466,12 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'user of the pending contribution and send user does not correspond',
+          )
+        })
       })
 
       describe('admin tries to update a user contribution', () => {
@@ -463,6 +493,8 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        // TODO check that the error is logged (need to modify AdminResolver, avoid conflicts)
       })
 
       describe('update too much so that the limit is exceeded', () => {
@@ -494,6 +526,12 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+          )
+        })
       })
 
       describe('update creation to a date that is older than 3 months', () => {
@@ -515,6 +553,12 @@ describe('ContributionResolver', () => {
                 new GraphQLError('No information for available creations for the given date'),
               ],
             }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations for the given date',
           )
         })
       })
@@ -686,9 +730,13 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+        })
       })
 
-      describe('other user sends a deleteContribtuion', () => {
+      describe('other user sends a deleteContribution', () => {
         it('returns an error', async () => {
           await query({
             query: login,
@@ -706,6 +754,10 @@ describe('ContributionResolver', () => {
               errors: [new GraphQLError('Can not delete contribution of another user')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
         })
       })
 
@@ -750,6 +802,10 @@ describe('ContributionResolver', () => {
               errors: [new GraphQLError('A confirmed contribution can not be deleted')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
         })
       })
     })

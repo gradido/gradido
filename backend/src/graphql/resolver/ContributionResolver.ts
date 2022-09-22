@@ -13,7 +13,7 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
-import { Event, EventConfirmationEmail, EventContributionCreate } from '@/event/Event'
+import { Event, EventContributionCreate } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 @Resolver()
@@ -166,7 +166,7 @@ export class ContributionResolver {
       where: { id: contributionId, confirmedAt: IsNull() },
     })
     if (!contributionToUpdate) {
-      logger.error('No contribution found for given id')
+      logger.error('No contribution found to given id')
       throw new Error('No contribution found to given id.')
     }
     if (contributionToUpdate.userId !== user.id) {
