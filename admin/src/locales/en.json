@@ -78,7 +78,9 @@
     "help": "Help",
     "transactionlist": {
       "confirmed": "When was it confirmed by a moderator / admin.",
-      "submitted": "For which period was submitted by the user."
+      "state":"[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = denied, CONFIRMED = confirmed]",
+      "submitted": "When was it submitted by the member",
+      "periods": "For what period was it submitted by the member."
     }
   },
   "hide_details": "Hide details",

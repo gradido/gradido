@@ -19,8 +19,16 @@
           {{ $t('help.transactionlist.submitted') }}
         </div>
         <div>
+          {{ $t('transactionlist.period') }} {{ $t('math.equals') }}
+          {{ $t('help.transactionlist.periods') }}
+        </div>
+        <div>
           {{ $t('transactionlist.confirmed') }} {{ $t('math.equals') }}
           {{ $t('help.transactionlist.confirmed') }}
+        </div>
+        <div>
+          {{ $t('transactionlist.state') }} {{ $t('math.equals') }}
+          {{ $t('help.transactionlist.state') }}
         </div>
       </b-collapse>
     </div>
