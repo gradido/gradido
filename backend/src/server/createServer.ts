@@ -82,6 +82,8 @@ const createServer = async (
     CONFIG.BLOCKCHAIN_CONNECTOR_PUBLIC_KEY,
     CONFIG.BLOCKCHAIN_CONNECTOR_API_URL,
   )
+  // eslint-disable-next-line no-console
+  console.log('jwt token from blockchain connector received: ' + jwt)
   logger.debug('jwt token from blockchain connector received: ' + jwt)
   return { apollo, app, con }
 }
