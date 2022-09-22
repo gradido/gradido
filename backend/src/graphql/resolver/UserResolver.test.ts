@@ -187,7 +187,7 @@ describe('UserResolver', () => {
         expect(EventProtocol.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
-            userId: expect.any(Number), // as it is randomly generated
+            userId: user[0].id,
           }),
         )
       })
@@ -261,45 +261,45 @@ describe('UserResolver', () => {
     describe('redeem codes', () => {
       let result: any
       let link: ContributionLink
-      beforeAll(async () => {
-        // activate account of admin Peter Lustig
-        await mutate({
-          mutation: setPassword,
-          variables: { code: emailOptIn, password: 'Aa12345_' },
-        })
-
-        // make Peter Lustig Admin
-        const peter = await User.findOneOrFail({ id: user[0].id })
-        peter.isAdmin = new Date()
-        await peter.save()
-
-        // date statement
-        const actualDate = new Date()
-        const futureDate = new Date() // Create a future day from the executed day
-        futureDate.setDate(futureDate.getDate() + 1)
-
-        // factory logs in as Peter Lustig
-        link = await contributionLinkFactory(testEnv, {
-          name: 'Dokumenta 2022',
-          memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
-          amount: 100,
-          validFrom: actualDate,
-          validTo: futureDate,
-        })
-
-        resetToken()
-
-        result = await mutate({
-          mutation: createUser,
-          variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
-        })
-      })
-
-      afterAll(async () => {
-        await cleanDB()
-      })
 
       describe('contribution link', () => {
+        beforeAll(async () => {
+          // activate account of admin Peter Lustig
+          await mutate({
+            mutation: setPassword,
+            variables: { code: emailOptIn, password: 'Aa12345_' },
+          })
+
+          // make Peter Lustig Admin
+          const peter = await User.findOneOrFail({ id: user[0].id })
+          peter.isAdmin = new Date()
+          await peter.save()
+
+          // date statement
+          const actualDate = new Date()
+          const futureDate = new Date() // Create a future day from the executed day
+          futureDate.setDate(futureDate.getDate() + 1)
+
+          // factory logs in as Peter Lustig
+          link = await contributionLinkFactory(testEnv, {
+            name: 'Dokumenta 2022',
+            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
+            amount: 200,
+            validFrom: actualDate,
+            validTo: futureDate,
+          })
+
+          resetToken()
+          result = await mutate({
+            mutation: createUser,
+            variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+        })
+
         it('sets the contribution link id', async () => {
           await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
             expect.objectContaining({
@@ -347,6 +347,7 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
+          await userFactory(testEnv, peterLustig)
           await userFactory(testEnv, bobBaumeister)
           await query({ query: login, variables: bobData })
 
@@ -714,6 +715,8 @@ bei Gradidio sei dabei!`,
       })
 
       describe('authenticated', () => {
+        let user: User[]
+
         const variables = {
           email: 'bibi@bloxberg.de',
           password: 'Aa12345_',
@@ -721,6 +724,7 @@ bei Gradidio sei dabei!`,
 
         beforeAll(async () => {
           await query({ query: login, variables })
+          user = await User.find()
         })
 
         afterAll(() => {
@@ -752,7 +756,7 @@ bei Gradidio sei dabei!`,
           expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.LOGIN,
-              userId: expect.any(Number), // as it is randomly generated
+              userId: user[0].id,
             }),
           )
         })

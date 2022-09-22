@@ -622,9 +622,11 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
+
       const eventActivateAccount = new EventActivateAccount()
       eventActivateAccount.userId = user.id
       eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
+
       logger.info('User data written successfully...')
     } catch (e) {
       await queryRunner.rollbackTransaction()

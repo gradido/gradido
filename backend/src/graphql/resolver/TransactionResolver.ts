@@ -35,6 +35,7 @@ import Decimal from 'decimal.js-light'
 
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -151,9 +152,21 @@ export const executeTransaction = async (
     email: recipient.email,
     senderEmail: sender.email,
     amount,
-    memo,
     overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
   })
+  if (transactionLink) {
+    await sendTransactionLinkRedeemedEmail({
+      senderFirstName: recipient.firstName,
+      senderLastName: recipient.lastName,
+      recipientFirstName: sender.firstName,
+      recipientLastName: sender.lastName,
+      email: sender.email,
+      senderEmail: recipient.email,
+      amount,
+      memo,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    })
+  }
   logger.info(`finished executeTransaction successfully`)
   return true
 }
