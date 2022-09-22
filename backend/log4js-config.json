@@ -8,7 +8,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -21,7 +21,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -34,7 +34,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -47,7 +47,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -60,7 +60,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       },
       "keepFileExt" : true,
       "fileNameSep" : "_",
@@ -77,7 +77,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       }
     },
     "apolloOut": 
@@ -85,7 +85,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       }
     }    
   },
@@ -99,7 +99,7 @@
         "errors"
       ],
       "level": "debug",
-      "enableCallStack": false
+      "enableCallStack": true
     },
     "apollo":
     {
@@ -110,7 +110,7 @@
         "errors"
       ],
       "level": "debug",
-      "enableCallStack": false
+      "enableCallStack": true
     },
     "backend":
     {
@@ -121,7 +121,7 @@
         "errors"
       ],
       "level": "debug",
-      "enableCallStack": false
+      "enableCallStack": true
     },
     "klicktipp":
     {
@@ -132,7 +132,7 @@
         "errors"
       ],
       "level": "debug",
-      "enableCallStack": false
+      "enableCallStack": true
     },
     "http": 
     {
