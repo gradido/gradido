@@ -389,20 +389,16 @@ describe('UserResolver', () => {
               redeemCode: transactionLink.code,
             },
           })
-
-          console.log(await User.find())
-          console.log(await EventProtocol.find())
         })
 
-        it('sets the referrer id to bob baumeister id', () => {
-          expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
+        it('sets the referrer id to bob baumeister id', async () => {
+          await expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
             expect.objectContaining({ referrerId: bob.data.login.id }),
           )
         })
 
-        // THIS ONE FAILS WITHOUT CONSOLE LOGS
-        it('stores the redeem register event in the database', () => {
-          expect(EventProtocol.find()).resolves.toContainEqual(
+        it('stores the redeem register event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.REDEEM_REGISTER,
               userId: newUser.data.createUser.id,
