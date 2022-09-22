@@ -16,6 +16,9 @@ import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { EventProtocol } from '@entity/EventProtocol'
+import { EventProtocolType } from '@/event/EventProtocolType'
+import { logger } from '@test/testSetup'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -35,6 +38,8 @@ afterAll(async () => {
 })
 
 describe('ContributionResolver', () => {
+  let bibi: any
+
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
@@ -54,7 +59,7 @@ describe('ContributionResolver', () => {
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
+        bibi = await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
@@ -84,6 +89,10 @@ describe('ContributionResolver', () => {
           )
         })
 
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < (5)`)
+        })
+
         it('throws error when memo length greater than 255 chars', async () => {
           const date = new Date()
           await expect(
@@ -100,6 +109,10 @@ describe('ContributionResolver', () => {
               errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > (255)`)
         })
 
         it('throws error when creationDate not-valid', async () => {
@@ -162,6 +175,15 @@ describe('ContributionResolver', () => {
                   memo: 'Test env contribution',
                 },
               },
+            }),
+          )
+        })
+
+        it('stores the create contribution event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.CONTRIBUTION_CREATE,
+              userId: bibi.data.login.id,
             }),
           )
         })
