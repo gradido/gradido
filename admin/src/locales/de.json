@@ -78,9 +78,9 @@
     "help": "Hilfe",
     "transactionlist": {
       "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
-      "state":"[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
-      "submitted": "Wann wurde es vom Mitglied eingereicht",
-      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht."
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
     }
   },
   "hide_details": "Details verbergen",
