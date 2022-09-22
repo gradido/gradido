@@ -214,8 +214,7 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
-        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
-          expect.arrayContaining([
+        await expect(User.find({ relations: ['emailContact'] })).resolves.toContain(
             expect.objectContaining({
               emailContact: expect.objectContaining({
                 email: 'bibi@bloxberg.de',
