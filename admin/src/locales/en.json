@@ -7,7 +7,7 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-    "deleteNow": "Do you really delete automatic creations '{name}'?",
+    "deleteNow": "Delete automatic creations '{name}'?",
     "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
