@@ -24,7 +24,7 @@ const locales = [
     enabled: true,
   },
   {
-    name: 'Holandés',
+    name: 'Nederlands',
     code: 'nl',
     iso: 'nl-NL',
     enabled: true,

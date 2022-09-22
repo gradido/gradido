@@ -12,6 +12,14 @@ import { listContributionMessages, login } from '@/seeds/graphql/queries'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+
+jest.mock('@/mailer/sendAddedContributionMessageEmail', () => {
+  return {
+    __esModule: true,
+    sendAddedContributionMessageEmail: jest.fn(),
+  }
+})
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -93,6 +101,38 @@ describe('ContributionMessageResolver', () => {
             }),
           )
         })
+
+        it('throws error when contribution.userId equals user.id', async () => {
+          await query({
+            query: login,
+            variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+          })
+          const result2 = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+          await expect(
+            mutate({
+              mutation: adminCreateContributionMessage,
+              variables: {
+                contributionId: result2.data.createContribution.id,
+                message: 'Test',
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'ContributionMessage was not successful: Error: Admin can not answer on own contribution',
+                ),
+              ],
+            }),
+          )
+        })
       })
 
       describe('valid input', () => {
@@ -118,6 +158,20 @@ describe('ContributionMessageResolver', () => {
               },
             }),
           )
+        })
+
+        it('calls sendAddedContributionMessageEmail', async () => {
+          expect(sendAddedContributionMessageEmail).toBeCalledWith({
+            senderFirstName: 'Peter',
+            senderLastName: 'Lustig',
+            recipientFirstName: 'Bibi',
+            recipientLastName: 'Bloxberg',
+            recipientEmail: 'bibi@bloxberg.de',
+            senderEmail: 'peter@lustig.de',
+            contributionMemo: 'Test env contribution',
+            message: 'Admin Test',
+            overviewURL: 'http://localhost/overview',
+          })
         })
       })
     })

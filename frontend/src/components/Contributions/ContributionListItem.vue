@@ -27,12 +27,9 @@
             </span>
           </div>
           <div class="mr-2">{{ memo }}</div>
-          <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(state) && !firstName"
-            class="d-flex flex-row-reverse"
-          >
+          <div class="d-flex flex-row-reverse">
             <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state)"
+              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
               class="pointer ml-5"
               @click="
                 $emit('update-contribution-form', {
@@ -46,7 +43,7 @@
               <b-icon icon="pencil" class="h2"></b-icon>
             </div>
             <div
-              v-if="!['CONFIRMED', 'DELETED'].includes(state)"
+              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
               class="pointer"
               @click="deleteContribution({ id })"
             >
@@ -143,6 +140,11 @@ export default {
     contributionId: {
       type: Number,
       required: true,
+    },
+    allContribution: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   data() {

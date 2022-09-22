@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-messages-list-item">
-    <is-moderator v-if="isModerator" :message="message"></is-moderator>
+    <is-moderator v-if="message.isModerator" :message="message"></is-moderator>
     <is-not-moderator v-else :message="message"></is-not-moderator>
   </div>
 </template>
@@ -21,11 +21,6 @@ export default {
       default() {
         return {}
       },
-    },
-  },
-  computed: {
-    isModerator() {
-      return this.$store.state.moderator.id === this.message.userId
     },
   },
 }
