@@ -265,7 +265,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGIN])
-  @Query(() => User)
+  @Mutation(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
