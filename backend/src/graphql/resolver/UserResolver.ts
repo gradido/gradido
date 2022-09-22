@@ -30,6 +30,7 @@ import {
   EventRegister,
   EventSendAccountMultiRegistrationEmail,
   EventSendConfirmationEmail,
+  EventActivateAccount,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
 import { UserContactType } from '../enum/UserContactType'
@@ -558,10 +559,10 @@ export class UserResolver {
 
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      await eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
     } else {
       eventRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
     }
 
     return new User(dbUser)
@@ -620,6 +621,7 @@ export class UserResolver {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
     if (!isPassword(password)) {
+      logger.error('Password entered is lexically invalid')
       throw new Error(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
@@ -688,6 +690,8 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
+    const event = new Event()
+
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
@@ -702,6 +706,10 @@ export class UserResolver {
 
       await queryRunner.commitTransaction()
       logger.info('User and UserContact data written successfully...')
+
+      const eventActivateAccount = new EventActivateAccount()
+      eventActivateAccount.userId = user.id
+      eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error('Error on writing User and UserContact data:' + e)
@@ -816,6 +824,7 @@ export class UserResolver {
 
     try {
       await queryRunner.manager.save(userEntity).catch((error) => {
+        logger.error('error saving user: ' + error)
         throw new Error('error saving user: ' + error)
       })
 
