@@ -4,8 +4,15 @@
 import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
+import {
+  login,
+  logout,
+  createUser,
+  setPassword,
+  forgotPassword,
+  updateUserInfos,
+} from '@/seeds/graphql/mutations'
+import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
@@ -459,7 +466,7 @@ bei Gradidio sei dabei!`,
 
     describe('no users in database', () => {
       beforeAll(async () => {
-        result = await query({ query: login, variables })
+        result = await mutate({ mutation: login, variables })
       })
 
       it('throws an error', () => {
@@ -478,7 +485,7 @@ bei Gradidio sei dabei!`,
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables })
+        result = await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -515,7 +522,7 @@ bei Gradidio sei dabei!`,
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables: { ...variables, password: 'wrong' } })
+        result = await mutate({ mutation: login, variables: { ...variables, password: 'wrong' } })
       })
 
       afterAll(async () => {
@@ -540,7 +547,7 @@ bei Gradidio sei dabei!`,
     describe('unauthenticated', () => {
       it('throws an error', async () => {
         resetToken()
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -556,7 +563,7 @@ bei Gradidio sei dabei!`,
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({ query: login, variables })
+        await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -564,7 +571,7 @@ bei Gradidio sei dabei!`,
       })
 
       it('returns true', async () => {
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             data: { logout: 'true' },
             errors: undefined,
@@ -613,7 +620,7 @@ bei Gradidio sei dabei!`,
         }
 
         beforeAll(async () => {
-          await query({ query: login, variables })
+          await mutate({ mutation: login, variables })
           user = await User.find()
         })
 
@@ -781,8 +788,8 @@ bei Gradidio sei dabei!`,
     describe('authenticated', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',
@@ -913,8 +920,8 @@ bei Gradidio sei dabei!`,
 
           it('can login with new password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Bb12345_',
@@ -933,8 +940,8 @@ bei Gradidio sei dabei!`,
 
           it('cannot login with old password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Aa12345_',
@@ -971,8 +978,8 @@ bei Gradidio sei dabei!`,
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',

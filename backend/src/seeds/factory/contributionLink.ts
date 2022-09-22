@@ -1,6 +1,5 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { createContributionLink } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
+import { login, createContributionLink } from '@/seeds/graphql/mutations'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
 
@@ -8,10 +7,10 @@ export const contributionLinkFactory = async (
   client: ApolloServerTestClient,
   contributionLink: ContributionLinkInterface,
 ): Promise<ContributionLink> => {
-  const { mutate, query } = client
+  const { mutate } = client
 
   // login as admin
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
 
   const variables = {
     amount: contributionLink.amount,
