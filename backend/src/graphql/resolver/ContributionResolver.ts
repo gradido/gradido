@@ -51,7 +51,11 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await dbContribution.save(contribution)
-    return new UnconfirmedContribution(contribution, user, creations)
+    return new UnconfirmedContribution(
+      contribution,
+      user,
+      await getUserCreation(user.id, clientRequestTime),
+    )
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
@@ -155,7 +159,7 @@ export class ContributionResolver {
     logger.trace('clientRequestTimee: ', clientRequestTime)
 
     const contributionToUpdate = await dbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull() },
+      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       throw new Error('No contribution found to given id.')

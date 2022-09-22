@@ -9,9 +9,15 @@ import {
   deleteContribution,
   updateContribution,
 } from '@/seeds/graphql/mutations'
-import { listAllContributions, listContributions, login, verifyLogin } from '@/seeds/graphql/queries'
+import {
+  listAllContributions,
+  listContributions,
+  login,
+  verifyLogin,
+} from '@/seeds/graphql/queries'
 import {
   cleanDB,
+  getClientRequestTime,
   resetClientRequestTime,
   resetToken,
   setClientRequestTime,
@@ -23,7 +29,8 @@ import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { contributionFactory } from '@/seeds/factory/contribution'
-import { capturedContribution100OneMonthBefore } from '@/seeds/contribution/capturedContribution100OneMonthBefore'
+import { capturedContribution100OneMonthAgo } from '@/seeds/contribution/capturedContribution100OneMonthAgo'
+import { ContributionStatus } from '../enum/ContributionStatus'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -152,13 +159,14 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('creates contribution', async () => {
+          const now = new Date().toISOString()
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                creationDate: now,
               },
             }),
           ).resolves.toEqual(
@@ -168,6 +176,13 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: 'Test env contribution',
+                  date: now,
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  moderator: null,
+                  creation: ['1000', '1000', '900'],
+                  state: ContributionStatus.PENDING,
+                  messageCount: 0,
                 },
               },
             }),
@@ -175,98 +190,143 @@ describe('ContributionResolver', () => {
         })
       })
     })
-    describe('with ClientRequestTime at first day of next month before server', () => {
+
+    describe('ClientRequestTime to 1st day of next month ahead server', () => {
       beforeAll(async () => {
+        await cleanDB()
+        resetToken()
+
         await userFactory(testEnv, bibiBloxberg)
-        await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthBefore)
+        // create one contribution with 100GDD for bibi one month ago in the past
+        await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
+        // set clientRequestTime at the 1st day of the next month against the backend time
         const clientRequestTime = new Date()
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
         setClientRequestTime(clientRequestTime)
       })
-      describe('createContribution', () => {
-        describe('authenticated with valid user', () => {
-          beforeAll(async () => {
-            await query({
-              query: login,
-              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-            })
+      describe('authenticated with valid user', () => {
+        beforeAll(async () => {
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
+        })
 
-          afterAll(async () => {
-            await cleanDB()
-            resetToken()
-            resetClientRequestTime()
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+          resetClientRequestTime()
+        })
+
+        it('verify limits before 1st creation', async () => {
+          await expect(query({ query: verifyLogin })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                verifyLogin: {
+                  email: 'bibi@bloxberg.de',
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  language: 'de',
+                  klickTipp: {
+                    newsletterState: false,
+                  },
+                  hasElopage: false,
+                  publisherId: 1234,
+                  isAdmin: null,
+                  creation: ['900', '1000', '1000'],
+                },
+              },
+            }),
+          )
+        })
+
+        it('1st contribution creation ahead server time', async () => {
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 600.0,
+                memo: '1st new contribution one month ahead server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                createContribution: {
+                  id: expect.any(Number),
+                  amount: '600',
+                  memo: '1st new contribution one month ahead server time',
+                  date: getClientRequestTime(),
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  moderator: null,
+                  creation: ['900', '1000', '400'],
+                  state: ContributionStatus.PENDING,
+                  messageCount: 0,
+                },
+              },
+            }),
+          )
+        })
+
+        it('two creations and update to exceed limit', async () => {
+          result = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 50.0,
+              memo: '2nd new contribution one month ahead server time',
+              creationDate: getClientRequestTime(),
+            },
           })
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: '3rd new contribution one month ahead server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                createContribution: {
+                  id: expect.any(Number),
+                  amount: '100',
+                  memo: '3rd new contribution one month ahead server time',
+                  date: getClientRequestTime(),
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  moderator: null,
+                  creation: ['900', '1000', '250'],
+                  state: ContributionStatus.PENDING,
+                  messageCount: 0,
+                },
+              },
+            }),
+          )
 
-          describe('full contributions only for the last two month', () => {
-            it('returns a user with array of creations', async () => {
-              await expect(query({ query: verifyLogin })).resolves.toEqual(
-                expect.objectContaining({
-                  data: {
-                    verifyLogin: {
-                      email: 'bibi@bloxberg.de',
-                      firstName: 'Bibi',
-                      lastName: 'Bloxberg',
-                      language: 'de',
-                      klickTipp: {
-                        newsletterState: false,
-                      },
-                      hasElopage: false,
-                      publisherId: 1234,
-                      isAdmin: null,
-                      creation: [900, 1000, 1000],
-                    },
-                  },
-                }),
-              )
-            })
-
-            it('throws error when creationDate 3 month behind', async () => {
-              const date = new Date()
-              await expect(
-                mutate({
-                  mutation: createContribution,
-                  variables: {
-                    amount: 100.0,
-                    memo: 'Test env contribution',
-                    creationDate: date.setMonth(date.getMonth() - 3).toString(),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  errors: [
-                    new GraphQLError('No information for available creations for the given date'),
-                  ],
-                }),
-              )
-            })
-          })
-
-          describe('valid input', () => {
-            it('creates contribution', async () => {
-              await expect(
-                mutate({
-                  mutation: createContribution,
-                  variables: {
-                    amount: 100.0,
-                    memo: 'Test env contribution',
-                    creationDate: new Date().toString(),
-                  },
-                }),
-              ).resolves.toEqual(
-                expect.objectContaining({
-                  data: {
-                    createContribution: {
-                      id: expect.any(Number),
-                      amount: '100',
-                      memo: 'Test env contribution',
-                    },
-                  },
-                }),
-              )
-            })
-          })
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 400.0,
+                memo: 'update 2nd contribution one month ahead server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'The amount (400 GDD) to be created exceeds the amount (300 GDD) still available for this month.',
+                ),
+              ],
+            }),
+          )
         })
       })
     })

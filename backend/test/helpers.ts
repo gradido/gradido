@@ -52,6 +52,10 @@ export const setClientRequestTime = (tm: Date) => {
   context.clientRequestTime = tm.toISOString()
 }
 
+export const getClientRequestTime = (): string => {
+  return context.clientRequestTime
+}
+
 export const resetClientRequestTime = () => {
   context.clientRequestTime = ''
 }

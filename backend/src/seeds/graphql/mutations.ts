@@ -237,6 +237,13 @@ export const createContribution = gql`
       id
       amount
       memo
+      date
+      firstName
+      lastName
+      moderator
+      creation
+      state
+      messageCount
     }
   }
 `
