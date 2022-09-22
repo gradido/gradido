@@ -76,7 +76,7 @@ const createServer = async (
   })
   apollo.applyMiddleware({ app, path: '/' })
   logger.debug('createServer...successful')
-  
+
   return { apollo, app, con }
 }
 
