@@ -48,6 +48,8 @@ export class EventTransactionCreation extends EventBasicUserId {
 export class EventTransactionReceive extends EventBasicTx {}
 export class EventTransactionReceiveRedeem extends EventBasicTx {}
 export class EventContributionCreate extends EventBasicCt {}
+export class EventContributionDelete extends EventBasicCt {}
+export class EventContributionUpdate extends EventBasicCt {}
 export class EventContributionConfirm extends EventBasicCt {
   xUserId: number
   xCommunityId: number
@@ -202,6 +204,20 @@ export class Event {
   public setEventContributionCreate(ev: EventContributionCreate): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_CREATE
+
+    return this
+  }
+
+  public setEventContributionDelete(ev: EventContributionDelete): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.CONTRIBUTION_DELETE
+
+    return this
+  }
+
+  public setEventContributionUpdate(ev: EventContributionUpdate): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.CONTRIBUTION_UPDATE
 
     return this
   }
