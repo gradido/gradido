@@ -30,6 +30,7 @@ import {
   EventRedeemRegister,
   EventRegister,
   EventSendConfirmationEmail,
+  EventActivateAccount,
 } from '@/event/Event'
 import { getUserCreation } from './util/creations'
 import { UserRepository } from '@/typeorm/repository/User'
@@ -273,7 +274,7 @@ export class UserResolver {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
     const dbUser = await DbUser.findOneOrFail({ email }, { withDeleted: true }).catch(() => {
-      logger.error(`User with email=${email} does not exists`)
+      logger.error(`User with email=${email} does not exist`)
       throw new Error('No user with this credentials')
     })
     if (dbUser.deletedAt) {
@@ -389,7 +390,7 @@ export class UserResolver {
       /* uncomment this, when you need the activation link on the console */
       // In case EMails are disabled log the activation link for the user
       if (!emailSent) {
-        logger.debug(`Email not send!`)
+        logger.debug(`Email not sent!`)
       }
       logger.info('createUser() faked and send multi registration mail...')
 
@@ -493,10 +494,10 @@ export class UserResolver {
 
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      await eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
     } else {
       eventRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
     }
 
     return new User(dbUser)
@@ -548,6 +549,7 @@ export class UserResolver {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
     if (!isPassword(password)) {
+      logger.error('Password entered is lexically invalid')
       throw new Error(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
@@ -610,6 +612,8 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('READ UNCOMMITTED')
 
+    const event = new Event()
+
     try {
       // Save user
       await queryRunner.manager.save(user).catch((error) => {
@@ -618,6 +622,11 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
+
+      const eventActivateAccount = new EventActivateAccount()
+      eventActivateAccount.userId = user.id
+      eventProtocol.writeEvent(event.setEventActivateAccount(eventActivateAccount))
+
       logger.info('User data written successfully...')
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -727,6 +736,7 @@ export class UserResolver {
 
     try {
       await queryRunner.manager.save(userEntity).catch((error) => {
+        logger.error('error saving user: ' + error)
         throw new Error('error saving user: ' + error)
       })
 
