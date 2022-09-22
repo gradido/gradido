@@ -4,7 +4,14 @@
 import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
+import {
+  createUser,
+  setPassword,
+  forgotPassword,
+  updateUserInfos,
+  createContribution,
+  confirmContribution,
+} from '@/seeds/graphql/mutations'
 import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
@@ -15,15 +22,16 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-// import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-// import { TransactionLink } from '@entity/TransactionLink'
+import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -248,8 +256,10 @@ describe('UserResolver', () => {
     })
 
     describe('redeem codes', () => {
+      let result: any
+      let link: ContributionLink
+
       describe('contribution link', () => {
-        let link: ContributionLink
         beforeAll(async () => {
           // activate account of admin Peter Lustig
           await mutate({
@@ -277,10 +287,14 @@ describe('UserResolver', () => {
           })
 
           resetToken()
-          await mutate({
+          result = await mutate({
             mutation: createUser,
             variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
           })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
         })
 
         it('sets the contribution link id', async () => {
@@ -296,6 +310,95 @@ describe('UserResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
               userId: user[0].id,
+            }),
+          )
+        })
+
+        it('stores the redeem register event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: result.data.createUser.id,
+              contributionId: link.id,
+            }),
+          )
+        })
+      })
+
+      describe('transaction link', () => {
+        let contribution: any
+        let bob: any
+        let transactionLink: TransactionLink
+        let newUser: any
+
+        const bobData = {
+          email: 'bob@baumeister.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        const peterData = {
+          email: 'peter@lustig.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        beforeAll(async () => {
+          await userFactory(testEnv, peterLustig)
+          await userFactory(testEnv, bobBaumeister)
+          await query({ query: login, variables: bobData })
+
+          // create contribution as user bob
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
+          })
+
+          // login as admin
+          await query({ query: login, variables: peterData })
+
+          // confirm the contribution
+          contribution = await mutate({
+            mutation: confirmContribution,
+            variables: { id: contribution.data.createContribution.id },
+          })
+
+          // login as user bob
+          bob = await query({ query: login, variables: bobData })
+
+          // create transaction link
+          await transactionLinkFactory(testEnv, {
+            email: 'bob@baumeister.de',
+            amount: 19.99,
+            memo: `testing transaction link`,
+          })
+
+          transactionLink = await TransactionLink.findOneOrFail()
+
+          resetToken()
+
+          // create new user using transaction link of bob
+          newUser = await mutate({
+            mutation: createUser,
+            variables: {
+              ...variables,
+              email: 'which@ever.de',
+              redeemCode: transactionLink.code,
+            },
+          })
+        })
+
+        it('sets the referrer id to bob baumeister id', async () => {
+          await expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
+            expect.objectContaining({ referrerId: bob.data.login.id }),
+          )
+        })
+
+        it('stores the redeem register event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: newUser.data.createUser.id,
             }),
           )
         })
