@@ -7,7 +7,12 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
+<<<<<<< HEAD
     "deleteNow": "Automatische Schöpfung '{name}' löschen?",
+=======
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
+    "deleted":"Automatische Schöpfung gelöscht!",
+>>>>>>> f12288eff (add success deleted messages)
     "maximumAmount": "maximaler Betrag",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",

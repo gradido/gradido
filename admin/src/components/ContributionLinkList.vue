@@ -87,7 +87,7 @@ export default {
                 },
               })
               .then(() => {
-                this.toastSuccess('TODO: request message deleted ')
+                this.toastSuccess(this.$t('contributionLink.deleted'))
                 this.$emit('get-contribution-links')
               })
               .catch((err) => {
