@@ -65,9 +65,6 @@ export default {
       if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
       this.contributionLinkData = data
     },
-    getContributionLinks() {
-      this.$emit('get-contribution-links')
-    },
   },
 }
 </script>
