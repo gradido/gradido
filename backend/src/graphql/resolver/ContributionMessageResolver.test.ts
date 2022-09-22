@@ -22,14 +22,13 @@ jest.mock('@/mailer/sendAddedContributionMessageEmail', () => {
   }
 })
 
-let mutate: any, query: any, con: any
+let mutate: any, con: any
 let testEnv: any
 let result: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
