@@ -33,6 +33,7 @@ async function openCommunication(
     'community-key-A': CONFIG.COMMUNITY_PUBLIC_KEY,
     signature: signWithCommunityPrivateKey(Buffer.from(communityBPublicKey, 'hex')).toString('hex'),
   })
+
   if (!result.success) {
     throw new Error(result.data)
   }
