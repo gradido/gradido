@@ -17,7 +17,7 @@
           <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
             :contributionLinkData="contributionLinkData"
-            @get-contribution-links="getContributionLinks"
+            @get-contribution-links="$emit('get-contribution-links')"
           />
         </b-card>
       </b-collapse>
