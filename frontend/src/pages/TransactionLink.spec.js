@@ -282,17 +282,9 @@ describe('TransactionLink', () => {
       })
 
       describe('redeem link with success', () => {
-        let spy
-
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           apolloMutateMock.mockResolvedValue()
-          spy.mockImplementation(() => Promise.resolve(true))
           await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
-        })
-
-        it('opens the modal', () => {
-          expect(spy).toBeCalledWith('gdd_per_link.redeem-text')
         })
 
         it('calls the API', () => {
@@ -316,37 +308,9 @@ describe('TransactionLink', () => {
         })
       })
 
-      describe('cancel redeem link', () => {
-        let spy
-
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          apolloMutateMock.mockResolvedValue()
-          spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
-        })
-
-        it('does not call the API', () => {
-          expect(apolloMutateMock).not.toBeCalled()
-        })
-
-        it('does not toasts a success message', () => {
-          expect(mocks.$t).not.toBeCalledWith('gdd_per_link.redeemed', { n: '22' })
-          expect(toastSuccessSpy).not.toBeCalled()
-        })
-
-        it('does not push the route', () => {
-          expect(routerPushMock).not.toBeCalled()
-        })
-      })
-
       describe('redeem link with error', () => {
-        let spy
-
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
           apolloMutateMock.mockRejectedValue({ message: 'Oh Noo!' })
-          spy.mockImplementation(() => Promise.resolve(true))
           await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
         })
 

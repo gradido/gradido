@@ -498,10 +498,10 @@ export class UserResolver {
 
     if (redeemCode) {
       eventRedeemRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
+      await eventProtocol.writeEvent(event.setEventRedeemRegister(eventRedeemRegister))
     } else {
       eventRegister.userId = dbUser.id
-      eventProtocol.writeEvent(event.setEventRegister(eventRegister))
+      await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
     }
 
     return new User(dbUser)
