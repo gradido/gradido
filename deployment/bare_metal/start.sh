@@ -120,8 +120,8 @@ yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn seed
 fi
-# the env variable GRADIDO_ENV_NAME have to be set during system installation manually (development, stage1, stage2, stage3) if it should differ from production
-export NODE_ENV="${GRADIDO_ENV_NAME:=production}"
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-backend
 pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
@@ -133,8 +133,8 @@ cd $PROJECT_ROOT/frontend
 unset NODE_ENV
 yarn install
 yarn build
-# the env variable GRADIDO_ENV_NAME have to be set during system installation manually (development, stage1, stage2, stage3) if it should differ from production
-export NODE_ENV="${GRADIDO_ENV_NAME:=production}"
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-frontend
 pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
@@ -146,8 +146,8 @@ cd $PROJECT_ROOT/admin
 unset NODE_ENV
 yarn install
 yarn build
-# the env variable GRADIDO_ENV_NAME have to be set during system installation manually (development, stage1, stage2, stage3) if it should differ from production
-export NODE_ENV="${GRADIDO_ENV_NAME:=production}"
+# TODO maybe handle this differently?
+export NODE_ENV=production
 pm2 delete gradido-admin
 pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save

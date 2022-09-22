@@ -28,7 +28,6 @@ const server = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
-  ENV_NAME: process.env.NODE_ENV || 'production',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
@@ -69,7 +68,7 @@ const loginServer = {
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || 'false',
-  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'test_team@gradido.net',
+  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',

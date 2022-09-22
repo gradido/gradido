@@ -95,9 +95,6 @@
 > cp .env.dist .env
 > nano .env
 >> Adjust values accordingly
-# Define name of gradido environment
-> the env variable GRADIDO_ENV_NAME have to be set during system installation manually to "development, stage1, stage2, stage3, production"
-> export GRADIDO_ENV_NAME=development
 # Define cronjob to compensate yarn output in /tmp
 > yarn creates output in /tmp directory, which must be deleted regularly and will be done per cronjob
 > on stage1 a hourly job is necessary by setting the following job in the crontab for the gradido user

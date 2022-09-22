@@ -76,12 +76,8 @@ const createServer = async (
   })
   apollo.applyMiddleware({ app, path: '/' })
   logger.info(
-    `running in GRADIDO_ENV_NAME=${CONFIG.ENV_NAME} as PRODUCTION=${CONFIG.PRODUCTION} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
+    `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
   )
-  if (CONFIG.PRODUCTION && CONFIG.EMAIL_TEST_MODUS === 'true') {
-    logger.error(`### RUNNING ENVIRONMENT Production IN EMAIL_TEST_MODE IS NOT ALLOWED ###`)
-    throw new Error(`### RUNNING ENVIRONMENT Production IN EMAIL_TEST_MODE IS NOT ALLOWED ###`)
-  }
   logger.debug('createServer...successful')
   return { apollo, app, con }
 }
