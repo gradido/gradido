@@ -180,7 +180,6 @@
     "no-redeem": "No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
     "redeem": "Canjear",
-    "redeem-text": "¿Quieres canjear el importe ahora?",
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
     "redeemed-title": "canjeado",

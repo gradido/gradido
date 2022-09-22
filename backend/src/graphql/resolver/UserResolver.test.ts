@@ -4,7 +4,14 @@
 import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
+import {
+  createUser,
+  setPassword,
+  forgotPassword,
+  updateUserInfos,
+  createContribution,
+  confirmContribution,
+} from '@/seeds/graphql/mutations'
 import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
@@ -15,13 +22,16 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-// import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-// import { TransactionLink } from '@entity/TransactionLink'
+import { TransactionLink } from '@entity/TransactionLink'
 
+import { EventProtocolType } from '@/event/EventProtocolType'
+import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -169,6 +179,15 @@ describe('UserResolver', () => {
           duration: expect.any(String),
         })
       })
+
+      it('stores the send confirmation event in the database', () => {
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
+            userId: user[0].id,
+          }),
+        )
+      })
     })
 
     describe('email already exists', () => {
@@ -237,37 +256,149 @@ describe('UserResolver', () => {
     })
 
     describe('redeem codes', () => {
+      let result: any
+      let link: ContributionLink
+
       describe('contribution link', () => {
-        let link: ContributionLink
         beforeAll(async () => {
           // activate account of admin Peter Lustig
           await mutate({
             mutation: setPassword,
             variables: { code: emailOptIn, password: 'Aa12345_' },
           })
+
           // make Peter Lustig Admin
           const peter = await User.findOneOrFail({ id: user[0].id })
           peter.isAdmin = new Date()
           await peter.save()
+
+          // date statement
+          const actualDate = new Date()
+          const futureDate = new Date() // Create a future day from the executed day
+          futureDate.setDate(futureDate.getDate() + 1)
+
           // factory logs in as Peter Lustig
           link = await contributionLinkFactory(testEnv, {
             name: 'Dokumenta 2022',
             memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
             amount: 200,
-            validFrom: new Date(2022, 5, 18),
-            validTo: new Date(2022, 8, 25),
+            validFrom: actualDate,
+            validTo: futureDate,
           })
+
           resetToken()
-          await mutate({
+          result = await mutate({
             mutation: createUser,
             variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
           })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
         })
 
         it('sets the contribution link id', async () => {
           await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
             expect.objectContaining({
               contributionLinkId: link.id,
+            }),
+          )
+        })
+
+        it('stores the account activated event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.ACTIVATE_ACCOUNT,
+              userId: user[0].id,
+            }),
+          )
+        })
+
+        it('stores the redeem register event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: result.data.createUser.id,
+              contributionId: link.id,
+            }),
+          )
+        })
+      })
+
+      describe('transaction link', () => {
+        let contribution: any
+        let bob: any
+        let transactionLink: TransactionLink
+        let newUser: any
+
+        const bobData = {
+          email: 'bob@baumeister.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        const peterData = {
+          email: 'peter@lustig.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        beforeAll(async () => {
+          await userFactory(testEnv, peterLustig)
+          await userFactory(testEnv, bobBaumeister)
+          await query({ query: login, variables: bobData })
+
+          // create contribution as user bob
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
+          })
+
+          // login as admin
+          await query({ query: login, variables: peterData })
+
+          // confirm the contribution
+          contribution = await mutate({
+            mutation: confirmContribution,
+            variables: { id: contribution.data.createContribution.id },
+          })
+
+          // login as user bob
+          bob = await query({ query: login, variables: bobData })
+
+          // create transaction link
+          await transactionLinkFactory(testEnv, {
+            email: 'bob@baumeister.de',
+            amount: 19.99,
+            memo: `testing transaction link`,
+          })
+
+          transactionLink = await TransactionLink.findOneOrFail()
+
+          resetToken()
+
+          // create new user using transaction link of bob
+          newUser = await mutate({
+            mutation: createUser,
+            variables: {
+              ...variables,
+              email: 'which@ever.de',
+              redeemCode: transactionLink.code,
+            },
+          })
+        })
+
+        it('sets the referrer id to bob baumeister id', async () => {
+          await expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
+            expect.objectContaining({ referrerId: bob.data.login.id }),
+          )
+        })
+
+        it('stores the redeem register event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: newUser.data.createUser.id,
             }),
           )
         })
@@ -383,6 +514,10 @@ bei Gradidio sei dabei!`,
           }),
         )
       })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Password entered is lexically invalid')
+      })
     })
 
     describe('no valid optin code', () => {
@@ -404,6 +539,10 @@ bei Gradidio sei dabei!`,
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
         )
+      })
+
+      it('logs the error found', () => {
+        expect(logger.error).toBeCalledWith('Could not login with emailVerificationCode')
       })
     })
   })
@@ -432,6 +571,10 @@ bei Gradidio sei dabei!`,
             errors: [new GraphQLError('No user with this credentials')],
           }),
         )
+      })
+
+      it('logs the error found', () => {
+        expect(logger.error).toBeCalledWith('User with email=bibi@bloxberg.de does not exist')
       })
     })
 
@@ -475,6 +618,7 @@ bei Gradidio sei dabei!`,
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
+        result = await query({ query: login, variables: { ...variables, password: 'wrong' } })
       })
 
       afterAll(async () => {
@@ -482,13 +626,15 @@ bei Gradidio sei dabei!`,
       })
 
       it('returns an error', () => {
-        expect(
-          query({ query: login, variables: { ...variables, password: 'wrong' } }),
-        ).resolves.toEqual(
+        expect(result).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
         )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('The User has no valid credentials.')
       })
     })
   })
@@ -562,6 +708,8 @@ bei Gradidio sei dabei!`,
       })
 
       describe('authenticated', () => {
+        let user: User[]
+
         const variables = {
           email: 'bibi@bloxberg.de',
           password: 'Aa12345_',
@@ -569,6 +717,7 @@ bei Gradidio sei dabei!`,
 
         beforeAll(async () => {
           await query({ query: login, variables })
+          user = await User.find()
         })
 
         afterAll(() => {
@@ -592,6 +741,15 @@ bei Gradidio sei dabei!`,
                   isAdmin: null,
                 },
               },
+            }),
+          )
+        })
+
+        it('stores the login event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.LOGIN,
+              userId: user[0].id,
             }),
           )
         })
@@ -649,12 +807,16 @@ bei Gradidio sei dabei!`,
       })
 
       describe('request reset password again', () => {
-        it('thows an error', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`email already sent less than 10 minutes minutes ago`)
         })
       })
     })
@@ -766,7 +928,7 @@ bei Gradidio sei dabei!`,
       })
 
       describe('language is not valid', () => {
-        it('thows an error', async () => {
+        it('throws an error', async () => {
           await expect(
             mutate({
               mutation: updateUserInfos,
@@ -779,6 +941,10 @@ bei Gradidio sei dabei!`,
               errors: [new GraphQLError(`"not-valid" isn't a valid language`)],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`"not-valid" isn't a valid language`)
         })
       })
 
@@ -798,6 +964,10 @@ bei Gradidio sei dabei!`,
                 errors: [new GraphQLError('Old password is invalid')],
               }),
             )
+          })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith(`Old password is invalid`)
           })
         })
 
@@ -821,6 +991,10 @@ bei Gradidio sei dabei!`,
               }),
             )
           })
+
+          it('logs the error found', () => {
+            expect(logger.error).toBeCalledWith('newPassword does not fullfil the rules')
+          })
         })
 
         describe('correct old and new password', () => {
@@ -840,7 +1014,7 @@ bei Gradidio sei dabei!`,
             )
           })
 
-          it('can login wtih new password', async () => {
+          it('can login with new password', async () => {
             await expect(
               query({
                 query: login,
@@ -860,7 +1034,7 @@ bei Gradidio sei dabei!`,
             )
           })
 
-          it('cannot login wtih old password', async () => {
+          it('cannot login with old password', async () => {
             await expect(
               query({
                 query: login,
@@ -874,6 +1048,10 @@ bei Gradidio sei dabei!`,
                 errors: [new GraphQLError('No user with this credentials')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The User has no valid credentials.')
           })
         })
       })
