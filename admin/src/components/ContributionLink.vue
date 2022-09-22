@@ -27,7 +27,7 @@
           v-if="count > 0"
           :items="items"
           @editContributionLinkData="editContributionLinkData"
-          @get-contribution-links="getContributionLinks"
+          @get-contribution-links="$emit('get-contribution-links')"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
       </b-card-text>
