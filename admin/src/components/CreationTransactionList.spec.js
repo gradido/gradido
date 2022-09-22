@@ -42,7 +42,7 @@ const mocks = {
 
 const propsData = {
   userId: 1,
-  fields: ['date', 'balance', 'name', 'memo', 'decay'],
+  fields: ['createdAt', 'contributionDate', 'confirmedAt', 'amount', 'memo'],
 }
 
 describe('CreationTransactionList', () => {
@@ -62,7 +62,7 @@ describe('CreationTransactionList', () => {
         expect.objectContaining({
           variables: {
             currentPage: 1,
-            pageSize: 25,
+            pageSize: 10,
             order: 'DESC',
             userId: 1,
           },
