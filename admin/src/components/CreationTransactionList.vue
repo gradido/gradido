@@ -3,6 +3,15 @@
     <div class="h3">{{ $t('transactionlist.title') }}</div>
     <b-table striped hover :fields="fields" :items="items"></b-table>
     <div>
+      <b-pagination
+        pills
+        size="lg"
+        v-model="currentPage"
+        :per-page="perPage"
+        :total-rows="rows"
+        align="center"
+        :hide-ellipsis="true"
+      ></b-pagination>
       <b-button v-b-toggle.collapse-1 variant="light" size="sm">{{ $t('help.help') }}</b-button>
       <b-collapse id="collapse-1" class="mt-2">
         <div>
@@ -26,6 +35,10 @@ export default {
   },
   data() {
     return {
+      items: [],
+      rows: 0,
+      currentPage: 1,
+      perPage: 25,
       fields: [
         {
           key: 'createdAt',
@@ -65,7 +78,6 @@ export default {
         },
         { key: 'memo', label: this.$t('transactionlist.memo') },
       ],
-      items: [],
     }
   },
   methods: {
@@ -74,13 +86,14 @@ export default {
         .query({
           query: creationTransactionList,
           variables: {
-            currentPage: 1,
-            pageSize: 25,
+            currentPage: this.currentPage,
+            pageSize: this.perPage,
             order: 'DESC',
             userId: parseInt(this.userId),
           },
         })
         .then((result) => {
+          this.rows = result.data.creationTransactionList.contributionCount
           this.items = result.data.creationTransactionList.contributionList
         })
         .catch((error) => {
@@ -90,6 +103,11 @@ export default {
   },
   created() {
     this.getTransactions()
+  },
+  watch: {
+    currentPage() {
+      this.getTransactions()
+    },
   },
 }
 </script>
