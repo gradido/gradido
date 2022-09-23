@@ -95,5 +95,13 @@
 > cp .env.dist .env
 > nano .env
 >> Adjust values accordingly
+# Define cronjob to compensate yarn output in /tmp
+> yarn creates output in /tmp directory, which must be deleted regularly and will be done per cronjob
+> on stage1 a hourly job is necessary by setting the following job in the crontab for the gradido user
+> crontab -e opens the crontab in edit-mode and insert the following entry:
+> "0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null"
+> on stage2 a daily job is necessary by setting the following job in the crontab for the gradido user
+> crontab -e opens the crontab in edit-mode and insert the following entry:
+> "0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null"
 # TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
 > ./install.sh
