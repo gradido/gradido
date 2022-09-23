@@ -207,6 +207,7 @@ describe('ContributionResolver', () => {
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
+          jest.clearAllMocks()
           await query({
             query: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -224,7 +225,9 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  email: 'bibi@bloxberg.de',
+                  emailContact: {
+                    email: 'bibi@bloxberg.de'
+                  },
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',

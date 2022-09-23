@@ -6,7 +6,7 @@ import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeor
 import CONFIG from '@/config'
 import { User } from '@model/User'
 import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserContact as DbUserContact, UserContact } from '@entity/UserContact'
 import { communityDbUser } from '@/util/communityUser'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'

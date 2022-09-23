@@ -21,7 +21,9 @@ export const login = gql`
 export const verifyLogin = gql`
   query {
     verifyLogin {
-      email
+      emailContact {
+        email
+      }
       firstName
       lastName
       language

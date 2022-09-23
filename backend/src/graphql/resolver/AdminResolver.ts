@@ -248,7 +248,7 @@ export class AdminResolver {
     logger.trace('moderator: ', moderator.id)
     const clientRequestTime = getClientRequestTime(context)
     logger.trace('clientRequestTimee: ', clientRequestTime)
-    const creations = await getUserCreation(emailContact.id, clientRequestTime)
+    const creations = await getUserCreation(emailContact.userId, clientRequestTime)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
     validateContribution(creations, amount, creationDateObj, clientRequestTime)
@@ -264,7 +264,7 @@ export class AdminResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
-    return getUserCreation(emailContact.id, clientRequestTime)
+    return getUserCreation(emailContact.userId, clientRequestTime)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])

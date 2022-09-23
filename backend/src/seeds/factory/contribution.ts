@@ -10,7 +10,6 @@ import {
 import { login, logout } from '@/seeds/graphql/queries'
 import { ContributionInterface } from '@/seeds/contribution/ContributionInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { User } from '@entity/User'
 import { Transaction } from '@entity/Transaction'
 import { Contribution } from '@entity/Contribution'
 import { UserInterface } from '../users/UserInterface'
@@ -22,12 +21,19 @@ export const nMonthsBefore = (date: Date, months = 1): string => {
 
 export const contributionFactory = async (
   client: ApolloServerTestClient,
-  loginUser: UserInterface,
+  userToLogin: UserInterface,
   contribution: ContributionInterface,
 ): Promise<Contribution | void> => {
   const { mutate, query } = client
 
-  await query({ query: login, variables: { email: loginUser.email, password: loginUser.password } })
+  const {
+    data: {
+      login: { id },
+    },
+  } = await query({
+    query: login,
+    variables: { email: userToLogin.email, password: userToLogin.password },
+  })
 
   // TODO it would be nice to have this mutation return the id
   await mutate({
@@ -39,10 +45,8 @@ export const contributionFactory = async (
     },
   })
 
-  const user = await User.findOneOrFail({ where: { email: loginUser.email } })
-
   const pendingCreation = await Contribution.findOneOrFail({
-    where: { userId: user.id, amount: contribution.capturedAmount },
+    where: { userId: id, amount: contribution.capturedAmount },
     order: { createdAt: 'DESC' },
   })
 
@@ -79,7 +83,7 @@ export const contributionFactory = async (
 
     if (contribution.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({
-        where: { userId: user.id, creationDate: new Date(contribution.creationDate) },
+        where: { userId: id, creationDate: new Date(contribution.creationDate) },
         order: { balanceDate: 'DESC' },
       })
       if (transaction.decay.equals(0) && transaction.creationDate) {

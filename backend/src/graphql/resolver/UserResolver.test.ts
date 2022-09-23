@@ -751,7 +751,10 @@ describe('UserResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  email: 'bibi@bloxberg.de',
+                  creation: ['1000', '1000', '1000'],
+                  emailContact: expect.objectContaining({
+                    email: 'bibi@bloxberg.de',
+                  }),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
