@@ -19,7 +19,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger } from '@test/testSetup'
-import { Contribution } from '@entity/Contribution'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -773,7 +772,6 @@ describe('ContributionResolver', () => {
 
       describe('User deletes own contribution', () => {
         it('deletes successfully', async () => {
-          console.log(await Contribution.find({ id: result.data.createContribution.id }))
           await expect(
             mutate({
               mutation: deleteContribution,
@@ -785,11 +783,26 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the delete contribution event in the database', async () => {
-          console.log(await Contribution.find({ id: result.data.createContribution.id }))
+          const contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
-              // id: result.data.createContribution.id,
+              contributionId: contribution.data.createContribution.id,
             }),
           )
         })
