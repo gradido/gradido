@@ -233,12 +233,12 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
-        await expect(User.find({ relations: ['emailContact'] })).resolves.toContain(
+        await expect(
+          UserContact.findOne({ email: 'bibi@bloxberg.de' }, { relations: ['user'] }),
+        ).resolves.toEqual(
           expect.objectContaining({
-            emailContact: expect.objectContaining({
-              email: 'bibi@bloxberg.de',
-            }),
-            language: 'de',
+            email: 'bibi@bloxberg.de',
+            user: expect.objectContaining({ language: 'de' }),
           }),
         )
       })
@@ -401,8 +401,12 @@ describe('UserResolver', () => {
         })
 
         it('sets the referrer id to bob baumeister id', async () => {
-          await expect(User.findOne({ email: 'which@ever.de' })).resolves.toEqual(
-            expect.objectContaining({ referrerId: bob.data.login.id }),
+          await expect(
+            UserContact.findOne({ email: 'which@ever.de' }, { relations: ['user'] }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              user: expect.objectContaining({ referrerId: bob.data.login.id }),
+            }),
           )
         })
 
@@ -577,6 +581,7 @@ describe('UserResolver', () => {
 
     describe('no users in database', () => {
       beforeAll(async () => {
+        jest.clearAllMocks()
         result = await query({ query: login, variables })
       })
 
@@ -589,7 +594,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith('User with email=bibi@bloxberg.de does not exist')
+        expect(logger.error).toBeCalledWith(
+          'UserContact with email=bibi@bloxberg.de does not exists',
+        )
       })
     })
 
