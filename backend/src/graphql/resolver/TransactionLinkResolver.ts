@@ -180,7 +180,7 @@ export class TransactionLinkResolver {
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
-      await queryRunner.startTransaction('SERIALIZABLE')
+      await queryRunner.startTransaction('REPEATABLE READ')
       try {
         const contributionLink = await queryRunner.manager
           .createQueryBuilder()
@@ -287,7 +287,10 @@ export class TransactionLinkResolver {
       return true
     } else {
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      const linkedUser = await dbUser.findOneOrFail(
+        { id: transactionLink.userId },
+        { relations: ['emailContact'] },
+      )
 
       if (user.id === linkedUser.id) {
         throw new Error('Cannot redeem own transaction link.')

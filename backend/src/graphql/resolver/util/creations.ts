@@ -19,10 +19,17 @@ export const validateContribution = (
   const index = getCreationIndex(creationDate.getMonth(), clientRequestTime)
 
   if (index < 0) {
+    logger.error(
+      'No information for available creations with the given creationDate=',
+      creationDate,
+    )
     throw new Error('No information for available creations for the given date')
   }
 
   if (amount.greaterThan(creations[index].toString())) {
+    logger.error(
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+    )
     throw new Error(
       `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
     )
