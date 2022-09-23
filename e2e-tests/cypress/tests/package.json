@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "cypress-e2e-tests": "yarn run cypress run",
+    "cypress": "yarn run cypress run",
     "lint": "eslint --max-warnings=0 --ext .js,.ts ."
   },
   "dependencies": {
