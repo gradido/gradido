@@ -393,12 +393,23 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async adminDeleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     const contribution = await Contribution.findOne(id)
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
     }
+    const moderator = getUser(context)
+    if (
+      contribution.contributionType === ContributionType.USER &&
+      contribution.userId === moderator.id
+    ) {
+      throw new Error('Own contribution can not be deleted as admin')
+    }
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
     return !!res
