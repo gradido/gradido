@@ -136,7 +136,8 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations for the given date',
+            'No information for available creations with the given creationDate=',
+            new Date('non-valid').toDateString,
           )
         })
 
@@ -161,8 +162,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
+          const date = new Date()
           expect(logger.error).toBeCalledWith(
-            'No information for available creations for the given date',
+            'No information for available creations with the given creationDate=',
+            new Date(date.setMonth(date.getMonth() - 3).toString()).toDateString,
           )
         })
       })
@@ -557,8 +560,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
+          const date = new Date()
           expect(logger.error).toBeCalledWith(
-            'No information for available creations for the given date',
+            'No information for available creations with the given creationDate=',
+            new Date(date.setMonth(date.getMonth() - 3).toString()).toDateString,
           )
         })
       })

@@ -19,7 +19,10 @@ export const validateContribution = (
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
-    logger.error('No information for available creations for the given date')
+    logger.error(
+      'No information for available creations with the given creationDate=',
+      creationDate.toDateString,
+    )
     throw new Error('No information for available creations for the given date')
   }
 
