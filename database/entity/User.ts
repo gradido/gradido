@@ -1,1 +1,1 @@
-export { User } from './0047-messages_tables/User'
+export { User } from './0049-add_user_contacts_table/User'

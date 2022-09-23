@@ -98,6 +98,7 @@ describe('apolloProvider', () => {
         expect(setContextMock).toBeCalledWith({
           headers: {
             Authorization: 'Bearer some-token',
+            clientRequestTime: expect.any(String),
           },
         })
       })
@@ -113,6 +114,7 @@ describe('apolloProvider', () => {
         expect(setContextMock).toBeCalledWith({
           headers: {
             Authorization: '',
+            clientRequestTime: expect.any(String),
           },
         })
       })
