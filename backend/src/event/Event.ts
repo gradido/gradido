@@ -299,7 +299,6 @@ export class Event {
 
   public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    if (ev.message) this.message = ev.message
     this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
 
     return this
@@ -307,7 +306,6 @@ export class Event {
 
   public setEventAdminCreateContributionMessage(ev: EventAdminCreateContributionMessage): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    if (ev.message) this.message = ev.message
     this.type = EventProtocolType.ADMIN_CREATE_CONTRIBUTION_MESSAGE
 
     return this
@@ -428,5 +426,4 @@ export class Event {
   transactionId?: number
   contributionId?: number
   amount?: decimal
-  message?: string
 }
