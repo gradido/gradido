@@ -248,7 +248,7 @@ export class AdminResolver {
     const creationDateObj = new Date(creationDate)
     logger.trace('creationDateObj:', creationDateObj)
     validateContribution(creations, amount, creationDateObj)
-    const contribution = Contribution.create()
+    const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
     contribution.createdAt = new Date()
@@ -259,7 +259,7 @@ export class AdminResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
-    await Contribution.save(contribution)
+    await DbContribution.save(contribution)
     return getUserCreation(emailContact.userId)
   }
 
