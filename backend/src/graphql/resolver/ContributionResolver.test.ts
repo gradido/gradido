@@ -226,7 +226,7 @@ describe('ContributionResolver', () => {
               data: {
                 verifyLogin: {
                   emailContact: {
-                    email: 'bibi@bloxberg.de'
+                    email: 'bibi@bloxberg.de',
                   },
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
