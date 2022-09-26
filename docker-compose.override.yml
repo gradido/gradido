@@ -60,6 +60,21 @@ services:
       # bind the local folder to the docker to allow live reload
       - ./backend:/app
       - ./database:/database
+      
+  #########################################################
+  ## BLOCKCHAIN CONNECTOR #################################
+  #########################################################
+  blockchain-connector:
+    image: gradido/blockchain_connector:0.1
+    networks: 
+     - internal-net
+     - external-net
+    environment:
+      - DB_SQLITE=db.sqlite
+      - CRYPTO_JWT_PRIVATE=d7c682d1bc9ef8ab35176e8bd5644a088cc7ab7c3c03c5fe40a4c58db8a3e4c2d930443eab996244813dd184105b58d490ae131cfb5ed464768939261031b875
+      - JSON_SERVER_PORT=1271
+    volumes:
+     -  ./logs/blockchain_connector:/var/log/gradido
 
   ########################################################
   # DATABASE ##############################################
@@ -90,27 +105,12 @@ services:
     networks: 
       - internal-net
       - external-net
-      
+
   #########################################################
   ## NGINX ################################################
   #########################################################
   # nginx:
   
-  #########################################################
-  ## BLOCKCHAIN CONNECTOR #################################
-  #########################################################
-  blockchain-connector:
-    image: gradido/blockchain_connector:0.1
-    networks: 
-     - internal-net
-     - external-net
-    environment:
-      - DB_SQLITE=db.sqlite
-      - CRYPTO_JWT_PRIVATE=d7c682d1bc9ef8ab35176e8bd5644a088cc7ab7c3c03c5fe40a4c58db8a3e4c2d930443eab996244813dd184105b58d490ae131cfb5ed464768939261031b875
-      - JSON_SERVER_PORT=1271
-    volumes:
-     -  ./logs/blockchain_connector:/var/log/gradido
-
   #########################################################
   ## PHPMYADMIN ###########################################
   #########################################################

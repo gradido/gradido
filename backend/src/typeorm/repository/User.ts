@@ -1,28 +1,39 @@
-import { Brackets, EntityRepository, ObjectLiteral, Repository } from '@dbTools/typeorm'
-import { User } from '@entity/User'
+import SearchUsersFilters from '@/graphql/arg/SearchUsersFilters'
+import { Brackets, EntityRepository, IsNull, Not, Repository } from '@dbTools/typeorm'
+import { User as DbUser } from '@entity/User'
 
-@EntityRepository(User)
-export class UserRepository extends Repository<User> {
-  async findByPubkeyHex(pubkeyHex: string): Promise<User> {
-    return this.createQueryBuilder('user')
+@EntityRepository(DbUser)
+export class UserRepository extends Repository<DbUser> {
+  async findByPubkeyHex(pubkeyHex: string): Promise<DbUser> {
+    const dbUser = await this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .where('hex(user.pubKey) = :pubkeyHex', { pubkeyHex })
       .getOneOrFail()
+    /*
+    const dbUser = await this.findOneOrFail(`hex(user.pubKey) = { pubkeyHex }`)
+    const emailContact = await this.query(
+      `SELECT * from user_contacts where id = { dbUser.emailId }`,
+    )
+    dbUser.emailContact = emailContact
+    */
+    return dbUser
   }
 
   async findBySearchCriteriaPagedFiltered(
     select: string[],
     searchCriteria: string,
-    filterCriteria: ObjectLiteral[],
+    filters: SearchUsersFilters,
     currentPage: number,
     pageSize: number,
-  ): Promise<[User[], number]> {
-    const query = await this.createQueryBuilder('user')
+  ): Promise<[DbUser[], number]> {
+    const query = this.createQueryBuilder('user')
       .select(select)
+      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .withDeleted()
       .where(
         new Brackets((qb) => {
           qb.where(
-            'user.firstName like :name or user.lastName like :lastName or user.email like :email',
+            'user.firstName like :name or user.lastName like :lastName or emailContact.email like :email',
             {
               name: `%${searchCriteria}%`,
               lastName: `%${searchCriteria}%`,
@@ -31,9 +42,23 @@ export class UserRepository extends Repository<User> {
           )
         }),
       )
+    /*
     filterCriteria.forEach((filter) => {
       query.andWhere(filter)
     })
+    */
+    if (filters) {
+      if (filters.byActivated !== null) {
+        query.andWhere('emailContact.emailChecked = :value', { value: filters.byActivated })
+        // filterCriteria.push({ 'emailContact.emailChecked': filters.byActivated })
+      }
+
+      if (filters.byDeleted !== null) {
+        // filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
+        query.andWhere({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
+      }
+    }
+
     return query
       .take(pageSize)
       .skip((currentPage - 1) * pageSize)
