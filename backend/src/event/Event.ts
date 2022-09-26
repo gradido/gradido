@@ -35,9 +35,9 @@ export class EventInactiveAccount extends EventBasicUserId {}
 export class EventSendConfirmationEmail extends EventBasicUserId {}
 export class EventSendAccountMultiregistrationEmail extends EventBasicUserId {}
 export class EventSendForgotPasswordEmail extends EventBasicUserId {}
-export class EventSendTransactionSendEmail extends EventBasicRedeem {}
-export class EventSendTransactionReceiveEmail extends EventBasicRedeem {}
-export class EventSendTransactionLinkRedeemEmail extends EventBasicRedeem {}
+export class EventSendTransactionSendEmail extends EventBasicTx {}
+export class EventSendTransactionReceiveEmail extends EventBasicTx {}
+export class EventSendTransactionLinkRedeemEmail extends EventBasicTx {}
 export class EventSendAddedContributionEmail extends EventBasicCt {}
 export class EventSendContributionConfirmEmail extends EventBasicCt {}
 export class EventConfirmationEmail extends EventBasicUserId {}
@@ -57,9 +57,7 @@ export class EventTransactionCreation extends EventBasicUserId {
 export class EventTransactionReceive extends EventBasicTx {}
 export class EventTransactionReceiveRedeem extends EventBasicTx {}
 export class EventContributionCreate extends EventBasicCt {}
-export class EventUserCreateContributionMessage extends EventBasicCt {
-  message: string
-}
+export class EventUserCreateContributionMessage extends EventBasicCt {}
 export class EventAdminCreateContributionMessage extends EventBasicCt {
   message: string
 }
@@ -159,7 +157,10 @@ export class Event {
 
   public setEventSendTransactionSendEmail(ev: EventSendTransactionSendEmail): Event {
     this.setByBasicUser(ev.userId)
-    this.transactionId = ev.transactionId
+    if (ev.transactionId) this.transactionId = ev.transactionId
+    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    if (ev.xUserId) this.xUserId = ev.xUserId
+    if (ev.amount) this.amount = ev.amount
     this.type = EventProtocolType.SEND_TRANSACTION_SEND_EMAIL
 
     return this
@@ -167,7 +168,10 @@ export class Event {
 
   public setEventSendTransactionReceiveEmail(ev: EventSendTransactionReceiveEmail): Event {
     this.setByBasicUser(ev.userId)
-    this.transactionId = ev.transactionId
+    if (ev.transactionId) this.transactionId = ev.transactionId
+    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    if (ev.xUserId) this.xUserId = ev.xUserId
+    if (ev.amount) this.amount = ev.amount
     this.type = EventProtocolType.SEND_TRANSACTION_RECEIVE_EMAIL
 
     return this
@@ -175,7 +179,10 @@ export class Event {
 
   public setEventSendTransactionLinkRedeemEmail(ev: EventSendTransactionLinkRedeemEmail): Event {
     this.setByBasicUser(ev.userId)
-    this.transactionId = ev.transactionId
+    if (ev.transactionId) this.transactionId = ev.transactionId
+    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    if (ev.xUserId) this.xUserId = ev.xUserId
+    if (ev.amount) this.amount = ev.amount
     this.type = EventProtocolType.SEND_TRANSACTION_LINK_REDEEM_EMAIL
 
     return this
@@ -183,7 +190,7 @@ export class Event {
 
   public setEventSendAddedContributionEmail(ev: EventSendAddedContributionEmail): Event {
     this.setByBasicUser(ev.userId)
-    this.contributionId = ev.contributionId
+    if (ev.contributionId) this.contributionId = ev.contributionId
     this.type = EventProtocolType.SEND_ADDED_CONTRIBUTION_EMAIL
 
     return this
@@ -191,7 +198,7 @@ export class Event {
 
   public setEventSendContributionConfirmEmail(ev: EventSendContributionConfirmEmail): Event {
     this.setByBasicUser(ev.userId)
-    this.contributionId = ev.contributionId
+    if (ev.contributionId) this.contributionId = ev.contributionId
     this.type = EventProtocolType.SEND_CONTRIBUTION_CONFIRM_EMAIL
 
     return this
