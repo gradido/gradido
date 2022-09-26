@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v9.2022-07-07',
+    EXPECTED: 'v10.2022-09-20',
     CURRENT: '',
   },
 }
@@ -67,6 +67,8 @@ const loginServer = {
 
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || 'false',
+  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'xxx',
