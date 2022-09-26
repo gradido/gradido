@@ -68,7 +68,7 @@ The following table lists for each event type the mapping between old and new ke
 | VISIT_GRADIDO                     | VisitGradidoEvent                      | x |  x  |     x     |        |        |              |              |          |        |
 | REGISTER                          | RegisterEvent                          | x |  x  |     x     |   x   |        |              |              |          |        |
 | LOGIN                             | LoginEvent                             | x |  x  |     x     |   x   |        |              |              |          |        |
-|                                   | VerifyRedeemEvent                      |    |      |          |        |        |              |              |          |        |
+| VERIFY_REDEEM                     | VerifyRedeemEvent                      |  x  |   x   |     x     |    x    |        |              |       (x)       |      (x)    |        |
 | REDEEM_REGISTER                   | RedeemRegisterEvent                    | x |  x  |     x     |   x   |        |              |      (x)      |    (x)    |        |
 | REDEEM_LOGIN                      | RedeemLoginEvent                       | x |  x  |     x     |   x   |        |              |      (x)      |    (x)    |        |
 | ACTIVATE_ACCOUNT                  | ActivateAccountEvent                   | x |  x  |     x     |   x   |        |              |              |          |        |
@@ -82,20 +82,20 @@ The following table lists for each event type the mapping between old and new ke
 | TRANSACTION_SEND_REDEEM           | TransactionLinkRedeemEvent             | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
 | CONTRIBUTION_CREATE               | ContributionCreateEvent                | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
 | CONTRIBUTION_CONFIRM              | ContributionConfirmEvent               | x |  x  |     x     |   x   |    x    |      x      |              |     x     |   x   |
-|                                   | ContributionDenyEvent                  | x |  x  |     x     |   x   |    x    |      x      |              |     x     |   x   |
+| CONTRIBUTION_DENY                                  | ContributionDenyEvent                  | x |  x  |     x     |   x   |    x    |      x      |              |     x     |   x   |
 | CONTRIBUTION_LINK_DEFINE          | ContributionLinkDefineEvent            | x |  x  |     x     |   x   |        |              |              |          |   x   |
 | CONTRIBUTION_LINK_ACTIVATE_REDEEM | ContributionLinkRedeemEvent            | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
-|                                   | UserCreateContributionMessageEvent     | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
-|                                   | AdminCreateContributionMessageEvent    | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
-|                                   | LogoutEvent                            | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| USER_CREATES_CONTRIBUTION_MESSAGE   | UserCreateContributionMessageEvent     | x |  x  |     x     |   x   |        |              |              |     x    |   x   |
+| ADMIN_CREATES_CONTRIBUTION_MESSAGE   | AdminCreateContributionMessageEvent    | x |  x  |     x     |   x   |        |              |              |     x  |   x   |
+| LOGOUT                    | LogoutEvent                            | x |  x  |     x     |   x   |        |              |              |          |     |
 | SEND_CONFIRMATION_EMAIL           | SendConfirmEmailEvent                  | x |  x  |     x     |   x   |        |              |              |          |        |
-|                                   | SendAccountMultiRegistrationEmailEvent | x |  x  |     x     |   x   |        |              |              |          |        |
-|                                   | SendForgotPasswordEmailEvent           | x |  x  |     x     |   x   |        |              |              |          |        |
-|                                   | SendTransactionSendEmailEvent          | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
-|                                   | SendTransactionReceiveEmailEvent       | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
-|                                   | SendAddedContributionEmailEvent        | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
-|                                   | SendContributionConfirmEmailEvent      | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
-|                                   | SendTransactionLinkRedeemEmailEvent    | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| SEND_ACCOUNT_MULTIREGISTRATION_EMAIL | SendAccountMultiRegistrationEmailEvent | x |  x  |     x     |   x   |        |              |              |        |        |
+| SEND_FORGOT_PASSWORD_EMAIL    | SendForgotPasswordEmailEvent           | x |  x  |     x     |   x   |        |              |              |          |    |
+| SEND_TRANSACTION_SEND_EMAIL   | SendTransactionSendEmailEvent          | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| SEND_TRANSACTION_RECEIVE_EMAIL | SendTransactionReceiveEmailEvent       | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| SEND_ADDED_CONTRIBUTION_EMAIL  | SendAddedContributionEmailEvent        | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| SEND_CONTRIBUTION_CONFIRM_EMAIL  | SendContributionConfirmEmailEvent      | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| SEND_TRANSACTION_LINK_REDEEM_EMAIL  | SendTransactionLinkRedeemEmailEvent    | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
 | TRANSACTION_REPEATE_REDEEM        | -                                      |    |      |          |        |        |              |              |          |        |
 | TRANSACTION_RECEIVE_REDEEM        | -                                      |    |      |          |        |        |              |              |          |        |
 
