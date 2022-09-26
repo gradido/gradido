@@ -30,11 +30,20 @@ export class EventBasicRedeem extends EventBasicUserId {
 export class EventVisitGradido extends EventBasic {}
 export class EventRegister extends EventBasicUserId {}
 export class EventRedeemRegister extends EventBasicRedeem {}
+export class EventVerifyRedeem extends EventBasicRedeem {}
 export class EventInactiveAccount extends EventBasicUserId {}
 export class EventSendConfirmationEmail extends EventBasicUserId {}
+export class EventSendAccountMultiregistrationEmail extends EventBasicUserId {}
+export class EventSendForgotPasswordEmail extends EventBasicUserId {}
+export class EventSendTransactionSendEmail extends EventBasicRedeem {}
+export class EventSendTransactionReceiveEmail extends EventBasicRedeem {}
+export class EventSendTransactionLinkRedeemEmail extends EventBasicRedeem {}
+export class EventSendAddedContributionEmail extends EventBasicCt {}
+export class EventSendContributionConfirmEmail extends EventBasicCt {}
 export class EventConfirmationEmail extends EventBasicUserId {}
 export class EventRegisterEmailKlicktipp extends EventBasicUserId {}
 export class EventLogin extends EventBasicUserId {}
+export class EventLogout extends EventBasicUserId {}
 export class EventRedeemLogin extends EventBasicRedeem {}
 export class EventActivateAccount extends EventBasicUserId {}
 export class EventPasswordChange extends EventBasicUserId {}
@@ -48,9 +57,19 @@ export class EventTransactionCreation extends EventBasicUserId {
 export class EventTransactionReceive extends EventBasicTx {}
 export class EventTransactionReceiveRedeem extends EventBasicTx {}
 export class EventContributionCreate extends EventBasicCt {}
+export class EventUserCreateContributionMessage extends EventBasicCt {
+  message: string
+}
+export class EventAdminCreateContributionMessage extends EventBasicCt {
+  message: string
+}
 export class EventContributionDelete extends EventBasicCt {}
 export class EventContributionUpdate extends EventBasicCt {}
 export class EventContributionConfirm extends EventBasicCt {
+  xUserId: number
+  xCommunityId: number
+}
+export class EventContributionDeny extends EventBasicCt {
   xUserId: number
   xCommunityId: number
 }
@@ -101,6 +120,13 @@ export class Event {
     return this
   }
 
+  public setEventVerifyRedeem(ev: EventVerifyRedeem): Event {
+    this.setByBasicRedeem(ev.userId, ev.transactionId, ev.contributionId)
+    this.type = EventProtocolType.VERIFY_REDEEM
+
+    return this
+  }
+
   public setEventInactiveAccount(ev: EventInactiveAccount): Event {
     this.setByBasicUser(ev.userId)
     this.type = EventProtocolType.INACTIVE_ACCOUNT
@@ -111,6 +137,62 @@ export class Event {
   public setEventSendConfirmationEmail(ev: EventSendConfirmationEmail): Event {
     this.setByBasicUser(ev.userId)
     this.type = EventProtocolType.SEND_CONFIRMATION_EMAIL
+
+    return this
+  }
+
+  public setEventSendAccountMultiregistrationEmail(
+    ev: EventSendAccountMultiregistrationEmail,
+  ): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL
+
+    return this
+  }
+
+  public setEventSendForgotPasswordEmail(ev: EventSendForgotPasswordEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.SEND_FORGOT_PASSWORD_EMAIL
+
+    return this
+  }
+
+  public setEventSendTransactionSendEmail(ev: EventSendTransactionSendEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.transactionId = ev.transactionId
+    this.type = EventProtocolType.SEND_TRANSACTION_SEND_EMAIL
+
+    return this
+  }
+
+  public setEventSendTransactionReceiveEmail(ev: EventSendTransactionReceiveEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.transactionId = ev.transactionId
+    this.type = EventProtocolType.SEND_TRANSACTION_RECEIVE_EMAIL
+
+    return this
+  }
+
+  public setEventSendTransactionLinkRedeemEmail(ev: EventSendTransactionLinkRedeemEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.transactionId = ev.transactionId
+    this.type = EventProtocolType.SEND_TRANSACTION_LINK_REDEEM_EMAIL
+
+    return this
+  }
+
+  public setEventSendAddedContributionEmail(ev: EventSendAddedContributionEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.contributionId = ev.contributionId
+    this.type = EventProtocolType.SEND_ADDED_CONTRIBUTION_EMAIL
+
+    return this
+  }
+
+  public setEventSendContributionConfirmEmail(ev: EventSendContributionConfirmEmail): Event {
+    this.setByBasicUser(ev.userId)
+    this.contributionId = ev.contributionId
+    this.type = EventProtocolType.SEND_CONTRIBUTION_CONFIRM_EMAIL
 
     return this
   }
@@ -132,6 +214,13 @@ export class Event {
   public setEventLogin(ev: EventLogin): Event {
     this.setByBasicUser(ev.userId)
     this.type = EventProtocolType.LOGIN
+
+    return this
+  }
+
+  public setEventLogout(ev: EventLogout): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.LOGOUT
 
     return this
   }
@@ -208,6 +297,22 @@ export class Event {
     return this
   }
 
+  public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    if (ev.message) this.message = ev.message
+    this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
+
+    return this
+  }
+
+  public setEventAdminCreateContributionMessage(ev: EventAdminCreateContributionMessage): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    if (ev.message) this.message = ev.message
+    this.type = EventProtocolType.ADMIN_CREATE_CONTRIBUTION_MESSAGE
+
+    return this
+  }
+
   public setEventContributionDelete(ev: EventContributionDelete): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_DELETE
@@ -227,6 +332,15 @@ export class Event {
     if (ev.xUserId) this.xUserId = ev.xUserId
     if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
     this.type = EventProtocolType.CONTRIBUTION_CONFIRM
+
+    return this
+  }
+
+  public setEventContributionDeny(ev: EventContributionDeny): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    if (ev.xUserId) this.xUserId = ev.xUserId
+    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    this.type = EventProtocolType.CONTRIBUTION_DENY
 
     return this
   }
@@ -314,4 +428,5 @@ export class Event {
   transactionId?: number
   contributionId?: number
   amount?: decimal
+  message?: string
 }
