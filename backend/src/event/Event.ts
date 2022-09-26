@@ -33,7 +33,7 @@ export class EventRedeemRegister extends EventBasicRedeem {}
 export class EventVerifyRedeem extends EventBasicRedeem {}
 export class EventInactiveAccount extends EventBasicUserId {}
 export class EventSendConfirmationEmail extends EventBasicUserId {}
-export class EventSendAccountMultiregistrationEmail extends EventBasicUserId {}
+export class EventSendAccountMultiRegistrationEmail extends EventBasicUserId {}
 export class EventSendForgotPasswordEmail extends EventBasicUserId {}
 export class EventSendTransactionSendEmail extends EventBasicTx {}
 export class EventSendTransactionReceiveEmail extends EventBasicTx {}
@@ -139,8 +139,8 @@ export class Event {
     return this
   }
 
-  public setEventSendAccountMultiregistrationEmail(
-    ev: EventSendAccountMultiregistrationEmail,
+  public setEventSendAccountMultiRegistrationEmail(
+    ev: EventSendAccountMultiRegistrationEmail,
   ): Event {
     this.setByBasicUser(ev.userId)
     this.type = EventProtocolType.SEND_ACCOUNT_MULTIREGISTRATION_EMAIL
