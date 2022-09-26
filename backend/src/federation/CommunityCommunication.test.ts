@@ -46,7 +46,7 @@ describe('federation/CommunityCommunication', () => {
         CONFIG.BLOCKCHAIN_CONNECTOR_PUBLIC_KEY,
         CONFIG.BLOCKCHAIN_CONNECTOR_API_URL,
       )
-      expect('token').toEqual(jwt)
+      expect(jwt).toEqual('token')
     })
   })
 })
