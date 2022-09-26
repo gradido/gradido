@@ -15,7 +15,7 @@ export const validateContribution = (
   amount: Decimal,
   creationDate: Date,
 ): void => {
-  logger.trace('isContributionValid', creations, amount, creationDate)
+  logger.trace('isContributionValid: ', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
@@ -48,7 +48,7 @@ export const getUserCreations = async (
   await queryRunner.connect()
 
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
-  logger.trace('getUserCreations dateFilter', dateFilter)
+  logger.trace('getUserCreations dateFilter=', dateFilter)
 
   const unionString = includePending
     ? `
@@ -58,6 +58,7 @@ export const getUserCreations = async (
         AND contribution_date >= ${dateFilter}
         AND confirmed_at IS NULL AND deleted_at IS NULL`
     : ''
+  logger.trace('getUserCreations unionString=', unionString)
 
   const unionQuery = await queryRunner.manager.query(`
     SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
@@ -69,6 +70,7 @@ export const getUserCreations = async (
     GROUP BY month, userId
     ORDER BY date DESC
   `)
+  logger.trace('getUserCreations unionQuery=', unionQuery)
 
   await queryRunner.release()
 
@@ -89,6 +91,7 @@ export const getUserCreations = async (
 export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
   logger.trace('getUserCreation', id, includePending)
   const creations = await getUserCreations([id], includePending)
+  logger.trace('getUserCreation  creations=', creations)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 

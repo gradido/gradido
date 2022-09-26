@@ -200,7 +200,6 @@ export class Event {
     this.setByBasicUser(ev.userId)
     if (ev.contributionId) this.contributionId = ev.contributionId
     this.type = EventProtocolType.SEND_CONTRIBUTION_CONFIRM_EMAIL
-
     return this
   }
 
