@@ -83,6 +83,8 @@ $ nano ~/.ssh/authorized_keys
 
 ### Test authentication via SSH
 
+If you logout from the server you can test authentication:
+
 ```bash
 $ ssh -i /path/to/privKey gradido@gddhost.tld
 # This should log you in and allow you to use sudo commands, which will require the user's password
@@ -106,11 +108,11 @@ $ sudo /etc/init.d/ssh restart
 
 ```bash
 $ ssh gradido@gddhost.tld
-# Will result in in either a password request for your key or the message 'Permission denied (publickey)'
+# Will result in in either a passphrase request for your key or the message 'Permission denied (publickey)'
 $ ssh -i /path/to/privKey root@gddhost.tld
 # Will result in 'Permission denied (publickey)'
 $ ssh -i /path/to/privKey gradido@gddhost.tld
-# Will succeed after entering the correct keys password (if any)
+# Will succeed after entering the correct keys passphrase (if any)
 ```
 
 ### Update system
