@@ -141,6 +141,24 @@ Das Regelwerk in der Businesslogik wird gemäß der noch nicht vollumfänglich g
 * es erfolgt eine übliche Schöpfungstransaktion mit automatischer Bestätigung der Contribution
 * die Schöpfungstransaktion schreibt den Betrag der Contribution dem Kontostand des Users gut
 
+## Ausbaustufe-3
+
+### Änderungen im Registrierungsprozess
+
+Aktuell treten Probleme mit der Aktivierung des ContributionLinks während des Registrierungsprozesses auf. Sobald der User bei der Registrierung sein Konto zwar angelegt, aber die erhaltene Email-Confirmation nicht abgeschlossen und damit sein Konto aktiviert hat, kann derzeit der Redeem-Link nicht als Transaktion durchgeführt werden. Die Gültigkeitsdauer des Redeemlink reicht meist nicht bis der User sein Konto aktiviert hat. Daher wird nun die Idee verfolgt die Einlösung des Redeemlinks schon während der Anlage des inaktiven Kontos als "pending Contribution" anzulegen. Sobald dann der User sein Konto per Email-Confirmation aktiviert, soll die "pending Contribution" automatisch zu einer Tranaktion überführt und der Betrag des Redeemlinks auf das Konto des Users gebucht werden.
+
+Folgende Schritte und Änderungen sind dabei vorgesehen:
+
+* Der User landet mit Aktivierung eines Redeem-Links wie bisher auf der Login/Registrierungsseite, wobei wie bisher schon der Redeemlink als Parameter in den Registrierungsprozess übergeben wird
+* Mit der Anlage des neuen aber noch inaktiven User-Kontos und einer Übergabe eines Redeemlinks wird der Redeemlink zu einer "pending Contribution" für den neuen User angelegt, aber noch nicht als Transaktion gebucht
+  * nach Anlage des inaktiven User-Kontos und bevor die Confirmation-Email abgeschickt wird, erfolgt das Schreiben eines neuen Contribution-Eintrages mit den Daten des Redeem-Links.
+  * Die neu angelegte Contribution wird im Status "pending" gespeichert.
+* Mit Aktivierung des Links in der Email-Confirmation und damit der Aktivierung des User-Kontos erfolgt automatisch die Buchung der "pending Contribution" und führt damit zur eigentlichen Buchung des Redeem-Betrages auf das User Konto.
+  * mit Erhalt der Email-Confirmation Aktivierung wird das User-Konto aktiviert
+  * Nach der Aktivierung des User-Kontos erfolgt eine Prüfung auf schon vorhandene "pending Contributions" aus Redeem-Link-Aktivierungen
+  * Jede vorhandene "pending Contribution" eines Redeemlinks wird jetzt automatisch bestätigt und zu einer Transaktion überführt
+  * Mit der bestätigten Contribution und daraus überführten Transaktion erhält der User eine Bestätigungsemail mit den Contribution spezifischen Daten.
+
 ## Datenbank-Modell
 
 ### Ausgangsmodell
@@ -225,8 +243,12 @@ Diese Tabelle wird im Rahmen dieses UseCase migriert in die neue Tabelle contrib
 
 ### Ausbaustufe-2
 
-Für die Ausbaustufe-2 sind keine Datenbank-Änderungen notwendig. Gemäß dem Zielmodell sind alle nontwndigen Tabellen und Attribute schon vorhanden.
+Für die Ausbaustufe-2 sind keine Datenbank-Änderungen notwendig. Gemäß dem Zielmodell sind alle notwendigen Tabellen und Attribute schon vorhanden.
 
 #### Zielmodell
 
 ![img](./image/DB-Diagramm_Contributions_Stufe_2.png)
+
+### Ausbaustufe-3
+
+Für die Ausbaustufe-3 dürften im Grunde ebenfalls keine zusätzlichen Datenbankänderungen notwendig sein. Denn für eine "pending Contribution" und deren Confirmation mit Tranaktionsüberführng sind ebenfalls schon alle Attribute vorhanden.
