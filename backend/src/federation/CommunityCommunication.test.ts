@@ -1,5 +1,6 @@
 import CONFIG from '@/config'
 import { openCommunication } from '@/federation/CommunityCommunication'
+import { sign } from 'jsonwebtoken'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -15,7 +16,21 @@ jest.mock('axios', () => ({
         )
       ) {
         return new Promise((resolve) => {
-          resolve({ status: 200, data: { state: 'success', token: 'token' } })
+          const secondsSinceEpoch = Math.floor(new Date().getTime() / 1000)
+          resolve({
+            status: 200,
+            data: {
+              state: 'success',
+              token: sign(
+                {
+                  iat: secondsSinceEpoch,
+                  // 10 minutes valid
+                  exp: secondsSinceEpoch + 600,
+                },
+                'jwtSecretKey',
+              ),
+            },
+          })
         })
       } else {
         return new Promise((resolve) => {
@@ -42,11 +57,10 @@ jest.mock('axios', () => ({
 describe('federation/CommunityCommunication', () => {
   describe('signWithCommunityPrivateKey', () => {
     it('sign and verify work', async () => {
-      const jwt = await openCommunication(
+      await openCommunication(
         CONFIG.BLOCKCHAIN_CONNECTOR_PUBLIC_KEY,
         CONFIG.BLOCKCHAIN_CONNECTOR_API_URL,
       )
-      expect(jwt).toEqual('token')
     })
   })
 })

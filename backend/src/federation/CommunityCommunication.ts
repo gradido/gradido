@@ -1,6 +1,6 @@
 import { apiPost } from '@/apis/HttpRequest'
 import CONFIG from '@/config'
-import { Jwt } from 'jsonwebtoken'
+import { decode, Jwt } from 'jsonwebtoken'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -19,8 +19,10 @@ function signWithCommunityPrivateKey(message: Buffer): Buffer {
 }
 
 /**
- * start request to open communication with another community or blockchain connector
- * if succeed, it returns a valid jwt token for further requests
+ * Start request to open communication with another community or blockchain connector.
+ * If succeed, it returns a valid jwt token for further requests.
+ * It is assumed that both communication partner are knowing each other.
+ * For example by handshaking before or writing each others public key into config.
  * @param communityBPublicKey target community public key in hex format
  * @param communityBUrl target community url
  * @returns
@@ -36,6 +38,15 @@ async function openCommunication(
 
   if (!result.success) {
     throw new Error(result.data)
+  }
+  // check if we really get a jwt token
+  const decoded = decode(result.data.token)
+  if (!decoded || typeof decoded === 'string' || !decoded.iat || !decoded.exp) {
+    throw new Error('getting something other than JWT token')
+  }
+  const secondsSinceEpoch = Math.floor(new Date().getTime() / 1000)
+  if (decoded.iat > secondsSinceEpoch || decoded.exp < secondsSinceEpoch) {
+    throw new Error("JWT Token hasn't valid dates")
   }
   return result.data.token
 }
