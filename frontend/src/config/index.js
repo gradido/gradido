@@ -8,7 +8,7 @@ const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2022-04-07',
+    EXPECTED: 'v3.2022-09-16',
     CURRENT: '',
   },
 }
@@ -60,6 +60,10 @@ const meta = {
   META_AUTHOR: process.env.META_AUTHOR || 'Bernd Hückstädt - Gradido-Akademie',
 }
 
+const supportmail = {
+  SUPPORT_MAIL: process.env.SUPPORT_MAIL || 'support@supportmail.com',
+}
+
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -79,6 +83,7 @@ const CONFIG = {
   ...endpoints,
   ...community,
   ...meta,
+  ...supportmail,
 }
 
 module.exports = CONFIG

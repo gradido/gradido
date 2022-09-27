@@ -11,7 +11,6 @@ export const transactionReceived = {
       email: string
       senderEmail: string
       amount: Decimal
-      memo: string
       overviewURL: string
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName}
@@ -19,16 +18,12 @@ export const transactionReceived = {
 Du hast soeben ${data.amount.toFixed(2).replace('.', ',')} GDD von ${data.senderFirstName} ${
         data.senderLastName
       } (${data.senderEmail}) erhalten.
-${data.senderFirstName} ${data.senderLastName} schreibt:
 
-${data.memo}
+Details zur Transaktion findest du in deinem Gradido-Konto: ${data.overviewURL}
 
 Bitte antworte nicht auf diese E-Mail!
 
 Mit freundlichen Grüßen,
-dein Gradido-Team
-
-
-Link zu deinem Konto: ${data.overviewURL}`,
+dein Gradido-Team`,
   },
 }

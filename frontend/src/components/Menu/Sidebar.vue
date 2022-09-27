@@ -24,7 +24,7 @@
             <b-icon icon="people" aria-hidden="true"></b-icon>
             {{ $t('navigation.community') }}
           </b-nav-item>
-          <b-nav-item to="/profile" class="mb-3">
+          <b-nav-item to="/profile" class="mb-3" data-test="profile-menu">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             {{ $t('navigation.profile') }}
           </b-nav-item>
@@ -48,7 +48,7 @@
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             {{ $t('navigation.admin_area') }}
           </b-nav-item>
-          <b-nav-item class="mb-3" @click="$emit('logout')">
+          <b-nav-item class="mb-3" @click="$emit('logout')" data-test="logout-menu">
             <b-icon icon="power" aria-hidden="true"></b-icon>
             {{ $t('navigation.logout') }}
           </b-nav-item>

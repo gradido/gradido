@@ -192,3 +192,14 @@ Use it as pattern to do all steps manually in your terminal shell.
   - *The commands for setting the paths in the used env variables are not working directly in the terminal, consider the out commented commands for this purpose.*
 
 Follow the commands in `./install.sh` as installation pattern.
+
+## Define cronjob to compensate yarn output in /tmp
+
+> yarn creates output in /tmp directory, which must be deleted regularly and will be done per cronjob
+> on stage1 a hourly job is necessary by setting the following job in the crontab for the gradido user
+> crontab -e opens the crontab in edit-mode and insert the following entry:
+> "0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null"
+> on stage2 a daily job is necessary by setting the following job in the crontab for the gradido user
+> crontab -e opens the crontab in edit-mode and insert the following entry:
+> "0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null"
+

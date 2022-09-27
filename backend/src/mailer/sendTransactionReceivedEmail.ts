@@ -11,7 +11,6 @@ export const sendTransactionReceivedEmail = (data: {
   email: string
   senderEmail: string
   amount: Decimal
-  memo: string
   overviewURL: string
 }): Promise<boolean> => {
   logger.info(
