@@ -13,6 +13,8 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { ContributionMessage } from '@entity/ContributionMessage'
+import { ContributionMessageType } from '../enum/MessageType'
 
 @Resolver()
 export class ContributionResolver {
@@ -159,7 +161,14 @@ export class ContributionResolver {
     if (contributionToUpdate.userId !== user.id) {
       throw new Error('user of the pending contribution and send user does not correspond')
     }
-
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      throw new Error(
+        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
+      )
+    }
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
@@ -168,10 +177,20 @@ export class ContributionResolver {
 
     // all possible cases not to be true are thrown in this function
     validateContribution(creations, amount, creationDateObj)
+
+    const contributionMessage = ContributionMessage.create()
+    contributionMessage.contributionId = contributionId
+    contributionMessage.createdAt = contributionToUpdate.updatedAt
+      ? contributionToUpdate.updatedAt
+      : contributionToUpdate.createdAt
+    contributionMessage.message = ``
+    contributionMessage.type = ContributionMessageType.HISTORY
+
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
+    contributionToUpdate.updatedAt = new Date()
     dbContribution.save(contributionToUpdate)
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
