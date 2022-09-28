@@ -12,6 +12,7 @@
             atLeastOneSpecialCharater: true,
             noWhitespaceCharacters: true,
           }"
+          id="new-password-input-field"
           :label="register ? $t('form.password') : $t('form.password_new')"
           :showAllErrors="true"
           :immediate="true"
