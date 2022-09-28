@@ -10,10 +10,4 @@ yarn
 cd ../frontend
 echo "frontend yarn..."
 yarn
-cd ../mariadb
-echo "mariadb yarn..."
-yarn
-cd ../nginx
-echo "nginx yarn..."
-yarn
 cd ..
