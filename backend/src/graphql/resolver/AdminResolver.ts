@@ -148,11 +148,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // administrator user changes own role?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Administrator can not change his own role!')
       throw new Error('Administrator can not change his own role!')
     }
     // change isAdmin
@@ -161,6 +163,7 @@ export class AdminResolver {
         if (isAdmin === true) {
           user.isAdmin = new Date()
         } else {
+          logger.error('User is already a usual user!')
           throw new Error('User is already a usual user!')
         }
         break
@@ -168,6 +171,7 @@ export class AdminResolver {
         if (isAdmin === false) {
           user.isAdmin = null
         } else {
+          logger.error('User is already admin!')
           throw new Error('User is already admin!')
         }
         break
@@ -186,11 +190,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Moderator can not delete his own account!')
       throw new Error('Moderator can not delete his own account!')
     }
     // soft-delete user
@@ -204,9 +210,11 @@ export class AdminResolver {
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     if (!user.deletedAt) {
+      logger.error('User is not deleted')
       throw new Error('User is not deleted')
     }
     await user.recover()
@@ -781,9 +789,11 @@ export class AdminResolver {
         relations: ['user'],
       })
       if (!contribution) {
+        logger.error('Contribution not found')
         throw new Error('Contribution not found')
       }
       if (contribution.userId === user.id) {
+        logger.error('Admin can not answer on own contribution')
         throw new Error('Admin can not answer on own contribution')
       }
       if (!contribution.user.emailContact) {
