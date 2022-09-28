@@ -66,6 +66,8 @@ import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { Event, EventContributionConfirm, EventContributionCreate, EventContributionLinkDefine, EventSendConfirmationEmail } from '@/event/Event'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -241,6 +243,8 @@ export class AdminResolver {
       logger.error('Contribution could not be saved, Email is not activated')
       throw new Error('Contribution could not be saved, Email is not activated')
     }
+
+    const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
     const creations = await getUserCreation(emailContact.userId)
@@ -260,6 +264,13 @@ export class AdminResolver {
 
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
+
+    const eventCreateContribution = new EventContributionCreate()
+    eventCreateContribution.userId = moderator.id
+    eventCreateContribution.amount = amount
+    eventCreateContribution.contributionId = contribution.id
+    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+
     return getUserCreation(emailContact.userId)
   }
 
@@ -495,6 +506,13 @@ export class AdminResolver {
         contributionAmount: contribution.amount,
         overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
+
+      const event = new Event()
+      const eventContributionConfirm = new EventContributionConfirm()
+      eventContributionConfirm.xUserId = user.id
+      eventContributionConfirm.amount = contribution.amount
+      eventContributionConfirm.contributionId = contribution.id
+      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Creation was not successful: ${e}`)
@@ -558,6 +576,13 @@ export class AdminResolver {
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
+    } else {
+      const event = new Event()
+      const eventSendConfirmationEmail = new EventSendConfirmationEmail()
+      eventSendConfirmationEmail.userId = user.id
+      await eventProtocol.writeEvent(
+        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
+      )
     }
 
     return true
@@ -660,6 +685,13 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
+
+    const event = new Event()
+    const eventContributionLinkDefine = new EventContributionLinkDefine()
+    await eventProtocol.writeEvent(
+      event.setEventContributionLinkDefine(eventContributionLinkDefine),
+    )
+
     logger.debug(`createContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
