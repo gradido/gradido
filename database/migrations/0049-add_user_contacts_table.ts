@@ -69,7 +69,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   ) 
   AS optin ON users.id = optin.user_id AND row_num = 1;`)
 
-
   // insert in users table the email_id of the new created email-contacts
   const contacts = await queryFn(`SELECT c.id, c.user_id FROM user_contacts as c`)
   for (const id in contacts) {
