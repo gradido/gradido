@@ -43,6 +43,7 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
+import { logger } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -144,6 +145,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('change role with success', () => {
@@ -196,6 +201,9 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Administrator can not change his own role!')
+            })
           })
 
           describe('user has already role to be set', () => {
@@ -213,6 +221,10 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already admin!')
+              })
             })
 
             describe('to usual user', () => {
@@ -228,6 +240,10 @@ describe('AdminResolver', () => {
                     errors: [new GraphQLError('User is already a usual user!')],
                   }),
                 )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already a usual user!')
               })
             })
           })
@@ -297,6 +313,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('delete self', () => {
@@ -308,6 +328,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('Moderator can not delete his own account!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Moderator can not delete his own account!')
           })
         })
 
@@ -337,6 +361,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError(`Could not find user with userId: ${user.id}`)],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(`Could not find user with userId: ${user.id}`)
             })
           })
         })
@@ -405,6 +433,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('user to undelete is not deleted', () => {
@@ -420,6 +452,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('User is not deleted')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('User is not deleted')
           })
 
           describe('undelete deleted user', () => {
@@ -909,6 +945,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Could not find user with email: bibi@bloxberg.de',
+              )
+            })
           })
 
           describe('user to create for is deleted', () => {
@@ -928,6 +970,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'This user was deleted. Cannot create a contribution.',
+              )
+            })
           })
 
           describe('user to create for has email not confirmed', () => {
@@ -945,6 +993,12 @@ describe('AdminResolver', () => {
                     new GraphQLError('Contribution could not be saved, Email is not activated'),
                   ],
                 }),
+              )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Contribution could not be saved, Email is not activated',
               )
             })
           })
@@ -967,6 +1021,13 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'No information for available creations with the given creationDate=',
+                  new Date('not-valid').toString(),
+                )
+              })
             })
 
             describe('date of creation is four months ago', () => {
@@ -985,6 +1046,13 @@ describe('AdminResolver', () => {
                       new GraphQLError('No information for available creations for the given date'),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'No information for available creations with the given creationDate=',
+                  variables.creationDate,
                 )
               })
             })
@@ -1007,6 +1075,13 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'No information for available creations with the given creationDate=',
+                  variables.creationDate,
+                )
+              })
             })
 
             describe('amount of creation is too high', () => {
@@ -1022,6 +1097,12 @@ describe('AdminResolver', () => {
                       ),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                 )
               })
             })
@@ -1063,6 +1144,12 @@ describe('AdminResolver', () => {
                       ),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
                 )
               })
             })
@@ -1143,6 +1230,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Could not find UserContact with email: bob@baumeister.de',
+              )
+            })
           })
 
           describe('user for creation to update is deleted', () => {
@@ -1164,6 +1257,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('User was deleted (stephen@hawking.uk)')
+            })
           })
 
           describe('creation does not exist', () => {
@@ -1184,6 +1281,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('No contribution found to given id.')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('No contribution found to given id.')
             })
           })
 
@@ -1210,6 +1311,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'user of the pending contribution and send user does not correspond',
+              )
+            })
           })
 
           describe('creation update is not valid', () => {
@@ -1233,6 +1340,12 @@ describe('AdminResolver', () => {
                     ),
                   ],
                 }),
+              )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'The amount (1900 GDD) to be created exceeds the amount (500 GDD) still available for this month.',
               )
             })
           })
@@ -1371,6 +1484,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+            })
           })
 
           describe('creation id does exist', () => {
@@ -1407,6 +1524,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+            })
           })
 
           describe('confirm own creation', () => {
@@ -1433,6 +1554,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('Moderator can not confirm own contribution')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Moderator can not confirm own contribution')
             })
           })
 
@@ -2041,6 +2166,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'Start-Date is not initialized. A Start-Date must be set!',
+            )
+          })
+
           it('returns an error if missing endDate', async () => {
             await expect(
               mutate({
@@ -2054,6 +2185,12 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 errors: [new GraphQLError('End-Date is not initialized. An End-Date must be set!')],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'End-Date is not initialized. An End-Date must be set!',
             )
           })
 
@@ -2076,6 +2213,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of validFrom must before or equals the validTo!`,
+            )
+          })
+
           it('returns an error if name is an empty string', async () => {
             await expect(
               mutate({
@@ -2090,6 +2233,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('The name must be initialized!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The name must be initialized!')
           })
 
           it('returns an error if name is shorter than 5 characters', async () => {
@@ -2109,6 +2256,12 @@ describe('AdminResolver', () => {
                   ),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'name' with a length of 3 did not fulfill the requested bounderies min=5 and max=100`,
             )
           })
 
@@ -2132,6 +2285,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'name' with a length of 101 did not fulfill the requested bounderies min=5 and max=100`,
+            )
+          })
+
           it('returns an error if memo is an empty string', async () => {
             await expect(
               mutate({
@@ -2146,6 +2305,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('The memo must be initialized!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The memo must be initialized!')
           })
 
           it('returns an error if memo is shorter than 5 characters', async () => {
@@ -2165,6 +2328,12 @@ describe('AdminResolver', () => {
                   ),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'memo' with a length of 3 did not fulfill the requested bounderies min=5 and max=255`,
             )
           })
 
@@ -2188,6 +2357,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'memo' with a length of 256 did not fulfill the requested bounderies min=5 and max=255`,
+            )
+          })
+
           it('returns an error if amount is not positive', async () => {
             await expect(
               mutate({
@@ -2203,6 +2378,12 @@ describe('AdminResolver', () => {
                   new GraphQLError('The amount=0 must be initialized with a positiv value!'),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'The amount=0 must be initialized with a positiv value!',
             )
           })
         })
@@ -2258,6 +2439,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
           })
 
           describe('valid id', () => {
@@ -2324,6 +2509,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('Contribution Link not found to given id.')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
             })
           })
 
