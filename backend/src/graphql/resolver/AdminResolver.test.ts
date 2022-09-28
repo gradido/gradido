@@ -41,6 +41,8 @@ import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { EventProtocol } from '@entity/EventProtocol'
+import { EventProtocolType } from '@/event/EventProtocolType'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -1037,6 +1039,15 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('stores the create contribution event in the database', async () => {
+                await expect(EventProtocol.find()).resolves.toContainEqual(
+                  expect.objectContaining({
+                    type: EventProtocolType.CONTRIBUTION_CREATE,
+                    userId: admin.id,
+                  }),
+                )
+              })
             })
 
             describe('second creation surpasses the available amount ', () => {
@@ -1451,6 +1462,14 @@ describe('AdminResolver', () => {
               )
             })
 
+            it('stores the contribution confirm event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.CONTRIBUTION_CONFIRM,
+                }),
+              )
+            })
+
             it('creates a transaction', async () => {
               const transaction = await DbTransaction.find()
               expect(transaction[0].amount.toString()).toBe('450')
@@ -1472,6 +1491,14 @@ describe('AdminResolver', () => {
                   recipientLastName: 'Bloxberg',
                   senderFirstName: 'Peter',
                   senderLastName: 'Lustig',
+                }),
+              )
+            })
+
+            it('stores the send confirmation email event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
                 }),
               )
             })

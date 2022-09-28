@@ -67,7 +67,12 @@ import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
-import { Event, EventContributionConfirm, EventContributionCreate, EventContributionLinkDefine, EventSendConfirmationEmail } from '@/event/Event'
+import {
+  Event,
+  EventContributionConfirm,
+  EventContributionCreate,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -514,13 +519,6 @@ export class AdminResolver {
         contributionAmount: contribution.amount,
         overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
-
-      const event = new Event()
-      const eventContributionConfirm = new EventContributionConfirm()
-      eventContributionConfirm.xUserId = user.id
-      eventContributionConfirm.amount = contribution.amount
-      eventContributionConfirm.contributionId = contribution.id
-      await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Creation was not successful: ${e}`)
@@ -528,6 +526,13 @@ export class AdminResolver {
     } finally {
       await queryRunner.release()
     }
+
+    const event = new Event()
+    const eventContributionConfirm = new EventContributionConfirm()
+    eventContributionConfirm.userId = user.id
+    eventContributionConfirm.amount = contribution.amount
+    eventContributionConfirm.contributionId = contribution.id
+    await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     return true
   }
 
@@ -693,13 +698,6 @@ export class AdminResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-
-    const event = new Event()
-    const eventContributionLinkDefine = new EventContributionLinkDefine()
-    await eventProtocol.writeEvent(
-      event.setEventContributionLinkDefine(eventContributionLinkDefine),
-    )
-
     logger.debug(`createContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
