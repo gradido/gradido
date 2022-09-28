@@ -44,7 +44,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     INSERT INTO \`user_contacts\`
       (type, user_id, email, email_verification_code, email_opt_in_type_id, email_resend_count, email_checked, created_at, updated_at, deleted_at)
       SELECT 'EMAIL', \`users\`.id, \`users\`.email, optin.\`verification_code\`, optin.\`email_opt_in_type_id\`, optin.\`resend_count\`, users.\`email_checked\`, users.created, null, users.deletedAt
-      FROM users LEFT JOIN (SELECT * FROM \`login_email_opt_in\` ORDER BY created DESC LIMIT 1) AS optin ON users.id = optin.\`user_id\`;`)
+      FROM users LEFT JOIN
+      (SELECT le.id, le.user_id, le.verification_code, le.email_opt_in_type_id, le.resend_count, le.created, le.updated,
+         ROW_NUMBER() OVER (PARTITION BY le.user_id ORDER BY le.created DESC) AS row_num
+       FROM login_email_opt_in as le) AS optin ON users.id = optin.\`user_id\` AND row_num = 1;`)
 
   // insert in users table the email_id of the new created email-contacts
   const contacts = await queryFn(`SELECT c.id, c.user_id FROM user_contacts as c`)
