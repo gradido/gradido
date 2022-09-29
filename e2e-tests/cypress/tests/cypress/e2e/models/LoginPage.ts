@@ -2,8 +2,8 @@
 
 export class LoginPage {
   // selectors
-  emailInput = "#Email-input-field";
-  passwordInput = "#Password-input-field";
+  emailInput = "input[type=email]";
+  passwordInput = "input[type=password]";
   submitBtn = "[type=submit]";
   emailHint = "#vee_Email";
   passwordHint = "#vee_Password";
