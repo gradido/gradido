@@ -333,6 +333,150 @@ describe('ContributionResolver', () => {
         })
       })
     })
+
+    describe('ClientRequestTime to last day of month behind server', () => {
+      beforeAll(async () => {
+        await cleanDB()
+        resetToken()
+
+        await userFactory(testEnv, bibiBloxberg)
+        // create one contribution with 100GDD for bibi one month ago in the past
+        await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
+        // set clientRequestTime at the 28th of the previous month against the backend time
+        const clientRequestTime = new Date()
+        clientRequestTime.setDate(28)
+        clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
+        setClientRequestTime(clientRequestTime)
+      })
+      describe('authenticated with valid user', () => {
+        beforeAll(async () => {
+          jest.clearAllMocks()
+          await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        })
+
+        afterAll(async () => {
+          await cleanDB()
+          resetToken()
+          resetClientRequestTime()
+        })
+
+        it('verify limits before 1st creation', async () => {
+          await expect(query({ query: verifyLogin })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                verifyLogin: {
+                  emailContact: {
+                    email: 'bibi@bloxberg.de',
+                  },
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  language: 'de',
+                  klickTipp: {
+                    newsletterState: false,
+                  },
+                  hasElopage: false,
+                  publisherId: 1234,
+                  isAdmin: null,
+                  creation: ['1000', '1000', '900'],
+                },
+              },
+            }),
+          )
+        })
+
+        it('1st contribution creation behind server time', async () => {
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 600.0,
+                memo: '1st new contribution one month behind server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                createContribution: {
+                  id: expect.any(Number),
+                  amount: '600',
+                  memo: '1st new contribution one month behind server time',
+                  date: getClientRequestTime(),
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  moderator: null,
+                  creation: ['1000', '1000', '300'],
+                  state: ContributionStatus.PENDING,
+                  messageCount: 0,
+                },
+              },
+            }),
+          )
+        })
+
+        it('two creations and update to exceed limit', async () => {
+          result = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 50.0,
+              memo: '2nd new contribution one month ahead server time',
+              creationDate: getClientRequestTime(),
+            },
+          })
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: '3rd new contribution one month ahead server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                createContribution: {
+                  id: expect.any(Number),
+                  amount: '100',
+                  memo: '3rd new contribution one month ahead server time',
+                  date: getClientRequestTime(),
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  moderator: null,
+                  creation: ['1000', '1000', '150'],
+                  state: ContributionStatus.PENDING,
+                  messageCount: 0,
+                },
+              },
+            }),
+          )
+
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 400.0,
+                memo: 'update 2nd contribution one month ahead server time',
+                creationDate: getClientRequestTime(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  'The amount (400 GDD) to be created exceeds the amount (200 GDD) still available for this month.',
+                ),
+              ],
+            }),
+          )
+        })
+      })
+    })
+
   })
 
   describe('listContributions', () => {
