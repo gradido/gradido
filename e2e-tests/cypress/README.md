@@ -14,7 +14,7 @@ So far these features are initially tested
 
 ## Precondition
 
-Before running the test, change to the the repo's root directory (gradido) and boot up the system under test
+Before running the test, change to the repo's root directory (gradido) and boot up the system under test:
 
 ```bash
 docker-compose up
