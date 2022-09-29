@@ -75,10 +75,20 @@
     "submit": "Senden"
   },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
@@ -134,10 +144,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",
