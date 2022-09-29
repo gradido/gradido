@@ -1,19 +1,24 @@
 <template>
   <div class="contribution-messages-list-item">
-    <is-moderator v-if="message.isModerator" :message="message"></is-moderator>
-    <is-not-moderator v-else :message="message"></is-not-moderator>
+    <div v-if="message.isModerator" class="text-right is-moderator">
+      <b-avatar square :text="initialLetters" variant="warning"></b-avatar>
+      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+      <small class="ml-4 text-success">{{ $t('moderator') }}</small>
+      <div class="mt-2">{{ message.message }}</div>
+    </div>
+    <div v-else class="text-left is-not-moderator">
+      <b-avatar :text="initialLetters" variant="info"></b-avatar>
+      <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
+      <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
+      <div class="mt-2">{{ message.message }}</div>
+    </div>
   </div>
 </template>
 <script>
-import IsModerator from '@/components/ContributionMessages/slots/IsModerator.vue'
-import IsNotModerator from '@/components/ContributionMessages/slots/IsNotModerator.vue'
 
 export default {
   name: 'ContributionMessagesListItem',
-  components: {
-    IsModerator,
-    IsNotModerator,
-  },
   props: {
     message: {
       type: Object,
@@ -25,3 +30,19 @@ export default {
   },
 }
 </script>
+<style>
+.is-not-moderator {
+  clear: both;
+  width: 75%;
+  margin-top: 20px;
+  /* background-color: rgb(261, 204, 221); */
+}
+.is-moderator {
+  clear: both;
+  float: right;
+  width: 75%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  /* background-color: rgb(255, 255, 128); */
+}
+</style>
