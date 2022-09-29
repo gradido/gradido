@@ -46,7 +46,7 @@
                 <label class="input-1 mt-4" for="input-1">{{ $t('form.recipient') }}</label>
                 <b-input-group
                   id="input-group-1"
-                  class="border border-default"
+                  class="border border-default border-radius"
                   description="We'll never share your email with anyone else."
                   size="lg"
                 >
@@ -81,7 +81,11 @@
                 v-slot="{ errors, valid }"
               >
                 <label class="input-2" for="input-2">{{ $t('form.amount') }}</label>
-                <b-input-group id="input-group-2" class="border border-default" size="lg">
+                <b-input-group
+                  id="input-group-2"
+                  class="border border-default border-radius"
+                  size="lg"
+                >
                   <b-input-group-prepend class="p-2 d-none d-md-block">
                     <div class="m-1 mt-2">{{ $t('GDD') }}</div>
                   </b-input-group-prepend>
@@ -115,7 +119,7 @@
                 v-slot="{ errors }"
               >
                 <label class="input-3" for="input-3">{{ $t('form.message') }}</label>
-                <b-input-group id="input-group-3" class="border border-default">
+                <b-input-group id="input-group-3" class="border border-default border-radius">
                   <b-input-group-prepend class="d-none d-md-block">
                     <b-icon icon="chat-right-text" class="display-4 m-3 mt-4"></b-icon>
                   </b-input-group-prepend>
@@ -236,5 +240,8 @@ span.errors {
 #input-2:focus,
 #input-3:focus {
   font-weight: bold;
+}
+.border-radius {
+  border-radius: 10px;
 }
 </style>
