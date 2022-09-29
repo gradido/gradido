@@ -69,9 +69,7 @@ export class EventTransactionReceive extends EventBasicTx {}
 export class EventTransactionReceiveRedeem extends EventBasicTx {}
 export class EventContributionCreate extends EventBasicCt {}
 export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
-export class EventAdminCreateContributionMessage extends EventBasicCtMsg {
-  message: string
-}
+export class EventAdminCreateContributionMessage extends EventBasicCtMsg {}
 export class EventContributionDelete extends EventBasicCt {}
 export class EventContributionUpdate extends EventBasicCt {}
 export class EventContributionConfirm extends EventBasicCtX {}
