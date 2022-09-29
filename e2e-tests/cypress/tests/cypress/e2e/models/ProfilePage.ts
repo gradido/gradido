@@ -4,8 +4,8 @@ export class ProfilePage {
   // selectors
   openChangePassword = "[data-test=open-password-change-form]";
   oldPasswordInput = "#password-input-field";
-  newPasswordInput = "#New-password-input-field";
-  newPasswordRepeatInput = "#Repeat-new-password-input-field";
+  newPasswordInput = "#new-password-input-field";
+  newPasswordRepeatInput = "#repeat-new-password-input-field";
   submitNewPasswordBtn = "[data-test=submit-new-password-btn]";
 
   goto() {
@@ -19,12 +19,12 @@ export class ProfilePage {
   }
 
   enterNewPassword(password: string) {
-    cy.get(this.newPasswordInput).clear().type(password);
+    cy.get(this.newPasswordInput).find("input").clear().type(password);
     return this;
   }
 
   enterRepeatPassword(password: string) {
-    cy.get(this.newPasswordRepeatInput).clear().type(password);
+    cy.get(this.newPasswordRepeatInput).find("input").clear().type(password);
     return this;
   }
 
