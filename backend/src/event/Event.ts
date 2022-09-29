@@ -22,9 +22,20 @@ export class EventBasicCt extends EventBasicUserId {
   amount: decimal
 }
 
+export class EventBasicCtX extends EventBasicUserId {
+  xUserId: number
+  xCommunityId: number
+  contributionId: number
+  amount: decimal
+}
+
 export class EventBasicRedeem extends EventBasicUserId {
   transactionId?: number
   contributionId?: number
+}
+
+export class EventBasicCtMsg extends EventBasicCt {
+  message: string
 }
 
 export class EventVisitGradido extends EventBasic {}
@@ -57,8 +68,8 @@ export class EventTransactionCreation extends EventBasicUserId {
 export class EventTransactionReceive extends EventBasicTx {}
 export class EventTransactionReceiveRedeem extends EventBasicTx {}
 export class EventContributionCreate extends EventBasicCt {}
-export class EventUserCreateContributionMessage extends EventBasicCt {}
-export class EventAdminCreateContributionMessage extends EventBasicCt {
+export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
+export class EventAdminCreateContributionMessage extends EventBasicCtMsg {
   message: string
 }
 export class EventContributionDelete extends EventBasicCt {}
@@ -67,10 +78,7 @@ export class EventContributionConfirm extends EventBasicCt {
   xUserId: number
   xCommunityId: number
 }
-export class EventContributionDeny extends EventBasicCt {
-  xUserId: number
-  xCommunityId: number
-}
+export class EventContributionDeny extends EventBasicCtX {}
 export class EventContributionLinkDefine extends EventBasicCt {}
 export class EventContributionLinkActivateRedeem extends EventBasicCt {}
 
@@ -306,14 +314,14 @@ export class Event {
   public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
-
+    this.message = ev.message
     return this
   }
 
   public setEventAdminCreateContributionMessage(ev: EventAdminCreateContributionMessage): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.ADMIN_CREATE_CONTRIBUTION_MESSAGE
-
+    this.message = ev.message
     return this
   }
 
@@ -341,9 +349,11 @@ export class Event {
   }
 
   public setEventContributionDeny(ev: EventContributionDeny): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    if (ev.xUserId) this.xUserId = ev.xUserId
+    this.setByBasicTx(ev.userId)
+    if (ev.contributionId) this.contributionId = ev.contributionId
     if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    if (ev.xUserId) this.xUserId = ev.xUserId
+    if (ev.amount) this.amount = ev.amount
     this.type = EventProtocolType.CONTRIBUTION_DENY
 
     return this
@@ -432,4 +442,5 @@ export class Event {
   transactionId?: number
   contributionId?: number
   amount?: decimal
+  message?: string
 }
