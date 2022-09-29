@@ -25,11 +25,11 @@ Then("the user is logged in with username {string}", (username: string) => {
 
 Then("the user cannot login", () => {
   const toast = new Toasts();
-  cy.get(toast.toastTitle).should("contain.text", "Error!");
-  cy.get(toast.toastMessage).should(
-    "contain.text",
-    "No user with this credentials."
-  );
+  cy.get(toast.toastSlot).within(() => {
+    cy.get(toast.toastTypeError);
+    cy.get(toast.toastTitle).should("be.visible");
+    cy.get(toast.toastMessage).should("be.visible");
+  });
 });
 
 //
