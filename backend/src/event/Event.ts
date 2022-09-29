@@ -22,7 +22,7 @@ export class EventBasicCt extends EventBasicUserId {
   amount: decimal
 }
 
-export class EventBasicCtX extends EventBasicUserId {
+export class EventBasicCtX extends EventBasicCt {
   xUserId: number
   xCommunityId: number
   contributionId: number
@@ -74,10 +74,7 @@ export class EventAdminCreateContributionMessage extends EventBasicCtMsg {
 }
 export class EventContributionDelete extends EventBasicCt {}
 export class EventContributionUpdate extends EventBasicCt {}
-export class EventContributionConfirm extends EventBasicCt {
-  xUserId: number
-  xCommunityId: number
-}
+export class EventContributionConfirm extends EventBasicCtX {}
 export class EventContributionDeny extends EventBasicCtX {}
 export class EventContributionLinkDefine extends EventBasicCt {}
 export class EventContributionLinkActivateRedeem extends EventBasicCt {}
@@ -164,50 +161,37 @@ export class Event {
   }
 
   public setEventSendTransactionSendEmail(ev: EventSendTransactionSendEmail): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.transactionId) this.transactionId = ev.transactionId
-    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
-    if (ev.xUserId) this.xUserId = ev.xUserId
-    if (ev.amount) this.amount = ev.amount
+    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
     this.type = EventProtocolType.SEND_TRANSACTION_SEND_EMAIL
 
     return this
   }
 
   public setEventSendTransactionReceiveEmail(ev: EventSendTransactionReceiveEmail): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.transactionId) this.transactionId = ev.transactionId
-    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
-    if (ev.xUserId) this.xUserId = ev.xUserId
-    if (ev.amount) this.amount = ev.amount
+    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
     this.type = EventProtocolType.SEND_TRANSACTION_RECEIVE_EMAIL
 
     return this
   }
 
   public setEventSendTransactionLinkRedeemEmail(ev: EventSendTransactionLinkRedeemEmail): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.transactionId) this.transactionId = ev.transactionId
-    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
-    if (ev.xUserId) this.xUserId = ev.xUserId
-    if (ev.amount) this.amount = ev.amount
+    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
     this.type = EventProtocolType.SEND_TRANSACTION_LINK_REDEEM_EMAIL
 
     return this
   }
 
   public setEventSendAddedContributionEmail(ev: EventSendAddedContributionEmail): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.contributionId) this.contributionId = ev.contributionId
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.SEND_ADDED_CONTRIBUTION_EMAIL
 
     return this
   }
 
   public setEventSendContributionConfirmEmail(ev: EventSendContributionConfirmEmail): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.contributionId) this.contributionId = ev.contributionId
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.SEND_CONTRIBUTION_CONFIRM_EMAIL
+
     return this
   }
 
@@ -312,16 +296,16 @@ export class Event {
   }
 
   public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.message)
     this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
-    this.message = ev.message
+
     return this
   }
 
   public setEventAdminCreateContributionMessage(ev: EventAdminCreateContributionMessage): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.message)
     this.type = EventProtocolType.ADMIN_CREATE_CONTRIBUTION_MESSAGE
-    this.message = ev.message
+
     return this
   }
 
@@ -340,20 +324,14 @@ export class Event {
   }
 
   public setEventContributionConfirm(ev: EventContributionConfirm): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    if (ev.xUserId) this.xUserId = ev.xUserId
-    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
+    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_CONFIRM
 
     return this
   }
 
   public setEventContributionDeny(ev: EventContributionDeny): Event {
-    this.setByBasicTx(ev.userId)
-    if (ev.contributionId) this.contributionId = ev.contributionId
-    if (ev.xCommunityId) this.xCommunityId = ev.xCommunityId
-    if (ev.xUserId) this.xUserId = ev.xUserId
-    if (ev.amount) this.amount = ev.amount
+    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_DENY
 
     return this
@@ -398,6 +376,34 @@ export class Event {
 
   setByBasicCt(userId: number, contributionId: number, amount?: decimal): Event {
     this.setByBasicUser(userId)
+    if (contributionId) this.contributionId = contributionId
+    if (amount) this.amount = amount
+
+    return this
+  }
+
+  setByBasicCtMsg(
+    userId: number,
+    contributionId: number,
+    amount?: decimal,
+    message?: string,
+  ): Event {
+    this.setByBasicCt(userId, contributionId, amount)
+    if (message) this.message = message
+
+    return this
+  }
+
+  setByBasicCtX(
+    userId: number,
+    xUserId?: number,
+    xCommunityId?: number,
+    contributionId?: number,
+    amount?: decimal,
+  ): Event {
+    this.setByBasicUser(userId)
+    if (xUserId) this.xUserId = xUserId
+    if (xCommunityId) this.xCommunityId = xCommunityId
     if (contributionId) this.contributionId = contributionId
     if (amount) this.amount = amount
 
