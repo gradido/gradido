@@ -334,7 +334,7 @@ describe('ContributionResolver', () => {
       })
     })
 
-    describe('ClientRequestTime to last day of month behind server', () => {
+    describe('ClientRequestTime to 28th of month behind server', () => {
       beforeAll(async () => {
         await cleanDB()
         resetToken()
@@ -344,6 +344,7 @@ describe('ContributionResolver', () => {
         await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
         // set clientRequestTime at the 28th of the previous month against the backend time
         const clientRequestTime = new Date()
+        // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
         setClientRequestTime(clientRequestTime)
@@ -476,7 +477,6 @@ describe('ContributionResolver', () => {
         })
       })
     })
-
   })
 
   describe('listContributions', () => {
