@@ -14,7 +14,7 @@ So far these features are initially tested
 
 ## Precondition
 
-Before running the test, change to the repo's root directory (gradido)
+Before running the tests, change to the repo's root directory (gradido).
 
 ### Boot up the system under test
 
