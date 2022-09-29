@@ -24,7 +24,7 @@ docker-compose up
 ## Execute the test
 
 This setup will be integrated in the Gradido Github Actions to automatically support the CI/CD process.
-For now the test setup can only be use locally in two modes
+For now the test setup can only be used locally in two modes.
 
 ### Run Cypress directly from the code
 
