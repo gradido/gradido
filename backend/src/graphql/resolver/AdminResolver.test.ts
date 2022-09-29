@@ -1025,7 +1025,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  new Date('not-valid').toString(),
+                  'Invalid Date',
                 )
               })
             })
