@@ -14,12 +14,28 @@ So far these features are initially tested
 
 ## Precondition
 
-Before running the test, change to the repo's root directory (gradido) and boot up the system under test:
+Before running the test, change to the repo's root directory (gradido)
+
+### Boot up the system under test
 
 ```bash
 docker-compose up
 ```
 
+### Seed the database
+
+The database has to be seeded upfront to every test run.
+
+```bash
+# change to the backend directory 
+cd /path/to/gradido/gradido/backend
+
+# install all dependencies
+yarn 
+
+# seed the database (everytime before running the tests)
+yarn seed
+```
 
 ## Execute the test
 
