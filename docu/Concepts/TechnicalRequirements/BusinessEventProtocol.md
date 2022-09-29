@@ -62,7 +62,7 @@ The business events will be stored in database in the new table `EventProtocol`.
 
 The following table lists for each event type the mapping between old and new key, the mandatory attributes, which have to be initialized at event occurence and to be written in the database event protocol table:
 
-| EventType - old key               | EventType - new key                    | id | type | createdAt | userID | XuserID | XCommunityID | transactionID | contribID | amount |
+| EventKey              | EventType                   | id | type | createdAt | userID | XuserID | XCommunityID | transactionID | contribID | amount |
 | :-------------------------------- | :------------------------------------- | :-: | :--: | :-------: | :----: | :-----: | :----------: | :-----------: | :-------: | :----: |
 | BASIC                             | BasicEvent                             | x |  x  |     x     |        |        |              |              |          |        |
 | VISIT_GRADIDO                     | VisitGradidoEvent                      | x |  x  |     x     |        |        |              |              |          |        |
