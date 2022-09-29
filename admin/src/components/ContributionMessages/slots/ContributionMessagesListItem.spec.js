@@ -20,7 +20,7 @@ describe('ContributionMessagesListItem', () => {
 
   const propsData = {
     contributionId: 42,
-    state: 'PENDING0',
+    state: 'PENDING',
     message: {
       id: 111,
       message: 'asd asda sda sda',

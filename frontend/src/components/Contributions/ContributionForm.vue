@@ -42,7 +42,6 @@
           id="contribution-memo"
           v-model="form.memo"
           rows="3"
-          max-rows="6"
           :placeholder="$t('contribution.yourActivity')"
           required
         ></b-form-textarea>
