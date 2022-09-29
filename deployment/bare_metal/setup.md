@@ -1,107 +1,233 @@
-# Setup script to setup the server be ready to run gradido
-# This assums you have root access via ssh to your cleanly setup server
-# Furthermore this assumes you have debian (11 64bit) running
 
-# Check your (Sub-)Domain with your Provider.
-# In this document gddhost.tld refers to your chosen domain
+# Instructions To Run `Gradido` On Your Server
 
-> ssh root@gddhost.tld
+We split setting up `Gradido` on your server into three steps:
 
-# change root default shell
-> chsh -s /bin/bash
-# Create user `gradido`
-> useradd -d /home/gradido -m gradido
-> passwd gradido
->> enter new password twice
+- [Preparing your server](#command-list-to-setup-your-server-be-ready-to-install-gradido)
+- [Installing `Gradido`](#use-commands-in-installsh-manually-in-your-shell-for-now)
+- [Crone-Job for `Gradido`](#define-cronjob-to-compensate-yarn-output-in-tmp)
 
-# Gives the user priviledges - this might be omitted in order to harden security
-# Care: This will require another administering user if you don't want root access.
-#       Since this setup expects the user running the software be the same as the administering user,
-#       you have to adjust the instructions according to that scenario.
-#       You might lock yourself out, if done wrong.
-> usermod -a -G sudo gradido
+## Command List To Setup Your Server Be Ready To Install `Gradido`
 
-# change gradido default shell
-> chsh -s /bin/bash gradido
-# Install sudo
-> apt-get install sudo
-# switch to the new user
-> su gradido
+We assume you have root access via ssh to your cleanly setup server.
+Furthermore we assume you have debian (11 64bit) running.
 
-# Register first ssh key for user `gradido`
-> mkdir ~/.ssh
-> chmod 700 ~/.ssh
-> nano ~/.ssh/authorized_keys
->> insert public key
->> ctrl + x
->> save
+Check your (Sub-)Domain with your Provider.
+In this document `gddhost.tld` refers to your chosen domain.
 
-# Test authentication via SSH
-> ssh -i /path/to/privKey gradido@gddhost.tld
->> This should log you in and allow you to use sudo commands, which will require the user's password
+### SSH into your server
 
-# Disable password authentication & root login
-> cd /etc/ssh
-> sudo cp sshd_config sshd_config.org
-> sudo nano sshd_config
->> change `PermitRootLogin yes` to `PermitRootLogin no`
->> change `#PasswordAuthentication yes` to `PasswordAuthentication no`
->> change `UsePAM yes` to `UsePAM no`
->> ctrl + x
->> save
-> sudo /etc/init.d/ssh restart
+```bash
+ssh root@gddhost.tld
+```
 
-# Test SSH Access only, no root ssh access
-> ssh gradido@gddhost.tld
->> Will result in in either a password request for your key or the message `Permission denied (publickey)`
-> ssh -i /path/to/privKey root@gddhost.tld
->> Will result in `Permission denied (publickey)`
-> ssh -i /path/to/privKey gradido@gddhost.tld
->> Will succeed after entering the correct keys password (if any)
+### Change root default shell
 
-# update system
-> sudo apt-get update
-> sudo apt-get upgrade
+```bash
+chsh -s /bin/bash
+```
 
-# Install security tools
-## ufw
-> sudo apt-get install ufw
-> sudo ufw allow http
-> sudo ufw allow https
-> sudo ufw allow ssh
-> sudo ufw enable
+### Create user `gradido`
 
-## fail2ban
-> sudo apt-get install -y fail2ban
-> sudo /etc/init.d/fail2ban restart
+```bash
+$ useradd -d /home/gradido -m gradido
+$ passwd gradido
+# enter new password twice
+```
 
-# Install gradido
-> sudo apt-get install -y git
-> cd ~
-> git clone https://github.com/gradido/gradido.git
+### Give the user priviledges
 
-# Timezone
-# Note: This is needed - since there is Summer-Time included in the default server Setup - UTC is REQUIRED for production data
-> sudo timedatectl set-timezone UTC
-# > sudo timedatectl set-ntp on
-# > sudo apt purge ntp
-# > sudo systemctl start systemd-timesyncd
-# >> timedatectl to verify
+This might be omitted in order to harden security.
 
-# Adjust .env
-# NOTE ';' can not be part of any value
-# The Github Secret is Created on Github in Settimgs -> Webhooks
-> cd gradido/deployment/bare_metal
-> cp .env.dist .env
-> nano .env
->> Adjust values accordingly
-# Define cronjob to compensate yarn output in /tmp
-> yarn creates output in /tmp directory, which must be deleted regularly and will be done per cronjob
-> on stage1 a hourly job is necessary by setting the following job in the crontab for the gradido user
-> crontab -e opens the crontab in edit-mode and insert the following entry:
-> "0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null"
-> on stage2 a daily job is necessary by setting the following job in the crontab for the gradido user
-> crontab -e opens the crontab in edit-mode and insert the following entry:
-> "0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null"
-# TODO the install.sh is not yet ready to run directly - consider to use it as pattern to do it manually
-> ./install.sh
+***!!! Attention !!!***
+
+- Care: This will require another administering user if you don't want root access.
+- Since this setup expects the user running the software be the same as the administering user,
+  - you have to adjust the instructions according to that scenario.
+  - you might lock yourself out, if done wrong.
+
+#### Add the new user `gradido` to `sudo` group
+
+```bash
+usermod -a -G sudo gradido
+```
+
+### Change gradido default shell
+
+```bash
+chsh -s /bin/bash gradido
+```
+
+### Install sudo
+
+```bash
+apt-get install sudo
+```
+
+### Switch to the new user
+
+```bash
+su gradido
+```
+
+### Register first ssh key for user `gradido`
+
+```bash
+$ mkdir ~/.ssh
+$ chmod 700 ~/.ssh
+$ nano ~/.ssh/authorized_keys
+# insert public key
+# ctrl + x
+# save
+```
+
+### Test authentication via SSH
+
+If you logout from the server you can test authentication:
+
+```bash
+$ ssh -i /path/to/privKey gradido@gddhost.tld
+# This should log you in and allow you to use sudo commands, which will require the user's password
+```
+
+### Disable password authentication and root login
+
+```bash
+$ cd /etc/ssh
+$ sudo cp sshd_config sshd_config.org
+$ sudo nano sshd_config
+# change 'PermitRootLogin yes' to `PermitRootLogin no`
+# change 'PasswordAuthentication yes' to 'PasswordAuthentication no'
+# change 'UsePAM yes' to 'UsePAM no'
+# ctrl + x
+# save
+$ sudo /etc/init.d/ssh restart
+```
+
+### Test SSH Access only, no root ssh access
+
+```bash
+$ ssh gradido@gddhost.tld
+# Will result in in either a passphrase request for your key or the message 'Permission denied (publickey)'
+$ ssh -i /path/to/privKey root@gddhost.tld
+# Will result in 'Permission denied (publickey)'
+$ ssh -i /path/to/privKey gradido@gddhost.tld
+# Will succeed after entering the correct keys passphrase (if any)
+```
+
+### Update system
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+```
+
+### Install security tools
+
+#### Install: `ufw`
+
+```bash
+sudo apt-get install ufw
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw allow ssh
+sudo ufw enable
+```
+
+#### Install: `fail2ban`
+
+```bash
+sudo apt-get install -y fail2ban
+sudo /etc/init.d/fail2ban restart
+```
+
+### Install `Gradido` code
+
+```bash
+sudo apt-get install -y git
+cd ~
+git clone https://github.com/gradido/gradido.git
+```
+
+### Timezone
+
+*Note: This is needed - since there is Summer-Time included in the default server Setup - UTC is REQUIRED for production data.*
+
+```bash
+sudo timedatectl set-timezone UTC
+sudo timedatectl set-ntp on
+sudo apt purge ntp
+sudo systemctl start systemd-timesyncd
+# timedatectl to verify
+```
+
+### Adjust the values in `.env`
+
+***!!! Attention !!!***
+
+*Don't forget this step!
+All your following installations in `install.sh` will fail!*
+
+*Notes:*
+
+- *`;` cannot be part of any value!*
+- *The GitHub secret is created on GitHub in Settings -> Webhooks.*
+
+#### Create `.env` and set values
+
+```bash
+$ cd gradido/deployment/bare_metal
+$ cp .env.dist .env
+$ nano .env
+# adjust values accordingly
+```
+
+## Use Commands In `install.sh` Manually In Your Shell For Now
+
+The script `install.sh` is not yet ready to run directly.
+Use it as pattern to do all steps manually in your terminal shell.
+
+*TODO: Bring the `install.sh` script to run in the shell.*
+
+***!!! Attention !!!***
+
+- *Commands in `install.sh`:*
+  - *The commands for setting the paths in the used env variables are not working directly in the terminal, consider the out commented commands for this purpose.*
+
+Follow the commands in `./install.sh` as installation pattern.
+
+## Define Cronjob To Compensate Yarn Output In `/tmp`
+
+`yarn` creates output in `/tmp` directory, which must be deleted regularly and will be done per Cron-Job.
+
+### On `stage1`
+
+An hourly job is necessary on `stage1` by setting the following job in the `crontab` for the `gradido` user.
+
+Run:
+
+```bash
+crontab -e
+```
+
+This opens the crontab in edit-mode and insert the following entry:
+
+```bash
+0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null
+```
+
+### On `stage2`
+
+A daily job is necessary on `stage2` by setting the following job in the `crontab` for the `gradido` user.
+
+Run:
+
+```bash
+crontab -e
+```
+
+This opens the `crontab` in edit-mode and insert the following entry:
+
+```bash
+0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null
+```
