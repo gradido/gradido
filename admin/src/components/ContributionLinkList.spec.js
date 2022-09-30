@@ -95,7 +95,7 @@ describe('ContributionLinkList', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('TODO: request message deleted ')
+          expect(toastSuccessSpy).toBeCalledWith('contributionLink.deleted')
         })
       })
 
