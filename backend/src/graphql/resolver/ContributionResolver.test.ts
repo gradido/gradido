@@ -625,7 +625,6 @@ describe('ContributionResolver', () => {
         })
       })
     })
-
   })
 
   describe('listContributions', () => {
