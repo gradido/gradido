@@ -4,7 +4,7 @@
       <b-avatar :text="initialLetters" variant="info"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <div class="mt-2">{{ message.message }}</div>
+      <div class="mt-2" v-html="message.message"></div>
     </div>
   </div>
 </template>
