@@ -4,6 +4,12 @@
 # How to do this is described in detail in [setup.md](./setup.md)
 
 # Find current directory & configure paths
+## For manualy use in terminal
+## set -o allexport
+## SCRIPT_DIR=$(pwd)
+## PROJECT_ROOT=$SCRIPT_DIR/../..
+## set +o allexport
+# Use here in script
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
@@ -90,7 +96,7 @@ sudo certbot
 # Install logrotate
 sudo apt-get install -y logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
-sudo mv $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
+sudo cp $SCRIPT_DIR/logrotate/gradido.conf.template /etc/logrotate.d/gradido.conf
 sudo chown root:root /etc/logrotate.d/gradido.conf
 
 # Install mysql autobackup
