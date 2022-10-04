@@ -392,16 +392,16 @@ export class Event {
 
   setByBasicCtX(
     userId: number,
-    xUserId?: number,
-    xCommunityId?: number,
-    contributionId?: number,
-    amount?: decimal,
+    xUserId: number,
+    xCommunityId: number,
+    contributionId: number,
+    amount: decimal,
   ): Event {
     this.setByBasicUser(userId)
-    if (xUserId) this.xUserId = xUserId
-    if (xCommunityId) this.xCommunityId = xCommunityId
-    if (contributionId) this.contributionId = contributionId
-    if (amount) this.amount = amount
+    this.xUserId = xUserId
+    this.xCommunityId = xCommunityId
+    this.contributionId = contributionId
+    this.amount = amount
 
     return this
   }
