@@ -25,8 +25,6 @@ export class EventBasicCt extends EventBasicUserId {
 export class EventBasicCtX extends EventBasicCt {
   xUserId: number
   xCommunityId: number
-  contributionId: number
-  amount: decimal
 }
 
 export class EventBasicRedeem extends EventBasicUserId {
@@ -35,7 +33,7 @@ export class EventBasicRedeem extends EventBasicUserId {
 }
 
 export class EventBasicCtMsg extends EventBasicCt {
-  message: string
+  messageId: number
 }
 
 export class EventVisitGradido extends EventBasic {}
@@ -294,14 +292,14 @@ export class Event {
   }
 
   public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
-    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.message)
+    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.messageId)
     this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
 
     return this
   }
 
   public setEventAdminCreateContributionMessage(ev: EventAdminCreateContributionMessage): Event {
-    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.message)
+    this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.messageId)
     this.type = EventProtocolType.ADMIN_CREATE_CONTRIBUTION_MESSAGE
 
     return this
@@ -383,11 +381,11 @@ export class Event {
   setByBasicCtMsg(
     userId: number,
     contributionId: number,
-    amount?: decimal,
-    message?: string,
+    amount: decimal,
+    messageId: number,
   ): Event {
     this.setByBasicCt(userId, contributionId, amount)
-    if (message) this.message = message
+    if (messageId) this.messageId = messageId
 
     return this
   }
@@ -446,5 +444,5 @@ export class Event {
   transactionId?: number
   contributionId?: number
   amount?: decimal
-  message?: string
+  messageId?: number
 }
