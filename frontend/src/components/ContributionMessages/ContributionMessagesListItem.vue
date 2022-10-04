@@ -44,7 +44,7 @@ export default {
 <style>
 .is-not-moderator {
   float: right;
-  background-color: rgb(261, 204, 221);
+  /* background-color: rgb(261, 204, 221); */
   width: 75%;
   margin-top: 20px;
   margin-bottom: 20px;
@@ -52,7 +52,7 @@ export default {
 }
 .is-moderator {
   clear: both;
-  background-color: rgb(255, 255, 128);
+  /* background-color: rgb(255, 255, 128); */
   width: 75%;
   margin-top: 20px;
 }
