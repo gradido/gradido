@@ -122,3 +122,17 @@ export const deleteContribution = gql`
     deleteContribution(id: $id)
   }
 `
+
+export const createContributionMessage = gql`
+  mutation($contributionId: Float!, $message: String!) {
+    createContributionMessage(contributionId: $contributionId, message: $message) {
+      id
+      message
+      createdAt
+      updatedAt
+      type
+      userFirstName
+      userLastName
+    }
+  }
+`

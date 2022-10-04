@@ -45,12 +45,12 @@ const apolloQueryMock = jest
     data: {
       communityStatistics: {
         totalUsers: 3113,
-        activeUsers: 1057,
-        deletedUsers: 35,
+        // activeUsers: 1057,
+        // deletedUsers: 35,
         totalGradidoCreated: '4083774.05000000000000000000',
         totalGradidoDecayed: '-1062639.13634129622923372197',
         totalGradidoAvailable: '2513565.869444365732411569',
-        totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
+        // totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
       },
     },
   })
@@ -86,7 +86,6 @@ describe('InfoStatistic', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: listContributionLinks,
-          fetchPolicy: 'network-only',
         }),
       )
     })
@@ -95,16 +94,14 @@ describe('InfoStatistic', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: searchAdminUsers,
-          fetchPolicy: 'network-only',
         }),
       )
     })
 
-    it('calls getCommunityStatistics', () => {
+    it.skip('calls getCommunityStatistics', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: communityStatistics,
-          fetchPolicy: 'network-only',
         }),
       )
     })
@@ -118,12 +115,12 @@ describe('InfoStatistic', () => {
         wrapper = Wrapper()
       })
 
-      it('toasts three error messages', () => {
+      it('toasts two error messages', () => {
         expect(toastErrorSpy).toBeCalledWith(
           'listContributionLinks has no result, use default data',
         )
         expect(toastErrorSpy).toBeCalledWith('searchAdminUsers has no result, use default data')
-        expect(toastErrorSpy).toBeCalledWith('communityStatistics has no result, use default data')
+        // expect(toastErrorSpy).toBeCalledWith('communityStatistics has no result, use default data')
       })
     })
   })

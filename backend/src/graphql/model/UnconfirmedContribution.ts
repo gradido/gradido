@@ -5,7 +5,7 @@ import { User } from '@entity/User'
 
 @ObjectType()
 export class UnconfirmedContribution {
-  constructor(contribution: Contribution, user: User, creations: Decimal[]) {
+  constructor(contribution: Contribution, user: User | undefined, creations: Decimal[]) {
     this.id = contribution.id
     this.userId = contribution.userId
     this.amount = contribution.amount
@@ -13,8 +13,11 @@ export class UnconfirmedContribution {
     this.date = contribution.contributionDate
     this.firstName = user ? user.firstName : ''
     this.lastName = user ? user.lastName : ''
-    this.email = user ? user.email : ''
+    this.email = user ? user.emailContact.email : ''
+    this.moderator = contribution.moderatorId
     this.creation = creations
+    this.state = contribution.contributionStatus
+    this.messageCount = contribution.messages ? contribution.messages.length : 0
   }
 
   @Field(() => String)
@@ -46,4 +49,10 @@ export class UnconfirmedContribution {
 
   @Field(() => [Decimal])
   creation: Decimal[]
+
+  @Field(() => String)
+  state: string
+
+  @Field(() => Number)
+  messageCount: number
 }
