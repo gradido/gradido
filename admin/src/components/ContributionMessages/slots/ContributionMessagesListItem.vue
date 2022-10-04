@@ -16,7 +16,6 @@
   </div>
 </template>
 <script>
-
 export default {
   name: 'ContributionMessagesListItem',
   props: {
