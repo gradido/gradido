@@ -97,6 +97,7 @@ export class ContributionResolver {
     const eventDeleteContribution = new EventContributionDelete()
     eventDeleteContribution.userId = user.id
     eventDeleteContribution.contributionId = contribution.id
+    eventDeleteContribution.amount = contribution.amount
     await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
 
     const res = await contribution.softRemove()
@@ -209,6 +210,7 @@ export class ContributionResolver {
     const eventUpdateContribution = new EventContributionUpdate()
     eventUpdateContribution.userId = user.id
     eventUpdateContribution.contributionId = contributionId
+    eventUpdateContribution.amount = amount
     await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
