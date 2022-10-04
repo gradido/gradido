@@ -11,10 +11,13 @@ export class EventBasicUserId extends EventBasic {
 }
 
 export class EventBasicTx extends EventBasicUserId {
-  xUserId: number
-  xCommunityId: number
   transactionId: number
   amount: decimal
+}
+
+export class EventBasicTxX extends EventBasicTx {
+  xUserId: number
+  xCommunityId: number
 }
 
 export class EventBasicCt extends EventBasicUserId {
@@ -28,8 +31,8 @@ export class EventBasicCtX extends EventBasicCt {
 }
 
 export class EventBasicRedeem extends EventBasicUserId {
-  transactionId?: number
-  contributionId?: number
+  transactionId: number
+  contributionId: number
 }
 
 export class EventBasicCtMsg extends EventBasicCt {
@@ -44,9 +47,9 @@ export class EventInactiveAccount extends EventBasicUserId {}
 export class EventSendConfirmationEmail extends EventBasicUserId {}
 export class EventSendAccountMultiRegistrationEmail extends EventBasicUserId {}
 export class EventSendForgotPasswordEmail extends EventBasicUserId {}
-export class EventSendTransactionSendEmail extends EventBasicTx {}
-export class EventSendTransactionReceiveEmail extends EventBasicTx {}
-export class EventSendTransactionLinkRedeemEmail extends EventBasicTx {}
+export class EventSendTransactionSendEmail extends EventBasicTxX {}
+export class EventSendTransactionReceiveEmail extends EventBasicTxX {}
+export class EventSendTransactionLinkRedeemEmail extends EventBasicTxX {}
 export class EventSendAddedContributionEmail extends EventBasicCt {}
 export class EventSendContributionConfirmEmail extends EventBasicCt {}
 export class EventConfirmationEmail extends EventBasicUserId {}
@@ -56,15 +59,12 @@ export class EventLogout extends EventBasicUserId {}
 export class EventRedeemLogin extends EventBasicRedeem {}
 export class EventActivateAccount extends EventBasicUserId {}
 export class EventPasswordChange extends EventBasicUserId {}
-export class EventTransactionSend extends EventBasicTx {}
-export class EventTransactionSendRedeem extends EventBasicTx {}
-export class EventTransactionRepeateRedeem extends EventBasicTx {}
-export class EventTransactionCreation extends EventBasicUserId {
-  transactionId: number
-  amount: decimal
-}
-export class EventTransactionReceive extends EventBasicTx {}
-export class EventTransactionReceiveRedeem extends EventBasicTx {}
+export class EventTransactionSend extends EventBasicTxX {}
+export class EventTransactionSendRedeem extends EventBasicTxX {}
+export class EventTransactionRepeateRedeem extends EventBasicTxX {}
+export class EventTransactionCreation extends EventBasicTx {}
+export class EventTransactionReceive extends EventBasicTxX {}
+export class EventTransactionReceiveRedeem extends EventBasicTxX {}
 export class EventContributionCreate extends EventBasicCt {}
 export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
 export class EventAdminCreateContributionMessage extends EventBasicCtMsg {}
@@ -157,21 +157,21 @@ export class Event {
   }
 
   public setEventSendTransactionSendEmail(ev: EventSendTransactionSendEmail): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.SEND_TRANSACTION_SEND_EMAIL
 
     return this
   }
 
   public setEventSendTransactionReceiveEmail(ev: EventSendTransactionReceiveEmail): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.SEND_TRANSACTION_RECEIVE_EMAIL
 
     return this
   }
 
   public setEventSendTransactionLinkRedeemEmail(ev: EventSendTransactionLinkRedeemEmail): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.SEND_TRANSACTION_LINK_REDEEM_EMAIL
 
     return this
@@ -241,44 +241,42 @@ export class Event {
   }
 
   public setEventTransactionSend(ev: EventTransactionSend): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.TRANSACTION_SEND
 
     return this
   }
 
   public setEventTransactionSendRedeem(ev: EventTransactionSendRedeem): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.TRANSACTION_SEND_REDEEM
 
     return this
   }
 
   public setEventTransactionRepeateRedeem(ev: EventTransactionRepeateRedeem): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.TRANSACTION_REPEATE_REDEEM
 
     return this
   }
 
   public setEventTransactionCreation(ev: EventTransactionCreation): Event {
-    this.setByBasicUser(ev.userId)
-    if (ev.transactionId) this.transactionId = ev.transactionId
-    if (ev.amount) this.amount = ev.amount
+    this.setByBasicTx(ev.userId, ev.transactionId, ev.amount)
     this.type = EventProtocolType.TRANSACTION_CREATION
 
     return this
   }
 
   public setEventTransactionReceive(ev: EventTransactionReceive): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.TRANSACTION_RECEIVE
 
     return this
   }
 
   public setEventTransactionReceiveRedeem(ev: EventTransactionReceiveRedeem): Event {
-    this.setByBasicTx(ev.userId, ev.xUserId, ev.xCommunityId, ev.transactionId, ev.amount)
+    this.setByBasicTxX(ev.userId, ev.transactionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.TRANSACTION_RECEIVE_REDEEM
 
     return this
@@ -354,26 +352,32 @@ export class Event {
     return this
   }
 
-  setByBasicTx(
-    userId: number,
-    xUserId?: number,
-    xCommunityId?: number,
-    transactionId?: number,
-    amount?: decimal,
-  ): Event {
+  setByBasicTx(userId: number, transactionId: number, amount: decimal): Event {
     this.setByBasicUser(userId)
-    if (xUserId) this.xUserId = xUserId
-    if (xCommunityId) this.xCommunityId = xCommunityId
-    if (transactionId) this.transactionId = transactionId
-    if (amount) this.amount = amount
+    this.transactionId = transactionId
+    this.amount = amount
 
     return this
   }
 
-  setByBasicCt(userId: number, contributionId: number, amount?: decimal): Event {
+  setByBasicTxX(
+    userId: number,
+    transactionId: number,
+    amount: decimal,
+    xUserId: number,
+    xCommunityId: number,
+  ): Event {
+    this.setByBasicTx(userId, transactionId, amount)
+    this.xUserId = xUserId
+    this.xCommunityId = xCommunityId
+
+    return this
+  }
+
+  setByBasicCt(userId: number, contributionId: number, amount: decimal): Event {
     this.setByBasicUser(userId)
-    if (contributionId) this.contributionId = contributionId
-    if (amount) this.amount = amount
+    this.contributionId = contributionId
+    this.amount = amount
 
     return this
   }
@@ -406,31 +410,10 @@ export class Event {
     return this
   }
 
-  setByBasicRedeem(userId: number, transactionId?: number, contributionId?: number): Event {
+  setByBasicRedeem(userId: number, transactionId: number, contributionId: number): Event {
     this.setByBasicUser(userId)
-    if (transactionId) this.transactionId = transactionId
-    if (contributionId) this.contributionId = contributionId
-
-    return this
-  }
-
-  setByEventTransactionCreation(event: EventTransactionCreation): Event {
-    this.type = event.type
-    this.createdAt = event.createdAt
-    this.userId = event.userId
-    this.transactionId = event.transactionId
-    this.amount = event.amount
-
-    return this
-  }
-
-  setByEventContributionConfirm(event: EventContributionConfirm): Event {
-    this.type = event.type
-    this.createdAt = event.createdAt
-    this.userId = event.userId
-    this.xUserId = event.xUserId
-    this.xCommunityId = event.xCommunityId
-    this.amount = event.amount
+    this.transactionId = transactionId
+    this.contributionId = contributionId
 
     return this
   }
