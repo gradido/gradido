@@ -18,6 +18,7 @@
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/klicktipp.ts"
   },
   "dependencies": {
+    "@types/email-templates": "^10.0.1",
     "@types/jest": "^27.0.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/uuid": "^8.3.4",
@@ -38,6 +39,7 @@
     "log4js": "^6.4.6",
     "mysql2": "^2.3.0",
     "nodemailer": "^6.6.5",
+    "pug": "^3.0.2",
     "random-bigint": "^0.0.1",
     "reflect-metadata": "^0.1.13",
     "sodium-native": "^3.3.0",
