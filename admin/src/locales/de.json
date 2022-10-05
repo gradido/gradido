@@ -7,7 +7,8 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "deleteNow": "Automatische Creations wirklich löschen?",
+    "deleted": "Automatische Schöpfung gelöscht!",
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
     "maximumAmount": "maximaler Betrag",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
@@ -69,14 +70,31 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Abbrechen",
+    "submit": "Senden"
+  },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
+  },
+  "message": {
+    "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
@@ -126,10 +144,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",

@@ -9,15 +9,10 @@
       "dignity": "Dignité",
       "donation": "Donation",
       "gratitude": "Gratitude",
-      "hasAccount": "Avez-vous déjà un compte?",
-      "hereLogin": "Connectez-vous ici",
       "learnMore": "Pour plus de détails …",
       "oneDignity": "Nous nous donnons mutuellement et rendons grâce avec Gradido.",
       "oneDonation": "Vous êtes précieux pour la communauté. 1000 mercis d’être parmi nous.",
       "oneGratitude": "Les uns pour les autres, pour tout le monde, pour la nature."
-    },
-    "navbar": {
-      "aboutGradido": "À propos de Gradido"
     }
   },
   "back": "Retour",
@@ -27,6 +22,7 @@
     "continue-to-registration": "Continuez l´inscription",
     "current-community": "Communauté actuelle",
     "members": "Membres",
+    "moderator": "Modérateur",
     "moderators": "Modérateurs",
     "myContributions": "Mes contributions aux biens communs",
     "openContributionLinks": "liste de liens de contribution publique",
@@ -39,10 +35,11 @@
   "contribution": {
     "activity": "Activité",
     "alert": {
+      "answerQuestion": "S'il te plais répond à la question",
       "communityNoteList": "Vous trouverez ci-contre toutes les contributions versées et certifiées de tous les membres de cette communauté.",
       "confirm": " Approuvé",
+      "in_progress": "Il y a une question du modérateur.",
       "myContributionNoteList": "À tout moment vous pouvez éditer ou supprimer les données qui n´ont pas été confirmées.",
-      "myContributionNoteSupport": "Vous aurez bientôt la possibilité de dialoguer avec un médiateur. Si vous rencontrez un problème maintenant, merci de contacter l´aide en ligne.",
       "pending": "Inscription en attente de validation",
       "rejected": "supprimé"
     },
@@ -135,6 +132,7 @@
     "password_new_repeat": "Répétez le nouveau mot de passe",
     "password_old": "Ancien mot de passe",
     "recipient": "Destinataire",
+    "reply": "Répondre",
     "reset": "Réinitialiser",
     "save": "Sauvegarder",
     "scann_code": "<strong>QR Code Scanner</strong> - Scannez le QR code de votre partenaire",
@@ -182,7 +180,6 @@
     "no-redeem": "Vous n´êtes pas autorisé à percevoir votre propre lien!",
     "not-copied": "Malheureusement votre appareil ne permet pas de copier! Veuillez copier le lien manuellement svp!",
     "redeem": "Encaisser",
-    "redeem-text": "Voulez-vous percevoir le montant maintenant?",
     "redeemed": "Encaissé avec succès! Votre compte est crédité de {n} GDD.",
     "redeemed-at": "Le lien a déjà été perçu le {date}.",
     "redeemed-title": "encaisser",
@@ -224,6 +221,7 @@
     "email": "Nous vous avons envoyé un email.",
     "errorTitle": "Attention!",
     "register": "Vous êtes enregistré maintenant, merci de vérifier votre boîte mail et cliquer sur le lien d´activation.",
+    "reply": "Merci, ta réponse a été envoyée.",
     "reset": "Votre mot de passe a été modifié.",
     "title": "Merci!",
     "unsetPassword": "Votre mot de passe n´a pas été accepté. Merci de le réinitialiser."
@@ -252,11 +250,11 @@
   "settings": {
     "language": {
       "changeLanguage": "Changer la langue",
-      "de": "Allemand",
-      "en": "Anglais",
-      "es": "Espagnol",
+      "de": "Deutsch",
+      "en": "English",
+      "es": "Español",
       "fr": "Français",
-      "nl": "Néerlandais",
+      "nl": "Nederlands",
       "success": "Votre langue de préférence a bien été actualisée."
     },
     "name": {
@@ -309,12 +307,9 @@
     }
   },
   "statistic": {
-    "activeUsers": "Membres actifs",
-    "deletedUsers": "Membres supprimés",
     "totalGradidoAvailable": "GDD total en circulation",
     "totalGradidoCreated": "GDD total puisé",
-    "totalGradidoDecayed": "Total de GDD écoulé",
-    "totalGradidoUnbookedDecayed": "Total GDD non comptabilisé écoulé"
+    "totalGradidoDecayed": "Total de GDD écoulé"
   },
   "success": "Avec succès",
   "time": {

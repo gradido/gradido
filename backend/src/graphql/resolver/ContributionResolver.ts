@@ -11,7 +11,6 @@ import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { User } from '@model/User'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 
@@ -90,19 +89,23 @@ export class ContributionResolver {
       userId: number
       confirmedBy?: FindOperator<number> | null
     } = { userId: user.id }
+
     if (filterConfirmed) where.confirmedBy = IsNull()
-    const [contributions, count] = await dbContribution.findAndCount({
-      where,
-      order: {
-        createdAt: order,
-      },
-      withDeleted: true,
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
+
+    const [contributions, count] = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(dbContribution, 'c')
+      .leftJoinAndSelect('c.messages', 'm')
+      .where(where)
+      .orderBy('c.createdAt', order)
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize)
+      .getManyAndCount()
+
     return new ContributionListResult(
       count,
-      contributions.map((contribution) => new Contribution(contribution, new User(user))),
+      contributions.map((contribution) => new Contribution(contribution, user)),
     )
   }
 
@@ -123,9 +126,7 @@ export class ContributionResolver {
       .getManyAndCount()
     return new ContributionListResult(
       count,
-      dbContributions.map(
-        (contribution) => new Contribution(contribution, new User(contribution.user)),
-      ),
+      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
     )
   }
 

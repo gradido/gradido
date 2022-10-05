@@ -11,7 +11,11 @@ export const contributionLinkFactory = async (
   const { mutate, query } = client
 
   // login as admin
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const user = await query({
+    query: login,
+    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+  })
 
   const variables = {
     amount: contributionLink.amount,

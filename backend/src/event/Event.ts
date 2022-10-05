@@ -32,6 +32,7 @@ export class EventRegister extends EventBasicUserId {}
 export class EventRedeemRegister extends EventBasicRedeem {}
 export class EventInactiveAccount extends EventBasicUserId {}
 export class EventSendConfirmationEmail extends EventBasicUserId {}
+export class EventSendAccountMultiRegistrationEmail extends EventBasicUserId {}
 export class EventConfirmationEmail extends EventBasicUserId {}
 export class EventRegisterEmailKlicktipp extends EventBasicUserId {}
 export class EventLogin extends EventBasicUserId {}
@@ -109,6 +110,15 @@ export class Event {
   public setEventSendConfirmationEmail(ev: EventSendConfirmationEmail): Event {
     this.setByBasicUser(ev.userId)
     this.type = EventProtocolType.SEND_CONFIRMATION_EMAIL
+
+    return this
+  }
+
+  public setEventSendAccountMultiRegistrationEmail(
+    ev: EventSendAccountMultiRegistrationEmail,
+  ): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.SEND_ACCOUNT_MULTI_REGISTRATION_EMAIL
 
     return this
   }
