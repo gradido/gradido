@@ -47,7 +47,7 @@ export default {
           mutation: createContributionMessage,
           variables: {
             contributionId: this.contributionId,
-            message: this.form.text,
+            message: this.form.text.replace(/(<([^>]+)>)/gi, ''),
           },
         })
         .then((result) => {

@@ -108,6 +108,7 @@ export default {
     submit() {
       this.form.amount = this.numberFormat(this.form.amount)
       // spreading is needed for testing
+      this.form.memo = this.form.memo.replace(/(<([^>]+)>)/gi, '')
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
