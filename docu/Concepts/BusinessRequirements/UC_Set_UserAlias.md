@@ -26,7 +26,7 @@ Dies ist ein rein technischer Key und wird nur **innerhalb** der Anwendung zur I
 
 Die GradidoID ist zwar auch ein rein technischer Key, doch wird dieser als eine UUID der Version 4 erstellt. Dies basiert auf einer (pseudo)zufällig generierten Zahl aus 16 Bytes mit einer theoretischen Konfliktfreiheit von ![2^{{122}}\approx 5{,}3169\cdot 10^{{36}}](https://wikimedia.org/api/rest_v1/media/math/render/svg/1924927d783e2d3969734633e134f643b6f9a8cd) in hexadezimaler Notation nach einem Pattern von fünf Gruppen durch Bindestrich getrennt - z.B. `550e8400-e29b-41d4-a716-446655440000`
 
-Somit kann die GradidoID auch System übergreifend zwischen Communities ausgetauscht werden und bietet dennoch eine weitestgehende eindeutige theoretisch konfliktfreie Identifikation des Users. System intern ist die Eindeutigkeit bei der Erstellung eines neuen Users auf jedenfall sichergestellt.
+Somit kann die GradidoID auch System übergreifend zwischen Communities ausgetauscht werden und bietet dennoch eine weitestgehende eindeutige theoretisch konfliktfreie Identifikation des Users. System intern ist die Eindeutigkeit bei der Erstellung eines neuen Users auf jedenfall sichergestellt. Sollte ein User den Wechsel von einer Community in eine andere gradido-Community wünschen, so soll falls möglich die GradidoID für den User erhalten bleiben und übernommen werden können. Dies muss beim Umzug in der Ziel-Community geprüft werden. Falls diese GradidoID aus der Quell-Community wider erwarten existieren sollte, dann muss doch einen neue GradidoID für den User erzeugt werden.
 
 #### Alias
 
@@ -41,15 +41,19 @@ Der Alias eines Users ist als rein fachlicher Key ausgelegt, der frei vom User d
 
 #### Email
 
-Die Email eines Users als fachlicher Key bleibt zwar weiterhin bestehen, doch wird diese schrittweise durch die GradidoID und den Alias in den verschiedenen Anwendungsfällen des Gradido-Systems ersetzt. Das bedeutet zum Beispiel, dass die bisherige Verwendung der Email für die Registrierung bzw. den Login entfällt und durch die GradidoID bzw. den Alias erfolgen wird.
+Die Email eines Users als fachlicher Key bleibt zwar weiterhin bestehen, doch wird diese schrittweise durch die GradidoID und den Alias in den verschiedenen Anwendungsfällen des Gradido-Systems ersetzt. Das bedeutet zum Beispiel, dass die bisher alleinige Verwendung der Email für die Registrierung bzw. den Login nun und durch die GradidoID bzw. den Alias ergänzt wird.
 
-Die Email wird weiterhin für einen Kommunikationskanal ausserhalb der Gradido-Anwendung mit dem User benötigt. Es soll aber zukünftig möglich sein, dass ein User ggf. mehrere Email-Adressen für unterschiedliche fachliche Kommunikationskanäle angeben kann.
+Die Email wird weiterhin als Kommunikationskanal ausserhalb der Gradido-Anwendung mit dem User benötigt. Es soll aber zukünftig möglich sein, dass ein User ggf. mehrere Email-Adressen für unterschiedliche fachliche Kommunikationskanäle angeben kann. Eine dieser Email-Adressen muss aber als primäre Email-Adresse gekennzeichnet sein, da diese wie bisher auch als Identifier beim Login bzw. der Registrierung erhalten bleiben soll.
 
 ## Erfassung des Alias
 
 Die Erfassung des Alias erfolgt als zusätzliche Eingabe direkt bei der Registrierung eines neuen Users oder als weiterer Schritt direkt nach dem Login.
 
-Dieser UseCase ist in die Ausbaustufe-1 und Ausbaustufe-x unterteilt. Alle beschriebenen Anforderungen der Ausbaustufe-1 können sofort mit Zuordnung der zugehörigen Tickets umgesetzt werden. Die beschriebenen Anforderungen der Ausbaustufe-x müssen solange verschoben werden, bis der UseCase "changeLoginProzess" konzeptioniert und umgesetzt ist. Erst dann kann auf der Profil-Seite die Email zur Bearbeitung durch den User freigegeben werden. Diese Abhängigkeit muss über die entsprechenden Abhängigkeiten der Tickets abgebildet werden.
+Dieser UseCase ist in die **Ausbaustufe-1** und **Ausbaustufe-x** unterteilt. 
+
+Alle beschriebenen Anforderungen der **Ausbaustufe-1** können mit Produktivsetzung des Issues #1798 - [GradidoID 1: adapt and migrate database schema](https://github.com/gradido/gradido/issues/1798) und dem [PR #2058 - GradidoID 1: adapt and migrate database schema](https://github.com/gradido/gradido/pull/2058) umgesetzt werden.
+
+Die beschriebenen Anforderungen der Ausbaustufe-x müssen solange verschoben werden, bis der UseCase "GradidoID 2: changeRegisterLoginProzess" konzeptioniert und umgesetzt ist. Erst dann kann auf der Profil-Seite die Email zur Bearbeitung durch den User freigegeben werden.
 
 ### Registrierung
 
@@ -59,32 +63,34 @@ In der Eingabemaske der Registrierung wird nun zusätzlich das Feld *Alias* ange
 
 ![img](./image/RegisterWithAlias.png)
 
-Mit dem Button "Eindeutigkeit prüfen" wird dem User die Möglichkeit gegeben vorab die Eindeutigkeit seiner *Alias*-Eingabe zu verifizieren, bevor der Dialog über den Registrierungs-Button geschlossen wird. Denn es muss sichergestellt sein, dass noch kein existierender User der Community genau diesen *Alias* evtl. schon verwendet.
+Mit dem (optionalen ?) Button "Eindeutigkeit prüfen" wird dem User die Möglichkeit gegeben vorab die Eindeutigkeit seiner *Alias*-Eingabe zu verifizieren ohne den Dialog über den "Registrieren"-Button zu verlassen. Denn es muss sichergestellt sein, dass noch kein existierender User der Community genau diesen *Alias* evtl. schon verwendet. 
 
-Wird diese Prüfung vom User nicht ausgeführt bevor er den Dialog mit dem Registrierungs-Button abschließt, so erfolgt diese Eindeutigkeitsprüfung als erster Schritt bevor die Eingaben als neuer User geprüft und angelegt werden.
+Wird diese Prüfung vom User nicht ausgeführt bevor er den Dialog mit dem "Registrieren"-Button abschließt, so erfolgt die *Alias*-Eindeutigkeitsprüfung als erster Schritt bevor die anderen Eingaben als neuer User geprüft und angelegt werden.
 
 Wird bei der Eindeutigkeitsprüfung des *Alias* festgestellt, dass es schon einen exitierenden User mit dem gleichen *Alias* gibt, dann wird wieder zurück in den Registrierungsdialog gesprungen, damit der User seine *Alias*-Eingabe korrigieren kann. Das *Alias*-Feld wird als fehlerhaft optisch markiert und mit einer aussagekräftigen Fehlermeldung dem User der *Alias*-Konflikt mitgeteilt. Dabei bleiben alle vorher eingegebenen Daten in den Eingabefeldern erhalten und es muss nur der *Alias* geändert werden.
 
 Wurde vom User nun eine konfliktfreie *Alias*-Eingabe und alle Angaben der Registrierung ordnungsgemäß ausgefüllt, so kann der Registrierungsprozess wie bisher ausgeführt werden. Einziger Unterschied ist der zusätzliche *Alias*-Parameter, der nun an das Backend zur Erzeugung des Users übergeben und dann in der Users-Tabelle gespeichert wird.
 
+Falls über ein Redeem-Link in den Registrierungsdialog eingestiegen wurde, so bleiben die existierenden Schritte zur Redeem-Link-Verarbeitung durch die *Alias*-Eingabe erhalten und werden unverändert durchlaufen.
+
 ### Login
 
 #### Ausbaustufe-1
 
-Meldet sich ein schon registrierter User erfolgreich an - das passiert wie bisher noch mit seiner Email-Adresse - dann wird geprüft, ob für diesen User schon ein Alias gespeichert, sprich im aktuellen Context nach dem Login im User-Objekt das Attribut *alias* initialisiert ist. Wenn nicht dann erfolgt direkt nach dem Schließen des Login-Dialoges die Anzeige der User-Profilseite.
+Meldet sich ein schon registrierter User erfolgreich an - das passiert wie bisher noch mit seiner Email-Adresse - dann wird geprüft, ob für diesen User schon ein *Alias* gespeichert, sprich im aktuellen Context nach dem Login im User-Objekt das Attribut *alias* initialisiert ist. Wenn nicht dann erfolgt direkt nach dem Schließen des Login-Dialoges die Anzeige der User-Profilseite.
 
 ![img](./image/LoginProfileWithAlias.png)
 
 Auf der erweiterten User-Profil-Seite sind folgende Elemente neu hinzugekommen bzw. erweitert:
 
-* Alias:	neu hinzugekommen ist die Gruppe Alias mit dem Label, dem Eingabefeld und dem Link "Alias ändern" mit Stift-Icon
-* E-Mail:	ergänzt wurde die Gruppe E-Mail, in dem das Label "E-Mail", das Eingabefeld, das Label "bestätigt" mit zugehörigem Icon darunter und dem Link "E-Mail ändern" mit Stift-Icon. In der **Ausbaustufe-1** ist der Link "E-Mail ändern" und das Stift-Icon **immer disabled**, so dass das Eingabefeld der E-Mail lediglich zur Anzeige der aktuell gesetzten E-Mail dient. Da mit der Änderungsmöglichkeit der E-Mail gleichzeitig auch der Login-Prozess und die Passwort-Verschlüsselung angepasst werden muss, wird dieses Feature auf eine spätere Ausbaustufe verschoben.
+* *Alias*:	**neu hinzugekommen** ist die Gruppe Alias mit dem Label, dem Eingabefeld und dem Link "Alias ändern" mit Stift-Icon
+* E-Mail:	**ergänzt** wurde die Gruppe E-Mail, in dem das Label "E-Mail", das Eingabefeld, das Label "bestätigt" mit zugehörigem Icon darunter und dem Link "E-Mail ändern" mit Stift-Icon. In der **Ausbaustufe-1** ist der Link "E-Mail ändern" und das Stift-Icon **immer disabled**, so dass das Eingabefeld der E-Mail lediglich zur Anzeige der aktuell gesetzten E-Mail-Addresse dient. Da mit der Änderungsmöglichkeit der E-Mail gleichzeitig auch der Login-Prozess und die Passwort-Verschlüsselung angepasst werden muss, wird dieses Feature auf eine spätere Ausbaustufe verschoben. **Neu hinzugekommen** ist die Status-Anzeige der Email-Bestätigung ausgedrückt durch das Häckchen-Icon, wenn die Email-Adresse durch die Email-Confirmation-Mail vom User schon bestätigt ist und durch ein Kreuz-Icon, wenn die Email-Adress-Bestätigung noch aussteht.
 
 Der Sprung nach der Login-Seite nach erfolgreichem Login auf die Profil-Seite öffnet diese schon direkt im Bearbeitungs-Modus des Alias, so dass der User direkt seine Eingabe des Alias vornehmen kann.
 
 ![img](./image/LoginProfileEditAlias.png)
 
-Im Eingabe-Modus des Alias hat das Eingabefeld den Fokus und darin wird:
+Im Eingabe-Modus der Alias-Gruppe hat das Eingabefeld den Fokus und darin wird:
 
 * wenn noch kein Alias für den User in der Datenbank vorhanden ist, vom System ein Vorschlag unterbreitet. Der Vorschlag basiert auf dem Vornamen des Users und wird durch folgende Logik ermittelt:
   * es wird mit dem Vorname des Users eine Datenbankabfrage durchgeführt, die zählt, wieviele User-Aliase es schon mit diesem Vornamen gibt und falls notwendig direkt mit einer nachfolgenden Nummer als Postfix versehen sind.
@@ -105,9 +111,9 @@ Im Eingabe-Modus des Alias hat das Eingabefeld den Fokus und darin wird:
 
 Der User kann nun den im Eingabefeld angezeigten Alias verändern, wobei die Alias-Konventionen, wie oben im ersten Kapitel beschrieben einzuhalten und zu validieren sind.
 
-Mit dem Button "Eindeutigkeit prüfen" kann der im Eingabefeld stehende Alias auf Eindeutigkeit verifziert werden. Dabei wird dieser als Parameter einem Datenbank-Statement übergeben, das auf das Feld *Alias* in der *Users*-Tabelle ein Count mit dem übergebenen Parameter durchführt. Kommt als Ergebnis =0 zurück, ist der eingegebene Alias noch nicht vorhanden und kann genutzt werden. Liefert das Count-Statement einen Wert >0, dann ist dieser Alias schon von einem anderen User in Gebrauch und darf nicht gespeichert werden. Der User muss also seinen Alias erneut ändern.
+Mit dem Button "Eindeutigkeit prüfen" kann der im Eingabefeld stehende *Alias* auf Eindeutigkeit verifziert werden. Dabei wird dieser als Parameter einem Datenbank-Statement übergeben, das auf das Feld *Alias* in der *Users*-Tabelle ein Count mit dem übergebenen Parameter durchführt. Kommt als Ergebnis =0 zurück, ist der eingegebene *Alias* noch nicht vorhanden und kann genutzt werden. Liefert das Count-Statement einen Wert >0, dann ist dieser *Alias* schon von einem anderen User in Gebrauch und darf nicht gespeichert werden. Der User muss also seinen *Alias* erneut ändern.
 
-Mit dem "Speichern"-Button wird die Eindeutigkeitsprüfung erneut implizit durchgeführt, um sicherzustellen, dass keine Alias-Konflikte in der Datenbank gespeichert werden. Sollte wider erwarten doch ein Konflikt bei der Eindeutigkeitsprüfung auftauchen, so bleibt der Dialog im Eingabe-Modus des Alias geöffnet und zeigt dem User eine aussagekräftige Fehlermeldung an.
+Mit dem "Speichern"-Button wird die Eindeutigkeitsprüfung erneut implizit durchgeführt, um sicherzustellen, dass keine *Alias*-Konflikte in der Datenbank gespeichert werden. Sollte wider erwarten doch ein Konflikt bei der Eindeutigkeitsprüfung auftauchen, so bleibt der Dialog im Eingabe-Modus des *Alias* geöffnet und zeigt dem User eine aussagekräftige Fehlermeldung an.
 
 Über das rote Icon (x) hinter dem Label "Alias ändern" kann die Eingabe bzw. das Ändern des Alias abgebrochen werden.
 
@@ -125,8 +131,7 @@ Im Eingabe-Modus des E-Mail-Feldes kann der User seine E-Mail-Adresse ändern. S
 
 Ist diese Eindeutigkeits-Prüfung erfolgreich, dann wird die geänderte E-Mail-Adresse in der Datenbank gespeichert, das Flag E-Mail-Checked auf FALSE gesetzt, damit das Bestätigt-Icon von "bestätigt" auf "unbestätigt" dem User angezeigt wird und zurück in den Anzeige-Modus der Gruppe E-Mail gewechselt. Mit der Speicherung der geänderten E-Mail wird eine Comfirmation-Email an diese E-Mail-Adresse zur Bestätigung durch den User gesendet.
 
-Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail schon in der Datenbank, dann wird das Speichern der geänderten E-Mail abgebrochen und es bleibt die zuvor gespeicherte E-Mail gültig und auch das E-Mail-Checked Flag bleibt auf dem vorherigen Status. Ob und welche Meldung dem User in dieser Situation angezeigt wird, ist noch zu definieren, um kein Ausspionieren von anderen E-Mail-Adressen zu unterstützen. Ebenfalls noch offen ist, ob an die gefundene E-Mail-Duplette eine Info-Email geschickt wird, um den User, der diese bestätigte E-Mail-Adresse besitzt, zu informieren, dass es einen Versuch gab seine E-Mail zu verwenden.
-
+Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail-Adresse schon in der Datenbank, dann wird das Speichern der geänderten E-Mail abgebrochen und es bleibt die zuvor gespeicherte E-Mail gültig und auch das E-Mail-Checked Flag bleibt auf dem vorherigen Status. Ob und welche Meldung dem User in dieser Situation angezeigt wird, ist noch zu definieren, um kein Ausspionieren von anderen E-Mail-Adressen zu unterstützen. Ebenfalls noch offen ist, ob an die gefundene E-Mail-Duplette eine Info-Email geschickt wird, um den User, der diese bestätigte E-Mail-Adresse besitzt, zu informieren, dass es einen Versuch gab seine E-Mail zu verwenden.
 
 ## Backend-Services
 
@@ -136,11 +141,11 @@ Ist diese Prüfung fehlgeschlagen, sprich es gibt die zuspeichernde E-Mail schon
 
 Der Service *createUser* wird um den Pflicht-Parameter *alias: String* erweitert. Der Wert wurde, wie oben beschrieben, im Dialog Register erfasst und gemäß den Konventionen für das Feld *alias* auch validiert - Länge und erlaubte Zeichen.
 
-Es wird vor jeder anderen Aktion die Eindeutigkeitsprüfung des übergebenen alias-Wertes geprüft. Dazu wird der neue Service verifyUniqueAlias() im UserResolver aufgerufen, der auch direkt vom Frontend aufgerufen werden kann. 
+Es wird vor jeder anderen Aktion die Eindeutigkeitsprüfung des übergebenen alias-Wertes geprüft. Dazu wird der neue Service verifyUniqueAlias() im UserResolver aufgerufen, der auch direkt vom Frontend aufgerufen werden kann.
 
 Liefert diese Prüfung den Wert FALSE, dann wird das Anlegen und Speichern des neuen Users abgebrochen und mit entsprechend aussagekräftiger Fehlermeldung, dass der Alias nicht eindeutig ist, an das Frontend zurückgegeben.
 
-Ist die Eindeutigkeitsprüfung hingegen erfolgreich, dann wird die existierende Logik zur Anlage eines neuen Users weiter ausgeführt. Dabei ist der neue Parameter alias in den neu angelegten User zu übertragen und in der Datenbank zu speichern. 
+Ist die Eindeutigkeitsprüfung hingegen erfolgreich, dann wird die existierende Logik zur Anlage eines neuen Users weiter ausgeführt. Dabei ist der neue Parameter *alias* in den neu angelegten User zu übertragen und in der Datenbank zu speichern.
 
 Alle weiteren Ausgabe-Kanäle wie Logging, EventProtokoll und Emails sind entsprechend einzubauen, aber mindestens um das neue Attribut *alias* zu ergänzen.
 
@@ -153,7 +158,6 @@ Dieser neue Service bekommt als Parameter das Attribut *alias: String* übergebe
 Dabei wird ein einfaches Datenbank-Statement auf die *Users* Tabelle abgesetzt mit einem casesensitiven Vergleich auf den Parameter mit den Werten aus der Spalte *alias*
 
     `SELECT count(*) FROM users where BINARY users.alias = {alias}`
-
 
 ### UserResolver.updateUserInfos - erweitern
 
@@ -188,7 +192,6 @@ Dieser neue Service bekommt als Parameter das Attribut *email: String* übergebe
 Dabei wird ein einfaches Datenbank-Statement auf die *Users* Tabelle abgesetzt mit einem casesensitiven Vergleich auf den Parameter mit den Werten aus der Spalte *email*
 
     `SELECT count(*) FROM users where BINARY users.email = {email}`
-
 
 ## Datenbank-Migration
 
