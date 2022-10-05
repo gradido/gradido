@@ -12,6 +12,7 @@
             atLeastOneSpecialCharater: true,
             noWhitespaceCharacters: true,
           }"
+          id="new-password-input-field"
           :label="register ? $t('form.password') : $t('form.password_new')"
           :showAllErrors="true"
           :immediate="true"
@@ -28,6 +29,7 @@
             required: true,
             samePassword: value.password,
           }"
+          id="repeat-new-password-input-field"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           :immediate="true"
           :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"

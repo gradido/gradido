@@ -36,20 +36,6 @@ describe('AuthLayout', () => {
       wrapper = Wrapper()
     })
 
-    describe('Mobile Version Start', () => {
-      beforeEach(() => {
-        wrapper.findComponent({ name: 'AuthMobileStart' }).vm.$emit('set-mobile-start', true)
-      })
-
-      it('has Component AuthMobileStart', () => {
-        expect(wrapper.findComponent({ name: 'AuthMobileStart' }).exists()).toBe(true)
-      })
-
-      it('has Component AuthNavbarSmall', () => {
-        expect(wrapper.findComponent({ name: 'AuthNavbarSmall' }).exists()).toBe(true)
-      })
-    })
-
     describe('Desktop Version Start', () => {
       beforeEach(() => {
         wrapper.vm.mobileStart = false

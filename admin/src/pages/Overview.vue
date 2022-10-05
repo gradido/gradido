@@ -28,7 +28,11 @@
         </b-link>
       </b-card-text>
     </b-card>
-    <contribution-link :items="items" :count="count" />
+    <contribution-link
+      :items="items"
+      :count="count"
+      @get-contribution-links="getContributionLinks"
+    />
     <community-statistic class="mt-5" v-model="statistics" />
   </div>
 </template>
@@ -89,7 +93,6 @@ export default {
       this.$apollo
         .query({
           query: communityStatistics,
-          fetchPolicy: 'network-only',
         })
         .then((result) => {
           this.statistics.totalUsers = result.data.communityStatistics.totalUsers

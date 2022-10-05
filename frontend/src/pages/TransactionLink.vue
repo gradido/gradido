@@ -14,7 +14,7 @@
           <redeem-valid
             :linkData="linkData"
             :isContributionLink="isContributionLink"
-            @redeem-link="redeemLink"
+            @mutation-link="mutationLink"
           />
         </template>
 
@@ -97,11 +97,6 @@ export default {
           this.toastError(err.message)
           this.$router.push('/overview')
         })
-    },
-    redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then((value) => {
-        if (value) this.mutationLink(amount)
-      })
     },
   },
   computed: {

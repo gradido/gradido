@@ -12,6 +12,7 @@ const authLink = new ApolloLink((operation, forward) => {
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
+      clientRequestTime: new Date().toString(),
     },
   })
   return forward(operation).map((response) => {
