@@ -22,9 +22,6 @@ export default {
     message: {
       type: Object,
       required: true,
-      default() {
-        return {}
-      },
     },
   },
 }

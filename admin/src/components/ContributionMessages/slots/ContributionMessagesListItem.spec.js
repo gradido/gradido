@@ -45,10 +45,6 @@ describe('ContributionMessagesListItem', () => {
       it('has a DIV .text-right.is-moderator', () => {
         expect(wrapper.find('div.text-right.is-moderator').exists()).toBe(true)
       })
-
-      it('props.message.default', () => {
-        expect(wrapper.vm.$options.props.message.default.call()).toEqual({})
-      })
     })
   })
 
@@ -84,10 +80,6 @@ describe('ContributionMessagesListItem', () => {
 
       it('has a DIV .text-left.is-not-moderator', () => {
         expect(wrapper.find('div.text-left.is-not-moderator').exists()).toBe(true)
-      })
-
-      it('props.message.default', () => {
-        expect(wrapper.vm.$options.props.message.default.call()).toEqual({})
       })
     })
   })
