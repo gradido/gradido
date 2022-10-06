@@ -400,6 +400,7 @@ export class UserResolver {
     @Args()
     { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
+    logger.addContext('user', 'unknown')
     logger.info(
       `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode =${redeemCode})`,
     )
@@ -552,6 +553,7 @@ export class UserResolver {
       }
 
       await queryRunner.commitTransaction()
+      logger.addContext('user', dbUser.id)
     } catch (e) {
       logger.error(`error during create user with ${e}`)
       await queryRunner.rollbackTransaction()
@@ -575,6 +577,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
+    logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
     const user = await findUserByEmail(email).catch(() => {
