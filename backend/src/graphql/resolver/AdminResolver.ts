@@ -440,7 +440,7 @@ export class AdminResolver {
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
+    await queryRunner.startTransaction('SERIALIZABLE') // 'REPEATABLE READ') // 'READ COMMITTED')
     try {
       const lastTransaction = await queryRunner.manager
         .createQueryBuilder()
