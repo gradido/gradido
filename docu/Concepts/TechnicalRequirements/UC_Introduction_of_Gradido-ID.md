@@ -22,12 +22,11 @@ The second step is to decribe all concerning business logic processes, which hav
 
 The entity users has to be changed by adding the following columns. The column State gives a hint about the working state including the ticket number.
 
-| State          | Column                 | Type   | Description                                                                                                                                                   |
-| -------------- | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| *done #2125* | gradidoID              | String | technical unique key of the user as UUID (version 4)                                                                                                          |
-| *done #2125* | alias                  | String | a business unique key of the user                                                                                                                             |
-| *open*       | passwordEncryptionType | int    | defines the type of encrypting the passphrase: 1 = email (default), 2 = gradidoID, ...                                                                        |
-| *done #2165* | emailID                | int    | technical foreign key to the UserContacts-Table with the entry of type Email, which will be interpreted as the maincontact from the Users table point of view |
+| State          | Column    | Type   | Description                                                                                                                                                   |
+| -------------- | --------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| *done #2125* | gradidoID | String | technical unique key of the user as UUID (version 4)                                                                                                          |
+| *done #2125* | alias     | String | a business unique key of the user                                                                                                                             |
+| *done #2165* | emailID   | int    | technical foreign key to the UserContacts-Table with the entry of type Email, which will be interpreted as the maincontact from the Users table point of view |
 
 ##### Email vs emailID
 
@@ -126,7 +125,7 @@ The logic of all password processes has to be adapted by
 
 ## 2nd Stage
 
-In the 2nd stage of this topic the password handling during registration and login process will be changed. These change must keep the current active password handling where the email is part of the encryption as long as all users are shifted to the new logic of password handling where the gradidoID will part of the encryption. This means there must be a kind of versioning which type of password encryption is currently used, because in the future there could be the requirement to change the password handling to newer and safer algorithms.
+In the 2nd stage of this topic the password handling during registration and login process will be changed. These change must keep the current active password handling where the email is part of the encryption as long as all users are shifted to the new logic of password handling where the gradidoID will part of the encryption. This means there must be a kind of versioning which type of password encryption is used. Because some users will not login for a long time, which causes to use the old password encryption at their login process or in the future there could be the requirement to change the password handling to newer and safer algorithms.
 
 ### Database-Schema
 
@@ -146,19 +145,21 @@ The entity *users* has to be changed by
 
 #### Password En/Decryption
 
-The logic of the existing password en/decryption has to be shifted out of the `UserResolver.js` file in separated file(s). This separated file will be placed in the package-directory `backend/src/password` and named `emailEncryptor.js`. As the name express the password encryption uses the `email `attribute. 
+The logic of the existing password en/decryption has to be shifted out of the ***UserResolver.js*** file in separated file(s). This separated file will be placed in the package-directory `backend/src/password` and named ***emailEncryptor.js***. As the name express the password encryption uses the `email `attribute.
 
-For the new password encryption logic a new file named `gradidoIDEncryptor.js` has to be created in the package-directory `backend/src/password`. For possible future requirements of newer and safer encryption logic additional files can be placed in the same directory with expressiv file names.
+For the new password encryption logic a new file named ***gradidoIDEncryptor.js*** has to be created in the package-directory `backend/src/password`, which uses the *gradidoID* instead of the *email* for the password encryption. As soon as a user is changed to this encryption type with the *gradidoID*, it will be possible for him to change his *email*  in his gradido-profile without any effect on his password encryption.
+
+For possible future requirements of newer and safer encryption logic additional files can be placed in the same directory with an expressiv file name for the new encryption type.
 
 All these `xxxEncryptor `files has to implement the following API, but with possibly different parameter types, depending on the encryption requirements:
 
-| API                  | emailEncryptor   | gradidoIDEncryptor | return             | description                                                                                                                                    |
-| -------------------- | ---------------- | ------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| API                       | emailEncryptor   | gradidoIDEncryptor | return             | description                                                                                                                                    |
+| ------------------------- | ---------------- | ------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **encryptPassword** | dbUser, password | dbUser, password   | encrypted password | process the encryption with<br />the encryptor specific attributs <br />out of the dbUser and the original <br />password entered by the user |
 | **verifyPassword**  | dbUser, password | dbUser, password   | boolean            | process the decryption with<br />the encryptor specific attributs <br />out of the dbUser and the original <br />password entrered by the user |
 | **isPassword**      | password         | password           | boolean            | verifiy the formal rules of the original<br />password entered by the user                                                                     |
 
-Which of the *xxxEncryptor* implementations will be used, depends on the value of the attribute `user.passwordEncryptionType`, which has to be interpreted before.
+Which of the *xxxEncryptor* implementations will be used, depends on the value of the attribute `user.passwordEncryptionType`, which has to be interpreted before. To encapsulate this logic from the general business logic the ***Encryptor.js*** will be created with the same API as the specific *encryptor* classes, but it will interpret the attribute `dbUser.passwordEncryptionType` to select and invoke the correct *encryptor* implementation and to decide if an upgrade to a newer *encryptor* class should be done.
 
 The new Enum `PasswordEncryptionType `with the increasing values:
 
@@ -166,26 +167,52 @@ The new Enum `PasswordEncryptionType `with the increasing values:
 * 2 = gradidoIDEncryptor
 * ... = ?
 
-will be used to define the order which encryptor implementation is the oldest and the newest. That means if a user is still not using the newest encryptor for his password encryption the business logic will implicit start a change to the newest encryptor. This has to be inserted in all business processes, where the user enters his password, because without the original entered password from the user no encryptor upgrade can be done.
+will be used to define the order, which encryptor implementation is the oldest and the newest. That means if a user is still not using the newest *encryptor* for his password encryption the logic will implicit start a change to the newest *encryptor*. In all business processes, where the user enters his password the invokation of the ***Encryptor.js*** has to be introduced, because without the original entered password from the user no *encryptor* upgrade can be done.
 
 #### Registration Process
 
-The logic of the registration process has to be adapted
+The backend logic of the registration process has to be adapted
 
-* the general business logic of the ***createUser*** process will not be changed
-* during the user creation set the attribut `Users.passwordEncrpytionType = 2`
-* on activating the email-confirmation link the **queryOptIn** methode of the `UserResolver `is called
-* because of the `users.passwordEncryptionType = 2` the `gradidoIDEncryptor `has to be used for encrypting  and setting the password
-* the `gradidoIDEncryptor`
-  * encrypts the password with the `Users.gradidoID` instead of the `UserContacts.email`
-  * it will creates a password-hash by using the gradidoID
-* 
+* the ***UserResolver.createUser*** logic has to be changed by setting for a new user the attribut `Users.passwordEncrpytionType = 2`
+* As soon as the user activates the email-confirmation link `https://gradido.net/checkEmail/`  the application frontend invokes
+
+  * at first the ***UserResolver.queryOptIn*** method, which will not be necessary, because the same checks about the given *emailOptIn*-code will be done a 2nd time in the invocation of *UserResolver.setPassword*
+  * at second the ***UserResolver.setPassword*** method, which has to be changed
+    * to use the new ***Encryptor.isPassword*** to validate the formal rules of the given password
+    * to remove all cryptographic logic like passphrase and key pair generation and password hashing to the new ***emailEncryptor.js***
+    * to introduce the invocation of the new ***Encryptor.encryptPassword*** in the existing logic flow
 
 #### Login Process
 
-The logic of the login process has to be adapted by
+The logic of the login process has to be adapted in frontend and backend
 
-* search the users data by reading the `Users `and the `UsersContact` table with the `email` as input **(ongoing #2165)**
-* depending on the `Users.passwordEncryptionType` decrypt the stored password
-  * = 1 :  with the email and the existing cryptographical logic (asymetric encryption)
-  * = 2 : with the gradidoID and the new cryptographical logic (hashing)#### Change Password Process
+* Frontend
+  * The login dialog has to be changed at the email input component
+    * the new label contains "Email / Alias / GradidoID"
+    * the validation of the input field has to be changed to accept the input of one of these three possible values
+    * in case of failed validation an expressiv error message for the specific given input has to be shown (for more details about the rules for alias and gradidoID see the concepts [UC_SetUserAlias.md](../BusinessRequirements/UC_SetUserAlias.md) and [BenutzerVerwaltung#Gradido-ID](../BusinessRequirements/BenutzerVerwaltung#Gradido-ID)).
+  * The signature of the backend invocation ***UserResolver.login*** has to be changed to accept all three variants of identifiers
+    * depending on the implemented backend solution the frontend has to detect and initialize the correct parameter settings
+* Backend
+  * The signature of the backend invocation ***UserResolver.login*** has to be changed to accept all three variants of identifiers
+    * solution-A: the first parameter *email* is renamed to *identifier* and the backend has to detect which type of identifier is given
+    * solution-B: two additional parameters *alias* and *gradidoID* are inserted in the type ***UnsecureLoginArgs*** and the frontend has to decide, which type of identifier is given and initialize the correct parameter
+    * **TODO**: solution-A is preferred?
+  * The logic of ***UserResolver.login*** has to be changed by
+    * in case of solution-A for the signature, the given identifier has to be detected for the correct user searching
+    * the user to be searched by the given identifier (email / alias / gradidoID)
+    * if a user could be found all the existing checks will be done as is, except the public and private key check, which will be removed
+    * for the password check the new ***Encryptor.isPassword*** and ***Encryptor.verifyPassword*** has to be invoked; all existing cryptographic logic has to be deleted
+
+#### Change Password Process
+
+There are two ways to change a user password.
+
+The first one is the *Forget-Password process*, which will use the same backend invocation with activating the email link like the *Registration Process* to set the password; for details see description above.
+
+The second one is the *Update-Userinfo process*, which invokes the ***UserResolver.updateUserInfos***. This method has to be changed in the *password check block* by
+
+* removing all the cryptographic logic and
+* invoke the new ***Encryptor.isPassword*** for the given *newPassword* and if valid then
+* invoke the new ***Encryptor.verifyPassword*** for the given *oldPassword* and if valid then
+* invoke the new ***Encryptor.encryptPassword*** for the given *newPassword*
