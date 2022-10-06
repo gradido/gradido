@@ -45,6 +45,30 @@ describe('ContributionMessagesListItem', () => {
       it('has a DIV .text-right.is-moderator', () => {
         expect(wrapper.find('div.text-right.is-moderator').exists()).toBe(true)
       })
+
+      it('has the complete user name', () => {
+        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(2)').text()).toBe(
+          'Peter Lustig',
+        )
+      })
+
+      it('has the message creation date', () => {
+        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(3)').text()).toBe(
+          'Mon Aug 29 2022 12:23:27 GMT+0000 (Koordinierte Weltzeit)',
+        )
+      })
+
+      it('has the moderator label', () => {
+        expect(wrapper.find('div.text-right.is-moderator > small:nth-child(4)').text()).toBe(
+          'moderator',
+        )
+      })
+
+      it('has the message', () => {
+        expect(wrapper.find('div.text-right.is-moderator > div:nth-child(5)').text()).toBe(
+          'Lorem ipsum?',
+        )
+      })
     })
   })
 
@@ -80,6 +104,24 @@ describe('ContributionMessagesListItem', () => {
 
       it('has a DIV .text-left.is-not-moderator', () => {
         expect(wrapper.find('div.text-left.is-not-moderator').exists()).toBe(true)
+      })
+
+      it('has the complete user name', () => {
+        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(2)').text()).toBe(
+          'Bibi Bloxberg',
+        )
+      })
+
+      it('has the message creation date', () => {
+        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(3)').text()).toBe(
+          'Mon Aug 29 2022 12:25:34 GMT+0000 (Koordinierte Weltzeit)',
+        )
+      })
+
+      it('has the message', () => {
+        expect(wrapper.find('div.is-not-moderator.text-left > div:nth-child(4)').text()).toBe(
+          'Asda sdad ad asdasd, das Ass das Das.',
+        )
       })
     })
   })
