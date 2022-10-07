@@ -24,9 +24,9 @@ And("the user submits the password form", () => {
 
 When("the user is presented a {string} message", (type: string) => {
   const toast = new Toasts();
-  cy.get(toast.toastTitle).should("contain.text", "Success");
-  cy.get(toast.toastMessage).should(
-    "contain.text",
-    "Your password has been changed."
-  );
+  cy.get(toast.toastSlot).within(() => {
+    cy.get(toast.toastTypeSuccess);
+    cy.get(toast.toastTitle).should("be.visible");
+    cy.get(toast.toastMessage).should("be.visible");
+  });
 });
