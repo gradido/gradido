@@ -31,8 +31,8 @@ export class EventBasicCtX extends EventBasicCt {
 }
 
 export class EventBasicRedeem extends EventBasicUserId {
-  transactionId: number
-  contributionId: number
+  transactionId?: number
+  contributionId?: number
 }
 
 export class EventBasicCtMsg extends EventBasicCt {
@@ -389,31 +389,29 @@ export class Event {
     messageId: number,
   ): Event {
     this.setByBasicCt(userId, contributionId, amount)
-    if (messageId) this.messageId = messageId
+    this.messageId = messageId
 
     return this
   }
 
   setByBasicCtX(
     userId: number,
-    xUserId: number,
-    xCommunityId: number,
     contributionId: number,
     amount: decimal,
+    xUserId: number,
+    xCommunityId: number,
   ): Event {
-    this.setByBasicUser(userId)
+    this.setByBasicCt(userId, contributionId, amount)
     this.xUserId = xUserId
     this.xCommunityId = xCommunityId
-    this.contributionId = contributionId
-    this.amount = amount
 
     return this
   }
 
-  setByBasicRedeem(userId: number, transactionId: number, contributionId: number): Event {
+  setByBasicRedeem(userId: number, transactionId?: number, contributionId?: number): Event {
     this.setByBasicUser(userId)
-    this.transactionId = transactionId
-    this.contributionId = contributionId
+    if (transactionId) this.transactionId = transactionId
+    if (contributionId) this.contributionId = contributionId
 
     return this
   }
