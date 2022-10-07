@@ -415,92 +415,109 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contribution = await DbContribution.findOne(id)
-    if (!contribution) {
-      logger.error(`Contribution not found for given id: ${id}`)
-      throw new Error('Contribution not found to given id.')
-    }
-    const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId) {
-      logger.error('Moderator can not confirm own contribution')
-      throw new Error('Moderator can not confirm own contribution')
-    }
-    const user = await dbUser.findOneOrFail(
-      { id: contribution.userId },
-      { withDeleted: true, relations: ['emailContact'] },
-    )
-    if (user.deletedAt) {
-      logger.error('This user was deleted. Cannot confirm a contribution.')
-      throw new Error('This user was deleted. Cannot confirm a contribution.')
-    }
-    const creations = await getUserCreation(contribution.userId, false)
-    validateContribution(creations, contribution.amount, contribution.contributionDate)
-
-    const receivedCallDate = new Date()
-
-    const queryRunner = getConnection().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('SERIALIZABLE') // 'REPEATABLE READ') // 'READ COMMITTED')
-    try {
-      const lastTransaction = await queryRunner.manager
-        .createQueryBuilder()
-        .select('transaction')
-        .from(DbTransaction, 'transaction')
-        .where('transaction.userId = :id', { id: contribution.userId })
-        .orderBy('transaction.balanceDate', 'DESC')
-        .getOne()
-      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
-
-      let newBalance = new Decimal(0)
-      let decay: Decay | null = null
-      if (lastTransaction) {
-        decay = calculateDecay(
-          lastTransaction.balance,
-          lastTransaction.balanceDate,
-          receivedCallDate,
-        )
-        newBalance = decay.balance
+    let retryCount = 0
+    do {
+      console.log('confirmContribution entry... retryCount=', retryCount)
+      const contribution = await DbContribution.findOne(id)
+      if (!contribution) {
+        logger.error(`Contribution not found for given id: ${id}`)
+        throw new Error('Contribution not found to given id.')
       }
-      newBalance = newBalance.add(contribution.amount.toString())
+      const moderatorUser = getUser(context)
+      if (moderatorUser.id === contribution.userId) {
+        logger.error('Moderator can not confirm own contribution')
+        throw new Error('Moderator can not confirm own contribution')
+      }
+      const user = await dbUser.findOneOrFail(
+        { id: contribution.userId },
+        { withDeleted: true, relations: ['emailContact'] },
+      )
+      if (user.deletedAt) {
+        logger.error('This user was deleted. Cannot confirm a contribution.')
+        throw new Error('This user was deleted. Cannot confirm a contribution.')
+      }
+      const creations = await getUserCreation(contribution.userId, false)
+      validateContribution(creations, contribution.amount, contribution.contributionDate)
 
-      const transaction = new DbTransaction()
-      transaction.typeId = TransactionTypeId.CREATION
-      transaction.memo = contribution.memo
-      transaction.userId = contribution.userId
-      transaction.previous = lastTransaction ? lastTransaction.id : null
-      transaction.amount = contribution.amount
-      transaction.creationDate = contribution.contributionDate
-      transaction.balance = newBalance
-      transaction.balanceDate = receivedCallDate
-      transaction.decay = decay ? decay.decay : new Decimal(0)
-      transaction.decayStart = decay ? decay.start : null
-      await queryRunner.manager.insert(DbTransaction, transaction)
+      const receivedCallDate = new Date()
 
-      contribution.confirmedAt = receivedCallDate
-      contribution.confirmedBy = moderatorUser.id
-      contribution.transactionId = transaction.id
-      contribution.contributionStatus = ContributionStatus.CONFIRMED
-      await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+      const queryRunner = getConnection().createQueryRunner()
+      await queryRunner.connect()
+      await queryRunner.startTransaction('SERIALIZABLE') // 'REPEATABLE READ') // 'READ COMMITTED')
+      // console.log('startTransaction(SERIALIZABLE)...')
+      try {
+        const lastTransaction = await queryRunner.manager
+          .createQueryBuilder()
+          .select('transaction')
+          .from(DbTransaction, 'transaction')
+          .where('transaction.userId = :id', { id: contribution.userId })
+          .orderBy('transaction.balanceDate', 'DESC')
+          .getOne()
+        logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
+        // console.log('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
-      await queryRunner.commitTransaction()
-      logger.info('creation commited successfuly.')
-      sendContributionConfirmedEmail({
-        senderFirstName: moderatorUser.firstName,
-        senderLastName: moderatorUser.lastName,
-        recipientFirstName: user.firstName,
-        recipientLastName: user.lastName,
-        recipientEmail: user.emailContact.email,
-        contributionMemo: contribution.memo,
-        contributionAmount: contribution.amount,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      })
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      logger.error(`Creation was not successful: ${e}`)
-      throw new Error(`Creation was not successful.`)
-    } finally {
-      await queryRunner.release()
-    }
+        let newBalance = new Decimal(0)
+        let decay: Decay | null = null
+        if (lastTransaction) {
+          decay = calculateDecay(
+            lastTransaction.balance,
+            lastTransaction.balanceDate,
+            receivedCallDate,
+          )
+          newBalance = decay.balance
+        }
+        newBalance = newBalance.add(contribution.amount.toString())
+
+        const transaction = new DbTransaction()
+        transaction.typeId = TransactionTypeId.CREATION
+        transaction.memo = contribution.memo
+        transaction.userId = contribution.userId
+        transaction.previous = lastTransaction ? lastTransaction.id : null
+        transaction.amount = contribution.amount
+        transaction.creationDate = contribution.contributionDate
+        transaction.balance = newBalance
+        transaction.balanceDate = receivedCallDate
+        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decayStart = decay ? decay.start : null
+        await queryRunner.manager.insert(DbTransaction, transaction)
+        // console.log('Transaction inserted:', transaction)
+
+        contribution.confirmedAt = receivedCallDate
+        contribution.confirmedBy = moderatorUser.id
+        contribution.transactionId = transaction.id
+        contribution.contributionStatus = ContributionStatus.CONFIRMED
+        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+        // console.log('Contribution updated:', contribution)
+
+        await queryRunner.commitTransaction()
+        // console.log('commitTransaction...')
+        logger.info('creation commited successfuly.')
+        sendContributionConfirmedEmail({
+          senderFirstName: moderatorUser.firstName,
+          senderLastName: moderatorUser.lastName,
+          recipientFirstName: user.firstName,
+          recipientLastName: user.lastName,
+          recipientEmail: user.emailContact.email,
+          contributionMemo: contribution.memo,
+          contributionAmount: contribution.amount,
+          overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+        })
+        retryCount = 3
+      } catch (e) {
+        await queryRunner.rollbackTransaction()
+        // console.log(`rollbackTransaction...: ${e}`)
+        logger.error(`Creation was not successful: ${e}`)
+        if (retryCount < 3) {
+          retryCount++
+        } else {
+          throw new Error(`Creation was not successful: ${e}`)
+        }
+      } finally {
+        await queryRunner.release()
+      }
+    } while (retryCount < 3)
+
+    // console.log('confirmContribution finished...')
     return true
   }
 
