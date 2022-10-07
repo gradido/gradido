@@ -219,12 +219,12 @@ describe('TransactionLink', () => {
 
     describe('token in store', () => {
       beforeAll(() => {
-        mocks.$store.state.token = jwt.sign({ data: 'test' }, 'secret', { expiresIn: '1h' });
+        mocks.$store.state.token = jwt.sign({ data: 'test' }, 'secret', { expiresIn: '1h' })
       })
 
       describe('sufficient token time in store', () => {
         beforeAll(() => {
-          mocks.$store.state.tokenTime = jwtDecode(mocks.$store.state.token).exp // TODO set a sufficient token Time
+          mocks.$store.state.tokenTime = jwtDecode(mocks.$store.state.token).exp
         })
 
         describe('own link', () => {
@@ -235,7 +235,8 @@ describe('TransactionLink', () => {
                   __typename: 'TransactionLink',
                   id: 92,
                   amount: '22',
-                  memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                   createdAt: '2022-03-17T16:10:28.000Z',
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
@@ -270,7 +271,8 @@ describe('TransactionLink', () => {
                   __typename: 'TransactionLink',
                   id: 92,
                   amount: '22',
-                  memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                   createdAt: '2022-03-17T16:10:28.000Z',
                   validUntil: transactionLinkValidExpireDate(),
                   redeemedAt: null,
@@ -346,7 +348,8 @@ describe('TransactionLink', () => {
                 __typename: 'TransactionLink',
                 id: 92,
                 amount: '22',
-                memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                memo:
+                  'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
                 createdAt: '2022-03-17T16:10:28.000Z',
                 validUntil: transactionLinkValidExpireDate(),
                 redeemedAt: null,
