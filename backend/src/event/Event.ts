@@ -66,6 +66,9 @@ export class EventTransactionCreation extends EventBasicTx {}
 export class EventTransactionReceive extends EventBasicTxX {}
 export class EventTransactionReceiveRedeem extends EventBasicTxX {}
 export class EventContributionCreate extends EventBasicCt {}
+export class EventAdminContributionCreate extends EventBasicCt {}
+export class EventAdminContributionDelete extends EventBasicCt {}
+export class EventAdminContributionUpdate extends EventBasicCt {}
 export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
 export class EventAdminCreateContributionMessage extends EventBasicCtMsg {}
 export class EventContributionDelete extends EventBasicCt {}
@@ -293,6 +296,27 @@ export class Event {
   public setEventContributionCreate(ev: EventContributionCreate): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_CREATE
+
+    return this
+  }
+
+  public setEventAdminContributionCreate(ev: EventAdminContributionCreate): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_CONTRIBUTION_CREATE
+
+    return this
+  }
+
+  public setEventAdminContributionDelete(ev: EventAdminContributionDelete): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_CONTRIBUTION_DELETE
+
+    return this
+  }
+
+  public setEventAdminContributionUpdate(ev: EventAdminContributionUpdate): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_CONTRIBUTION_UPDATE
 
     return this
   }
