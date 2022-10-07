@@ -318,14 +318,14 @@ export class Event {
   }
 
   public setEventContributionConfirm(ev: EventContributionConfirm): Event {
-    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
+    this.setByBasicCtX(ev.userId, ev.contributionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.CONTRIBUTION_CONFIRM
 
     return this
   }
 
   public setEventContributionDeny(ev: EventContributionDeny): Event {
-    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
+    this.setByBasicCtX(ev.userId, ev.contributionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.CONTRIBUTION_DENY
 
     return this
