@@ -9,6 +9,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // define datetime column with a precision of 3 milliseconds
+  // ----- contributions table
   await queryFn(
     'ALTER TABLE `contributions` MODIFY COLUMN `created_at` datetime(3) NULL DEFAULT NULL AFTER `user_id`;',
   )
@@ -24,8 +25,20 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     'ALTER TABLE `contributions` MODIFY COLUMN `deleted_at` datetime(3) NULL DEFAULT NULL AFTER `contribution_status`;',
   )
+  await queryFn(
+    'CREATE INDEX contributions_user_id_IDX USING BTREE ON gradido_community.contributions (user_id);',
+  )
+  await queryFn(
+    'CREATE INDEX contributions_transaction_id_IDX USING BTREE ON gradido_community.contributions (transaction_id);',
+  )
+  await queryFn(
+    'CREATE INDEX contributions_contribution_link_id_IDX USING BTREE ON gradido_community.contributions (contribution_link_id);',
+  )
+  await queryFn(
+    'CREATE INDEX contributions_moderator_id_IDX USING BTREE ON gradido_community.contributions (moderator_id);',
+  )
 
-
+  // ----- transactions table
   await queryFn(
     'ALTER TABLE `transactions` MODIFY COLUMN `balance_date` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER `balance`;',
   )
@@ -34,6 +47,21 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
   await queryFn(
     'ALTER TABLE `transactions` MODIFY COLUMN `creation_date` datetime(3) NULL DEFAULT NULL AFTER `memo`;',
+  )
+  await queryFn(
+    'CREATE INDEX transactions_user_id_IDX USING BTREE ON gradido_community.transactions (user_id);',
+  )
+  await queryFn(
+    'CREATE INDEX transactions_linked_user_id_IDX USING BTREE ON gradido_community.transactions (linked_user_id);',
+  )
+  await queryFn(
+    'CREATE INDEX transactions_linked_transaction_id_IDX USING BTREE ON gradido_community.transactions (linked_transaction_id);',
+  )
+  await queryFn(
+    'CREATE INDEX transactions_transaction_link_id_IDX USING BTREE ON gradido_community.transactions (transaction_link_id);',
+  )
+  await queryFn(
+    'CREATE INDEX transactions_balance_date_IDX USING BTREE ON gradido_community.transactions (balance_date);',
   )
 
   /**
@@ -70,6 +98,11 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(
     'ALTER TABLE `contributions` MODIFY COLUMN `deleted_at` datetime NULL DEFAULT NULL AFTER `contribution_status`;',
   )
+  await queryFn('ALTER TABLE `contributions` DROP INDEX contributions_user_id_IDX;')
+  await queryFn('ALTER TABLE `contributions` DROP INDEX contributions_transaction_id_IDX;')
+  await queryFn('ALTER TABLE `contributions` DROP INDEX contributions_contribution_link_id_IDX;')
+  await queryFn('ALTER TABLE `contributions` DROP INDEX contributions_moderator_id_IDX;')
+
   // ----- transactions table
   await queryFn(
     'ALTER TABLE `transactions` MODIFY COLUMN `balance_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `balance`;',
@@ -79,5 +112,16 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn(
     'ALTER TABLE `transactions` MODIFY COLUMN `creation_date` datetime NULL DEFAULT NULL AFTER `memo`;',
+  )
+  await queryFn('ALTER TABLE `transactions` DROP INDEX transactions_user_id_IDX;')
+  await queryFn('ALTER TABLE `transactions` DROP INDEX transactions_linked_user_id_IDX;')
+  await queryFn('ALTER TABLE `transactions` DROP INDEX transactions_linked_transaction_id_IDX;')
+  await queryFn('ALTER TABLE `transactions` DROP INDEX transactions_transaction_link_id_IDX;')
+  await queryFn('ALTER TABLE `transactions` DROP INDEX transactions_balance_date_IDX;')
+
+
+
+  await queryFn(
+    'ALTER TABLE gradido_community.transactions DROP INDEX transactions_balance_date_IDX;',
   )
 }
