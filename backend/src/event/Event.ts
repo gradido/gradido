@@ -74,6 +74,14 @@ export class EventContributionConfirm extends EventBasicCtX {}
 export class EventContributionDeny extends EventBasicCtX {}
 export class EventContributionLinkDefine extends EventBasicCt {}
 export class EventContributionLinkActivateRedeem extends EventBasicCt {}
+export class EventDeleteUser extends EventBasicUserId {}
+export class EventUndeleteUser extends EventBasicUserId {}
+export class EventChangeUserRole extends EventBasicUserId {}
+export class EventAdminUpdateContribution extends EventBasicCt {}
+export class EventAdminDeleteContribution extends EventBasicCt {}
+export class EventCreateContributionLink extends EventBasicCt {}
+export class EventDeleteContributionLink extends EventBasicCt {}
+export class EventUpdateContributionLink extends EventBasicCt {}
 
 export class Event {
   constructor()
@@ -318,14 +326,14 @@ export class Event {
   }
 
   public setEventContributionConfirm(ev: EventContributionConfirm): Event {
-    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
+    this.setByBasicCtX(ev.userId, ev.contributionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.CONTRIBUTION_CONFIRM
 
     return this
   }
 
   public setEventContributionDeny(ev: EventContributionDeny): Event {
-    this.setByBasicCtX(ev.userId, ev.xUserId, ev.xCommunityId, ev.contributionId, ev.amount)
+    this.setByBasicCtX(ev.userId, ev.contributionId, ev.amount, ev.xUserId, ev.xCommunityId)
     this.type = EventProtocolType.CONTRIBUTION_DENY
 
     return this
@@ -341,6 +349,62 @@ export class Event {
   public setEventContributionLinkActivateRedeem(ev: EventContributionLinkActivateRedeem): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM
+
+    return this
+  }
+
+  public setEventDeleteUser(ev: EventDeleteUser): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.DELETE_USER
+
+    return this
+  }
+
+  public setEventUndeleteUser(ev: EventUndeleteUser): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.UNDELETE_USER
+
+    return this
+  }
+
+  public setEventChangeUserRole(ev: EventChangeUserRole): Event {
+    this.setByBasicUser(ev.userId)
+    this.type = EventProtocolType.CHANGE_USER_ROLE
+
+    return this
+  }
+
+  public setEventAdminUpdateContribution(ev: EventAdminUpdateContribution): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_UPDATE_CONTRIBUTION
+
+    return this
+  }
+
+  public setEventAdminDeleteContribution(ev: EventAdminDeleteContribution): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.ADMIN_DELETE_CONTRIBUTION
+
+    return this
+  }
+
+  public setEventCreateContributionLink(ev: EventCreateContributionLink): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.CREATE_CONTRIBUTION_LINK
+
+    return this
+  }
+
+  public setEventDeleteContributionLink(ev: EventDeleteContributionLink): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.DELETE_CONTRIBUTION_LINK
+
+    return this
+  }
+
+  public setEventUpdateContributionLink(ev: EventUpdateContributionLink): Event {
+    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
+    this.type = EventProtocolType.UPDATE_CONTRIBUTION_LINK
 
     return this
   }
