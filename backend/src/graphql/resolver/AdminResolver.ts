@@ -69,8 +69,10 @@ import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributio
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
+  EventAdminContributionCreate,
+  EventAdminContributionDelete,
+  EventAdminContributionUpdate,
   EventContributionConfirm,
-  EventContributionCreate,
   EventSendConfirmationEmail,
 } from '@/event/Event'
 
@@ -278,11 +280,13 @@ export class AdminResolver {
     logger.trace('contribution to save', contribution)
     await Contribution.save(contribution)
 
-    const eventCreateContribution = new EventContributionCreate()
-    eventCreateContribution.userId = moderator.id
-    eventCreateContribution.amount = amount
-    eventCreateContribution.contributionId = contribution.id
-    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+    const eventAdminCreateContribution = new EventAdminContributionCreate()
+    eventAdminCreateContribution.userId = moderator.id
+    eventAdminCreateContribution.amount = amount
+    eventAdminCreateContribution.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionCreate(eventAdminCreateContribution),
+    )
 
     return getUserCreation(emailContact.userId)
   }
@@ -382,6 +386,15 @@ export class AdminResolver {
 
     result.creation = await getUserCreation(user.id)
 
+    const event = new Event()
+    const eventAdminContributionUpdate = new EventAdminContributionUpdate()
+    eventAdminContributionUpdate.userId = user.id
+    eventAdminContributionUpdate.amount = amount
+    eventAdminContributionUpdate.contributionId = contributionToUpdate.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
+    )
+
     return result
   }
 
@@ -431,6 +444,16 @@ export class AdminResolver {
     contribution.contributionStatus = ContributionStatus.DELETED
     await contribution.save()
     const res = await contribution.softRemove()
+
+    const event = new Event()
+    const eventAdminContributionDelete = new EventAdminContributionDelete()
+    eventAdminContributionDelete.userId = contribution.userId
+    eventAdminContributionDelete.amount = contribution.amount
+    eventAdminContributionDelete.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionDelete(eventAdminContributionDelete),
+    )
+
     return !!res
   }
 

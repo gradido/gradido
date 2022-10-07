@@ -1121,10 +1121,10 @@ describe('AdminResolver', () => {
                 )
               })
 
-              it('stores the create contribution event in the database', async () => {
+              it('stores the admin create contribution event in the database', async () => {
                 await expect(EventProtocol.find()).resolves.toContainEqual(
                   expect.objectContaining({
-                    type: EventProtocolType.CONTRIBUTION_CREATE,
+                    type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
                     userId: admin.id,
                   }),
                 )
@@ -1376,6 +1376,15 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('stores the admin update contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
+                  userId: admin.id,
+                }),
+              )
+            })
           })
 
           describe('creation update is successful without changing month', () => {
@@ -1401,6 +1410,15 @@ describe('AdminResolver', () => {
                       creation: ['1000', '1000', '300'],
                     },
                   },
+                }),
+              )
+            })
+
+            it('stores the admin update contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
+                  userId: admin.id,
                 }),
               )
             })
@@ -1502,6 +1520,15 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: { adminDeleteContribution: true },
+                }),
+              )
+            })
+
+            it('stores the admin  delete contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
+                  userId: admin.id,
                 }),
               )
             })
