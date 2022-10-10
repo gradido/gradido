@@ -39,6 +39,7 @@ const createServer = async (
   context: any = serverContext,
   logger: Logger = apolloLogger,
 ): Promise<ServerDef> => {
+  logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
   // open mysql connection

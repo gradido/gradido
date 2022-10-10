@@ -53,8 +53,8 @@ describe('ContributionMessagesListItem', () => {
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(3)').text()).toBe(
-          'Mon Aug 29 2022 12:23:27 GMT+0000 (Coordinated Universal Time)',
+        expect(wrapper.find('div.text-right.is-moderator > span:nth-child(3)').text()).toMatch(
+          'Mon Aug 29 2022 12:23:27 GMT+0000',
         )
       })
 
@@ -113,8 +113,8 @@ describe('ContributionMessagesListItem', () => {
       })
 
       it('has the message creation date', () => {
-        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(3)').text()).toBe(
-          'Mon Aug 29 2022 12:25:34 GMT+0000 (Coordinated Universal Time)',
+        expect(wrapper.find('div.is-not-moderator.text-left > span:nth-child(3)').text()).toMatch(
+          'Mon Aug 29 2022 12:25:34 GMT+0000',
         )
       })
 
