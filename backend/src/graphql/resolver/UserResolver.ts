@@ -18,7 +18,6 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { OptInType } from '@enum/OptInType'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-// Wolle: import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
 import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -430,12 +429,11 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user=' + user)
 
-        // Wolle: console.log('createUser !!! already exists …')
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const emailSent = await sendAccountMultiRegistrationEmail({
           firstName,
           lastName,
           email,
+          language,
         })
         const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
         eventSendAccountMultiRegistrationEmail.userId = foundUser.id

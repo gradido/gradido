@@ -1,6 +1,8 @@
 import { backendLogger as logger } from '@/server/logger'
+import path from 'path'
 import { createTransport } from 'nodemailer'
 import Email from 'email-templates'
+import i18n from 'i18n'
 
 import CONFIG from '@/config'
 
@@ -10,21 +12,15 @@ export const sendEmailTranslated = async (params: {
     cc?: string
   }
   template: string
-  locals: Record<string, unknown>
+  locals: Record<string, string>
 }): Promise<boolean> => {
-  // Wolle: logger.info(
-  //   `send Email: to=${params.receiver.to}` +
-  //     (params.receiver.cc ? `, cc=${params.receiver.cc}` : '') +
-  //     `, subject=${params.locals.subject}, text=${params.text}`,
-  // )
+  i18n.setLocale(params.locals.locale)
+
   logger.info(
     `send Email: to=${params.receiver.to}` +
       (params.receiver.cc ? `, cc=${params.receiver.cc}` : '') +
-      `, subject=${params.locals.subject}`,
+      `, subject=${i18n.__('emails.' + params.template + '.subject')}`,
   )
-  // Wolle: console.log('sendEmailTranslated !!!')
-  // Wolle: 
-  console.log('params: ', params)
 
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
@@ -53,44 +49,25 @@ export const sendEmailTranslated = async (params: {
     },
     // uncomment below to send emails in development/test env:
     // send: true,
-    // Wolle: transport: {
+    // transport: {
     //   jsonTransport: true,
     // },
     transport,
     // uncomment below to open send emails in the browser
-    // Wolle:
     // preview: {
     //   open: {
     //     app: 'firefox',
     //     wait: false,
     //   },
     // },
-    i18n: {
-      locales: ['en', 'de'],
-      directory: '/app/src/locales',
-      defaultLocale: 'en',
-    },
+    // i18n,
   })
 
   email
     .send({
-      template: '/app/src/emails/' + params.template,
-      message: {
-        ...params.receiver,
-      },
-      // Wolle: locals: params.locals,
-      locals: {
-        ...params.locals,
-        locale: 'de',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        $t(key: any, options: any) {
-          // <------ THIS IS OUR OWN TRANSLATION HELPER
-          return options.data.root.t(
-            { phrase: key, locale: options.data.root.locale },
-            options.hash,
-          )
-        },
-     },
+      template: path.join(__dirname, params.template),
+      message: params.receiver,
+      locals: params.locals,
     })
     .then((result: unknown) => {
       logger.info('Send email successfully.')

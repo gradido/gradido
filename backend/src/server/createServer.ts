@@ -26,7 +26,8 @@ import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
 // i18n
-// Wolle: import { I18n } from 'i18n'
+import path from 'path'
+import i18n from 'i18n'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -65,6 +66,31 @@ const createServer = async (
   // bodyparser urlencoded for elopage
   app.use(express.urlencoded({ extended: true }))
 
+  // i18n
+  app.use(i18n.init)
+  i18n.configure({
+    locales: ['en', 'de'],
+    defaultLocale: 'en',
+    retryInDefaultLocale: false,
+    directory: path.join(__dirname, '..', 'locales'),
+    autoReload: true,
+    updateFiles: false,
+    objectNotation: true,
+    // logDebugFn: logger.debug,
+    // logWarnFn: logger.info,
+    // logErrorFn: logger.error,
+    api: {
+      __: 't', // now req.__ becomes req.t
+      __n: 'tn', // and req.__n can be called as req.tn
+    },
+    register: global,
+    mustacheConfig: {
+      tags: ['{', '}'],
+      disable: false,
+    },
+  })
+  i18n.setLocale('en')
+
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
@@ -82,54 +108,6 @@ const createServer = async (
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
   )
   logger.debug('createServer...successful')
-
-  // i18n
-  // const i18n = new I18n({
-  //   locales: ['en', 'de'],
-  //   directory: '/app/src/locales',
-  // })
-  // Wolle: const i18n = new I18n({
-  //   // phrases: {},
-  //   logDebugFn: logger.debug,
-  //   logWarnFn: logger.info,
-  //   logErrorFn: logger.error,
-  //   directory: '/app/src/locales',
-  //   locales: ['en', 'de'],
-  //   // cookie: 'locale',
-  //   // cookieOptions: {
-  //   //   // Disable signed cookies in NODE_ENV=test
-  //   //   signed: process.env.NODE_ENV !== 'test'
-  //   // },
-  //   // expiryMs: 31556952000, // one year in ms
-  //   // indent: '  ',
-  //   // defaultLocale: 'en',
-  //   // // `process.env.I18N_SYNC_FILES`
-  //   // syncFiles: true,
-  //   // // `process.env.I18N_AUTO_RELOAD`
-  //   // autoReload: false,
-  //   // // `process.env.I18N_UPDATE_FILES`
-  //   // updateFiles: true,
-  //   // api: {
-  //   //   __: 't',
-  //   //   __n: 'tn',
-  //   //   __l: 'tl',
-  //   //   __h: 'th',
-  //   //   __mf: 'tmf'
-  //   // },
-  //   // register: i18n.api,
-  //   // lastLocaleField: 'last_locale',
-  //   // ignoredRedirectGlobs: [],
-  //   // redirectIgnoresNonGetMethods: true,
-  //   // // <https://github.com/ljharb/qs>
-  //   // stringify: {
-  //   //   addQueryPrefix: true,
-  //   //   format: 'RFC1738',
-  //   //   arrayFormat: 'indices'
-  //   // },
-  //   // redirectTLDS: true,
-  //   // // function that allows using a custom logic for locale detection (can return promise)
-  //   // detectLocale: null
-  // })
 
   return { apollo, app, con }
 }
