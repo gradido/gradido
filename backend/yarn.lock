@@ -972,6 +972,11 @@
   resolved "https://registry.yarnpkg.com/@types/http-errors/-/http-errors-1.8.1.tgz#e81ad28a60bee0328c6d2384e029aec626f1ae67"
   integrity sha512-e+2rjEwK6KDaNOm5Aa9wNGgyS9oSZU/4pfSMMPYNOfjvFI0WVXm29+ITRFr6aKDvvKo7uU1jV68MW4ScsfDi7Q==
 
+"@types/i18n@^0.13.4":
+  version "0.13.4"
+  resolved "https://registry.yarnpkg.com/@types/i18n/-/i18n-0.13.4.tgz#fe3d27d08337f9d4a972d1f460d1471d6f79e163"
+  integrity sha512-PN4ZsplbpHZ2eaYixFNWkZKN51pcB02K2UKvqHVbrzq2jTO0sChPMuKKYAW1ZbElyHUvPgFeYsz9rqktChGyMw==
+
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.3.tgz#4ba8ddb720221f432e443bd5f9117fd22cfd4762"
@@ -3419,6 +3424,18 @@ i18n@^0.15.0:
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/i18n/-/i18n-0.15.0.tgz#dca7a498a4371874db01f6610381a412897306eb"
   integrity sha512-TUOkuFbl8Y/q7zF0tHdtpk1/TtxH0T+Drp2NFrHhmN1Qs0Sob9/0uVLS2BPVkEXNh2jZrimOiFJk+tkaOumzog==
+  dependencies:
+    "@messageformat/core" "^3.0.0"
+    debug "^4.3.3"
+    fast-printf "^1.6.9"
+    make-plural "^7.0.0"
+    math-interval-parser "^2.0.1"
+    mustache "^4.2.0"
+
+i18n@^0.15.1:
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/i18n/-/i18n-0.15.1.tgz#68fb8993c461cc440bc2485d82f72019f2b92de8"
+  integrity sha512-yue187t8MqUPMHdKjiZGrX+L+xcUsDClGO0Cz4loaKUOK9WrGw5pgan4bv130utOwX7fHE9w2iUeHFalVQWkXA==
   dependencies:
     "@messageformat/core" "^3.0.0"
     debug "^4.3.3"

@@ -3,9 +3,10 @@ html(lang="en")
   head
     title= subject
   body
-    h1(style='margin-bottom: 24px;') Gradido: Erneuter Registrierungsversuch mit deiner E-Mail
+    h1(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.subject')
     #container.col
-      p(style='margin-bottom: 24px;') Hallo #{firstName} #{lastName},
+      //- p(style='margin-bottom: 24px;') Hallo #{firstName} #{lastName},
+      p(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.helloName', { firstName, lastName })
       p Deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.
         br
         | Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.

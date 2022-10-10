@@ -23,7 +23,8 @@ export const sendEmailTranslated = async (params: {
       `, subject=${params.locals.subject}`,
   )
   // Wolle: console.log('sendEmailTranslated !!!')
-  // Wolle: console.log('params: ', params)
+  // Wolle: 
+  console.log('params: ', params)
 
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
@@ -64,6 +65,11 @@ export const sendEmailTranslated = async (params: {
     //     wait: false,
     //   },
     // },
+    i18n: {
+      locales: ['en', 'de'],
+      directory: '/app/src/locales',
+      defaultLocale: 'en',
+    },
   })
 
   email
@@ -73,7 +79,18 @@ export const sendEmailTranslated = async (params: {
         ...params.receiver,
       },
       // Wolle: locals: params.locals,
-      locals: { ...params.locals, locale: 'de' },
+      locals: {
+        ...params.locals,
+        locale: 'de',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        $t(key: any, options: any) {
+          // <------ THIS IS OUR OWN TRANSLATION HELPER
+          return options.data.root.t(
+            { phrase: key, locale: options.data.root.locale },
+            options.hash,
+          )
+        },
+     },
     })
     .then((result: unknown) => {
       logger.info('Send email successfully.')
