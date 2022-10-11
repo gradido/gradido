@@ -1792,13 +1792,14 @@ describe('AdminResolver', () => {
   })
 
   describe('Contribution Links', () => {
+    const now = new Date()
     const variables = {
       amount: new Decimal(200),
       name: 'Dokumenta 2022',
       memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
       cycle: 'once',
       validFrom: new Date(2022, 5, 18).toISOString(),
-      validTo: new Date(2022, 7, 14).toISOString(),
+      validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
       maxAmountPerMonth: new Decimal(200),
       maxPerCycle: 1,
     }
@@ -1980,7 +1981,7 @@ describe('AdminResolver', () => {
                 name: 'Dokumenta 2022',
                 memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
                 validFrom: new Date('2022-06-18T00:00:00.000Z'),
-                validTo: new Date('2022-08-14T00:00:00.000Z'),
+                validTo: expect.any(Date),
                 cycle: 'once',
                 maxPerCycle: 1,
                 totalMaxCountOfContribution: null,
