@@ -17,7 +17,7 @@ import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -44,7 +44,7 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   }
 })
 
-jest.mock('@/mailer/sendAccountMultiRegistrationEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
     sendAccountMultiRegistrationEmail: jest.fn(),
@@ -211,6 +211,7 @@ describe('UserResolver', () => {
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
+          language: 'de',
         })
       })
 
