@@ -170,17 +170,21 @@ describe('ContributionResolver', () => {
       })
 
       describe('valid input', () => {
+        let contribution: any
+
+        beforeAll(async () => {
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+        })
+
         it('creates contribution', async () => {
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
+          expect(contribution).toEqual(
             expect.objectContaining({
               data: {
                 createContribution: {
@@ -197,6 +201,8 @@ describe('ContributionResolver', () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
+              // amount: '100', FAILS even though it is stored correctly in the database, event has 100 stored
+              contributionId: contribution.data.createContribution.id,
               userId: bibi.data.login.id,
             }),
           )
@@ -592,10 +598,17 @@ describe('ContributionResolver', () => {
         })
 
         it('stores the update contribution event in the database', async () => {
+          bibi = await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_UPDATE,
+              // amount: '10', FAILS even though it is stored correctly in the database, it is 10 in the event
               contributionId: result.data.createContribution.id,
+              userId: bibi.data.login.id,
             }),
           )
         })
@@ -705,9 +718,10 @@ describe('ContributionResolver', () => {
     })
 
     describe('authenticated', () => {
+      let peter: any
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
+        peter = await userFactory(testEnv, peterLustig)
         await query({
           query: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -806,6 +820,8 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_DELETE,
               contributionId: contribution.data.createContribution.id,
+              // amount: '166', FAILS even though it is stored correctly in the database, it is 166 in the event
+              userId: peter.id,
             }),
           )
         })
