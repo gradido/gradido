@@ -60,7 +60,7 @@ export const sendEmailTranslated = async (params: {
     //     wait: false,
     //   },
     // },
-    // i18n,
+    // i18n, // seems not to be needed
   })
 
   email

@@ -74,7 +74,7 @@ const createServer = async (
     defaultLocale: 'en',
     retryInDefaultLocale: false,
     directory: path.join(__dirname, '..', 'locales'),
-    autoReload: true,
+    // autoReload: true, // if this is activated the seeding hangs at the very end
     updateFiles: false,
     objectNotation: true,
     // logDebugFn: logger.debug,
