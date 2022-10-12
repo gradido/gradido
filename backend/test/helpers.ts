@@ -48,8 +48,19 @@ export const resetToken = () => {
   context.token = ''
 }
 
-export const setClientRequestTime = (tm: Date) => {
-  context.clientRequestTime = tm.toISOString()
+export const setClientRequestTime = (stringDate: string, timeZone: string) => {
+  const feTime = timeZoneTransformer(stringDate, timeZone).fromUtc
+  console.log('feTime=', feTime)
+  const beTime = timeZoneTransformer(stringDate, timeZone).toUtc
+  console.log('beTime=', beTime)
+
+  console.log('timezoneOffset=', timezoneOffset(timeZone))
+
+  const fe2beTime = timeZoneTransformer(feTime, timeZone).toUtc
+  console.log('fe2beTime=', beTime)
+
+
+  context.clientRequestTime = feTime
 }
 
 export const getClientRequestTime = (): string => {
@@ -59,3 +70,52 @@ export const getClientRequestTime = (): string => {
 export const resetClientRequestTime = () => {
   context.clientRequestTime = ''
 }
+
+const timeZoneTransformer = (stringDate: string, timeZone: string) => {
+  console.log('timeZoneTransformer:', stringDate, timeZone)
+  const now = new Date()
+  console.log('now', now.toISOString())
+  const serverDate = new Date(stringDate)
+  console.log('serverDate=', serverDate.toISOString())
+  const utcDate = new Date(
+    Date.UTC(
+      serverDate.getFullYear(),
+      serverDate.getMonth(),
+      serverDate.getDate(),
+      serverDate.getHours(),
+      serverDate.getMinutes(),
+      serverDate.getSeconds(),
+    ),
+  )
+  console.log('utcDate=', utcDate.toISOString())
+  const invdate = new Date(serverDate.toLocaleString('en-US', { timeZone })) // 'en-US'
+  console.log('invdate=', invdate.toISOString())
+  const diff = now.getTime() - invdate.getTime()
+  console.log('diff=', diff)
+  const adjustedDate = new Date(now.getTime() - diff)
+  console.log('now.getTime - diff', now.getTime(), diff)
+  console.log('adjustedDate=', adjustedDate.toISOString())
+  console.log('toUTC=', utcDate.toISOString())
+  console.log('fromUTC=', adjustedDate.toISOString())
+  return {
+    toUtc: utcDate.toISOString(),
+    fromUtc: adjustedDate.toISOString(),
+  }
+}
+
+const timezoneOffset = (timeZone: string, date = new Date()) => {
+  const localDate = date.toLocaleString('fr', { timeZone, timeZoneName: 'long' })
+  const tz = localDate.split(' ')
+  const TZ = localDate.replace(tz[0], '').replace(tz[1], '').replace(' ', '')
+  const dateString = date.toString()
+  const offset =
+    (Date.parse(`${dateString} UTC`) - Date.parse(`${dateString}${TZ}`)) / (3600 * 1000)
+  return offset
+}
+
+/*
+const fromUtc = timeZoneTransformer('2020-10-10T08:00:00.000', 'Europe/Paris').fromUtc
+console.log(fromUtc)
+const toUtc = timeZoneTransformer(fromUtc, 'Europe/Paris').toUtc
+console.log(toUtc)
+*/

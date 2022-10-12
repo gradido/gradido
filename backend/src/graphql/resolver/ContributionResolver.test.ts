@@ -201,10 +201,14 @@ describe('ContributionResolver', () => {
         // create one contribution with 100GDD for bibi one month ago in the past
         await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
         // set clientRequestTime at the 1st day of the next month against the backend time
-        const clientRequestTime = new Date()
+        // const local = Intl.Locale // supportedValuesOf()
+        const timezone = Intl.DateTimeFormat() // 'en-US', { timeZone: 'America/Denver' }) // .resolvedOptions().timeZone
+        console.log('timezone=', timezone)
+        const clientRequestTime = new Date(timezone.format(new Date()))
+        console.log('clientRequestTime=', clientRequestTime.toLocaleString())
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
-        setClientRequestTime(clientRequestTime)
+        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
@@ -348,7 +352,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime)
+        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
@@ -492,7 +496,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime)
+        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         const creationDate = new Date()
