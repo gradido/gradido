@@ -1990,7 +1990,7 @@ describe('AdminResolver', () => {
                 deletedAt: null,
                 code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                 linkEnabled: true,
-                // amount: '200',
+                amount: expect.decimalEqual(200),
                 // maxAmountPerMonth: '200',
               }),
             )
