@@ -7,16 +7,16 @@ export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   if (!con) {
     throw new Error('No connection to database')
   }
-  const users = await User.find()
+  const users = await User.find({ relations: ['emailContact'] })
   const notRegisteredUser = []
   for (let i = 0; i < users.length; i++) {
     const user = users[i]
     try {
-      await getKlickTippUser(user.email)
+      await getKlickTippUser(user.emailContact.email)
     } catch (err) {
-      notRegisteredUser.push(user.email)
+      notRegisteredUser.push(user.emailContact.email)
       // eslint-disable-next-line no-console
-      console.log(`${user.email}`)
+      console.log(`${user.emailContact.email}`)
     }
   }
   await con.close()

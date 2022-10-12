@@ -1126,7 +1126,9 @@ describe('AdminResolver', () => {
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
-                  errors: [new GraphQLError('Could not find user with email: bob@baumeister.de')],
+                  errors: [
+                    new GraphQLError('Could not find UserContact with email: bob@baumeister.de'),
+                  ],
                 }),
               )
             })
@@ -1516,6 +1518,7 @@ describe('AdminResolver', () => {
               )
               await expect(r2).resolves.toEqual(
                 expect.objectContaining({
+                  // data: { confirmContribution: true },
                   errors: [new GraphQLError('Creation was not successful.')],
                 }),
               )

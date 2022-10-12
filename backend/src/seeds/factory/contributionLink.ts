@@ -10,7 +10,11 @@ export const contributionLinkFactory = async (
   const { mutate } = client
 
   // login as admin
-  await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const user = await mutate({
+    mutation: login,
+    variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+  })
 
   const variables = {
     amount: contributionLink.amount,
