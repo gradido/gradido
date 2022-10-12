@@ -28,23 +28,16 @@
 </template>
 
 <script>
+import { authLinks } from '../../mixins/authLinks'
+
 export default {
   name: 'AuthNavbar',
+  mixins: [authLinks],
   data() {
     return {
       logo: '/img/brand/green.png',
       sheet: '/img/template/Blaetter.png',
     }
-  },
-  computed: {
-    login() {
-      if (this.$route.params.code) return '/login/' + this.$route.params.code
-      return '/login'
-    },
-    register() {
-      if (this.$route.params.code) return '/register/' + this.$route.params.code
-      return '/register'
-    },
   },
 }
 </script>

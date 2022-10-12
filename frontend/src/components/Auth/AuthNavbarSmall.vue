@@ -11,18 +11,11 @@
 </template>
 
 <script>
+import { authLinks } from '../../mixins/authLinks'
+
 export default {
   name: 'AuthNavbarSmall',
-  computed: {
-    login() {
-      if (this.$route.params.code) return '/login/' + this.$route.params.code
-      return '/login'
-    },
-    register() {
-      if (this.$route.params.code) return '/register/' + this.$route.params.code
-      return '/register'
-    },
-  },
+  mixins: [authLinks],
 }
 </script>
 <style scoped>

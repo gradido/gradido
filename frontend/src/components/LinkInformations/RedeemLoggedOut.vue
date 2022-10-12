@@ -25,23 +25,17 @@
 </template>
 <script>
 import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+import { authLinks } from '../../mixins/authLinks'
 
 export default {
   name: 'RedeemLoggedOut',
+  mixins: [authLinks],
   components: {
     RedeemInformation,
   },
   props: {
     linkData: { type: Object, required: true },
     isContributionLink: { type: Boolean, default: false },
-  },
-  computed: {
-    login() {
-      return '/login/' + this.$route.params.code
-    },
-    register() {
-      return '/register/' + this.$route.params.code
-    },
   },
 }
 </script>
