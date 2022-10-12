@@ -70,7 +70,7 @@ export const sendEmailTranslated = async (params: {
       locals: params.locals,
     })
     .then((result: unknown) => {
-      logger.info('Send email successfully.')
+      logger.info('Send email successfully !!!')
       logger.info('Result: ', result)
     })
     .catch((error: unknown) => {
