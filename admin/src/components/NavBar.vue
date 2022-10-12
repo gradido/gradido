@@ -34,18 +34,16 @@ export default {
   name: 'navbar',
   methods: {
     async logout() {
+      window.location.assign(CONFIG.WALLET_URL)
+      // window.location = CONFIG.WALLET_URL
       this.$apollo
         .mutate({
           mutation: logout,
         })
         .then(() => {
-          window.location.assign(CONFIG.WALLET_URL)
-          // window.location = CONFIG.WALLET_URL
           this.$store.dispatch('logout')
         })
         .catch(() => {
-          window.location.assign(CONFIG.WALLET_URL)
-          // window.location = CONFIG.WALLET_URL
           this.$store.dispatch('logout')
         })
     },
