@@ -3,8 +3,6 @@ import TransactionLink from './TransactionLink'
 import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
 import { toastSuccessSpy, toastErrorSpy } from '@test/testSetup'
-import jwt from 'jsonwebtoken'
-import jwtDecode from 'jwt-decode'
 
 const localVue = global.localVue
 
@@ -219,12 +217,12 @@ describe('TransactionLink', () => {
 
     describe('token in store', () => {
       beforeAll(() => {
-        mocks.$store.state.token = jwt.sign({ data: 'test' }, 'secret', { expiresIn: '1h' })
+        mocks.$store.state.token = 'token'
       })
 
       describe('sufficient token time in store', () => {
         beforeAll(() => {
-          mocks.$store.state.tokenTime = jwtDecode(mocks.$store.state.token).exp
+          mocks.$store.state.tokenTime = Math.floor(Date.now() / 1000) + 20
         })
 
         describe('own link', () => {
@@ -340,7 +338,6 @@ describe('TransactionLink', () => {
 
       describe('no sufficient token time in store', () => {
         beforeAll(() => {
-          mocks.$store.state.token = 'token'
           mocks.$store.state.tokenTime = 1665125185
           apolloQueryMock.mockResolvedValue({
             data: {
