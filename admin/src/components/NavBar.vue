@@ -36,16 +36,10 @@ export default {
     async logout() {
       window.location.assign(CONFIG.WALLET_URL)
       // window.location = CONFIG.WALLET_URL
-      this.$apollo
-        .mutate({
-          mutation: logout,
-        })
-        .then(() => {
-          this.$store.dispatch('logout')
-        })
-        .catch(() => {
-          this.$store.dispatch('logout')
-        })
+      this.$store.dispatch('logout')
+      await this.$apollo.mutate({
+        mutation: logout,
+      })
     },
     wallet() {
       window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)
