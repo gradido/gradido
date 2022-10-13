@@ -37,6 +37,8 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
+import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -136,6 +138,20 @@ export const executeTransaction = async (
 
     await queryRunner.commitTransaction()
     logger.info(`commit Transaction successful...`)
+
+    const eventTransactionSend = new EventTransactionSend()
+    eventTransactionSend.userId = transactionSend.userId
+    eventTransactionSend.xUserId = transactionSend.linkedUserId
+    eventTransactionSend.transactionId = transactionSend.id
+    eventTransactionSend.amount = transactionSend.amount
+    await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+
+    const eventTransactionReceive = new EventTransactionReceive()
+    eventTransactionReceive.userId = transactionReceive.userId
+    eventTransactionReceive.xUserId = transactionReceive.linkedUserId
+    eventTransactionReceive.transactionId = transactionReceive.id
+    eventTransactionReceive.amount = transactionReceive.amount
+    await eventProtocol.writeEvent(new Event().setEventTransactionReceive(eventTransactionReceive))
   } catch (e) {
     await queryRunner.rollbackTransaction()
     logger.error(`Transaction was not successful: ${e}`)

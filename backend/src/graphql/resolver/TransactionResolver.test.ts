@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { EventProtocolType } from '@/event/EventProtocolType'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -11,6 +12,7 @@ import {
 import { login } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { EventProtocol } from '@entity/EventProtocol'
 import { User } from '@entity/User'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
@@ -291,6 +293,24 @@ describe('send coins', () => {
           data: {
             sendCoins: 'true',
           },
+        }),
+      )
+    })
+
+    it('stores the send transaction event in the database', async () => {
+      expect(EventProtocol.find()).resolves.toContainEqual(
+        expect.objectContaining({
+          type: EventProtocolType.TRANSACTION_SEND,
+          userId: user[1].id,
+        }),
+      )
+    })
+
+    it('stores the receive event in the database', async () => {
+      expect(EventProtocol.find()).resolves.toContainEqual(
+        expect.objectContaining({
+          type: EventProtocolType.TRANSACTION_RECEIVE,
+          userId: user[0].id,
         }),
       )
     })
