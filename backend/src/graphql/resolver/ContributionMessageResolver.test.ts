@@ -7,8 +7,9 @@ import {
   adminCreateContributionMessage,
   createContribution,
   createContributionMessage,
+  login,
 } from '@/seeds/graphql/mutations'
-import { listContributionMessages, login } from '@/seeds/graphql/queries'
+import { listContributionMessages } from '@/seeds/graphql/queries'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -21,14 +22,13 @@ jest.mock('@/mailer/sendAddedContributionMessageEmail', () => {
   }
 })
 
-let mutate: any, query: any, con: any
+let mutate: any, con: any
 let testEnv: any
 let result: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -59,8 +59,8 @@ describe('ContributionMessageResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -71,8 +71,8 @@ describe('ContributionMessageResolver', () => {
             creationDate: new Date().toString(),
           },
         })
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
         })
       })
@@ -103,8 +103,8 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('throws error when contribution.userId equals user.id', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           const result2 = await mutate({
@@ -195,8 +195,8 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
@@ -227,8 +227,8 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('throws error when other user tries to send createContributionMessage', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await expect(
@@ -253,8 +253,8 @@ describe('ContributionMessageResolver', () => {
 
       describe('valid input', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -304,8 +304,8 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
