@@ -136,3 +136,27 @@ export const createContributionMessage = gql`
     }
   }
 `
+
+export const login = gql`
+  mutation($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
+      email
+      firstName
+      lastName
+      language
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+      creation
+    }
+  }
+`
+
+export const logout = gql`
+  mutation {
+    logout
+  }
+`

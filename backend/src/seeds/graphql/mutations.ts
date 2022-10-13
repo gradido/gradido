@@ -295,3 +295,27 @@ export const redeemTransactionLink = gql`
     redeemTransactionLink(code: $code)
   }
 `
+
+export const login = gql`
+  mutation ($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
+      id
+      email
+      firstName
+      lastName
+      language
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+    }
+  }
+`
+
+export const logout = gql`
+  mutation {
+    logout
+  }
+`
