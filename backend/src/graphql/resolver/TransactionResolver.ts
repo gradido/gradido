@@ -55,12 +55,12 @@ export const executeTransaction = async (
   }
 
   if (memo.length > MEMO_MAX_CHARS) {
-    logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+    logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
     throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
   }
 
   if (memo.length < MEMO_MIN_CHARS) {
-    logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+    logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
     throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
   }
 
@@ -74,6 +74,7 @@ export const executeTransaction = async (
   )
   logger.debug(`calculated Balance=${sendBalance}`)
   if (!sendBalance) {
+    // josejgi: wrong messages from my point of view, at this point balance is always null, should log inside calculate balance or handle returns in a different way
     logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
     throw new Error("user hasn't enough GDD or amount is < 0")
   }
@@ -316,6 +317,10 @@ export class TransactionResolver {
     }
     */
     // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
+
+    /* Code inside this if statement is unreachable (useless by so), 
+    in findUserByEmail() an error is already thrown if the user is not found
+    */
     if (!recipientUser) {
       logger.error(`unknown recipient to UserContact: email=${email}`)
       throw new Error('unknown recipient')
