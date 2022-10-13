@@ -11,13 +11,12 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
-let mutate: any, query: any, con: any
+let mutate: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
   await userFactory(testEnv, bibiBloxberg)
@@ -35,8 +34,8 @@ describe('TransactionLinkResolver', () => {
     let contributionLink: DbContributionLink | undefined
 
     beforeAll(async () => {
-      await query({
-        query: login,
+      await mutate({
+        mutation: login,
         variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
       })
       await mutate({
