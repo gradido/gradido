@@ -95,7 +95,7 @@ describe('TransactionLinkResolver', () => {
       })
     })
 
-    it('does not allow the user to redeem the contribution link a second time', async () => {
+    it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
       await expect(
         mutate({
           mutation: redeemTransactionLink,
