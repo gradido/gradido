@@ -70,6 +70,7 @@ export class ContributionResolver {
       throw new Error('A confirmed contribution can not be deleted')
     }
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = user.id
     await contribution.save()
     const res = await contribution.softRemove()
     return !!res
