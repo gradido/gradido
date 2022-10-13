@@ -1,5 +1,6 @@
 import { ObjectType, Field } from 'type-graphql'
 import Decimal from 'decimal.js-light'
+import { ContributionMonth } from './ContributionMonth'
 
 @ObjectType()
 export class AdminUpdateContribution {
@@ -12,6 +13,6 @@ export class AdminUpdateContribution {
   @Field(() => Decimal)
   amount: Decimal
 
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  @Field(() => [ContributionMonth])
+  creation: ContributionMonth[]
 }

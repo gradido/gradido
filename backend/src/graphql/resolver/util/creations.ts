@@ -1,16 +1,18 @@
+import { ContributionMonth } from '@/graphql/model/ContributionMonth'
 import { backendLogger as logger } from '@/server/logger'
+import { dateCompare } from '@/util/utilities'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
-import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
+import { MAX_CREATION_AMOUNT } from '../const/const'
 
 interface CreationMap {
   id: number
-  creations: Decimal[]
+  creations: ContributionMonth[]
 }
 
 export const validateContribution = (
-  creations: Decimal[],
+  creations: ContributionMonth[],
   amount: Decimal,
   creationDate: Date,
   clientRequestTime: Date,
@@ -26,12 +28,12 @@ export const validateContribution = (
     throw new Error('No information for available creations for the given date')
   }
 
-  if (amount.greaterThan(creations[index].toString())) {
+  if (amount.greaterThan(creations[index].amount.toString())) {
     logger.error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index].amount} GDD) still available for this month.`,
     )
     throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index].amount} GDD) still available for this month.`,
     )
   }
 }
@@ -44,7 +46,8 @@ export const getUserCreations = async (
   logger.trace(
     `getUserCreations: ids='${ids}', clientRequestTime='${clientRequestTime}', includePending='${includePending}'`,
   )
-  const months = getCreationMonths(clientRequestTime)
+  const usedDate = getAheadDate(clientRequestTime)
+  const months = getCreationMonths(usedDate)
   logger.trace('getUserCreations months=', months)
 
   const queryRunner = getConnection().createQueryRunner()
@@ -56,7 +59,7 @@ export const getUserCreations = async (
     .addSelect('sum(amount)', 'sum')
     .where(`user_id in (${ids.toString()})`)
     .andWhere(
-      `contribution_date > DATE_SUB(last_day('${clientRequestTime.toISOString()}'), INTERVAL 3 MONTH)`,
+      `contribution_date > DATE_SUB(last_day('${usedDate.toISOString()}'), INTERVAL 4 MONTH)`,
     )
     .andWhere('denied_at IS NULL')
     .groupBy('month')
@@ -75,9 +78,12 @@ export const getUserCreations = async (
       creations: months.map((month) => {
         const creation = capturedCreation.find(
           (raw: { month: string; userId: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.userId) === id,
+            parseInt(raw.month) === month.targetMonth && parseInt(raw.userId) === id,
         )
-        return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
+        return new ContributionMonth(
+          MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0),
+          month.targetMonth,
+        )
       }),
     }
   })
@@ -87,24 +93,38 @@ export const getUserCreation = async (
   id: number,
   clientRequestTime: Date,
   includePending = true,
-): Promise<Decimal[]> => {
+): Promise<ContributionMonth[]> => {
   logger.trace(
     `getUserCreations: id='${id}', clientRequestTime='${clientRequestTime}', includePending='${includePending}'`,
   )
   const creations = await getUserCreations([id], clientRequestTime, includePending)
-  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
+  if (creations[0]) {
+    return creations[0].creations
+  } else {
+    return getCreationMonths(getAheadDate(clientRequestTime))
+  }
 }
 
-export const getCreationMonths = (requestTime: Date): number[] => {
+export const getCreationMonths = (usedDate: Date): ContributionMonth[] => {
   return [
-    new Date(requestTime.getFullYear(), requestTime.getMonth() - 2, 1).getMonth() + 1,
-    new Date(requestTime.getFullYear(), requestTime.getMonth() - 1, 1).getMonth() + 1,
-    requestTime.getMonth() + 1,
+    new ContributionMonth(
+      MAX_CREATION_AMOUNT,
+      new Date(usedDate.getFullYear(), usedDate.getMonth() - 3, 1).getMonth() + 1,
+    ),
+    new ContributionMonth(
+      MAX_CREATION_AMOUNT,
+      new Date(usedDate.getFullYear(), usedDate.getMonth() - 2, 1).getMonth() + 1,
+    ),
+    new ContributionMonth(
+      MAX_CREATION_AMOUNT,
+      new Date(usedDate.getFullYear(), usedDate.getMonth() - 1, 1).getMonth() + 1,
+    ),
+    new ContributionMonth(MAX_CREATION_AMOUNT, usedDate.getMonth() + 1),
   ]
 }
 
 export const getCreationIndex = (month: number, clientRequestTime: Date): number => {
-  return getCreationMonths(clientRequestTime).findIndex((el) => el === month + 1)
+  return getCreationMonths(clientRequestTime).findIndex((el) => el.targetMonth === month + 1)
 }
 
 export const isStartEndDateValid = (
@@ -129,15 +149,23 @@ export const isStartEndDateValid = (
 }
 
 export const updateCreations = (
-  creations: Decimal[],
+  creations: ContributionMonth[],
   contribution: Contribution,
   clientRequestTime: Date,
-): Decimal[] => {
+): ContributionMonth[] => {
   const index = getCreationIndex(contribution.contributionDate.getMonth(), clientRequestTime)
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
   }
-  creations[index] = creations[index].plus(contribution.amount.toString())
+  creations[index].amount = creations[index].amount.plus(contribution.amount.toString())
   return creations
+}
+
+export const getAheadDate = (clientRequestTime: Date): Date => {
+  let usedDate = new Date()
+  if (dateCompare(clientRequestTime, usedDate) > 0) {
+    usedDate = clientRequestTime
+  }
+  return usedDate
 }

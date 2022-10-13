@@ -49,11 +49,11 @@ import {
   validateContribution,
   isStartEndDateValid,
   updateCreations,
+  getCreationMonths,
 } from './util/creations'
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
   CONTRIBUTIONLINK_NAME_MIN_CHARS,
-  FULL_CREATION_AVAILABLE,
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
 } from './const/const'
@@ -65,6 +65,7 @@ import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { ContributionListResult } from '../model/Contribution'
+import { ContributionMonth } from '../model/ContributionMonth'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -106,7 +107,7 @@ export class AdminResolver {
 
     const creations = await getUserCreations(
       users.map((u) => u.id),
-      new Date(Date.now()),
+      new Date(),
     )
 
     const adminUsers = await Promise.all(
@@ -122,7 +123,7 @@ export class AdminResolver {
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
-          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          userCreations ? userCreations.creations : getCreationMonths(new Date()),
           await hasElopageBuys(user.emailContact.email),
           emailConfirmationSend,
         )
@@ -218,7 +219,7 @@ export class AdminResolver {
   async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
-  ): Promise<Decimal[]> {
+  ): Promise<ContributionMonth[]> {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
@@ -397,7 +398,7 @@ export class AdminResolver {
       return new UnconfirmedContribution(
         contribution,
         user,
-        creation ? creation.creations : FULL_CREATION_AVAILABLE,
+        creation ? creation.creations : getCreationMonths(new Date()),
       )
     })
   }
@@ -619,7 +620,9 @@ export class AdminResolver {
 
     return {
       linkCount: count,
-      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+      linkList: transactionLinks.map(
+        (tl) => new TransactionLink(tl, new User(user, getCreationMonths(new Date()))),
+      ),
     }
   }
 
