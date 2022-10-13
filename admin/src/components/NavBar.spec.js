@@ -3,11 +3,15 @@ import NavBar from './NavBar.vue'
 
 const localVue = global.localVue
 
+const apolloMutateMock = jest.fn()
 const storeDispatchMock = jest.fn()
 const routerPushMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $apollo: {
+    mutate: apolloMutateMock,
+  },
   $store: {
     state: {
       openCreations: 1,
@@ -68,6 +72,10 @@ describe('NavBar', () => {
 
     it('dispatches logout to store', () => {
       expect(storeDispatchMock).toBeCalledWith('logout')
+    })
+
+    it('has called logout mutation', () => {
+      expect(apolloMutateMock).toBeCalled()
     })
   })
 })

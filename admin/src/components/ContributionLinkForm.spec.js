@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinkForm from './ContributionLinkForm.vue'
-import { toastErrorSpy } from '../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import { createContributionLink } from '@/graphql/createContributionLink.js'
 
 const localVue = global.localVue
 
@@ -72,48 +73,70 @@ describe('ContributionLinkForm', () => {
       })
     })
 
-    // describe('successfull submit', () => {
-    //   beforeEach(async () => {
-    //     mockAPIcall.mockResolvedValue({
-    //       data: {
-    //         createContributionLink: {
-    //           link: 'https://localhost/redeem/CL-1a2345678',
-    //         },
-    //       },
-    //     })
-    //     await wrapper.find('input.test-validFrom').setValue('2022-6-18')
-    //     await wrapper.find('input.test-validTo').setValue('2022-7-18')
-    //     await wrapper.find('input.test-name').setValue('test name')
-    //     await wrapper.find('input.test-memo').setValue('test memo')
-    //     await wrapper.find('input.test-amount').setValue('100')
-    //     await wrapper.find('form').trigger('submit')
-    //   })
+    describe('successfull submit', () => {
+      beforeEach(async () => {
+        apolloMutateMock.mockResolvedValue({
+          data: {
+            createContributionLink: {
+              link: 'https://localhost/redeem/CL-1a2345678',
+            },
+          },
+        })
+        await wrapper
+          .findAllComponents({ name: 'BFormDatepicker' })
+          .at(0)
+          .vm.$emit('input', '2022-6-18')
+        await wrapper
+          .findAllComponents({ name: 'BFormDatepicker' })
+          .at(1)
+          .vm.$emit('input', '2022-7-18')
+        await wrapper.find('input.test-name').setValue('test name')
+        await wrapper.find('textarea.test-memo').setValue('test memo')
+        await wrapper.find('input.test-amount').setValue('100')
+        await wrapper.find('form').trigger('submit')
+      })
 
-    //   it('calls the API', () => {
-    //     expect(mockAPIcall).toHaveBeenCalledWith(
-    //       expect.objectContaining({
-    //         variables: {
-    //           link: 'https://localhost/redeem/CL-1a2345678',
-    //         },
-    //       }),
-    //     )
-    //   })
+      it('calls the API', () => {
+        expect(apolloMutateMock).toHaveBeenCalledWith({
+          mutation: createContributionLink,
+          variables: {
+            validFrom: '2022-6-18',
+            validTo: '2022-7-18',
+            name: 'test name',
+            amount: '100',
+            memo: 'test memo',
+            cycle: 'ONCE',
+            maxPerCycle: 1,
+            maxAmountPerMonth: '0',
+          },
+        })
+      })
 
-    //   it('displays the new username', () => {
-    //     expect(wrapper.find('div.display-username').text()).toEqual('@username')
-    //   })
-    // })
-  })
-
-  describe('send createContributionLink with error', () => {
-    beforeEach(() => {
-      apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
-      wrapper = Wrapper()
-      wrapper.vm.onSubmit()
+      it('toasts a succes message', () => {
+        expect(toastSuccessSpy).toBeCalledWith('https://localhost/redeem/CL-1a2345678')
+      })
     })
 
-    it('toasts an error message', () => {
-      expect(toastErrorSpy).toBeCalledWith('contributionLink.noStartDate')
+    describe('send createContributionLink with error', () => {
+      beforeEach(async () => {
+        apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
+        await wrapper
+          .findAllComponents({ name: 'BFormDatepicker' })
+          .at(0)
+          .vm.$emit('input', '2022-6-18')
+        await wrapper
+          .findAllComponents({ name: 'BFormDatepicker' })
+          .at(1)
+          .vm.$emit('input', '2022-7-18')
+        await wrapper.find('input.test-name').setValue('test name')
+        await wrapper.find('textarea.test-memo').setValue('test memo')
+        await wrapper.find('input.test-amount').setValue('100')
+        await wrapper.find('form').trigger('submit')
+      })
+
+      it('toasts an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('OUCH!')
+      })
     })
   })
 })

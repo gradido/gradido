@@ -25,6 +25,7 @@
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
+        :disabled="this.form.id !== null"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
@@ -42,7 +43,6 @@
           id="contribution-memo"
           v-model="form.memo"
           rows="3"
-          max-rows="6"
           :placeholder="$t('contribution.yourActivity')"
           required
         ></b-form-textarea>

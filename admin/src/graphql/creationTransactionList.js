@@ -8,14 +8,15 @@ export const creationTransactionList = gql`
       order: $order
       userId: $userId
     ) {
-      id
-      amount
-      balanceDate
-      creationDate
-      memo
-      linkedUser {
-        firstName
-        lastName
+      contributionCount
+      contributionList {
+        id
+        amount
+        createdAt
+        confirmedAt
+        contributionDate
+        memo
+        state
       }
     }
   }
