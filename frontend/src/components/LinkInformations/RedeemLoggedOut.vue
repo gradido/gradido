@@ -25,7 +25,7 @@
 </template>
 <script>
 import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
-import { authLinks } from '../../mixins/authLinks'
+import { authLinks } from '@/mixins/authLinks'
 
 export default {
   name: 'RedeemLoggedOut',
