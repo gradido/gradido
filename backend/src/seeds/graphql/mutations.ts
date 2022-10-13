@@ -289,3 +289,9 @@ export const adminCreateContributionMessage = gql`
     }
   }
 `
+
+export const redeemTransactionLink = gql`
+  mutation ($code: String!) {
+    redeemTransactionLink(code: $code)
+  }
+`
