@@ -9,7 +9,6 @@
     "cycle": "Zyklus",
     "deleted": "Automatische Schöpfung gelöscht!",
     "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
-    "maximumAmount": "maximaler Betrag",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -21,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "täglich",
-        "hourly": "stündlich",
-        "monthly": "monatlich",
-        "once": "einmalig",
-        "weekly": "wöchentlich",
-        "yearly": "jährlich"
+        "once": "einmalig"
       }
     },
     "validFrom": "Startdatum",
