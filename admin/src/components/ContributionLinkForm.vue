@@ -193,8 +193,7 @@ export default {
       return this.contributionLinkData
     },
     disabled() {
-      if (this.form.cycle === 'ONCE') return true
-      return false
+      return true
     },
   },
   watch: {
