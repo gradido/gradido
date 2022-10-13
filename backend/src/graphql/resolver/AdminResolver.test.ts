@@ -1994,8 +1994,8 @@ describe('AdminResolver', () => {
                 deletedAt: null,
                 code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                 linkEnabled: true,
-                // amount: '200',
-                // maxAmountPerMonth: '200',
+                amount: expect.decimalEqual(200),
+                maxAmountPerMonth: expect.decimalEqual(200),
               }),
             )
           })
@@ -2284,7 +2284,7 @@ describe('AdminResolver', () => {
                   id: linkId,
                   name: 'Dokumenta 2023',
                   memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
-                  // amount: '400',
+                  amount: expect.decimalEqual(400),
                 }),
               )
             })
