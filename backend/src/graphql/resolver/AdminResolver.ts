@@ -339,6 +339,9 @@ export class AdminResolver {
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
