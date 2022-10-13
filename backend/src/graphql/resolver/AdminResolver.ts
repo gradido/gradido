@@ -66,6 +66,7 @@ import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirm
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { ContributionListResult } from '../model/Contribution'
 import { ContributionMonth } from '../model/ContributionMonth'
+import { AdminCreateContribution } from '../model/AdminCreateContribution'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -215,11 +216,11 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
-  @Mutation(() => [Number])
+  @Mutation(() => AdminCreateContribution)
   async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
-  ): Promise<ContributionMonth[]> {
+  ): Promise<AdminCreateContribution> {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
@@ -265,7 +266,12 @@ export class AdminResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    return getUserCreation(emailContact.userId, clientRequestTime)
+    const createContribution = new AdminCreateContribution(
+      contribution,
+      emailContact.user,
+      await getUserCreation(emailContact.userId, clientRequestTime),
+    )
+    return createContribution
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
