@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
+
 import Decimal from 'decimal.js-light'
 
 expect.extend({
@@ -24,8 +26,8 @@ interface CustomMatchers<R = unknown> {
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
-    type Expect = CustomMatchers
-    type Matchers<R> = CustomMatchers<R>
-    type InverseAsymmetricMatchers = CustomMatchers
+    interface Expect extends CustomMatchers {}
+    interface Matchers<R> extends CustomMatchers<R> {}
+    interface InverseAsymmetricMatchers extends CustomMatchers {}
   }
 }
