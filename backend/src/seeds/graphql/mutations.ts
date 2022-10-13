@@ -88,7 +88,19 @@ export const adminCreateContribution = gql`
       amount: $amount
       memo: $memo
       creationDate: $creationDate
-    )
+    ) {
+      contribution {
+        firstName
+        lastName
+        amount
+        memo
+        createdAt
+      }
+      creation {
+        amount
+        targetMonth
+      }
+    }
   }
 `
 

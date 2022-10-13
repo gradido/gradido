@@ -70,6 +70,7 @@ describe('ContributionResolver', () => {
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
+        setClientRequestTime(new Date().toString())
         await userFactory(testEnv, bibiBloxberg)
         await query({
           query: login,
@@ -161,14 +162,14 @@ describe('ContributionResolver', () => {
 
       describe('valid input', () => {
         it('creates contribution', async () => {
-          const now = new Date().toISOString()
+          const now = new Date()
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: now,
+                creationDate: now.toString(),
               },
             }),
           ).resolves.toEqual(
@@ -178,33 +179,27 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: 'Test env contribution',
-                  date: now,
+                  date: now.toString(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(now.getFullYear(), now.getMonth() - 3, 1).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
                     },
-                    { amount: '900', targetMonth: new Date().getMonth() },
+                    { amount: '900', targetMonth: new Date().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -272,26 +267,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '900',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                 },
               },
@@ -323,26 +321,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '900',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '400', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '400', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -384,26 +385,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '900',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '250', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '250', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -485,26 +489,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '900', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '900', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                 },
               },
@@ -536,26 +543,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '300', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '300', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -597,26 +607,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '150', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '150', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -701,26 +714,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '900',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                 },
               },
@@ -752,26 +768,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '300',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
@@ -813,26 +832,29 @@ describe('ContributionResolver', () => {
                   creation: [
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 3,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 3,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '1000',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 2,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 2,
+                        ).getMonth() + 1,
                     },
                     {
                       amount: '150',
-                      targetMonth: new Date(
-                        getClientRequestTimeAsDate().getFullYear(),
-                        getClientRequestTimeAsDate().getMonth() - 1,
-                      ).getMonth(),
+                      targetMonth:
+                        new Date(
+                          getClientRequestTimeAsDate().getFullYear(),
+                          getClientRequestTimeAsDate().getMonth() - 1,
+                        ).getMonth() + 1,
                     },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
                   ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,

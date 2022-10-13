@@ -1025,19 +1025,30 @@ describe('AdminResolver', () => {
             })
 
             describe('creation is valid', () => {
-              it('returns an array of the open creations for the last three months', async () => {
+              it('returns the created contribution and an array of the open creations for the last four months', async () => {
+                const now = new Date()
                 variables.amount = new Decimal(200)
+                variables.creationDate = now.toString()
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [
-                        { amount: 1000, targetMonth: expect.any(Number) },
-                        { amount: 1000, targetMonth: expect.any(Number) },
-                        { amount: 1000, targetMonth: expect.any(Number) },
-                        { amount: 800, targetMonth: expect.any(Number) },
-                      ],
+                      adminCreateContribution: {
+                        contribution: expect.objectContaining({
+                          firstName: 'Bibi',
+                          lastName: 'Bloxberg',
+                          amount: new Decimal(200),
+                          memo: 'Aktives Grundeinkommen',
+                          createdAt: expect.any(Date),
+                        }),
+                        creation: expect.arrayContaining([
+                          { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
+                          { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
+                          { amount: new Decimal(1000), targetMonth: now.getMonth() },
+                          { amount: new Decimal(800), targetMonth: now.getMonth() + 1 },
+                        ]),
+                      },
                     },
                   }),
                 )
@@ -1233,6 +1244,7 @@ describe('AdminResolver', () => {
 
           describe('creation update is successful changing month', () => {
             it('returns update creation object', async () => {
+              const now = new Date()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1241,22 +1253,22 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
-                    creationDate: new Date().toString(),
+                    creationDate: now.toString(),
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
                     adminUpdateContribution: {
-                      date: expect.any(String),
+                      date: now,
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '200', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() },
+                        { amount: new Decimal(200), targetMonth: now.getMonth() + 1 },
+                      ]),
                     },
                   },
                 }),
@@ -1266,6 +1278,7 @@ describe('AdminResolver', () => {
 
           describe('creation update is successful without changing month', () => {
             it('returns update creation object', async () => {
+              const now = new Date()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1274,22 +1287,22 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
-                    creationDate: new Date().toString(),
+                    creationDate: now.toString(),
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
                     adminUpdateContribution: {
-                      date: expect.any(String),
+                      date: now,
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '300', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() },
+                        { amount: new Decimal(300), targetMonth: now.getMonth() + 1 },
+                      ]),
                     },
                   },
                 }),
@@ -1300,6 +1313,7 @@ describe('AdminResolver', () => {
 
         describe('listUnconfirmedContributions', () => {
           it('returns four pending creations', async () => {
+            const now = new Date()
             await expect(
               query({
                 query: listUnconfirmedContributions,
@@ -1313,64 +1327,64 @@ describe('AdminResolver', () => {
                       firstName: 'Peter',
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
-                      date: expect.any(String),
+                      date: expect.any(Date),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
                       moderator: admin.id,
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '300', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
+                        { amount: new Decimal(1000), targetMonth: now.getMonth() },
+                        { amount: new Decimal(300), targetMonth: now.getMonth() + 1 },
+                      ]),
                     },
                     {
                       id: expect.any(Number),
                       firstName: 'Peter',
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
-                      date: expect.any(String),
+                      date: expect.any(Date),
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '300', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(300), targetMonth: expect.any(Number) },
+                      ]),
                     },
                     {
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
+                      date: expect.any(Date),
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '300', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(300), targetMonth: expect.any(Number) },
+                      ]),
                     },
                     {
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
-                      date: expect.any(String),
+                      date: expect.any(Date),
                       memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
-                      creation: [
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '1000', targetMonth: expect.any(Number) },
-                        { amount: '300', targetMonth: expect.any(Number) },
-                      ],
+                      creation: expect.arrayContaining([
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
+                        { amount: new Decimal(300), targetMonth: expect.any(Number) },
+                      ]),
                     },
                   ]),
                 },
