@@ -48,7 +48,9 @@ export const resetToken = () => {
   context.token = ''
 }
 
-export const setClientRequestTime = (stringDate: string, timeZone: string) => {
+export const setClientRequestTime = (stringDate: string) => {
+  /*
+  , timeZone: string) => {
   const feTime = timeZoneTransformer(stringDate, timeZone).fromUtc
   console.log('feTime=', feTime)
   const beTime = timeZoneTransformer(stringDate, timeZone).toUtc
@@ -58,19 +60,24 @@ export const setClientRequestTime = (stringDate: string, timeZone: string) => {
 
   const fe2beTime = timeZoneTransformer(feTime, timeZone).toUtc
   console.log('fe2beTime=', beTime)
+  */
 
-
-  context.clientRequestTime = feTime
+  context.clientRequestTime = stringDate
 }
 
 export const getClientRequestTime = (): string => {
   return context.clientRequestTime
 }
 
+export const getClientRequestTimeAsDate = (): Date => {
+  return new Date(context.clientRequestTime)
+}
+
 export const resetClientRequestTime = () => {
   context.clientRequestTime = ''
 }
 
+/*
 const timeZoneTransformer = (stringDate: string, timeZone: string) => {
   console.log('timeZoneTransformer:', stringDate, timeZone)
   const now = new Date()
@@ -112,7 +119,7 @@ const timezoneOffset = (timeZone: string, date = new Date()) => {
     (Date.parse(`${dateString} UTC`) - Date.parse(`${dateString}${TZ}`)) / (3600 * 1000)
   return offset
 }
-
+*/
 /*
 const fromUtc = timeZoneTransformer('2020-10-10T08:00:00.000', 'Europe/Paris').fromUtc
 console.log(fromUtc)

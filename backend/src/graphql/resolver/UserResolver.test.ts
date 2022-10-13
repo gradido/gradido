@@ -34,6 +34,7 @@ import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { ContributionMonth } from '../model/ContributionMonth'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -365,7 +366,6 @@ describe('UserResolver', () => {
             mutation: createContribution,
             variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
           })
-
           // login as admin
           await query({ query: login, variables: peterData })
 
@@ -751,7 +751,12 @@ describe('UserResolver', () => {
             expect.objectContaining({
               data: {
                 verifyLogin: {
-                  creation: ['1000', '1000', '1000'],
+                  creation: [
+                    { amount: '1000', targetMonth: expect.any(Number) },
+                    { amount: '1000', targetMonth: expect.any(Number) },
+                    { amount: '1000', targetMonth: expect.any(Number) },
+                    { amount: '1000', targetMonth: expect.any(Number) },
+                  ],
                   emailContact: expect.objectContaining({
                     email: 'bibi@bloxberg.de',
                   }),

@@ -32,7 +32,7 @@ import {
   EventSendConfirmationEmail,
   EventActivateAccount,
 } from '@/event/Event'
-import { getUserCreation } from './util/creations'
+import { getCreationMonths, getUserCreation } from './util/creations'
 import { UserContactType } from '../enum/UserContactType'
 import { UserRepository } from '@/typeorm/repository/User'
 import { SearchAdminUsersResult } from '@model/AdminUser'
@@ -355,7 +355,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('login credentials valid...')
     const clientRequestTime = getClientRequestTime(context)
-    logger.trace('clientRequestTimee: ', clientRequestTime)
+    logger.info('clientRequestTime: ', clientRequestTime)
 
     const user = new User(dbUser, await getUserCreation(dbUser.id, clientRequestTime))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
@@ -571,7 +571,7 @@ export class UserResolver {
       await eventProtocol.writeEvent(event.setEventRegister(eventRegister))
     }
 
-    return new User(dbUser)
+    return new User(dbUser, getCreationMonths(new Date()))
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])

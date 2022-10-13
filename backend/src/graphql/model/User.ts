@@ -1,13 +1,13 @@
 import { ObjectType, Field } from 'type-graphql'
 import { KlickTipp } from './KlickTipp'
 import { User as dbUser } from '@entity/User'
-import Decimal from 'decimal.js-light'
-import { FULL_CREATION_AVAILABLE } from '../resolver/const/const'
 import { UserContact } from './UserContact'
+import { ContributionMonth } from './ContributionMonth'
+import { getCreationMonths } from '../resolver/util/creations'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser, creation: Decimal[] = FULL_CREATION_AVAILABLE) {
+  constructor(user: dbUser, creation: ContributionMonth[] = getCreationMonths(new Date())) {
     this.id = user.id
     this.gradidoID = user.gradidoID
     this.alias = user.alias
@@ -87,6 +87,6 @@ export class User {
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
 
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  @Field(() => [ContributionMonth])
+  creation: ContributionMonth[]
 }

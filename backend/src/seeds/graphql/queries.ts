@@ -33,7 +33,10 @@ export const verifyLogin = gql`
       hasElopage
       publisherId
       isAdmin
-      creation
+      creation {
+        amount
+        targetMonth
+      }
     }
   }
 `
@@ -108,7 +111,10 @@ export const searchUsers = gql`
         firstName
         lastName
         email
-        creation
+        creation {
+          amount
+          targetMonth
+        }
         emailChecked
         hasElopage
         emailConfirmationSend
@@ -228,7 +234,10 @@ export const listUnconfirmedContributions = gql`
       memo
       date
       moderator
-      creation
+      creation {
+        amount
+        targetMonth
+      }
     }
   }
 `

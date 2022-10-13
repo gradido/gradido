@@ -2,10 +2,11 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
+import { ContributionMonth } from './ContributionMonth'
 
 @ObjectType()
 export class UnconfirmedContribution {
-  constructor(contribution: Contribution, user: User | undefined, creations: Decimal[]) {
+  constructor(contribution: Contribution, user: User | undefined, creations: ContributionMonth[]) {
     this.id = contribution.id
     this.userId = contribution.userId
     this.amount = contribution.amount
@@ -47,8 +48,8 @@ export class UnconfirmedContribution {
   @Field(() => Number, { nullable: true })
   moderator: number | null
 
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  @Field(() => [ContributionMonth])
+  creation: ContributionMonth[]
 
   @Field(() => String)
   state: string

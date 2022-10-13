@@ -138,7 +138,10 @@ export const adminUpdateContribution = gql`
       amount
       date
       memo
-      creation
+      creation {
+        amount
+        targetMonth
+      }
     }
   }
 `
@@ -241,7 +244,10 @@ export const createContribution = gql`
       firstName
       lastName
       moderator
-      creation
+      creation {
+        amount
+        targetMonth
+      }
       state
       messageCount
     }

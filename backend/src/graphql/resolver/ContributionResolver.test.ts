@@ -18,6 +18,7 @@ import {
 import {
   cleanDB,
   getClientRequestTime,
+  getClientRequestTimeAsDate,
   resetClientRequestTime,
   resetToken,
   setClientRequestTime,
@@ -181,7 +182,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['1000', '1000', '900'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '900', targetMonth: new Date().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -201,14 +225,17 @@ describe('ContributionResolver', () => {
         // create one contribution with 100GDD for bibi one month ago in the past
         await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
         // set clientRequestTime at the 1st day of the next month against the backend time
+        /*
         // const local = Intl.Locale // supportedValuesOf()
         const timezone = Intl.DateTimeFormat() // 'en-US', { timeZone: 'America/Denver' }) // .resolvedOptions().timeZone
         console.log('timezone=', timezone)
         const clientRequestTime = new Date(timezone.format(new Date()))
         console.log('clientRequestTime=', clientRequestTime.toLocaleString())
+        */
+        const clientRequestTime = new Date()
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
-        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
@@ -242,7 +269,30 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: ['900', '1000', '1000'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '900',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                 },
               },
             }),
@@ -270,7 +320,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['900', '1000', '400'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '900',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '400', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -308,7 +381,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['900', '1000', '250'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '900',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '250', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -352,7 +448,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
@@ -386,7 +482,30 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: ['1000', '1000', '900'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '900', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                 },
               },
             }),
@@ -414,7 +533,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['1000', '1000', '300'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '300', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -452,7 +594,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['1000', '1000', '150'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '150', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -496,7 +661,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime.toString(), 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         const creationDate = new Date()
@@ -533,7 +698,30 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: ['1000', '900', '1000'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '900',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                 },
               },
             }),
@@ -561,7 +749,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['1000', '300', '1000'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '300',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -599,7 +810,30 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: ['1000', '150', '1000'],
+                  creation: [
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 3,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '1000',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 2,
+                      ).getMonth(),
+                    },
+                    {
+                      amount: '150',
+                      targetMonth: new Date(
+                        getClientRequestTimeAsDate().getFullYear(),
+                        getClientRequestTimeAsDate().getMonth() - 1,
+                      ).getMonth(),
+                    },
+                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() },
+                  ],
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },

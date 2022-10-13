@@ -1032,7 +1032,12 @@ describe('AdminResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: [1000, 1000, 800],
+                      adminCreateContribution: [
+                        { amount: 1000, targetMonth: expect.any(Number) },
+                        { amount: 1000, targetMonth: expect.any(Number) },
+                        { amount: 1000, targetMonth: expect.any(Number) },
+                        { amount: 800, targetMonth: expect.any(Number) },
+                      ],
                     },
                   }),
                 )
@@ -1246,7 +1251,12 @@ describe('AdminResolver', () => {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: ['1000', '1000', '200'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '200', targetMonth: expect.any(Number) },
+                      ],
                     },
                   },
                 }),
@@ -1274,7 +1284,12 @@ describe('AdminResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '1000', '300'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '300', targetMonth: expect.any(Number) },
+                      ],
                     },
                   },
                 }),
@@ -1302,7 +1317,12 @@ describe('AdminResolver', () => {
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '300', targetMonth: expect.any(Number) },
+                      ],
                     },
                     {
                       id: expect.any(Number),
@@ -1313,7 +1333,12 @@ describe('AdminResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '300', targetMonth: expect.any(Number) },
+                      ],
                     },
                     {
                       id: expect.any(Number),
@@ -1324,7 +1349,12 @@ describe('AdminResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '300', targetMonth: expect.any(Number) },
+                      ],
                     },
                     {
                       id: expect.any(Number),
@@ -1335,7 +1365,12 @@ describe('AdminResolver', () => {
                       memo: 'Aktives Grundeinkommen',
                       amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '1000', '300'],
+                      creation: [
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '1000', targetMonth: expect.any(Number) },
+                        { amount: '300', targetMonth: expect.any(Number) },
+                      ],
                     },
                   ]),
                 },
