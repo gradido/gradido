@@ -28,14 +28,18 @@
 </template>
 <script>
 import CONFIG from '../config'
+import { logout } from '../graphql/logout'
 
 export default {
   name: 'navbar',
   methods: {
-    logout() {
+    async logout() {
       window.location.assign(CONFIG.WALLET_URL)
       // window.location = CONFIG.WALLET_URL
       this.$store.dispatch('logout')
+      await this.$apollo.mutate({
+        mutation: logout,
+      })
     },
     wallet() {
       window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)

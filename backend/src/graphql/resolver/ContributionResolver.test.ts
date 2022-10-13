@@ -8,8 +8,9 @@ import {
   createContribution,
   deleteContribution,
   updateContribution,
+  login,
 } from '@/seeds/graphql/mutations'
-import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
+import { listAllContributions, listContributions } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
@@ -54,8 +55,8 @@ describe('ContributionResolver', () => {
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
@@ -197,8 +198,8 @@ describe('ContributionResolver', () => {
         const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await creationFactory(testEnv, bibisCreation!)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         await mutate({
@@ -310,8 +311,8 @@ describe('ContributionResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, peterLustig)
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -393,8 +394,8 @@ describe('ContributionResolver', () => {
 
       describe('wrong user tries to update the contribution', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -445,8 +446,8 @@ describe('ContributionResolver', () => {
 
       describe('update too much so that the limit is exceeded', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -553,8 +554,8 @@ describe('ContributionResolver', () => {
         const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await creationFactory(testEnv, bibisCreation!)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         await mutate({
@@ -630,8 +631,8 @@ describe('ContributionResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -668,8 +669,8 @@ describe('ContributionResolver', () => {
 
       describe('other user sends a deleteContribtuion', () => {
         it('returns an error', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await expect(
@@ -702,8 +703,8 @@ describe('ContributionResolver', () => {
 
       describe('User deletes already confirmed contribution', () => {
         it('throws an error', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await mutate({
@@ -712,8 +713,8 @@ describe('ContributionResolver', () => {
               id: result.data.createContribution.id,
             },
           })
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
           await expect(
