@@ -15,7 +15,10 @@
       <b-collapse v-model="visible" id="newContribution" class="mt-2">
         <b-card>
           <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
-          <contribution-link-form :contributionLinkData="contributionLinkData" />
+          <contribution-link-form
+            :contributionLinkData="contributionLinkData"
+            @get-contribution-links="$emit('get-contribution-links')"
+          />
         </b-card>
       </b-collapse>
 
@@ -24,6 +27,7 @@
           v-if="count > 0"
           :items="items"
           @editContributionLinkData="editContributionLinkData"
+          @get-contribution-links="$emit('get-contribution-links')"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
       </b-card-text>

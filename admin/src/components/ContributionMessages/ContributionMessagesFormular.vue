@@ -7,7 +7,6 @@
           v-model="form.text"
           :placeholder="$t('contributionLink.memo')"
           rows="3"
-          max-rows="6"
         ></b-form-textarea>
         <b-row class="mt-4 mb-6">
           <b-col>

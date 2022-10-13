@@ -5,7 +5,7 @@ import { User } from '@entity/User'
 
 @ObjectType()
 export class Contribution {
-  constructor(contribution: dbContribution, user: User) {
+  constructor(contribution: dbContribution, user?: User | null) {
     this.id = contribution.id
     this.firstName = user ? user.firstName : null
     this.lastName = user ? user.lastName : null

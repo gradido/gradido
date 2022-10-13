@@ -7,8 +7,8 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-    "deleteNow": "Do you really delete automatic creations?",
-    "maximumAmount": "Maximum amount",
+    "deleted": "Automatic creation deleted!",
+    "deleteNow": "Do you really delete automatic creations '{name}'?",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -20,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "daily",
-        "hourly": "hourly",
-        "monthly": "monthly",
-        "once": "once",
-        "weekly": "weekly",
-        "yearly": "yearly"
+        "once": "once"
       }
     },
     "validFrom": "Start-date",
@@ -74,10 +70,20 @@
     "submit": "Send"
   },
   "GDD": "GDD",
+  "help": {
+    "help": "Help",
+    "transactionlist": {
+      "confirmed": "When was it confirmed by a moderator / admin.",
+      "periods": "For what period was it submitted by the member.",
+      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = denied, CONFIRMED = confirmed]",
+      "submitted": "When was it submitted by the member"
+    }
+  },
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
@@ -133,10 +139,11 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "balanceDate": "Creation date",
-    "community": "Community",
-    "date": "Date",
+    "confirmed": "Confirmed",
     "memo": "Message",
+    "period": "Period",
+    "state": "State",
+    "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
   "undelete_user": "Undelete User",
