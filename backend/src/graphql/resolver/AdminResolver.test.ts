@@ -13,6 +13,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import {
+  login,
   setUserRole,
   deleteUser,
   unDeleteUser,
@@ -27,7 +28,6 @@ import {
 } from '@/seeds/graphql/mutations'
 import {
   listUnconfirmedContributions,
-  login,
   searchUsers,
   listTransactionLinksAdmin,
   listContributionLinks,
@@ -96,8 +96,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -121,8 +121,8 @@ describe('AdminResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -249,8 +249,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -274,8 +274,8 @@ describe('AdminResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -357,8 +357,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -382,8 +382,8 @@ describe('AdminResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -469,8 +469,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -514,8 +514,8 @@ describe('AdminResolver', () => {
 
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
 
@@ -766,8 +766,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -875,8 +875,8 @@ describe('AdminResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           admin = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -1556,8 +1556,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -1602,8 +1602,8 @@ describe('AdminResolver', () => {
           }
 
           // admin: only now log in
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -1863,8 +1863,8 @@ describe('AdminResolver', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, bibiBloxberg)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -1937,8 +1937,8 @@ describe('AdminResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           user = await userFactory(testEnv, peterLustig)
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
