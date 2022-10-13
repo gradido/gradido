@@ -360,7 +360,7 @@ describe('UserResolver', () => {
         beforeAll(async () => {
           await userFactory(testEnv, peterLustig)
           await userFactory(testEnv, bobBaumeister)
-          await query({ query: login, variables: bobData })
+          await mutate({ mutation: login, variables: bobData })
 
           // create contribution as user bob
           contribution = await mutate({
@@ -369,7 +369,7 @@ describe('UserResolver', () => {
           })
 
           // login as admin
-          await query({ query: login, variables: peterData })
+          await mutate({ mutation: login, variables: peterData })
 
           // confirm the contribution
           contribution = await mutate({
@@ -378,7 +378,7 @@ describe('UserResolver', () => {
           })
 
           // login as user bob
-          bob = await query({ query: login, variables: bobData })
+          bob = await mutate({ mutation: login, variables: bobData })
 
           // create transaction link
           await transactionLinkFactory(testEnv, {

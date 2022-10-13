@@ -678,6 +678,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
