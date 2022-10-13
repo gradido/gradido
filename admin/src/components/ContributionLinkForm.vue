@@ -189,9 +189,6 @@ export default {
     },
   },
   computed: {
-    updateData() {
-      return this.contributionLinkData
-    },
     disabled() {
       return true
     },
