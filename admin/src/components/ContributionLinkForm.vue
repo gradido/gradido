@@ -1,8 +1,5 @@
 <template>
   <div class="contribution-link-form">
-    <div v-if="updateData" class="text-light bg-info p-3">
-      {{ updateData }}
-    </div>
     <b-form class="m-5" @submit.prevent="onSubmit" ref="contributionLinkForm">
       <!-- Date -->
       <b-row>
@@ -68,34 +65,32 @@
           class="test-amount"
         ></b-form-input>
       </b-form-group>
-      <b-collapse id="collapse-2">
-        <b-jumbotron>
-          <b-row class="mb-4">
-            <b-col>
-              <!-- Cycle -->
-              <label for="cycle">{{ $t('contributionLink.cycle') }}</label>
-              <b-form-select
-                v-model="form.cycle"
-                :options="cycle"
-                :disabled="disabled"
-                class="mb-3"
-                size="lg"
-              ></b-form-select>
-            </b-col>
-            <b-col>
-              <!-- maxPerCycle -->
-              <label for="maxPerCycle">{{ $t('contributionLink.maxPerCycle') }}</label>
-              <b-form-select
-                v-model="form.maxPerCycle"
-                :options="maxPerCycle"
-                :disabled="disabled"
-                class="mb-3"
-                size="lg"
-              ></b-form-select>
-            </b-col>
-          </b-row>
+      <b-row class="mb-4">
+        <b-col>
+          <!-- Cycle -->
+          <label for="cycle">{{ $t('contributionLink.cycle') }}</label>
+          <b-form-select
+            v-model="form.cycle"
+            :options="cycle"
+            class="mb-3"
+            size="lg"
+          ></b-form-select>
+        </b-col>
+        <b-col>
+          <!-- maxPerCycle -->
+          <label for="maxPerCycle">{{ $t('contributionLink.maxPerCycle') }}</label>
+          <b-form-select
+            v-model="form.maxPerCycle"
+            :options="maxPerCycle"
+            :disabled="disabled"
+            class="mb-3"
+            size="lg"
+          ></b-form-select>
+        </b-col>
+      </b-row>
 
-          <!-- Max amount -->
+      <!-- Max amount -->
+      <!-- 
           <b-form-group :label="$t('contributionLink.maximumAmount')">
             <b-form-input
               v-model="form.maxAmountPerMonth"
@@ -105,8 +100,7 @@
               placeholder="0"
             ></b-form-input>
           </b-form-group>
-        </b-jumbotron>
-      </b-collapse>
+          -->
       <div class="mt-6">
         <b-button type="submit" variant="primary">{{ $t('contributionLink.create') }}</b-button>
         <b-button type="reset" variant="danger" @click.prevent="onReset">
@@ -143,18 +137,18 @@ export default {
       min: new Date(),
       cycle: [
         { value: 'ONCE', text: this.$t('contributionLink.options.cycle.once') },
-        { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
-        { value: 'daily', text: this.$t('contributionLink.options.cycle.daily') },
-        { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },
-        { value: 'monthly', text: this.$t('contributionLink.options.cycle.monthly') },
-        { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },
+        //        { value: 'hourly', text: this.$t('contributionLink.options.cycle.hourly') },
+        { value: 'DAILY', text: this.$t('contributionLink.options.cycle.daily') },
+        //        { value: 'weekly', text: this.$t('contributionLink.options.cycle.weekly') },
+        //        { value: 'monthly', text: this.$t('contributionLink.options.cycle.monthly') },
+        //        { value: 'yearly', text: this.$t('contributionLink.options.cycle.yearly') },
       ],
       maxPerCycle: [
         { value: '1', text: '1 x' },
-        { value: '2', text: '2 x' },
-        { value: '3', text: '3 x' },
-        { value: '4', text: '4 x' },
-        { value: '5', text: '5 x' },
+        //        { value: '2', text: '2 x' },
+        //        { value: '3', text: '3 x' },
+        //        { value: '4', text: '4 x' },
+        //        { value: '5', text: '5 x' },
       ],
     }
   },
