@@ -87,6 +87,9 @@
   </div>
 </template>
 <script>
+const PATTERN_STRIP_HTML = /(<([^>]+)>)/gi
+const PATTERN_NON_DIGIT = /\D/g
+
 export default {
   name: 'ContributionForm',
   props: {
@@ -98,17 +101,15 @@ export default {
       minlength: 5,
       maxlength: 255,
       maximalDate: new Date(),
-      form: this.value, // includes 'id',
-      patternStripHtml: new RegExp(/(<([^>]+)>)/gi),
-      patternNonDigit: new RegExp(/\D/g),
+      form: this.value, // includes 'id'
     }
   },
   methods: {
     numberFormat(value) {
-      return value.replace(this.patternNonDigit, '')
+      return value.replace(PATTERN_NON_DIGIT, '')
     },
     submit() {
-      this.form.amount = this.form.amount.replace(this.patternNonDigit, '')
+      this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
       // spreading is needed for testing
       this.form.memo = this.memoStripHtml
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
@@ -131,7 +132,7 @@ export default {
   },
   computed: {
     memoStripHtml() {
-      return this.form.memo.replace(this.patternStripHtml)
+      return this.form.memo.replace(PATTERN_STRIP_HTML, '')
     },
     minimalDate() {
       // sets the date to the 1st of the previous month

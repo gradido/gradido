@@ -25,6 +25,8 @@
 <script>
 import { createContributionMessage } from '../../graphql/mutations.js'
 
+const STRIP_HTML_PATTERN = /(<([^>]+)>)/gi
+
 export default {
   name: 'ContributionMessagesFormular',
   props: {
@@ -66,7 +68,7 @@ export default {
   },
   computed: {
     clearTextFromHtml() {
-      return this.form.text.replace(/(<([^>]+)>)/gi, '')
+      return this.form.text.replace(STRIP_HTML_PATTERN, '')
     },
     disabled() {
       if (this.form.text !== '') {
