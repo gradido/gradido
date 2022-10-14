@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       form: {
-        text: '',
+        text: ''
       },
     }
   },
@@ -47,7 +47,7 @@ export default {
           mutation: adminCreateContributionMessage,
           variables: {
             contributionId: this.contributionId,
-            message: this.form.text.replace(/(<([^>]+)>)/gi, ''),
+            message: this.clearTextFromHtml,
           },
         })
         .then((result) => {
@@ -65,6 +65,9 @@ export default {
     },
   },
   computed: {
+    clearTextFromHtml(){
+      return this.form.text.replace(/(<([^>]+)>)/gi, '')
+    },
     disabled() {
       if (this.form.text !== '') {
         return false

@@ -98,17 +98,19 @@ export default {
       minlength: 5,
       maxlength: 255,
       maximalDate: new Date(),
-      form: this.value, // includes 'id'
+      form: this.value, // includes 'id',
+      patternStripHtml: new RegExp(/(<([^>]+)>)/gi),
+      patternNonDigit: new RegExp(/\D/g)
     }
   },
   methods: {
     numberFormat(value) {
-      return value.replace(/\D/g, '')
+      return value.replace(this.patternNonDigit, '')
     },
     submit() {
-      this.form.amount = this.numberFormat(this.form.amount)
+      this.form.amount = this.form.amount.replace(this.patternNonDigit, '')
       // spreading is needed for testing
-      this.form.memo = this.form.memo.replace(/(<([^>]+)>)/gi, '')
+      this.form.memo = this.memoStripHtml
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
@@ -128,6 +130,9 @@ export default {
     },
   },
   computed: {
+    memoStripHtml() {
+      return this.form.memo.replace(this.patternStripHtml)
+    },
     minimalDate() {
       // sets the date to the 1st of the previous month
       let date = new Date(this.maximalDate) // has to be a new object, because of 'setMonth' changes the objects date
