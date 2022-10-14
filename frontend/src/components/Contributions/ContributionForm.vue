@@ -25,6 +25,7 @@
         reset-value=""
         :label-no-date-selected="$t('contribution.noDateSelected')"
         required
+        :disabled="this.form.id !== null"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>

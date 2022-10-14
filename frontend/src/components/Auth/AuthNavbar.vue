@@ -18,9 +18,9 @@
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
       <b-collapse id="nav-collapse" is-nav class="ml-5">
         <b-navbar-nav class="ml-auto d-none d-lg-flex" right>
-          <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
+          <b-nav-item :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <b-nav-item to="/login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item :to="login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -28,8 +28,11 @@
 </template>
 
 <script>
+import { authLinks } from '@/mixins/authLinks'
+
 export default {
   name: 'AuthNavbar',
+  mixins: [authLinks],
   data() {
     return {
       logo: '/img/brand/green.png',

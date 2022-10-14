@@ -9,7 +9,6 @@
     "cycle": "Cycle",
     "deleted": "Automatic creation deleted!",
     "deleteNow": "Do you really delete automatic creations '{name}'?",
-    "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -21,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "daily",
-        "hourly": "hourly",
-        "monthly": "monthly",
-        "once": "once",
-        "weekly": "weekly",
-        "yearly": "yearly"
+        "once": "once"
       }
     },
     "validFrom": "Start-date",
