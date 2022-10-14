@@ -7,7 +7,7 @@ const pkg = require('../../package')
 const constants = {
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v10.2022-09-20',
+    EXPECTED: 'v1.2022-03-18',
     CURRENT: '',
   },
 }
