@@ -1034,21 +1034,33 @@ describe('AdminResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: {
+                      adminCreateContribution: expect.objectContaining({
                         contribution: expect.objectContaining({
                           firstName: 'Bibi',
                           lastName: 'Bloxberg',
-                          amount: new Decimal(200),
+                          amount: expect.decimalEqual(200),
                           memo: 'Aktives Grundeinkommen',
-                          createdAt: expect.any(Date),
+                          createdAt: expect.any(String),
                         }),
                         creation: expect.arrayContaining([
-                          { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
-                          { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
-                          { amount: new Decimal(1000), targetMonth: now.getMonth() },
-                          { amount: new Decimal(800), targetMonth: now.getMonth() + 1 },
+                          expect.objectContaining({
+                            amount: expect.decimalEqual(1000),
+                            targetMonth: now.getMonth() - 3 + 1,
+                          }),
+                          expect.objectContaining({
+                            amount: expect.decimalEqual(1000),
+                            targetMonth: now.getMonth() - 2 + 1,
+                          }),
+                          expect.objectContaining({
+                            amount: expect.decimalEqual(1000),
+                            targetMonth: now.getMonth(),
+                          }),
+                          expect.objectContaining({
+                            amount: expect.decimalEqual(800),
+                            targetMonth: now.getMonth() + 1,
+                          }),
                         ]),
-                      },
+                      }),
                     },
                   }),
                 )
@@ -1325,70 +1337,118 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 data: {
                   listUnconfirmedContributions: expect.arrayContaining([
-                    {
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Peter',
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
                       date: expect.any(String),
                       memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '400',
+                      amount: expect.decimalEqual(400),
                       moderator: admin.id,
                       creation: expect.arrayContaining([
-                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
-                        { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
-                        { amount: new Decimal(600), targetMonth: now.getMonth() },
-                        { amount: new Decimal(500), targetMonth: now.getMonth() + 1 },
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: now.getMonth() - 3 + 1,
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: now.getMonth() - 2 + 1,
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(600),
+                          targetMonth: now.getMonth(),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(500),
+                          targetMonth: now.getMonth() + 1,
+                        }),
                       ]),
-                    },
-                    {
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Peter',
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
-                      date: expect.any(Date),
+                      date: expect.any(String),
                       memo: 'Grundeinkommen',
-                      amount: '500',
+                      amount: expect.decimalEqual(500),
                       moderator: admin.id,
                       creation: expect.arrayContaining([
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(600), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(500), targetMonth: expect.any(Number) },
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(600),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(500),
+                          targetMonth: expect.any(Number),
+                        }),
                       ]),
-                    },
-                    {
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
-                      date: expect.any(Date),
+                      date: expect.any(String),
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
                       creation: expect.arrayContaining([
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(300), targetMonth: expect.any(Number) },
+                        expect.objectContaining({
+                          amount: new Decimal(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: new Decimal(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: new Decimal(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: new Decimal(300),
+                          targetMonth: expect.any(Number),
+                        }),
                       ]),
-                    },
-                    {
+                    }),
+                    expect.objectContaining({
                       id: expect.any(Number),
                       firstName: 'Bibi',
                       lastName: 'Bloxberg',
                       email: 'bibi@bloxberg.de',
-                      date: expect.any(Date),
+                      date: expect.any(String),
                       memo: 'Aktives Grundeinkommen',
-                      amount: '200',
+                      amount: expect.decimalEqual(200),
                       moderator: admin.id,
                       creation: expect.arrayContaining([
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(1000), targetMonth: expect.any(Number) },
-                        { amount: new Decimal(300), targetMonth: expect.any(Number) },
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: expect.any(Number),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(300),
+                          targetMonth: expect.any(Number),
+                        }),
                       ]),
-                    },
+                    }),
                   ]),
                 },
               }),
