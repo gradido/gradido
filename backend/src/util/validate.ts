@@ -26,6 +26,8 @@ async function calculateBalance(
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
   const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
   if (!lastTransaction) return null
+  // negative amount should not be allowed
+  if (amount.greaterThan(0)) return null
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 

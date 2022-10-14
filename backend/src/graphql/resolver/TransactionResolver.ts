@@ -76,7 +76,6 @@ export const executeTransaction = async (
   )
   logger.debug(`calculated Balance=${sendBalance}`)
   if (!sendBalance) {
-    // josejgi: wrong messages from my point of view, at this point balance is always null, should log inside calculate balance or handle returns in a different way
     logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
     throw new Error("user hasn't enough GDD or amount is < 0")
   }

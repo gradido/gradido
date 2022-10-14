@@ -6,15 +6,17 @@ import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
-  createUser,
+  login,
   sendCoins,
 } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { EventProtocol } from '@entity/EventProtocol'
+import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
 
@@ -42,6 +44,8 @@ describe('send coins', () => {
   beforeAll(async () => {
     await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, bobBaumeister)
+    await userFactory(testEnv, stephenHawking)
+    await userFactory(testEnv, garrickOllivander)
 
     bobData = {
       email: 'bob@baumeister.de',
@@ -62,10 +66,10 @@ describe('send coins', () => {
     await cleanDB()
   })
 
-  describe('wrong recipient', () => {
-    it('unknown recipient', async () => {
+  describe('unknown recipient', () => {
+    it('throws an error', async () => {
       await mutate({
-        query: login,
+        mutation: login,
         variables: bobData,
       })
       expect(
@@ -84,77 +88,59 @@ describe('send coins', () => {
       )
     })
 
-    it('deleted recipient', async () => {
-      // delete bob
-      const bob = await User.findOneOrFail({ id: user[1].id })
-      bob.deletedAt = new Date()
-      await bob.save()
-
-      await mutate({
-        query: login,
-        variables: peterData,
-      })
-
-      expect(
+    describe('deleted recipient', () => {
+      it('throws an error', async () => {
         await mutate({
-          mutation: sendCoins,
-          variables: {
-            email: 'bob@baumeister.de',
-            amount: 100,
-            memo: 'test',
-          },
-        }),
-      ).toEqual(
-        expect.objectContaining({
-          errors: [new GraphQLError('The recipient account was deleted')],
-        }),
-      )
+          mutation: login,
+          variables: peterData,
+        })
 
-      // make bob active again
-      bob.deletedAt = null
-      await bob.save()
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'stephen@hawking.uk',
+              amount: 100,
+              memo: 'test',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('The recipient account was deleted')],
+          }),
+        )
+      })
     })
 
-    it('recipient account not activated', async () => {
-      resetToken()
-
-      await mutate({
-        mutation: createUser,
-        variables: {
-          email: 'testing@user.de',
-          firstName: 'testing',
-          lastName: 'user',
-          language: 'de',
-          publisherId: 1234,
-        },
-      })
-
-      await mutate({
-        query: login,
-        variables: peterData,
-      })
-
-      expect(
+    describe('recipient account not activated', () => {
+      it('throws an error', async () => {
         await mutate({
-          mutation: sendCoins,
-          variables: {
-            email: 'testing@user.de',
-            amount: 100,
-            memo: 'test',
-          },
-        }),
-      ).toEqual(
-        expect.objectContaining({
-          errors: [new GraphQLError('The recipient account is not activated')],
-        }),
-      )
+          mutation: login,
+          variables: peterData,
+        })
+
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'garrick@ollivander.com',
+              amount: 100,
+              memo: 'test',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('The recipient account is not activated')],
+          }),
+        )
+      })
     })
   })
 
   describe('errors in the transaction itself', () => {
     beforeAll(async () => {
       await mutate({
-        query: login,
+        mutation: login,
         variables: bobData,
       })
     })
@@ -254,13 +240,8 @@ describe('send coins', () => {
     })
   })
 
-  describe('transaction correct', () => {
-    it('sends the coins', async () => {
-      // make Peter Lustig Admin
-      const peter = await User.findOneOrFail({ id: user[0].id })
-      peter.isAdmin = new Date()
-      await peter.save()
-
+  describe('user has some GDD', () => {
+    beforeAll(async () => {
       // create contribution as user bob
       const contribution = await mutate({
         mutation: createContribution,
@@ -268,7 +249,7 @@ describe('send coins', () => {
       })
 
       // login as admin
-      await query({ query: login, variables: peterData })
+      await query({ mutation: login, variables: peterData })
 
       // confirm the contribution
       await mutate({
@@ -277,42 +258,91 @@ describe('send coins', () => {
       })
 
       // login as bob again
-      await query({ query: login, variables: bobData })
-
-      expect(
-        await mutate({
-          mutation: sendCoins,
-          variables: {
-            email: 'peter@lustig.de',
-            amount: 100,
-            memo: 'testing',
-          },
-        }),
-      ).toEqual(
-        expect.objectContaining({
-          data: {
-            sendCoins: 'true',
-          },
-        }),
-      )
+      await query({ mutation: login, variables: bobData })
     })
 
-    it('stores the send transaction event in the database', async () => {
-      expect(EventProtocol.find()).resolves.toContainEqual(
-        expect.objectContaining({
-          type: EventProtocolType.TRANSACTION_SEND,
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    describe('trying to send negative amount', () => {
+      it('throws an error', async () => {
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: -50,
+              memo: 'testing negative',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith(
+          `user hasn't enough GDD or amount is < 0 : balance=null`,
+        )
+      })
+    })
+
+    describe('good transaction', () => {
+      it('sends the coins', async () => {
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: 50,
+              memo: 'unrepeateable memo',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            data: {
+              sendCoins: 'true',
+            },
+          }),
+        )
+      })
+
+      it('stores the send transaction event in the database', async () => {
+        // Find the exact transaction (sent one is the one with user[1] as user)
+        const transaction = await Transaction.find({
           userId: user[1].id,
-        }),
-      )
-    })
+          memo: 'unrepeateable memo',
+        })
 
-    it('stores the receive event in the database', async () => {
-      expect(EventProtocol.find()).resolves.toContainEqual(
-        expect.objectContaining({
-          type: EventProtocolType.TRANSACTION_RECEIVE,
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.TRANSACTION_SEND,
+            userId: user[1].id,
+            transactionId: transaction[0].id,
+            xUserId: user[0].id,
+          }),
+        )
+      })
+
+      it('stores the receive event in the database', async () => {
+        // Find the exact transaction (received one is the one with user[0] as user)
+        const transaction = await Transaction.find({
           userId: user[0].id,
-        }),
-      )
+          memo: 'unrepeateable memo',
+        })
+
+        expect(EventProtocol.find()).resolves.toContainEqual(
+          expect.objectContaining({
+            type: EventProtocolType.TRANSACTION_RECEIVE,
+            userId: user[0].id,
+            transactionId: transaction[0].id,
+            xUserId: user[1].id,
+          }),
+        )
+      })
     })
   })
 })
