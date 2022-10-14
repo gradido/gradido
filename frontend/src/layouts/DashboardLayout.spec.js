@@ -18,6 +18,7 @@ const apolloMock = jest.fn().mockResolvedValue({
     logout: 'success',
   },
 })
+const apolloQueryMock = jest.fn()
 
 describe('DashboardLayout', () => {
   let wrapper
@@ -40,7 +41,8 @@ describe('DashboardLayout', () => {
       },
     },
     $apollo: {
-      query: apolloMock,
+      mutate: apolloMock,
+      query: apolloQueryMock,
     },
     $store: {
       state: {
@@ -142,7 +144,7 @@ describe('DashboardLayout', () => {
 
       describe('update transactions', () => {
         beforeEach(async () => {
-          apolloMock.mockResolvedValue({
+          apolloQueryMock.mockResolvedValue({
             data: {
               transactionList: {
                 balance: {
@@ -163,7 +165,7 @@ describe('DashboardLayout', () => {
         })
 
         it('calls the API', () => {
-          expect(apolloMock).toBeCalledWith(
+          expect(apolloQueryMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 currentPage: 2,
@@ -201,7 +203,7 @@ describe('DashboardLayout', () => {
 
       describe('update transactions returns error', () => {
         beforeEach(async () => {
-          apolloMock.mockRejectedValue({
+          apolloQueryMock.mockRejectedValue({
             message: 'Ouch!',
           })
           await wrapper

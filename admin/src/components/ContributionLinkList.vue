@@ -64,8 +64,28 @@ export default {
         'amount',
         { key: 'cycle', label: this.$t('contributionLink.cycle') },
         { key: 'maxPerCycle', label: this.$t('contributionLink.maxPerCycle') },
-        { key: 'validFrom', label: this.$t('contributionLink.validFrom') },
-        { key: 'validTo', label: this.$t('contributionLink.validTo') },
+        {
+          key: 'validFrom',
+          label: this.$t('contributionLink.validFrom'),
+          formatter: (value, key, item) => {
+            if (value) {
+              return this.$d(new Date(value))
+            } else {
+              return null
+            }
+          },
+        },
+        {
+          key: 'validTo',
+          label: this.$t('contributionLink.validTo'),
+          formatter: (value, key, item) => {
+            if (value) {
+              return this.$d(new Date(value))
+            } else {
+              return null
+            }
+          },
+        },
         'delete',
         'edit',
         'show',
