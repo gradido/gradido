@@ -100,7 +100,7 @@ export default {
       maximalDate: new Date(),
       form: this.value, // includes 'id',
       patternStripHtml: new RegExp(/(<([^>]+)>)/gi),
-      patternNonDigit: new RegExp(/\D/g)
+      patternNonDigit: new RegExp(/\D/g),
     }
   },
   methods: {

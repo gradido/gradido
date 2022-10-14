@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       form: {
-        text: ''
+        text: '',
       },
     }
   },
@@ -65,7 +65,7 @@ export default {
     },
   },
   computed: {
-    clearTextFromHtml(){
+    clearTextFromHtml() {
       return this.form.text.replace(/(<([^>]+)>)/gi, '')
     },
     disabled() {
