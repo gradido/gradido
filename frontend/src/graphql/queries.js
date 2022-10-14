@@ -1,23 +1,5 @@
 import gql from 'graphql-tag'
 
-export const login = gql`
-  query($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
-      email
-      firstName
-      lastName
-      language
-      klickTipp {
-        newsletterState
-      }
-      hasElopage
-      publisherId
-      isAdmin
-      creation
-    }
-  }
-`
-
 export const verifyLogin = gql`
   query {
     verifyLogin {
@@ -33,12 +15,6 @@ export const verifyLogin = gql`
       isAdmin
       creation
     }
-  }
-`
-
-export const logout = gql`
-  query {
-    logout
   }
 `
 
