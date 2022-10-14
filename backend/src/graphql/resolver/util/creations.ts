@@ -164,6 +164,8 @@ export const updateCreations = (
 
 export const getAheadDate = (clientRequestTime: Date): Date => {
   let usedDate = new Date()
+  console.log('usedDate=', usedDate.toISOString())
+  console.log('getAheadDate: clientRequestTime=', clientRequestTime.toISOString())
   if (dateCompare(clientRequestTime, usedDate) > 0) {
     usedDate = clientRequestTime
   }

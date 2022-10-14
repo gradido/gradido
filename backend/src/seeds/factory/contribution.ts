@@ -6,8 +6,9 @@ import {
   createContribution,
   updateContribution,
   deleteContribution,
+  login,
+  logout,
 } from '@/seeds/graphql/mutations'
-import { login, logout } from '@/seeds/graphql/queries'
 import { ContributionInterface } from '@/seeds/contribution/ContributionInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Transaction } from '@entity/Transaction'

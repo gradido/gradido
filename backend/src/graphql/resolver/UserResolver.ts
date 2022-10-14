@@ -307,13 +307,15 @@ export class UserResolver {
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
     const clientRequestTime = getClientRequestTime(context)
-    logger.trace('clientRequestTimee: ', clientRequestTime)
+    console.log('clientRequestTimee: ', clientRequestTime)
+    logger.info('clientRequestTimee: ', clientRequestTime)
     const user = new User(userEntity, await getUserCreation(userEntity.id, clientRequestTime))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}, ${user.email}`)
+    console.log('verifyLogin: User=', user)
     return user
   }
 

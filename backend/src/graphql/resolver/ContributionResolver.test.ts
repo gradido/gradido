@@ -175,28 +175,28 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: 'Test env contribution',
-                  date: now.toString(),
+                  date: expect.any(String),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(now.getFullYear(), now.getMonth() - 3, 1).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
-                    },
-                    { amount: '900', targetMonth: new Date().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: now.getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -216,13 +216,6 @@ describe('ContributionResolver', () => {
         // create one contribution with 100GDD for bibi one month ago in the past
         await contributionFactory(testEnv, bibiBloxberg, capturedContribution100OneMonthAgo)
         // set clientRequestTime at the 1st day of the next month against the backend time
-        /*
-        // const local = Intl.Locale // supportedValuesOf()
-        const timezone = Intl.DateTimeFormat() // 'en-US', { timeZone: 'America/Denver' }) // .resolvedOptions().timeZone
-        console.log('timezone=', timezone)
-        const clientRequestTime = new Date(timezone.format(new Date()))
-        console.log('clientRequestTime=', clientRequestTime.toLocaleString())
-        */
         const clientRequestTime = new Date()
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
@@ -260,33 +253,24 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '900',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                 },
               },
             }),
@@ -310,37 +294,29 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '600',
                   memo: '1st new contribution one month ahead server time',
-                  date: getClientRequestTime(),
+                  // date: expect.any(String),
+                  date: new Date(getClientRequestTime()).toISOString(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '900',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '400', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(400),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -374,37 +350,29 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  date: getClientRequestTime(),
+                  // date: expect.any(String),
+                  date: new Date(getClientRequestTime()).toISOString(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '900',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '250', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(250),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -466,6 +434,7 @@ describe('ContributionResolver', () => {
         })
 
         it('verify limits before 1st creation', async () => {
+          console.log('### ab hier')
           await expect(query({ query: verifyLogin })).resolves.toEqual(
             expect.objectContaining({
               data: {
@@ -482,33 +451,24 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '900', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                 },
               },
             }),
@@ -532,37 +492,29 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '600',
                   memo: '1st new contribution one month behind server time',
-                  date: getClientRequestTime(),
+                  // date: expect.any(String),
+                  date: new Date(getClientRequestTime()).toISOString(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '300', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(300),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -596,37 +548,29 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  date: getClientRequestTime(),
+                  // date: expect.any(String),
+                  date: new Date(getClientRequestTime()).toISOString(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '150', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(150),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -707,33 +651,24 @@ describe('ContributionResolver', () => {
                   hasElopage: false,
                   publisherId: 1234,
                   isAdmin: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '900',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(900),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                 },
               },
             }),
@@ -761,33 +696,24 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '300',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(300),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -825,33 +751,24 @@ describe('ContributionResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
-                  creation: [
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 3,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '1000',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 2,
-                        ).getMonth() + 1,
-                    },
-                    {
-                      amount: '150',
-                      targetMonth:
-                        new Date(
-                          getClientRequestTimeAsDate().getFullYear(),
-                          getClientRequestTimeAsDate().getMonth() - 1,
-                        ).getMonth() + 1,
-                    },
-                    { amount: '1000', targetMonth: getClientRequestTimeAsDate().getMonth() + 1 },
-                  ],
+                  creation: expect.arrayContaining([
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(150),
+                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                    }),
+                  ]),
                   state: ContributionStatus.PENDING,
                   messageCount: 0,
                 },
@@ -1203,7 +1120,9 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('Currently the month of the contribution cannot change.')],
+              errors: [
+                new GraphQLError('Currently the month of the contribution cannot be changed.'),
+              ],
             }),
           )
         })
