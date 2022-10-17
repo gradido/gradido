@@ -1,6 +1,6 @@
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getClientRequestTime, getUser } from '@/server/context'
-import { getConnection, Between } from '@dbTools/typeorm'
+import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
   Args,
@@ -239,11 +239,16 @@ export class TransactionLinkResolver {
               .createQueryBuilder()
               .select('contribution')
               .from(DbContribution, 'contribution')
-              .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
-                linkId: contributionLink.id,
-                id: user.id,
-                contributionDate: Between(start, end),
-              })
+              .where(
+                `contribution.contributionLinkId = :linkId AND contribution.userId = :id
+                      AND Date(contribution.confirmedAt) BETWEEN :start AND :end`,
+                {
+                  linkId: contributionLink.id,
+                  id: user.id,
+                  start,
+                  end,
+                },
+              )
               .getOne()
             if (alreadyRedeemed) {
               logger.error(
