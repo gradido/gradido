@@ -73,8 +73,8 @@ describe('TransactionLinkResolver', () => {
           deletedAt: null,
           code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
           linkEnabled: true,
-          // amount: '200',
-          // maxAmountPerMonth: '200',
+          amount: expect.decimalEqual(5),
+          maxAmountPerMonth: expect.decimalEqual(200),
         }),
       )
     })
@@ -109,6 +109,56 @@ describe('TransactionLinkResolver', () => {
             'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
           ),
         ],
+      })
+    })
+
+    describe('after one day', () => {
+      beforeAll(async () => {
+        jest.useFakeTimers()
+        /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+        setTimeout(() => {}, 1000 * 60 * 60 * 24)
+        jest.runAllTimers()
+        await mutate({
+          mutation: login,
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+        })
+      })
+
+      afterAll(() => {
+        jest.useRealTimers()
+      })
+
+      it('allows the user to redeem the contribution link again', async () => {
+        await expect(
+          mutate({
+            mutation: redeemTransactionLink,
+            variables: {
+              code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+            },
+          }),
+        ).resolves.toMatchObject({
+          data: {
+            redeemTransactionLink: true,
+          },
+          errors: undefined,
+        })
+      })
+
+      it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+        await expect(
+          mutate({
+            mutation: redeemTransactionLink,
+            variables: {
+              code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+            },
+          }),
+        ).resolves.toMatchObject({
+          errors: [
+            new GraphQLError(
+              'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
+            ),
+          ],
+        })
       })
     })
   })
