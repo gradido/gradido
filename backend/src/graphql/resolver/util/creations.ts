@@ -15,10 +15,9 @@ export const validateContribution = (
   creations: ContributionMonth[],
   amount: Decimal,
   creationDate: Date,
-  clientRequestTime: Date,
 ): void => {
   logger.trace('isContributionValid', creations, amount, creationDate)
-  const index = getCreationIndex(creationDate.getMonth(), clientRequestTime)
+  const index = getCreationIndex(creations, creationDate.getMonth())
 
   if (index < 0) {
     logger.error(
@@ -123,8 +122,8 @@ export const getCreationMonths = (usedDate: Date): ContributionMonth[] => {
   ]
 }
 
-export const getCreationIndex = (month: number, clientRequestTime: Date): number => {
-  return getCreationMonths(clientRequestTime).findIndex((el) => el.targetMonth === month + 1)
+const getCreationIndex = (creations: ContributionMonth[], month: number): number => {
+  return creations.findIndex((el) => el.targetMonth === month + 1)
 }
 
 export const isStartEndDateValid = (
@@ -151,9 +150,8 @@ export const isStartEndDateValid = (
 export const updateCreations = (
   creations: ContributionMonth[],
   contribution: Contribution,
-  clientRequestTime: Date,
 ): ContributionMonth[] => {
-  const index = getCreationIndex(contribution.contributionDate.getMonth(), clientRequestTime)
+  const index = getCreationIndex(creations, contribution.contributionDate.getMonth())
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
@@ -164,10 +162,9 @@ export const updateCreations = (
 
 export const getAheadDate = (clientRequestTime: Date): Date => {
   let usedDate = new Date()
-  console.log('usedDate=', usedDate.toISOString())
-  console.log('getAheadDate: clientRequestTime=', clientRequestTime.toISOString())
   if (dateCompare(clientRequestTime, usedDate) > 0) {
     usedDate = clientRequestTime
   }
+  logger.info(`getAheadDate(${clientRequestTime.toISOString()}) returns ${usedDate.toISOString()}`)
   return usedDate
 }

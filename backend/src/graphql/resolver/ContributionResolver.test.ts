@@ -434,7 +434,8 @@ describe('ContributionResolver', () => {
         })
 
         it('verify limits before 1st creation', async () => {
-          console.log('### ab hier')
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           await expect(query({ query: verifyLogin })).resolves.toEqual(
             expect.objectContaining({
               data: {
@@ -454,19 +455,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(900),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                 },
@@ -476,6 +477,8 @@ describe('ContributionResolver', () => {
         })
 
         it('1st contribution creation behind server time', async () => {
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           await expect(
             mutate({
               mutation: createContribution,
@@ -500,19 +503,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(300),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                   state: ContributionStatus.PENDING,
@@ -524,11 +527,13 @@ describe('ContributionResolver', () => {
         })
 
         it('two creations and update to exceed limit', async () => {
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           result = await mutate({
             mutation: createContribution,
             variables: {
               amount: 50.0,
-              memo: '2nd new contribution one month ahead server time',
+              memo: '2nd new contribution one month behind server time',
               creationDate: getClientRequestTime(),
             },
           })
@@ -537,7 +542,7 @@ describe('ContributionResolver', () => {
               mutation: createContribution,
               variables: {
                 amount: 100.0,
-                memo: '3rd new contribution one month ahead server time',
+                memo: '3rd new contribution one month behind server time',
                 creationDate: getClientRequestTime(),
               },
             }),
@@ -547,7 +552,7 @@ describe('ContributionResolver', () => {
                 createContribution: {
                   id: expect.any(Number),
                   amount: '100',
-                  memo: '3rd new contribution one month ahead server time',
+                  memo: '3rd new contribution one month behind server time',
                   // date: expect.any(String),
                   date: new Date(getClientRequestTime()).toISOString(),
                   firstName: 'Bibi',
@@ -556,19 +561,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(150),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                   state: ContributionStatus.PENDING,
@@ -584,7 +589,7 @@ describe('ContributionResolver', () => {
               variables: {
                 contributionId: result.data.createContribution.id,
                 amount: 400.0,
-                memo: 'update 2nd contribution one month ahead server time',
+                memo: 'update 2nd contribution one month behind server time',
                 creationDate: getClientRequestTime(),
               },
             }),
@@ -635,6 +640,8 @@ describe('ContributionResolver', () => {
         })
 
         it('verify limits before 1st creation', async () => {
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           await expect(query({ query: verifyLogin })).resolves.toEqual(
             expect.objectContaining({
               data: {
@@ -654,19 +661,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(900),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                 },
@@ -676,6 +683,8 @@ describe('ContributionResolver', () => {
         })
 
         it('1st contribution creation 2 month behind server time', async () => {
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           await expect(
             mutate({
               mutation: createContribution,
@@ -699,19 +708,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(300),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                   state: ContributionStatus.PENDING,
@@ -723,6 +732,8 @@ describe('ContributionResolver', () => {
         })
 
         it('two creations and update to exceed limit', async () => {
+          const now = new Date()
+          // expect creation months from server time, which is ahead of the clientRequest Time
           result = await mutate({
             mutation: createContribution,
             variables: {
@@ -754,19 +765,19 @@ describe('ContributionResolver', () => {
                   creation: expect.arrayContaining([
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 3 + 1,
-                    }),
-                    expect.objectContaining({
-                      amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() - 2 + 1,
+                      targetMonth: now.getMonth() - 3 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(150),
-                      targetMonth: getClientRequestTimeAsDate().getMonth(),
+                      targetMonth: now.getMonth() - 2 + 1,
                     }),
                     expect.objectContaining({
                       amount: expect.decimalEqual(1000),
-                      targetMonth: getClientRequestTimeAsDate().getMonth() + 1,
+                      targetMonth: now.getMonth(),
+                    }),
+                    expect.objectContaining({
+                      amount: expect.decimalEqual(1000),
+                      targetMonth: now.getMonth() + 1,
                     }),
                   ]),
                   state: ContributionStatus.PENDING,
@@ -782,7 +793,7 @@ describe('ContributionResolver', () => {
               variables: {
                 contributionId: result.data.createContribution.id,
                 amount: 400.0,
-                memo: 'update 2nd contribution one month ahead server time',
+                memo: 'update 2nd contribution two month behind server time',
                 creationDate: creationDate.toISOString(),
               },
             }),

@@ -22,6 +22,7 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    logger.info(`createContribution(${amount}, ${memo}, ${creationDate})`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -33,12 +34,13 @@ export class ContributionResolver {
     }
 
     const user = getUser(context)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
     const clientRequestTime = getClientRequestTime(context)
-    logger.trace('clientRequestTimee: ', clientRequestTime)
+    logger.info('clientRequestTime: ', clientRequestTime.toISOString())
     const creations = await getUserCreation(user.id, clientRequestTime)
-    logger.trace('creations', creations)
+    logger.info('creations: ', creations)
     const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj, clientRequestTime)
+    validateContribution(creations, amount, creationDateObj)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
@@ -49,7 +51,7 @@ export class ContributionResolver {
     contribution.contributionType = ContributionType.USER
     contribution.contributionStatus = ContributionStatus.PENDING
 
-    logger.trace('contribution to save', contribution)
+    logger.debug('contribution to save', contribution)
     await dbContribution.save(contribution)
     return new UnconfirmedContribution(
       contribution,
@@ -64,7 +66,9 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    logger.info(`deleteContribution(${id})`)
     const user = getUser(context)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
     const contribution = await dbContribution.findOne(id)
     if (!contribution) {
       throw new Error('Contribution not found for given id.')
@@ -144,6 +148,7 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    logger.info(`updateContribution(${amount}, ${memo}, ${creationDate})`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -155,8 +160,9 @@ export class ContributionResolver {
     }
 
     const user = getUser(context)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
     const clientRequestTime = getClientRequestTime(context)
-    logger.trace('clientRequestTimee: ', clientRequestTime)
+    logger.info('clientRequestTimee: ', clientRequestTime.toISOString())
 
     const contributionToUpdate = await dbContribution.findOne({
       where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
@@ -170,15 +176,37 @@ export class ContributionResolver {
 
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id, clientRequestTime)
+    logger.debug(
+      'update 1 creations:',
+      creations[0].targetMonth,
+      creations[0].amount.toString(),
+      creations[1].targetMonth,
+      creations[1].amount.toString(),
+      creations[2].targetMonth,
+      creations[2].amount.toString(),
+      creations[3].targetMonth,
+      creations[3].amount.toString(),
+    )
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate, clientRequestTime)
+      creations = updateCreations(creations, contributionToUpdate)
     } else {
       logger.error('Currently the month of the contribution cannot be changed.')
       throw new Error('Currently the month of the contribution cannot be changed.')
     }
+    logger.debug(
+      'update 2 creations:',
+      creations[0].targetMonth,
+      creations[0].amount.toString(),
+      creations[1].targetMonth,
+      creations[1].amount.toString(),
+      creations[2].targetMonth,
+      creations[2].amount.toString(),
+      creations[3].targetMonth,
+      creations[3].amount.toString(),
+    )
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj, clientRequestTime)
+    validateContribution(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)

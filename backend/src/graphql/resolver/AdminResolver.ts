@@ -253,7 +253,7 @@ export class AdminResolver {
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
     logger.trace('creationDateObj:', creationDateObj)
-    validateContribution(creations, amount, creationDateObj, clientRequestTime)
+    validateContribution(creations, amount, creationDateObj)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
@@ -352,14 +352,14 @@ export class AdminResolver {
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id, clientRequestTime)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate, clientRequestTime)
+      creations = updateCreations(creations, contributionToUpdate)
     } else {
       logger.error('Currently the month of the contribution cannot be changed.')
       throw new Error('Currently the month of the contribution cannot be changed.')
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj, clientRequestTime)
+    validateContribution(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -455,12 +455,7 @@ export class AdminResolver {
     }
 
     const creations = await getUserCreation(contribution.userId, clientRequestTime, false)
-    validateContribution(
-      creations,
-      contribution.amount,
-      contribution.contributionDate,
-      clientRequestTime,
-    )
+    validateContribution(creations, contribution.amount, contribution.contributionDate)
 
     const receivedCallDate = new Date()
 
