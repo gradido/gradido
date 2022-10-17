@@ -68,9 +68,6 @@ export const contributionFactory = async (
       mutation: deleteContribution,
       variables: {
         id: pendingCreation.id,
-        amount: contribution.updatedAmount,
-        memo: contribution.updatedMemo,
-        creationDate: contribution.creationDate,
       },
     })
   }
