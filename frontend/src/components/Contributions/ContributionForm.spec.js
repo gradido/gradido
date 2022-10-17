@@ -329,7 +329,8 @@ describe('ContributionForm', () => {
 
         describe('invalid form data', () => {
           beforeEach(async () => {
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
+            // skip this precondition as long as the datepicker is disabled in the component
+            // await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
             await wrapper.find('#contribution-amount').find('input').setValue('200')
           })
 

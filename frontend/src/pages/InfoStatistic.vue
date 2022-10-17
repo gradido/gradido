@@ -14,13 +14,16 @@
     <hr />
     <b-container>
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
-      <small>
+      <small v-if="count > 0">
         {{
           $t('community.openContributionLinkText', {
             name: CONFIG.COMMUNITY_NAME,
             count,
           })
         }}
+      </small>
+      <small v-else>
+        {{ $t('community.noOpenContributionLinkText') }}
       </small>
       <ul>
         <li v-for="item in itemsContributionLinks" v-bind:key="item.id">

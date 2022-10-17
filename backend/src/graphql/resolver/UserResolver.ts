@@ -316,7 +316,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGIN])
-  @Query(() => User)
+  @Mutation(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
@@ -377,7 +377,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Query(() => String)
+  @Mutation(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
     // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)

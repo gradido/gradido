@@ -25,6 +25,7 @@ describe('App', () => {
       meta: {
         requiresAuth: false,
       },
+      params: {},
     },
   }
 
