@@ -203,7 +203,7 @@ describe('ContributionResolver', () => {
           await expect(EventProtocol.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventProtocolType.CONTRIBUTION_CREATE,
-              // amount: '100', FAILS even though it is stored correctly in the database, event has 100 stored
+              amount: expect.decimalEqual(100),
               contributionId: contribution.data.createContribution.id,
               userId: bibi.data.login.id,
             }),
