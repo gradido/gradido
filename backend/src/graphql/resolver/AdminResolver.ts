@@ -339,6 +339,9 @@ export class AdminResolver {
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -692,6 +695,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
