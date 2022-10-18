@@ -51,13 +51,11 @@ describe('send coins', () => {
     bobData = {
       email: 'bob@baumeister.de',
       password: 'Aa12345_',
-      publisherId: 1234,
     }
 
     peterData = {
       email: 'peter@lustig.de',
       password: 'Aa12345_',
-      publisherId: 1234,
     }
 
     user = await User.find({ relations: ['emailContact'] })
