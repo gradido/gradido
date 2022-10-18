@@ -19,6 +19,7 @@ import { User } from '@entity/User'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
+import { findUserByEmail } from './UserResolver'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -88,6 +89,10 @@ describe('send coins', () => {
       )
     })
 
+    it('logs the error thrown', () => {
+      expect(logger.error).toBeCalledWith(`UserContact with email=wrong@email.com does not exists`)
+    })
+
     describe('deleted recipient', () => {
       it('throws an error', async () => {
         await mutate({
@@ -108,6 +113,14 @@ describe('send coins', () => {
           expect.objectContaining({
             errors: [new GraphQLError('The recipient account was deleted')],
           }),
+        )
+      })
+
+      it('logs the error thrown', async () => {
+        // find peter to check the log
+        const user = await findUserByEmail(peterData.email)
+        expect(logger.error).toBeCalledWith(
+          `The recipient account was deleted: recipientUser=${user}`,
         )
       })
     })
@@ -132,6 +145,14 @@ describe('send coins', () => {
           expect.objectContaining({
             errors: [new GraphQLError('The recipient account is not activated')],
           }),
+        )
+      })
+
+      it('logs the error thrown', async () => {
+        // find peter to check the log
+        const user = await findUserByEmail(peterData.email)
+        expect(logger.error).toBeCalledWith(
+          `The recipient account is not activated: recipientUser=${user}`,
         )
       })
     })
