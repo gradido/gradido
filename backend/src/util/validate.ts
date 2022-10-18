@@ -5,6 +5,8 @@ import { Decay } from '@model/Decay'
 import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { decimalSubtraction, decimalAddition } from './utilities'
+import { logger } from '@test/testSetup'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -23,16 +25,26 @@ async function calculateBalance(
   amount: Decimal,
   time: Date,
   transactionLink?: dbTransactionLink | null,
-): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
+): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number }> {
+  // negative or empty amount should not be allowed
+  if (amount.lessThanOrEqualTo(0)) {
+    logger.error(`Transaction amount must be greater than 0: ${amount}`)
+    throw new Error('Transaction amount must be greater than 0')
+  }
+
+  // check if user has prior transactions
   const lastTransaction = await Transaction.findOne({ userId }, { order: { balanceDate: 'DESC' } })
-  if (!lastTransaction) return null
-  // negative amount should not be allowed
-  if (amount.greaterThan(0)) return null
+
+  if (!lastTransaction) {
+    logger.error(`No prior transaction found for user with id: ${userId}`)
+    throw new Error('User has not received any GDD yet')
+  }
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 
-  // TODO why we have to use toString() here?
-  const balance = decay.balance.add(amount.toString())
+  // new balance is the old balance minus the amount used
+  const balance = decimalSubtraction(decay.balance, amount)
+
   const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
   const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
 
@@ -40,11 +52,16 @@ async function calculateBalance(
   // else we cannot redeem links which are more or equal to half of what an account actually owns
   const releasedLinkAmount = transactionLink ? transactionLink.holdAvailableAmount : new Decimal(0)
 
-  if (
-    balance.minus(sumHoldAvailableAmount.toString()).plus(releasedLinkAmount.toString()).lessThan(0)
-  ) {
-    return null
+  const availableBalance = decimalSubtraction(balance, sumHoldAvailableAmount)
+
+  if (decimalAddition(availableBalance, releasedLinkAmount).lessThan(0)) {
+    logger.error(
+      `Not enough funds for a transaction of ${amount} GDD, user with id: ${userId} has only ${balance} GDD available`,
+    )
+    throw new Error('Not enough funds for transaction')
   }
+
+  logger.debug(`calculated Balance=${balance}`)
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 

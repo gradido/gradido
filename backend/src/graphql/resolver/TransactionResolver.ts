@@ -39,6 +39,7 @@ import { findUserByEmail } from './UserResolver'
 import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { Decay } from '../model/Decay'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -68,17 +69,8 @@ export const executeTransaction = async (
 
   // validate amount
   const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(
-    sender.id,
-    amount.mul(-1),
-    receivedCallDate,
-    transactionLink,
-  )
-  logger.debug(`calculated Balance=${sendBalance}`)
-  if (!sendBalance) {
-    logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
-    throw new Error("user hasn't enough GDD or amount is < 0")
-  }
+
+  const sendBalance = await calculateBalance(sender.id, amount, receivedCallDate, transactionLink)
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
@@ -91,7 +83,7 @@ export const executeTransaction = async (
     transactionSend.memo = memo
     transactionSend.userId = sender.id
     transactionSend.linkedUserId = recipient.id
-    transactionSend.amount = amount.mul(-1)
+    transactionSend.amount = amount
     transactionSend.balance = sendBalance.balance
     transactionSend.balanceDate = receivedCallDate
     transactionSend.decay = sendBalance.decay.decay
@@ -108,7 +100,24 @@ export const executeTransaction = async (
     transactionReceive.userId = recipient.id
     transactionReceive.linkedUserId = sender.id
     transactionReceive.amount = amount
-    const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+
+    // state received balance
+    let receiveBalance: {
+      balance: Decimal
+      decay: Decay
+      lastTransactionId: number
+    } | null
+
+    // try received balance
+    try {
+      receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+    } catch (e) {
+      logger.info(
+        `User with no transactions sent: ${recipient.id}, has received a transaction of ${amount} GDD from user: ${sender.id}`,
+      )
+      receiveBalance = null
+    }
+
     transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
     transactionReceive.balanceDate = receivedCallDate
     transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)

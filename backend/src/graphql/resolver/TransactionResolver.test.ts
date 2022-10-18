@@ -16,7 +16,7 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { EventProtocol } from '@entity/EventProtocol'
 import { Transaction } from '@entity/Transaction'
 import { User } from '@entity/User'
-import { cleanDB, testEnvironment } from '@test/helpers'
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { GraphQLError } from 'graphql'
 import { findUserByEmail } from './UserResolver'
@@ -246,21 +246,49 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
+            errors: [new GraphQLError(`User has not received any GDD yet`)],
           }),
         )
       })
 
       it('logs the error thrown', () => {
         expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
+          `No prior transaction found for user with id: ${user[1].id}`,
         )
+      })
+    })
+
+    describe('sending negative amount', () => {
+      it('throws an error', async () => {
+        expect(
+          await mutate({
+            mutation: sendCoins,
+            variables: {
+              email: 'peter@lustig.de',
+              amount: -50,
+              memo: 'testing negative',
+            },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Transaction amount must be greater than 0')],
+          }),
+        )
+      })
+
+      it('logs the error thrown', () => {
+        expect(logger.error).toBeCalledWith('Transaction amount must be greater than 0: -50')
       })
     })
   })
 
   describe('user has some GDD', () => {
     beforeAll(async () => {
+      resetToken()
+
+      // login as bob again
+      await query({ mutation: login, variables: bobData })
+
       // create contribution as user bob
       const contribution = await mutate({
         mutation: createContribution,
@@ -280,35 +308,6 @@ describe('send coins', () => {
       await query({ mutation: login, variables: bobData })
     })
 
-    afterAll(async () => {
-      await cleanDB()
-    })
-
-    describe('trying to send negative amount', () => {
-      it('throws an error', async () => {
-        expect(
-          await mutate({
-            mutation: sendCoins,
-            variables: {
-              email: 'peter@lustig.de',
-              amount: -50,
-              memo: 'testing negative',
-            },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
-          }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
-        )
-      })
-    })
-
     describe('good transaction', () => {
       it('sends the coins', async () => {
         expect(
@@ -317,7 +316,7 @@ describe('send coins', () => {
             variables: {
               email: 'peter@lustig.de',
               amount: 50,
-              memo: 'unrepeateable memo',
+              memo: 'unrepeatable memo',
             },
           }),
         ).toEqual(
@@ -333,7 +332,7 @@ describe('send coins', () => {
         // Find the exact transaction (sent one is the one with user[1] as user)
         const transaction = await Transaction.find({
           userId: user[1].id,
-          memo: 'unrepeateable memo',
+          memo: 'unrepeatable memo',
         })
 
         expect(EventProtocol.find()).resolves.toContainEqual(
@@ -350,7 +349,7 @@ describe('send coins', () => {
         // Find the exact transaction (received one is the one with user[0] as user)
         const transaction = await Transaction.find({
           userId: user[0].id,
-          memo: 'unrepeateable memo',
+          memo: 'unrepeatable memo',
         })
 
         expect(EventProtocol.find()).resolves.toContainEqual(
