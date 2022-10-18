@@ -47,7 +47,7 @@ export const getClientRequestTime = (context: Context): Date => {
   }
   // throw new Error('No clientRequestTime given in context!')
   logger.info(`missing clientRequestTime, using BackendTime...`)
-  return new Date(Date.now())
+  return new Date()
 }
 
 export default context
