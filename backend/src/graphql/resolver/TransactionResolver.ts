@@ -6,7 +6,7 @@ import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
 
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
@@ -224,11 +224,11 @@ export class TransactionResolver {
     logger.debug(`involvedUserIds=${involvedUserIds}`)
 
     // We need to show the name for deleted users for old transactions
-    const involvedDbUsers = await dbUser
-      .createQueryBuilder()
-      .withDeleted()
-      .where('id IN (:...userIds)', { userIds: involvedUserIds })
-      .getMany()
+    const involvedDbUsers = await dbUser.find({
+      where: { id: In(involvedUserIds) },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=${involvedUsers}`)
 
