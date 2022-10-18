@@ -48,6 +48,28 @@ export const resetToken = () => {
   context.token = ''
 }
 
+export function addTimezoneHoursToClientRequestTime(offset: number): void {
+  console.log(`addTimezoneHoursToClientRequesttime: ${getClientRequestTime()} + offset ${offset}`)
+  const clientRequestTimeString = getClientRequestTimeAsDate()
+    .toISOString()
+    .replace(/Z$/, `+${String(offset).padStart(2, '0')}:00`)
+  console.log(`clientRequestTimeString: ${clientRequestTimeString}`)
+  let d = new Date(clientRequestTimeString)
+  console.log(`clientRequestTimeString as Date: ${d}`)
+  setClientRequestTime(clientRequestTimeString)
+}
+
+export function subTimezoneHoursToClientRequestTime(offset: number): void {
+  console.log(`subTimezoneHoursToClientRequesttime: ${getClientRequestTime()} - offset ${offset}`)
+  const clientRequestTimeString = getClientRequestTimeAsDate()
+    .toISOString()
+    .replace(/Z$/, `-${String(offset).padStart(2, '0')}:00`)
+  console.log(`clientRequestTimeString: ${clientRequestTimeString}`)
+  let d = new Date(clientRequestTimeString)
+  console.log(`clientRequestTimeString as Date: ${d}`)
+  setClientRequestTime(clientRequestTimeString)
+}
+
 export const setClientRequestTime = (stringDate: string) => {
   /*
   , timeZone: string) => {

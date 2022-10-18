@@ -12,12 +12,14 @@ import {
 } from '@/seeds/graphql/mutations'
 import { listAllContributions, listContributions, verifyLogin } from '@/seeds/graphql/queries'
 import {
+    addTimezoneHoursToClientRequestTime,
   cleanDB,
   getClientRequestTime,
   getClientRequestTimeAsDate,
   resetClientRequestTime,
   resetToken,
   setClientRequestTime,
+  subTimezoneHoursToClientRequestTime,
   testEnvironment,
 } from '@test/helpers'
 import { GraphQLError } from 'graphql'
@@ -219,7 +221,9 @@ describe('ContributionResolver', () => {
         const clientRequestTime = new Date()
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
+        clientRequestTime.setHours(12)
         setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
+        addTimezoneHoursToClientRequestTime(5)
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
@@ -417,6 +421,7 @@ describe('ContributionResolver', () => {
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
         setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
+        subTimezoneHoursToClientRequestTime(5)
       })
       describe('authenticated with valid user', () => {
         beforeAll(async () => {
