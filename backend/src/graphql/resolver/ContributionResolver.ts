@@ -127,6 +127,7 @@ export class ContributionResolver {
       .from(dbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where(where)
+      .withDeleted()
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
