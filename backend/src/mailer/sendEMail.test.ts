@@ -29,6 +29,7 @@ describe('sendEMail', () => {
   let result: boolean
   describe('config email is false', () => {
     beforeEach(async () => {
+      jest.clearAllMocks()
       result = await sendEMail({
         to: 'receiver@mail.org',
         cc: 'support@gradido.net',
@@ -48,6 +49,7 @@ describe('sendEMail', () => {
 
   describe('config email is true', () => {
     beforeEach(async () => {
+      jest.clearAllMocks()
       CONFIG.EMAIL = true
       result = await sendEMail({
         to: 'receiver@mail.org',
@@ -73,7 +75,7 @@ describe('sendEMail', () => {
     it('calls sendMail of transporter', () => {
       expect((createTransport as jest.Mock).mock.results[0].value.sendMail).toBeCalledWith({
         from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-        to: `${CONFIG.EMAIL_TEST_RECEIVER}`,
+        to: 'receiver@mail.org',
         cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
@@ -82,6 +84,30 @@ describe('sendEMail', () => {
 
     it('returns true', () => {
       expect(result).toBeTruthy()
+    })
+  })
+
+  describe('with email EMAIL_TEST_MODUS true', () => {
+    beforeEach(async () => {
+      jest.clearAllMocks()
+      CONFIG.EMAIL = true
+      CONFIG.EMAIL_TEST_MODUS = true
+      result = await sendEMail({
+        to: 'receiver@mail.org',
+        cc: 'support@gradido.net',
+        subject: 'Subject',
+        text: 'Text text text',
+      })
+    })
+
+    it('calls sendMail of transporter with faked to', () => {
+      expect((createTransport as jest.Mock).mock.results[0].value.sendMail).toBeCalledWith({
+        from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+        to: CONFIG.EMAIL_TEST_RECEIVER,
+        cc: 'support@gradido.net',
+        subject: 'Subject',
+        text: 'Text text text',
+      })
     })
   })
 })
