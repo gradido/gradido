@@ -73,7 +73,7 @@ describe('sendEMail', () => {
     it('calls sendMail of transporter', () => {
       expect((createTransport as jest.Mock).mock.results[0].value.sendMail).toBeCalledWith({
         from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
-        to: `${CONFIG.EMAIL_TEST_RECEIVER}`,
+        to: 'receiver@mail.org',
         cc: 'support@gradido.net',
         subject: 'Subject',
         text: 'Text text text',
