@@ -37,15 +37,13 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          email
         }
         decay {
           decay
           start
           end
           duration
-        }
-        linkedUser {
-          email
         }
         transactionLinkId
       }

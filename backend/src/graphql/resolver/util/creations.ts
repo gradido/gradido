@@ -21,7 +21,7 @@ export const validateContribution = (
   if (index < 0) {
     logger.error(
       'No information for available creations with the given creationDate=',
-      creationDate,
+      creationDate.toString(),
     )
     throw new Error('No information for available creations for the given date')
   }
