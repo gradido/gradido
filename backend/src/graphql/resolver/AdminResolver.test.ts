@@ -17,6 +17,7 @@ import {
   setUserRole,
   deleteUser,
   unDeleteUser,
+  createContribution,
   adminCreateContribution,
   adminCreateContributions,
   adminUpdateContribution,
@@ -77,6 +78,7 @@ afterAll(async () => {
 let admin: User
 let user: User
 let creation: Contribution | void
+let result: any
 
 describe('AdminResolver', () => {
   describe('set user role', () => {
@@ -1360,6 +1362,38 @@ describe('AdminResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [new GraphQLError('Contribution not found for given id.')],
+                }),
+              )
+            })
+          })
+
+          describe('admin deletes own user contribution', () => {
+            beforeAll(async () => {
+              await query({
+                query: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+              result = await mutate({
+                mutation: createContribution,
+                variables: {
+                  amount: 100.0,
+                  memo: 'Test env contribution',
+                  creationDate: new Date().toString(),
+                },
+              })
+            })
+
+            it('throws an error', async () => {
+              await expect(
+                mutate({
+                  mutation: adminDeleteContribution,
+                  variables: {
+                    id: result.data.createContribution.id,
+                  },
+                }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Own contribution can not be deleted as admin')],
                 }),
               )
             })
