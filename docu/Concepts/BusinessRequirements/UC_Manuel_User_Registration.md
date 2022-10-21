@@ -23,7 +23,7 @@ Für diesen Fall wird im Admin-Interface eine neue Funktionalität zur "manuelle
 
 #### Vorbedingungen
 
-Nach dem der neu User für sich schon die Erfassung seiner persönlichen Daten im Registrierungsdialog durchgeführt und gespeichert hat, schickt die Anwendung dem User eine Confirmation-Email an seine angegebene Email-Adresse. Der User kommt aber aktuell nicht an seine Emails bzw. benötigt Unterstützung, wie er jetzt weiter machen soll, um sich anzumelden. Mit diesem Bedarf nach Unterstützung wendet der User sich an einen Moderator mit entsprechenden Admin-Rechten.
+Nach dem der neue User für sich schon die Erfassung seiner persönlichen Daten im Registrierungsdialog durchgeführt und gespeichert hat, schickt die Anwendung dem User eine Confirmation-Email an seine angegebene Email-Adresse. Der User kommt aber aktuell nicht an seine Emails bzw. benötigt Unterstützung, wie er jetzt weiter machen soll, um sich anzumelden. Mit diesem Bedarf nach Unterstützung wendet der User sich an einen Moderator mit entsprechenden Admin-Rechten.
 
 #### Manuelle Aktivierung und One-Time-Passwort
 
@@ -43,7 +43,7 @@ Sobald der gewünschte User-Account in der Liste gefunden wurde, kann der Detail
 
 Der geöffnete Detail-Dialog zeigt einen neuen Reiter "Registrierung", in dem die Informationen über das User-Konto stehen: wann wurde es erzeugt und wie ist der Status der "Konto-Aktivierung" und der "Email-Bestätigung".
 
-Der Admin kann nun entweder manuell ein One-Time-Passwort manuell in das Eingabefeld eingeben oder über den "erzeugen"-Button eines kreieren lassen. Diese wird dann über den Button "speichern & Konto aktivieren" in die Datenbank geschrieben.
+Der Admin kann nun entweder manuell ein One-Time-Passwort in das Eingabefeld eingeben oder über den "erzeugen"-Button eines kreieren lassen. Dieses wird dann über den Button "speichern & Konto aktivieren" in die Datenbank geschrieben, wobei damit gleichzeitig der Status des User-Kontos auf aktiviert gesetzt wird.
 
 Der Admin kann nun das One-Time-Passwort dem User mitteilen, so dass dieser sich über den Login-Prozess in seinen Account ohne vorherige Email-Bestätigung anmelden kann. Der Login-Prozess mit einem One-Time-Passwort muss nach erfolgreicher Anmeldung den User sofort auf den Passwort-Ändern-Dialog führen, um den User direkt die Möglichkeit zu geben sein eigenes Passwort zu vergeben.
 
@@ -55,7 +55,7 @@ Falls ein neuer User sein erhaltenes One-Time-Passwort noch nicht für einen Log
 
 ![img](./image/Admin-UserAccount-ActivatedOneTimePasswort.png)
 
-Beim Öffnen der Userkonto-Details im Reiter "Registrierung" ist dann zu sehen, dass das "Konto schon aktiv", aber die "Email-Bestätigung noch offen" ist. Im Eingabefeld des One-Time-Passwortes ist das zuvor schon gespeicherte Passwort zu lesen, so dass der Admin dieses dem User mitteilen kann. Der Admin kann aber auch über den "erzeugen"-Button oder manuell das vorhandene Passwort ändern und über den "speichern"-Button dann in die Datenbank schreiben.
+Beim Öffnen der Userkonto-Details im Reiter "Registrierung" ist dann zu sehen, dass das "Konto schon aktiv", aber die "Email-Bestätigung noch offen" ist. Im Eingabefeld des One-Time-Passwortes ist das zuvor schon gespeicherte Passwort zu lesen, so dass der Admin dieses dem User erneut mitteilen kann. Der Admin kann aber auch über den "erzeugen"-Button oder manuell das vorhandene Passwort ändern. Über den "speichern"-Button, der aufgrund der vorherigen Konto-Aktivierung nun nicht mehr "speichern & Konto aktivieren" heißt, kann die Passwort-Änderung in die Datenbank geschrieben werden.
 
 ### 1.2 Starten einer manuellen Admin-User-Registrierung
 
@@ -63,9 +63,9 @@ Im Admin-Interface wird im Menü ein neuer Reiter "Registrierung" angezeigt. Mit
 
 ![img](./image/Admin-CreateUser.png)
 
-Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert.
+Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern & Konto aktivieren"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert und der Konto-Status auf aktiviert gesetzt. 
 
-Es wird auch hier eine Email zur Emailadress-Bestätigung verschickt. Durch das One-Time-Passwort, das der Moderator dem User mitteilen kann, hat der User direkt die Möglichkeit sich über den Login-Prozess anzumelden, ohne vorher den Email-Bestätigungslink aktivieren zu müssen.
+Es wird auch hier eine Email zur Emailadress-Bestätigung verschickt. Der Status "email_checked" bleibt auf false, weil der User seine Confirmation-Email zwar bekommen, aber noch nicht bestätigt hat oder eben nicht zeitnah bestätigen kann. Durch das One-Time-Passwort, das der Moderator dem User mitteilen kann, hat der User direkt die Möglichkeit sich über den Login-Prozess anzumelden, ohne vorher den Email-Bestätigungslink aktivieren zu müssen.
 
 ### 1.3 User-Login mit One-Time-Passwort
 
@@ -75,9 +75,9 @@ Die Anwendung erkennt, dass der Login über ein One-Time-Passwort erfolgte, so d
 
 ![img](./image/One-Time-Passwort-Login.png)
 
-Auf dieser Seite muss der User dann sein neues, nur ihm persönlich bekanntes Passwort eingeben und zur Kontrolle wiederholen. Da der User-Account über eine One-Time-Passwort Registrierung erstellt wurde, hatte der User sehr wahrscheinlich nicht selbst die Gelegenheit der Datenschutzerklärung selbst zuzustimmen. Daher wird hier im Passwort-Ändern-Dialog dies nachgeholt, indem erst mit der Zustimmung zur Datenschutzerklärung der "Passwort ändern"-Button aktiviert wird.
+Auf dieser Seite muss der User dann sein neues, nur ihm persönlich bekanntes Passwort eingeben und zur Kontrolle wiederholen. Da der User-Account über eine One-Time-Passwort Registrierung erstellt wurde, hatte der User sehr wahrscheinlich nicht die Gelegenheit der Datenschutzerklärung selbst zuzustimmen. Daher wird hier im Passwort-Ändern-Dialog dies nachgeholt, indem erst mit der Zustimmung zur Datenschutzerklärung der "Passwort ändern"-Button aktiviert wird.
 
-## 2. Backend Anpassungen
+## 2. Implementierung und Anpassungen
 
 ### 2.1 Datenbank
 
@@ -98,17 +98,17 @@ Ansonsten werden aber keine weiteren Datenbank-Migrationen, wie Zuordnung der Tr
 
 #### accounts-Tabelle
 
-| Column            | Type             | Description                                                                   |
-| ----------------- | ---------------- | ----------------------------------------------------------------------------- |
-| id                | unsigned int(10) | technical unique key                                                          |
-| user_id           | unsigned int(10) | foreign key to users entry                                                    |
-| type              | enum             | account type: AGE (default), AGW, AUF                                        |
-| created_at        | datetime(3)      | the point of time the entry was created                                       |
-| activated         | tinyint(4)       | switch if account is active or inactive                                       |
-| creations_allowed | tinyint(4)       | switch if account allows to create gradidos or not                            |
-| decay             | tinyint(4)       | switch if account supports decay or not                                       |
-| balance           | decimal(40, 20)  | amount of gradidos at the updated_at point of time                            |
-| updated_at        | datetime(3)      | the point of time the entry was updated, especially important for the balance |
+| Column            | Type             | Description                                                                                                                 |
+| ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| id                | unsigned int(10) | technical unique key                                                                                                        |
+| user_id           | unsigned int(10) | foreign key to users entry                                                                                                  |
+| type              | enum             | account type: AGE (default), AGW, AUF                                                                                      |
+| created_at        | datetime(3)      | the point of time the entry was created                                                                                     |
+| activated         | tinyint(4)       | switch if account is active or inactive                                                                                     |
+| creations_allowed | tinyint(4)       | switch if account allows to create gradidos or not; necessary for type AGW and AUF                                          |
+| decay             | tinyint(4)       | switch if account supports decay or not; in case the GDT will be shiftet as a separate account type here in the application |
+| balance           | decimal(40, 20)  | amount of gradidos at the updated_at point of time                                                                          |
+| updated_at        | datetime(3)      | the point of time the entry was updated, especially important for the balance                                               |
 
 Die letzten vier Spalten sind ersteinmal rein informativ, was ein `accounts`-Eintrag zukünftig enthalten wird und für diesen Usecase optional. Sie könnten auch auf ein zukünftiges Migrations-Issue verschoben werden.
 
@@ -121,26 +121,110 @@ Die letzten vier Spalten sind ersteinmal rein informativ, was ein `accounts`-Ein
 
 Um zu vermeiden, dass in Bezug auf das One-Time-Passwort und der anstehenden Migration der Passwort-Verschlüsselung ohne Email und stattdessen per GradidoID, es hier zu unnötigen Tabellen-Migrationen kommt, wird mit diesem Usecase die Spalte *password_encryption_type* eingeführt. Damit ist dann erkennbar, ob es sich bei dem gespeicherten Passwort um ein One-Time-Passwort handelt oder um ein anderweitig verschlüsseltes Passwort.
 
-Sollte das Issue zur Migration der Passwort-Verschlüsselung schon vor diesem Usecase umgesetzt sein, dann existiert in der `users`-Tabelle schon die Spalte `passphrase_encryption_type`. Dann sollte diese in `password_encryption_type` umbenannt und dem Enum der Wert 0 für One-Time-Passwort hinzugefügt werden.
+Sollte das Issue zur Migration der Passwort-Verschlüsselung schon vor diesem Usecase umgesetzt sein, dann existiert in der `users`-Tabelle schon die Spalte `passphrase_encryption_type`. Dann sollte diese in `password_encryption_type` umbenannt und dem Enum der Wert 0 für One-Time-Passwort hinzugefügt werden. Die Bezeichnung *passphrase_encryption_type* ist irreführend, da in der Tabelle eine Spalte `passphrase `existiert. Doch die Verschlüsselung wird auf die Spalte `password `und nicht auf `passphrase` angewendet.
+
+#### Migration
+
+Mit den zuvor beschriebenen Datenbankänderungen muss eine Datenbankmigration auf die bestehenden Daten durchgeführt werden. Nachdem die strukturellen Änderungen wie neue `accounts`-Tabelle anlegen und bestehende `users`-Tabelle ändern durchgeführt wurde, erfolgt nun die eigentliche Migration der Daten:
+
+* erzeugen der neuen `accounts`-Tabelle wie oben beschrieben
+* ändern der bestehenden `users`-Tabelle wie oben beschrieben mit folgenden Default-Initialisierungen
+  * privacy_policy_at = created_at
+  * passwort_encryption_type = Enum `PasswordEncryptionType.EMAIL` oder Wert=1
+* Insert pro Eintrag aus der `users`-Tabelle jeweils einen Eintrag in die `accounts`-Tabelle mit folgenden Initialsisierungen:
+  * `accounts.user_id` = `users.id`
+  * `accounts.type` = Enum `AccountType.AGE`
+  * `accounts.created_at` = `users.created_at`
+  * `accounts.activated` = `users.emailContact.email_checked`
+  * `accounts.creations_allowed` = TRUE (weil es ein account type = AGE ist)
+  * `accounts.decay` = TRUE (weil es ein account type = AGE ist)
+  * `accounts.balance` = null (dieses Attribut wird in separatem Issue "Update Account-Balance during writing a Transaction" bedient)
+  * `account.updated_at` = null  (dieses Attribut wird in separatem Issue "Update Account-Balance during writing a Transaction" bedient)
+
+
 
 ### 2.2 Admin-Interface
 
 #### searchUsers
 
-Der Service *searchUsers* muss die Filterkriterien "aktiviertes Konto" und "bestätigte Email" getrennt von einander unterstützen. Bisher gibt es in den *SearchUserFilters* das Filterkriterium "byActivated", doch diese wird auf das Flag in der `user_contacts`-Tabelle angewendet. Das entspricht dann dem FilterKriterium "bestätigte Email".
+Der Service *AdminResolver.searchUsers* muss die Filterkriterien "aktiviertes Konto" und "bestätigte Email" getrennt von einander unterstützen. Bisher gibt es in den *SearchUserFilters* das Filterkriterium "byActivated", doch dieses wird auf das Flag `email_checked` in der `user_contacts`-Tabelle angewendet. Das entspricht aber dann dem FilterKriterium "bestätigte Email".
 
-Somit wird noch ein weiteres Filterkriterium für "aktiviertes Konto" benötigt, das auf die Spalte "`activated`" in der `accounts`-Tabelle angewendet wird.
+Somit muss das schon existierende Fitlerkriterium "aktiviertes Konto" auf die Spalte "`activated`" in der `accounts`-Tabelle angewendet werden und ein zusätzliches Filterkriterium "bestätigte Email", das auf die Spalte `email_checked` in der `user_contacts`-Tabelle filtert.
 
-Der ErgebnisTyp `SearchUsersResult `muss um die Informationen erweitert werden, die in dem oben aufgezeigten Detail-Dialog der *Nutzer-Suche* auf dem Reiter "Registrierung" zur Anzeige gebracht werden müssen:
+Der ErgebnisTyp `SearchUsersResult `des Service *searchUsers* muss um die Informationen erweitert werden, die in dem oben aufgezeigten Detail-Dialog der *Nutzer-Suche* auf dem Reiter "Registrierung" zur Anzeige gebracht werden:
 
 * Zeitpunkt der Konto-Erstellung (`accounts.created_at`)
 * Status des Kontos (`accounts.activated`)
 * Status der Email-Bestätigung (`user_contacts.email_checked`)
 * falls `users.password_encryption_type` = 0, dann das One-Time-Passwort (`users.password`)
 
-#### createUser
+#### adminCreateUser
+
+Im *AdminResolver* muss aus Berechtigungsgründen ein neuer Service *adminCreateUser* erstellt werden, da im *UserResolver* der Service *createUser* für jeden offen ist, ohne dass eine vorherige Authentifizierung per Login stattgefunden hat. 
+
+Dieser neue Service benötigt folgende Signatur als Eingabeparameter:
+
+| Argument        | Type   | Bezeichnung                           |
+| --------------- | ------ | ------------------------------------- |
+| vorname         | String | der Vorname des neuen Users           |
+| nachname        | String | der Nachname des neuen Users          |
+| email           | String | die Email-Adresse des neuen Users     |
+| oneTimePassword | String | das One-Time-Passwort des neuen Users |
+
+ Der neue Service entspricht der internen Logik weitestgehend dem exitierenden Service `UserResolver.create`. 
+
+* prüfen ob Email schon existiert und wenn ja, dann an diese Email eine Info-Nachricht und Abruch mit Fehlermeldung
+* neues User-Objekt initialisieren mit
+  * GradidoID
+  * Vorname
+  * Nachname
+  * One-Time-Passwort mit gleichzeitigem Setzen von `password_encryption_type` = Enum `PasswordEncryptionType.ONETIME`
+* das neue User-Objekt speichern
+* neues UserContact-Objekt initialisieren mit
+  * Email
+  * vorherige userID
+* das neue UserContact-Objekt speichern
+* die erhaltene ID des neuen UserContact-Eintrags in den vorher erzeugten User-Eintrag als emailContactID schreiben
+* einen EventProtokoll-Eintrag schreiben vom Typ *EventAdminRegister*, der neu anzulegen ist und von `EventBasicUserId `abgeleitet wird, aber zusätzlich die *UserId* des Moderators in das Attribut `xUserId `einträgt.
+* die Confirmation-Email zur Bestätigung der Email-Adresse verschicken
+* alle fachlich sonst notwendigen Eventprotokolle schreiben
+
+Alle logischen Schritte bzgl. einer PublisherID oder eines Redeem-Links bleiben hier in diesem Service aussen vor.
+
+Als Rückgabe sind erst einmal keine weiteren fachlichen Daten geplant, ausser einem Boolean=TRUE für eine evtl. Erfolgsmeldung. Im Fehlerfall wird der Service mit einer Exception beendet.
+
+#### adminUpdateUser
+
+Im *AdminResolver* wird der neue Service *adminUpdateUser* eingeführt, um für einen schon existierenden User das One-Time-Passwort zu aktualisieren. Über die vorher durchgeführte Nutzer-Suche sind die aktuell gespeicherten Userdaten schon ermittelt worden. Damit ergibt sich als Signatur für diesen Service folgendes:
+
+| Argument | Typ    | Beschreibung                                             |
+| -------- | ------ | -------------------------------------------------------- |
+| userId   | number | der technisch eindeutige Identifer des betroffenen Users |
+| password | String | das geänderte One-Time-Passwort                         |
+
+Dieser Service führt mit der übergebenen *userId* ein update auf dem *User* aus. Dazu wird bei der Aktualisierung das Kriterium `passwort_encryption_type` = Enum `PasswordEncryptionType.ONETIME` sichergestellt und das Attribut `password `mit dem übergebenen Parameter *password* sowie das Flag `activated `= TRUE gesetzt. Abschließend erfolgt das Schreiben eines EventProtokoll-Eintrags vom Typ *EventAdminPasswortChange*, der neu anzulegen ist und von `EventBasicUserId `abgeleitet wird, aber zusätzlich die *UserId* des Moderators in das Attribut `xUserId `einträgt.
+
+Als Rückgabe sind erst einmal keine weiteren fachlichen Daten geplant, ausser einem Boolean=TRUE für eine evtl. Erfolgsmeldung. Im Fehlerfall wird der Service mit einer Exception beendet.
+
+### 2.3 User-Interface
+
+#### login
+
+Im *UserResolver* muss der Service *login* angepasst werden, um eine Anmeldung per One-Time-Passwort zu erlauben. 
+
+Dabei wird zuerst per übergebener *email* der User aus der Datenbank ermittelt. Bevor die Prüfung auf das Flag `user.emailContact.email_checked` erfolgt, muss eine Prüfung auf das Attribut `user.password_encryption_type` durchgeführt werden. Ist die Passwort-Verschlüsselung dieses Users auf dem Wert `PasswordEncryptionType.ONETIME`, dann wird die Prüfung des Flags `user.emailContact.email_checked` übersprungen. 
+
+Durch den Wert des Attributs `user.password_encryption_type` wird die Passwort-Entschlüsselungsart und Prüfung gesteuert. Beim Wert `PasswordEncryptionType.ONETIME` ist das Passwort selbst für die Anwendung kein Geheimnis, da dieses durch einen Moderator und nicht geheim durch den User eingegeben wurde und jederzeit durch einen Moderator im Klartext wieder angezeigt werden kann.
+
+Wenn zuvor es sich um ein Login per One-Time-Passwort handelte, dann erfolgt keine Überprüfung des EloPage-Status und Aktuallisierung der PublisherId.
+
+Mit erfolgreicher Beendigung des Login-Service wird der User mit seinen aktuellen Attrubtwerten zurückgeliefert. Dabei ist nun im Frontend sicherzustellen, dass wenn im User das Attribut `user.password_encryption_type` den Wert `PasswordEncryptionType.ONETIME` hat, dass dann mit Verlassen des Login-Dialogs der Anwender direkt nur auf die Passwort-Ändern-Seite geführt wird. 
 
 
+#### changePassword
+
+
+um das *One-Time-Passwort* als optionales Argument erweitert werden. Sobald dieses Argument
 
 ## Brainstorming von Bernd
 
