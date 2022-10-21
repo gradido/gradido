@@ -91,6 +91,7 @@ export class ContributionResolver {
     }
 
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = user.id
     contribution.deletedAt = new Date()
     await contribution.save()
 
