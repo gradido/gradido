@@ -6,29 +6,41 @@ With the business event protocol the gradido application will capture and persis
 
 The different event types will be defined as Enum. The following list is a first draft and will grow with further event types in the future.
 
-| EventType                   | Value | Description                                                                                          |
-| --------------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
-| BasicEvent                  | 0     | the basic event is the root of all further extending event types                                     |
-| VisitGradidoEvent           | 10    | if a user visits a gradido page without login or register                                            |
-| RegisterEvent               | 20    | the user presses the register button                                                                 |
-| RedeemRegisterEvent         | 21    | the user presses the register button initiated by the redeem link                                    |
-| InActiveAccountEvent        | 22    | the systems create an inactive account during the register process                                   |
-| SendConfirmEmailEvent       | 23    | the system send a confirmation email to the user during the register process                         |
-| ConfirmEmailEvent           | 24    | the user confirms his email during the register process                                              |
-| RegisterEmailKlickTippEvent | 25    | the system registers the confirmed email at klicktipp                                                |
-| LoginEvent                  | 30    | the user presses the login button                                                                    |
-| RedeemLoginEvent            | 31    | the user presses the login button initiated by the redeem link                                       |
-| ActivateAccountEvent        | 32    | the system activates the users account during the first login process                                |
-| PasswordChangeEvent         | 33    | the user changes his password                                                                        |
-| TxSendEvent                 | 40    | the user creates a transaction and sends it online                                                   |
-| TxSendRedeemEvent           | 41    | the user creates a transaction and sends it per redeem link                                          |
-| TxRepeateRedeemEvent        | 42    | the user recreates a redeem link of a still open transaction                                         |
-| TxCreationEvent             | 50    | the user receives a creation transaction for his confirmed contribution                              |
-| TxReceiveEvent              | 51    | the user receives a transaction from an other user and posts the amount on his account               |
-| TxReceiveRedeemEvent        | 52    | the user activates the redeem link and receives the transaction and posts the amount on his account  |
-| ContribCreateEvent          | 60    | the user enters his contribution and asks for confirmation                                           |
-| ContribConfirmEvent         | 61    | the user confirms a contribution of an other user (for future multi confirmation from several users) |
-|                             |       |                                                                                                      |
+| EventType                              | Description                                                                                                                               |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| BasicEvent                             | the basic event is the root of all further extending event types                                                                          |
+| VisitGradidoEvent                      | if a user visits a gradido page without login or register; possible as soon as a request-response-loop for the first page will be invoked |
+| RegisterEvent                          | the user presses the register button                                                                                                      |
+| LoginEvent                             | the user presses the login button                                                                                                         |
+| VerifyRedeemEvent                      | the user presses a redeem link independent from transaction or contribution redeem                                                        |
+| RedeemRegisterEvent                    | the user presses the register-button initiated by the redeem link                                                                         |
+| RedeemLoginEvent                       | the user presses the login-button initiated by the redeem link                                                                            |
+| ActivateAccountEvent                   | the system activates the users account after a successful confirmEmail-Event or during a reactivation of a deactivated account            |
+| InActiveAccountEvent                   | the systems creates an inactive account during the register process or an active account will be reset to inactive                        |
+| SetPasswordEvent                       | the system sets a new password after ConfirmEmailEvent or SendForgotPasswordEvent                                                         |
+| RegisterEmailKlickTippEvent            | the system registers the confirmed email at klicktipp                                                                                     |
+| PasswordChangeEvent                    | the user changes his password in his Profile                                                                                              |
+| TransactionSendEvent                   | the user creates a transaction and sends it online; paired with TransactionReceiveEvent                                                   |
+| TransactionLinkCreateEvent             | the user creates a transaction link                                                                                                       |
+| TransactionReceiveEvent                | the user receives a transaction from an other user and posts the amount on his account; paired with TransactionSendEvent                  |
+| TransactionLinkRedeemEvent             | the user activates the redeem link and receives the transaction and posts the amount on his account                                       |
+| ContributionCreateEvent                | the user enters his contribution and asks for confirmation                                                                                |
+| ContributionConfirmEvent               | the admin user confirms a contribution of an other user (for future multi confirmation from several users)                                |
+| ContributionDenyEvent                  | the admin user denies a contribution of an other user                                                                                     |
+| ContributionLinkDefineEvent            | the admin user defines a contributionLink, which could be send per Link/QR-Code on an other medium                                        |
+| ContributionLinkRedeemEvent            | the user activates a received contributionLink to create a contribution entry for the contributionLink                                    |
+| UserCreateContributionMessageEvent     | the user captures a new message for a contribution                                                                                        |
+| AdminCreateContributionMessageEvent    | the admin user captures a new message for a contribution                                                                                  |
+| LogoutEvent                            | the user invokes a logout                                                                                                                 |
+| SendConfirmEmailEvent                  | the system sends a confirmation email to the user during the registration process                                                         |
+| SendAccountMultiRegistrationEmailEvent | the system sends a info email to the user, that an other user tries to register with his existing email address                           |
+| SendForgotPasswordEmailEvent           | the system sends the forgot password email including a special link to start the forgot password process                                  |
+| SendTransactionSendEmailEvent          | the system sends an email to inform the user about his transaction was sent to an other user                                              |
+| SendTransactionReceiveEmailEvent       | the system sends an email to inform the user about a received transaction from an other user                                              |
+| SendAddedContributionEmailEvent        | the system sends an email to inform the user about the creation of his captured contribution                                              |
+| SendContributionConfirmEmailEvent      | the system sends an email to inform the user about the confirmation of his contribution                                                   |
+| SendTransactionLinkRedeemEmailEvent    | the system sends an email to the user, who created the transactionlink, that the link was redeemed                                        |
+|                                        |                                                                                                                                           |
 
 ## EventProtocol - Entity
 
@@ -48,31 +60,44 @@ The business events will be stored in database in the new table `EventProtocol`.
 
 ## Event Types
 
-The following table lists for each event type the mandatory attributes, which have to be initialized at event occurence and to be written in the database event protocol table:
+The following table lists for each event type the mapping between old and new key, the mandatory attributes, which have to be initialized at event occurence and to be written in the database event protocol table:
 
-| EventType                   | id | type | createdAt | userID | XuserID | XCommunityID | transactionID | contribID | amount |
-| :-------------------------- | :-: | :--: | :-------: | :----: | :-----: | :----------: | :-----------: | :-------: | :----: |
-| BasicEvent                  | x |  x  |     x     |       |         |             |               |           |       |
-| VisitGradidoEvent           | x |  x  |     x     |       |         |             |               |           |       |
-| RegisterEvent               | x |  x  |     x     |   x   |         |             |               |           |       |
-| RedeemRegisterEvent         | x |  x  |     x     |   x   |         |             |               |           |       |
-| InActiveAccountEvent        | x |  x  |     x     |   x   |         |             |               |           |       |
-| SendConfirmEmailEvent       | x |  x  |     x     |   x   |         |             |               |           |       |
-| ConfirmEmailEvent           | x |  x  |     x     |   x   |         |             |               |           |       |
-| RegisterEmailKlickTippEvent | x |  x  |     x     |   x   |         |             |               |           |       |
-| LoginEvent                  | x |  x  |     x     |   x   |         |             |               |           |       |
-| RedeemLoginEvent            | x |  x  |     x     |   x   |         |             |               |           |       |
-| ActivateAccountEvent        | x |  x  |     x     |   x   |         |             |               |           |       |
-| PasswordChangeEvent         | x |  x  |     x     |   x   |         |             |               |           |       |
-| TxSendEvent                 | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
-| TxSendRedeemEvent           | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
-| TxRepeateRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
-| TxCreationEvent             | x |  x  |     x     |   x   |         |             |       x       |           |   x   |
-| TxReceiveEvent              | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
-| TxReceiveRedeemEvent        | x |  x  |     x     |   x   |    x    |      x      |       x       |           |   x   |
-| ContribCreateEvent          | x |  x  |     x     |   x   |         |             |               |     x     |       |
-| ContribConfirmEvent         | x |  x  |     x     |   x   |    x    |      x      |               |     x     |       |
-|                             |   |     |           |       |         |             |               |           |       |
+| EventKey              | EventType                   | id | type | createdAt | userID | XuserID | XCommunityID | transactionID | contribID | amount |
+| :-------------------------------- | :------------------------------------- | :-: | :--: | :-------: | :----: | :-----: | :----------: | :-----------: | :-------: | :----: |
+| BASIC                             | BasicEvent                             | x |  x  |     x     |        |        |              |              |          |        |
+| VISIT_GRADIDO                     | VisitGradidoEvent                      | x |  x  |     x     |        |        |              |              |          |        |
+| REGISTER                          | RegisterEvent                          | x |  x  |     x     |   x   |        |              |              |          |        |
+| LOGIN                             | LoginEvent                             | x |  x  |     x     |   x   |        |              |              |          |        |
+| VERIFY_REDEEM                     | VerifyRedeemEvent                      |  x  |   x   |     x     |    x    |        |              |       (x)       |      (x)    |        |
+| REDEEM_REGISTER                   | RedeemRegisterEvent                    | x |  x  |     x     |   x   |        |              |      (x)      |    (x)    |        |
+| REDEEM_LOGIN                      | RedeemLoginEvent                       | x |  x  |     x     |   x   |        |              |      (x)      |    (x)    |        |
+| ACTIVATE_ACCOUNT                  | ActivateAccountEvent                   | x |  x  |     x     |   x   |        |              |              |          |        |
+| INACTIVE_ACCOUNT                  | InActiveAccountEvent                   | x |  x  |     x     |   x   |        |              |              |          |        |
+| CONFIRM_EMAIL                     | SetPasswordEvent                       | x |  x  |     x     |   x   |        |              |              |          |        |
+| REGISTER_EMAIL_KLICKTIPP          | RegisterEmailKlickTippEvent            | x |  x  |     x     |   x   |        |              |              |          |        |
+| PASSWORD_CHANGE                   | PasswordChangeEvent                    | x |  x  |     x     |   x   |        |              |              |          |        |
+| TRANSACTION_SEND                  | TransactionSendEvent                   | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| TRANSACTION_CREATION              | TransactionLinkCreateEvent             | x |  x  |     x     |   x   |        |              |       x       |          |   x   |
+| TRANSACTION_RECEIVE               | TransactionReceiveEvent                | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| TRANSACTION_SEND_REDEEM           | TransactionLinkRedeemEvent             | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| CONTRIBUTION_CREATE               | ContributionCreateEvent                | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| CONTRIBUTION_CONFIRM              | ContributionConfirmEvent               | x |  x  |     x     |   x   |    x    |      x      |              |     x     |   x   |
+| CONTRIBUTION_DENY                                  | ContributionDenyEvent                  | x |  x  |     x     |   x   |    x    |      x      |              |     x     |   x   |
+| CONTRIBUTION_LINK_DEFINE          | ContributionLinkDefineEvent            | x |  x  |     x     |   x   |        |              |              |          |   x   |
+| CONTRIBUTION_LINK_ACTIVATE_REDEEM | ContributionLinkRedeemEvent            | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| USER_CREATES_CONTRIBUTION_MESSAGE   | UserCreateContributionMessageEvent     | x |  x  |     x     |   x   |        |              |              |     x    |   x   |
+| ADMIN_CREATES_CONTRIBUTION_MESSAGE   | AdminCreateContributionMessageEvent    | x |  x  |     x     |   x   |        |              |              |     x  |   x   |
+| LOGOUT                    | LogoutEvent                            | x |  x  |     x     |   x   |        |              |              |          |     |
+| SEND_CONFIRMATION_EMAIL           | SendConfirmEmailEvent                  | x |  x  |     x     |   x   |        |              |              |          |        |
+| SEND_ACCOUNT_MULTIREGISTRATION_EMAIL | SendAccountMultiRegistrationEmailEvent | x |  x  |     x     |   x   |        |              |              |        |        |
+| SEND_FORGOT_PASSWORD_EMAIL    | SendForgotPasswordEmailEvent           | x |  x  |     x     |   x   |        |              |              |          |    |
+| SEND_TRANSACTION_SEND_EMAIL   | SendTransactionSendEmailEvent          | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| SEND_TRANSACTION_RECEIVE_EMAIL | SendTransactionReceiveEmailEvent       | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| SEND_ADDED_CONTRIBUTION_EMAIL  | SendAddedContributionEmailEvent        | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| SEND_CONTRIBUTION_CONFIRM_EMAIL  | SendContributionConfirmEmailEvent      | x |  x  |     x     |   x   |        |              |              |     x     |   x   |
+| SEND_TRANSACTION_LINK_REDEEM_EMAIL  | SendTransactionLinkRedeemEmailEvent    | x |  x  |     x     |   x   |    x    |      x      |       x       |          |   x   |
+| TRANSACTION_REPEATE_REDEEM        | -                                      |    |      |          |        |        |              |              |          |        |
+| TRANSACTION_RECEIVE_REDEEM        | -                                      |    |      |          |        |        |              |              |          |        |
 
 ## Event creation
 

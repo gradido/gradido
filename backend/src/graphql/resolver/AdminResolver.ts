@@ -4,8 +4,6 @@ import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type
 import {
   getCustomRepository,
   IsNull,
-  Not,
-  ObjectLiteral,
   getConnection,
   In,
   MoreThan,
@@ -17,6 +15,7 @@ import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
+import { Contribution } from '@model/Contribution'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
@@ -25,36 +24,50 @@ import SearchUsersArgs from '@arg/SearchUsersArgs'
 import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Transaction } from '@model/Transaction'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
-import { Contribution } from '@entity/Contribution'
+import { Contribution as DbContribution } from '@entity/Contribution'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import Decimal from 'decimal.js-light'
 import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { communityUser } from '@/util/communityUser'
-import { checkOptInCode, activationLink, printTimeDuration } from './UserResolver'
+import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
+import {
+  getUserCreation,
+  getUserCreations,
+  validateContribution,
+  isStartEndDateValid,
+  updateCreations,
+} from './util/creations'
+import {
+  CONTRIBUTIONLINK_NAME_MAX_CHARS,
+  CONTRIBUTIONLINK_NAME_MIN_CHARS,
+  FULL_CREATION_AVAILABLE,
+  MEMO_MAX_CHARS,
+  MEMO_MIN_CHARS,
+} from './const/const'
+import { UserContact } from '@entity/UserContact'
+import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import ContributionMessageArgs from '@arg/ContributionMessageArgs'
+import { ContributionMessageType } from '@enum/MessageType'
+import { ContributionMessage } from '@model/ContributionMessage'
+import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+import { ContributionListResult } from '../model/Contribution'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
-const MAX_CREATION_AMOUNT = new Decimal(1000)
-const FULL_CREATION_AVAILABLE = [MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT, MAX_CREATION_AMOUNT]
-const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
-const CONTRIBUTIONLINK_NAME_MIN_CHARS = 5
-const CONTRIBUTIONLINK_MEMO_MAX_CHARS = 255
-const CONTRIBUTIONLINK_MEMO_MIN_CHARS = 5
 
 @Resolver()
 export class AdminResolver {
@@ -65,24 +78,12 @@ export class AdminResolver {
     { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
   ): Promise<SearchUsersResult> {
     const userRepository = getCustomRepository(UserRepository)
-
-    const filterCriteria: ObjectLiteral[] = []
-    if (filters) {
-      if (filters.byActivated !== null) {
-        filterCriteria.push({ emailChecked: filters.byActivated })
-      }
-
-      if (filters.byDeleted !== null) {
-        filterCriteria.push({ deletedAt: filters.byDeleted ? Not(IsNull()) : IsNull() })
-      }
-    }
-
     const userFields = [
       'id',
       'firstName',
       'lastName',
-      'email',
-      'emailChecked',
+      'emailId',
+      'emailContact',
       'deletedAt',
       'isAdmin',
     ]
@@ -91,7 +92,7 @@ export class AdminResolver {
         return 'user.' + fieldName
       }),
       searchText,
-      filterCriteria,
+      filters,
       currentPage,
       pageSize,
     )
@@ -108,32 +109,18 @@ export class AdminResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         let emailConfirmationSend = ''
-        if (!user.emailChecked) {
-          const emailOptIn = await LoginEmailOptIn.findOne(
-            {
-              userId: user.id,
-            },
-            {
-              order: {
-                updatedAt: 'DESC',
-                createdAt: 'DESC',
-              },
-              select: ['updatedAt', 'createdAt'],
-            },
-          )
-          if (emailOptIn) {
-            if (emailOptIn.updatedAt) {
-              emailConfirmationSend = emailOptIn.updatedAt.toISOString()
-            } else {
-              emailConfirmationSend = emailOptIn.createdAt.toISOString()
-            }
+        if (!user.emailContact.emailChecked) {
+          if (user.emailContact.updatedAt) {
+            emailConfirmationSend = user.emailContact.updatedAt.toISOString()
+          } else {
+            emailConfirmationSend = user.emailContact.createdAt.toISOString()
           }
         }
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
-          await hasElopageBuys(user.email),
+          await hasElopageBuys(user.emailContact.email),
           emailConfirmationSend,
         )
         return adminUser
@@ -229,34 +216,50 @@ export class AdminResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
-    const user = await dbUser.findOne({ email }, { withDeleted: true })
-    if (!user) {
+    logger.info(
+      `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
+    )
+    const emailContact = await UserContact.findOne({
+      where: { email },
+      withDeleted: true,
+      relations: ['user'],
+    })
+    if (!emailContact) {
+      logger.error(`Could not find user with email: ${email}`)
       throw new Error(`Could not find user with email: ${email}`)
     }
-    if (user.deletedAt) {
+    if (emailContact.deletedAt) {
+      logger.error('This emailContact was deleted. Cannot create a contribution.')
+      throw new Error('This emailContact was deleted. Cannot create a contribution.')
+    }
+    if (emailContact.user.deletedAt) {
+      logger.error('This user was deleted. Cannot create a contribution.')
       throw new Error('This user was deleted. Cannot create a contribution.')
     }
-    if (!user.emailChecked) {
+    if (!emailContact.emailChecked) {
+      logger.error('Contribution could not be saved, Email is not activated')
       throw new Error('Contribution could not be saved, Email is not activated')
     }
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(user.id)
-    logger.trace('creations', creations)
+    const creations = await getUserCreation(emailContact.userId)
+    logger.trace('creations:', creations)
     const creationDateObj = new Date(creationDate)
-    if (isContributionValid(creations, amount, creationDateObj)) {
-      const contribution = Contribution.create()
-      contribution.userId = user.id
-      contribution.amount = amount
-      contribution.createdAt = new Date()
-      contribution.contributionDate = creationDateObj
-      contribution.memo = memo
-      contribution.moderatorId = moderator.id
+    logger.trace('creationDateObj:', creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
+    const contribution = DbContribution.create()
+    contribution.userId = emailContact.userId
+    contribution.amount = amount
+    contribution.createdAt = new Date()
+    contribution.contributionDate = creationDateObj
+    contribution.memo = memo
+    contribution.moderatorId = moderator.id
+    contribution.contributionType = ContributionType.ADMIN
+    contribution.contributionStatus = ContributionStatus.PENDING
 
-      logger.trace('contribution to save', contribution)
-      await Contribution.save(contribution)
-    }
-    return getUserCreation(user.id)
+    logger.trace('contribution to save', contribution)
+    await DbContribution.save(contribution)
+    return getUserCreation(emailContact.userId)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -292,42 +295,64 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
-    const user = await dbUser.findOne({ email }, { withDeleted: true })
+    const emailContact = await UserContact.findOne({
+      where: { email },
+      withDeleted: true,
+      relations: ['user'],
+    })
+    if (!emailContact) {
+      logger.error(`Could not find UserContact with email: ${email}`)
+      throw new Error(`Could not find UserContact with email: ${email}`)
+    }
+    const user = emailContact.user
     if (!user) {
-      throw new Error(`Could not find user with email: ${email}`)
+      logger.error(`Could not find User to emailContact: ${email}`)
+      throw new Error(`Could not find User to emailContact: ${email}`)
     }
     if (user.deletedAt) {
+      logger.error(`User was deleted (${email})`)
       throw new Error(`User was deleted (${email})`)
     }
 
     const moderator = getUser(context)
 
-    const contributionToUpdate = await Contribution.findOne({
+    const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull() },
     })
 
     if (!contributionToUpdate) {
+      logger.error('No contribution found to given id.')
       throw new Error('No contribution found to given id.')
     }
 
     if (contributionToUpdate.userId !== user.id) {
+      logger.error('user of the pending contribution and send user does not correspond')
       throw new Error('user of the pending contribution and send user does not correspond')
+    }
+
+    if (contributionToUpdate.moderatorId === null) {
+      logger.error('An admin is not allowed to update a user contribution.')
+      throw new Error('An admin is not allowed to update a user contribution.')
     }
 
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
-    isContributionValid(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.moderatorId = moderator.id
+    contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
-    await Contribution.save(contributionToUpdate)
+    await DbContribution.save(contributionToUpdate)
     const result = new AdminUpdateContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
@@ -341,41 +366,48 @@ export class AdminResolver {
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
   async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
-    const contributions = await Contribution.find({ where: { confirmedAt: IsNull() } })
+    const contributions = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(DbContribution, 'c')
+      .leftJoinAndSelect('c.messages', 'm')
+      .where({ confirmedAt: IsNull() })
+      .getMany()
+
     if (contributions.length === 0) {
       return []
     }
 
     const userIds = contributions.map((p) => p.userId)
     const userCreations = await getUserCreations(userIds)
-    const users = await dbUser.find({ where: { id: In(userIds) }, withDeleted: true })
+    const users = await dbUser.find({
+      where: { id: In(userIds) },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
 
     return contributions.map((contribution) => {
       const user = users.find((u) => u.id === contribution.userId)
       const creation = userCreations.find((c) => c.id === contribution.userId)
 
-      return {
-        id: contribution.id,
-        userId: contribution.userId,
-        date: contribution.contributionDate,
-        memo: contribution.memo,
-        amount: contribution.amount,
-        moderator: contribution.moderatorId,
-        firstName: user ? user.firstName : '',
-        lastName: user ? user.lastName : '',
-        email: user ? user.email : '',
-        creation: creation ? creation.creations : FULL_CREATION_AVAILABLE,
-      }
+      return new UnconfirmedContribution(
+        contribution,
+        user,
+        creation ? creation.creations : FULL_CREATION_AVAILABLE,
+      )
     })
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
   async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const contribution = await Contribution.findOne(id)
+    const contribution = await DbContribution.findOne(id)
     if (!contribution) {
+      logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    contribution.contributionStatus = ContributionStatus.DELETED
+    await contribution.save()
     const res = await contribution.softRemove()
     return !!res
   }
@@ -386,27 +418,32 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contribution = await Contribution.findOne(id)
+    const contribution = await DbContribution.findOne(id)
     if (!contribution) {
+      logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found to given id.')
     }
     const moderatorUser = getUser(context)
-    if (moderatorUser.id === contribution.userId)
+    if (moderatorUser.id === contribution.userId) {
+      logger.error('Moderator can not confirm own contribution')
       throw new Error('Moderator can not confirm own contribution')
-
-    const user = await dbUser.findOneOrFail({ id: contribution.userId }, { withDeleted: true })
-    if (user.deletedAt) throw new Error('This user was deleted. Cannot confirm a contribution.')
-
-    const creations = await getUserCreation(contribution.userId, false)
-    if (!isContributionValid(creations, contribution.amount, contribution.contributionDate)) {
-      throw new Error('Creation is not valid!!')
     }
+    const user = await dbUser.findOneOrFail(
+      { id: contribution.userId },
+      { withDeleted: true, relations: ['emailContact'] },
+    )
+    if (user.deletedAt) {
+      logger.error('This user was deleted. Cannot confirm a contribution.')
+      throw new Error('This user was deleted. Cannot confirm a contribution.')
+    }
+    const creations = await getUserCreation(contribution.userId, false)
+    validateContribution(creations, contribution.amount, contribution.contributionDate)
 
     const receivedCallDate = new Date()
 
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
-    await queryRunner.startTransaction('READ UNCOMMITTED')
+    await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
     try {
       const lastTransaction = await queryRunner.manager
         .createQueryBuilder()
@@ -445,10 +482,21 @@ export class AdminResolver {
       contribution.confirmedAt = receivedCallDate
       contribution.confirmedBy = moderatorUser.id
       contribution.transactionId = transaction.id
-      await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
+      contribution.contributionStatus = ContributionStatus.CONFIRMED
+      await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
+      sendContributionConfirmedEmail({
+        senderFirstName: moderatorUser.firstName,
+        senderLastName: moderatorUser.lastName,
+        recipientFirstName: user.firstName,
+        recipientLastName: user.lastName,
+        recipientEmail: user.emailContact.email,
+        contributionMemo: contribution.memo,
+        contributionAmount: contribution.amount,
+        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      })
     } catch (e) {
       await queryRunner.rollbackTransaction()
       logger.error(`Creation was not successful: ${e}`)
@@ -460,56 +508,64 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
-  @Query(() => [Transaction])
+  @Query(() => ContributionListResult)
   async creationTransactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
     @Arg('userId', () => Int) userId: number,
-  ): Promise<Transaction[]> {
+  ): Promise<ContributionListResult> {
     const offset = (currentPage - 1) * pageSize
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const [userTransactions] = await transactionRepository.findByUserPaged(
-      userId,
-      pageSize,
-      offset,
-      order,
-      true,
-    )
+    const [contributionResult, count] = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(DbContribution, 'c')
+      .leftJoinAndSelect('c.user', 'u')
+      .where(`user_id = ${userId}`)
+      .limit(pageSize)
+      .offset(offset)
+      .orderBy('c.created_at', order)
+      .getManyAndCount()
 
-    const user = await dbUser.findOneOrFail({ id: userId })
-    return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+    return new ContributionListResult(
+      count,
+      contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
+    )
+    // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
   }
 
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
   @Mutation(() => Boolean)
   async sendActivationEmail(@Arg('email') email: string): Promise<boolean> {
     email = email.trim().toLowerCase()
-    const user = await dbUser.findOneOrFail({ email: email })
-
-    // can be both types: REGISTER and RESET_PASSWORD
-    let optInCode = await LoginEmailOptIn.findOne({
-      where: { userId: user.id },
-      order: { updatedAt: 'DESC' },
-    })
-
-    optInCode = await checkOptInCode(optInCode, user.id)
+    // const user = await dbUser.findOne({ id: emailContact.userId })
+    const user = await findUserByEmail(email)
+    if (!user) {
+      logger.error(`Could not find User to emailContact: ${email}`)
+      throw new Error(`Could not find User to emailContact: ${email}`)
+    }
+    if (user.deletedAt) {
+      logger.error(`User with emailContact: ${email} is deleted.`)
+      throw new Error(`User with emailContact: ${email} is deleted.`)
+    }
+    const emailContact = user.emailContact
+    if (emailContact.deletedAt) {
+      logger.error(`The emailContact: ${email} of htis User is deleted.`)
+      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(optInCode),
+      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
       duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    /*  uncomment this, when you need the activation link on the console
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-    // eslint-disable-next-line no-console
-    console.log(`Account confirmation link: ${activationLink}`)
+      logger.info(`Account confirmation link: ${activationLink}`)
     }
-    */
 
     return true
   }
@@ -586,11 +642,8 @@ export class AdminResolver {
       logger.error(`The memo must be initialized!`)
       throw new Error(`The memo must be initialized!`)
     }
-    if (
-      memo.length < CONTRIBUTIONLINK_MEMO_MIN_CHARS ||
-      memo.length > CONTRIBUTIONLINK_MEMO_MAX_CHARS
-    ) {
-      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_MEMO_MIN_CHARS} and max=${CONTRIBUTIONLINK_MEMO_MAX_CHARS}`
+    if (memo.length < MEMO_MIN_CHARS || memo.length > MEMO_MAX_CHARS) {
+      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${MEMO_MIN_CHARS} and max=${MEMO_MAX_CHARS}`
       logger.error(`${msg}`)
       throw new Error(`${msg}`)
     }
@@ -625,6 +678,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
@@ -682,127 +736,73 @@ export class AdminResolver {
     logger.debug(`updateContributionLink successful!`)
     return new ContributionLink(dbContributionLink)
   }
-}
 
-interface CreationMap {
-  id: number
-  creations: Decimal[]
-}
-
-export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
-  logger.trace('getUserCreation', id, includePending)
-  const creations = await getUserCreations([id], includePending)
-  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
-}
-
-async function getUserCreations(ids: number[], includePending = true): Promise<CreationMap[]> {
-  logger.trace('getUserCreations:', ids, includePending)
-  const months = getCreationMonths()
-  logger.trace('getUserCreations months', months)
-
-  const queryRunner = getConnection().createQueryRunner()
-  await queryRunner.connect()
-
-  const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
-  logger.trace('getUserCreations dateFilter', dateFilter)
-
-  const unionString = includePending
-    ? `
-    UNION
-      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}
-        AND confirmed_at IS NULL AND deleted_at IS NULL`
-    : ''
-
-  const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
-      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TransactionTypeId.CREATION}
-        AND creation_date >= ${dateFilter}
-      ${unionString}) AS result
-    GROUP BY month, userId
-    ORDER BY date DESC
-  `)
-
-  await queryRunner.release()
-
-  return ids.map((id) => {
-    return {
-      id,
-      creations: months.map((month) => {
-        const creation = unionQuery.find(
-          (raw: { month: string; id: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.id) === id,
-        )
-        return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
-      }),
+  @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION_MESSAGE])
+  @Mutation(() => ContributionMessage)
+  async adminCreateContributionMessage(
+    @Args() { contributionId, message }: ContributionMessageArgs,
+    @Ctx() context: Context,
+  ): Promise<ContributionMessage> {
+    const user = getUser(context)
+    if (!user.emailContact) {
+      user.emailContact = await UserContact.findOneOrFail({ where: { id: user.emailId } })
     }
-  })
-}
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+    const contributionMessage = DbContributionMessage.create()
+    try {
+      const contribution = await DbContribution.findOne({
+        where: { id: contributionId },
+        relations: ['user'],
+      })
+      if (!contribution) {
+        throw new Error('Contribution not found')
+      }
+      if (contribution.userId === user.id) {
+        throw new Error('Admin can not answer on own contribution')
+      }
+      if (!contribution.user.emailContact) {
+        contribution.user.emailContact = await UserContact.findOneOrFail({
+          where: { id: contribution.user.emailId },
+        })
+      }
+      contributionMessage.contributionId = contributionId
+      contributionMessage.createdAt = new Date()
+      contributionMessage.message = message
+      contributionMessage.userId = user.id
+      contributionMessage.type = ContributionMessageType.DIALOG
+      contributionMessage.isModerator = true
+      await queryRunner.manager.insert(DbContributionMessage, contributionMessage)
 
-function updateCreations(creations: Decimal[], contribution: Contribution): Decimal[] {
-  const index = getCreationIndex(contribution.contributionDate.getMonth())
+      if (
+        contribution.contributionStatus === ContributionStatus.DELETED ||
+        contribution.contributionStatus === ContributionStatus.DENIED ||
+        contribution.contributionStatus === ContributionStatus.PENDING
+      ) {
+        contribution.contributionStatus = ContributionStatus.IN_PROGRESS
+        await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
+      }
 
-  if (index < 0) {
-    throw new Error('You cannot create GDD for a month older than the last three months.')
+      await sendAddedContributionMessageEmail({
+        senderFirstName: user.firstName,
+        senderLastName: user.lastName,
+        recipientFirstName: contribution.user.firstName,
+        recipientLastName: contribution.user.lastName,
+        recipientEmail: contribution.user.emailContact.email,
+        senderEmail: user.emailContact.email,
+        contributionMemo: contribution.memo,
+        message,
+        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      })
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      logger.error(`ContributionMessage was not successful: ${e}`)
+      throw new Error(`ContributionMessage was not successful: ${e}`)
+    } finally {
+      await queryRunner.release()
+    }
+    return new ContributionMessage(contributionMessage, user)
   }
-  creations[index] = creations[index].plus(contribution.amount.toString())
-  return creations
-}
-
-export const isContributionValid = (
-  creations: Decimal[],
-  amount: Decimal,
-  creationDate: Date,
-): boolean => {
-  logger.trace('isContributionValid', creations, amount, creationDate)
-  const index = getCreationIndex(creationDate.getMonth())
-
-  if (index < 0) {
-    throw new Error('No information for available creations for the given date')
-  }
-
-  if (amount.greaterThan(creations[index].toString())) {
-    throw new Error(
-      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
-    )
-  }
-
-  return true
-}
-
-const isStartEndDateValid = (
-  startDate: string | null | undefined,
-  endDate: string | null | undefined,
-): void => {
-  if (!startDate) {
-    logger.error('Start-Date is not initialized. A Start-Date must be set!')
-    throw new Error('Start-Date is not initialized. A Start-Date must be set!')
-  }
-
-  if (!endDate) {
-    logger.error('End-Date is not initialized. An End-Date must be set!')
-    throw new Error('End-Date is not initialized. An End-Date must be set!')
-  }
-
-  // check if endDate is before startDate
-  if (new Date(endDate).getTime() - new Date(startDate).getTime() < 0) {
-    logger.error(`The value of validFrom must before or equals the validTo!`)
-    throw new Error(`The value of validFrom must before or equals the validTo!`)
-  }
-}
-
-const getCreationMonths = (): number[] => {
-  const now = new Date(Date.now())
-  return [
-    now.getMonth() + 1,
-    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
-    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
-  ].reverse()
-}
-
-const getCreationIndex = (month: number): number => {
-  return getCreationMonths().findIndex((el) => el === month + 1)
 }

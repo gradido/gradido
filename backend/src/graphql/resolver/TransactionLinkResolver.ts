@@ -26,12 +26,15 @@ import { User } from '@model/User'
 import { calculateDecay } from '@/util/decay'
 import { executeTransaction } from './TransactionResolver'
 import { Order } from '@enum/Order'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreation, isContributionValid } from './AdminResolver'
+import { getUserCreation, validateContribution } from './util/creations'
 import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { ContributionCycleType } from '@enum/ContributionCycleType'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -176,7 +179,7 @@ export class TransactionLinkResolver {
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
-      await queryRunner.startTransaction('SERIALIZABLE')
+      await queryRunner.startTransaction('REPEATABLE READ')
       try {
         const contributionLink = await queryRunner.manager
           .createQueryBuilder()
@@ -202,34 +205,65 @@ export class TransactionLinkResolver {
             throw new Error('Contribution link is depricated')
           }
         }
-        if (contributionLink.cycle !== 'ONCE') {
-          logger.error('contribution link has unknown cycle', contributionLink.cycle)
-          throw new Error('Contribution link has unknown cycle')
-        }
-        // Test ONCE rule
-        const alreadyRedeemed = await queryRunner.manager
-          .createQueryBuilder()
-          .select('contribution')
-          .from(DbContribution, 'contribution')
-          .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
-            linkId: contributionLink.id,
-            id: user.id,
-          })
-          .getOne()
-        if (alreadyRedeemed) {
-          logger.error('contribution link with rule ONCE already redeemed by user with id', user.id)
-          throw new Error('Contribution link already redeemed')
+        let alreadyRedeemed: DbContribution | undefined
+        switch (contributionLink.cycle) {
+          case ContributionCycleType.ONCE: {
+            alreadyRedeemed = await queryRunner.manager
+              .createQueryBuilder()
+              .select('contribution')
+              .from(DbContribution, 'contribution')
+              .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
+                linkId: contributionLink.id,
+                id: user.id,
+              })
+              .getOne()
+            if (alreadyRedeemed) {
+              logger.error(
+                'contribution link with rule ONCE already redeemed by user with id',
+                user.id,
+              )
+              throw new Error('Contribution link already redeemed')
+            }
+            break
+          }
+          case ContributionCycleType.DAILY: {
+            const start = new Date()
+            start.setHours(0, 0, 0, 0)
+            const end = new Date()
+            end.setHours(23, 59, 59, 999)
+            alreadyRedeemed = await queryRunner.manager
+              .createQueryBuilder()
+              .select('contribution')
+              .from(DbContribution, 'contribution')
+              .where(
+                `contribution.contributionLinkId = :linkId AND contribution.userId = :id
+                      AND Date(contribution.confirmedAt) BETWEEN :start AND :end`,
+                {
+                  linkId: contributionLink.id,
+                  id: user.id,
+                  start,
+                  end,
+                },
+              )
+              .getOne()
+            if (alreadyRedeemed) {
+              logger.error(
+                'contribution link with rule DAILY already redeemed by user with id',
+                user.id,
+              )
+              throw new Error('Contribution link already redeemed today')
+            }
+            break
+          }
+          default: {
+            logger.error('contribution link has unknown cycle', contributionLink.cycle)
+            throw new Error('Contribution link has unknown cycle')
+          }
         }
 
         const creations = await getUserCreation(user.id, false)
         logger.info('open creations', creations)
-        if (!isContributionValid(creations, contributionLink.amount, now)) {
-          logger.error(
-            'Amount of Contribution link exceeds available amount for this month',
-            contributionLink.amount,
-          )
-          throw new Error('Amount of Contribution link exceeds available amount')
-        }
+        validateContribution(creations, contributionLink.amount, now)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now
@@ -237,6 +271,9 @@ export class TransactionLinkResolver {
         contribution.memo = contributionLink.memo
         contribution.amount = contributionLink.amount
         contribution.contributionLinkId = contributionLink.id
+        contribution.contributionType = ContributionType.LINK
+        contribution.contributionStatus = ContributionStatus.CONFIRMED
+
         await queryRunner.manager.insert(DbContribution, contribution)
 
         const lastTransaction = await queryRunner.manager
@@ -284,7 +321,10 @@ export class TransactionLinkResolver {
       return true
     } else {
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      const linkedUser = await dbUser.findOneOrFail(
+        { id: transactionLink.userId },
+        { relations: ['emailContact'] },
+      )
 
       if (user.id === linkedUser.id) {
         throw new Error('Cannot redeem own transaction link.')

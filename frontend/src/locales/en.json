@@ -9,16 +9,10 @@
       "dignity": "Dignity",
       "donation": "Donation",
       "gratitude": "Gratitude",
-      "hasAccount": "You already have an account?",
-      "hereLogin": "Log in here",
       "learnMore": "Learn more …",
-      "newCurrency": "The new currency",
       "oneDignity": "We gift to each other and give thanks with Gradido.",
       "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
-      "oneGratitude": "The new currency. For each other, for all people, for nature."
-    },
-    "navbar": {
-      "aboutGradido": "About Gradido"
+      "oneGratitude": "For each other, for all people, for nature."
     }
   },
   "back": "Back",
@@ -27,11 +21,47 @@
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
+    "moderator": "Moderator",
+    "moderators": "Moderators",
+    "myContributions": "My contributions to the common good",
+    "noOpenContributionLinkText": "Currently there are no automatic creations.",
+    "openContributionLinks": "Open contribution-link list",
+    "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
+    "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
   },
+  "contribution": {
+    "activity": "Activity",
+    "alert": {
+      "answerQuestion": "Please answer the question",
+      "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
+      "confirm": "confirmed",
+      "in_progress": "There is a question from the moderators.",
+      "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
+      "pending": "Submitted and waiting for confirmation",
+      "rejected": "deleted"
+    },
+    "date": "Contribution for:",
+    "delete": "Delete Contribution! Are you sure?",
+    "deleted": "The contribution has been deleted! But it will remain visible.",
+    "formText": {
+      "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
+      "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
+      "maxGDDforMonth": "You can only submit a maximum of {amount} GDD for the selected month.",
+      "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
+      "yourContribution": "Your contribution to the common good"
+    },
+    "noDateSelected": "Choose any date in the month",
+    "selectDate": "When was your contribution?",
+    "submit": "Submit",
+    "submitted": "The contribution was submitted.",
+    "updated": "The contribution was changed.",
+    "yourActivity": "Please enter an activity!"
+  },
   "contribution-link": {
-    "thanksYouWith": "thanks you with"
+    "thanksYouWith": "thanks you with",
+    "unique": "(unique)"
   },
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
@@ -79,17 +109,18 @@
     "amount": "Amount",
     "at": "at",
     "cancel": "Cancel",
+    "change": "Change",
     "check_now": "Check now",
     "close": "Close",
     "current_balance": "Current Balance",
     "date": "Date",
     "description": "Description",
-    "edit": "Edit",
     "email": "Email",
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
     "lastname": "Lastname",
+    "mandatoryField": "mandatory field",
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
@@ -100,6 +131,7 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "reply": "Reply",
     "reset": "Reset",
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
@@ -124,8 +156,10 @@
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
-    "copy": "copy",
+    "copy-link": "Copy link",
+    "copy-link-with-text": "Copy link and text",
     "created": "Link was created!",
+    "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "decay-14-day": "Decay for 14 days",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
@@ -133,9 +167,11 @@
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
     "isFree": "Gradido is free of charge worldwide.",
+    "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
+    "link-hint": "Attention: Anyone can redeem this link. Please do not share it!",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_sum": "Open links and QR codes",
@@ -143,13 +179,13 @@
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "redeem": "Redeem",
-    "redeem-text": "Do you want to redeem the amount now?",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemed-title": "redeemed",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "validUntil": "Valid until"
+    "validUntil": "Valid until",
+    "validUntilDate": "The link is valid until {date}."
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
@@ -173,8 +209,8 @@
   "login": "Login",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
@@ -184,6 +220,7 @@
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
@@ -192,6 +229,8 @@
     "admin_area": "Admin Area",
     "favourites": "Favourites",
     "lightmode": "Lightmode",
+    "community": "Community",
+    "info": "Information",
     "logout": "Logout",
     "members": "Members",
     "members_area": "Members area",
@@ -217,6 +256,9 @@
       "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "name": {
@@ -273,6 +315,7 @@
     "days": "Days",
     "hours": "Hours",
     "minutes": "Minutes",
+    "month": "Month",
     "months": "Months",
     "seconds": "Seconds",
     "years": "Year"
@@ -289,6 +332,5 @@
     "send_you": "wants to send you"
   },
   "via_link": "via Link",
-  "welcome": "Welcome",
-  "WelcomeBy": "by {name}"
+  "welcome": "Welcome to the community"
 }
