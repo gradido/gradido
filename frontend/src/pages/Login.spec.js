@@ -5,7 +5,7 @@ import Login from './Login'
 
 const localVue = global.localVue
 
-const apolloQueryMock = jest.fn()
+const apolloMutateMock = jest.fn()
 const mockStoreDispach = jest.fn()
 const mockStoreCommit = jest.fn()
 const mockRouterPush = jest.fn()
@@ -41,7 +41,7 @@ describe('Login', () => {
       params: {},
     },
     $apollo: {
-      query: apolloQueryMock,
+      mutate: apolloMutateMock,
     },
   }
 
@@ -113,7 +113,7 @@ describe('Login', () => {
           await wrapper.find('input[placeholder="Email"]').setValue('user@example.org')
           await wrapper.find('input[placeholder="form.password"]').setValue('1234')
           await flushPromises()
-          apolloQueryMock.mockResolvedValue({
+          apolloMutateMock.mockResolvedValue({
             data: {
               login: 'token',
             },
@@ -123,7 +123,7 @@ describe('Login', () => {
         })
 
         it('calls the API with the given data', () => {
-          expect(apolloQueryMock).toBeCalledWith(
+          expect(apolloMutateMock).toBeCalledWith(
             expect.objectContaining({
               variables: {
                 email: 'user@example.org',
@@ -175,7 +175,7 @@ describe('Login', () => {
 
       describe('login fails', () => {
         const createError = async (errorMessage) => {
-          apolloQueryMock.mockRejectedValue({
+          apolloMutateMock.mockRejectedValue({
             message: errorMessage,
           })
           wrapper = Wrapper()

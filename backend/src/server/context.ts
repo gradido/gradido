@@ -9,6 +9,7 @@ export interface Context {
   setHeaders: { key: string; value: string }[]
   role?: Role
   user?: dbUser
+  clientRequestTime?: string
   // hack to use less DB calls for Balance Resolver
   lastTransaction?: dbTransaction
   transactionCount?: number
@@ -18,13 +19,16 @@ export interface Context {
 
 const context = (args: ExpressContext): Context => {
   const authorization = args.req.headers.authorization
-  let token: string | null = null
-  if (authorization) {
-    token = authorization.replace(/^Bearer /, '')
-  }
-  const context = {
-    token,
+  const clientRequestTime = args.req.headers.clientrequesttime
+  const context: Context = {
+    token: null,
     setHeaders: [],
+  }
+  if (authorization) {
+    context.token = authorization.replace(/^Bearer /, '')
+  }
+  if (clientRequestTime && typeof clientRequestTime === 'string') {
+    context.clientRequestTime = clientRequestTime
   }
   return context
 }

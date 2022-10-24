@@ -41,7 +41,13 @@
           ></transaction-result-send-error>
         </template>
         <template #transactionResultLink>
-          <transaction-result-link :link="link" @on-reset="onReset"></transaction-result-link>
+          <transaction-result-link
+            :link="link"
+            :amount="amount"
+            :memo="memo"
+            :validUntil="validUntil"
+            @on-reset="onReset"
+          ></transaction-result-link>
         </template>
       </gdd-send>
       <hr />
@@ -144,7 +150,15 @@ export default {
             })
             .then((result) => {
               this.$emit('set-tunneled-email', null)
-              this.link = result.data.createTransactionLink.link
+              const {
+                data: {
+                  createTransactionLink: { link, amount, memo, validUntil },
+                },
+              } = result
+              this.link = link
+              this.amount = amount
+              this.memo = memo
+              this.validUntil = validUntil
               this.transactionData = { ...EMPTY_TRANSACTION_DATA }
               this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
               this.updateTransactions({})
