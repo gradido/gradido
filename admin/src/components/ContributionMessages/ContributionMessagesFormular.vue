@@ -25,8 +25,6 @@
 <script>
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 
-const STRIP_HTML_PATTERN = /(<([^>]+)>)/gi
-
 export default {
   name: 'ContributionMessagesFormular',
   props: {
@@ -49,7 +47,7 @@ export default {
           mutation: adminCreateContributionMessage,
           variables: {
             contributionId: this.contributionId,
-            message: this.clearTextFromHtml,
+            message: this.form.text,
           },
         })
         .then((result) => {
@@ -67,9 +65,6 @@ export default {
     },
   },
   computed: {
-    clearTextFromHtml() {
-      return this.form.text.replace(STRIP_HTML_PATTERN, '')
-    },
     disabled() {
       if (this.form.text !== '') {
         return false
