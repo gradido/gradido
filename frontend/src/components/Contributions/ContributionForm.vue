@@ -88,7 +88,6 @@
   </div>
 </template>
 <script>
-const PATTERN_STRIP_HTML = /(<([^>]+)>)/gi
 const PATTERN_NON_DIGIT = /\D/g
 
 export default {
@@ -112,7 +111,6 @@ export default {
     submit() {
       this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
       // spreading is needed for testing
-      this.form.memo = this.memoStripHtml
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
     },
@@ -132,9 +130,6 @@ export default {
     },
   },
   computed: {
-    memoStripHtml() {
-      return this.form.memo.replace(PATTERN_STRIP_HTML, '')
-    },
     minimalDate() {
       // sets the date to the 1st of the previous month
       let date = new Date(this.maximalDate) // has to be a new object, because of 'setMonth' changes the objects date
