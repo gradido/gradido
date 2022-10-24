@@ -6,7 +6,7 @@ import { getCustomRepository } from '@dbTools/typeorm'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { decimalSubtraction, decimalAddition } from './utilities'
-import { logger } from '@test/testSetup'
+import { backendLogger as logger } from '@/server/logger'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
