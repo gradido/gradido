@@ -80,6 +80,7 @@ const createServer = async (
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
   )
   logger.debug('createServer...successful')
+
   return { apollo, app, con }
 }
 

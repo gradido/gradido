@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v10.2022-09-20',
+    EXPECTED: 'v11.2022-09-26',
     CURRENT: '',
   },
 }
@@ -58,11 +58,25 @@ const community = {
     process.env.COMMUNITY_REDEEM_CONTRIBUTION_URL || 'http://localhost/redeem/CL-{code}',
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION || 'Die lokale Entwicklungsumgebung von Gradido.',
+  COMMUNITY_PUBLIC_KEY:
+    process.env.COMMUNITY_PUBLIC_KEY ||
+    'f7bf12696ca09c7a348dc48c82894eacbfb955029125f28fd226510def83d53d',
+  COMMUNITY_PRIVATE_KEY:
+    process.env.COMMUNITY_PRIVATE_KEY ||
+    '09e552a127f999cc2d339d220f6afa6a31cfbcbcf2c25f10ff9af09c29b49dac',
 }
 
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET || '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY || 'a51ef8ac7ef1abf162fb7a65261acd7a',
+}
+
+const blockchainConnector = {
+  BLOCKCHAIN_CONNECTOR_PUBLIC_KEY:
+    process.env.BLOCKCHAIN_CONNECTOR_PUBLIC_KEY ||
+    '35a686fb39f25c71ce725e3ebbfd5899ddafde7628a7905f29e64975f6e8c815',
+  BLOCKCHAIN_CONNECTOR_API_URL:
+    process.env.BLOCKCHAIN_CONNECTOR_API_URL || 'http://blockchain-connector:1271',
 }
 
 const email = {
@@ -124,6 +138,7 @@ const CONFIG = {
   ...community,
   ...email,
   ...loginServer,
+  ...blockchainConnector,
   ...webhook,
   ...eventProtocol,
 }
