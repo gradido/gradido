@@ -14,7 +14,7 @@ import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { ContributionMessage } from '@entity/ContributionMessage'
-import { ContributionMessageType } from '../enum/MessageType'
+import { ContributionMessageType } from '@enum/MessageType'
 import {
   Event,
   EventContributionCreate,
