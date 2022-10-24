@@ -74,10 +74,6 @@
           {{ $t('navigation.info') }}
         </b-nav-item>
         <br />
-        <b-nav-item v-if="$store.state.hasElopage" :href="elopageUri" class="mb-3" target="_blank">
-          <b-icon icon="link45deg" aria-hidden="true"></b-icon>
-          {{ $t('navigation.members_area') }}
-        </b-nav-item>
         <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
           <b-icon icon="shield-check" aria-hidden="true"></b-icon>
           {{ $t('navigation.admin_area') }}

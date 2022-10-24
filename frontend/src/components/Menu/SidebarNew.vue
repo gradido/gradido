@@ -44,13 +44,6 @@
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.settings') }}</span>
           </b-nav-item>
-          <b-nav-item class="mb-3" :href="elopageUri" target="_blank">
-            <b-icon icon="link45deg" aria-hidden="true"></b-icon>
-            <span class="d-none d-lg-inline ml-2 mr-2">{{ $t('navigation.members_area') }}</span>
-            <b-badge v-if="!$store.state.hasElopage" pill variant="danger">
-              {{ $t('math.exclaim') }}
-            </b-badge>
-          </b-nav-item>
           <b-nav-item class="mb-3" v-if="$store.state.isAdmin" @click="$emit('admin')">
             <b-icon icon="shield-check" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.admin_area') }}</span>

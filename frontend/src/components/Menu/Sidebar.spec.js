@@ -34,7 +34,7 @@ describe('Sidebar', () => {
 
     describe('navigation Navbar', () => {
       it('has ten b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(10)
+        expect(wrapper.findAll('.nav-item')).toHaveLength(9)
       })
 
       describe('navigation Navbar (general elements)', () => {
@@ -63,35 +63,30 @@ describe('Sidebar', () => {
         })
       })
 
-      describe('navigation Navbar (user has an elopage account)', () => {
+      describe('navigation Navbar', () => {
         it('has ten b-nav-item in the navbar', () => {
-          expect(wrapper.findAll('.nav-item')).toHaveLength(10)
-        })
-
-        it('has a link to the members area', () => {
-          expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.members_area')
-          expect(wrapper.findAll('.nav-item').at(7).find('a').attributes('href')).toBe('#')
+          expect(wrapper.findAll('.nav-item')).toHaveLength(9)
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.admin_area')
+          expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.admin_area')
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
+          expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.logout')
         })
       })
 
       it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.admin_area')
       })
 
       it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.logout')
       })
     })
 
-    describe('navigation Navbar (user has no elopage account)', () => {
+    describe('navigation Navbar', () => {
       beforeAll(() => {
         mocks.$store.state.hasElopage = false
         wrapper = Wrapper()
