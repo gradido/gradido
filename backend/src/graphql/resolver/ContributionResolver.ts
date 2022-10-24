@@ -224,16 +224,22 @@ export class ContributionResolver {
       // TODO: Add message to changeMessage
       changeMessage += 'Neuer Memo: ' + memo + '\n'
     }
-    if (contributionToUpdate.amount !== amount) {
+    if (contributionToUpdate.amount.toFixed(6) !== amount.toFixed(6)) {
       // TODO: Add amount to changeMessage
       changeMessage += 'Neuer Betrag: ' + amount + '\n'
     }
-    if (contributionToUpdate.contributionDate !== new Date(creationDate)) {
+    const isDateDifferent =
+      contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()
+    if (isDateDifferent) {
       // TODO: Add contributionDate to changeMessage
-      changeMessage += 'Neuer Beitragsdatum: ' + creationDate + '\n'
+      changeMessage += 'Neuer Beitragsdatum: ' + creationDate
     }
     contributionMessage.message = changeMessage
+    contributionMessage.createdAt = new Date()
+    contributionMessage.isModerator = false
+    contributionMessage.userId = user.id
     contributionMessage.type = ContributionMessageType.HISTORY
+    ContributionMessage.save(contributionMessage)
 
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
