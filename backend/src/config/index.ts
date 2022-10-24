@@ -10,7 +10,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0051-add_updated_at_to_contributions',
+  DB_VERSION: '0052-add_updated_at_to_contributions',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -67,7 +67,7 @@ const loginServer = {
 
 const email = {
   EMAIL: process.env.EMAIL === 'true' || false,
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || 'false',
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'gradido_email',
   EMAIL_SENDER: process.env.EMAIL_SENDER || 'info@gradido.net',

@@ -83,10 +83,10 @@ export class Contribution extends BaseEntity {
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 
+  @DeleteDateColumn({ unsigned: true, nullable: true, name: 'deleted_by' })
+  deletedBy: number
+
   @OneToMany(() => ContributionMessage, (message) => message.contribution)
   @JoinColumn({ name: 'contribution_id' })
   messages?: ContributionMessage[]
-
-  @Column({ nullable: true, name: 'updated_at' })
-  updatedAt: Date
 }
