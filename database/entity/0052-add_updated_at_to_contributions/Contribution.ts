@@ -91,5 +91,5 @@ export class Contribution extends BaseEntity {
   messages?: ContributionMessage[]
 
   @Column({ nullable: true, name: 'updated_at' })
-  updatedAt: Date | null
+  updatedAt: Date
 }
