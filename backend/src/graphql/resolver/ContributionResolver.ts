@@ -222,17 +222,17 @@ export class ContributionResolver {
     let changeMessage = ''
     if (contributionToUpdate.memo !== memo) {
       // TODO: Add message to changeMessage
-      changeMessage += 'Neuer Memo: ' + memo + '\n'
+      changeMessage += 'Alter Memo: ' + contributionToUpdate.memo + '\n'
     }
     if (contributionToUpdate.amount.toFixed(6) !== amount.toFixed(6)) {
       // TODO: Add amount to changeMessage
-      changeMessage += 'Neuer Betrag: ' + amount + '\n'
+      changeMessage += 'Alter Betrag: ' + contributionToUpdate.amount + '\n'
     }
     const isDateDifferent =
       contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()
     if (isDateDifferent) {
       // TODO: Add contributionDate to changeMessage
-      changeMessage += 'Neuer Beitragsdatum: ' + creationDate
+      changeMessage += 'Altes Beitragsdatum: ' + contributionToUpdate.contributionDate
     }
     contributionMessage.message = changeMessage
     contributionMessage.createdAt = new Date()
