@@ -1,6 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import App from './App'
-import flushPromises from 'flush-promises'
 
 const localVue = global.localVue
 const mockStoreCommit = jest.fn()
@@ -51,7 +50,6 @@ describe('App', () => {
 
     describe('route requires authorization', () => {
       beforeEach(async () => {
-        await flushPromises()
         mocks.$route.meta.requiresAuth = true
         wrapper = Wrapper()
       })
