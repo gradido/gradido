@@ -228,7 +228,9 @@
   },
   "navigation": {
     "admin_area": "Admin Area",
+    "community": "Community",
     "favourites": "Favourites",
+    "info": "Information",
     "lightmode": "Lightmode",
     "logout": "Logout",
     "members": "Members",

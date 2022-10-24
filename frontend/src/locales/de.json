@@ -228,7 +228,9 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
+    "community": "Gemeinschaft",
     "favourites": "Favoriten",
+    "info": "Information",
     "lightmode": "Lightmode",
     "logout": "Abmelden",
     "members": "Mitglieder",
