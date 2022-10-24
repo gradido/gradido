@@ -235,7 +235,6 @@ export class ContributionResolver {
       changeMessage += 'Altes Beitragsdatum: ' + contributionToUpdate.contributionDate
     }
     contributionMessage.message = changeMessage
-    contributionMessage.createdAt = new Date()
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
     contributionMessage.type = ContributionMessageType.HISTORY
