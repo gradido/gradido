@@ -219,18 +219,20 @@ export class ContributionResolver {
     contributionMessage.createdAt = contributionToUpdate.updatedAt
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
-    const newMessage = ''
+    let changeMessage = ''
     if (contributionToUpdate.memo !== memo) {
-      //
-      
+      // TODO: Add message to changeMessage
+      changeMessage += 'Neuer Memo: ' + memo + '\n'
     }
     if (contributionToUpdate.amount !== amount) {
-      //
+      // TODO: Add amount to changeMessage
+      changeMessage += 'Neuer Betrag: ' + amount + '\n'
     }
     if (contributionToUpdate.contributionDate !== new Date(creationDate)) {
-      //
+      // TODO: Add contributionDate to changeMessage
+      changeMessage += 'Neuer Beitragsdatum: ' + creationDate + '\n'
     }
-    contributionMessage.message = ``
+    contributionMessage.message = changeMessage
     contributionMessage.type = ContributionMessageType.HISTORY
 
     contributionToUpdate.amount = amount
