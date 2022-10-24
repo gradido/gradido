@@ -68,7 +68,8 @@
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
-import { logout, transactionsQuery } from '@/graphql/queries'
+import { transactionsQuery } from '@/graphql/queries'
+import { logout } from '@/graphql/mutations'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
 import CONFIG from '@/config'
@@ -102,8 +103,8 @@ export default {
   methods: {
     async logout() {
       this.$apollo
-        .query({
-          query: logout,
+        .mutate({
+          mutation: logout,
         })
         .then(() => {
           this.$store.dispatch('logout')

@@ -1,7 +1,7 @@
 <template>
   <div class="auth-header position-sticky">
-    <b-navbar toggleable="lg" class="pr-4">
-      <b-navbar-brand>
+    <b-navbar :toggleable="false" class="pr-4">
+      <b-navbar-brand class="d-none d-lg-block">
         <b-img
           class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
           :src="logo"
@@ -16,16 +16,11 @@
         ></b-img>
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></b-img>
-      <b-navbar-toggle target="nav-collapse" class="zindex1000"></b-navbar-toggle>
-
       <b-collapse id="nav-collapse" is-nav class="ml-5">
-        <b-navbar-nav class="ml-auto" right>
-          <b-nav-item :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
-            {{ $t('auth.navbar.aboutGradido') }}
-          </b-nav-item>
-          <b-nav-item to="/register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
+        <b-navbar-nav class="ml-auto d-none d-lg-flex" right>
+          <b-nav-item :to="register" class="authNavbar ml-lg-5">{{ $t('signup') }}</b-nav-item>
           <span class="d-none d-lg-block mt-1">{{ $t('math.pipe') }}</span>
-          <b-nav-item to="/login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
+          <b-nav-item :to="login" class="authNavbar">{{ $t('signin') }}</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -33,8 +28,11 @@
 </template>
 
 <script>
+import { authLinks } from '@/mixins/authLinks'
+
 export default {
   name: 'AuthNavbar',
+  mixins: [authLinks],
   data() {
     return {
       logo: '/img/brand/green.png',
@@ -46,19 +44,11 @@ export default {
 
 <style lang="scss">
 .authNavbar > .nav-link {
-  color: #383838 !important;
-}
-
-.navbar-toggler {
-  font-size: 2.25rem;
-}
-
-.authNavbar > .router-link-exact-active {
   color: #0e79bc !important;
 }
 
-button.navbar-toggler > span.navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+.authNavbar > .router-link-exact-active {
+  color: #383838 !important;
 }
 
 .auth-header {
