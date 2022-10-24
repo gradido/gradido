@@ -83,7 +83,7 @@ export const executeTransaction = async (
     transactionSend.memo = memo
     transactionSend.userId = sender.id
     transactionSend.linkedUserId = recipient.id
-    transactionSend.amount = amount
+    transactionSend.amount = amount.mul(-1)
     transactionSend.balance = sendBalance.balance
     transactionSend.balanceDate = receivedCallDate
     transactionSend.decay = sendBalance.decay.decay
@@ -151,7 +151,7 @@ export const executeTransaction = async (
     eventTransactionSend.userId = transactionSend.userId
     eventTransactionSend.xUserId = transactionSend.linkedUserId
     eventTransactionSend.transactionId = transactionSend.id
-    eventTransactionSend.amount = transactionSend.amount
+    eventTransactionSend.amount = transactionSend.amount.mul(-1)
     await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
 
     const eventTransactionReceive = new EventTransactionReceive()
