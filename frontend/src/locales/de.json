@@ -227,10 +227,10 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
-    "favourites": "Favoriten",
-    "lightmode": "Lightmode",
     "community": "Gemeinschaft",
+    "favourites": "Favoriten",
     "info": "Information",
+    "lightmode": "Lightmode",
     "logout": "Abmelden",
     "members": "Mitglieder",
     "overview": "Übersicht",
