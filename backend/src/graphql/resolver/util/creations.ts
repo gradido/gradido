@@ -49,16 +49,6 @@ export const getUserCreations = async (
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
   logger.trace('getUserCreations dateFilter=', dateFilter)
 
-  /** 
-  SELECT MONTH(contribution_date) as month, user_id, created_at, sum(amount), confirmed_at, deleted_at 
-   FROM `contributions`
-   where user_id = 776
-   and contribution_date >= last_day(curdate() - interval 3 month) + interval 1 day
-   and deleted_at IS NULL
-   and denied_at IS NULL
-   if(!includePending) and confirmed_at IS NOT NULL
-   group by month, user_id; 
-  */
   const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
     .createQueryBuilder(Contribution, 'c')
     .select('month(contribution_date)', 'month')
@@ -70,35 +60,15 @@ export const getUserCreations = async (
     .andWhere('denied_at IS NULL')
     .groupBy('month')
     .addGroupBy('userId')
+
   if (!includePending) {
     sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
   }
+
   const sumAmountContributionPerUserAndLast3Month =
     await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
 
-  /*
-  const unionString = includePending
-    ? `
-    UNION
-      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}
-        AND confirmed_at IS NULL AND deleted_at IS NULL`
-    : ''
-  logger.trace('getUserCreations unionString=', unionString)
-
-  const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
-      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TransactionTypeId.CREATION}
-        AND creation_date >= ${dateFilter}
-      ${unionString}) AS result
-    GROUP BY month, userId
-    ORDER BY date DESC
-  `)
-  logger.trace('getUserCreations unionQuery=', unionQuery)
-  */
+  logger.trace(sumAmountContributionPerUserAndLast3Month)
 
   await queryRunner.release()
 
@@ -113,16 +83,6 @@ export const getUserCreations = async (
         return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
     }
-    // const creations = months.map((month) => {
-    //   const creation = openCreation.find(
-    //     (raw: { month: string; userId: string; creation: number[] }) =>
-    //       parseInt(raw.month) === month && parseInt(raw.userId) === id,
-    //   )
-    //   return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
-    // })
-    // // eslint-disable-next-line no-console
-    // console.log('id: ', id, 'creations: ', creations.toString())
-    // return { id, creations }
   })
 }
 
