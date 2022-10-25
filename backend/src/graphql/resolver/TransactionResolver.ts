@@ -6,7 +6,7 @@ import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
-import { getCustomRepository, getConnection } from '@dbTools/typeorm'
+import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
 
 import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
@@ -37,6 +37,9 @@ import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
 import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
+import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { Decay } from '../model/Decay'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -55,28 +58,19 @@ export const executeTransaction = async (
   }
 
   if (memo.length > MEMO_MAX_CHARS) {
-    logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+    logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
     throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
   }
 
   if (memo.length < MEMO_MIN_CHARS) {
-    logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+    logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
     throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
   }
 
   // validate amount
   const receivedCallDate = new Date()
-  const sendBalance = await calculateBalance(
-    sender.id,
-    amount.mul(-1),
-    receivedCallDate,
-    transactionLink,
-  )
-  logger.debug(`calculated Balance=${sendBalance}`)
-  if (!sendBalance) {
-    logger.error(`user hasn't enough GDD or amount is < 0 : balance=${sendBalance}`)
-    throw new Error("user hasn't enough GDD or amount is < 0")
-  }
+
+  const sendBalance = await calculateBalance(sender.id, amount, receivedCallDate, transactionLink)
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
@@ -106,7 +100,24 @@ export const executeTransaction = async (
     transactionReceive.userId = recipient.id
     transactionReceive.linkedUserId = sender.id
     transactionReceive.amount = amount
-    const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+
+    // state received balance
+    let receiveBalance: {
+      balance: Decimal
+      decay: Decay
+      lastTransactionId: number
+    } | null
+
+    // try received balance
+    try {
+      receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
+    } catch (e) {
+      logger.info(
+        `User with no transactions sent: ${recipient.id}, has received a transaction of ${amount} GDD from user: ${sender.id}`,
+      )
+      receiveBalance = null
+    }
+
     transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
     transactionReceive.balanceDate = receivedCallDate
     transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
@@ -135,6 +146,20 @@ export const executeTransaction = async (
 
     await queryRunner.commitTransaction()
     logger.info(`commit Transaction successful...`)
+
+    const eventTransactionSend = new EventTransactionSend()
+    eventTransactionSend.userId = transactionSend.userId
+    eventTransactionSend.xUserId = transactionSend.linkedUserId
+    eventTransactionSend.transactionId = transactionSend.id
+    eventTransactionSend.amount = transactionSend.amount.mul(-1)
+    await eventProtocol.writeEvent(new Event().setEventTransactionSend(eventTransactionSend))
+
+    const eventTransactionReceive = new EventTransactionReceive()
+    eventTransactionReceive.userId = transactionReceive.userId
+    eventTransactionReceive.xUserId = transactionReceive.linkedUserId
+    eventTransactionReceive.transactionId = transactionReceive.id
+    eventTransactionReceive.amount = transactionReceive.amount
+    await eventProtocol.writeEvent(new Event().setEventTransactionReceive(eventTransactionReceive))
   } catch (e) {
     await queryRunner.rollbackTransaction()
     logger.error(`Transaction was not successful: ${e}`)
@@ -224,11 +249,11 @@ export class TransactionResolver {
     logger.debug(`involvedUserIds=${involvedUserIds}`)
 
     // We need to show the name for deleted users for old transactions
-    const involvedDbUsers = await dbUser
-      .createQueryBuilder()
-      .withDeleted()
-      .where('id IN (:...userIds)', { userIds: involvedUserIds })
-      .getMany()
+    const involvedDbUsers = await dbUser.find({
+      where: { id: In(involvedUserIds) },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=${involvedUsers}`)
 
@@ -316,6 +341,10 @@ export class TransactionResolver {
     }
     */
     // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
+
+    /* Code inside this if statement is unreachable (useless by so), 
+    in findUserByEmail() an error is already thrown if the user is not found
+    */
     if (!recipientUser) {
       logger.error(`unknown recipient to UserContact: email=${email}`)
       throw new Error('unknown recipient')

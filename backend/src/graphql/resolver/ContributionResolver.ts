@@ -13,6 +13,13 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import {
+  Event,
+  EventContributionCreate,
+  EventContributionDelete,
+  EventContributionUpdate,
+} from '@/event/Event'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 @Resolver()
 export class ContributionResolver {
@@ -24,14 +31,16 @@ export class ContributionResolver {
   ): Promise<UnconfirmedContribution> {
     logger.info(`createContribution(${amount}, ${memo}, ${creationDate})`)
     if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
     }
 
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS})`)
       throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
     }
+
+    const event = new Event()
 
     const user = getUser(context)
     logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
@@ -53,6 +62,13 @@ export class ContributionResolver {
 
     logger.debug('contribution to save', contribution)
     await dbContribution.save(contribution)
+
+    const eventCreateContribution = new EventContributionCreate()
+    eventCreateContribution.userId = user.id
+    eventCreateContribution.amount = amount
+    eventCreateContribution.contributionId = contribution.id
+    await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
+
     return new UnconfirmedContribution(
       contribution,
       user,
@@ -67,20 +83,34 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`deleteContribution(${id})`)
+    const event = new Event()
     const user = getUser(context)
     logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
     const contribution = await dbContribution.findOne(id)
     if (!contribution) {
+      logger.error('Contribution not found for given id')
       throw new Error('Contribution not found for given id.')
     }
     if (contribution.userId !== user.id) {
+      logger.error('Can not delete contribution of another user')
       throw new Error('Can not delete contribution of another user')
     }
     if (contribution.confirmedAt) {
+      logger.error('A confirmed contribution can not be deleted')
       throw new Error('A confirmed contribution can not be deleted')
     }
+
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = user.id
+    contribution.deletedAt = new Date()
     await contribution.save()
+
+    const eventDeleteContribution = new EventContributionDelete()
+    eventDeleteContribution.userId = user.id
+    eventDeleteContribution.contributionId = contribution.id
+    eventDeleteContribution.amount = contribution.amount
+    await eventProtocol.writeEvent(event.setEventContributionDelete(eventDeleteContribution))
+
     const res = await contribution.softRemove()
     return !!res
   }
@@ -108,6 +138,7 @@ export class ContributionResolver {
       .from(dbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where(where)
+      .withDeleted()
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
@@ -168,9 +199,11 @@ export class ContributionResolver {
       where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
+      logger.error('No contribution found to given id')
       throw new Error('No contribution found to given id.')
     }
     if (contributionToUpdate.userId !== user.id) {
+      logger.error('user of the pending contribution and send user does not correspond')
       throw new Error('user of the pending contribution and send user does not correspond')
     }
 
@@ -212,6 +245,14 @@ export class ContributionResolver {
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     dbContribution.save(contributionToUpdate)
+
+    const event = new Event()
+
+    const eventUpdateContribution = new EventContributionUpdate()
+    eventUpdateContribution.userId = user.id
+    eventUpdateContribution.contributionId = contributionId
+    eventUpdateContribution.amount = amount
+    await eventProtocol.writeEvent(event.setEventContributionUpdate(eventUpdateContribution))
 
     return new UnconfirmedContribution(contributionToUpdate, user, creations)
   }

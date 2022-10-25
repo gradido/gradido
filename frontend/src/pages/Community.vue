@@ -231,8 +231,6 @@ export default {
           this.items = listContributions.contributionList
           if (this.items.find((item) => item.state === 'IN_PROGRESS')) {
             this.tabIndex = 1
-          } else {
-            this.tabIndex = 0
           }
         })
         .catch((err) => {
