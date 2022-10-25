@@ -63,7 +63,7 @@ Im Admin-Interface wird im Menü ein neuer Reiter "Registrierung" angezeigt. Mit
 
 ![img](./image/Admin-CreateUser.png)
 
-Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern & Konto aktivieren"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert und der Konto-Status auf aktiviert gesetzt. 
+Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern & Konto aktivieren"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert und der Konto-Status auf aktiviert gesetzt.
 
 Es wird auch hier eine Email zur Emailadress-Bestätigung verschickt. Der Status "email_checked" bleibt auf false, weil der User seine Confirmation-Email zwar bekommen, aber noch nicht bestätigt hat oder eben nicht zeitnah bestätigen kann. Durch das One-Time-Passwort, das der Moderator dem User mitteilen kann, hat der User direkt die Möglichkeit sich über den Login-Prozess anzumelden, ohne vorher den Email-Bestätigungslink aktivieren zu müssen.
 
@@ -141,8 +141,6 @@ Mit den zuvor beschriebenen Datenbankänderungen muss eine Datenbankmigration au
   * `accounts.balance` = null (dieses Attribut wird in separatem Issue "Update Account-Balance during writing a Transaction" bedient)
   * `account.updated_at` = null  (dieses Attribut wird in separatem Issue "Update Account-Balance during writing a Transaction" bedient)
 
-
-
 ### 2.2 Admin-Interface
 
 #### searchUsers
@@ -160,7 +158,7 @@ Der ErgebnisTyp `SearchUsersResult `des Service *searchUsers* muss um die Inform
 
 #### adminCreateUser
 
-Im *AdminResolver* muss aus Berechtigungsgründen ein neuer Service *adminCreateUser* erstellt werden, da im *UserResolver* der Service *createUser* für jeden offen ist, ohne dass eine vorherige Authentifizierung per Login stattgefunden hat. 
+Im *AdminResolver* muss aus Berechtigungsgründen ein neuer Service *adminCreateUser* erstellt werden, da im *UserResolver* der Service *createUser* für jeden offen ist, ohne dass eine vorherige Authentifizierung per Login stattgefunden hat.
 
 Dieser neue Service benötigt folgende Signatur als Eingabeparameter:
 
@@ -171,7 +169,7 @@ Dieser neue Service benötigt folgende Signatur als Eingabeparameter:
 | email           | String | die Email-Adresse des neuen Users     |
 | oneTimePassword | String | das One-Time-Passwort des neuen Users |
 
- Der neue Service entspricht der internen Logik weitestgehend dem exitierenden Service `UserResolver.create`. 
+ Der neue Service entspricht der internen Logik weitestgehend dem exitierenden Service `UserResolver.create`.
 
 * prüfen ob Email schon existiert und wenn ja, dann an diese Email eine Info-Nachricht und Abruch mit Fehlermeldung
 * neues User-Objekt initialisieren mit
@@ -210,19 +208,17 @@ Als Rückgabe sind erst einmal keine weiteren fachlichen Daten geplant, ausser e
 
 #### login
 
-Im *UserResolver* muss der Service *login* angepasst werden, um eine Anmeldung per One-Time-Passwort zu erlauben. 
+Im *UserResolver* muss der Service *login* angepasst werden, um eine Anmeldung per One-Time-Passwort zu erlauben.
 
-Dabei wird zuerst per übergebener *email* der User aus der Datenbank ermittelt. Bevor die Prüfung auf das Flag `user.emailContact.email_checked` erfolgt, muss eine Prüfung auf das Attribut `user.password_encryption_type` durchgeführt werden. Ist die Passwort-Verschlüsselung dieses Users auf dem Wert `PasswordEncryptionType.ONETIME`, dann wird die Prüfung des Flags `user.emailContact.email_checked` übersprungen. 
+Dabei wird zuerst per übergebener *email* der User aus der Datenbank ermittelt. Bevor die Prüfung auf das Flag `user.emailContact.email_checked` erfolgt, muss eine Prüfung auf das Attribut `user.password_encryption_type` durchgeführt werden. Ist die Passwort-Verschlüsselung dieses Users auf dem Wert `PasswordEncryptionType.ONETIME`, dann wird die Prüfung des Flags `user.emailContact.email_checked` übersprungen.
 
 Durch den Wert des Attributs `user.password_encryption_type` wird die Passwort-Entschlüsselungsart und Prüfung gesteuert. Beim Wert `PasswordEncryptionType.ONETIME` ist das Passwort selbst für die Anwendung kein Geheimnis, da dieses durch einen Moderator und nicht geheim durch den User eingegeben wurde und jederzeit durch einen Moderator im Klartext wieder angezeigt werden kann.
 
 Wenn zuvor es sich um ein Login per One-Time-Passwort handelte, dann erfolgt keine Überprüfung des EloPage-Status und Aktuallisierung der PublisherId.
 
-Mit erfolgreicher Beendigung des Login-Service wird der User mit seinen aktuellen Attrubtwerten zurückgeliefert. Dabei ist nun im Frontend sicherzustellen, dass wenn im User das Attribut `user.password_encryption_type` den Wert `PasswordEncryptionType.ONETIME` hat, dass dann mit Verlassen des Login-Dialogs der Anwender direkt nur auf die Passwort-Ändern-Seite geführt wird. 
-
+Mit erfolgreicher Beendigung des Login-Service wird der User mit seinen aktuellen Attributwerten zurückgeliefert. Dabei ist nun im Frontend sicherzustellen, dass wenn im User das Attribut `user.password_encryption_type` den Wert `PasswordEncryptionType.ONETIME` hat, dass dann mit Verlassen des Login-Dialogs der Anwender direkt nur auf die Passwort-Ändern-Seite geführt wird. Dem Einstieg in den Passwort-Ändern-Dialog muss aus dem Login-Dialog die Information mitgeteilt werden, dass es sich hier um ein One-Time-Passwort Login handelte, damit der Passwort-Ändern-Dialog die entsprechenden Änderungen in Bezug auf diesen UseCase durchführen kann.
 
 #### changePassword
-
 
 um das *One-Time-Passwort* als optionales Argument erweitert werden. Sobald dieses Argument
 
