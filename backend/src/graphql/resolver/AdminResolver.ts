@@ -348,7 +348,6 @@ export class AdminResolver {
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull() },
     })
-
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
       throw new Error('No contribution found to given id.')
@@ -366,6 +365,7 @@ export class AdminResolver {
 
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id)
+
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
     } else {

@@ -1300,7 +1300,9 @@ describe('AdminResolver', () => {
                     email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
@@ -1323,7 +1325,7 @@ describe('AdminResolver', () => {
 
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
-            it.skip('throws an error', async () => {
+            it('throws an error', async () => {
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1332,14 +1334,16 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (500 GDD) still available for this month.',
+                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                     ),
                   ],
                 }),
@@ -1348,14 +1352,14 @@ describe('AdminResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount (1900 GDD) to be created exceeds the amount (500 GDD) still available for this month.',
+                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
               )
             })
           })
 
           describe('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
-            it.skip('returns update creation object', async () => {
+            it('returns update creation object', async () => {
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1364,7 +1368,9 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
@@ -1374,7 +1380,7 @@ describe('AdminResolver', () => {
                       date: expect.any(String),
                       memo: 'Danke Peter!',
                       amount: '300',
-                      creation: ['1000', '1000', '200'],
+                      creation: ['1000', '700', '500'],
                     },
                   },
                 }),
@@ -1393,7 +1399,7 @@ describe('AdminResolver', () => {
 
           describe('creation update is successful without changing month', () => {
             // actually this mutation IS changing the month
-            it.skip('returns update creation object', async () => {
+            it('returns update creation object', async () => {
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1402,7 +1408,9 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
@@ -1412,7 +1420,7 @@ describe('AdminResolver', () => {
                       date: expect.any(String),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
-                      creation: ['1000', '1000', '300'],
+                      creation: ['1000', '800', '500'],
                     },
                   },
                 }),
@@ -1446,10 +1454,10 @@ describe('AdminResolver', () => {
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
                       date: expect.any(String),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: '400',
+                      memo: 'Das war leider zu Viel!',
+                      amount: '200',
                       moderator: admin.id,
-                      creation: ['1000', '600', '500'],
+                      creation: ['1000', '800', '500'],
                     },
                     {
                       id: expect.any(Number),
@@ -1460,7 +1468,7 @@ describe('AdminResolver', () => {
                       memo: 'Grundeinkommen',
                       amount: '500',
                       moderator: admin.id,
-                      creation: ['1000', '600', '500'],
+                      creation: ['1000', '800', '500'],
                     },
                     {
                       id: expect.any(Number),
