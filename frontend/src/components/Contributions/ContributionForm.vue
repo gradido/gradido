@@ -88,6 +88,8 @@
   </div>
 </template>
 <script>
+const PATTERN_NON_DIGIT = /\D/g
+
 export default {
   name: 'ContributionForm',
   props: {
@@ -104,10 +106,10 @@ export default {
   },
   methods: {
     numberFormat(value) {
-      return value.replace(/\D/g, '')
+      return value.replace(PATTERN_NON_DIGIT, '')
     },
     submit() {
-      this.form.amount = this.numberFormat(this.form.amount)
+      this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
       // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
