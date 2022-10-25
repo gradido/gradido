@@ -15,6 +15,7 @@ import { AdminCreateContributions } from '@model/AdminCreateContributions'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
+import { Contribution } from '@model/Contribution'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { UserRepository } from '@repository/User'
 import AdminCreateContributionArgs from '@arg/AdminCreateContributionArgs'
@@ -23,12 +24,10 @@ import SearchUsersArgs from '@arg/SearchUsersArgs'
 import ContributionLinkArgs from '@arg/ContributionLinkArgs'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Transaction } from '@model/Transaction'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { TransactionRepository } from '@repository/Transaction'
 import { calculateDecay } from '@/util/decay'
-import { Contribution } from '@entity/Contribution'
+import { Contribution as DbContribution } from '@entity/Contribution'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { User as dbUser } from '@entity/User'
 import { User } from '@model/User'
@@ -40,7 +39,6 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { communityUser } from '@/util/communityUser'
 import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
@@ -75,6 +73,7 @@ import {
   EventContributionConfirm,
   EventSendConfirmationEmail,
 } from '@/event/Event'
+import { ContributionListResult } from '../model/Contribution'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -267,7 +266,7 @@ export class AdminResolver {
     const creationDateObj = new Date(creationDate)
     logger.trace('creationDateObj:', creationDateObj)
     validateContribution(creations, amount, creationDateObj)
-    const contribution = Contribution.create()
+    const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
     contribution.createdAt = new Date()
@@ -278,7 +277,8 @@ export class AdminResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
-    await Contribution.save(contribution)
+
+    await DbContribution.save(contribution)
 
     const eventAdminCreateContribution = new EventAdminContributionCreate()
     eventAdminCreateContribution.userId = moderator.id
@@ -345,7 +345,7 @@ export class AdminResolver {
 
     const moderator = getUser(context)
 
-    const contributionToUpdate = await Contribution.findOne({
+    const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull() },
     })
 
@@ -368,6 +368,9 @@ export class AdminResolver {
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -378,7 +381,8 @@ export class AdminResolver {
     contributionToUpdate.moderatorId = moderator.id
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
-    await Contribution.save(contributionToUpdate)
+    await DbContribution.save(contributionToUpdate)
+
     const result = new AdminUpdateContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
@@ -404,7 +408,7 @@ export class AdminResolver {
     const contributions = await getConnection()
       .createQueryBuilder()
       .select('c')
-      .from(Contribution, 'c')
+      .from(DbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where({ confirmedAt: IsNull() })
       .getMany()
@@ -435,13 +439,24 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const contribution = await Contribution.findOne(id)
+  async adminDeleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    const moderator = getUser(context)
+    if (
+      contribution.contributionType === ContributionType.USER &&
+      contribution.userId === moderator.id
+    ) {
+      throw new Error('Own contribution can not be deleted as admin')
+    }
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
 
@@ -463,7 +478,7 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const contribution = await Contribution.findOne(id)
+    const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found to given id.')
@@ -528,7 +543,7 @@ export class AdminResolver {
       contribution.confirmedBy = moderatorUser.id
       contribution.transactionId = transaction.id
       contribution.contributionStatus = ContributionStatus.CONFIRMED
-      await queryRunner.manager.update(Contribution, { id: contribution.id }, contribution)
+      await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
@@ -560,24 +575,29 @@ export class AdminResolver {
   }
 
   @Authorized([RIGHTS.CREATION_TRANSACTION_LIST])
-  @Query(() => [Transaction])
+  @Query(() => ContributionListResult)
   async creationTransactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
     @Arg('userId', () => Int) userId: number,
-  ): Promise<Transaction[]> {
+  ): Promise<ContributionListResult> {
     const offset = (currentPage - 1) * pageSize
-    const transactionRepository = getCustomRepository(TransactionRepository)
-    const [userTransactions] = await transactionRepository.findByUserPaged(
-      userId,
-      pageSize,
-      offset,
-      order,
-      true,
-    )
+    const [contributionResult, count] = await getConnection()
+      .createQueryBuilder()
+      .select('c')
+      .from(DbContribution, 'c')
+      .leftJoinAndSelect('c.user', 'u')
+      .where(`user_id = ${userId}`)
+      .limit(pageSize)
+      .offset(offset)
+      .orderBy('c.created_at', order)
+      .getManyAndCount()
 
-    const user = await dbUser.findOneOrFail({ id: userId })
-    return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
+    return new ContributionListResult(
+      count,
+      contributionResult.map((contribution) => new Contribution(contribution, contribution.user)),
+    )
+    // return userTransactions.map((t) => new Transaction(t, new User(user), communityUser))
   }
 
   @Authorized([RIGHTS.SEND_ACTIVATION_EMAIL])
@@ -732,6 +752,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
@@ -805,7 +826,7 @@ export class AdminResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
     const contributionMessage = DbContributionMessage.create()
     try {
-      const contribution = await Contribution.findOne({
+      const contribution = await DbContribution.findOne({
         where: { id: contributionId },
         relations: ['user'],
       })
@@ -836,7 +857,7 @@ export class AdminResolver {
         contribution.contributionStatus === ContributionStatus.PENDING
       ) {
         contribution.contributionStatus = ContributionStatus.IN_PROGRESS
-        await queryRunner.manager.update(Contribution, { id: contributionId }, contribution)
+        await queryRunner.manager.update(DbContribution, { id: contributionId }, contribution)
       }
 
       await sendAddedContributionMessageEmail({

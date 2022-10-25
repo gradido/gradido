@@ -91,6 +91,7 @@ export class ContributionResolver {
     }
 
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = user.id
     contribution.deletedAt = new Date()
     await contribution.save()
 
@@ -127,6 +128,7 @@ export class ContributionResolver {
       .from(dbContribution, 'c')
       .leftJoinAndSelect('c.messages', 'm')
       .where(where)
+      .withDeleted()
       .orderBy('c.createdAt', order)
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize)
@@ -195,6 +197,9 @@ export class ContributionResolver {
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function

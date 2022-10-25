@@ -7,8 +7,8 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "deleteNow": "Automatische Creations wirklich löschen?",
-    "maximumAmount": "maximaler Betrag",
+    "deleted": "Automatische Schöpfung gelöscht!",
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -20,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "täglich",
-        "hourly": "stündlich",
-        "monthly": "monatlich",
-        "once": "einmalig",
-        "weekly": "wöchentlich",
-        "yearly": "jährlich"
+        "once": "einmalig"
       }
     },
     "validFrom": "Startdatum",
@@ -74,10 +70,20 @@
     "submit": "Senden"
   },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
     "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
@@ -133,10 +139,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",

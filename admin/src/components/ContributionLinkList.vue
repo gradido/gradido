@@ -1,12 +1,12 @@
 <template>
   <div class="contribution-link-list">
     <b-table striped hover :items="items" :fields="fields">
-      <template #cell(delete)>
+      <template #cell(delete)="data">
         <b-button
           variant="danger"
           size="md"
           class="mr-2 test-delete-link"
-          @click="deleteContributionLink"
+          @click="deleteContributionLink(data.item.id, data.item.name)"
         >
           <b-icon icon="trash" variant="light"></b-icon>
         </b-button>
@@ -34,7 +34,7 @@
           <h6 class="mb-0">{{ modalData ? modalData.name : '' }}</h6>
         </template>
         <b-card-text>
-          {{ modalData }}
+          {{ modalData.memo ? modalData.memo : '' }}
           <figure-qr-code :link="modalData ? modalData.link : ''" />
         </b-card-text>
         <template #footer>
@@ -64,34 +64,56 @@ export default {
         'amount',
         { key: 'cycle', label: this.$t('contributionLink.cycle') },
         { key: 'maxPerCycle', label: this.$t('contributionLink.maxPerCycle') },
-        { key: 'validFrom', label: this.$t('contributionLink.validFrom') },
-        { key: 'validTo', label: this.$t('contributionLink.validTo') },
+        {
+          key: 'validFrom',
+          label: this.$t('contributionLink.validFrom'),
+          formatter: (value, key, item) => {
+            if (value) {
+              return this.$d(new Date(value))
+            } else {
+              return null
+            }
+          },
+        },
+        {
+          key: 'validTo',
+          label: this.$t('contributionLink.validTo'),
+          formatter: (value, key, item) => {
+            if (value) {
+              return this.$d(new Date(value))
+            } else {
+              return null
+            }
+          },
+        },
         'delete',
         'edit',
         'show',
       ],
-      modalData: null,
-      modalDataLink: null,
+      modalData: {},
     }
   },
   methods: {
-    deleteContributionLink() {
-      this.$bvModal.msgBoxConfirm(this.$t('contributionLink.deleteNow')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: deleteContributionLink,
-              variables: {
-                id: this.id,
-              },
-            })
-            .then(() => {
-              this.toastSuccess('TODO: request message deleted ')
-            })
-            .catch((err) => {
-              this.toastError(err.message)
-            })
-      })
+    deleteContributionLink(id, name) {
+      this.$bvModal
+        .msgBoxConfirm(this.$t('contributionLink.deleteNow', { name: name }))
+        .then(async (value) => {
+          if (value)
+            await this.$apollo
+              .mutate({
+                mutation: deleteContributionLink,
+                variables: {
+                  id: id,
+                },
+              })
+              .then(() => {
+                this.toastSuccess(this.$t('contributionLink.deleted'))
+                this.$emit('get-contribution-links')
+              })
+              .catch((err) => {
+                this.toastError(err.message)
+              })
+        })
     },
     editContributionLink(row) {
       this.$emit('editContributionLinkData', row)
