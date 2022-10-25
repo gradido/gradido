@@ -12,6 +12,7 @@
             value-field="item"
             text-field="name"
             name="month-selection"
+            :disabled="true"
           ></b-form-radio-group>
         </b-row>
         <div class="m-4">

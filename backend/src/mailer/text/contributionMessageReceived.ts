@@ -1,6 +1,6 @@
 export const contributionMessageReceived = {
   de: {
-    subject: 'Gradido Frage zur Schöpfung',
+    subject: 'Rückfrage zu Deinem Gemeinwohl-Beitrag',
     text: (data: {
       senderFirstName: string
       senderLastName: string

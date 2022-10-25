@@ -339,6 +339,9 @@ export class AdminResolver {
     let creations = await getUserCreation(user.id)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -397,13 +400,24 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async adminDeleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    const moderator = getUser(context)
+    if (
+      contribution.contributionType === ContributionType.USER &&
+      contribution.userId === moderator.id
+    ) {
+      throw new Error('Own contribution can not be deleted as admin')
+    }
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
     return !!res
@@ -692,6 +706,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
