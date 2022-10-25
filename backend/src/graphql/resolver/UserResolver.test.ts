@@ -1,13 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, headerPushMock, resetToken, cleanDB, resetEntity } from '@test/helpers'
+import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { createUser, setPassword, forgotPassword, updateUserInfos } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
+import {
+  login,
+  logout,
+  createUser,
+  setPassword,
+  forgotPassword,
+  updateUserInfos,
+  createContribution,
+  confirmContribution,
+} from '@/seeds/graphql/mutations'
+import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
-import { LoginEmailOptIn } from '@entity/LoginEmailOptIn'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
@@ -15,15 +23,19 @@ import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegi
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-// import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
+import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-// import { TransactionLink } from '@entity/TransactionLink'
+import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
 import { logger } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { UserContact } from '@entity/UserContact'
+import { OptInType } from '../enum/OptInType'
+import { UserContactType } from '../enum/UserContactType'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -84,7 +96,7 @@ describe('UserResolver', () => {
     }
 
     let result: any
-    let emailOptIn: string
+    let emailVerificationCode: string
     let user: User[]
 
     beforeAll(async () => {
@@ -103,11 +115,11 @@ describe('UserResolver', () => {
     })
 
     describe('valid input data', () => {
-      let loginEmailOptIn: LoginEmailOptIn[]
+      // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find()
-        loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        user = await User.find({ relations: ['emailContact'] })
+        // loginEmailOptIn = await LoginEmailOptIn.find()
+        emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
 
       describe('filling all tables', () => {
@@ -117,15 +129,16 @@ describe('UserResolver', () => {
               id: expect.any(Number),
               gradidoID: expect.any(String),
               alias: null,
-              email: 'peter@lustig.de',
+              emailContact: expect.any(UserContact), // 'peter@lustig.de',
+              emailId: expect.any(Number),
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
               pubKey: null,
               privKey: null,
-              emailHash: expect.any(Buffer),
+              // emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
-              emailChecked: false,
+              // emailChecked: false,
               passphrase: expect.any(String),
               language: 'de',
               isAdmin: null,
@@ -141,18 +154,21 @@ describe('UserResolver', () => {
           expect(verUUID).toEqual(4)
         })
 
-        it('creates an email optin', () => {
-          expect(loginEmailOptIn).toEqual([
-            {
-              id: expect.any(Number),
-              userId: user[0].id,
-              verificationCode: expect.any(String),
-              emailOptInTypeId: 1,
-              createdAt: expect.any(Date),
-              resendCount: 0,
-              updatedAt: expect.any(Date),
-            },
-          ])
+        it('creates an email contact', () => {
+          expect(user[0].emailContact).toEqual({
+            id: expect.any(Number),
+            type: UserContactType.USER_CONTACT_EMAIL,
+            userId: user[0].id,
+            email: 'peter@lustig.de',
+            emailChecked: false,
+            emailVerificationCode: expect.any(String),
+            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+            emailResendCount: 0,
+            phone: null,
+            createdAt: expect.any(Date),
+            deletedAt: null,
+            updatedAt: null,
+          })
         })
       })
     })
@@ -161,7 +177,7 @@ describe('UserResolver', () => {
       it('sends an account activation email', () => {
         const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
           /{optin}/g,
-          emailOptIn,
+          emailVerificationCode,
         ).replace(/{code}/g, '')
         expect(sendAccountActivationEmail).toBeCalledWith({
           link: activationLink,
@@ -219,13 +235,13 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'bibi@bloxberg.de', language: 'it' },
         })
-        await expect(User.find()).resolves.toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              email: 'bibi@bloxberg.de',
-              language: 'de',
-            }),
-          ]),
+        await expect(
+          UserContact.findOne({ email: 'bibi@bloxberg.de' }, { relations: ['user'] }),
+        ).resolves.toEqual(
+          expect.objectContaining({
+            email: 'bibi@bloxberg.de',
+            user: expect.objectContaining({ language: 'de' }),
+          }),
         )
       })
     })
@@ -236,10 +252,12 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(User.find()).resolves.toEqual(
+        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              email: 'raeuber@hotzenplotz.de',
+              emailContact: expect.objectContaining({
+                email: 'raeuber@hotzenplotz.de',
+              }),
               publisherId: null,
             }),
           ]),
@@ -248,13 +266,15 @@ describe('UserResolver', () => {
     })
 
     describe('redeem codes', () => {
+      let result: any
+      let link: ContributionLink
+
       describe('contribution link', () => {
-        let link: ContributionLink
         beforeAll(async () => {
           // activate account of admin Peter Lustig
           await mutate({
             mutation: setPassword,
-            variables: { code: emailOptIn, password: 'Aa12345_' },
+            variables: { code: emailVerificationCode, password: 'Aa12345_' },
           })
 
           // make Peter Lustig Admin
@@ -277,16 +297,24 @@ describe('UserResolver', () => {
           })
 
           resetToken()
-          await mutate({
+          result = await mutate({
             mutation: createUser,
             variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
           })
         })
 
+        afterAll(async () => {
+          await cleanDB()
+        })
+
         it('sets the contribution link id', async () => {
-          await expect(User.findOne({ email: 'ein@besucher.de' })).resolves.toEqual(
+          await expect(
+            UserContact.findOne({ email: 'ein@besucher.de' }, { relations: ['user'] }),
+          ).resolves.toEqual(
             expect.objectContaining({
-              contributionLinkId: link.id,
+              user: expect.objectContaining({
+                contributionLinkId: link.id,
+              }),
             }),
           )
         })
@@ -296,6 +324,99 @@ describe('UserResolver', () => {
             expect.objectContaining({
               type: EventProtocolType.ACTIVATE_ACCOUNT,
               userId: user[0].id,
+            }),
+          )
+        })
+
+        it('stores the redeem register event in the database', () => {
+          expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: result.data.createUser.id,
+              contributionId: link.id,
+            }),
+          )
+        })
+      })
+
+      describe('transaction link', () => {
+        let contribution: any
+        let bob: any
+        let transactionLink: TransactionLink
+        let newUser: any
+
+        const bobData = {
+          email: 'bob@baumeister.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        const peterData = {
+          email: 'peter@lustig.de',
+          password: 'Aa12345_',
+          publisherId: 1234,
+        }
+
+        beforeAll(async () => {
+          await userFactory(testEnv, peterLustig)
+          await userFactory(testEnv, bobBaumeister)
+          await mutate({ mutation: login, variables: bobData })
+
+          // create contribution as user bob
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
+          })
+
+          // login as admin
+          await mutate({ mutation: login, variables: peterData })
+
+          // confirm the contribution
+          contribution = await mutate({
+            mutation: confirmContribution,
+            variables: { id: contribution.data.createContribution.id },
+          })
+
+          // login as user bob
+          bob = await mutate({ mutation: login, variables: bobData })
+
+          // create transaction link
+          await transactionLinkFactory(testEnv, {
+            email: 'bob@baumeister.de',
+            amount: 19.99,
+            memo: `testing transaction link`,
+          })
+
+          transactionLink = await TransactionLink.findOneOrFail()
+
+          resetToken()
+
+          // create new user using transaction link of bob
+          newUser = await mutate({
+            mutation: createUser,
+            variables: {
+              ...variables,
+              email: 'which@ever.de',
+              redeemCode: transactionLink.code,
+            },
+          })
+        })
+
+        it('sets the referrer id to bob baumeister id', async () => {
+          await expect(
+            UserContact.findOne({ email: 'which@ever.de' }, { relations: ['user'] }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              user: expect.objectContaining({ referrerId: bob.data.login.id }),
+            }),
+          )
+        })
+
+        it('stores the redeem register event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.REDEEM_REGISTER,
+              userId: newUser.data.createUser.id,
             }),
           )
         })
@@ -310,7 +431,7 @@ describe('UserResolver', () => {
             email: 'peter@lustig.de',
             amount: 19.99,
             memo: `Kein Trick, keine Zauberrei,
-bei Gradidio sei dabei!`,
+    bei Gradidio sei dabei!`,
           })
           const transactionLink = await TransactionLink.findOneOrFail()
           resetToken()
@@ -319,14 +440,14 @@ bei Gradidio sei dabei!`,
             variables: { ...variables, email: 'neuer@user.de', redeemCode: transactionLink.code },
           })          
         })
-
+    
         it('sets the referrer id to Peter Lustigs id', async () => {
           await expect(User.findOne({ email: 'neuer@user.de' })).resolves.toEqual(expect.objectContaining({
             referrerId: user[0].id,
           }))
         })
       })
-
+    
       */
     })
   })
@@ -341,20 +462,23 @@ bei Gradidio sei dabei!`,
     }
 
     let result: any
-    let emailOptIn: string
+    let emailVerificationCode: string
 
     describe('valid optin code and valid password', () => {
-      let newUser: any
+      let newUser: User
 
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
-          variables: { code: emailOptIn, password: 'Aa12345_' },
+          variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
-        newUser = await User.find()
+        newUser = await User.findOneOrFail(
+          { id: emailContact.userId },
+          { relations: ['emailContact'] },
+        )
       })
 
       afterAll(async () => {
@@ -362,11 +486,11 @@ bei Gradidio sei dabei!`,
       })
 
       it('sets email checked to true', () => {
-        expect(newUser[0].emailChecked).toBeTruthy()
+        expect(newUser.emailContact.emailChecked).toBeTruthy()
       })
 
       it('updates the password', () => {
-        expect(newUser[0].password).toEqual('3917921995996627700')
+        expect(newUser.password).toEqual('3917921995996627700')
       })
 
       /*
@@ -388,11 +512,11 @@ bei Gradidio sei dabei!`,
     describe('no valid password', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        const loginEmailOptIn = await LoginEmailOptIn.find()
-        emailOptIn = loginEmailOptIn[0].verificationCode.toString()
+        const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
+        emailVerificationCode = emailContact.emailVerificationCode.toString()
         result = await mutate({
           mutation: setPassword,
-          variables: { code: emailOptIn, password: 'not-valid' },
+          variables: { code: emailVerificationCode, password: 'not-valid' },
         })
       })
 
@@ -459,7 +583,8 @@ bei Gradidio sei dabei!`,
 
     describe('no users in database', () => {
       beforeAll(async () => {
-        result = await query({ query: login, variables })
+        jest.clearAllMocks()
+        result = await mutate({ mutation: login, variables })
       })
 
       it('throws an error', () => {
@@ -471,14 +596,16 @@ bei Gradidio sei dabei!`,
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith('User with email=bibi@bloxberg.de does not exist')
+        expect(logger.error).toBeCalledWith(
+          'UserContact with email=bibi@bloxberg.de does not exists',
+        )
       })
     })
 
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables })
+        result = await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -515,7 +642,7 @@ bei Gradidio sei dabei!`,
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables: { ...variables, password: 'wrong' } })
+        result = await mutate({ mutation: login, variables: { ...variables, password: 'wrong' } })
       })
 
       afterAll(async () => {
@@ -540,7 +667,7 @@ bei Gradidio sei dabei!`,
     describe('unauthenticated', () => {
       it('throws an error', async () => {
         resetToken()
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -556,7 +683,7 @@ bei Gradidio sei dabei!`,
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({ query: login, variables })
+        await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -564,7 +691,7 @@ bei Gradidio sei dabei!`,
       })
 
       it('returns true', async () => {
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             data: { logout: 'true' },
             errors: undefined,
@@ -613,7 +740,7 @@ bei Gradidio sei dabei!`,
         }
 
         beforeAll(async () => {
-          await query({ query: login, variables })
+          await mutate({ mutation: login, variables })
           user = await User.find()
         })
 
@@ -656,46 +783,68 @@ bei Gradidio sei dabei!`,
 
   describe('forgotPassword', () => {
     const variables = { email: 'bibi@bloxberg.de' }
+    const emailCodeRequestTime = CONFIG.EMAIL_CODE_REQUEST_TIME
+
     describe('user is not in DB', () => {
-      it('returns true', async () => {
-        await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
-          expect.objectContaining({
-            data: {
-              forgotPassword: true,
-            },
-          }),
-        )
+      describe('duration not expired', () => {
+        it('returns true', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                forgotPassword: true,
+              },
+            }),
+          )
+        })
       })
     })
 
     describe('user exists in DB', () => {
-      let result: any
-      let loginEmailOptIn: LoginEmailOptIn[]
+      let emailContact: UserContact
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await resetEntity(LoginEmailOptIn)
-        result = await mutate({ mutation: forgotPassword, variables })
-        loginEmailOptIn = await LoginEmailOptIn.find()
+        // await resetEntity(LoginEmailOptIn)
+        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
         await cleanDB()
+        CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
       })
 
-      it('returns true', async () => {
-        await expect(result).toEqual(
-          expect.objectContaining({
-            data: {
-              forgotPassword: true,
-            },
-          }),
-        )
+      describe('duration not expired', () => {
+        it('returns true', async () => {
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              errors: [
+                new GraphQLError(
+                  `email already sent less than ${printTimeDuration(
+                    CONFIG.EMAIL_CODE_REQUEST_TIME,
+                  )} minutes ago`,
+                ),
+              ],
+            }),
+          )
+        })
+      })
+
+      describe('duration reset to 0', () => {
+        it('returns true', async () => {
+          CONFIG.EMAIL_CODE_REQUEST_TIME = 0
+          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+            expect.objectContaining({
+              data: {
+                forgotPassword: true,
+              },
+            }),
+          )
+        })
       })
 
       it('sends reset password email', () => {
         expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(loginEmailOptIn[0]),
+          link: activationLink(emailContact.emailVerificationCode),
           firstName: 'Bibi',
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
@@ -704,7 +853,8 @@ bei Gradidio sei dabei!`,
       })
 
       describe('request reset password again', () => {
-        it('throws an error', async () => {
+        it('thows an error', async () => {
+          CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('email already sent less than 10 minutes minutes ago')],
@@ -720,11 +870,11 @@ bei Gradidio sei dabei!`,
   })
 
   describe('queryOptIn', () => {
-    let loginEmailOptIn: LoginEmailOptIn[]
+    let emailContact: UserContact
 
     beforeAll(async () => {
       await userFactory(testEnv, bibiBloxberg)
-      loginEmailOptIn = await LoginEmailOptIn.find()
+      emailContact = await UserContact.findOneOrFail({ email: bibiBloxberg.email })
     })
 
     afterAll(async () => {
@@ -739,8 +889,8 @@ bei Gradidio sei dabei!`,
           expect.objectContaining({
             errors: [
               // keep Whitspace in error message!
-              new GraphQLError(`Could not find any entity of type "LoginEmailOptIn" matching: {
-    "verificationCode": "not-valid"
+              new GraphQLError(`Could not find any entity of type "UserContact" matching: {
+    "emailVerificationCode": "not-valid"
 }`),
             ],
           }),
@@ -753,7 +903,7 @@ bei Gradidio sei dabei!`,
         await expect(
           query({
             query: queryOptIn,
-            variables: { optIn: loginEmailOptIn[0].verificationCode.toString() },
+            variables: { optIn: emailContact.emailVerificationCode.toString() },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -781,8 +931,8 @@ bei Gradidio sei dabei!`,
     describe('authenticated', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',
@@ -913,8 +1063,8 @@ bei Gradidio sei dabei!`,
 
           it('can login with new password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Bb12345_',
@@ -933,8 +1083,8 @@ bei Gradidio sei dabei!`,
 
           it('cannot login with old password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Aa12345_',
@@ -971,8 +1121,8 @@ bei Gradidio sei dabei!`,
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',

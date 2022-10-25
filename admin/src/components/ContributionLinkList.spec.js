@@ -9,6 +9,7 @@ const mockAPIcall = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
   $apollo: {
     mutate: mockAPIcall,
   },
@@ -95,7 +96,7 @@ describe('ContributionLinkList', () => {
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('TODO: request message deleted ')
+          expect(toastSuccessSpy).toBeCalledWith('contributionLink.deleted')
         })
       })
 

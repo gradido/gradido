@@ -24,7 +24,8 @@
     "moderator": "Moderator",
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge zum Gemeinwohl",
-    "openContributionLinks": "öffentliche Beitrags-Linkliste",
+    "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
+    "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
     "submitContribution": "Beitrag einreichen",
@@ -33,7 +34,7 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "answerQuestion": "Bitte beantworte die Nachfrage",
+      "answerQuestion": "Bitte beantworte die Rückfrage!",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
@@ -178,7 +179,6 @@
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
     "redeem": "Einlösen",
-    "redeem-text": "Willst du den Betrag jetzt einlösen?",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",

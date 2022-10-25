@@ -34,6 +34,7 @@ import { getUserCreation, validateContribution } from './util/creations'
 import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { ContributionCycleType } from '@enum/ContributionCycleType'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -73,10 +74,7 @@ export class TransactionLinkResolver {
     const holdAvailableAmount = amount.minus(calculateDecay(amount, createdDate, validUntil).decay)
 
     // validate amount
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
-    if (!sendBalance) {
-      throw new Error("user hasn't enough GDD or amount is < 0")
-    }
+    await calculateBalance(user.id, holdAvailableAmount, createdDate)
 
     const transactionLink = dbTransactionLink.create()
     transactionLink.userId = user.id
@@ -178,7 +176,7 @@ export class TransactionLinkResolver {
       logger.info('redeem contribution link...')
       const queryRunner = getConnection().createQueryRunner()
       await queryRunner.connect()
-      await queryRunner.startTransaction('SERIALIZABLE')
+      await queryRunner.startTransaction('REPEATABLE READ')
       try {
         const contributionLink = await queryRunner.manager
           .createQueryBuilder()
@@ -204,23 +202,60 @@ export class TransactionLinkResolver {
             throw new Error('Contribution link is depricated')
           }
         }
-        if (contributionLink.cycle !== 'ONCE') {
-          logger.error('contribution link has unknown cycle', contributionLink.cycle)
-          throw new Error('Contribution link has unknown cycle')
-        }
-        // Test ONCE rule
-        const alreadyRedeemed = await queryRunner.manager
-          .createQueryBuilder()
-          .select('contribution')
-          .from(DbContribution, 'contribution')
-          .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
-            linkId: contributionLink.id,
-            id: user.id,
-          })
-          .getOne()
-        if (alreadyRedeemed) {
-          logger.error('contribution link with rule ONCE already redeemed by user with id', user.id)
-          throw new Error('Contribution link already redeemed')
+        let alreadyRedeemed: DbContribution | undefined
+        switch (contributionLink.cycle) {
+          case ContributionCycleType.ONCE: {
+            alreadyRedeemed = await queryRunner.manager
+              .createQueryBuilder()
+              .select('contribution')
+              .from(DbContribution, 'contribution')
+              .where('contribution.contributionLinkId = :linkId AND contribution.userId = :id', {
+                linkId: contributionLink.id,
+                id: user.id,
+              })
+              .getOne()
+            if (alreadyRedeemed) {
+              logger.error(
+                'contribution link with rule ONCE already redeemed by user with id',
+                user.id,
+              )
+              throw new Error('Contribution link already redeemed')
+            }
+            break
+          }
+          case ContributionCycleType.DAILY: {
+            const start = new Date()
+            start.setHours(0, 0, 0, 0)
+            const end = new Date()
+            end.setHours(23, 59, 59, 999)
+            alreadyRedeemed = await queryRunner.manager
+              .createQueryBuilder()
+              .select('contribution')
+              .from(DbContribution, 'contribution')
+              .where(
+                `contribution.contributionLinkId = :linkId AND contribution.userId = :id
+                      AND Date(contribution.confirmedAt) BETWEEN :start AND :end`,
+                {
+                  linkId: contributionLink.id,
+                  id: user.id,
+                  start,
+                  end,
+                },
+              )
+              .getOne()
+            if (alreadyRedeemed) {
+              logger.error(
+                'contribution link with rule DAILY already redeemed by user with id',
+                user.id,
+              )
+              throw new Error('Contribution link already redeemed today')
+            }
+            break
+          }
+          default: {
+            logger.error('contribution link has unknown cycle', contributionLink.cycle)
+            throw new Error('Contribution link has unknown cycle')
+          }
         }
 
         const creations = await getUserCreation(user.id, false)
@@ -283,7 +318,10 @@ export class TransactionLinkResolver {
       return true
     } else {
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
-      const linkedUser = await dbUser.findOneOrFail({ id: transactionLink.userId })
+      const linkedUser = await dbUser.findOneOrFail(
+        { id: transactionLink.userId },
+        { relations: ['emailContact'] },
+      )
 
       if (user.id === linkedUser.id) {
         throw new Error('Cannot redeem own transaction link.')

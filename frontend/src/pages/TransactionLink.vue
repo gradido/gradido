@@ -14,7 +14,7 @@
           <redeem-valid
             :linkData="linkData"
             :isContributionLink="isContributionLink"
-            @redeem-link="redeemLink"
+            @mutation-link="mutationLink"
           />
         </template>
 
@@ -98,15 +98,16 @@ export default {
           this.$router.push('/overview')
         })
     },
-    redeemLink(amount) {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.redeem-text')).then((value) => {
-        if (value) this.mutationLink(amount)
-      })
-    },
   },
   computed: {
     isContributionLink() {
       return this.$route.params.code.search(/^CL-/) === 0
+    },
+    tokenExpiresInSeconds() {
+      const remainingSecs = Math.floor(
+        (new Date(this.$store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+      )
+      return remainingSecs <= 0 ? 0 : remainingSecs
     },
     itemType() {
       // link is deleted: at, from
@@ -135,7 +136,9 @@ export default {
         return `TEXT`
       }
 
-      if (this.$store.state.token) {
+      if (this.$store.state.token && this.$store.state.tokenTime) {
+        if (this.tokenExpiresInSeconds < 5) return `LOGGED_OUT`
+
         // logged in, nicht berechtigt einzulösen, eigener link
         if (this.linkData.user && this.$store.state.email === this.linkData.user.email) {
           return `SELF_CREATOR`

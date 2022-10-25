@@ -1,6 +1,6 @@
 export const contributionMessageReceived = {
   de: {
-    subject: 'Gradido Frage zur Schöpfung',
+    subject: 'Rückfrage zu Deinem Gemeinwohl-Beitrag',
     text: (data: {
       senderFirstName: string
       senderLastName: string
@@ -14,17 +14,15 @@ export const contributionMessageReceived = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-Du hast soeben zu deinem eingereichten Gradido Schöpfungsantrag "${data.contributionMemo}" eine Rückfrage von ${data.senderFirstName} ${data.senderLastName} erhalten.
-Die Rückfrage lautet:
+du hast soeben zu deinem eingereichten Gemeinwohl-Beitrag "${data.contributionMemo}" eine Rückfrage von ${data.senderFirstName} ${data.senderLastName} erhalten.
 
-${data.message}
+Bitte beantworte die Rückfrage in deinem Gradido-Konto im Menü "Gemeinschaft" im Tab "Meine Beiträge zum Gemeinwohl"!
+
+Link zu deinem Konto: ${data.overviewURL}
 
 Bitte antworte nicht auf diese E-Mail!
 
 Mit freundlichen Grüßen,
-dein Gradido-Team
-
-
-Link zu deinem Konto: ${data.overviewURL}`,
+dein Gradido-Team`,
   },
 }
