@@ -221,18 +221,15 @@ export class ContributionResolver {
       : contributionToUpdate.createdAt
     let changeMessage = ''
     if (contributionToUpdate.memo !== memo) {
-      // TODO: Add message to changeMessage
-      changeMessage += 'Alter Memo: ' + contributionToUpdate.memo + '\n'
+      changeMessage += contributionToUpdate.memo + '\n'
     }
     if (contributionToUpdate.amount.toFixed(6) !== amount.toFixed(6)) {
-      // TODO: Add amount to changeMessage
-      changeMessage += 'Alter Betrag: ' + contributionToUpdate.amount + '\n'
+      changeMessage += contributionToUpdate.amount + '\n'
     }
     const isDateDifferent =
       contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()
     if (isDateDifferent) {
-      // TODO: Add contributionDate to changeMessage
-      changeMessage += 'Altes Beitragsdatum: ' + contributionToUpdate.contributionDate
+      changeMessage += contributionToUpdate.contributionDate
     }
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
