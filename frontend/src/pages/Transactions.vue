@@ -67,28 +67,30 @@ export default {
   },
   methods: {
     async updateGdt() {
-      this.$apollo
-        .query({
-          query: listGDTEntriesQuery,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.pageSize,
-          },
-        })
-        .then((result) => {
-          const {
-            data: { listGDTEntries },
-          } = result
-          this.transactionsGdt = listGDTEntries.gdtEntries
-          this.transactionGdtCount = listGDTEntries.count
-          window.scrollTo(0, 0)
-          // eslint-disable-next-line no-unused-expressions
-          this.$route.path === '/transactions' ? this.$router.replace('/gdt') : ''
-        })
-        .catch((error) => {
-          this.transactionGdtCount = -1
-          this.toastError(error.message)
-        })
+      // Wolle: this.$apollo
+      //   .query({
+      //     query: listGDTEntriesQuery,
+      //     variables: {
+      //       currentPage: this.currentPage,
+      //       pageSize: this.pageSize,
+      //     },
+      //   })
+      //   .then((result) => {
+      //     const {
+      //       data: { listGDTEntries },
+      //     } = result
+      //     this.transactionsGdt = listGDTEntries.gdtEntries
+      //     this.transactionGdtCount = listGDTEntries.count
+      //     window.scrollTo(0, 0)
+      //     // eslint-disable-next-line no-unused-expressions
+      //     this.$route.path === '/transactions' ? this.$router.replace('/gdt') : ''
+      //   })
+      //   .catch((error) => {
+      //     this.transactionGdtCount = -1
+      //     this.toastError(error.message)
+      //   })
+      // Wolle: refetch?
+      this.$apollo.queries.listGDTEntries.refetch()
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)
@@ -104,7 +106,7 @@ export default {
   created() {
     if (this.gdt) {
       this.tabIndex = 1
-      this.updateGdt()
+      // Wolle: this.updateGdt()
     } else {
       this.tabIndex = 0
     }
@@ -120,6 +122,33 @@ export default {
       } else {
         this.tabIndex = 0
       }
+    },
+  },
+  apollo: {
+    listGDTEntries: {
+      query() {
+        return listGDTEntriesQuery
+      },
+      variables() {
+        return {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+        }
+      },
+      skip() {
+        return !this.gdt
+      },
+      update({ listGDTEntries }) {
+        this.transactionsGdt = listGDTEntries.gdtEntries
+        this.transactionGdtCount = listGDTEntries.count
+        window.scrollTo(0, 0)
+        // eslint-disable-next-line no-unused-expressions
+        this.$route.path === '/transactions' ? this.$router.replace('/gdt') : ''
+      },
+      error(error) {
+        this.transactionGdtCount = -1
+        this.toastError(error.message)
+      },
     },
   },
 }
