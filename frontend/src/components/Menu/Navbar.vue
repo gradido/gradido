@@ -98,10 +98,6 @@ export default {
       type: Number,
       required: true,
     },
-    elopageUri: {
-      type: String,
-      required: false,
-    },
     pending: {
       type: Boolean,
       required: true,

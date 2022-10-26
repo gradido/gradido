@@ -35,12 +35,7 @@
               @admin="admin"
               @logout="logout"
             /> -->
-            <sidebar-new
-              class="main-sidebar"
-              :elopageUri="elopageUri"
-              @admin="admin"
-              @logout="logout"
-            />
+            <sidebar-new class="main-sidebar" @admin="admin" @logout="logout" />
           </b-col>
           <b-col
             cols="12"
@@ -192,18 +187,6 @@ export default {
       this.$refs.sideMenu.classList.toggle('d-none')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
     },
-  },
-  computed: {
-    // elopageUri() {
-    //   const pId = this.$store.state.publisherId
-    //     ? this.$store.state.publisherId
-    //     : CONFIG.DEFAULT_PUBLISHER_ID
-    //   return encodeURI(
-    //     this.$store.state.hasElopage
-    //       ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
-    //       : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
-    //   )
-    // },
   },
 }
 </script>
