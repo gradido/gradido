@@ -51,12 +51,6 @@
 <script>
 export default {
   name: 'sidebar',
-  props: {
-    elopageUri: {
-      type: String,
-      required: false,
-    },
-  },
 }
 </script>
 <style>

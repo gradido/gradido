@@ -8,11 +8,11 @@
             <b-icon icon="house" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
-          <b-nav-item to="#" class="mb-3">
+          <b-nav-item to="/storys" class="mb-3">
             <b-icon icon="card-heading" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.top_stories') }}</span>
           </b-nav-item>
-          <b-nav-item to="#" class="mb-3">
+          <b-nav-item to="/favourites" class="mb-3">
             <b-icon icon="bookmark" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.favourites') }}</span>
           </b-nav-item>
@@ -29,7 +29,7 @@
             <b-icon icon="person" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.profile') }}</span>
           </b-nav-item>
-          <b-nav-item to="#" class="mb-3">
+          <b-nav-item to="/community" class="mb-3">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.members') }}</span>
           </b-nav-item>
@@ -40,7 +40,7 @@
             <b-icon icon="toggle-off" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.lightmode') }}</span>
           </b-nav-item>
-          <b-nav-item to="#" class="mb-3">
+          <b-nav-item to="/settings" class="mb-3">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.settings') }}</span>
           </b-nav-item>
@@ -60,12 +60,6 @@
 <script>
 export default {
   name: 'sidebar',
-  props: {
-    elopageUri: {
-      type: String,
-      required: false,
-    },
-  },
 }
 </script>
 <style>
