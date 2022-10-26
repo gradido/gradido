@@ -1357,7 +1357,7 @@ describe('AdminResolver', () => {
             })
           })
 
-          describe('creation update is successful changing month', () => {
+          describe.skip('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
             it('returns update creation object', async () => {
               await expect(
