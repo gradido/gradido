@@ -6,7 +6,6 @@ const localVue = global.localVue
 const propsData = {
   balance: 1234,
   visible: false,
-  elopageUri: 'https://elopage.com',
   pending: false,
 }
 

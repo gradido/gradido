@@ -62,6 +62,27 @@ const routes = [
     },
   },
   {
+    path: '/storys',
+    component: () => import('@/pages/TopStorys.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/favourites',
+    component: () => import('@/pages/Favourites.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/settings',
+    component: () => import('@/pages/Settings.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/login/:code?',
     component: () => import('@/pages/Login.vue'),
   },
