@@ -12,7 +12,7 @@ import {
 } from '@/seeds/graphql/mutations'
 import { listAllContributions, listContributions, verifyLogin } from '@/seeds/graphql/queries'
 import {
-    addTimezoneHoursToClientRequestTime,
+  addTimezoneHoursToClientRequestTime,
   cleanDB,
   getClientRequestTime,
   getClientRequestTimeAsDate,
@@ -34,6 +34,8 @@ import { capturedContribution100TwoMonthAgo } from '@/seeds/contribution/capture
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger } from '@test/testSetup'
+// eslint-disable-next-line camelcase
+import { getDateAs_YYYYMMDD_String, getIsoDateStringAs_YYYYMMDD_String } from '@/util/utilities'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -73,7 +75,7 @@ describe('ContributionResolver', () => {
 
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
-        setClientRequestTime(new Date().toString())
+        setClientRequestTime(new Date().toISOString())
         await userFactory(testEnv, bibiBloxberg)
 
         bibi = await mutate({
@@ -88,15 +90,16 @@ describe('ContributionResolver', () => {
       })
 
       describe('input not valid', () => {
+        let dateStr: string
         it('throws error when memo length smaller than 5 chars', async () => {
-          const date = new Date()
+          dateStr = getDateAs_YYYYMMDD_String(new Date())
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test',
-                creationDate: date.toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
@@ -111,14 +114,14 @@ describe('ContributionResolver', () => {
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
-          const date = new Date()
+          dateStr = getDateAs_YYYYMMDD_String(new Date())
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
@@ -145,34 +148,36 @@ describe('ContributionResolver', () => {
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [
-                new GraphQLError('No information for available creations for the given date'),
+                // new GraphQLError('No information for available creations for the given date'),
+                new GraphQLError(`invalid Date for creationDate=not-valid`),
               ],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
-          )
+          expect(logger.error).toBeCalledWith('invalid Date for creationDate=not-valid')
         })
 
         it('throws error when creationDate 3 month behind', async () => {
           const date = new Date()
+          date.setMonth(date.getMonth() - 3)
+          dateStr = getDateAs_YYYYMMDD_String(date)
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [
-                new GraphQLError('No information for available creations for the given date'),
+                new GraphQLError(
+                  `It's not allowed to create a contribution with a creationDate=${dateStr} three month before clientRequestTime=${getClientRequestTime()}`,
+                ),
               ],
             }),
           )
@@ -180,8 +185,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            `It's not allowed to create a contribution with a creationDate=${dateStr} three month before clientRequestTime=${getClientRequestTime()}`,
           )
         })
       })
@@ -195,23 +199,14 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 100.0,
               memo: 'Test env contribution',
-              creationDate: new Date().toString(),
+              creationDate: getDateAs_YYYYMMDD_String(new Date()),
             },
           })
         })
 
         it('creates contribution', async () => {
           const now = new Date()
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: now.toString(),
-              },
-            }),
-          ).resolves.toEqual(
+          expect(contribution).toEqual(
             expect.objectContaining({
               data: {
                 createContribution: {
@@ -219,6 +214,7 @@ describe('ContributionResolver', () => {
                   amount: '100',
                   memo: 'Test env contribution',
                   date: expect.any(String),
+                  clientRequestTime: expect.any(String),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -274,7 +270,7 @@ describe('ContributionResolver', () => {
         clientRequestTime.setDate(1)
         clientRequestTime.setMonth(clientRequestTime.getMonth() + 1)
         clientRequestTime.setHours(12)
-        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toISOString()) // , 'Europe/Berlin')
         addTimezoneHoursToClientRequestTime(5)
       })
       describe('authenticated with valid user', () => {
@@ -340,7 +336,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 600.0,
                 memo: '1st new contribution one month ahead server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -350,8 +346,8 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '600',
                   memo: '1st new contribution one month ahead server time',
-                  // date: expect.any(String),
-                  date: new Date(getClientRequestTime()).toISOString(),
+                  date: expect.any(String),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -387,7 +383,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 50.0,
               memo: '2nd new contribution one month ahead server time',
-              creationDate: getClientRequestTime(),
+              creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
             },
           })
           await expect(
@@ -396,7 +392,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 100.0,
                 memo: '3rd new contribution one month ahead server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -406,8 +402,8 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  // date: expect.any(String),
-                  date: new Date(getClientRequestTime()).toISOString(),
+                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -443,7 +439,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 400.0,
                 memo: 'update 2nd contribution one month ahead server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -472,7 +468,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toISOString()) // , 'Europe/Berlin')
         subTimezoneHoursToClientRequestTime(5)
       })
       describe('authenticated with valid user', () => {
@@ -542,7 +538,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 600.0,
                 memo: '1st new contribution one month behind server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -553,7 +549,8 @@ describe('ContributionResolver', () => {
                   amount: '600',
                   memo: '1st new contribution one month behind server time',
                   // date: expect.any(String),
-                  date: new Date(getClientRequestTime()).toISOString(),
+                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -591,7 +588,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 50.0,
               memo: '2nd new contribution one month behind server time',
-              creationDate: getClientRequestTime(),
+              creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
             },
           })
           await expect(
@@ -600,7 +597,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 100.0,
                 memo: '3rd new contribution one month behind server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -611,7 +608,8 @@ describe('ContributionResolver', () => {
                   amount: '100',
                   memo: '3rd new contribution one month behind server time',
                   // date: expect.any(String),
-                  date: new Date(getClientRequestTime()).toISOString(),
+                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -647,7 +645,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 400.0,
                 memo: 'update 2nd contribution one month behind server time',
-                creationDate: getClientRequestTime(),
+                creationDate: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
               },
             }),
           ).resolves.toEqual(
@@ -676,7 +674,7 @@ describe('ContributionResolver', () => {
         // its easier to use 28th than calculating for each month the last day of month
         clientRequestTime.setDate(28)
         clientRequestTime.setMonth(clientRequestTime.getMonth() - 1)
-        setClientRequestTime(clientRequestTime.toString()) // , 'Europe/Berlin')
+        setClientRequestTime(clientRequestTime.toISOString()) // , 'Europe/Berlin')
       })
       describe('authenticated with valid user', () => {
         const creationDate = new Date()
@@ -748,7 +746,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 600.0,
                 memo: '1st new contribution one month behind server time',
-                creationDate: creationDate.toISOString(),
+                creationDate: getDateAs_YYYYMMDD_String(creationDate),
               },
             }),
           ).resolves.toEqual(
@@ -758,7 +756,8 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '600',
                   memo: '1st new contribution one month behind server time',
-                  date: creationDate.toISOString(),
+                  date: getDateAs_YYYYMMDD_String(creationDate),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -796,7 +795,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 50.0,
               memo: '2nd new contribution one month ahead server time',
-              creationDate: creationDate.toISOString(),
+              creationDate: getDateAs_YYYYMMDD_String(creationDate),
             },
           })
           await expect(
@@ -805,7 +804,7 @@ describe('ContributionResolver', () => {
               variables: {
                 amount: 100.0,
                 memo: '3rd new contribution one month ahead server time',
-                creationDate: creationDate.toISOString(),
+                creationDate: getDateAs_YYYYMMDD_String(creationDate),
               },
             }),
           ).resolves.toEqual(
@@ -815,7 +814,8 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  date: creationDate.toISOString(),
+                  date: getDateAs_YYYYMMDD_String(creationDate),
+                  clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   moderator: null,
@@ -851,7 +851,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 400.0,
                 memo: 'update 2nd contribution two month behind server time',
-                creationDate: creationDate.toISOString(),
+                creationDate: getDateAs_YYYYMMDD_String(creationDate),
               },
             }),
           ).resolves.toEqual(
@@ -905,7 +905,7 @@ describe('ContributionResolver', () => {
           variables: {
             amount: 100.0,
             memo: 'Test env contribution',
-            creationDate: new Date().toString(),
+            creationDate: getDateAs_YYYYMMDD_String(new Date()),
           },
         })
       })
@@ -1018,7 +1018,7 @@ describe('ContributionResolver', () => {
           variables: {
             amount: 100.0,
             memo: 'Test env contribution',
-            creationDate: new Date().toString(),
+            creationDate: getDateAs_YYYYMMDD_String(new Date()),
           },
         })
       })
@@ -1037,7 +1037,7 @@ describe('ContributionResolver', () => {
                 contributionId: -1,
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                creationDate: getDateAs_YYYYMMDD_String(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -1062,7 +1062,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 100.0,
                 memo: 'Test',
-                creationDate: date.toString(),
+                creationDate: getDateAs_YYYYMMDD_String(date),
               },
             }),
           ).resolves.toEqual(
@@ -1087,7 +1087,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 100.0,
                 memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
+                creationDate: getDateAs_YYYYMMDD_String(date),
               },
             }),
           ).resolves.toEqual(
@@ -1118,7 +1118,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                creationDate: getDateAs_YYYYMMDD_String(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -1149,7 +1149,7 @@ describe('ContributionResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 10.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                creationDate: getDateAs_YYYYMMDD_String(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -1178,7 +1178,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 1019.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                creationDate: getDateAs_YYYYMMDD_String(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -1202,6 +1202,7 @@ describe('ContributionResolver', () => {
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
           const date = new Date()
+          date.setMonth(date.getMonth() - 3)
           await expect(
             mutate({
               mutation: updateContribution,
@@ -1209,7 +1210,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+                creationDate: getDateAs_YYYYMMDD_String(date),
               },
             }),
           ).resolves.toEqual(
@@ -1238,7 +1239,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test contribution',
-                creationDate: new Date().toString(),
+                creationDate: getDateAs_YYYYMMDD_String(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -1310,7 +1311,7 @@ describe('ContributionResolver', () => {
           variables: {
             amount: 100.0,
             memo: 'Test env contribution',
-            creationDate: new Date().toString(),
+            creationDate: getDateAs_YYYYMMDD_String(new Date()),
           },
         })
       })
@@ -1389,7 +1390,7 @@ describe('ContributionResolver', () => {
           variables: {
             amount: 100.0,
             memo: 'Test env contribution',
-            creationDate: new Date().toString(),
+            creationDate: getDateAs_YYYYMMDD_String(new Date()),
           },
         })
       })
@@ -1463,7 +1464,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 166.0,
               memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
+              creationDate: getDateAs_YYYYMMDD_String(new Date()),
             },
           })
 

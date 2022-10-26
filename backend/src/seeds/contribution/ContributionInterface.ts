@@ -2,6 +2,7 @@ export interface ContributionInterface {
   capturedAmount: number
   capturedMemo: string
   creationDate: string
+  clientRequestTime?: string
   updated?: boolean
   updatedAmount?: number
   updatedMemo?: string

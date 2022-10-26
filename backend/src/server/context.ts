@@ -46,8 +46,19 @@ export const getClientRequestTime = (context: Context): Date => {
     return new Date(context.clientRequestTime)
   }
   // throw new Error('No clientRequestTime given in context!')
-  logger.info(`missing clientRequestTime, using BackendTime...`)
+  logger.warn(`missing clientRequestTime, using BackendTime...`)
   return new Date()
+}
+
+export const getClientRequestTimeAsString = (context: Context): string => {
+  // console.log('context:', context)
+  if (context.clientRequestTime) {
+    logger.info(`context with clientRequestTime=${context.clientRequestTime}`)
+    return context.clientRequestTime
+  }
+  // throw new Error('No clientRequestTime given in context!')
+  logger.warn(`missing clientRequestTime, using BackendTime...`)
+  return new Date().toISOString()
 }
 
 export default context

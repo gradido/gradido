@@ -95,6 +95,7 @@ export const adminCreateContribution = gql`
         amount
         memo
         createdAt
+        clientRequestTime
       }
       creation {
         amount
@@ -253,6 +254,7 @@ export const createContribution = gql`
       amount
       memo
       date
+      clientRequestTime
       firstName
       lastName
       moderator

@@ -27,3 +27,45 @@ export const decimalAddition = (a: Decimal, b: Decimal): Decimal => {
 export const decimalSubtraction = (a: Decimal, b: Decimal): Decimal => {
   return a.minus(b.toString())
 }
+
+export function cutOffsetFromIsoDateString(dateString: string): string {
+  if (dateString.indexOf('Z', 0) > 0) {
+    return dateString.slice(0, dateString.indexOf('Z', 0) + 1)
+  }
+  return dateString.slice(0, 23) + 'Z' // 2022-10-26T12:23:45.616Z =: 0123-56-89T12:45:78.212Z =: Index 0-23, 24 Zeichen
+}
+
+// eslint-disable-next-line camelcase
+export function getDateAs_YYYYMMDD_String(_date: Date | undefined): string {
+  console.log(`getDateAs_YYYYMMDD_String(${_date})`)
+  const objectDate = _date || new Date()
+  let dayStr, monthStr
+  const day = objectDate.getDate()
+  if (day < 10) {
+    dayStr = '0' + day
+  } else {
+    dayStr = day
+  }
+
+  const month = objectDate.getMonth() + 1
+  if (month < 10) {
+    monthStr = '0' + month
+  } else {
+    monthStr = month
+  }
+
+  const year = objectDate.getFullYear()
+  console.log('return=' + year + '-' + monthStr + '-' + dayStr)
+  return year + '-' + monthStr + '-' + dayStr
+}
+
+// eslint-disable-next-line camelcase
+export function getIsoDateStringAs_YYYYMMDD_String(_date: string): string {
+  console.log(`getIsoDateStringAs_YYYYMMDD_String(${_date}) = ${_date.slice(0, 10)}`)
+  return _date.slice(0, 10) // YYYY-MM-DDT
+}
+
+export function isValidDate(dateObject: any): boolean {
+  return new Date(dateObject).toString() !== 'Invalid Date'
+}
+

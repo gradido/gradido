@@ -1,5 +1,10 @@
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getClientRequestTime, getUser } from '@/server/context'
+import {
+  Context,
+  getClientRequestTime,
+  getClientRequestTimeAsString,
+  getUser,
+} from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -20,6 +25,8 @@ import {
   EventContributionUpdate,
 } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
+import { cutOffsetFromIsoDateString, isValidDate } from '@/util/utilities'
+import { ContributionMonth } from '../model/ContributionMonth'
 
 @Resolver()
 export class ContributionResolver {
@@ -30,6 +37,15 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     logger.info(`createContribution(${amount}, ${memo}, ${creationDate})`)
+    console.log(`createContribution(${amount}, ${memo}, ${creationDate})`)
+    if (!isValidDate(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
+    const creationDateStringWithoutOffset = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
+    console.log(`creationDateStringWithoutOffset=${creationDateStringWithoutOffset}`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -44,17 +60,21 @@ export class ContributionResolver {
 
     const user = getUser(context)
     logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
-    const clientRequestTime = getClientRequestTime(context)
-    logger.info('clientRequestTime: ', clientRequestTime.toISOString())
-    const creations = await getUserCreation(user.id, clientRequestTime)
-    logger.info('creations: ', creations)
-    const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj)
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
+    const creations: ContributionMonth[] = await getUserCreation(user.id, clientRequestTime)
+    logger.info(`creations: `, creations)
+    const creationDateObj = new Date(creationDateStringWithoutOffset)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
     contribution.createdAt = new Date()
+    contribution.clientRequestTime = clientRequestTimeString
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
     contribution.contributionType = ContributionType.USER
@@ -180,6 +200,11 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     logger.info(`updateContribution(${amount}, ${memo}, ${creationDate})`)
+    console.log(`updateContribution(${amount}, ${memo}, ${creationDate})`)
+    const cutOffsetCreationDateString = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
+    console.log(`cutOffsetCreationDateString=${cutOffsetCreationDateString}`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -192,8 +217,13 @@ export class ContributionResolver {
 
     const user = getUser(context)
     logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
-    const clientRequestTime = getClientRequestTime(context)
-    logger.info('clientRequestTimee: ', clientRequestTime.toISOString())
+    const clientRequestTimeString = cutOffsetFromIsoDateString(
+      getClientRequestTimeAsString(context),
+    )
+    const clientRequestTime = new Date(clientRequestTimeString)
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime}`,
+    )
 
     const contributionToUpdate = await dbContribution.findOne({
       where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
@@ -207,7 +237,7 @@ export class ContributionResolver {
       throw new Error('user of the pending contribution and send user does not correspond')
     }
 
-    const creationDateObj = new Date(creationDate)
+    const creationDateObj = new Date(cutOffsetCreationDateString)
     let creations = await getUserCreation(user.id, clientRequestTime)
     logger.debug(
       'update 1 creations:',
@@ -239,10 +269,11 @@ export class ContributionResolver {
     )
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
-    contributionToUpdate.contributionDate = new Date(creationDate)
+    contributionToUpdate.contributionDate = creationDateObj
+    contributionToUpdate.clientRequestTime = clientRequestTimeString
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     dbContribution.save(contributionToUpdate)
 

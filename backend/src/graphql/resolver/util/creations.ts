@@ -15,8 +15,9 @@ export const validateContribution = (
   creations: ContributionMonth[],
   amount: Decimal,
   creationDate: Date,
+  clientRequestTime: Date,
 ): void => {
-  logger.trace('isContributionValid', creations, amount, creationDate)
+  logger.trace('isContributionValid', creations, amount, creationDate, clientRequestTime)
   const index = getCreationIndex(creations, creationDate.getMonth())
 
   if (index < 0) {
@@ -25,6 +26,14 @@ export const validateContribution = (
       creationDate.toString(),
     )
     throw new Error('No information for available creations for the given date')
+  }
+  if (clientRequestTime.getMonth() - creations[index].targetMonth > 2) {
+    logger.error(
+      `It's not allowed to create a contribution with a creationDate=${creationDate.toISOString()} three month before clientRequestTime=${clientRequestTime.toISOString()}`,
+    )
+    throw new Error(
+      `It's not allowed to create a contribution with a creationDate=${creationDate.toISOString()} three month before clientRequestTime=${clientRequestTime.toISOString()}`,
+    )
   }
 
   if (amount.greaterThan(creations[index].amount.toString())) {

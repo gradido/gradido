@@ -12,6 +12,7 @@ export class UnconfirmedContribution {
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.date = contribution.contributionDate
+    this.clientRequestTime = contribution.clientRequestTime
     this.firstName = user ? user.firstName : ''
     this.lastName = user ? user.lastName : ''
     this.email = user ? user.emailContact.email : ''
@@ -38,6 +39,9 @@ export class UnconfirmedContribution {
 
   @Field(() => Date)
   date: Date
+
+  @Field(() => String, { nullable: true })
+  clientRequestTime: string
 
   @Field(() => String)
   memo: string

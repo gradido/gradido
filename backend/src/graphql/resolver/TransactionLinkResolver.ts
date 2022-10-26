@@ -1,5 +1,5 @@
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getClientRequestTime, getUser } from '@/server/context'
+import { Context, getClientRequestTimeAsString, getUser } from '@/server/context'
 import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
@@ -35,6 +35,7 @@ import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
+import { cutOffsetFromIsoDateString } from '@/util/utilities'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -169,9 +170,13 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    logger.info(`redeemTransactionLink(${code})...`)
     const user = getUser(context)
-    const clientRequestTime = getClientRequestTime(context)
-    logger.trace('clientRequestTimee: ', clientRequestTime)
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
     const now = new Date()
 
     if (code.match(/^CL-/)) {
@@ -264,11 +269,12 @@ export class TransactionLinkResolver {
 
         const creations = await getUserCreation(user.id, clientRequestTime, false)
         logger.info('open creations', creations)
-        validateContribution(creations, contributionLink.amount, now)
+        validateContribution(creations, contributionLink.amount, now, clientRequestTime)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now
         contribution.contributionDate = now
+        contribution.clientRequestTime = clientRequestTimeString
         contribution.memo = contributionLink.memo
         contribution.amount = contributionLink.amount
         contribution.contributionLinkId = contributionLink.id
@@ -319,8 +325,10 @@ export class TransactionLinkResolver {
       } finally {
         await queryRunner.release()
       }
+      logger.info('redeem contribution link successful...')
       return true
     } else {
+      logger.info('redeem transaction link...')
       const transactionLink = await dbTransactionLink.findOneOrFail({ code })
       const linkedUser = await dbUser.findOneOrFail(
         { id: transactionLink.userId },
@@ -328,14 +336,17 @@ export class TransactionLinkResolver {
       )
 
       if (user.id === linkedUser.id) {
+        logger.error('Cannot redeem own transaction link.')
         throw new Error('Cannot redeem own transaction link.')
       }
 
       if (transactionLink.validUntil.getTime() < now.getTime()) {
+        logger.error('Transaction Link is not valid anymore.')
         throw new Error('Transaction Link is not valid anymore.')
       }
 
       if (transactionLink.redeemedBy) {
+        logger.error('Transaction Link already redeemed.')
         throw new Error('Transaction Link already redeemed.')
       }
 
@@ -346,6 +357,7 @@ export class TransactionLinkResolver {
         user,
         transactionLink,
       )
+      logger.info('redeem transaction link successful...')
 
       return true
     }
