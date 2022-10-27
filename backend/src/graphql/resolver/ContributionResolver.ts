@@ -37,7 +37,6 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     logger.info(`createContribution(${amount}, ${memo}, ${creationDate})`)
-    console.log(`createContribution(${amount}, ${memo}, ${creationDate})`)
     if (!isValidDate(creationDate)) {
       logger.error(`invalid Date for creationDate=${creationDate}`)
       throw new Error(`invalid Date for creationDate=${creationDate}`)
@@ -45,7 +44,6 @@ export class ContributionResolver {
     const creationDateStringWithoutOffset = cutOffsetFromIsoDateString(
       new Date(creationDate).toISOString(),
     )
-    console.log(`creationDateStringWithoutOffset=${creationDateStringWithoutOffset}`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -200,11 +198,9 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     logger.info(`updateContribution(${amount}, ${memo}, ${creationDate})`)
-    console.log(`updateContribution(${amount}, ${memo}, ${creationDate})`)
     const cutOffsetCreationDateString = cutOffsetFromIsoDateString(
       new Date(creationDate).toISOString(),
     )
-    console.log(`cutOffsetCreationDateString=${cutOffsetCreationDateString}`)
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)

@@ -3,7 +3,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    `ALTER TABLE contributions ADD COLUMN client_request_time varchar(28) NULL DEFAULT NULL AFTER contribution_date;`,
+    `ALTER TABLE contributions ADD COLUMN client_request_time varchar(30) NULL DEFAULT NULL AFTER contribution_date;`,
   )
 }
 

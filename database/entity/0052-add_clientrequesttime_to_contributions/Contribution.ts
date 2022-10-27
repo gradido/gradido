@@ -33,7 +33,7 @@ export class Contribution extends BaseEntity {
 
   @Column({
     name: 'client_request_time',
-    length: 28,
+    length: 30,
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })

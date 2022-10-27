@@ -1,6 +1,6 @@
 import { ContributionMonth } from '@/graphql/model/ContributionMonth'
 import { backendLogger as logger } from '@/server/logger'
-import { dateCompare } from '@/util/utilities'
+import { dateCompare, getIsoDateStringAs_YYYYMMDD_String, getMonthDifference } from '@/util/utilities'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
@@ -17,7 +17,7 @@ export const validateContribution = (
   creationDate: Date,
   clientRequestTime: Date,
 ): void => {
-  logger.trace('isContributionValid', creations, amount, creationDate, clientRequestTime)
+  logger.info('validateContribution', creations, amount, creationDate, clientRequestTime)
   const index = getCreationIndex(creations, creationDate.getMonth())
 
   if (index < 0) {
@@ -27,12 +27,20 @@ export const validateContribution = (
     )
     throw new Error('No information for available creations for the given date')
   }
-  if (clientRequestTime.getMonth() - creations[index].targetMonth > 2) {
+  if (getMonthDifference(creationDate, clientRequestTime) > 2) {
     logger.error(
-      `It's not allowed to create a contribution with a creationDate=${creationDate.toISOString()} three month before clientRequestTime=${clientRequestTime.toISOString()}`,
+      `It's not allowed to create a contribution with a creationDate=${getIsoDateStringAs_YYYYMMDD_String(
+        creationDate.toISOString(),
+      )} three month before clientRequestTime=${getIsoDateStringAs_YYYYMMDD_String(
+        clientRequestTime.toISOString(),
+      )}`,
     )
     throw new Error(
-      `It's not allowed to create a contribution with a creationDate=${creationDate.toISOString()} three month before clientRequestTime=${clientRequestTime.toISOString()}`,
+      `It's not allowed to create a contribution with a creationDate=${getIsoDateStringAs_YYYYMMDD_String(
+        creationDate.toISOString(),
+      )} three month before clientRequestTime=${getIsoDateStringAs_YYYYMMDD_String(
+        clientRequestTime.toISOString(),
+      )}`,
     )
   }
 
@@ -56,7 +64,7 @@ export const getUserCreations = async (
   )
   const usedDate = getAheadDate(clientRequestTime)
   const months = getCreationMonths(usedDate)
-  logger.trace('getUserCreations months=', months)
+  logger.debug('getUserCreations months=', months)
 
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()

@@ -176,7 +176,11 @@ describe('ContributionResolver', () => {
             expect.objectContaining({
               errors: [
                 new GraphQLError(
-                  `It's not allowed to create a contribution with a creationDate=${dateStr} three month before clientRequestTime=${getClientRequestTime()}`,
+                  `It's not allowed to create a contribution with a creationDate=${getIsoDateStringAs_YYYYMMDD_String(
+                    dateStr,
+                  )} three month before clientRequestTime=${getIsoDateStringAs_YYYYMMDD_String(
+                    getClientRequestTime(),
+                  )}`,
                 ),
               ],
             }),
@@ -185,7 +189,11 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            `It's not allowed to create a contribution with a creationDate=${dateStr} three month before clientRequestTime=${getClientRequestTime()}`,
+            `It's not allowed to create a contribution with a creationDate=${getIsoDateStringAs_YYYYMMDD_String(
+              dateStr,
+            )} three month before clientRequestTime=${getIsoDateStringAs_YYYYMMDD_String(
+              getClientRequestTime(),
+            )}`,
           )
         })
       })
@@ -402,7 +410,9 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  date: new Date(
+                    getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  ).toISOString(),
                   clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
@@ -549,7 +559,9 @@ describe('ContributionResolver', () => {
                   amount: '600',
                   memo: '1st new contribution one month behind server time',
                   // date: expect.any(String),
-                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  date: new Date(
+                    getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  ).toISOString(),
                   clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
@@ -608,7 +620,9 @@ describe('ContributionResolver', () => {
                   amount: '100',
                   memo: '3rd new contribution one month behind server time',
                   // date: expect.any(String),
-                  date: getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  date: new Date(
+                    getIsoDateStringAs_YYYYMMDD_String(getClientRequestTime()),
+                  ).toISOString(),
                   clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
@@ -756,7 +770,7 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '600',
                   memo: '1st new contribution one month behind server time',
-                  date: getDateAs_YYYYMMDD_String(creationDate),
+                  date: new Date(getDateAs_YYYYMMDD_String(creationDate)).toISOString(),
                   clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
@@ -814,7 +828,7 @@ describe('ContributionResolver', () => {
                   id: expect.any(Number),
                   amount: '100',
                   memo: '3rd new contribution one month ahead server time',
-                  date: getDateAs_YYYYMMDD_String(creationDate),
+                  date: new Date(getDateAs_YYYYMMDD_String(creationDate)).toISOString(),
                   clientRequestTime: getClientRequestTime(),
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',

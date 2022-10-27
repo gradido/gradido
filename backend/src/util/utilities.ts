@@ -37,7 +37,7 @@ export function cutOffsetFromIsoDateString(dateString: string): string {
 
 // eslint-disable-next-line camelcase
 export function getDateAs_YYYYMMDD_String(_date: Date | undefined): string {
-  console.log(`getDateAs_YYYYMMDD_String(${_date})`)
+  // console.log(`getDateAs_YYYYMMDD_String(${_date})`)
   const objectDate = _date || new Date()
   let dayStr, monthStr
   const day = objectDate.getDate()
@@ -55,13 +55,13 @@ export function getDateAs_YYYYMMDD_String(_date: Date | undefined): string {
   }
 
   const year = objectDate.getFullYear()
-  console.log('return=' + year + '-' + monthStr + '-' + dayStr)
+  // console.log('return=' + year + '-' + monthStr + '-' + dayStr)
   return year + '-' + monthStr + '-' + dayStr
 }
 
 // eslint-disable-next-line camelcase
 export function getIsoDateStringAs_YYYYMMDD_String(_date: string): string {
-  console.log(`getIsoDateStringAs_YYYYMMDD_String(${_date}) = ${_date.slice(0, 10)}`)
+  // console.log(`getIsoDateStringAs_YYYYMMDD_String(${_date}) = ${_date.slice(0, 10)}`)
   return _date.slice(0, 10) // YYYY-MM-DDT
 }
 
@@ -69,3 +69,10 @@ export function isValidDate(dateObject: any): boolean {
   return new Date(dateObject).toString() !== 'Invalid Date'
 }
 
+export function getMonthDifference(startDate: Date, endDate: Date): number {
+  return (
+    endDate.getMonth() -
+    startDate.getMonth() +
+    12 * (endDate.getFullYear() - startDate.getFullYear())
+  )
+}
