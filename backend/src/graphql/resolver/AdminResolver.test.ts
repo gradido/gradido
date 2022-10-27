@@ -901,6 +901,12 @@ describe('AdminResolver', () => {
 
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
               await expect(
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
@@ -915,6 +921,12 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, stephenHawking)
               variables.email = 'stephen@hawking.uk'
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
             })
 
             it('throws an error', async () => {
@@ -934,6 +946,12 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, garrickOllivander)
               variables.email = 'garrick@ollivander.com'
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
             })
 
             it('throws an error', async () => {
@@ -953,6 +971,12 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
             })
 
             describe('date of creation is not a date string', () => {
