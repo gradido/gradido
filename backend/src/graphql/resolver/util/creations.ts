@@ -60,6 +60,7 @@ export const getUserCreations = async (
     .andWhere('denied_at IS NULL')
     .groupBy('month')
     .addGroupBy('userId')
+    .orderBy('month', 'DESC')
 
   if (!includePending) {
     sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
