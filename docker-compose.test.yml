@@ -6,6 +6,7 @@ services:
   # BACKEND ##############################################
   ########################################################
   backend:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/backend:test
     build:
       target: test
@@ -58,3 +59,4 @@ networks:
 
 volumes:
   db_test_vol: 
+

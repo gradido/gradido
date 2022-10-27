@@ -20,7 +20,7 @@ export class GdtResolver {
 
     try {
       const resultGDT = await apiGet(
-        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.email}/${currentPage}/${pageSize}/${order}`,
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
         throw new Error(resultGDT.data)
@@ -37,7 +37,7 @@ export class GdtResolver {
     const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.email,
+        email: user.emailContact.email,
       })
       if (!resultGDTSum.success) {
         throw new Error('Call not successful')

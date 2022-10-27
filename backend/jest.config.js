@@ -5,6 +5,7 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   setupFiles: ['<rootDir>/test/testSetup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/extensions.ts'],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',

@@ -1,6 +1,6 @@
 {
   "name": "gradido-database",
-  "version": "1.10.1",
+  "version": "1.13.1",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
@@ -37,6 +37,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@types/uuid": "^8.3.4",
     "cross-env": "^7.0.3",
     "crypto": "^1.0.1",
     "decimal.js-light": "^2.5.1",
@@ -44,6 +45,7 @@
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
-    "typeorm": "^0.2.38"
+    "typeorm": "^0.2.38",
+    "uuid": "^8.3.2"
   }
 }

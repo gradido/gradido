@@ -8,14 +8,18 @@ import {
   createContribution,
   deleteContribution,
   updateContribution,
+  login,
 } from '@/seeds/graphql/mutations'
-import { listAllContributions, listContributions, login } from '@/seeds/graphql/queries'
+import { listAllContributions, listContributions } from '@/seeds/graphql/queries'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { EventProtocol } from '@entity/EventProtocol'
+import { EventProtocolType } from '@/event/EventProtocolType'
+import { logger } from '@test/testSetup'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -35,6 +39,8 @@ afterAll(async () => {
 })
 
 describe('ContributionResolver', () => {
+  let bibi: any
+
   describe('createContribution', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
@@ -54,8 +60,9 @@ describe('ContributionResolver', () => {
     describe('authenticated with valid user', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+
+        bibi = await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
       })
@@ -66,6 +73,50 @@ describe('ContributionResolver', () => {
       })
 
       describe('input not valid', () => {
+        it('throws error when memo length smaller than 5 chars', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < (5)`)
+        })
+
+        it('throws error when memo length greater than 255 chars', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: createContribution,
+              variables: {
+                amount: 100.0,
+                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > (255)`)
+        })
+
         it('throws error when creationDate not-valid', async () => {
           await expect(
             mutate({
@@ -82,6 +133,13 @@ describe('ContributionResolver', () => {
                 new GraphQLError('No information for available creations for the given date'),
               ],
             }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations with the given creationDate=',
+            'Invalid Date',
           )
         })
 
@@ -104,20 +162,31 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations with the given creationDate=',
+            'Invalid Date',
+          )
+        })
       })
 
       describe('valid input', () => {
+        let contribution: any
+
+        beforeAll(async () => {
+          contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 100.0,
+              memo: 'Test env contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+        })
+
         it('creates contribution', async () => {
-          await expect(
-            mutate({
-              mutation: createContribution,
-              variables: {
-                amount: 100.0,
-                memo: 'Test env contribution',
-                creationDate: new Date().toString(),
-              },
-            }),
-          ).resolves.toEqual(
+          expect(contribution).toEqual(
             expect.objectContaining({
               data: {
                 createContribution: {
@@ -126,6 +195,17 @@ describe('ContributionResolver', () => {
                   memo: 'Test env contribution',
                 },
               },
+            }),
+          )
+        })
+
+        it('stores the create contribution event in the database', async () => {
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.CONTRIBUTION_CREATE,
+              amount: expect.decimalEqual(100),
+              contributionId: contribution.data.createContribution.id,
+              userId: bibi.data.login.id,
             }),
           )
         })
@@ -161,8 +241,8 @@ describe('ContributionResolver', () => {
         const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await creationFactory(testEnv, bibisCreation!)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         await mutate({
@@ -274,8 +354,8 @@ describe('ContributionResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, peterLustig)
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -311,12 +391,66 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('No contribution found to given id')
+        })
+      })
+
+      describe('Memo length smaller than 5 chars', () => {
+        it('throws error', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 100.0,
+                memo: 'Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too short (5 characters minimum)')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5)')
+        })
+      })
+
+      describe('Memo length greater than 255 chars', () => {
+        it('throws error', async () => {
+          const date = new Date()
+          await expect(
+            mutate({
+              mutation: updateContribution,
+              variables: {
+                contributionId: result.data.createContribution.id,
+                amount: 100.0,
+                memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+                creationDate: date.toString(),
+              },
+            }),
+          ).resolves.toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('memo text is too long (255 characters maximum)')],
+            }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255)')
+        })
       })
 
       describe('wrong user tries to update the contribution', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
         })
@@ -342,6 +476,12 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'user of the pending contribution and send user does not correspond',
+          )
+        })
       })
 
       describe('admin tries to update a user contribution', () => {
@@ -363,12 +503,14 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        // TODO check that the error is logged (need to modify AdminResolver, avoid conflicts)
       })
 
       describe('update too much so that the limit is exceeded', () => {
         beforeAll(async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
         })
@@ -394,6 +536,12 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'The amount (1019 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+          )
+        })
       })
 
       describe('update creation to a date that is older than 3 months', () => {
@@ -411,10 +559,15 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
+              errors: [new GraphQLError('Currently the month of the contribution cannot change.')],
             }),
+          )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith(
+            'No information for available creations with the given creationDate=',
+            'Invalid Date',
           )
         })
       })
@@ -440,6 +593,22 @@ describe('ContributionResolver', () => {
                   memo: 'Test contribution',
                 },
               },
+            }),
+          )
+        })
+
+        it('stores the update contribution event in the database', async () => {
+          bibi = await query({
+            query: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.CONTRIBUTION_UPDATE,
+              amount: expect.decimalEqual(10),
+              contributionId: result.data.createContribution.id,
+              userId: bibi.data.login.id,
             }),
           )
         })
@@ -475,8 +644,8 @@ describe('ContributionResolver', () => {
         const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await creationFactory(testEnv, bibisCreation!)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         await mutate({
@@ -549,11 +718,13 @@ describe('ContributionResolver', () => {
     })
 
     describe('authenticated', () => {
+      let peter: any
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        peter = await userFactory(testEnv, peterLustig)
+
+        await mutate({
+          mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
         result = await mutate({
@@ -586,12 +757,16 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Contribution not found for given id')
+        })
       })
 
-      describe('other user sends a deleteContribtuion', () => {
+      describe('other user sends a deleteContribution', () => {
         it('returns an error', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await expect(
@@ -607,6 +782,10 @@ describe('ContributionResolver', () => {
             }),
           )
         })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('Can not delete contribution of another user')
+        })
       })
 
       describe('User deletes own contribution', () => {
@@ -620,12 +799,39 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toBeTruthy()
         })
+
+        it('stores the delete contribution event in the database', async () => {
+          const contribution = await mutate({
+            mutation: createContribution,
+            variables: {
+              amount: 166.0,
+              memo: 'Whatever contribution',
+              creationDate: new Date().toString(),
+            },
+          })
+
+          await mutate({
+            mutation: deleteContribution,
+            variables: {
+              id: contribution.data.createContribution.id,
+            },
+          })
+
+          await expect(EventProtocol.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventProtocolType.CONTRIBUTION_DELETE,
+              contributionId: contribution.data.createContribution.id,
+              amount: expect.decimalEqual(166),
+              userId: peter.id,
+            }),
+          )
+        })
       })
 
       describe('User deletes already confirmed contribution', () => {
         it('throws an error', async () => {
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
           })
           await mutate({
@@ -634,8 +840,8 @@ describe('ContributionResolver', () => {
               id: result.data.createContribution.id,
             },
           })
-          await query({
-            query: login,
+          await mutate({
+            mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
           })
           await expect(
@@ -650,6 +856,10 @@ describe('ContributionResolver', () => {
               errors: [new GraphQLError('A confirmed contribution can not be deleted')],
             }),
           )
+        })
+
+        it('logs the error found', () => {
+          expect(logger.error).toBeCalledWith('A confirmed contribution can not be deleted')
         })
       })
     })

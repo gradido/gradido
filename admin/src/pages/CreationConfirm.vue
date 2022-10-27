@@ -9,6 +9,7 @@
       :fields="fields"
       @remove-creation="removeCreation"
       @show-overlay="showOverlay"
+      @update-state="updateState"
     />
   </div>
 </template>
@@ -34,20 +35,23 @@ export default {
   },
   methods: {
     removeCreation(item) {
-      this.$apollo
-        .mutate({
-          mutation: adminDeleteContribution,
-          variables: {
-            id: item.id,
-          },
-        })
-        .then((result) => {
-          this.updatePendingCreations(item.id)
-          this.toastSuccess(this.$t('creation_form.toasted_delete'))
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+      this.$bvModal.msgBoxConfirm(this.$t('creation_form.deleteNow')).then(async (value) => {
+        if (value)
+          await this.$apollo
+            .mutate({
+              mutation: adminDeleteContribution,
+              variables: {
+                id: item.id,
+              },
+            })
+            .then((result) => {
+              this.updatePendingCreations(item.id)
+              this.toastSuccess(this.$t('creation_form.toasted_delete'))
+            })
+            .catch((error) => {
+              this.toastError(error.message)
+            })
+      })
     },
     confirmCreation() {
       this.$apollo
@@ -90,6 +94,10 @@ export default {
       this.overlay = true
       this.item = item
     },
+    updateState(id) {
+      this.pendingCreations.find((obj) => obj.id === id).messagesCount++
+      this.pendingCreations.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+    },
   },
   computed: {
     fields() {
@@ -114,7 +122,7 @@ export default {
           },
         },
         { key: 'moderator', label: this.$t('moderator') },
-        { key: 'edit_creation', label: this.$t('edit') },
+        { key: 'editCreation', label: this.$t('edit') },
         { key: 'confirm', label: this.$t('save') },
       ]
     },
