@@ -11,7 +11,6 @@ Decimal.set({
 
 const constants = {
   DB_VERSION: '0051-add_delete_by_to_contributions',
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31'), // GMT+0
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -115,11 +114,6 @@ if (
   throw new Error(
     `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
   )
-}
-
-const eventProtocol = {
-  // global switch to enable writing of EventProtocol-Entries
-  EVENT_PROTOCOL_DISABLED: process.env.EVENT_PROTOCOL_DISABLED === 'true' || false,
 }
 
 const federation = {
