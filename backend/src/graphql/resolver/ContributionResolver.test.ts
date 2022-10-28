@@ -375,6 +375,7 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -456,6 +457,7 @@ describe('ContributionResolver', () => {
         })
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -486,6 +488,7 @@ describe('ContributionResolver', () => {
 
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: adminUpdateContribution,
@@ -516,6 +519,7 @@ describe('ContributionResolver', () => {
         })
 
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -546,6 +550,7 @@ describe('ContributionResolver', () => {
 
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -830,6 +835,7 @@ describe('ContributionResolver', () => {
 
       describe('User deletes already confirmed contribution', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
