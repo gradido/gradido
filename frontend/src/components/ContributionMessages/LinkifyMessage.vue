@@ -1,7 +1,7 @@
 <template>
   <div class="mt-2">
     <span v-for="({ type, text }, index) in linkifiedMessage" :key="index">
-      <b-link v-if="type === 'link'" :href="text">{{ text }}</b-link>
+      <b-link v-if="type === 'link'" :href="text" target="_blank">{{ text }}</b-link>
       <span v-else>{{ text }}</span>
     </span>
   </div>
