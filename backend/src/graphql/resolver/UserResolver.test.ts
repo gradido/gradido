@@ -514,19 +514,20 @@ describe('UserResolver', () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: emailVerificationCode, password: 'not-valid' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
+      it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(result).toEqual(
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: emailVerificationCode, password: 'not-valid' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [
               new GraphQLError(
@@ -545,19 +546,20 @@ describe('UserResolver', () => {
     describe('no valid optin code', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: 'not valid', password: 'Aa12345_' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
+      it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(result).toEqual(
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: 'not valid', password: 'Aa12345_' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
@@ -584,14 +586,9 @@ describe('UserResolver', () => {
     })
 
     describe('no users in database', () => {
-      beforeAll(async () => {
+      it('throws an error', async () => {
         jest.clearAllMocks()
-        result = await mutate({ mutation: login, variables })
-      })
-
-      it('throws an error', () => {
-        jest.clearAllMocks()
-        expect(result).toEqual(
+        expect(await mutate({ mutation: login, variables })).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
