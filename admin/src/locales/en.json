@@ -3,6 +3,7 @@
   "back": "back",
   "contributionLink": {
     "amount": "Amount",
+    "changeSaved": "Change saved",
     "clear": "Clear",
     "contributionLinks": "Contribution Links",
     "create": "Create",
@@ -23,10 +24,9 @@
         "once": "once"
       }
     },
+    "saveChange": "Save Change",
     "validFrom": "Start-date",
-    "validTo": "End-Date",
-    "saveChange":"Save Change",
-    "changeSaved":"Change saved"
+    "validTo": "End-Date"
   },
   "creation": "Creation",
   "creationList": "Creation list",
