@@ -24,7 +24,9 @@
       }
     },
     "validFrom": "Start-date",
-    "validTo": "End-Date"
+    "validTo": "End-Date",
+    "saveChange":"Save Change",
+    "changeSaved":"Change saved"
   },
   "creation": "Creation",
   "creationList": "Creation list",

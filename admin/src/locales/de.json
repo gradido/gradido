@@ -24,7 +24,9 @@
       }
     },
     "validFrom": "Startdatum",
-    "validTo": "Enddatum"
+    "validTo": "Enddatum",
+    "saveChange":"Änderung speichern",
+    "changeSaved":"Änderung gespeichert"
   },
   "creation": "Schöpfung",
   "creationList": "Schöpfungsliste",
