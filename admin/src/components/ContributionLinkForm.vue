@@ -102,7 +102,11 @@
           </b-form-group>
           -->
       <div class="mt-6">
-        <b-button type="submit" variant="primary">{{ $t('contributionLink.create') }}</b-button>
+        <b-button type="submit" variant="primary">
+          {{
+            editContributionLink ? $t('contributionLink.saveChange') : $t('contributionLink.create')
+          }}
+        </b-button>
         <b-button type="reset" variant="danger" @click.prevent="onReset">
           {{ $t('contributionLink.clear') }}
         </b-button>
@@ -112,6 +116,8 @@
 </template>
 <script>
 import { createContributionLink } from '@/graphql/createContributionLink.js'
+import { updateContributionLink } from '@/graphql/updateContributionLink.js'
+
 export default {
   name: 'ContributionLinkForm',
   props: {
@@ -121,6 +127,7 @@ export default {
         return {}
       },
     },
+    editContributionLink: { type: Boolean, required: false },
   },
   data() {
     return {
@@ -157,23 +164,33 @@ export default {
       if (this.form.validFrom === null)
         return this.toastError(this.$t('contributionLink.noStartDate'))
       if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))
+
+      const { validFrom, validTo, name, amount, memo, cycle, maxPerCycle, maxAmountPerMonth } =
+        this.form
+      const variables = {
+        validFrom,
+        validTo,
+        name,
+        amount,
+        memo,
+        cycle,
+        maxPerCycle,
+        maxAmountPerMonth,
+        id: this.contributionLinkData.id ? this.contributionLinkData.id : null,
+      }
+
       this.$apollo
         .mutate({
-          mutation: createContributionLink,
-          variables: {
-            validFrom: this.form.validFrom,
-            validTo: this.form.validTo,
-            name: this.form.name,
-            amount: this.form.amount,
-            memo: this.form.memo,
-            cycle: this.form.cycle,
-            maxPerCycle: this.form.maxPerCycle,
-            maxAmountPerMonth: this.form.maxAmountPerMonth,
-          },
+          mutation: this.editContributionLink ? updateContributionLink : createContributionLink,
+          variables: variables,
         })
         .then((result) => {
-          this.link = result.data.createContributionLink.link
-          this.toastSuccess(this.link)
+          this.link = this.editContributionLink
+            ? result.data.updateContributionLink.link
+            : result.data.createContributionLink.link
+          this.toastSuccess(
+            this.editContributionLink ? this.$t('contributionLink.changeSaved') : this.link,
+          )
           this.onReset()
           this.$root.$emit('bv::toggle::collapse', 'newContribution')
           this.$emit('get-contribution-links')

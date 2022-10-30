@@ -17,6 +17,7 @@
           <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
             :contributionLinkData="contributionLinkData"
+            :editContributionLink="editContributionLink"
             @get-contribution-links="$emit('get-contribution-links')"
           />
         </b-card>
@@ -58,12 +59,14 @@ export default {
     return {
       visible: false,
       contributionLinkData: {},
+      editContributionLink: false,
     }
   },
   methods: {
     editContributionLinkData(data) {
       if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
       this.contributionLinkData = data
+      this.editContributionLink = true
     },
   },
 }
