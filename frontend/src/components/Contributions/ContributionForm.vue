@@ -50,15 +50,27 @@
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
       </validation-provider>
-      <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
-      <b-input-group size="lg" prepend="GDD">
-        <b-form-input
-          id="contribution-amount"
-          v-model="form.amount"
-          type="text"
-          :formatter="numberFormat"
-        ></b-form-input>
-      </b-input-group>
+      <validation-provider
+        :name="$t('form.amount')"
+        :rules="{
+          required: true,
+        }"
+        v-slot="{ errors }"
+      >
+        <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
+        <b-input-group size="lg" prepend="GDD">
+          <b-form-input
+            id="contribution-amount"
+            v-model="form.amount"
+            type="text"
+            :formatter="numberFormat"
+            required
+          ></b-form-input>
+        </b-input-group>
+        <b-col v-if="errors">
+          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+        </b-col>
+      </validation-provider>
       <div
         v-if="isThisMonth && parseInt(form.amount) > parseInt(maxGddThisMonth)"
         class="text-danger text-right"
