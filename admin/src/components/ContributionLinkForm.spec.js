@@ -108,6 +108,7 @@ describe('ContributionLinkForm', () => {
             cycle: 'ONCE',
             maxPerCycle: 1,
             maxAmountPerMonth: '0',
+            id: null,
           },
         })
       })
