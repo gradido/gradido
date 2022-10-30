@@ -141,6 +141,7 @@ export default {
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.memo.length > this.maxlength ||
+        this.form.amount === '' ||
         parseInt(this.form.amount) <= 0 ||
         parseInt(this.form.amount) > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
