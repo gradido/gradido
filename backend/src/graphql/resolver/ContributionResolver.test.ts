@@ -74,6 +74,7 @@ describe('ContributionResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -92,10 +93,11 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < (5)`)
+          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < 5`)
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -114,10 +116,11 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > (255)`)
+          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > 255`)
         })
 
         it('throws error when creationDate not-valid', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContribution,
@@ -144,6 +147,7 @@ describe('ContributionResolver', () => {
         })
 
         it('throws error when creationDate 3 month behind', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -420,7 +424,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5)')
+          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
         })
       })
 
@@ -446,7 +450,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255)')
+          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > 255')
         })
       })
 
