@@ -100,7 +100,8 @@
     "my-account": "Mein Konto",
     "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
-    "user_search": "Nutzersuche"
+    "user_search": "Nutzersuche",
+    "automaticContributions":"automatische Beiträge"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
   "open": "offen",
