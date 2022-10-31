@@ -202,12 +202,12 @@ export class ContributionResolver {
       new Date(creationDate).toISOString(),
     )
     if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
     }
 
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS})`)
       throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
     }
 

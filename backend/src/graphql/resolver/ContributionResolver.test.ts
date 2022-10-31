@@ -1068,6 +1068,7 @@ describe('ContributionResolver', () => {
 
       describe('Memo length smaller than 5 chars', () => {
         it('throws error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -1215,6 +1216,7 @@ describe('ContributionResolver', () => {
 
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           date.setMonth(date.getMonth() - 3)
           await expect(
@@ -1238,8 +1240,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'Currently the month of the contribution cannot be changed.',
           )
         })
       })

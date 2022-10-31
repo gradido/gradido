@@ -971,12 +971,7 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
-              const now = new Date()
-              variables.creationDate = new Date(
-                now.getFullYear(),
-                now.getMonth() - 1,
-                1,
-              ).toISOString()
+              variables.creationDate = 'invalid-date'
             })
 
             describe('date of creation is not a date string', () => {
@@ -985,9 +980,7 @@ describe('AdminResolver', () => {
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
+                    errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
                   }),
                 )
               })
