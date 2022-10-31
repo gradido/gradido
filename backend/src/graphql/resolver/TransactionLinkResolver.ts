@@ -258,7 +258,7 @@ export class TransactionLinkResolver {
           }
         }
 
-        const creations = await getUserCreation(user.id, false)
+        const creations = await getUserCreation(user.id)
         logger.info('open creations', creations)
         validateContribution(creations, contributionLink.amount, now)
         const contribution = new DbContribution()
