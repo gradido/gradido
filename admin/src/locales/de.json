@@ -95,13 +95,13 @@
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
     "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
-    "user_search": "Nutzersuche",
-    "automaticContributions": "automatische Beiträge"
+    "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
   "open": "offen",
