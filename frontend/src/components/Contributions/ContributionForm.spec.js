@@ -109,8 +109,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2020-06-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
+            it('has "2020-05-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-05-01T00:00:00.000Z')
             })
           })
 
@@ -136,8 +136,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2020-06-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
+            it('has "2020-05-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-05-01T00:00:00.000Z')
             })
           })
 
@@ -159,8 +159,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2019-12-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
+            it('has "2019-11-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-11-01T00:00:00.000Z')
             })
           })
 
@@ -186,8 +186,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2019-12-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
+            it('has "2019-11-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-11-01T00:00:00.000Z')
             })
           })
 
