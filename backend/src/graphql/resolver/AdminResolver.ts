@@ -65,7 +65,6 @@ import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { ContributionListResult } from '../model/Contribution'
-import { ContributionMonth } from '../model/ContributionMonth'
 import { AdminCreateContribution } from '../model/AdminCreateContribution'
 import { cutOffsetFromIsoDateString, isValidDate } from '@/util/utilities'
 

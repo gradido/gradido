@@ -1,6 +1,11 @@
 import { ContributionMonth } from '@/graphql/model/ContributionMonth'
 import { backendLogger as logger } from '@/server/logger'
-import { dateCompare, getIsoDateStringAs_YYYYMMDD_String, getMonthDifference } from '@/util/utilities'
+import {
+  dateCompare,
+  // eslint-disable-next-line camelcase
+  getIsoDateStringAs_YYYYMMDD_String,
+  getMonthDifference,
+} from '@/util/utilities'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'

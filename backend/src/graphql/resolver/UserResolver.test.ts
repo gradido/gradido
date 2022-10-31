@@ -36,7 +36,6 @@ import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { ContributionMonth } from '../model/ContributionMonth'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 

@@ -1,4 +1,3 @@
-import { ContributionMonth } from '@/graphql/model/ContributionMonth'
 import Decimal from 'decimal.js-light'
 
 export const MAX_CREATION_AMOUNT = new Decimal(1000)

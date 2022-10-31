@@ -1347,7 +1347,7 @@ describe('AdminResolver', () => {
 
         describe('listUnconfirmedContributions', () => {
           it('returns four pending creations', async () => {
-            const now = new Date()
+            // const now = new Date()
             await expect(
               query({
                 query: listUnconfirmedContributions,

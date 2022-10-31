@@ -1,10 +1,5 @@
 import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  Context,
-  getClientRequestTime,
-  getClientRequestTimeAsString,
-  getUser,
-} from '@/server/context'
+import { Context, getClientRequestTimeAsString, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'

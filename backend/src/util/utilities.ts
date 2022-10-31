@@ -65,7 +65,7 @@ export function getIsoDateStringAs_YYYYMMDD_String(_date: string): string {
   return _date.slice(0, 10) // YYYY-MM-DDT
 }
 
-export function isValidDate(dateObject: any): boolean {
+export function isValidDate(dateObject: string): boolean {
   return new Date(dateObject).toString() !== 'Invalid Date'
 }
 
