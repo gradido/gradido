@@ -44,7 +44,7 @@ describe('NavBar', () => {
   describe('wallet', () => {
     const assignLocationSpy = jest.fn()
     beforeEach(async () => {
-      await wrapper.findAll('a').at(5).trigger('click')
+      await wrapper.findAll('a').at(6).trigger('click')
     })
 
     it.skip('changes widnow location to wallet', () => {
@@ -63,7 +63,7 @@ describe('NavBar', () => {
       window.location = {
         assign: windowLocationMock,
       }
-      await wrapper.findAll('a').at(6).trigger('click')
+      await wrapper.findAll('a').at(7).trigger('click')
     })
 
     it('redirects to /logout', () => {

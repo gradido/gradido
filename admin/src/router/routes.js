@@ -24,6 +24,10 @@ const routes = [
     component: () => import('@/pages/CreationConfirm.vue'),
   },
   {
+    path: '/contribution-link',
+    component: () => import('@/pages/ContributionLink.vue'),
+  },
+  {
     path: '*',
     component: () => import('@/components/NotFoundPage.vue'),
   },

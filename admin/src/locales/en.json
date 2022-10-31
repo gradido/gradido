@@ -102,7 +102,8 @@
     "my-account": "My Account",
     "open_creation": "Open creations",
     "overview": "Overview",
-    "user_search": "User search"
+    "user_search": "User search",
+    "automaticContributions":"Automatic Contributions"
   },
   "not_open_creations": "No open creations",
   "open": "open",

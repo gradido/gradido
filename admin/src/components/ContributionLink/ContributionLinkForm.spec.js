@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinkForm from './ContributionLinkForm.vue'
-import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
 import { createContributionLink } from '@/graphql/createContributionLink.js'
 
 const localVue = global.localVue
