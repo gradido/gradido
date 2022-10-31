@@ -42,6 +42,9 @@ import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { EventProtocol } from '@entity/EventProtocol'
+import { EventProtocolType } from '@/event/EventProtocolType'
+import { logger } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
 jest.mock('@/mailer/sendAccountActivationEmail', () => {
@@ -144,6 +147,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('change role with success', () => {
@@ -196,6 +203,9 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Administrator can not change his own role!')
+            })
           })
 
           describe('user has already role to be set', () => {
@@ -213,6 +223,10 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already admin!')
+              })
             })
 
             describe('to usual user', () => {
@@ -228,6 +242,10 @@ describe('AdminResolver', () => {
                     errors: [new GraphQLError('User is already a usual user!')],
                   }),
                 )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('User is already a usual user!')
               })
             })
           })
@@ -297,6 +315,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('delete self', () => {
@@ -308,6 +330,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('Moderator can not delete his own account!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Moderator can not delete his own account!')
           })
         })
 
@@ -337,6 +363,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError(`Could not find user with userId: ${user.id}`)],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(`Could not find user with userId: ${user.id}`)
             })
           })
         })
@@ -405,6 +435,10 @@ describe('AdminResolver', () => {
               }),
             )
           })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(`Could not find user with userId: ${admin.id + 1}`)
+          })
         })
 
         describe('user to undelete is not deleted', () => {
@@ -420,6 +454,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('User is not deleted')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('User is not deleted')
           })
 
           describe('undelete deleted user', () => {
@@ -915,6 +953,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Could not find user with email: bibi@bloxberg.de',
+              )
+            })
           })
 
           describe('user to create for is deleted', () => {
@@ -938,6 +982,12 @@ describe('AdminResolver', () => {
                     new GraphQLError('This user was deleted. Cannot create a contribution.'),
                   ],
                 }),
+              )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'This user was deleted. Cannot create a contribution.',
               )
             })
           })
@@ -965,6 +1015,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Contribution could not be saved, Email is not activated',
+              )
+            })
           })
 
           describe('valid user to create for', () => {
@@ -976,6 +1032,7 @@ describe('AdminResolver', () => {
 
             describe('date of creation is not a date string', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -983,6 +1040,10 @@ describe('AdminResolver', () => {
                     errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
                   }),
                 )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith('invalid Date for creationDate=invalid-date')
               })
             })
 
@@ -1002,6 +1063,13 @@ describe('AdminResolver', () => {
                       new GraphQLError('No information for available creations for the given date'),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'No information for available creations with the given creationDate=',
+                  variables.creationDate,
                 )
               })
             })
@@ -1024,6 +1092,13 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'No information for available creations with the given creationDate=',
+                  variables.creationDate,
+                )
+              })
             })
 
             describe('amount of creation is too high', () => {
@@ -1039,6 +1114,12 @@ describe('AdminResolver', () => {
                       ),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'The amount (2000 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                 )
               })
             })
@@ -1084,6 +1165,15 @@ describe('AdminResolver', () => {
                   }),
                 )
               })
+
+              it('stores the admin create contribution event in the database', async () => {
+                await expect(EventProtocol.find()).resolves.toContainEqual(
+                  expect.objectContaining({
+                    type: EventProtocolType.ADMIN_CONTRIBUTION_CREATE,
+                    userId: admin.id,
+                  }),
+                )
+              })
             })
 
             describe('second creation surpasses the available amount ', () => {
@@ -1099,6 +1189,12 @@ describe('AdminResolver', () => {
                       ),
                     ],
                   }),
+                )
+              })
+
+              it('logs the error thrown', () => {
+                expect(logger.error).toBeCalledWith(
+                  'The amount (1000 GDD) to be created exceeds the amount (800 GDD) still available for this month.',
                 )
               })
             })
@@ -1179,6 +1275,12 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'Could not find UserContact with email: bob@baumeister.de',
+              )
+            })
           })
 
           describe('user for creation to update is deleted', () => {
@@ -1199,6 +1301,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('User was deleted (stephen@hawking.uk)')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('User was deleted (stephen@hawking.uk)')
             })
           })
 
@@ -1221,6 +1327,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('No contribution found to given id.')
+            })
           })
 
           describe('user email does not match creation user', () => {
@@ -1233,7 +1343,9 @@ describe('AdminResolver', () => {
                     email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
@@ -1246,11 +1358,17 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'user of the pending contribution and send user does not correspond',
+              )
+            })
           })
 
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
-            it.skip('throws an error', async () => {
+            it('throws an error', async () => {
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1259,22 +1377,30 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
-                    creationDate: new Date().toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (500 GDD) still available for this month.',
+                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                     ),
                   ],
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith(
+                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+              )
+            })
           })
 
-          describe('creation update is successful changing month', () => {
+          describe.skip('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
             it.skip('returns update creation object', async () => {
               const now = new Date()
@@ -1307,11 +1433,20 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('stores the admin update contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
+                  userId: admin.id,
+                }),
+              )
+            })
           })
 
           describe('creation update is successful without changing month', () => {
             // actually this mutation IS changing the month
-            it.skip('returns update creation object', async () => {
+            it('returns update creation object', async () => {
               const now = new Date()
               await expect(
                 mutate({
@@ -1321,24 +1456,57 @@ describe('AdminResolver', () => {
                     email: 'peter@lustig.de',
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
-                    creationDate: now.toString(),
+                    creationDate: creation
+                      ? creation.contributionDate.toString()
+                      : new Date().toString(),
                   },
                 }),
               ).resolves.toEqual(
                 expect.objectContaining({
                   data: {
                     adminUpdateContribution: {
-                      date: now,
+                      date: creation
+                        ? creation.contributionDate.toISOString()
+                        : new Date().toISOString(),
                       memo: 'Das war leider zu Viel!',
                       amount: '200',
+                      /*
                       creation: expect.arrayContaining([
                         { amount: new Decimal(1000), targetMonth: now.getMonth() - 3 + 1 },
                         { amount: new Decimal(1000), targetMonth: now.getMonth() - 2 + 1 },
-                        { amount: new Decimal(1000), targetMonth: now.getMonth() },
-                        { amount: new Decimal(300), targetMonth: now.getMonth() + 1 },
+                        { amount: new Decimal(800), targetMonth: now.getMonth() },
+                        { amount: new Decimal(500), targetMonth: now.getMonth() + 1 },
+                      ]),
+                      */
+                      creation: expect.arrayContaining([
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: now.getMonth() - 3 + 1,
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(1000),
+                          targetMonth: now.getMonth() - 2 + 1,
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(800),
+                          targetMonth: now.getMonth(),
+                        }),
+                        expect.objectContaining({
+                          amount: expect.decimalEqual(500),
+                          targetMonth: now.getMonth() + 1,
+                        }),
                       ]),
                     },
                   },
+                }),
+              )
+            })
+
+            it('stores the admin update contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_UPDATE,
+                  userId: admin.id,
                 }),
               )
             })
@@ -1362,8 +1530,8 @@ describe('AdminResolver', () => {
                       lastName: 'Lustig',
                       email: 'peter@lustig.de',
                       date: expect.any(String),
-                      memo: 'Herzlich Willkommen bei Gradido!',
-                      amount: expect.decimalEqual(400),
+                      memo: 'Das war leider zu Viel!',
+                      amount: expect.decimalEqual(200),
                       moderator: admin.id,
                       /* TODO JEST does not yet support to test array-in-array
                       creation: expect.arrayContaining([
@@ -1423,7 +1591,7 @@ describe('AdminResolver', () => {
                       email: 'bibi@bloxberg.de',
                       date: expect.any(String),
                       memo: 'Grundeinkommen',
-                      amount: '500',
+                      amount: expect.decimalEqual(500),
                       moderator: admin.id,
                       /* TODO JEST does not yet support to test array-in-array
                       creation: expect.arrayContaining([
@@ -1499,6 +1667,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
+            })
           })
 
           describe('admin deletes own user contribution', () => {
@@ -1548,6 +1720,15 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+
+            it('stores the admin  delete contribution event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.ADMIN_CONTRIBUTION_DELETE,
+                  userId: admin.id,
+                }),
+              )
+            })
           })
         })
 
@@ -1566,6 +1747,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('Contribution not found to given id.')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution not found for given id: -1')
             })
           })
 
@@ -1593,6 +1778,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('Moderator can not confirm own contribution')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Moderator can not confirm own contribution')
             })
           })
 
@@ -1622,6 +1811,14 @@ describe('AdminResolver', () => {
               )
             })
 
+            it('stores the contribution confirm event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.CONTRIBUTION_CONFIRM,
+                }),
+              )
+            })
+
             it('creates a transaction', async () => {
               const transaction = await DbTransaction.find()
               expect(transaction[0].amount.toString()).toBe('450')
@@ -1643,6 +1840,14 @@ describe('AdminResolver', () => {
                   recipientLastName: 'Bloxberg',
                   senderFirstName: 'Peter',
                   senderLastName: 'Lustig',
+                }),
+              )
+            })
+
+            it('stores the send confirmation email event in the database', async () => {
+              await expect(EventProtocol.find()).resolves.toContainEqual(
+                expect.objectContaining({
+                  type: EventProtocolType.SEND_CONFIRMATION_EMAIL,
                 }),
               )
             })
@@ -2186,6 +2391,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'Start-Date is not initialized. A Start-Date must be set!',
+            )
+          })
+
           it('returns an error if missing endDate', async () => {
             await expect(
               mutate({
@@ -2199,6 +2410,12 @@ describe('AdminResolver', () => {
               expect.objectContaining({
                 errors: [new GraphQLError('End-Date is not initialized. An End-Date must be set!')],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'End-Date is not initialized. An End-Date must be set!',
             )
           })
 
@@ -2221,6 +2438,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of validFrom must before or equals the validTo!`,
+            )
+          })
+
           it('returns an error if name is an empty string', async () => {
             await expect(
               mutate({
@@ -2235,6 +2458,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('The name must be initialized!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The name must be initialized!')
           })
 
           it('returns an error if name is shorter than 5 characters', async () => {
@@ -2254,6 +2481,12 @@ describe('AdminResolver', () => {
                   ),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'name' with a length of 3 did not fulfill the requested bounderies min=5 and max=100`,
             )
           })
 
@@ -2277,6 +2510,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'name' with a length of 101 did not fulfill the requested bounderies min=5 and max=100`,
+            )
+          })
+
           it('returns an error if memo is an empty string', async () => {
             await expect(
               mutate({
@@ -2291,6 +2530,10 @@ describe('AdminResolver', () => {
                 errors: [new GraphQLError('The memo must be initialized!')],
               }),
             )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('The memo must be initialized!')
           })
 
           it('returns an error if memo is shorter than 5 characters', async () => {
@@ -2310,6 +2553,12 @@ describe('AdminResolver', () => {
                   ),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'memo' with a length of 3 did not fulfill the requested bounderies min=5 and max=255`,
             )
           })
 
@@ -2333,6 +2582,12 @@ describe('AdminResolver', () => {
             )
           })
 
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              `The value of 'memo' with a length of 256 did not fulfill the requested bounderies min=5 and max=255`,
+            )
+          })
+
           it('returns an error if amount is not positive', async () => {
             await expect(
               mutate({
@@ -2348,6 +2603,12 @@ describe('AdminResolver', () => {
                   new GraphQLError('The amount=0 must be initialized with a positiv value!'),
                 ],
               }),
+            )
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith(
+              'The amount=0 must be initialized with a positiv value!',
             )
           })
         })
@@ -2403,6 +2664,10 @@ describe('AdminResolver', () => {
                 }),
               )
             })
+          })
+
+          it('logs the error thrown', () => {
+            expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
           })
 
           describe('valid id', () => {
@@ -2469,6 +2734,10 @@ describe('AdminResolver', () => {
                   errors: [new GraphQLError('Contribution Link not found to given id.')],
                 }),
               )
+            })
+
+            it('logs the error thrown', () => {
+              expect(logger.error).toBeCalledWith('Contribution Link not found to given id: -1')
             })
           })
 

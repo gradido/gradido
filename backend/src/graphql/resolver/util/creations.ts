@@ -82,15 +82,44 @@ export const getUserCreations = async (
     .andWhere(
       `contribution_date > DATE_SUB(last_day('${usedDate.toISOString()}'), INTERVAL 4 MONTH)`,
     )
+    .andWhere('deleted_at IS NULL')
     .andWhere('denied_at IS NULL')
     .groupBy('month')
     .addGroupBy('userId')
+    .orderBy('month', 'DESC')
   if (!includePending) {
     logger.info(`query contributions include confirmed ones...`)
     capturedCreationQuery.andWhere('confirmed_at IS NOT NULL')
   }
   const capturedCreation = await capturedCreationQuery.getRawMany()
   logger.info('capturedCreation', capturedCreation)
+
+  /*
+  const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
+  logger.trace('getUserCreations dateFilter=', dateFilter)
+
+  const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
+    .createQueryBuilder(Contribution, 'c')
+    .select('month(contribution_date)', 'month')
+    .addSelect('user_id', 'userId')
+    .addSelect('sum(amount)', 'sum')
+    .where(`user_id in (${ids.toString()})`)
+    .andWhere(`contribution_date >= ${dateFilter}`)
+    .andWhere('deleted_at IS NULL')
+    .andWhere('denied_at IS NULL')
+    .groupBy('month')
+    .addGroupBy('userId')
+    .orderBy('month', 'DESC')
+
+  if (!includePending) {
+    sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
+  }
+
+  const sumAmountContributionPerUserAndLast3Month =
+    await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
+
+  logger.trace(sumAmountContributionPerUserAndLast3Month)
+  */
   await queryRunner.release()
 
   return ids.map((id) => {
