@@ -3,7 +3,7 @@ name: gradido test CI
 on:
   push:
     branches:
-      - 2283-feature-implement-fullstack-tests-as-github-workflow
+      - 2283-feature-fullstack-tests-as-github-workflow
 
 jobs:
   ##############################################################################
