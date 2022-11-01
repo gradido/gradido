@@ -54,6 +54,7 @@
         :name="$t('form.amount')"
         :rules="{
           required: true,
+          gddSendAmount: [0.01, balance],
         }"
         v-slot="{ errors }"
       >
