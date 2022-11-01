@@ -563,7 +563,7 @@ jobs:
   end-to-end-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
-    needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
+    # needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
@@ -573,48 +573,48 @@ jobs:
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
-      - name: Download Docker Image (Mariadb)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-mariadb-test
-          path: /tmp
-      - name: Load Docker Image (Mariadb)
-        run: docker load < /tmp/mariadb.tar
-      - name: Download Docker Image (Database Up)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-database-test_up
-          path: /tmp
-      - name: Load Docker Image (Database Up)
-        run: docker load < /tmp/database_up.tar
-      - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-backend-test
-          path: /tmp
-      - name: Load Docker Image (Backend)
-        run: docker load < /tmp/backend.tar
-      - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-frontend-test
-          path: /tmp
-      - name: Load Docker Image (Frontend)
-        run: docker load < /tmp/frontend.tar
-      - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-admin-test
-          path: /tmp
-      - name: Load Docker Image (Admin Interface)
-        run: docker load < /tmp/admin.tar
-      - name: Download Docker Image (Nginx)
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-nginx-test
-          path: /tmp
-      - name: Load Docker Image (Nginx)
-        run: docker load < /tmp/nginx.tar
+      # - name: Download Docker Image (Mariadb)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-mariadb-test
+      #     path: /tmp
+      # - name: Load Docker Image (Mariadb)
+      #   run: docker load < /tmp/mariadb.tar
+      # - name: Download Docker Image (Database Up)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-database-test_up
+      #     path: /tmp
+      # - name: Load Docker Image (Database Up)
+      #   run: docker load < /tmp/database_up.tar
+      # - name: Download Docker Image (Backend)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-backend-test
+      #     path: /tmp
+      # - name: Load Docker Image (Backend)
+      #   run: docker load < /tmp/backend.tar
+      # - name: Download Docker Image (Frontend)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-frontend-test
+      #     path: /tmp
+      # - name: Load Docker Image (Frontend)
+      #   run: docker load < /tmp/frontend.tar
+      # - name: Download Docker Image (Admin Interface)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-admin-test
+      #     path: /tmp
+      # - name: Load Docker Image (Admin Interface)
+      #   run: docker load < /tmp/admin.tar
+      # - name: Download Docker Image (Nginx)
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-nginx-test
+      #     path: /tmp
+      # - name: Load Docker Image (Nginx)
+      #   run: docker load < /tmp/nginx.tar
       ##########################################################################
       # BOOT UP THE TEST SYSTEM ################################################
       ##########################################################################
