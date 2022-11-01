@@ -5,15 +5,23 @@
         <contribution-messages-list-item :message="message" />
       </div>
     </b-container>
-    <contribution-messages-formular
-      v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
-      :contributionId="contributionId"
-      @get-list-contribution-messages="getListContributionMessages"
-      @update-state="updateState"
-    />
-    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer h2">
-      <b-icon icon="arrow-up-short"></b-icon>
-      {{ $t('form.close') }}
+    <b-container>
+      <contribution-messages-formular
+        v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
+        :contributionId="contributionId"
+        @get-list-contribution-messages="getListContributionMessages"
+        @update-state="updateState"
+      />
+    </b-container>
+
+    <div
+      v-b-toggle="'collapse' + String(contributionId)"
+      class="text-center pointer h2 clearboth pt-1"
+    >
+      <b-button variant="outline-primary" block class="mt-4">
+        <b-icon icon="arrow-up-short"></b-icon>
+        {{ $t('form.close') }}
+      </b-button>
     </div>
   </div>
 </template>
@@ -54,5 +62,8 @@ export default {
 <style scoped>
 .temp-message {
   margin-top: 50px;
+}
+.clearboth {
+  clear: both;
 }
 </style>
