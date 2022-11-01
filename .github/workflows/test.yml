@@ -311,7 +311,7 @@ jobs:
   # JOB: LOCALES ADMIN #########################################################
   ##############################################################################
   locales_admin:
-    name: Locales - Admin
+    name: Locales - Admin Interface
     runs-on: ubuntu-latest
     needs: [build_test_admin]
     steps:
@@ -607,7 +607,7 @@ jobs:
           name: docker-admin-test
           path: /tmp
       - name: Load Docker Image (Admin Interface)
-        run: docker load < /tmp/nginx.tar
+        run: docker load < /tmp/admin.tar
       - name: Download Docker Image (Nginx)
         uses: actions/download-artifact@v3
         with:
