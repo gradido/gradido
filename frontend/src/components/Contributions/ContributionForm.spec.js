@@ -109,8 +109,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2020-05-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-05-01T00:00:00.000Z')
+            it('has "2020-06-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
             })
           })
 
@@ -136,8 +136,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2020-05-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-05-01T00:00:00.000Z')
+            it('has "2020-06-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2020-06-01T00:00:00.000Z')
             })
           })
 
@@ -159,8 +159,8 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2019-11-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-11-01T00:00:00.000Z')
+            it('has "2019-12-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
             })
           })
 
@@ -186,14 +186,83 @@ describe('ContributionForm', () => {
           })
 
           describe('minimalDate', () => {
-            it('has "2019-11-01T00:00:00.000Z"', () => {
-              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-11-01T00:00:00.000Z')
+            it('has "2019-12-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2019-12-01T00:00:00.000Z')
             })
           })
 
           describe('isThisMonth', () => {
             it('has false', () => {
               expect(wrapper.vm.isThisMonth).toBe(false)
+            })
+          })
+        })
+      })
+
+      describe('date with the 31st day of the month', () => {
+        describe('same month', () => {
+          beforeEach(async () => {
+            await wrapper.setData({
+              maximalDate: new Date('2022-10-31T00:00:00.000Z'),
+              form: { date: new Date('2022-10-31T00:00:00.000Z') },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2022-09-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2022-09-01T00:00:00.000Z')
+            })
+          })
+
+          describe('isThisMonth', () => {
+            it('has true', () => {
+              expect(wrapper.vm.isThisMonth).toBe(true)
+            })
+          })
+        })
+      })
+
+      describe('date with the 28th day of the month', () => {
+        describe('same month', () => {
+          beforeEach(async () => {
+            await wrapper.setData({
+              maximalDate: new Date('2023-02-28T00:00:00.000Z'),
+              form: { date: new Date('2023-02-28T00:00:00.000Z') },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2023-01-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2023-01-01T00:00:00.000Z')
+            })
+          })
+
+          describe('isThisMonth', () => {
+            it('has true', () => {
+              expect(wrapper.vm.isThisMonth).toBe(true)
+            })
+          })
+        })
+      })
+
+      describe('date with 29.02.2024 leap year', () => {
+        describe('same month', () => {
+          beforeEach(async () => {
+            await wrapper.setData({
+              maximalDate: new Date('2024-02-29T00:00:00.000Z'),
+              form: { date: new Date('2024-02-29T00:00:00.000Z') },
+            })
+          })
+
+          describe('minimalDate', () => {
+            it('has "2024-01-01T00:00:00.000Z"', () => {
+              expect(wrapper.vm.minimalDate.toISOString()).toBe('2024-01-01T00:00:00.000Z')
+            })
+          })
+
+          describe('isThisMonth', () => {
+            it('has true', () => {
+              expect(wrapper.vm.isThisMonth).toBe(true)
             })
           })
         })
