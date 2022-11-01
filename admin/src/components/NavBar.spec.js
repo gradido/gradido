@@ -60,9 +60,9 @@ describe('NavBar', () => {
         '/creation-confirm',
       )
     })
-    it('has a link to /contribution-link', () => {
+    it('has a link to /contribution-links', () => {
       expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe(
-        '/contribution-link',
+        '/contribution-links',
       )
     })
   })

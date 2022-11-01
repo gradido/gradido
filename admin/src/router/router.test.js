@@ -81,9 +81,9 @@ describe('router', () => {
         })
       })
 
-      describe('contribution-link', () => {
-        it('loads the "ContributionLink" component', async () => {
-          const component = await routes.find((r) => r.path === '/contribution-link').component()
+      describe('contribution-links', () => {
+        it('loads the "ContributionLinks" component', async () => {
+          const component = await routes.find((r) => r.path === '/contribution-links').component()
           expect(component.default.name).toBe('ContributionLinks')
         })
       })

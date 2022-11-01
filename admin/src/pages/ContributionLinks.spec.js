@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import ContributionLink from './ContributionLink.vue'
+import ContributionLinks from './ContributionLinks.vue'
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 
 const localVue = global.localVue
@@ -34,12 +34,12 @@ const mocks = {
   },
 }
 
-describe('ContributionLink', () => {
+describe('ContributionLinks', () => {
   // eslint-disable-next-line no-unused-vars
   let wrapper
 
   const Wrapper = () => {
-    return mount(ContributionLink, { localVue, mocks })
+    return mount(ContributionLinks, { localVue, mocks })
   }
 
   describe('mount', () => {
