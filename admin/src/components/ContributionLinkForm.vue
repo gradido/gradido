@@ -127,7 +127,7 @@ export default {
         return {}
       },
     },
-    editContributionLink: { type: Boolean, required: false },
+    editContributionLink: { type: Boolean, required: true },
   },
   data() {
     return {
@@ -185,11 +185,11 @@ export default {
           variables: variables,
         })
         .then((result) => {
-          this.link = this.editContributionLink
+          const link = this.editContributionLink
             ? result.data.updateContributionLink.link
             : result.data.createContributionLink.link
           this.toastSuccess(
-            this.editContributionLink ? this.$t('contributionLink.changeSaved') : this.link,
+            this.editContributionLink ? this.$t('contributionLink.changeSaved') : link,
           )
           this.onReset()
           this.$root.$emit('bv::toggle::collapse', 'newContribution')
