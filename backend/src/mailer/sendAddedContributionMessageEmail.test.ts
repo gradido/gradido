@@ -26,7 +26,7 @@ describe('sendAddedContributionMessageEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Bibi Bloxberg <bibi@bloxberg.de>`,
-      subject: 'Gradido Frage zur Schöpfung',
+      subject: 'Rückfrage zu Deinem Gemeinwohl-Beitrag',
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining('Peter Lustig') &&
