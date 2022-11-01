@@ -143,10 +143,8 @@ export default {
   },
   computed: {
     minimalDate() {
-      // sets the date to the 1st of the previous month
-      let date = new Date(this.maximalDate) // has to be a new object, because of 'setMonth' changes the objects date
-      date = new Date(date.setMonth(date.getMonth() - 1))
-      return new Date(date.getFullYear(), date.getMonth(), 1)
+      const date = new Date(this.maximalDate)
+      return new Date(date.setMonth(date.getMonth() - 1, 1))
     },
     disabled() {
       return (
