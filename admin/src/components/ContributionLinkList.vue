@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-link-list">
-    <b-table striped hover :items="items" :fields="fields">
+    <b-table :items="items" :fields="fields" striped hover stacked="lg">
       <template #cell(delete)="data">
         <b-button
           variant="danger"
