@@ -36,9 +36,19 @@
         </b-nav>
         <hr />
         <b-nav vertical class="w-100">
-          <b-nav-item to="#" class="mb-3">
-            <b-icon icon="toggle-off" aria-hidden="true"></b-icon>
+          <b-nav-item
+            @click="
+              lightmode = !lightmode
+              $emit('modeToggle')
+            "
+            class="mb-3"
+          >
+            <b-icon :icon="lightmode ? 'toggle-on' : 'toggle-off'" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.lightmode') }}</span>
+            <label for="checkbox" class="switch-label">
+              <span v-if="lightmode">🌙</span>
+              <span v-else>☀️</span>
+            </label>
           </b-nav-item>
           <b-nav-item to="/settings" class="mb-3">
             <b-icon icon="gear" aria-hidden="true"></b-icon>
@@ -60,6 +70,11 @@
 <script>
 export default {
   name: 'sidebar',
+  data() {
+    return {
+      lightmode: false,
+    }
+  },
 }
 </script>
 <style>
