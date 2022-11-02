@@ -94,6 +94,7 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "favourites": "Favourites",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -234,12 +235,14 @@
     "lightmode": "Lightmode",
     "logout": "Logout",
     "members": "Members",
+    "moon": "🌙",
     "overview": "Overview",
     "profile": "My profile",
     "send": "Send",
     "settings": "Settings",
+    "sun": "☀️",
     "support": "Support",
-    "top_stories": "Top Stories",
+    "topStories": "Top Stories",
     "transactions": "Transactions"
   },
   "qrCode": "QR Code",
