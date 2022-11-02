@@ -95,6 +95,7 @@
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",
