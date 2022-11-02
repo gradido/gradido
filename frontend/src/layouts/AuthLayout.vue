@@ -1,10 +1,5 @@
 <template>
   <div class="auth-template">
-    <auth-mobile-start
-      v-if="mobileStart"
-      class="d-inline d-lg-none zindex10000"
-      @set-mobile-start="setMobileStart"
-    />
     <div class="h-100 align-middle">
       <auth-navbar class="zindex10" />
 
@@ -20,11 +15,11 @@
           </b-link>
         </div>
       </div>
-      <b-row class="justify-content-md-center">
-        <b-col sm="12" md="8" offset-lg="6" lg="6" class="zindex1000">
-          <div class="right-content-box ml-3 ml-sm-4 mr-3 mr-sm-4">
+      <b-row class="justify-content-md-center justify-content-lg-end">
+        <b-col sm="12" md="8" lg="6" class="zindex1000">
+          <div class="ml-3 ml-sm-4 mr-3 mr-sm-4">
             <b-row class="d-none d-md-block d-lg-none">
-              <b-col class="mb--4 d-flex justify-content-end">
+              <b-col class="mb--4">
                 <auth-navbar-small />
               </b-col>
             </b-row>
@@ -74,20 +69,18 @@
                 </b-col>
               </b-row>
               <b-card-body class="">
-                <router-view @set-mobile-start="setMobileStart"></router-view>
+                <router-view></router-view>
               </b-card-body>
             </b-card>
           </div>
           <auth-footer v-if="!$route.meta.hideFooter" class="pr-5 mb-5"></auth-footer>
         </b-col>
       </b-row>
-      <!-- <auth-layout-gdd />-->
     </div>
   </div>
 </template>
 
 <script>
-import AuthMobileStart from '@/components/Auth/AuthMobileStart.vue'
 import AuthNavbar from '@/components/Auth/AuthNavbar.vue'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall.vue'
 import AuthCarousel from '@/components/Auth/AuthCarousel.vue'
@@ -98,7 +91,6 @@ import CONFIG from '@/config'
 export default {
   name: 'AuthLayout',
   components: {
-    AuthMobileStart,
     AuthNavbar,
     AuthNavbarSmall,
     AuthCarousel,
@@ -107,14 +99,10 @@ export default {
   },
   data() {
     return {
-      mobileStart: true,
       communityName: CONFIG.COMMUNITY_NAME,
     }
   },
   methods: {
-    setMobileStart(boolean) {
-      this.mobileStart = boolean
-    },
     setTextSize(size) {
       this.$refs.pageFontSize.style.fontSize = size + 'rem'
     },

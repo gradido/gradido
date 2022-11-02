@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="content-footer">
     <hr />
-    <b-row align-v="center" class="mt-4 justify-content-lg-between">
+    <div align-v="center" class="mt-4 mb-4 justify-content-lg-between">
       <b-col>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
@@ -25,7 +25,7 @@
           </a>
         </div>
       </b-col>
-    </b-row>
+    </div>
   </div>
 </template>
 <script>

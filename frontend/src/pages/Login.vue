@@ -43,7 +43,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login } from '@/graphql/queries'
+import { login } from '@/graphql/mutations'
 
 export default {
   name: 'Login',
@@ -78,14 +78,13 @@ export default {
         container: this.$refs.submitButton,
       })
       this.$apollo
-        .query({
-          query: login,
+        .mutate({
+          mutation: login,
           variables: {
             email: this.form.email,
             password: this.form.password,
             publisherId: this.$store.state.publisherId,
           },
-          fetchPolicy: 'network-only',
         })
         .then(async (result) => {
           const {

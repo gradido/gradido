@@ -43,6 +43,7 @@ const mocks = {
   $store: {
     state: {
       token: null,
+      tokenTime: null,
       email: 'bibi@bloxberg.de',
     },
   },
@@ -68,7 +69,7 @@ describe('TransactionLink', () => {
   }
 
   describe('mount', () => {
-    beforeEach(() => {
+    beforeAll(() => {
       jest.clearAllMocks()
       wrapper = Wrapper()
     })
@@ -214,148 +215,159 @@ describe('TransactionLink', () => {
       })
     })
 
-    describe('token in store and own link', () => {
-      beforeEach(() => {
+    describe('token in store', () => {
+      beforeAll(() => {
         mocks.$store.state.token = 'token'
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            queryTransactionLink: {
-              __typename: 'TransactionLink',
-              id: 92,
-              amount: '22',
-              memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
-              createdAt: '2022-03-17T16:10:28.000Z',
-              validUntil: transactionLinkValidExpireDate(),
-              redeemedAt: null,
-              deletedAt: null,
-              user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
-            },
-          },
-        })
-        wrapper = Wrapper()
       })
 
-      it('has a RedeemSelfCreator component', () => {
-        expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).exists()).toBe(true)
-      })
-
-      it('has a no redeem text', () => {
-        expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).text()).toContain(
-          'gdd_per_link.no-redeem',
-        )
-      })
-
-      it.skip('has a link to transaction page', () => {
-        expect(wrapper.find('a[target="/transactions"]').exists()).toBe(true)
-      })
-    })
-
-    describe('valid link', () => {
-      beforeEach(() => {
-        mocks.$store.state.token = 'token'
-        apolloQueryMock.mockResolvedValue({
-          data: {
-            queryTransactionLink: {
-              __typename: 'TransactionLink',
-              id: 92,
-              amount: '22',
-              memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
-              createdAt: '2022-03-17T16:10:28.000Z',
-              validUntil: transactionLinkValidExpireDate(),
-              redeemedAt: null,
-              deletedAt: null,
-              user: { firstName: 'Peter', publisherId: 0, email: 'peter@listig.de' },
-            },
-          },
-        })
-        wrapper = Wrapper()
-      })
-
-      it('has a RedeemValid component', () => {
-        expect(wrapper.findComponent({ name: 'RedeemValid' }).exists()).toBe(true)
-      })
-
-      it('has a button with redeem text', () => {
-        expect(wrapper.findComponent({ name: 'RedeemValid' }).find('button').text()).toBe(
-          'gdd_per_link.redeem',
-        )
-      })
-
-      describe('redeem link with success', () => {
-        let spy
-
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          apolloMutateMock.mockResolvedValue()
-          spy.mockImplementation(() => Promise.resolve(true))
-          await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
+      describe('sufficient token time in store', () => {
+        beforeAll(() => {
+          mocks.$store.state.tokenTime = Math.floor(Date.now() / 1000) + 20
         })
 
-        it('opens the modal', () => {
-          expect(spy).toBeCalledWith('gdd_per_link.redeem-text')
-        })
-
-        it('calls the API', () => {
-          expect(apolloMutateMock).toBeCalledWith(
-            expect.objectContaining({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'some-code',
+        describe('own link', () => {
+          beforeAll(() => {
+            apolloQueryMock.mockResolvedValue({
+              data: {
+                queryTransactionLink: {
+                  __typename: 'TransactionLink',
+                  id: 92,
+                  amount: '22',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  createdAt: '2022-03-17T16:10:28.000Z',
+                  validUntil: transactionLinkValidExpireDate(),
+                  redeemedAt: null,
+                  deletedAt: null,
+                  user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+                },
               },
-            }),
-          )
+            })
+            wrapper = Wrapper()
+          })
+
+          it('has a RedeemSelfCreator component', () => {
+            expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).exists()).toBe(true)
+          })
+
+          it('has a no redeem text', () => {
+            expect(wrapper.findComponent({ name: 'RedeemSelfCreator' }).text()).toContain(
+              'gdd_per_link.no-redeem',
+            )
+          })
+
+          it.skip('has a link to transaction page', () => {
+            expect(wrapper.find('a[target="/transactions"]').exists()).toBe(true)
+          })
         })
 
-        it('toasts a success message', () => {
-          expect(mocks.$t).toBeCalledWith('gdd_per_link.redeem')
-          expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.redeemed; ')
-        })
+        describe('valid link', () => {
+          beforeAll(() => {
+            apolloQueryMock.mockResolvedValue({
+              data: {
+                queryTransactionLink: {
+                  __typename: 'TransactionLink',
+                  id: 92,
+                  amount: '22',
+                  memo:
+                    'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                  createdAt: '2022-03-17T16:10:28.000Z',
+                  validUntil: transactionLinkValidExpireDate(),
+                  redeemedAt: null,
+                  deletedAt: null,
+                  user: { firstName: 'Peter', publisherId: 0, email: 'peter@listig.de' },
+                },
+              },
+            })
+            wrapper = Wrapper()
+          })
 
-        it('pushes the route to overview', () => {
-          expect(routerPushMock).toBeCalledWith('/overview')
+          it('has a RedeemValid component', () => {
+            expect(wrapper.findComponent({ name: 'RedeemValid' }).exists()).toBe(true)
+          })
+
+          it('has a button with redeem text', () => {
+            expect(wrapper.findComponent({ name: 'RedeemValid' }).find('button').text()).toBe(
+              'gdd_per_link.redeem',
+            )
+          })
+
+          describe('redeem link with success', () => {
+            beforeAll(async () => {
+              apolloMutateMock.mockResolvedValue()
+              await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
+            })
+
+            it('calls the API', () => {
+              expect(apolloMutateMock).toBeCalledWith(
+                expect.objectContaining({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: 'some-code',
+                  },
+                }),
+              )
+            })
+
+            it('toasts a success message', () => {
+              expect(mocks.$t).toBeCalledWith('gdd_per_link.redeem')
+              expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.redeemed; ')
+            })
+
+            it('pushes the route to overview', () => {
+              expect(routerPushMock).toBeCalledWith('/overview')
+            })
+          })
+
+          describe('redeem link with error', () => {
+            beforeAll(async () => {
+              apolloMutateMock.mockRejectedValue({ message: 'Oh Noo!' })
+              await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
+            })
+
+            it('toasts an error message', () => {
+              expect(toastErrorSpy).toBeCalledWith('Oh Noo!')
+            })
+
+            it('pushes the route to overview', () => {
+              expect(routerPushMock).toBeCalledWith('/overview')
+            })
+          })
         })
       })
 
-      describe('cancel redeem link', () => {
-        let spy
-
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          apolloMutateMock.mockResolvedValue()
-          spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
+      describe('no sufficient token time in store', () => {
+        beforeAll(() => {
+          mocks.$store.state.tokenTime = 1665125185
+          apolloQueryMock.mockResolvedValue({
+            data: {
+              queryTransactionLink: {
+                __typename: 'TransactionLink',
+                id: 92,
+                amount: '22',
+                memo:
+                  'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+                createdAt: '2022-03-17T16:10:28.000Z',
+                validUntil: transactionLinkValidExpireDate(),
+                redeemedAt: null,
+                deletedAt: null,
+                user: { firstName: 'Bibi', publisherId: 0, email: 'bibi@bloxberg.de' },
+              },
+            },
+          })
+          wrapper = Wrapper()
         })
 
-        it('does not call the API', () => {
-          expect(apolloMutateMock).not.toBeCalled()
+        it('has a RedeemLoggedOut component', () => {
+          expect(wrapper.findComponent({ name: 'RedeemLoggedOut' }).exists()).toBe(true)
         })
 
-        it('does not toasts a success message', () => {
-          expect(mocks.$t).not.toBeCalledWith('gdd_per_link.redeemed', { n: '22' })
-          expect(toastSuccessSpy).not.toBeCalled()
+        it('has a link to register with code', () => {
+          expect(wrapper.find('a[href="/register/some-code"]').exists()).toBe(true)
         })
 
-        it('does not push the route', () => {
-          expect(routerPushMock).not.toBeCalled()
-        })
-      })
-
-      describe('redeem link with error', () => {
-        let spy
-
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          apolloMutateMock.mockRejectedValue({ message: 'Oh Noo!' })
-          spy.mockImplementation(() => Promise.resolve(true))
-          await wrapper.findComponent({ name: 'RedeemValid' }).find('button').trigger('click')
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Oh Noo!')
-        })
-
-        it('pushes the route to overview', () => {
-          expect(routerPushMock).toBeCalledWith('/overview')
+        it('has a link to login with code', () => {
+          expect(wrapper.find('a[href="/login/some-code"]').exists()).toBe(true)
         })
       })
     })

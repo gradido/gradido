@@ -29,6 +29,7 @@
           per-page="perPage"
           :total-rows="rows"
           align="center"
+          :hide-ellipsis="true"
         ></b-pagination>
       </b-col>
       <b-col cols="12" lg="6" class="shadow p-3 mb-5 rounded bg-info">

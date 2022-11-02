@@ -1,6 +1,6 @@
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
+import { Contribution } from '@entity/Contribution'
 import Decimal from 'decimal.js-light'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '../const/const'
 
@@ -14,14 +14,21 @@ export const validateContribution = (
   amount: Decimal,
   creationDate: Date,
 ): void => {
-  logger.trace('isContributionValid', creations, amount, creationDate)
+  logger.trace('isContributionValid: ', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
+    logger.error(
+      'No information for available creations with the given creationDate=',
+      creationDate.toString(),
+    )
     throw new Error('No information for available creations for the given date')
   }
 
   if (amount.greaterThan(creations[index].toString())) {
+    logger.error(
+      `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
+    )
     throw new Error(
       `The amount (${amount} GDD) to be created exceeds the amount (${creations[index]} GDD) still available for this month.`,
     )
@@ -40,27 +47,29 @@ export const getUserCreations = async (
   await queryRunner.connect()
 
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
-  logger.trace('getUserCreations dateFilter', dateFilter)
+  logger.trace('getUserCreations dateFilter=', dateFilter)
 
-  const unionString = includePending
-    ? `
-    UNION
-      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}
-        AND confirmed_at IS NULL AND deleted_at IS NULL`
-    : ''
+  const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
+    .createQueryBuilder(Contribution, 'c')
+    .select('month(contribution_date)', 'month')
+    .addSelect('user_id', 'userId')
+    .addSelect('sum(amount)', 'sum')
+    .where(`user_id in (${ids.toString()})`)
+    .andWhere(`contribution_date >= ${dateFilter}`)
+    .andWhere('deleted_at IS NULL')
+    .andWhere('denied_at IS NULL')
+    .groupBy('month')
+    .addGroupBy('userId')
+    .orderBy('month', 'DESC')
 
-  const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
-      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TransactionTypeId.CREATION}
-        AND creation_date >= ${dateFilter}
-      ${unionString}) AS result
-    GROUP BY month, userId
-    ORDER BY date DESC
-  `)
+  if (!includePending) {
+    sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
+  }
+
+  const sumAmountContributionPerUserAndLast3Month =
+    await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
+
+  logger.trace(sumAmountContributionPerUserAndLast3Month)
 
   await queryRunner.release()
 
@@ -68,9 +77,9 @@ export const getUserCreations = async (
     return {
       id,
       creations: months.map((month) => {
-        const creation = unionQuery.find(
-          (raw: { month: string; id: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.id) === id,
+        const creation = sumAmountContributionPerUserAndLast3Month.find(
+          (raw: { month: string; userId: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
         return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
@@ -81,6 +90,7 @@ export const getUserCreations = async (
 export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
   logger.trace('getUserCreation', id, includePending)
   const creations = await getUserCreations([id], includePending)
+  logger.trace('getUserCreation  creations=', creations)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 
@@ -116,4 +126,14 @@ export const isStartEndDateValid = (
     logger.error(`The value of validFrom must before or equals the validTo!`)
     throw new Error(`The value of validFrom must before or equals the validTo!`)
   }
+}
+
+export const updateCreations = (creations: Decimal[], contribution: Contribution): Decimal[] => {
+  const index = getCreationIndex(contribution.contributionDate.getMonth())
+
+  if (index < 0) {
+    throw new Error('You cannot create GDD for a month older than the last three months.')
+  }
+  creations[index] = creations[index].plus(contribution.amount.toString())
+  return creations
 }

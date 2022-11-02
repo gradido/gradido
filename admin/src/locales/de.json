@@ -7,8 +7,8 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "deleteNow": "Automatische Creations wirklich löschen?",
-    "maximumAmount": "maximaler Betrag",
+    "deleted": "Automatische Schöpfung gelöscht!",
+    "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -20,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "täglich",
-        "hourly": "stündlich",
-        "monthly": "monatlich",
-        "once": "einmalig",
-        "weekly": "wöchentlich",
-        "yearly": "jährlich"
+        "once": "einmalig"
       }
     },
     "validFrom": "Startdatum",
@@ -35,6 +31,7 @@
   "creation_form": {
     "creation_failed": "Ausstehende Schöpfung für {email} konnte nicht erzeugt werden.",
     "creation_for": "Aktives Grundeinkommen für",
+    "deleteNow": "Möchtest du diesen Beitrag zur Gemeinschaft wirklich löschen?",
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
@@ -68,18 +65,37 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Abbrechen",
+    "submit": "Senden"
+  },
   "GDD": "GDD",
+  "help": {
+    "help": "Hilfe",
+    "transactionlist": {
+      "confirmed": "Wann wurde es von einem Moderator / Admin bestätigt.",
+      "periods": "Für welchen Zeitraum wurde vom Mitglied eingereicht.",
+      "state": "[PENDING = eingereicht, DELETED = gelöscht, IN_PROGRESS = im Dialog mit Moderator, DENIED = abgelehnt, CONFIRMED = bestätigt]",
+      "submitted": "Wann wurde es vom Mitglied eingereicht"
+    }
+  },
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
+    "colon": ":",
+    "equals": "=",
     "exclaim": "!",
     "pipe": "|",
     "plus": "+"
+  },
+  "message": {
+    "request": "Die Anfrage wurde gesendet."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
@@ -104,6 +120,16 @@
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "remove_all": "alle Nutzer entfernen",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "Aktive Mitglieder",
+    "deletedUsers": "Gelöschte Mitglieder",
+    "name": "Statistik",
+    "totalGradidoAvailable": "GDD insgesamt im Umlauf",
+    "totalGradidoCreated": "GDD insgesamt geschöpft",
+    "totalGradidoDecayed": "GDD insgesamt verfallen",
+    "totalGradidoUnbookedDecayed": "Ungebuchter GDD Verfall",
+    "totalUsers": "Mitglieder"
+  },
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
@@ -114,10 +140,11 @@
   },
   "transactionlist": {
     "amount": "Betrag",
-    "balanceDate": "Schöpfungsdatum",
-    "community": "Gemeinschaft",
-    "date": "Datum",
+    "confirmed": "Bestätigt",
     "memo": "Nachricht",
+    "period": "Zeitraum",
+    "state": "Status",
+    "submitted": "Eingereicht",
     "title": "Alle geschöpften Transaktionen für den Nutzer"
   },
   "undelete_user": "Nutzer wiederherstellen",

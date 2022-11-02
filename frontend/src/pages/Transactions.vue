@@ -1,7 +1,11 @@
 <template>
   <div class="pb-4">
     <b-tabs v-model="tabIndex" content-class="" justified>
-      <b-tab :title="`Gradido  (${$n(balance, 'decimal')} GDD)`" class="px-4">
+      <b-tab
+        :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
+        class="px-4"
+        @click="$router.replace('/transactions')"
+      >
         <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
 
         <gdd-transaction-list
@@ -46,6 +50,7 @@ export default {
     GdtTransactionList,
   },
   props: {
+    gdt: { type: Boolean, default: false },
     balance: { type: Number, default: 0 },
     GdtBalance: { type: Number, default: 0 },
     transactions: {
@@ -81,6 +86,8 @@ export default {
           this.transactionsGdt = listGDTEntries.gdtEntries
           this.transactionGdtCount = listGDTEntries.count
           window.scrollTo(0, 0)
+          // eslint-disable-next-line no-unused-expressions
+          this.$route.path === '/transactions' ? this.$router.replace('/gdt') : ''
         })
         .catch((error) => {
           this.transactionGdtCount = -1
@@ -98,9 +105,25 @@ export default {
       return this.$t('gdt.gdt')
     },
   },
+  created() {
+    if (this.gdt) {
+      this.tabIndex = 1
+      this.updateGdt()
+    } else {
+      this.tabIndex = 0
+    }
+  },
   watch: {
     currentPage() {
       this.updateGdt()
+    },
+    gdt() {
+      if (this.gdt) {
+        this.tabIndex = 1
+        this.updateGdt()
+      } else {
+        this.tabIndex = 0
+      }
     },
   },
 }
