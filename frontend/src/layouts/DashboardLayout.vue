@@ -1,6 +1,47 @@
 <template>
-  <div class="main-page bg-default">
-    <div class="position-absolute w-100 h-100 bg-default">
+  <div class="main-page bg-default h-100">
+    <div v-if="skeleton">
+      <b-row class="text-center">
+        <b-col>
+          <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
+        </b-col>
+        <b-col>
+          <div class="b-right m-4">
+            <b-row>
+              <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
+              <b-col>
+                <b-skeleton></b-skeleton>
+                <b-skeleton></b-skeleton>
+              </b-col>
+            </b-row>
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="text-center mt-5">
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+      </b-row>
+    </div>
+    <div v-else class="position-absolute w-100 h-100 bg-default">
       <!--<navbar
         class="main-navbar"
         :balance="balance"
@@ -125,12 +166,18 @@ export default {
       tunneledEmail: null,
       hamburger: true,
       darkMode: false,
+      skeleton: true,
     }
   },
   provide() {
     return {
       getTunneledEmail: () => this.tunneledEmail,
     }
+  },
+  created() {
+    setTimeout(() => {
+      this.skeleton = false
+    }, 1500)
   },
   methods: {
     async logout() {
@@ -221,6 +268,9 @@ export default {
 }
 </script>
 <style>
+.b-right {
+  text-align: -webkit-right;
+}
 .content-gradido {
   display: inline-flex;
   width: 100%;

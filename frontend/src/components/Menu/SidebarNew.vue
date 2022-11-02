@@ -10,7 +10,7 @@
           </b-nav-item>
           <b-nav-item to="/storys" class="mb-3">
             <b-icon icon="card-heading" aria-hidden="true"></b-icon>
-            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.top_stories') }}</span>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.topStories') }}</span>
           </b-nav-item>
           <b-nav-item to="/favourites" class="mb-3">
             <b-icon icon="bookmark" aria-hidden="true"></b-icon>
@@ -46,8 +46,8 @@
             <b-icon :icon="lightmode ? 'toggle-on' : 'toggle-off'" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.lightmode') }}</span>
             <label for="checkbox" class="switch-label">
-              <span v-if="lightmode">🌙</span>
-              <span v-else>☀️</span>
+              <span v-if="lightmode">{{ $t('navigation.moon') }}</span>
+              <span v-else>{{ $t('navigation.sun') }}</span>
             </label>
           </b-nav-item>
           <b-nav-item to="/settings" class="mb-3">

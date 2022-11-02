@@ -239,9 +239,13 @@
     "send": "Send",
     "settings": "Settings",
     "support": "Support",
-    "top_stories": "Top Stories",
-    "transactions": "Transactions"
+    "topStories": "Top Stories",
+    "transactions": "Transactions",
+    "moon":"🌙",
+    "sun":"☀️"
   },
+  "favourites": "Favourites",
+  "topStorys":"Top Storys",
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
