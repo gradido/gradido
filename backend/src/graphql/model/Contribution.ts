@@ -12,6 +12,7 @@ export class Contribution {
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
+    this.clientRequestTime = contribution.clientRequestTime
     this.deletedAt = contribution.deletedAt
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
@@ -37,6 +38,9 @@ export class Contribution {
 
   @Field(() => Date)
   createdAt: Date
+
+  @Field(() => String, { nullable: true })
+  clientRequestTime: string
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
