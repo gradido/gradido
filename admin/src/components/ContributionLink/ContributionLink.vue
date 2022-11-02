@@ -35,8 +35,8 @@
   </div>
 </template>
 <script>
-import ContributionLinkForm from './ContributionLinkForm.vue'
-import ContributionLinkList from './ContributionLinkList.vue'
+import ContributionLinkForm from '../ContributionLink/ContributionLinkForm.vue'
+import ContributionLinkList from '../ContributionLink/ContributionLinkList.vue'
 
 export default {
   name: 'ContributionLink',
