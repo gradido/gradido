@@ -28,8 +28,8 @@ export class UserRepository extends Repository<DbUser> {
   ): Promise<[DbUser[], number]> {
     const query = this.createQueryBuilder('user')
       .select(select)
-      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .withDeleted()
+      .leftJoinAndSelect('user.emailContact', 'emailContact')
       .where(
         new Brackets((qb) => {
           qb.where(
