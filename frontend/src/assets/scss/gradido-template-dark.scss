@@ -4,8 +4,8 @@ $mode-toggle-bg: #262626;
 // _dark-mode.scss
 #app {
   &.dark-mode {
-      background-color:  black;
-      color: #fff;
+    background-color: black;
+    color: #fff;
   }
 }
 
@@ -13,7 +13,7 @@ $mode-toggle-bg: #262626;
 .navbar-light,
 .navbar-nav,
 .nav-link {
-    &.dark-mode {
-        color: #a7ffa9;
-    }
- }
+  &.dark-mode {
+    color: #a7ffa9;
+  }
+}
