@@ -241,11 +241,10 @@
     "support": "Support",
     "topStories": "Top Stories",
     "transactions": "Transaktionen",
-    "moon":"🌙",
-    "sun":"☀️"
+    "moon": "🌙",
+    "sun": "☀️"
   },
   "favourites": "Favouriten",
-  "topStorys":"Beiträge",
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
