@@ -74,10 +74,7 @@ export class TransactionLinkResolver {
     const holdAvailableAmount = amount.minus(calculateDecay(amount, createdDate, validUntil).decay)
 
     // validate amount
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
-    if (!sendBalance) {
-      throw new Error("user hasn't enough GDD or amount is < 0")
-    }
+    await calculateBalance(user.id, holdAvailableAmount, createdDate)
 
     const transactionLink = dbTransactionLink.create()
     transactionLink.userId = user.id
@@ -261,7 +258,7 @@ export class TransactionLinkResolver {
           }
         }
 
-        const creations = await getUserCreation(user.id, false)
+        const creations = await getUserCreation(user.id)
         logger.info('open creations', creations)
         validateContribution(creations, contributionLink.amount, now)
         const contribution = new DbContribution()

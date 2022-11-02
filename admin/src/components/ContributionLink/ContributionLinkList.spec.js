@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinkList from './ContributionLinkList.vue'
-import { toastSuccessSpy, toastErrorSpy } from '../../test/testSetup'
+import { toastSuccessSpy, toastErrorSpy } from '../../../test/testSetup'
 // import { deleteContributionLink } from '../graphql/deleteContributionLink'
 
 const localVue = global.localVue
