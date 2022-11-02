@@ -35,7 +35,12 @@
               @admin="admin"
               @logout="logout"
             /> -->
-            <sidebar-new class="main-sidebar" @admin="admin" @logout="logout" />
+            <sidebar-new
+              class="main-sidebar"
+              @admin="admin"
+              @logout="logout"
+              @modeToggle="modeToggle"
+            />
           </b-col>
           <b-col
             cols="12"
@@ -119,6 +124,7 @@ export default {
       visible: false,
       tunneledEmail: null,
       hamburger: true,
+      darkMode: false,
     }
   },
   provide() {
@@ -186,6 +192,30 @@ export default {
     toogleMobilMenu() {
       this.$refs.sideMenu.classList.toggle('d-none')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
+    },
+    dark() {
+      document.getElementById('app').classList.add('dark-mode')
+      document.querySelector('#app a').classList.add('dark-mode')
+      this.darkMode = true
+    },
+
+    light() {
+      document.getElementById('app').classList.remove('dark-mode')
+      document.querySelector('#app a').classList.remove('dark-mode')
+      this.darkMode = false
+    },
+
+    modeToggle() {
+      if (this.darkMode || document.getElementById('app').classList.contains('dark-mode')) {
+        this.light()
+      } else {
+        this.dark()
+      }
+    },
+  },
+  computed: {
+    darkDark() {
+      return this.darkMode && 'darkmode-toggled'
     },
   },
 }
