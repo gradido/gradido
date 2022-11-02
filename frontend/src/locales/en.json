@@ -94,6 +94,7 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "favourites": "Favourites",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -228,23 +229,22 @@
   },
   "navigation": {
     "admin_area": "Admin Area",
-    "favourites": "Favourites",
-    "lightmode": "Lightmode",
     "community": "Community",
+    "favourites": "Favourites",
     "info": "Information",
+    "lightmode": "Lightmode",
     "logout": "Logout",
     "members": "Members",
+    "moon": "🌙",
     "overview": "Overview",
     "profile": "My profile",
     "send": "Send",
     "settings": "Settings",
+    "sun": "☀️",
     "support": "Support",
     "topStories": "Top Stories",
-    "transactions": "Transactions",
-    "moon": "🌙",
-    "sun": "☀️"
+    "transactions": "Transactions"
   },
-  "favourites": "Favourites",
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
