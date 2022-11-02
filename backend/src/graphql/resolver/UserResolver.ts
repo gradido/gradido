@@ -316,7 +316,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGIN])
-  @Query(() => User)
+  @Mutation(() => User)
   @UseMiddleware(klicktippNewsletterStateMiddleware)
   async login(
     @Args() { email, password, publisherId }: UnsecureLoginArgs,
@@ -351,7 +351,7 @@ export class UserResolver {
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
-    logger.debug('login credentials valid...')
+    logger.debug('validation of login credentials successful...')
 
     const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
@@ -377,7 +377,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.LOGOUT])
-  @Query(() => String)
+  @Mutation(() => String)
   async logout(): Promise<boolean> {
     // TODO: We dont need this anymore, but might need this in the future in oder to invalidate a valid JWT-Token.
     // Furthermore this hook can be useful for tracking user behaviour (did he logout or not? Warn him if he didn't on next login)
@@ -396,6 +396,7 @@ export class UserResolver {
     @Args()
     { email, firstName, lastName, language, publisherId, redeemCode = null }: CreateUserArgs,
   ): Promise<User> {
+    logger.addContext('user', 'unknown')
     logger.info(
       `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode =${redeemCode})`,
     )
@@ -548,6 +549,7 @@ export class UserResolver {
       }
 
       await queryRunner.commitTransaction()
+      logger.addContext('user', dbUser.id)
     } catch (e) {
       logger.error(`error during create user with ${e}`)
       await queryRunner.rollbackTransaction()
@@ -571,6 +573,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
+    logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
     const user = await findUserByEmail(email).catch(() => {

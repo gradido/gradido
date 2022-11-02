@@ -24,12 +24,14 @@
     "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
-    "openContributionLinks": "open Contribution links list",
+    "noOpenContributionLinkText": "Currently there are no automatic creations.",
+    "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
   },
+  "contact": "Contact",
   "contribution": {
     "activity": "Activity",
     "alert": {

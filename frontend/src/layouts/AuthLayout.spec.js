@@ -19,6 +19,7 @@ describe('AuthLayout', () => {
       meta: {
         requiresAuth: false,
       },
+      params: {},
     },
   }
 

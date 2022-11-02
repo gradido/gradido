@@ -1,4 +1,3 @@
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
@@ -21,7 +20,7 @@ export const validateContribution = (
   if (index < 0) {
     logger.error(
       'No information for available creations with the given creationDate=',
-      creationDate,
+      creationDate.toString(),
     )
     throw new Error('No information for available creations for the given date')
   }
@@ -50,27 +49,27 @@ export const getUserCreations = async (
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
   logger.trace('getUserCreations dateFilter=', dateFilter)
 
-  const unionString = includePending
-    ? `
-    UNION
-      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
-        WHERE user_id IN (${ids.toString()})
-        AND contribution_date >= ${dateFilter}
-        AND confirmed_at IS NULL AND deleted_at IS NULL`
-    : ''
-  logger.trace('getUserCreations unionString=', unionString)
+  const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
+    .createQueryBuilder(Contribution, 'c')
+    .select('month(contribution_date)', 'month')
+    .addSelect('user_id', 'userId')
+    .addSelect('sum(amount)', 'sum')
+    .where(`user_id in (${ids.toString()})`)
+    .andWhere(`contribution_date >= ${dateFilter}`)
+    .andWhere('deleted_at IS NULL')
+    .andWhere('denied_at IS NULL')
+    .groupBy('month')
+    .addGroupBy('userId')
+    .orderBy('month', 'DESC')
 
-  const unionQuery = await queryRunner.manager.query(`
-    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
-      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
-        WHERE user_id IN (${ids.toString()})
-        AND type_id = ${TransactionTypeId.CREATION}
-        AND creation_date >= ${dateFilter}
-      ${unionString}) AS result
-    GROUP BY month, userId
-    ORDER BY date DESC
-  `)
-  logger.trace('getUserCreations unionQuery=', unionQuery)
+  if (!includePending) {
+    sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
+  }
+
+  const sumAmountContributionPerUserAndLast3Month =
+    await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
+
+  logger.trace(sumAmountContributionPerUserAndLast3Month)
 
   await queryRunner.release()
 
@@ -78,9 +77,9 @@ export const getUserCreations = async (
     return {
       id,
       creations: months.map((month) => {
-        const creation = unionQuery.find(
-          (raw: { month: string; id: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.id) === id,
+        const creation = sumAmountContributionPerUserAndLast3Month.find(
+          (raw: { month: string; userId: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
         return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),

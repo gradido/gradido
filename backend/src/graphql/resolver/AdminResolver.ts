@@ -64,6 +64,15 @@ import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import {
+  Event,
+  EventAdminContributionCreate,
+  EventAdminContributionDelete,
+  EventAdminContributionUpdate,
+  EventContributionConfirm,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
 import { ContributionListResult } from '../model/Contribution'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -145,11 +154,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // administrator user changes own role?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Administrator can not change his own role!')
       throw new Error('Administrator can not change his own role!')
     }
     // change isAdmin
@@ -158,6 +169,7 @@ export class AdminResolver {
         if (isAdmin === true) {
           user.isAdmin = new Date()
         } else {
+          logger.error('User is already a usual user!')
           throw new Error('User is already a usual user!')
         }
         break
@@ -165,6 +177,7 @@ export class AdminResolver {
         if (isAdmin === false) {
           user.isAdmin = null
         } else {
+          logger.error('User is already admin!')
           throw new Error('User is already admin!')
         }
         break
@@ -183,11 +196,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Moderator can not delete his own account!')
       throw new Error('Moderator can not delete his own account!')
     }
     // soft-delete user
@@ -201,9 +216,11 @@ export class AdminResolver {
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     if (!user.deletedAt) {
+      logger.error('User is not deleted')
       throw new Error('User is not deleted')
     }
     await user.recover()
@@ -240,6 +257,8 @@ export class AdminResolver {
       logger.error('Contribution could not be saved, Email is not activated')
       throw new Error('Contribution could not be saved, Email is not activated')
     }
+
+    const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
     const creations = await getUserCreation(emailContact.userId)
@@ -258,7 +277,17 @@ export class AdminResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
+
     await DbContribution.save(contribution)
+
+    const eventAdminCreateContribution = new EventAdminContributionCreate()
+    eventAdminCreateContribution.userId = moderator.id
+    eventAdminCreateContribution.amount = amount
+    eventAdminCreateContribution.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionCreate(eventAdminCreateContribution),
+    )
+
     return getUserCreation(emailContact.userId)
   }
 
@@ -319,7 +348,6 @@ export class AdminResolver {
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull() },
     })
-
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
       throw new Error('No contribution found to given id.')
@@ -337,8 +365,12 @@ export class AdminResolver {
 
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id)
+
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
+    } else {
+      logger.error('Currently the month of the contribution cannot change.')
+      throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
@@ -350,12 +382,22 @@ export class AdminResolver {
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
     await DbContribution.save(contributionToUpdate)
+
     const result = new AdminUpdateContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
     result.creation = await getUserCreation(user.id)
+
+    const event = new Event()
+    const eventAdminContributionUpdate = new EventAdminContributionUpdate()
+    eventAdminContributionUpdate.userId = user.id
+    eventAdminContributionUpdate.amount = amount
+    eventAdminContributionUpdate.contributionId = contributionToUpdate.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
+    )
 
     return result
   }
@@ -397,15 +439,36 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async adminDeleteContribution(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async adminDeleteContribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found for given id.')
     }
+    const moderator = getUser(context)
+    if (
+      contribution.contributionType === ContributionType.USER &&
+      contribution.userId === moderator.id
+    ) {
+      throw new Error('Own contribution can not be deleted as admin')
+    }
     contribution.contributionStatus = ContributionStatus.DELETED
+    contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
+
+    const event = new Event()
+    const eventAdminContributionDelete = new EventAdminContributionDelete()
+    eventAdminContributionDelete.userId = contribution.userId
+    eventAdminContributionDelete.amount = contribution.amount
+    eventAdminContributionDelete.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionDelete(eventAdminContributionDelete),
+    )
+
     return !!res
   }
 
@@ -501,6 +564,13 @@ export class AdminResolver {
     } finally {
       await queryRunner.release()
     }
+
+    const event = new Event()
+    const eventContributionConfirm = new EventContributionConfirm()
+    eventContributionConfirm.userId = user.id
+    eventContributionConfirm.amount = contribution.amount
+    eventContributionConfirm.contributionId = contribution.id
+    await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     return true
   }
 
@@ -562,6 +632,13 @@ export class AdminResolver {
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
+    } else {
+      const event = new Event()
+      const eventSendConfirmationEmail = new EventSendConfirmationEmail()
+      eventSendConfirmationEmail.userId = user.id
+      await eventProtocol.writeEvent(
+        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
+      )
     }
 
     return true
@@ -675,6 +752,7 @@ export class AdminResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   ): Promise<ContributionLinkList> {
     const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
       order: { createdAt: order },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
@@ -753,9 +831,11 @@ export class AdminResolver {
         relations: ['user'],
       })
       if (!contribution) {
+        logger.error('Contribution not found')
         throw new Error('Contribution not found')
       }
       if (contribution.userId === user.id) {
+        logger.error('Admin can not answer on own contribution')
         throw new Error('Admin can not answer on own contribution')
       }
       if (!contribution.user.emailContact) {

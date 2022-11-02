@@ -9,7 +9,6 @@
     "cycle": "Cycle",
     "deleted": "Automatic creation deleted!",
     "deleteNow": "Do you really delete automatic creations '{name}'?",
-    "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -21,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "daily",
-        "hourly": "hourly",
-        "monthly": "monthly",
-        "once": "once",
-        "weekly": "weekly",
-        "yearly": "yearly"
+        "once": "once"
       }
     },
     "validFrom": "Start-date",
@@ -100,6 +95,7 @@
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",

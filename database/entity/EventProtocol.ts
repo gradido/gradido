@@ -1,1 +1,1 @@
-export { EventProtocol } from './0043-add_event_protocol_table/EventProtocol'
+export { EventProtocol } from './0050-add_messageId_to_event_protocol/EventProtocol'

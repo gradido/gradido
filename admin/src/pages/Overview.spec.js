@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils'
 import Overview from './Overview.vue'
-import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import { communityStatistics } from '@/graphql/communityStatistics.js'
 import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
@@ -36,27 +35,6 @@ const apolloQueryMock = jest
       },
     },
   })
-  .mockResolvedValueOnce({
-    data: {
-      listContributionLinks: {
-        links: [
-          {
-            id: 1,
-            name: 'Meditation',
-            memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-            amount: '200',
-            validFrom: '2022-04-01',
-            validTo: '2022-08-01',
-            cycle: 'täglich',
-            maxPerCycle: '3',
-            maxAmountPerMonth: 0,
-            link: 'https://localhost/redeem/CL-1a2345678',
-          },
-        ],
-        count: 1,
-      },
-    },
-  })
   .mockResolvedValue({
     data: {
       listUnconfirmedContributions: [
@@ -78,6 +56,7 @@ const storeCommitMock = jest.fn()
 const mocks = {
   $t: jest.fn((t) => t),
   $n: jest.fn((n) => n),
+  $d: jest.fn((d) => d),
   $apollo: {
     query: apolloQueryMock,
   },
@@ -113,14 +92,6 @@ describe('Overview', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: communityStatistics,
-        }),
-      )
-    })
-
-    it('calls listContributionLinks', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listContributionLinks,
         }),
       )
     })

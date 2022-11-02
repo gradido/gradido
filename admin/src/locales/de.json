@@ -9,7 +9,6 @@
     "cycle": "Zyklus",
     "deleted": "Automatische Schöpfung gelöscht!",
     "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
-    "maximumAmount": "maximaler Betrag",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -21,11 +20,7 @@
     "options": {
       "cycle": {
         "daily": "täglich",
-        "hourly": "stündlich",
-        "monthly": "monatlich",
-        "once": "einmalig",
-        "weekly": "wöchentlich",
-        "yearly": "jährlich"
+        "once": "einmalig"
       }
     },
     "validFrom": "Startdatum",
@@ -100,6 +95,7 @@
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
