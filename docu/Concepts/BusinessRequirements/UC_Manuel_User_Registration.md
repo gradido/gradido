@@ -43,7 +43,7 @@ Sobald der gewünschte User-Account in der Liste gefunden wurde, kann der Detail
 
 Der geöffnete Detail-Dialog zeigt einen neuen Reiter "Registrierung", in dem die Informationen über das User-Konto stehen: wann wurde es erzeugt und wie ist der Status der "Konto-Aktivierung" und der "Email-Bestätigung".
 
-Der Admin kann nun entweder manuell ein One-Time-Passwort in das Eingabefeld eingeben oder über den "erzeugen"-Button eines kreieren lassen. Dieses wird dann über den Button "speichern & Konto aktivieren" in die Datenbank geschrieben, wobei damit gleichzeitig der Status des User-Kontos auf aktiviert gesetzt wird.
+Der Admin kann nun entweder manuell ein One-Time-Passwort in das Eingabefeld eingeben oder über den "erzeugen"-Button eines kreieren lassen. Dieses wird dann über den Button "speichern & Konto aktivieren" in die Datenbank geschrieben, wobei damit gleichzeitig der Status des User-Kontos auf *aktiviert* gesetzt wird.
 
 Der Admin kann nun das One-Time-Passwort dem User mitteilen, so dass dieser sich über den Login-Prozess in seinen Account ohne vorherige Email-Bestätigung anmelden kann. Der Login-Prozess mit einem One-Time-Passwort muss nach erfolgreicher Anmeldung den User sofort auf den Passwort-Ändern-Dialog führen, um den User direkt die Möglichkeit zu geben sein eigenes Passwort zu vergeben.
 
@@ -63,7 +63,7 @@ Im Admin-Interface wird im Menü ein neuer Reiter "Registrierung" angezeigt. Mit
 
 ![img](./image/Admin-CreateUser.png)
 
-Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern & Konto aktivieren"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert und der Konto-Status auf aktiviert gesetzt.
+Dabei kann der Moderator die Attribute Vorname, Nachname, Email-Adresse und ein One-Time-Passwort eingeben. Mit dem "speichern & Konto aktivieren"-Button wird im Backend zunächst eine Prüfung durchgeführt, ob die eingegebene Email-Adresse ggf. schon von einem anderen existierenden User verwendet wird. Sollte dies der Fall sein, dann wird eine entsprechend aussagekräftige Fehlermeldung ausgegeben und die zuvor eingegebenen Daten werden in dem "Manuelle User-Registrierung" erneut angezeigt. Sind alle Daten soweit valide, dann werden die eingegebenen Daten in der Datenbank gespeichert und der Konto-Status auf *aktiviert* gesetzt.
 
 Es wird auch hier eine Email zur Emailadress-Bestätigung verschickt. Der Status "email_checked" bleibt auf false, weil der User seine Confirmation-Email zwar bekommen, aber noch nicht bestätigt hat oder eben nicht zeitnah bestätigen kann. Durch das One-Time-Passwort, das der Moderator dem User mitteilen kann, hat der User direkt die Möglichkeit sich über den Login-Prozess anzumelden, ohne vorher den Email-Bestätigungslink aktivieren zu müssen.
 
@@ -131,7 +131,7 @@ Mit den zuvor beschriebenen Datenbankänderungen muss eine Datenbankmigration au
 * ändern der bestehenden `users`-Tabelle wie oben beschrieben mit folgenden Default-Initialisierungen
   * privacy_policy_at = created_at
   * passwort_encryption_type = Enum `PasswordEncryptionType.EMAIL` oder Wert=1
-* Insert pro Eintrag aus der `users`-Tabelle jeweils einen Eintrag in die `accounts`-Tabelle mit folgenden Initialsisierungen:
+* Insert pro Eintrag aus der `users`-Tabelle jeweils einen Eintrag in die `accounts`-Tabelle mit folgenden Initialisierungen:
   * `accounts.user_id` = `users.id`
   * `accounts.type` = Enum `AccountType.AGE`
   * `accounts.created_at` = `users.created_at`
@@ -182,7 +182,7 @@ Dieser neue Service benötigt folgende Signatur als Eingabeparameter:
   * Email
   * vorherige userID
 * das neue UserContact-Objekt speichern
-* die erhaltene ID des neuen UserContact-Eintrags in den vorher erzeugten User-Eintrag als emailContactID schreiben
+* die erhaltene ID des neuen UserContact-Eintrags in den vorher erzeugten User-Eintrag als `emailId` schreiben
 * einen EventProtokoll-Eintrag schreiben vom Typ *EventAdminRegister*, der neu anzulegen ist und von `EventBasicUserId `abgeleitet wird, aber zusätzlich die *UserId* des Moderators in das Attribut `xUserId `einträgt.
 * die Confirmation-Email zur Bestätigung der Email-Adresse verschicken
 * alle fachlich sonst notwendigen Eventprotokolle schreiben
@@ -220,7 +220,28 @@ Mit erfolgreicher Beendigung des Login-Service wird der User mit seinen aktuelle
 
 #### changePassword
 
-um das *One-Time-Passwort* als optionales Argument erweitert werden. Sobald dieses Argument
+Im *UserResolver* ist der neue Service *changePassword* zu erstellen. Dieser bekommt als Eingabesignatur folgende Parameter:
+
+| Argument      | Type    | Bezeichnung                                                                               |
+| ------------- | ------- | ----------------------------------------------------------------------------------------- |
+| userId        | number  | eindeutiger Identifier des Users, der zuvor beim Login an das Frontend übermittelt wurde |
+| oldPassword   | String  | altes Passwort des angemeldeten Users                                                     |
+| newPassword   | String  | neues Passwort des angemeldeten Users                                                     |
+| privacyPolicy | boolean | optional: Flag zur Zustimmung der Datenschutzerklärung                                  |
+
+Die übergebenen Parameter müssen im ersten Schritt auf ihre Validität untersucht werden. Das heißt sind alle mandatorischen Parameter übergeben und entsprechen ihre Werte den formellen Anforderungen (z.B. sind die Passworte gemäß den Passwort-Regeln).
+
+Mit der übergebenen *userId* wird der zugehörige User aus der Datenbank ermittelt. Bevor die eigentliche Logik zur Passwort-Änderung durchgeführt wird, erfolgt zuvor noch eine Prüfung auf den Userkonto-Status im Attribut `accounts.activated`. Nur wenn das Userkonto im Status *aktiviert* - per One-Time-Passwort durch den Moderator oder per Email-Confirmation durch den User selbst - ist, kann das Passwort geändert werden.
+
+In Abhängigkeit des im User gespeicherten Typs der Passwort-Verschlüsselung, muss das übergebene *oldPassword* gegen die im User gespeicherten Passwort-Daten überprüft werden:
+
+* *EncryptionType = One-Time-Passwort:* das im User gespeicherte Passwort muss dem übergebenen *oldPassword* entsprechen. Je nach technischer Implementierung könnte ggf. eine Entschlüsselungslogik auf das gespeicherte Passwort notwendig sein, da ein Passwort niemals im Klartext in der Datenbank gespeichert sein soll. Das heißt das im User gespeicherte Passwort muss nach einer evtl. Entschlüsselung mit dem übergebenen Passwort übereinstimmen. Ein One-Way-Hashing ist zwar sicherer aber reicht hier nicht, da das One-Time-Passwort im Admin-Interface im Klartext angezeigt werden können muss.
+* *EncryptionType = EMAIL:* das im User gespeicherte Passwort wurde mit der im User gespeicherten Email als Salt verschlüsselt und als EmailHash gespeichert. Daher muss mit der im User gespeichert Email und dem übergebenen *oldPassword* ein EmailHash erzeugt werden, um diesen mit dem im User gespeicherten Emailhash zu vergleichen.
+* *EncryptionType = GradidoID:* das im User gespeicherte Passwort wurde mit der im User gespeicherten *GradidoID* als Salt verschlüsselt und als EmailHash gespeichert. Daher muss mit der im User gespeicherten *GradidoID* und dem übergebenen *oldPassword* ein EmailHash erzeugt werden, um diesen mit dem im User gespeicherten EmailHash zu vergleichen.
+
+Ist die Überprüfung des alten Passwortes in Abhängigkeit des Verschlüsselungstyps erfolgreich, dann kann mit der Verschlüsselung des *newPassword* weiter gemacht werden. Als Verschlüsselungstyp wird immer der höchsten Wert des Verschlüsselungs-Enums eingesetzt, auch wenn zuvor ein niedrigerer Typ verwendet wurde. Damit erfolgt immer ein implizites Upgrade auf den aktuellsten Verschlüsselungstyp. Somit wird das übergebene *newPassword* mit der *GradidoID* des Users zu einem EmailHash verschlüsselt und zusammen mit dem Attribut `user.password_encryption_type` = `PasswordEncryptionType.GRADIDO_ID` in die Datenbank geschrieben. Je nach Wert des übergebenen Flags `privacyPolicy`  wird im User das Attribut `privacy_policy_at` mit dem aktuellen Zeitpunkt ebenfalls aktualisiert.
+
+War die Passwort-Änderung erfolgreich wird ein boolean=TRUE zurückgegeben, ansonsten eine Exception mit aussagekräftiger Fehlermeldung.
 
 ## Brainstorming von Bernd
 
