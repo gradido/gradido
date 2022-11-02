@@ -127,8 +127,6 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   )
   await queryFn('ALTER TABLE `transactions` DROP INDEX IF EXISTS transactions_balance_date_IDX;')
 
-
-
   await queryFn(
     'ALTER TABLE gradido_community.transactions DROP INDEX IF EXISTS transactions_balance_date_IDX;',
   )
