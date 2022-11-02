@@ -94,6 +94,7 @@
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "favourites": "Favouriten",
   "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
@@ -234,17 +235,16 @@
     "lightmode": "Lightmode",
     "logout": "Abmelden",
     "members": "Mitglieder",
+    "moon": "🌙",
     "overview": "Übersicht",
     "profile": "Mein Profil",
     "send": "Senden",
     "settings": "Einstellung",
+    "sun": "☀️",
     "support": "Support",
     "topStories": "Top Stories",
-    "transactions": "Transaktionen",
-    "moon": "🌙",
-    "sun": "☀️"
+    "transactions": "Transaktionen"
   },
-  "favourites": "Favouriten",
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
