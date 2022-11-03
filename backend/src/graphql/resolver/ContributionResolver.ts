@@ -220,16 +220,14 @@ export class ContributionResolver {
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
     let changeMessage = ''
+    if (contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()) {
+      changeMessage += contributionToUpdate.contributionDate + '\n'
+    }
     if (contributionToUpdate.memo !== memo) {
-      changeMessage += contributionToUpdate.memo + '\n'
+      changeMessage += '---\n' + contributionToUpdate.memo + '\n'
     }
     if (contributionToUpdate.amount.toFixed(6) !== amount.toFixed(6)) {
-      changeMessage += contributionToUpdate.amount + '\n'
-    }
-    const isDateDifferent =
-      contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()
-    if (isDateDifferent) {
-      changeMessage += contributionToUpdate.contributionDate
+      changeMessage += '---\n' + contributionToUpdate.amount
     }
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
