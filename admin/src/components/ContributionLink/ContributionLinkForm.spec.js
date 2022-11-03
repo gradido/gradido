@@ -9,6 +9,7 @@ global.alert = jest.fn()
 
 const propsData = {
   contributionLinkData: {},
+  editContributionLink: false,
 }
 const apolloMutateMock = jest.fn().mockResolvedValue()
 
