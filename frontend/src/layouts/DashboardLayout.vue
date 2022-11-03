@@ -1,5 +1,5 @@
 <template>
-  <div class="main-page bg-default h-100">
+  <div class="main-page h-100">
     <div v-if="skeleton">
       <b-row class="text-center">
         <b-col>
@@ -41,7 +41,7 @@
         </b-col>
       </b-row>
     </div>
-    <div v-else class="position-absolute w-100 h-100 bg-default">
+    <div v-else class="position-absolute w-100 h-100">
       <!--<navbar
         class="main-navbar"
         :balance="balance"
@@ -108,7 +108,7 @@
             <!--rechtebox -->
           </b-col>
           <b-col cols="12" lg="7" md="11" offset="0" offset-lg="2" offset-md="1" order-1>
-            <div class="main-content">
+            <div class="main-content mt-3">
               <fade-transition :duration="200" origin="center top" mode="out-in">
                 <router-view
                   ref="router-view"

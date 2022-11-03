@@ -9,12 +9,12 @@ body {
   cursor: pointer;
 }
 
-.bg-default {
-  background-color: rgba(245 245 245 / 75%) !important;
-}
+// .bg-default {
+//   background-color: rgba(245 245 245 / 75%) !important;
+// }
 
 .shadow-default {
-  box-shadow: rgb(0 0 0 / 14%) 0 24px 80px;
+  box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
 }
 
 .c-grey {
@@ -233,4 +233,8 @@ a:hover,
 
 .gradido-font-15rem {
   font-size: 1.5rem;
+}
+
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0); 
 }
