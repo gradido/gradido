@@ -1,68 +1,65 @@
 <template>
-  <div class="main-page h-100">
+  <div class="main-page">
     <div v-if="skeleton">
-      <b-row class="text-center">
-        <b-col>
-          <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
-        </b-col>
-        <b-col cols="6">
-          <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
-        </b-col>
-        <b-col>
-          <div class="b-right m-4">
-            <b-row>
-              <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
-              <b-col>
-                <b-skeleton></b-skeleton>
-                <b-skeleton></b-skeleton>
-              </b-col>
-            </b-row>
-          </div>
-        </b-col>
-      </b-row>
-      <b-row class="text-center mt-5">
-        <b-col>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-        <b-col cols="6">
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-        <b-col>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-      </b-row>
+      <b-container class="pl-0 pl-lg-0 pl-md-2">
+        <b-row class="text-center">
+          <b-col>
+            <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
+          </b-col>
+          <b-col cols="6">
+            <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
+          </b-col>
+          <b-col>
+            <div class="b-right m-4">
+              <b-row>
+                <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
+                <b-col>
+                  <b-skeleton></b-skeleton>
+                  <b-skeleton></b-skeleton>
+                </b-col>
+              </b-row>
+            </div>
+          </b-col>
+        </b-row>
+        <b-row class="text-center mt-5">
+          <b-col>
+            <b-skeleton animation="wave" width="85%"></b-skeleton>
+            <b-skeleton animation="wave" width="55%"></b-skeleton>
+            <b-skeleton animation="wave" width="70%"></b-skeleton>
+          </b-col>
+          <b-col cols="6">
+            <b-skeleton animation="wave" width="85%"></b-skeleton>
+            <b-skeleton animation="wave" width="55%"></b-skeleton>
+            <b-skeleton animation="wave" width="70%"></b-skeleton>
+            <b-skeleton animation="wave" width="85%"></b-skeleton>
+            <b-skeleton animation="wave" width="55%"></b-skeleton>
+            <b-skeleton animation="wave" width="70%"></b-skeleton>
+          </b-col>
+          <b-col>
+            <b-skeleton animation="wave" width="85%"></b-skeleton>
+            <b-skeleton animation="wave" width="55%"></b-skeleton>
+            <b-skeleton animation="wave" width="70%"></b-skeleton>
+          </b-col>
+        </b-row>
+      </b-container>
     </div>
-    <div v-else class="position-absolute w-100 h-100">
-      <!--<navbar
-        class="main-navbar"
-        :balance="balance"
-        :visible="visible"
-        :pending="pending"
-        :elopageUri="elopageUri"
-        @set-visible="setVisible"
-        @admin="admin"
-        @logout="logout"
-      />-->
-      <navbar-new class="main-navbar" :balance="balance"></navbar-new>
-
-      <!-- menu mobil -->
+    <div v-else>
+      <!--sm menu mobil hamburger button-->
       <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
         <b-button @click="toogleMobilMenu">
           <span v-if="hamburger" class="navbar-toggler-icon"></span>
           <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
         </b-button>
       </div>
-      <b-container fluid class="pl-0 pl-lg-0 pl-md-2">
+      <b-container class="pl-0 pl-lg-0 pl-md-2">
         <b-row>
+          <!-- navbar -->
+          <b-col>
+            <navbar-new class="main-navbar" :balance="balance"></navbar-new>
+          </b-col>
+        </b-row>
+        <b-row>
+          <!-- sidebar left-->
           <b-col
             cols="1"
             lg="2"
@@ -70,12 +67,6 @@
             ref="sideMenu"
             class="d-none d-lg-block d-md-block position-absolute h-100 zindex10"
           >
-            <!-- <sidebar
-              class="main-sidebar"
-              :elopageUri="elopageUri"
-              @admin="admin"
-              @logout="logout"
-            /> -->
             <sidebar-new
               class="main-sidebar"
               @admin="admin"
@@ -83,6 +74,7 @@
               @modeToggle="modeToggle"
             />
           </b-col>
+          <!-- content header -->
           <b-col
             cols="12"
             lg="7"
@@ -95,6 +87,7 @@
           >
             <!-- content header -->
           </b-col>
+          <!--right box -->
           <b-col
             cols="12"
             lg="3"
@@ -107,6 +100,7 @@
           >
             <!--rechtebox -->
           </b-col>
+          <!--content -->
           <b-col cols="12" lg="7" md="11" offset="0" offset-lg="2" offset-md="1" order-1>
             <div class="main-content mt-3">
               <fade-transition :duration="200" origin="center top" mode="out-in">
