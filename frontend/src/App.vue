@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="h-100">
+  <div id="app" class="placeholder">
     <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
     <div class="goldrand position-fixed w-100 fixed-bottom zindex1000"></div>
   </div>
