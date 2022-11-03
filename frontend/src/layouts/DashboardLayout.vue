@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
-    <div v-if="skeleton">
-      <b-container class="pl-0 pl-lg-0 pl-md-2">
+    <b-container class="pl-0 pl-lg-0">
+      <div v-if="skeleton">
         <b-row class="text-center">
           <b-col>
             <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
@@ -41,32 +41,24 @@
             <b-skeleton animation="wave" width="70%"></b-skeleton>
           </b-col>
         </b-row>
-      </b-container>
-    </div>
-    <div v-else>
-      <!--sm menu mobil hamburger button-->
-      <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
-        <b-button @click="toogleMobilMenu">
-          <span v-if="hamburger" class="navbar-toggler-icon"></span>
-          <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
-        </b-button>
       </div>
-      <b-container class="pl-0 pl-lg-0 pl-md-2">
+      <div v-else>
+        <!--sm menu mobil hamburger button-->
+        <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
+          <b-button @click="toogleMobilMenu">
+            <span v-if="hamburger" class="navbar-toggler-icon"></span>
+            <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
+          </b-button>
+        </div>
+
         <b-row>
           <!-- navbar -->
           <b-col>
             <navbar-new class="main-navbar" :balance="balance"></navbar-new>
           </b-col>
         </b-row>
-        <b-row>
-          <!-- sidebar left-->
-          <b-col
-            cols="1"
-            lg="2"
-            md="1"
-            ref="sideMenu"
-            class="d-none d-lg-block d-md-block position-absolute h-100 zindex10"
-          >
+        <d-row fluid class="d-flex">
+          <b-col cols="2" ref="sideMenu" class="d-none d-lg-block d-md-block">
             <sidebar-new
               class="main-sidebar"
               @admin="admin"
@@ -74,55 +66,48 @@
               @modeToggle="modeToggle"
             />
           </b-col>
-          <!-- content header -->
-          <b-col
-            cols="12"
-            lg="7"
-            md="11"
-            offset="0"
-            offset-lg="2"
-            offset-md="1"
-            order-1
-            class="bg-warning navbar"
-          >
-            <!-- content header -->
+          <b-col>
+            <d-row>
+              <b-col>
+                <d-row class="d-lg-flex">
+                  <b-col col="12" lg="9" style="background-color: blue">
+                    content header
+                  </b-col>
+                  <b-col col="12" lg="3" style="background-color: red">
+                    right
+                  </b-col>
+                </d-row>
+              </b-col>
+
+              <b-col cols="12" lg="9">
+                <div class="main-content mt-3">
+                  <fade-transition :duration="200" origin="center top" mode="out-in">
+                    <router-view
+                      ref="router-view"
+                      :balance="balance"
+                      :gdt-balance="GdtBalance"
+                      :transactions="transactions"
+                      :transactionCount="transactionCount"
+                      :transactionLinkCount="transactionLinkCount"
+                      :pending="pending"
+                      @update-transactions="updateTransactions"
+                      @set-tunneled-email="setTunneledEmail"
+                    ></router-view>
+                  </fade-transition>
+                </div>
+              </b-col>
+            </d-row>
           </b-col>
-          <!--right box -->
-          <b-col
-            cols="12"
-            lg="3"
-            md="11"
-            offset="0"
-            offset-lg="0"
-            offset-md="1"
-            class="bg-info navbar"
-            order-2
-          >
-            <!--rechtebox -->
-          </b-col>
-          <!--content -->
-          <b-col cols="12" lg="7" md="11" offset="0" offset-lg="2" offset-md="1" order-1>
-            <div class="main-content mt-3">
-              <fade-transition :duration="200" origin="center top" mode="out-in">
-                <router-view
-                  ref="router-view"
-                  :balance="balance"
-                  :gdt-balance="GdtBalance"
-                  :transactions="transactions"
-                  :transactionCount="transactionCount"
-                  :transactionLinkCount="transactionLinkCount"
-                  :pending="pending"
-                  @update-transactions="updateTransactions"
-                  @set-tunneled-email="setTunneledEmail"
-                ></router-view>
-              </fade-transition>
-            </div>
+        </d-row>
+        <b-row>
+          <!-- footer -->
+          <b-col>
+            <content-footer v-if="!$route.meta.hideFooter"></content-footer>
           </b-col>
         </b-row>
-        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
         <session-logout-timeout @logout="logout"></session-logout-timeout>
-      </b-container>
-    </div>
+      </div>
+    </b-container>
   </div>
 </template>
 <script>
