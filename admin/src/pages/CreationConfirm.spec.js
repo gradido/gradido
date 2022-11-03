@@ -35,43 +35,6 @@ const mocks = {
   },
 }
 
-/*
-const sourceSchema = `
-  type UnconfirmedContribution {
-    firstName: String!
-    id: Int!
-    lastName: String!
-    userId: Float!
-    email: String!
-    date: String!
-    memo: String!
-    amount: Float!
-    moderator: Float
-  }
-
-  type Query {
-    listUnconfirmedContributions: [UnconfirmedContribution!]!
-  }
-`
-
-const resolvers = {
-  Query: {
-    listUnconfirmedContributions: () => defaultData(),
-  },
-}
-
-
-const schema = makeExecutableSchema({
-  typeDefs: sourceSchema,
-  resolvers,
-})
-
-addMocksToSchema({
-  schema,
-  preserveResolvers: true,
-})
-*/
-
 const defaultData = () => {
   return {
     listUnconfirmedContributions: [
@@ -132,7 +95,6 @@ describe('CreationConfirm', () => {
   )
 
   const Wrapper = () => {
-    // data = defaultData
     return mount(CreationConfirm, { localVue, mocks, apolloProvider })
   }
 
