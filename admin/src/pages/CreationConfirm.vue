@@ -10,6 +10,7 @@
       @remove-creation="removeCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
+      @update-contribution="updateContribution"
     />
   </div>
 </template>
@@ -97,6 +98,9 @@ export default {
     updateState(id) {
       this.pendingCreations.find((obj) => obj.id === id).messagesCount++
       this.pendingCreations.find((obj) => obj.id === id).state = 'IN_PROGRESS'
+    },
+    updateContribution() {
+      this.getPendingCreations()
     },
   },
   computed: {
