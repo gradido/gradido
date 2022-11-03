@@ -397,7 +397,7 @@ export class AdminResolver {
       throw new Error('An admin is not allowed to update a user contribution.')
     }
 
-    const creationDateObj = new Date(creationDate)
+    const creationDateObj = new Date(creationDateStringWithoutOffset)
     let creations = await getUserCreation(user.id, clientRequestTime)
 
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {

@@ -11,7 +11,7 @@ import {
   login,
 } from '@/seeds/graphql/mutations'
 import { listAllContributions, listContributions } from '@/seeds/graphql/queries'
-import { cleanDB, getClientRequestTime, resetToken, testEnvironment } from '@test/helpers'
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -21,7 +21,7 @@ import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger } from '@test/testSetup'
 // eslint-disable-next-line camelcase
-import { getDateAs_YYYYMMDD_String, getIsoDateStringAs_YYYYMMDD_String } from '@/util/utilities'
+import { getDateAs_YYYYMMDD_String } from '@/util/utilities'
 
 let mutate: any, query: any, con: any
 let testEnv: any
