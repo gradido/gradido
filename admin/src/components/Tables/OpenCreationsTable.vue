@@ -119,7 +119,7 @@ export default {
   methods: {
     updateCreationData(data) {
       const row = data.row
-      this.$emit('update-contribution', data)
+      this.$emit('update-contributions', data)
       delete data.row
       this.creationUserData = { ...this.creationUserData, ...data }
       row.toggleDetails()
