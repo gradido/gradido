@@ -1,6 +1,6 @@
 <template>
   <div id="component-sidebar">
-    <div class="pl-lg-1 gradido-border-radius bg-white shadow-default pt-2 mt-4">
+    <div class="pl-lg-1 gradido-border-radius shadow-default pt-2 mt-4">
       <p></p>
       <div class="mb-6">
         <b-nav vertical class="w-200">
