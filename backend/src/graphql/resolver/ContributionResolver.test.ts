@@ -11,7 +11,7 @@ import {
   login,
 } from '@/seeds/graphql/mutations'
 import { listAllContributions, listContributions } from '@/seeds/graphql/queries'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { cleanDB, getClientRequestTime, resetToken, testEnvironment } from '@test/helpers'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -20,6 +20,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger } from '@test/testSetup'
+// eslint-disable-next-line camelcase
+import { getDateAs_YYYYMMDD_String, getIsoDateStringAs_YYYYMMDD_String } from '@/util/utilities'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -73,15 +75,17 @@ describe('ContributionResolver', () => {
       })
 
       describe('input not valid', () => {
+        let creationDate = new Date()
+        let dateStr: string
         it('throws error when memo length smaller than 5 chars', async () => {
-          const date = new Date()
+          dateStr = getDateAs_YYYYMMDD_String(creationDate)
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test',
-                creationDate: date.toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
@@ -96,14 +100,14 @@ describe('ContributionResolver', () => {
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
-          const date = new Date()
+          dateStr = getDateAs_YYYYMMDD_String(creationDate)
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-                creationDate: date.toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
@@ -129,35 +133,33 @@ describe('ContributionResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [
-                new GraphQLError('No information for available creations for the given date'),
-              ],
+              errors: [new GraphQLError(`invalid Date for creationDate=not-valid`)],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
-          )
+          expect(logger.error).toBeCalledWith(`invalid Date for creationDate=not-valid`)
         })
 
         it('throws error when creationDate 3 month behind', async () => {
-          const date = new Date()
+          jest.clearAllMocks()
+          creationDate = new Date()
+          creationDate.setMonth(creationDate.getMonth() - 3)
+          dateStr = getDateAs_YYYYMMDD_String(creationDate)
           await expect(
             mutate({
               mutation: createContribution,
               variables: {
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+                creationDate: dateStr,
               },
             }),
           ).resolves.toEqual(
             expect.objectContaining({
               errors: [
-                new GraphQLError('No information for available creations for the given date'),
+                new GraphQLError(`No information for available creations for the given date`),
               ],
             }),
           )
@@ -165,8 +167,8 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            `No information for available creations with the given creationDate=`,
+            new Date(dateStr).toISOString(),
           )
         })
       })
@@ -399,6 +401,7 @@ describe('ContributionResolver', () => {
 
       describe('Memo length smaller than 5 chars', () => {
         it('throws error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -418,12 +421,13 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5)')
+          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5')
         })
       })
 
       describe('Memo length greater than 255 chars', () => {
         it('throws error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -443,7 +447,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255)')
+          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255')
         })
       })
 
@@ -546,7 +550,9 @@ describe('ContributionResolver', () => {
 
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           const date = new Date()
+          date.setMonth(date.getMonth() - 3)
           await expect(
             mutate({
               mutation: updateContribution,
@@ -554,7 +560,7 @@ describe('ContributionResolver', () => {
                 contributionId: result.data.createContribution.id,
                 amount: 10.0,
                 memo: 'Test env contribution',
-                creationDate: date.setMonth(date.getMonth() - 3).toString(),
+                creationDate: getDateAs_YYYYMMDD_String(date),
               },
             }),
           ).resolves.toEqual(
@@ -566,8 +572,7 @@ describe('ContributionResolver', () => {
 
         it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
-            'No information for available creations with the given creationDate=',
-            'Invalid Date',
+            'Currently the month of the contribution cannot change.',
           )
         })
       })

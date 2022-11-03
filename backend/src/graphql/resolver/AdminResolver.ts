@@ -1,4 +1,4 @@
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTimeAsString, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
@@ -74,6 +74,7 @@ import {
   EventSendConfirmationEmail,
 } from '@/event/Event'
 import { ContributionListResult } from '../model/Contribution'
+import { cutOffsetFromIsoDateString, isValidDate } from '@/util/utilities'
 
 // const EMAIL_OPT_IN_REGISTER = 1
 // const EMAIL_OPT_UNKNOWN = 3 // elopage?
@@ -113,7 +114,10 @@ export class AdminResolver {
       }
     }
 
-    const creations = await getUserCreations(users.map((u) => u.id))
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      new Date(),
+    )
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
@@ -236,6 +240,19 @@ export class AdminResolver {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
+    if (!isValidDate(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
+    const creationDateStringWithoutOffset = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
+
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
@@ -261,16 +278,17 @@ export class AdminResolver {
     const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(emailContact.userId)
+    const creations = await getUserCreation(emailContact.userId, clientRequestTime)
     logger.trace('creations:', creations)
-    const creationDateObj = new Date(creationDate)
+    const creationDateObj = new Date(creationDateStringWithoutOffset)
     logger.trace('creationDateObj:', creationDateObj)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
+    contribution.clientRequestTime = clientRequestTimeString
     contribution.memo = memo
     contribution.moderatorId = moderator.id
     contribution.contributionType = ContributionType.ADMIN
@@ -288,7 +306,7 @@ export class AdminResolver {
       event.setEventAdminContributionCreate(eventAdminCreateContribution),
     )
 
-    return getUserCreation(emailContact.userId)
+    return getUserCreation(emailContact.userId, clientRequestTime)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -324,6 +342,22 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    logger.info(
+      `adminUpdateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})...`,
+    )
+    if (!isValidDate(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
+    const creationDateStringWithoutOffset = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
+
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
@@ -364,20 +398,21 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientRequestTime)
 
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creationDateObj, creations, contributionToUpdate)
     } else {
       logger.error('Currently the month of the contribution cannot change.')
       throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
-    contributionToUpdate.contributionDate = new Date(creationDate)
+    contributionToUpdate.contributionDate = creationDateObj
+    contributionToUpdate.clientRequestTime = clientRequestTimeString
     contributionToUpdate.moderatorId = moderator.id
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
@@ -388,7 +423,7 @@ export class AdminResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(user.id)
+    result.creation = await getUserCreation(user.id, clientRequestTime)
 
     const event = new Event()
     const eventAdminContributionUpdate = new EventAdminContributionUpdate()
@@ -418,7 +453,7 @@ export class AdminResolver {
     }
 
     const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds)
+    const userCreations = await getUserCreations(userIds, new Date())
     const users = await dbUser.find({
       where: { id: In(userIds) },
       withDeleted: true,
@@ -478,16 +513,26 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    logger.info(`confirmContribution(${id})...`)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
       throw new Error('Contribution not found to given id.')
     }
+    logger.info(`found Contribution:${contribution}`)
+
     const moderatorUser = getUser(context)
     if (moderatorUser.id === contribution.userId) {
       logger.error('Moderator can not confirm own contribution')
       throw new Error('Moderator can not confirm own contribution')
     }
+
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
+
     const user = await dbUser.findOneOrFail(
       { id: contribution.userId },
       { withDeleted: true, relations: ['emailContact'] },
@@ -496,8 +541,13 @@ export class AdminResolver {
       logger.error('This user was deleted. Cannot confirm a contribution.')
       throw new Error('This user was deleted. Cannot confirm a contribution.')
     }
-    const creations = await getUserCreation(contribution.userId, false)
-    validateContribution(creations, contribution.amount, contribution.contributionDate)
+    const creations = await getUserCreation(contribution.userId, clientRequestTime, false)
+    validateContribution(
+      creations,
+      contribution.amount,
+      contribution.contributionDate,
+      clientRequestTime,
+    )
 
     const receivedCallDate = new Date()
 
@@ -538,12 +588,14 @@ export class AdminResolver {
       transaction.decay = decay ? decay.decay : new Decimal(0)
       transaction.decayStart = decay ? decay.start : null
       await queryRunner.manager.insert(DbTransaction, transaction)
+      logger.info(`inserted transaction: ${transaction}`)
 
       contribution.confirmedAt = receivedCallDate
       contribution.confirmedBy = moderatorUser.id
       contribution.transactionId = transaction.id
       contribution.contributionStatus = ContributionStatus.CONFIRMED
       await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
+      logger.info(`updated contribution: ${contribution}`)
 
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
@@ -571,6 +623,8 @@ export class AdminResolver {
     eventContributionConfirm.amount = contribution.amount
     eventContributionConfirm.contributionId = contribution.id
     await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
+
+    logger.info(`confirmContribution(${id})...successful`)
     return true
   }
 

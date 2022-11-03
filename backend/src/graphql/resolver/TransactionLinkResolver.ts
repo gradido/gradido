@@ -1,5 +1,5 @@
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTimeAsString, getUser } from '@/server/context'
 import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
@@ -35,6 +35,7 @@ import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
+import { cutOffsetFromIsoDateString } from '@/util/utilities'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -169,7 +170,13 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    logger.info(`redeemTransactionLink(${code})...`)
     const user = getUser(context)
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
     const now = new Date()
 
     if (code.match(/^CL-/)) {
@@ -189,7 +196,7 @@ export class TransactionLinkResolver {
           throw new Error('No contribution link found')
         }
         logger.info('...contribution link found with id', contributionLink.id)
-        if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
+        if (new Date(contributionLink.validFrom).getTime() > clientRequestTime.getTime()) {
           logger.error(
             'contribution link is not valid yet. Valid from: ',
             contributionLink.validFrom,
@@ -197,7 +204,9 @@ export class TransactionLinkResolver {
           throw new Error('Contribution link not valid yet')
         }
         if (contributionLink.validTo) {
-          if (new Date(contributionLink.validTo).setHours(23, 59, 59) < now.getTime()) {
+          if (
+            new Date(contributionLink.validTo).setHours(23, 59, 59) < clientRequestTime.getTime()
+          ) {
             logger.error('contribution link is depricated. Valid to: ', contributionLink.validTo)
             throw new Error('Contribution link is depricated')
           }
@@ -258,13 +267,14 @@ export class TransactionLinkResolver {
           }
         }
 
-        const creations = await getUserCreation(user.id)
+        const creations = await getUserCreation(user.id, clientRequestTime)
         logger.info('open creations', creations)
-        validateContribution(creations, contributionLink.amount, now)
+        validateContribution(creations, contributionLink.amount, now, clientRequestTime)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now
         contribution.contributionDate = now
+        contribution.clientRequestTime = clientRequestTimeString
         contribution.memo = contributionLink.memo
         contribution.amount = contributionLink.amount
         contribution.contributionLinkId = contributionLink.id
@@ -324,14 +334,17 @@ export class TransactionLinkResolver {
       )
 
       if (user.id === linkedUser.id) {
+        logger.error('Cannot redeem own transaction link.')
         throw new Error('Cannot redeem own transaction link.')
       }
 
       if (transactionLink.validUntil.getTime() < now.getTime()) {
+        logger.error('Transaction Link is not valid anymore.')
         throw new Error('Transaction Link is not valid anymore.')
       }
 
       if (transactionLink.redeemedBy) {
+        logger.error('Transaction Link already redeemed.')
         throw new Error('Transaction Link already redeemed.')
       }
 

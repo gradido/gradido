@@ -939,6 +939,12 @@ describe('AdminResolver', () => {
 
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
               await expect(
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
@@ -959,6 +965,12 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, stephenHawking)
               variables.email = 'stephen@hawking.uk'
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
             })
 
             it('throws an error', async () => {
@@ -984,6 +996,12 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, garrickOllivander)
               variables.email = 'garrick@ollivander.com'
+              const now = new Date()
+              variables.creationDate = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1,
+              ).toISOString()
             })
 
             it('throws an error', async () => {
@@ -1009,6 +1027,7 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
+              variables.creationDate = 'invalid-date'
             })
 
             describe('date of creation is not a date string', () => {
@@ -1017,23 +1036,19 @@ describe('AdminResolver', () => {
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
+                    errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  'Invalid Date',
-                )
+                expect(logger.error).toBeCalledWith(`invalid Date for creationDate=invalid-date`)
               })
             })
 
             describe('date of creation is four months ago', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 const now = new Date()
                 variables.creationDate = new Date(
                   now.getFullYear(),
@@ -1054,13 +1069,14 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  variables.creationDate,
+                  new Date(variables.creationDate).toISOString(),
                 )
               })
             })
 
             describe('date of creation is in the future', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 const now = new Date()
                 variables.creationDate = new Date(
                   now.getFullYear(),
@@ -1081,7 +1097,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  variables.creationDate,
+                  new Date(variables.creationDate).toISOString(),
                 )
               })
             })
@@ -1343,7 +1359,7 @@ describe('AdminResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                      'The amount (1900 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
                     ),
                   ],
                 }),
@@ -1352,7 +1368,7 @@ describe('AdminResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
+                'The amount (1900 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
               )
             })
           })

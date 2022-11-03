@@ -1,5 +1,5 @@
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getUser } from '@/server/context'
+import { Context, getClientRequestTimeAsString, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -19,6 +19,7 @@ import {
   EventContributionDelete,
   EventContributionUpdate,
 } from '@/event/Event'
+import { cutOffsetFromIsoDateString, isValidDate } from '@/util/utilities'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 
 @Resolver()
@@ -29,6 +30,14 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    logger.info(`createContribution(${amount}, ${memo}, ${creationDate})`)
+    if (!isValidDate(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
+    const creationDateStringWithoutOffset = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -42,21 +51,29 @@ export class ContributionResolver {
     const event = new Event()
 
     const user = getUser(context)
-    const creations = await getUserCreation(user.id)
-    logger.trace('creations', creations)
-    const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
+    const clientRequestTimeString = getClientRequestTimeAsString(context)
+    const clientRequestTime = new Date(cutOffsetFromIsoDateString(clientRequestTimeString))
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime.toISOString()}`,
+    )
+
+    const creations = await getUserCreation(user.id, clientRequestTime)
+    logger.info('creations', creations)
+    const creationDateObj = new Date(creationDateStringWithoutOffset)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
     contribution.createdAt = new Date()
+    contribution.clientRequestTime = clientRequestTimeString
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
     contribution.contributionType = ContributionType.USER
     contribution.contributionStatus = ContributionStatus.PENDING
 
-    logger.trace('contribution to save', contribution)
+    logger.debug('contribution to save', contribution)
     await dbContribution.save(contribution)
 
     const eventCreateContribution = new EventContributionCreate()
@@ -65,7 +82,11 @@ export class ContributionResolver {
     eventCreateContribution.contributionId = contribution.id
     await eventProtocol.writeEvent(event.setEventContributionCreate(eventCreateContribution))
 
-    return new UnconfirmedContribution(contribution, user, creations)
+    return new UnconfirmedContribution(
+      contribution,
+      user,
+      await getUserCreation(user.id, clientRequestTime),
+    )
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
@@ -74,8 +95,10 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    logger.info(`deleteContribution(${id})`)
     const event = new Event()
     const user = getUser(context)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
     const contribution = await dbContribution.findOne(id)
     if (!contribution) {
       logger.error('Contribution not found for given id')
@@ -169,6 +192,10 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    logger.info(`updateContribution(${amount}, ${memo}, ${creationDate})`)
+    const cutOffsetCreationDateString = cutOffsetFromIsoDateString(
+      new Date(creationDate).toISOString(),
+    )
     if (memo.length > MEMO_MAX_CHARS) {
       logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
@@ -180,9 +207,17 @@ export class ContributionResolver {
     }
 
     const user = getUser(context)
+    logger.info(`by User: ${user.gradidoID}, ${user.firstName}, ${user.lastName})`)
+    const clientRequestTimeString = cutOffsetFromIsoDateString(
+      getClientRequestTimeAsString(context),
+    )
+    const clientRequestTime = new Date(clientRequestTimeString)
+    logger.info(
+      `clientRequestTime: asString=${clientRequestTimeString}, asDate=${clientRequestTime}`,
+    )
 
     const contributionToUpdate = await dbContribution.findOne({
-      where: { id: contributionId, confirmedAt: IsNull() },
+      where: { id: contributionId, confirmedAt: IsNull(), deniedAt: IsNull() },
     })
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id')
@@ -193,20 +228,33 @@ export class ContributionResolver {
       throw new Error('user of the pending contribution and send user does not correspond')
     }
 
-    const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    const creationDateObj = new Date(cutOffsetCreationDateString)
+    let creations = await getUserCreation(user.id, clientRequestTime)
+    logger.debug(
+      'update 1 creations:',
+      creations[0].toString(),
+      creations[1].toString(),
+      creations[2].toString(),
+    )
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creationDateObj, creations, contributionToUpdate)
     } else {
       logger.error('Currently the month of the contribution cannot change.')
       throw new Error('Currently the month of the contribution cannot change.')
     }
+    logger.debug(
+      'update 2 creations:',
+      creations[0].toString(),
+      creations[1].toString(),
+      creations[2].toString(),
+    )
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientRequestTime)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
-    contributionToUpdate.contributionDate = new Date(creationDate)
+    contributionToUpdate.contributionDate = creationDateObj
+    contributionToUpdate.clientRequestTime = clientRequestTimeString
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
     dbContribution.save(contributionToUpdate)
 

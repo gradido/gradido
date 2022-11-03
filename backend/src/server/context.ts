@@ -3,6 +3,7 @@ import { User as dbUser } from '@entity/User'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import Decimal from 'decimal.js-light'
 import { ExpressContext } from 'apollo-server-express'
+import { backendLogger as logger } from '@/server/logger'
 
 export interface Context {
   token: string | null
@@ -36,6 +37,28 @@ const context = (args: ExpressContext): Context => {
 export const getUser = (context: Context): dbUser => {
   if (context.user) return context.user
   throw new Error('No user given in context!')
+}
+
+export const getClientRequestTime = (context: Context): Date => {
+  // console.log('context:', context)
+  if (context.clientRequestTime) {
+    logger.info(`context with clientRequestTime=${context.clientRequestTime}`)
+    return new Date(context.clientRequestTime)
+  }
+  // throw new Error('No clientRequestTime given in context!')
+  logger.warn(`missing clientRequestTime, using BackendTime...`)
+  return new Date()
+}
+
+export const getClientRequestTimeAsString = (context: Context): string => {
+  // console.log('context:', context)
+  if (context.clientRequestTime) {
+    logger.info(`context with clientRequestTime=${context.clientRequestTime}`)
+    return context.clientRequestTime
+  }
+  // throw new Error('No clientRequestTime given in context!')
+  logger.warn(`missing clientRequestTime, using BackendTime...`)
+  return new Date().toISOString()
 }
 
 export default context
