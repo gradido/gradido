@@ -28,7 +28,6 @@ jobs:
             wallet
             admin
             database
-            github
             release
             other
           # Configure that a scope must always be provided.
