@@ -1,9 +1,6 @@
 name: gradido test CI
 
-on:
-  push:
-    branches:
-      - 2321-refactor-github-test-workflow-disable-video-recording-and-reduce-wait-time
+on: push
 
 jobs:
   ##############################################################################
