@@ -1,113 +1,107 @@
 <template>
   <div class="main-page">
-    <b-container class="pl-0 pl-lg-0">
-      <div v-if="skeleton">
-        <b-row class="text-center">
-          <b-col>
-            <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
-          </b-col>
-          <b-col cols="6">
-            <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
-          </b-col>
-          <b-col>
-            <div class="b-right m-4">
-              <b-row>
-                <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
-                <b-col>
-                  <b-skeleton></b-skeleton>
-                  <b-skeleton></b-skeleton>
-                </b-col>
-              </b-row>
-            </div>
-          </b-col>
-        </b-row>
-        <b-row class="text-center mt-5">
-          <b-col>
-            <b-skeleton animation="wave" width="85%"></b-skeleton>
-            <b-skeleton animation="wave" width="55%"></b-skeleton>
-            <b-skeleton animation="wave" width="70%"></b-skeleton>
-          </b-col>
-          <b-col cols="6">
-            <b-skeleton animation="wave" width="85%"></b-skeleton>
-            <b-skeleton animation="wave" width="55%"></b-skeleton>
-            <b-skeleton animation="wave" width="70%"></b-skeleton>
-            <b-skeleton animation="wave" width="85%"></b-skeleton>
-            <b-skeleton animation="wave" width="55%"></b-skeleton>
-            <b-skeleton animation="wave" width="70%"></b-skeleton>
-          </b-col>
-          <b-col>
-            <b-skeleton animation="wave" width="85%"></b-skeleton>
-            <b-skeleton animation="wave" width="55%"></b-skeleton>
-            <b-skeleton animation="wave" width="70%"></b-skeleton>
-          </b-col>
-        </b-row>
-      </div>
-      <div v-else>
-        <!--sm menu mobil hamburger button-->
-        <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
-          <b-button @click="toogleMobilMenu">
-            <span v-if="hamburger" class="navbar-toggler-icon"></span>
-            <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
-          </b-button>
-        </div>
-
-        <b-row>
-          <!-- navbar -->
-          <b-col>
-            <navbar-new class="main-navbar" :balance="balance"></navbar-new>
-          </b-col>
-        </b-row>
-        <d-row fluid class="d-flex">
-          <b-col cols="2" ref="sideMenu" class="d-none d-lg-block d-md-block">
-            <sidebar-new
-              class="main-sidebar"
-              @admin="admin"
-              @logout="logout"
-              @modeToggle="modeToggle"
-            />
-          </b-col>
-          <b-col>
-            <d-row>
+    <div v-if="skeleton">
+      <b-row class="text-center">
+        <b-col>
+          <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
+        </b-col>
+        <b-col>
+          <div class="b-right m-4">
+            <b-row>
+              <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
               <b-col>
-                <d-row class="d-lg-flex">
-                  <b-col col="12" lg="9" style="background-color: blue">
-                    content header
-                  </b-col>
-                  <b-col col="12" lg="3" style="background-color: red">
-                    right
-                  </b-col>
-                </d-row>
+                <b-skeleton></b-skeleton>
+                <b-skeleton></b-skeleton>
               </b-col>
-
-              <b-col cols="12" lg="9">
-                <div class="main-content mt-3">
-                  <fade-transition :duration="200" origin="center top" mode="out-in">
-                    <router-view
-                      ref="router-view"
-                      :balance="balance"
-                      :gdt-balance="GdtBalance"
-                      :transactions="transactions"
-                      :transactionCount="transactionCount"
-                      :transactionLinkCount="transactionLinkCount"
-                      :pending="pending"
-                      @update-transactions="updateTransactions"
-                      @set-tunneled-email="setTunneledEmail"
-                    ></router-view>
-                  </fade-transition>
-                </div>
-              </b-col>
-            </d-row>
-          </b-col>
-        </d-row>
-        <b-row>
-          <!-- footer -->
-          <b-col>
-            <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-          </b-col>
-        </b-row>
-        <session-logout-timeout @logout="logout"></session-logout-timeout>
+            </b-row>
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="text-center mt-5">
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+      </b-row>
+    </div>
+    <div v-else>
+      <!--sm menu mobil hamburger button-->
+      <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
+        <b-button @click="toogleMobilMenu">
+          <span v-if="hamburger" class="navbar-toggler-icon"></span>
+          <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
+        </b-button>
       </div>
-    </b-container>
+
+      <b-row>
+        <!-- navbar -->
+        <b-col>
+          <navbar-new class="main-navbar" :balance="balance"></navbar-new>
+        </b-col>
+      </b-row>
+      <d-row fluid class="d-flex">
+        <b-col cols="2" ref="sideMenuRow" class="d-none d-lg-block d-md-block zindex1000">
+          <sidebar-new
+            class="main-sidebar"
+            @admin="admin"
+            @logout="logout"
+            @modeToggle="modeToggle"
+          />
+        </b-col>
+        <b-col>
+          <d-row>
+            <b-col>
+              <d-row class="d-lg-flex">
+                <b-col col="12" lg="9" style="background-color: blue">content header</b-col>
+                <b-col col="12" lg="3" style="background-color: red">right</b-col>
+              </d-row>
+            </b-col>
+
+            <b-col cols="12" lg="9">
+              <div class="main-content mt-3">
+                <fade-transition :duration="200" origin="center top" mode="out-in">
+                  <router-view
+                    ref="router-view"
+                    :balance="balance"
+                    :gdt-balance="GdtBalance"
+                    :transactions="transactions"
+                    :transactionCount="transactionCount"
+                    :transactionLinkCount="transactionLinkCount"
+                    :pending="pending"
+                    @update-transactions="updateTransactions"
+                    @set-tunneled-email="setTunneledEmail"
+                  ></router-view>
+                </fade-transition>
+              </div>
+            </b-col>
+          </d-row>
+        </b-col>
+      </d-row>
+      <b-row>
+        <!-- footer -->
+        <b-col>
+          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        </b-col>
+      </b-row>
+      <session-logout-timeout @logout="logout"></session-logout-timeout>
+    </div>
   </div>
 </template>
 <script>
@@ -216,7 +210,12 @@ export default {
       this.tunneledEmail = email
     },
     toogleMobilMenu() {
-      this.$refs.sideMenu.classList.toggle('d-none')
+      console.log(this.$refs.sideMenuRow.classList.contains('position-absolute'))
+
+      this.$refs.sideMenuRow.classList.toggle('d-none')
+      this.$refs.sideMenuRow.classList.toggle('position-absolute')
+      console.log(document.getElementById('component-sidebar'))
+      document.getElementById('side-menu').classList.toggle('bg-lightgrey')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
     },
     dark() {
