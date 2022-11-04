@@ -1,8 +1,8 @@
 <template>
   <div id="component-sidebar">
-    <div class="pl-lg-1 gradido-border-radius shadow-default pt-2 mt-4">
-      <p></p>
-      <div class="mb-6">
+    <div id="side-menu" class="pl-lg-1 gradido-border-radius shadow-default pt-2 mt-4">
+     
+      <div class="mb-6 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3">
             <b-icon icon="house" aria-hidden="true"></b-icon>
