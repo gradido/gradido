@@ -1,6 +1,9 @@
 name: gradido test CI
 
-on: push
+on:
+  push:
+    branches:
+      - 2321-refactor-github-test-workflow-disable-video-recording-and-reduce-wait-time
 
 jobs:
   ##############################################################################
@@ -616,19 +619,16 @@ jobs:
       # BOOT UP THE TEST SYSTEM ################################################
       ##########################################################################
       - name: Boot up test system | docker-compose mariadb
-        run: docker-compose up --detach mariadb
-
-      - name: Sleep for 30 seconds
-        run: sleep 30s
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
 
       - name: Boot up test system | docker-compose database
-        run: docker-compose up --detach --no-deps database
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
 
       - name: Boot up test system | docker-compose backend
-        run: docker-compose up --detach --no-deps backend
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend
 
-      - name: Boot up test system | docker-compose frontends
-        run: docker-compose up --detach --no-deps frontend admin nginx
+      - name: Sleep for 10 seconds
+        run: sleep 10s
 
       - name: Boot up test system | seed backend
         run: |
@@ -638,6 +638,12 @@ jobs:
           cd ../backend
           yarn && yarn seed
           cd ..
+
+      - name: Boot up test system | docker-compose frontends
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
+
+      - name: Sleep for 15 seconds
+        run: sleep 15s
 
       ##########################################################################
       # END-TO-END TESTS #######################################################
