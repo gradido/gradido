@@ -45,16 +45,15 @@ module.exports = {
         extensions: ['.js', '.vue'],
         // TODO: remove ignores
         ignores: [
-          '/site.thx./',
           '/form./',
           '/time./',
           '/decay.types./',
           'settings.password.resend_subtitle',
+          'settings.password.reset',
           'settings.password.reset-password.text',
           'settings.password.set',
           'settings.password.set-password.text',
           'settings.password.subtitle',
-          'site.login.signin',
         ],
         enableFix: false,
       },
@@ -69,7 +68,7 @@ module.exports = {
   },
   settings: {
     'vue-i18n': {
-      localeDir: './src/locales/*.json',
+      localeDir: './src/locales/{en,de}.json',
       // Specify the version of `vue-i18n` you are using.
       // If not specified, the message will be parsed twice.
       messageSyntaxVersion: '^8.22.4',

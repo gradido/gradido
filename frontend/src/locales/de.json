@@ -1,13 +1,68 @@
 {
+  "100": "100%",
+  "1000thanks": "1000 Dank, weil du bei uns bist!",
+  "125": "125%",
+  "85": "85%",
   "advanced-calculation": "Vorausberechnung",
+  "auth": {
+    "left": {
+      "dignity": "Würde",
+      "donation": "Gabe",
+      "gratitude": "Dankbarkeit",
+      "learnMore": "Erfahre mehr …",
+      "oneDignity": "Wir schenken einander und danken mit Gradido.",
+      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
+      "oneGratitude": "Für einander, für alle Menschen, für die Natur."
+    }
+  },
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
+    "moderator": "Moderator",
+    "moderators": "Moderatoren",
+    "myContributions": "Meine Beiträge zum Gemeinwohl",
+    "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
+    "openContributionLinks": "Öffentliche Beitrags-Linkliste",
+    "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
+    "submitContribution": "Beitrag einreichen",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
+  },
+  "contact": "Kontakt",
+  "contribution": {
+    "activity": "Tätigkeit",
+    "alert": {
+      "answerQuestion": "Bitte beantworte die Rückfrage!",
+      "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
+      "confirm": "bestätigt",
+      "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
+      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
+      "pending": "Eingereicht und wartet auf Bestätigung",
+      "rejected": "abgelehnt"
+    },
+    "date": "Beitrag für:",
+    "delete": "Beitrag löschen! Bist du sicher?",
+    "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "formText": {
+      "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
+      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
+      "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
+      "yourContribution": "Dein Beitrag zum Gemeinwohl"
+    },
+    "noDateSelected": "Wähle irgendein Datum im Monat",
+    "selectDate": "Wann war dein Beitrag?",
+    "submit": "Einreichen",
+    "submitted": "Der Beitrag wurde eingereicht.",
+    "updated": "Der Beitrag wurde geändert.",
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "dankt dir mit",
+    "unique": "(einmalig)"
   },
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -21,7 +76,7 @@
     "Starting_block_decay": "Startblock Vergänglichkeit",
     "total": "Gesamt",
     "types": {
-      "created": "Geschöpft",
+      "creation": "Geschöpft",
       "noDecay": "Keine Vergänglichkeit",
       "receive": "Empfangen",
       "send": "Gesendet"
@@ -37,9 +92,9 @@
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
-    "unknown-error": "Unbekanter Fehler: ",
-    "user-already-exists": "Ein Benutzer mit diesen Daten existiert bereits."
+    "unknown-error": "Unbekannter Fehler: "
   },
+  "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
     "copyright": {
@@ -55,17 +110,18 @@
     "amount": "Betrag",
     "at": "am",
     "cancel": "Abbrechen",
+    "change": "Ändern",
     "check_now": "Jetzt prüfen",
     "close": "Schließen",
     "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
-    "edit": "Bearbeiten",
     "email": "E-Mail",
     "firstname": "Vorname",
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "lastname": "Nachname",
+    "mandatoryField": "Pflichtfeld",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -76,6 +132,7 @@
     "password_new_repeat": "Neues Passwort wiederholen",
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
+    "reply": "Antworten",
     "reset": "Zurücksetzen",
     "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
@@ -100,8 +157,10 @@
   "GDD": "GDD",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
-    "copy": "kopieren",
+    "copy-link": "Link kopieren",
+    "copy-link-with-text": "Link und Text kopieren",
     "created": "Der Link wurde erstellt!",
+    "credit-your-gradido": "Damit die Gradido gutgeschrieben werden können, klicke auf den Link!",
     "decay-14-day": "Vergänglichkeit für 14 Tage",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
@@ -109,9 +168,11 @@
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Gradidos versenden per Link",
     "isFree": "Gradido ist weltweit kostenfrei.",
+    "link-and-text-copied": "Der Link und deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
+    "link-hint": "Achtung: Jeder kann diesen Link einlösen. Gib ihn bitte nicht weiter!",
     "link-overview": "Linkübersicht",
     "links_count": "Aktive Links",
     "links_sum": "Offene Links und QR-Codes",
@@ -119,13 +180,13 @@
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
     "redeem": "Einlösen",
-    "redeem-text": "Willst du den Betrag jetzt einlösen?",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemed-title": "eingelöst",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "validUntil": "Gültig bis"
+    "validUntil": "Gültig bis",
+    "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
@@ -149,13 +210,26 @@
   "login": "Anmeldung",
   "math": {
     "aprox": "~",
+    "asterisk": "*",
     "equal": "=",
-    "exclaim": "!",
     "minus": "−",
     "pipe": "|"
   },
+  "message": {
+    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
+    "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
+    "email": "Wir haben dir eine E-Mail gesendet.",
+    "errorTitle": "Achtung!",
+    "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
+    "reply": "Danke, Deine Antwort wurde abgesendet.",
+    "reset": "Dein Passwort wurde geändert.",
+    "title": "Danke!",
+    "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
+  },
   "navigation": {
     "admin_area": "Adminbereich",
+    "community": "Gemeinschaft",
+    "info": "Information",
     "logout": "Abmelden",
     "members_area": "Mitgliederbereich",
     "overview": "Übersicht",
@@ -164,23 +238,23 @@
     "support": "Support",
     "transactions": "Transaktionen"
   },
-  "publisher": {
-    "infoText": "Wenn dir dein Empfehlungsgeber seine Publisher-Id gegeben hat, trage sie hier ein, sonst lass das Feld bitte unverändert!",
-    "publisherId": "Publisher-Id:"
-  },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
+  "session": {
+    "extend": "Angemeldet bleiben",
+    "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
+    "logoutIn": "Abmelden in ",
+    "warningText": "Bist du noch da?"
+  },
   "settings": {
-    "coinanimation": {
-      "coinanimation": "Münzanimation",
-      "False": "Münzanimation ausgeschaltet",
-      "True": "Münzanimation eingeschaltet"
-    },
     "language": {
       "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
@@ -208,37 +282,28 @@
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     }
   },
+  "signin": "Anmelden",
   "signup": "Registrieren",
   "site": {
+    "forgotPassword": {
+      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
+    },
     "login": {
-      "community": "Tausend Dank, weil du bei uns bist!",
-      "heading": "Gradido",
-      "new_wallet": "Neues Konto erstellen",
-      "signin": "Anmelden"
+      "heading": "Melde dich mit deinen Zugangsdaten an. Bewahre sie stets sicher auf!"
+    },
+    "resetPassword": {
+      "heading": "Trage bitte dein Passwort ein und wiederhole es."
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",
+      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
       "one_number": "Zahl erforderlich.",
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
-      "subtitle": "Werde Teil der Gemeinschaft!",
-      "title": "Erstelle dein Gradido-Konto",
       "uppercase": "Großbuchstabe erforderlich."
-    },
-    "thx": {
-      "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite.",
-      "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
-      "email": "Wir haben dir eine E-Mail gesendet.",
-      "emailActivated": "Danke dass Du deine E-Mail bestätigt hast.",
-      "errorTitle": "Achtung!",
-      "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
-      "reset": "Dein Passwort wurde geändert.",
-      "resetPassword": "Den Code den Du genutzt hast ist zu alt bitte fordere ein neuen über die Passwort Reset Seite an.",
-      "title": "Danke!",
-      "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
     }
   },
   "success": "Erfolg",
@@ -246,9 +311,10 @@
     "days": "Tage",
     "hours": "Stunden",
     "minutes": "Minuten",
+    "month": "Monat",
     "months": "Monate",
     "seconds": "Sekunden",
-    "year": "Jahre"
+    "years": "Jahr"
   },
   "transaction": {
     "gdd-text": "Gradido Transaktionen",
@@ -261,5 +327,6 @@
   "transaction-link": {
     "send_you": "sendet dir"
   },
-  "via_link": "über einen Link"
+  "via_link": "über einen Link",
+  "welcome": "Willkommen in der Gemeinschaft"
 }

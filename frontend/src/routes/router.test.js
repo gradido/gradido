@@ -49,8 +49,8 @@ describe('router', () => {
         expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
       })
 
-      it('has seventeen routes defined', () => {
-        expect(routes).toHaveLength(17)
+      it('has sixteen routes defined', () => {
+        expect(routes).toHaveLength(19)
       })
 
       describe('overview', () => {
@@ -72,6 +72,17 @@ describe('router', () => {
         it('loads the "Send" page', async () => {
           const component = await routes.find((r) => r.path === '/send').component()
           expect(component.default.name).toBe('Send')
+        })
+      })
+
+      describe('community', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Community" page', async () => {
+          const component = await routes.find((r) => r.path === '/community').component()
+          expect(component.default.name).toBe('Community')
         })
       })
 
@@ -97,6 +108,39 @@ describe('router', () => {
         })
       })
 
+      describe('community', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "Community" page', async () => {
+          const component = await routes.find((r) => r.path === '/community').component()
+          expect(component.default.name).toBe('Community')
+        })
+      })
+
+      describe('info', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/information').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "InfoStatistic" page', async () => {
+          const component = await routes.find((r) => r.path === '/information').component()
+          expect(component.default.name).toBe('InfoStatistic')
+        })
+      })
+
+      describe('gdt', () => {
+        it('requires authorization', () => {
+          expect(routes.find((r) => r.path === '/gdt').meta.requiresAuth).toBeTruthy()
+        })
+
+        it('loads the "GDT" page', async () => {
+          const component = await routes.find((r) => r.path === '/gdt').component()
+          expect(component.default.name).toBe('Transactions')
+        })
+      })
+
       describe('login', () => {
         it('loads the "Login" page', async () => {
           const component = await routes.find((r) => r.path === '/login/:code?').component()
@@ -108,31 +152,6 @@ describe('router', () => {
         it('loads the "register" page', async () => {
           const component = await routes.find((r) => r.path === '/register/:code?').component()
           expect(component.default.name).toBe('Register')
-        })
-      })
-
-      describe('thx', () => {
-        const thx = routes.find((r) => r.path === '/thx/:comingFrom/:code?')
-
-        it('loads the "Thx" page', async () => {
-          const component = await thx.component()
-          expect(component.default.name).toBe('Thx')
-        })
-
-        describe('beforeEnter', () => {
-          const beforeEnter = thx.beforeEnter
-          const next = jest.fn()
-
-          it('redirects to login when not coming from a valid page', () => {
-            beforeEnter({}, { path: '' }, next)
-            expect(next).toBeCalledWith({ path: '/login' })
-          })
-
-          it('enters the page when coming from a valid page', () => {
-            jest.resetAllMocks()
-            beforeEnter({}, { path: '/forgot-password' }, next)
-            expect(next).toBeCalledWith()
-          })
         })
       })
 

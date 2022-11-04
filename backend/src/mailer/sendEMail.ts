@@ -5,14 +5,25 @@ import CONFIG from '@/config'
 
 export const sendEMail = async (emailDef: {
   to: string
+  cc?: string
   subject: string
   text: string
 }): Promise<boolean> => {
-  logger.info(`send Email: to=${emailDef.to}, subject=${emailDef.subject}, text=${emailDef.text}`)
+  logger.info(
+    `send Email: to=${emailDef.to}` +
+      (emailDef.cc ? `, cc=${emailDef.cc}` : '') +
+      `, subject=${emailDef.subject}, text=${emailDef.text}`,
+  )
 
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
     return false
+  }
+  if (CONFIG.EMAIL_TEST_MODUS) {
+    logger.info(
+      `Testmodus=ON: change receiver from ${emailDef.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
+    )
+    emailDef.to = CONFIG.EMAIL_TEST_RECEIVER
   }
   const transporter = createTransport({
     host: CONFIG.EMAIL_SMTP_URL,

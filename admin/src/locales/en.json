@@ -1,11 +1,37 @@
 {
   "all_emails": "All users",
   "back": "back",
+  "contributionLink": {
+    "amount": "Amount",
+    "clear": "Clear",
+    "contributionLinks": "Contribution Links",
+    "create": "Create",
+    "cycle": "Cycle",
+    "deleted": "Automatic creation deleted!",
+    "deleteNow": "Do you really delete automatic creations '{name}'?",
+    "maxPerCycle": "Repetition",
+    "memo": "Memo",
+    "name": "Name",
+    "newContributionLink": "New contribution link",
+    "noContributionLinks": "No contribution link has been created.",
+    "noDateSelected": "No date selected",
+    "noEndDate": "No end-date",
+    "noStartDate": "No start-date",
+    "options": {
+      "cycle": {
+        "daily": "daily",
+        "once": "once"
+      }
+    },
+    "validFrom": "Start-date",
+    "validTo": "End-Date"
+  },
   "creation": "Creation",
   "creationList": "Creation list",
   "creation_form": {
     "creation_failed": "Could not create pending creation for {email}",
     "creation_for": "Active Basic Income for",
+    "deleteNow": "Do you really want to delete this contribution to the community?",
     "enter_text": "Enter text",
     "form": "Creation form",
     "min_characters": "Enter at least 10 characters",
@@ -39,17 +65,37 @@
     },
     "short_hash": "({shortHash})"
   },
+  "form": {
+    "cancel": "Cancel",
+    "submit": "Send"
+  },
   "GDD": "GDD",
+  "help": {
+    "help": "Help",
+    "transactionlist": {
+      "confirmed": "When was it confirmed by a moderator / admin.",
+      "periods": "For what period was it submitted by the member.",
+      "state": "[PENDING = submitted, DELETED = deleted, IN_PROGRESS = in dialogue with moderator, DENIED = denied, CONFIRMED = confirmed]",
+      "submitted": "When was it submitted by the member"
+    }
+  },
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
+    "colon": ":",
+    "equals": "=",
     "exclaim": "!",
-    "pipe": "|"
+    "pipe": "|",
+    "plus": "+"
+  },
+  "message": {
+    "request": "Request has been sent."
   },
   "moderator": "Moderator",
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",
@@ -71,9 +117,19 @@
   },
   "redeemed": "redeemed",
   "remove": "Remove",
-  "removeNotSelf": "As admin / moderator you cannot delete yourself.",
+  "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "remove_all": "Remove all users",
   "save": "Speichern",
+  "statistic": {
+    "activeUsers": "Active members",
+    "deletedUsers": "Deleted members",
+    "name": "Statistic",
+    "totalGradidoAvailable": "Total GDD in circulation",
+    "totalGradidoCreated": "Total created GDD",
+    "totalGradidoDecayed": "Total GDD decay",
+    "totalGradidoUnbookedDecayed": "Unbooked GDD decay",
+    "totalUsers": "Members"
+  },
   "status": "Status",
   "success": "Success",
   "text": "Text",
@@ -84,10 +140,11 @@
   },
   "transactionlist": {
     "amount": "Amount",
-    "balanceDate": "Creation date",
-    "community": "Community",
-    "date": "Date",
+    "confirmed": "Confirmed",
     "memo": "Message",
+    "period": "Period",
+    "state": "State",
+    "submitted": "Submitted",
     "title": "All creation-transactions for the user"
   },
   "undelete_user": "Undelete User",
@@ -100,6 +157,16 @@
     "success": "Successfully send the confirmation link to the user's email! ({email})",
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
+  },
+  "userRole": {
+    "notChangeYourSelf": "As an admin/moderator, you cannot change your own role.",
+    "selectLabel": "Role:",
+    "selectRoles": {
+      "admin": "administrator",
+      "user": "usual user"
+    },
+    "successfullyChangedTo": "User is now \"{role}\".",
+    "tabTitle": "User Role"
   },
   "user_deleted": "User is deleted.",
   "user_recovered": "User is recovered.",

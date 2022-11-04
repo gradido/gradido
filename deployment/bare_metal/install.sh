@@ -4,6 +4,12 @@
 # How to do this is described in detail in [setup.md](./setup.md)
 
 # Find current directory & configure paths
+## For manualy use in terminal
+## set -o allexport
+## SCRIPT_DIR=$(pwd)
+## PROJECT_ROOT=$SCRIPT_DIR/../..
+## set +o allexport
+# Use here in script
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
@@ -75,7 +81,7 @@ pm2 startup
 sudo apt-get install -y certbot
 sudo apt-get install -y python3-certbot-nginx
 sudo certbot
-> Enter email address (used for urgent renewal and security notices) > support@gradido.net
+> Enter email address (used for urgent renewal and security notices) > e.g. support@supportmail.com
 > Please read the Terms of Service at > Y
 > Would you be willing, once your first certificate is successfully issued, to > N
 > No names were found in your configuration files. Please enter in your domain > stage1.gradido.net
@@ -90,7 +96,7 @@ sudo certbot
 # Install logrotate
 sudo apt-get install -y logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_DIR/logrotate/gradido.conf.template > $SCRIPT_DIR/logrotate/gradido.conf
-sudo mv $SCRIPT_DIR/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
+sudo cp $SCRIPT_DIR/logrotate/gradido.conf.template /etc/logrotate.d/gradido.conf
 sudo chown root:root /etc/logrotate.d/gradido.conf
 
 # Install mysql autobackup
@@ -131,6 +137,10 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 # Configure admin
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
+# create cronjob to delete yarn output in /tmp
+# crontab -e
+# hourly job: 0 * * * * find /tmp -name "yarn--*" -cmin +60 -exec rm -r {} \; > /dev/null
+# daily job:  0 4 * * * find /tmp -name "yarn--*" -ctime +1 -exec rm -r {} \; > /dev/null
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
 ./start.sh

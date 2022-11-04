@@ -19,7 +19,4 @@ export default class UpdateUserInfosArgs {
 
   @Field({ nullable: true })
   passwordNew?: string
-
-  @Field({ nullable: true })
-  coinanimation?: boolean
 }

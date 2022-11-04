@@ -19,6 +19,9 @@
           >
             {{ $store.state.openCreations }} {{ $t('navbar.open_creation') }}
           </b-nav-item>
+          <b-nav-item to="/contribution-links">
+            {{ $t('navbar.automaticContributions') }}
+          </b-nav-item>
           <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
           <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
         </b-navbar-nav>
@@ -28,14 +31,18 @@
 </template>
 <script>
 import CONFIG from '../config'
+import { logout } from '../graphql/logout'
 
 export default {
   name: 'navbar',
   methods: {
-    logout() {
+    async logout() {
       window.location.assign(CONFIG.WALLET_URL)
       // window.location = CONFIG.WALLET_URL
       this.$store.dispatch('logout')
+      await this.$apollo.mutate({
+        mutation: logout,
+      })
     },
     wallet() {
       window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', this.$store.state.token)

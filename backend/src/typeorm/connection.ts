@@ -20,6 +20,9 @@ const connection = async (): Promise<Connection | null> => {
       logger: new FileLogger('all', {
         logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
       }),
+      extra: {
+        charset: 'utf8mb4_unicode_ci',
+      },
     })
   } catch (error) {
     // eslint-disable-next-line no-console

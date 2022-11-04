@@ -1,6 +1,6 @@
 name: gradido test CI
 
-on: [push]
+on: push
 
 jobs:
   ##############################################################################
@@ -15,7 +15,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # FRONTEND ###############################################################
       ##########################################################################
@@ -24,7 +24,7 @@ jobs:
           docker build --target test -t "gradido/frontend:test" frontend/
           docker save "gradido/frontend:test" > /tmp/frontend.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-frontend-test
           path: /tmp/frontend.tar
@@ -41,7 +41,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # ADMIN INTERFACE ########################################################
       ##########################################################################
@@ -50,7 +50,7 @@ jobs:
           docker build --target test -t "gradido/admin:test" admin/ --build-arg NODE_ENV="test"
           docker save "gradido/admin:test" > /tmp/admin.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-admin-test
           path: /tmp/admin.tar
@@ -67,7 +67,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # BACKEND ################################################################
       ##########################################################################
@@ -76,7 +76,7 @@ jobs:
           docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
           docker save "gradido/backend:test" > /tmp/backend.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-backend-test
           path: /tmp/backend.tar
@@ -93,7 +93,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DATABASE UP ############################################################
       ##########################################################################
@@ -102,7 +102,7 @@ jobs:
           docker build --target test_up -t "gradido/database:test_up" database/
           docker save "gradido/database:test_up" > /tmp/database_up.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-database-test_up
           path: /tmp/database_up.tar
@@ -119,7 +119,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # BUILD MARIADB DOCKER IMAGE #############################################
       ##########################################################################
@@ -128,7 +128,7 @@ jobs:
           docker build --target mariadb_server -t "gradido/mariadb:test" -f ./mariadb/Dockerfile ./
           docker save "gradido/mariadb:test" > /tmp/mariadb.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-mariadb-test
           path: /tmp/mariadb.tar
@@ -139,13 +139,13 @@ jobs:
   build_test_nginx:
     name: Docker Build Test - Nginx
     runs-on: ubuntu-latest
-    #needs: [nothing]
+    needs: [build_test_backend, build_test_admin, build_test_frontend]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # BUILD NGINX DOCKER IMAGE ###############################################
       ##########################################################################
@@ -154,7 +154,7 @@ jobs:
           docker build -t "gradido/nginx:test" nginx/
           docker save "gradido/nginx:test" > /tmp/nginx.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docker-nginx-test
           path: /tmp/nginx.tar
@@ -171,12 +171,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-frontend-test
           path: /tmp
@@ -200,12 +200,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-frontend-test
           path: /tmp
@@ -229,12 +229,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-frontend-test
           path: /tmp
@@ -258,12 +258,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-admin-test
           path: /tmp
@@ -287,12 +287,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-admin-test
           path: /tmp
@@ -308,7 +308,7 @@ jobs:
   # JOB: LOCALES ADMIN #########################################################
   ##############################################################################
   locales_admin:
-    name: Locales - Admin
+    name: Locales - Admin Interface
     runs-on: ubuntu-latest
     needs: [build_test_admin]
     steps:
@@ -316,12 +316,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-admin-test
           path: /tmp
@@ -345,12 +345,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-backend-test
           path: /tmp
@@ -374,12 +374,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGE ##################################################
       ##########################################################################
       - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-database-test_up
           path: /tmp
@@ -403,12 +403,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
       - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-frontend-test
           path: /tmp
@@ -453,12 +453,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
       - name: Download Docker Image (Admin Interface)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-admin-test
           path: /tmp
@@ -495,12 +495,12 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
       - name: Download Docker Image (Mariadb)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docker-mariadb-test
           path: /tmp
@@ -528,7 +528,7 @@ jobs:
           report_name: Coverage Backend
           type: lcov
           result_path: ./backend/coverage/lcov.info
-          min_coverage: 64
+          min_coverage: 74
           token: ${{ github.token }}
 
   ##########################################################################
@@ -543,7 +543,7 @@ jobs:
       # CHECKOUT CODE ##########################################################
       ##########################################################################
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       ##########################################################################
       # DOCKER COMPOSE DATABASE UP + RESET #####################################
       ##########################################################################
@@ -553,3 +553,108 @@ jobs:
         run: docker-compose -f docker-compose.yml run -T database yarn up
       - name: database | reset
         run: docker-compose -f docker-compose.yml run -T database yarn reset
+
+  ##############################################################################
+  # JOB: END-TO-END TESTS  #####################################################
+  ##############################################################################
+  end-to-end-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [build_test_mariadb, build_test_database_up, build_test_backend, build_test_admin, build_test_frontend, build_test_nginx]
+    steps:
+      ##########################################################################
+      # CHECKOUT CODE ##########################################################
+      ##########################################################################
+      - name: Checkout code
+        uses: actions/checkout@v3
+      ##########################################################################
+      # DOWNLOAD DOCKER IMAGES #################################################
+      ##########################################################################
+      - name: Download Docker Image (Mariadb)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-mariadb-test
+          path: /tmp
+      - name: Load Docker Image (Mariadb)
+        run: docker load < /tmp/mariadb.tar
+      - name: Download Docker Image (Database Up)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-database-test_up
+          path: /tmp
+      - name: Load Docker Image (Database Up)
+        run: docker load < /tmp/database_up.tar
+      - name: Download Docker Image (Backend)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-backend-test
+          path: /tmp
+      - name: Load Docker Image (Backend)
+        run: docker load < /tmp/backend.tar
+      - name: Download Docker Image (Frontend)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-frontend-test
+          path: /tmp
+      - name: Load Docker Image (Frontend)
+        run: docker load < /tmp/frontend.tar
+      - name: Download Docker Image (Admin Interface)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-admin-test
+          path: /tmp
+      - name: Load Docker Image (Admin Interface)
+        run: docker load < /tmp/admin.tar
+      - name: Download Docker Image (Nginx)
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-nginx-test
+          path: /tmp
+      - name: Load Docker Image (Nginx)
+        run: docker load < /tmp/nginx.tar
+
+      ##########################################################################
+      # BOOT UP THE TEST SYSTEM ################################################
+      ##########################################################################
+      - name: Boot up test system | docker-compose mariadb
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+      - name: Boot up test system | docker-compose database
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+
+      - name: Boot up test system | docker-compose backend
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend
+
+      - name: Sleep for 10 seconds
+        run: sleep 10s
+
+      - name: Boot up test system | seed backend
+        run: |
+          sudo chown runner:docker -R *
+          cd database
+          yarn && yarn dev_reset
+          cd ../backend
+          yarn && yarn seed
+          cd ..
+
+      - name: Boot up test system | docker-compose frontends
+        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
+
+      - name: Sleep for 15 seconds
+        run: sleep 15s
+
+      ##########################################################################
+      # END-TO-END TESTS #######################################################
+      ##########################################################################
+      - name: End-to-end tests | run tests
+        id: e2e-tests
+        run: |
+          cd e2e-tests/cypress/tests/
+          yarn
+          yarn run cypress run --spec cypress/e2e/User.Authentication.feature
+      - name: End-to-end tests | if tests failed, upload screenshots
+        if: steps.e2e-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/tests/cypress/screenshots/

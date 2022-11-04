@@ -12,6 +12,7 @@
             value-field="item"
             text-field="name"
             name="month-selection"
+            :disabled="true"
           ></b-form-radio-group>
         </b-row>
         <div class="m-4">
@@ -73,7 +74,7 @@
   </div>
 </template>
 <script>
-import { updatePendingCreation } from '../graphql/updatePendingCreation'
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { creationMonths } from '../mixins/creationMonths'
 
 export default {
@@ -103,7 +104,7 @@ export default {
   data() {
     return {
       text: !this.creationUserData.memo ? '' : this.creationUserData.memo,
-      value: !this.creationUserData.amount ? 0 : this.creationUserData.amount,
+      value: !this.creationUserData.amount ? 0 : Number(this.creationUserData.amount),
       rangeMin: 0,
       rangeMax: 1000,
       selected: '',
@@ -113,7 +114,7 @@ export default {
     submitCreation() {
       this.$apollo
         .mutate({
-          mutation: updatePendingCreation,
+          mutation: adminUpdateContribution,
           variables: {
             id: this.item.id,
             email: this.item.email,
@@ -123,11 +124,11 @@ export default {
           },
         })
         .then((result) => {
-          this.$emit('update-user-data', this.item, result.data.updatePendingCreation.creation)
+          this.$emit('update-user-data', this.item, result.data.adminUpdateContribution.creation)
           this.$emit('update-creation-data', {
-            amount: Number(result.data.updatePendingCreation.amount),
-            date: result.data.updatePendingCreation.date,
-            memo: result.data.updatePendingCreation.memo,
+            amount: Number(result.data.adminUpdateContribution.amount),
+            date: result.data.adminUpdateContribution.date,
+            memo: result.data.adminUpdateContribution.memo,
             row: this.row,
           })
           this.toastSuccess(
@@ -155,7 +156,7 @@ export default {
       const month = this.$d(new Date(this.creationUserData.date), 'month')
       const index = this.radioOptions.findIndex((obj) => obj.item.short === month)
       this.selected = this.radioOptions[index].item
-      this.rangeMax = this.creation[index] + this.creationUserData.amount
+      this.rangeMax = Number(this.creation[index]) + Number(this.creationUserData.amount)
     }
   },
 }

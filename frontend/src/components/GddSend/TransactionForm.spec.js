@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import TransactionForm from './TransactionForm'
 import flushPromises from 'flush-promises'
 import { SEND_TYPES } from '@/pages/Send.vue'
-import DashboardLayout from '@/layouts/DashboardLayout_gdd.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
 const localVue = global.localVue
 

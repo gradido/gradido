@@ -1,9 +1,9 @@
 <template>
   <div class="redeem-valid">
-    <redeem-information :firstName="user.firstName" :amount="amount" :memo="memo" />
+    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
     <b-jumbotron>
       <div class="mb-3 text-center">
-        <b-button variant="primary" @click="$emit('redeem-link', amount)" size="lg">
+        <b-button variant="primary" @click="$emit('mutation-link', linkData.amount)" size="lg">
           {{ $t('gdd_per_link.redeem') }}
         </b-button>
       </div>
@@ -19,9 +19,8 @@ export default {
     RedeemInformation,
   },
   props: {
-    user: { type: Object, required: false },
-    amount: { type: String, required: false },
-    memo: { type: String, required: false, default: '' },
+    linkData: { type: Object, required: true },
+    isContributionLink: { type: Boolean, default: false },
   },
 }
 </script>

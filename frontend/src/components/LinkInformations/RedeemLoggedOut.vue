@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-logged-out">
-    <redeem-information :firstName="user.firstName" :amount="amount" :memo="memo" />
+    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
 
     <b-jumbotron>
       <div class="mb-6">
@@ -25,24 +25,17 @@
 </template>
 <script>
 import RedeemInformation from '@/components/LinkInformations/RedeemInformation.vue'
+import { authLinks } from '@/mixins/authLinks'
 
 export default {
   name: 'RedeemLoggedOut',
+  mixins: [authLinks],
   components: {
     RedeemInformation,
   },
   props: {
-    user: { type: Object, required: true },
-    amount: { type: String, required: true },
-    memo: { type: String, required: true, default: '' },
-  },
-  computed: {
-    login() {
-      return '/login/' + this.$route.params.code
-    },
-    register() {
-      return '/register/' + this.$route.params.code
-    },
+    linkData: { type: Object, required: true },
+    isContributionLink: { type: Boolean, default: false },
   },
 }
 </script>

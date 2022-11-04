@@ -50,24 +50,6 @@ describe('ForgotPassword', () => {
       expect(wrapper.find('div.forgot-password').exists()).toBe(true)
     })
 
-    it('has a title', () => {
-      expect(wrapper.find('h1').text()).toEqual('settings.password.reset')
-    })
-
-    it('has a subtitle', () => {
-      expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.subtitle')
-    })
-
-    describe('back button', () => {
-      it('has a "back" button', () => {
-        expect(wrapper.findComponent(RouterLinkStub).text()).toEqual('back')
-      })
-
-      it('links to login', () => {
-        expect(wrapper.findComponent(RouterLinkStub).props().to).toEqual('/login')
-      })
-    })
-
     describe('input form', () => {
       let form
 
@@ -119,7 +101,7 @@ describe('ForgotPassword', () => {
 
             it('shows error title, subtitle, login button', () => {
               expect(wrapper.vm.showPageMessage).toBe(true)
-              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.errorTitle')
+              expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
               expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
@@ -154,8 +136,8 @@ describe('ForgotPassword', () => {
 
             it('shows success title, subtitle, login button', () => {
               expect(wrapper.vm.showPageMessage).toBe(true)
-              expect(wrapper.find('.test-message-headline').text()).toBe('site.thx.title')
-              expect(wrapper.find('.test-message-subtitle').text()).toBe('site.thx.email')
+              expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
+              expect(wrapper.find('.test-message-subtitle').text()).toBe('message.email')
               expect(wrapper.find('.test-message-button').text()).toBe('login')
             })
 
@@ -168,16 +150,6 @@ describe('ForgotPassword', () => {
             })
           })
         })
-      })
-    })
-
-    describe('comingFrom login', () => {
-      beforeEach(() => {
-        wrapper = Wrapper(createMockObject('resetPassword'))
-      })
-
-      it('has another subtitle', () => {
-        expect(wrapper.find('p.text-lead').text()).toEqual('settings.password.resend_subtitle')
       })
     })
   })

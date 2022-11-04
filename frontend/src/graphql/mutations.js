@@ -31,7 +31,6 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
-    $coinanimation: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -39,7 +38,6 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
-      coinanimation: $coinanimation
     )
   }
 `
@@ -76,6 +74,9 @@ export const createTransactionLink = gql`
   mutation($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       link
+      amount
+      memo
+      validUntil
     }
   }
 `
@@ -89,5 +90,73 @@ export const deleteTransactionLink = gql`
 export const redeemTransactionLink = gql`
   mutation($code: String!) {
     redeemTransactionLink(code: $code)
+  }
+`
+
+export const createContribution = gql`
+  mutation($creationDate: String!, $memo: String!, $amount: Decimal!) {
+    createContribution(creationDate: $creationDate, memo: $memo, amount: $amount) {
+      amount
+      memo
+    }
+  }
+`
+
+export const updateContribution = gql`
+  mutation($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    updateContribution(
+      contributionId: $contributionId
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    ) {
+      id
+      amount
+      memo
+    }
+  }
+`
+
+export const deleteContribution = gql`
+  mutation($id: Int!) {
+    deleteContribution(id: $id)
+  }
+`
+
+export const createContributionMessage = gql`
+  mutation($contributionId: Float!, $message: String!) {
+    createContributionMessage(contributionId: $contributionId, message: $message) {
+      id
+      message
+      createdAt
+      updatedAt
+      type
+      userFirstName
+      userLastName
+    }
+  }
+`
+
+export const login = gql`
+  mutation($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
+      email
+      firstName
+      lastName
+      language
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+      creation
+    }
+  }
+`
+
+export const logout = gql`
+  mutation {
+    logout
   }
 `

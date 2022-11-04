@@ -31,7 +31,6 @@ export const updateUserInfos = gql`
     $password: String
     $passwordNew: String
     $locale: String
-    $coinanimation: Boolean
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -39,7 +38,6 @@ export const updateUserInfos = gql`
       password: $password
       passwordNew: $passwordNew
       language: $locale
-      coinanimation: $coinanimation
     )
   }
 `
@@ -83,15 +81,26 @@ export const createTransactionLink = gql`
 
 // from admin interface
 
-export const createPendingCreation = gql`
+export const adminCreateContribution = gql`
   mutation ($email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    createPendingCreation(email: $email, amount: $amount, memo: $memo, creationDate: $creationDate)
+    adminCreateContribution(
+      email: $email
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    )
   }
 `
 
-export const confirmPendingCreation = gql`
+export const confirmContribution = gql`
   mutation ($id: Int!) {
-    confirmPendingCreation(id: $id)
+    confirmContribution(id: $id)
+  }
+`
+
+export const setUserRole = gql`
+  mutation ($userId: Int!, $isAdmin: Boolean!) {
+    setUserRole(userId: $userId, isAdmin: $isAdmin)
   }
 `
 
@@ -107,19 +116,19 @@ export const unDeleteUser = gql`
   }
 `
 
-export const createPendingCreations = gql`
-  mutation ($pendingCreations: [CreatePendingCreationArgs!]!) {
-    createPendingCreations(pendingCreations: $pendingCreations) {
+export const adminCreateContributions = gql`
+  mutation ($pendingCreations: [AdminCreateContributionArgs!]!) {
+    adminCreateContributions(pendingCreations: $pendingCreations) {
       success
-      successfulCreation
-      failedCreation
+      successfulContribution
+      failedContribution
     }
   }
 `
 
-export const updatePendingCreation = gql`
+export const adminUpdateContribution = gql`
   mutation ($id: Int!, $email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
-    updatePendingCreation(
+    adminUpdateContribution(
       id: $id
       email: $email
       amount: $amount
@@ -134,8 +143,179 @@ export const updatePendingCreation = gql`
   }
 `
 
-export const deletePendingCreation = gql`
+export const adminDeleteContribution = gql`
   mutation ($id: Int!) {
-    deletePendingCreation(id: $id)
+    adminDeleteContribution(id: $id)
+  }
+`
+
+export const createContributionLink = gql`
+  mutation (
+    $amount: Decimal!
+    $name: String!
+    $memo: String!
+    $cycle: String!
+    $validFrom: String
+    $validTo: String
+    $maxAmountPerMonth: Decimal
+    $maxPerCycle: Int! = 1
+  ) {
+    createContributionLink(
+      amount: $amount
+      name: $name
+      memo: $memo
+      cycle: $cycle
+      validFrom: $validFrom
+      validTo: $validTo
+      maxAmountPerMonth: $maxAmountPerMonth
+      maxPerCycle: $maxPerCycle
+    ) {
+      id
+      amount
+      name
+      memo
+      code
+      link
+      createdAt
+      validFrom
+      validTo
+      maxAmountPerMonth
+      cycle
+      maxPerCycle
+    }
+  }
+`
+
+export const updateContributionLink = gql`
+  mutation (
+    $amount: Decimal!
+    $name: String!
+    $memo: String!
+    $cycle: String!
+    $validFrom: String
+    $validTo: String
+    $maxAmountPerMonth: Decimal
+    $maxPerCycle: Int! = 1
+    $id: Int!
+  ) {
+    updateContributionLink(
+      amount: $amount
+      name: $name
+      memo: $memo
+      cycle: $cycle
+      validFrom: $validFrom
+      validTo: $validTo
+      maxAmountPerMonth: $maxAmountPerMonth
+      maxPerCycle: $maxPerCycle
+      id: $id
+    ) {
+      id
+      amount
+      name
+      memo
+      code
+      link
+      createdAt
+      validFrom
+      validTo
+      maxAmountPerMonth
+      cycle
+      maxPerCycle
+    }
+  }
+`
+
+export const deleteContributionLink = gql`
+  mutation ($id: Int!) {
+    deleteContributionLink(id: $id)
+  }
+`
+
+export const createContribution = gql`
+  mutation ($amount: Decimal!, $memo: String!, $creationDate: String!) {
+    createContribution(amount: $amount, memo: $memo, creationDate: $creationDate) {
+      id
+      amount
+      memo
+    }
+  }
+`
+
+export const updateContribution = gql`
+  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+    updateContribution(
+      contributionId: $contributionId
+      amount: $amount
+      memo: $memo
+      creationDate: $creationDate
+    ) {
+      id
+      amount
+      memo
+    }
+  }
+`
+
+export const deleteContribution = gql`
+  mutation ($id: Int!) {
+    deleteContribution(id: $id)
+  }
+`
+
+export const createContributionMessage = gql`
+  mutation ($contributionId: Float!, $message: String!) {
+    createContributionMessage(contributionId: $contributionId, message: $message) {
+      id
+      message
+      createdAt
+      updatedAt
+      type
+      userFirstName
+      userLastName
+    }
+  }
+`
+
+export const adminCreateContributionMessage = gql`
+  mutation ($contributionId: Float!, $message: String!) {
+    adminCreateContributionMessage(contributionId: $contributionId, message: $message) {
+      id
+      message
+      createdAt
+      updatedAt
+      type
+      userFirstName
+      userLastName
+    }
+  }
+`
+
+export const redeemTransactionLink = gql`
+  mutation ($code: String!) {
+    redeemTransactionLink(code: $code)
+  }
+`
+
+export const login = gql`
+  mutation ($email: String!, $password: String!, $publisherId: Int) {
+    login(email: $email, password: $password, publisherId: $publisherId) {
+      id
+      email
+      firstName
+      lastName
+      language
+      klickTipp {
+        newsletterState
+      }
+      hasElopage
+      publisherId
+      isAdmin
+    }
+  }
+`
+
+export const logout = gql`
+  mutation {
+    logout
   }
 `

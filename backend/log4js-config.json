@@ -5,25 +5,66 @@
     {
       "type": "dateFile",
       "filename": "../logs/backend/access.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      },
       "keepFileExt" : true,
-      "fileNameSep" : "_" 
+      "fileNameSep" : "_",
+      "numBackups" : 30
     },
     "apollo": 
     {
       "type": "dateFile",
       "filename": "../logs/backend/apollo.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      },
       "keepFileExt" : true,
-      "fileNameSep" : "_" 
+      "fileNameSep" : "_",
+      "numBackups" : 30
+    },
+    "backend": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/backend.log",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      },
+      "keepFileExt" : true,
+      "fileNameSep" : "_",
+      "numBackups" : 30
+    },
+    "klicktipp": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/klicktipp.log",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      },
+      "keepFileExt" : true,
+      "fileNameSep" : "_",
+      "numBackups" : 30
     },
     "errorFile": 
     {
       "type": "dateFile",
       "filename": "../logs/backend/errors.log",
-      "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      },
       "keepFileExt" : true,
-      "fileNameSep" : "_" 
+      "fileNameSep" : "_",
+      "numBackups" : 30
     },
     "errors": 
     {
@@ -31,24 +72,63 @@
       "level": "error",
       "appender": "errorFile"
     },
-    "out": 
+    "out":
     {
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c %X{user} %f:%l %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
       }
-
-    }
+    },
+    "apolloOut": 
+    {
+      "type": "stdout",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+      }
+    }    
   },
-  "categories": 
+  "categories":
   {
     "default": 
     {
       "appenders": 
       [
         "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "apollo":
+    {
+      "appenders":
+      [
         "apollo",
+        "apolloOut",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "backend":
+    {
+      "appenders":
+      [
+        "backend",
+        "out",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "klicktipp":
+    {
+      "appenders":
+      [
+        "klicktipp",
+        "out",
         "errors"
       ],
       "level": "debug",

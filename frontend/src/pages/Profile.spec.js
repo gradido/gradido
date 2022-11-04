@@ -38,9 +38,5 @@ describe('Profile', () => {
     it('has a user change newsletter form', () => {
       expect(wrapper.findComponent({ name: 'UserNewsletter' }).exists()).toBeTruthy()
     })
-
-    it('has a user change coin animation form', () => {
-      expect(wrapper.findComponent({ name: 'UserCoinAnimation' }).exists()).toBeTruthy()
-    })
   })
 })

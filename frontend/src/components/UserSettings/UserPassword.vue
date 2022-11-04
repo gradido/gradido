@@ -6,6 +6,7 @@
           <a
             class="cursor-pointer"
             @click="showPassword ? (showPassword = !showPassword) : cancelEdit()"
+            data-test="open-password-change-form"
           >
             <span class="pointer mr-3">{{ $t('settings.password.change-password') }}</span>
             <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
@@ -36,6 +37,7 @@
                   :variant="disabled ? 'light' : 'success'"
                   class="mt-4"
                   :disabled="disabled"
+                  data-test="submit-new-password-btn"
                 >
                   {{ $t('form.save') }}
                 </b-button>
@@ -89,7 +91,7 @@ export default {
           },
         })
         .then(() => {
-          this.toastSuccess(this.$t('site.thx.reset'))
+          this.toastSuccess(this.$t('message.reset'))
           this.cancelEdit()
         })
         .catch((error) => {

@@ -34,6 +34,29 @@ const routes = [
   {
     path: '/transactions',
     component: () => import('@/pages/Transactions.vue'),
+    props: { gdt: false },
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/gdt',
+    component: () => import('@/pages/Transactions.vue'),
+    props: { gdt: true },
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/community',
+    component: () => import('@/pages/Community.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/information',
+    component: () => import('@/pages/InfoStatistic.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -45,18 +68,6 @@ const routes = [
   {
     path: '/register/:code?',
     component: () => import('@/pages/Register.vue'),
-  },
-  {
-    path: '/thx/:comingFrom/:code?',
-    component: () => import('@/pages/thx.vue'),
-    beforeEnter: (to, from, next) => {
-      const validFrom = ['forgot-password', 'reset-password', 'register', 'login', 'checkEmail']
-      if (!validFrom.includes(from.path.split('/')[1])) {
-        next({ path: '/login' })
-      } else {
-        next()
-      }
-    },
   },
   {
     path: '/forgot-password',

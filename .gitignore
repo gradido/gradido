@@ -5,6 +5,7 @@
 .project
 >>>>>>> refs/remotes/origin/improve-apollo-logging
 *.log
+*.bak
 /node_modules/*
 messages.pot
 nbproject
