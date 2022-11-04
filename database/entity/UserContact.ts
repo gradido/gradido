@@ -1,1 +1,1 @@
-export { UserContact } from './0049-add_user_contacts_table/UserContact'
+export { UserContact } from './0052-change_users_password_encryption/UserContact'

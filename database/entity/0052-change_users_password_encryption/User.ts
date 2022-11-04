@@ -115,7 +115,6 @@ export class User extends BaseEntity {
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
 
-
   @OneToMany(() => Contribution, (contribution) => contribution.user)
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
