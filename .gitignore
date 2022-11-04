@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-.dbeaver/*
-=======
 .dbeaver
 .project
->>>>>>> refs/remotes/origin/improve-apollo-logging
 *.log
 *.bak
 /node_modules/*
