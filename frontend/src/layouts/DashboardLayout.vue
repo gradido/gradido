@@ -56,7 +56,7 @@
           <navbar-new class="main-navbar" :balance="balance"></navbar-new>
         </b-col>
       </b-row>
-      <d-row fluid class="d-flex">
+      <b-row fluid class="d-flex">
         <b-col cols="2" ref="sideMenuRow" class="d-none d-lg-block d-md-block zindex1000">
           <sidebar-new
             class="main-sidebar"
@@ -66,15 +66,18 @@
           />
         </b-col>
         <b-col>
-          <d-row>
-            <b-col>
-              <d-row class="d-lg-flex">
-                <b-col col="12" lg="9" style="background-color: blue">content header</b-col>
-                <b-col col="12" lg="3" style="background-color: red">right</b-col>
-              </d-row>
+          <b-row>
+            <b-col cols="12">
+              <b-row class="d-lg-flex" cols="12">
+                <b-col style="background-color: blue; color: white">
+                  <content-header />
+                </b-col>
+              </b-row>
             </b-col>
-
-            <b-col cols="12" lg="9">
+            <b-col class="d-block d-lg-none" style="background-color: red">
+              <right-side />
+            </b-col>
+            <b-col cols="12">
               <div class="main-content mt-3">
                 <fade-transition :duration="200" origin="center top" mode="out-in">
                   <router-view
@@ -91,9 +94,17 @@
                 </fade-transition>
               </div>
             </b-col>
-          </d-row>
+          </b-row>
         </b-col>
-      </d-row>
+        <b-col
+          cols="2"
+          class="d-none d-lg-block"
+          align-self="stretch"
+          style="background-color: red"
+        >
+          <right-side />
+        </b-col>
+      </b-row>
       <b-row>
         <!-- footer -->
         <b-col>
@@ -105,6 +116,8 @@
   </div>
 </template>
 <script>
+import ContentHeader from '@/layouts/templates/ContentHeader.vue'
+import RightSide from '@/layouts/templates/RightSide.vue'
 // import Navbar from '@/components/Menu/Navbar.vue'
 import NavbarNew from '@/components/Menu/NavbarNew.vue'
 // import Sidebar from '@/components/Menu/Sidebar.vue'
@@ -119,6 +132,8 @@ import CONFIG from '@/config'
 export default {
   name: 'DashboardLayout',
   components: {
+    ContentHeader,
+    RightSide,
     // Navbar,
     NavbarNew,
     // Sidebar,
