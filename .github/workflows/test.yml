@@ -142,7 +142,7 @@ jobs:
   build_test_nginx:
     name: Docker Build Test - Nginx
     runs-on: ubuntu-latest
-    #needs: [nothing]
+    needs: [build_test_backend, build_test_admin, build_test_frontend]
     steps:
       ##########################################################################
       # CHECKOUT CODE ##########################################################
