@@ -63,6 +63,7 @@ import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
@@ -455,6 +456,10 @@ export class AdminResolver {
     ) {
       throw new Error('Own contribution can not be deleted as admin')
     }
+    const user = await dbUser.findOneOrFail(
+      { id: contribution.userId },
+      { relations: ['emailContact'] },
+    )
     contribution.contributionStatus = ContributionStatus.DELETED
     contribution.deletedBy = moderator.id
     await contribution.save()
@@ -468,6 +473,18 @@ export class AdminResolver {
     await eventProtocol.writeEvent(
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
+    // TODO: Send email
+    // const user = contribution.user
+    sendContributionRejectedEmail({
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      recipientEmail: user.emailContact.email,
+      recipientFirstName: user.firstName,
+      recipientLastName: user.lastName,
+      contributionMemo: contribution.memo,
+      contributionAmount: contribution.amount,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    })
 
     return !!res
   }
