@@ -10,6 +10,7 @@
       @remove-creation="removeCreation"
       @show-overlay="showOverlay"
       @update-state="updateState"
+      @update-contributions="$apollo.queries.PendingContributions.refetch()"
     />
   </div>
 </template>
@@ -71,21 +72,6 @@ export default {
           this.toastError(error.message)
         })
     },
-    getPendingCreations() {
-      this.$apollo
-        .query({
-          query: listUnconfirmedContributions,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.$store.commit('resetOpenCreations')
-          this.pendingCreations = result.data.listUnconfirmedContributions
-          this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
     updatePendingCreations(id) {
       this.pendingCreations = this.pendingCreations.filter((obj) => obj.id !== id)
       this.$store.commit('openCreationsMinus', 1)
@@ -127,8 +113,24 @@ export default {
       ]
     },
   },
-  async created() {
-    await this.getPendingCreations()
+  apollo: {
+    PendingContributions: {
+      query() {
+        return listUnconfirmedContributions
+      },
+      variables() {
+        // may be at some point we need a pagination here
+        return {}
+      },
+      update({ listUnconfirmedContributions }) {
+        this.$store.commit('resetOpenCreations')
+        this.pendingCreations = listUnconfirmedContributions
+        this.$store.commit('setOpenCreations', listUnconfirmedContributions.length)
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
+    },
   },
 }
 </script>
