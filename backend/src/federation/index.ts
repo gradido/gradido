@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import DHT from '@hyperswarm/dht'
-import { Connection } from '@dbTools/typeorm'
+// import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 
 function between(min: number, max: number) {
@@ -22,7 +22,7 @@ const nodeAPI = {
 }
 
 export const startDHT = async (
-  connection: Connection,
+  // connection: Connection,
   topic: string,
 ): Promise<void> => {
   try {
@@ -71,9 +71,6 @@ export const startDHT = async (
       const collectedPubKeys: string[] = []
 
       for await (const data of result) {
-        /* console.log(
-           `${data.from.host}:${data.from.port}: peers: ${data.peers.length}`
-           ); */
         data.peers.forEach((peer: any) => {
           const pubKey = peer.publicKey.toString('hex')
           if (
@@ -93,13 +90,13 @@ export const startDHT = async (
         // publicKey here is keyPair.publicKey from above
         const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
 
-        /* socket.once("connect", function () {
-           console.log("client side emitted connect");
-           }); */
+        // socket.once("connect", function () {
+        // console.log("client side emitted connect");
+        // });
 
-        /* socket.once("end", function () {
-           console.log("client side ended");
-           }); */
+        // socket.once("end", function () {
+        // console.log("client side ended");
+        // });
 
         socket.once('error', (err: any) => {
           errorfulRequests.push(remotePubKey)

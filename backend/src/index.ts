@@ -7,7 +7,7 @@ import { startDHT } from '@/federation/index'
 import CONFIG from './config'
 
 async function main() {
-  const { app, con } = await createServer()
+  const { app } = await createServer()
 
   app.listen(CONFIG.PORT, () => {
     // eslint-disable-next-line no-console
@@ -20,7 +20,7 @@ async function main() {
 
   // start DHT hyperswarm when DHT_TOPIC is set in .env
   if (CONFIG.DHT_TOPIC) {
-    await startDHT(con, CONFIG.DHT_TOPIC)
+    await startDHT(CONFIG.DHT_TOPIC) // con,
   }
 }
 
