@@ -70,6 +70,7 @@
               </b-row>
               <b-card-body class="">
                 <router-view></router-view>
+                <p class="mt-3">{{ $t('gdd_per_link.isFree') }}</p>
               </b-card-body>
             </b-card>
           </div>
