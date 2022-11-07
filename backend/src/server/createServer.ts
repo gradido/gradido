@@ -22,9 +22,6 @@ import schema from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from '@dbTools/typeorm'
 
-// DHT
-import { startDHT } from '@/federation/index'
-
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
@@ -53,11 +50,6 @@ const createServer = async (
   if (!dbVersion) {
     logger.fatal('Fatal: Database Version incorrect')
     throw new Error('Fatal: Database Version incorrect')
-  }
-
-  // start DHT hyperswarm when DHT_TOPIC is set in .env
-  if (CONFIG.DHT_TOPIC) {
-    await startDHT(con, CONFIG.DHT_TOPIC)
   }
 
   // Express Server

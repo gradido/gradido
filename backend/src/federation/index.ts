@@ -21,7 +21,10 @@ const nodeAPI = {
   API_2_00: `${nodeURL}/graphql/2_00/`,
 }
 
-export const startDHT = async (connection: Connection, topic: string): Promise<void> => {
+export const startDHT = async (
+  connection: Connection,
+  topic: string,
+): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
 
