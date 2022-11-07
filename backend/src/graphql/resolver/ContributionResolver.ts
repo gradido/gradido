@@ -198,6 +198,9 @@ export class ContributionResolver {
       contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
       contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
     ) {
+      logger.error(
+        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
+      )
       throw new Error(
         `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
       )
@@ -219,16 +222,11 @@ export class ContributionResolver {
     contributionMessage.createdAt = contributionToUpdate.updatedAt
       ? contributionToUpdate.updatedAt
       : contributionToUpdate.createdAt
-    let changeMessage = ''
-    if (contributionToUpdate.contributionDate.getTime() !== new Date(creationDate).getTime()) {
-      changeMessage += contributionToUpdate.contributionDate + '\n'
-    }
-    if (contributionToUpdate.memo !== memo) {
-      changeMessage += '---\n' + contributionToUpdate.memo + '\n'
-    }
-    if (contributionToUpdate.amount.toFixed(6) !== amount.toFixed(6)) {
-      changeMessage += '---\n' + contributionToUpdate.amount
-    }
+    const changeMessage = `${contributionToUpdate.contributionDate}
+    ---
+    ${contributionToUpdate.memo}
+    ---
+    ${contributionToUpdate.amount}`
     contributionMessage.message = changeMessage
     contributionMessage.isModerator = false
     contributionMessage.userId = user.id
