@@ -1,1 +1,1 @@
-export { CommunityApiVersion } from './0052-community_federation_tables/CommunityApiVersion'
+export { CommunityApiVersion } from './0053-community_federation_tables/CommunityApiVersion'
