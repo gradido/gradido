@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v10.2022-09-20',
+    EXPECTED: 'v11.2022-10-27',
     CURRENT: '',
   },
 }
@@ -116,6 +116,10 @@ if (
   )
 }
 
+const federation = {
+  DHT_TOPIC: process.env.DHT_TOPIC || null,
+}
+
 const CONFIG = {
   ...constants,
   ...server,
@@ -126,6 +130,7 @@ const CONFIG = {
   ...loginServer,
   ...webhook,
   ...eventProtocol,
+  ...federation,
 }
 
 export default CONFIG
