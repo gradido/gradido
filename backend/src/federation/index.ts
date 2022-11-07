@@ -1,9 +1,9 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import DHT from '@hyperswarm/dht'
 import { Connection } from '@dbTools/typeorm'
+import { backendLogger as logger } from '@/server/logger'
 
 function between(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
@@ -23,8 +23,6 @@ const nodeAPI = {
 
 export const startDHT = async (connection: Connection, topic: string): Promise<void> => {
   try {
-    console.log('topic', topic, typeof topic)
-
     const TOPIC = DHT.hash(Buffer.from(topic))
 
     const keyPair = DHT.keyPair()
@@ -36,10 +34,10 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
     server.on('connection', function (socket: any) {
       // noiseSocket is E2E between you and the other peer
       // pipe it somewhere like any duplex stream
-      console.log('Remote public key', socket.remotePublicKey.toString('hex'))
+      logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
-      socket.on('data', (data: Buffer) => console.log('data:', data.toString('ascii')))
+      socket.on('data', (data: Buffer) => logger.info(`data: ${data.toString('ascii')}`))
 
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
@@ -47,7 +45,7 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
     await server.listen()
 
     setInterval(async () => {
-      console.log('Announcing on topic:', TOPIC.toString('hex'))
+      logger.info(`Announcing on topic: ${TOPIC.toString('hex')}`)
       await node.announce(TOPIC, keyPair).finished()
     }, ANNOUNCETIME)
 
@@ -55,12 +53,12 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
     let errorfulRequests: string[] = []
 
     setInterval(async () => {
-      console.log('Refreshing successful nodes')
+      logger.info('Refreshing successful nodes')
       successfulRequests = []
     }, SUCCESSTIME)
 
     setInterval(async () => {
-      console.log('Refreshing errorful nodes')
+      logger.info('Refreshing errorful nodes')
       errorfulRequests = []
     }, ERRORTIME)
 
@@ -86,7 +84,7 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
         })
       }
 
-      console.log('Found new peers: ', collectedPubKeys)
+      logger.info(`Found new peers: ${collectedPubKeys}`)
 
       collectedPubKeys.forEach((remotePubKey) => {
         // publicKey here is keyPair.publicKey from above
@@ -102,7 +100,7 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
 
         socket.once('error', (err: any) => {
           errorfulRequests.push(remotePubKey)
-          console.log(`error on peer ${remotePubKey}: ${err.message}`)
+          logger.error(`error on peer ${remotePubKey}: ${err.message}`)
         })
 
         socket.on('open', function () {
@@ -117,6 +115,6 @@ export const startDHT = async (connection: Connection, topic: string): Promise<v
       })
     }, POLLTIME)
   } catch (err) {
-    console.log(err)
+    logger.error(err)
   }
 }
