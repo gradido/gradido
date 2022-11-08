@@ -165,17 +165,8 @@ export default {
         return this.toastError(this.$t('contributionLink.noStartDate'))
       if (this.form.validTo === null) return this.toastError(this.$t('contributionLink.noEndDate'))
 
-      const { validFrom, validTo, name, amount, memo, cycle, maxPerCycle, maxAmountPerMonth } =
-        this.form
       const variables = {
-        validFrom,
-        validTo,
-        name,
-        amount,
-        memo,
-        cycle,
-        maxPerCycle,
-        maxAmountPerMonth,
+        ...this.form,
         id: this.contributionLinkData.id ? this.contributionLinkData.id : null,
       }
 
