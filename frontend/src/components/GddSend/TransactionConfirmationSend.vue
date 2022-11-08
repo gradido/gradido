@@ -18,7 +18,7 @@
               <div class="m-1 mt-2">{{ $t('GDD') }}</div>
             </b-input-group-prepend>
 
-            <div class="p-3">{{ (amount * -1) | GDD }}</div>
+            <div class="p-3">{{ amount | GDD }}</div>
           </b-input-group>
 
           <br />
