@@ -1,42 +1,22 @@
 import { mount } from '@vue/test-utils'
 import CreationConfirm from './CreationConfirm.vue'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { listUnconfirmedContributions } from '../graphql/listUnconfirmedContributions'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import VueApollo from 'vue-apollo'
+import { createMockClient } from 'mock-apollo-client'
+
+const mockClient = createMockClient()
+const apolloProvider = new VueApollo({
+  defaultClient: mockClient,
+})
 
 const localVue = global.localVue
 
-const storeCommitMock = jest.fn()
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    listUnconfirmedContributions: [
-      {
-        id: 1,
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        userId: 99,
-        email: 'bibi@bloxberg.de',
-        amount: 500,
-        memo: 'Danke für alles',
-        date: new Date(),
-        moderator: 1,
-      },
-      {
-        id: 2,
-        firstName: 'Räuber',
-        lastName: 'Hotzenplotz',
-        userId: 100,
-        email: 'raeuber@hotzenplotz.de',
-        amount: 1000000,
-        memo: 'Gut Ergattert',
-        date: new Date(),
-        moderator: 1,
-      },
-    ],
-  },
-})
+localVue.use(VueApollo)
 
-const apolloMutateMock = jest.fn().mockResolvedValue({})
+const storeCommitMock = jest.fn()
 
 const mocks = {
   $t: jest.fn((t) => t),
@@ -53,17 +33,69 @@ const mocks = {
       },
     },
   },
-  $apollo: {
-    query: apolloQueryMock,
-    mutate: apolloMutateMock,
-  },
+}
+
+const defaultData = () => {
+  return {
+    listUnconfirmedContributions: [
+      {
+        id: 1,
+        firstName: 'Bibi',
+        lastName: 'Bloxberg',
+        userId: 99,
+        email: 'bibi@bloxberg.de',
+        amount: 500,
+        memo: 'Danke für alles',
+        date: new Date(),
+        moderator: 1,
+        state: 'PENDING',
+        creation: [500, 500, 500],
+        messageCount: 0,
+      },
+      {
+        id: 2,
+        firstName: 'Räuber',
+        lastName: 'Hotzenplotz',
+        userId: 100,
+        email: 'raeuber@hotzenplotz.de',
+        amount: 1000000,
+        memo: 'Gut Ergattert',
+        date: new Date(),
+        moderator: 1,
+        state: 'PENDING',
+        creation: [500, 500, 500],
+        messageCount: 0,
+      },
+    ],
+  }
 }
 
 describe('CreationConfirm', () => {
   let wrapper
 
+  const listUnconfirmedContributionsMock = jest.fn()
+  const adminDeleteContributionMock = jest.fn()
+  const confirmContributionMock = jest.fn()
+
+  mockClient.setRequestHandler(
+    listUnconfirmedContributions,
+    listUnconfirmedContributionsMock
+      .mockRejectedValueOnce({ message: 'Ouch!' })
+      .mockResolvedValue({ data: defaultData() }),
+  )
+
+  mockClient.setRequestHandler(
+    adminDeleteContribution,
+    adminDeleteContributionMock.mockResolvedValue({ data: { adminDeleteContribution: true } }),
+  )
+
+  mockClient.setRequestHandler(
+    confirmContribution,
+    confirmContributionMock.mockResolvedValue({ data: { confirmContribution: true } }),
+  )
+
   const Wrapper = () => {
-    return mount(CreationConfirm, { localVue, mocks })
+    return mount(CreationConfirm, { localVue, mocks, apolloProvider })
   }
 
   describe('mount', () => {
@@ -72,12 +104,20 @@ describe('CreationConfirm', () => {
       wrapper = Wrapper()
     })
 
-    it('has a DIV element with the class.creation-confirm', () => {
-      expect(wrapper.find('div.creation-confirm').exists()).toBeTruthy()
+    describe('server response for get pending creations is error', () => {
+      it('toast an error message', () => {
+        expect(toastErrorSpy).toBeCalledWith('Ouch!')
+      })
     })
 
-    it('has two pending creations', () => {
-      expect(wrapper.vm.pendingCreations).toHaveLength(2)
+    describe('server response is succes', () => {
+      it('has a DIV element with the class.creation-confirm', () => {
+        expect(wrapper.find('div.creation-confirm').exists()).toBeTruthy()
+      })
+
+      it('has two pending creations', () => {
+        expect(wrapper.vm.pendingCreations).toHaveLength(2)
+      })
     })
 
     describe('store', () => {
@@ -105,10 +145,7 @@ describe('CreationConfirm', () => {
         })
 
         it('calls the adminDeleteContribution mutation', () => {
-          expect(apolloMutateMock).toBeCalledWith({
-            mutation: adminDeleteContribution,
-            variables: { id: 1 },
-          })
+          expect(adminDeleteContributionMock).toBeCalledWith({ id: 1 })
         })
 
         it('commits openCreationsMinus to store', () => {
@@ -128,7 +165,7 @@ describe('CreationConfirm', () => {
         })
 
         it('does not call the adminDeleteContribution mutation', () => {
-          expect(apolloMutateMock).not.toBeCalled()
+          expect(adminDeleteContributionMock).not.toBeCalled()
         })
       })
     })
@@ -139,7 +176,7 @@ describe('CreationConfirm', () => {
       beforeEach(async () => {
         spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
         spy.mockImplementation(() => Promise.resolve('some value'))
-        apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+        adminDeleteContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
         await wrapper.findAll('tr').at(1).findAll('button').at(0).trigger('click')
       })
 
@@ -150,7 +187,6 @@ describe('CreationConfirm', () => {
 
     describe('confirm creation with success', () => {
       beforeEach(async () => {
-        apolloMutateMock.mockResolvedValue({})
         await wrapper.findAll('tr').at(2).findAll('button').at(2).trigger('click')
       })
 
@@ -179,10 +215,7 @@ describe('CreationConfirm', () => {
           })
 
           it('calls the confirmContribution mutation', () => {
-            expect(apolloMutateMock).toBeCalledWith({
-              mutation: confirmContribution,
-              variables: { id: 2 },
-            })
+            expect(confirmContributionMock).toBeCalledWith({ id: 2 })
           })
 
           it('commits openCreationsMinus to store', () => {
@@ -200,7 +233,7 @@ describe('CreationConfirm', () => {
 
         describe('confirm creation with error', () => {
           beforeEach(async () => {
-            apolloMutateMock.mockRejectedValue({ message: 'Ouchhh!' })
+            confirmContributionMock.mockRejectedValue({ message: 'Ouchhh!' })
             await wrapper.find('#overlay').findAll('button').at(1).trigger('click')
           })
 
@@ -208,20 +241,6 @@ describe('CreationConfirm', () => {
             expect(toastErrorSpy).toBeCalledWith('Ouchhh!')
           })
         })
-      })
-    })
-
-    describe('server response for get pending creations is error', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        apolloQueryMock.mockRejectedValue({
-          message: 'Ouch!',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toast an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch!')
       })
     })
   })
