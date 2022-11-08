@@ -18,6 +18,9 @@ export class Community {
   id: number
 
   @Field(() => String)
+  uuid: string
+
+  @Field(() => String)
   name: string
 
   @Field(() => String)
@@ -28,4 +31,13 @@ export class Community {
 
   @Field(() => String)
   registerUrl: string
+
+  @Field(() => Date)
+  createdAt: Date
+
+  @Field(() => String)
+  apiVersion: string
+
+  @Field(() => Date)
+  validFrom: Date
 }

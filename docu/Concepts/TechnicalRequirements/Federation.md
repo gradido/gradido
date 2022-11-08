@@ -75,7 +75,7 @@ Create the new *CommunityFederation* table to store at this point of time only t
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------ |
 | id               | int       | technical unique key of this entity                                                                    |
 | uuid             | string    | unique key for a community, which will never changed as long as the community exists                   |
-| foreign          | boolean   | flag to mark the entry as a foreign or own community entry                                             |
+| remoteFlag       | boolean   | flag to mark the entry as a foreign or own community entry                                             |
 | createdAt        | timestamp | the timestamp the community entry was created                                                          |
 | privateKey       | string    | the private key of the community for asynchron encryption (only set for the own community)             |
 | pubKey           | string    | the public key of the community for asynchron encryption                                               |
@@ -235,7 +235,7 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-         *
+         * 
    3. After all received data is stored successfully, the *DHT-Node* starts the *stage2 - Authentication* of the federation handshake
 
 ### Stage2 - Authentication
@@ -284,8 +284,8 @@ As soon the *openConnection* request is invoked:
 3. check if the decrypted `parameter.signedAndEncryptedURL` is equals the selected url from the previous selected CommunityFederationEntry
    1. if not then break the further processing of this request by only writing an error-log event. There will be no answer to the invoker community, because this community will only go on with a `openConnectionRedirect`-request from this community.
    2. if yes then verify the signature of `parameter.signedAndEncryptedURL` with the `cf.pubKey` read in step 2 before
-   3.
-4.
+   3. 
+4. 
 
 ### Stage3 - Autorized Business Communication
 

@@ -26,7 +26,9 @@ export const startDHT = async (
   topic: string,
 ): Promise<void> => {
   try {
+    logger.info(`start DHT-HyperSwarm with topic=${topic}...`)
     const TOPIC = DHT.hash(Buffer.from(topic))
+    logger.info(`Topic=${TOPIC}`)
 
     const keyPair = DHT.keyPair()
 
@@ -35,17 +37,20 @@ export const startDHT = async (
     const server = node.createServer()
 
     server.on('connection', function (socket: any) {
+      logger.info(`server.on...`)
       // noiseSocket is E2E between you and the other peer
       // pipe it somewhere like any duplex stream
       logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
       socket.on('data', (data: Buffer) => logger.info(`data: ${data.toString('ascii')}`))
+      logger.info(`socket.on...`)
 
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
 
     await server.listen()
+    logger.info(`server.listen...`)
 
     setInterval(async () => {
       logger.info(`Announcing on topic: ${TOPIC.toString('hex')}`)
