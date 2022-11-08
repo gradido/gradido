@@ -27,11 +27,11 @@ export class CommunityFederation extends BaseEntity {
   @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
 
-  @Column({ name: 'private_key', length: 255, nullable: true, default: null })
-  privateKey: string
+  @Column({ name: 'private_key', type: 'binary', length: 80, default: null, nullable: true })
+  privateKey: Buffer
 
-  @Column({ name: 'public_key', length: 255, nullable: true, default: null })
-  pubKey: string
+  @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
+  pubKey: Buffer
 
   @Column({ name: 'public_key_verified_at', default: null, nullable: true })
   pubKeyVerifiedAt: Date
