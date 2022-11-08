@@ -21,6 +21,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE IF NOT EXISTS community_federation (
       id int(10) unsigned NOT NULL AUTO_INCREMENT,
+      community_id int(10) unsigned NOT NULL,
       uuid varchar(36) NOT NULL,
       remote_flag tinyint(4) NOT NULL DEFAULT 0,
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -34,8 +35,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   `)
   await queryFn(`
     CREATE TABLE IF NOT EXISTS community_api_version (
-      id int unsigned NOT NULL AUTO_INCREMENT,
-      community_federation_id int unsigned NOT NULL,
+      id int(10) unsigned NOT NULL AUTO_INCREMENT,
+      community_federation_id int(10) unsigned NOT NULL,
       url varchar(255) NOT NULL,
       api_version varchar(255) NOT NULL,
       valid_from datetime(3) NOT NULL,

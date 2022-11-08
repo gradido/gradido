@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 'typeorm'
+import { CommunityFederation } from '../CommunityFederation'
 
 @Entity('community')
 export class Community extends BaseEntity {
@@ -16,4 +17,11 @@ export class Community extends BaseEntity {
 
   @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
   createdAt: Date
+
+  @OneToMany(
+    () => CommunityFederation,
+    (communityFederation: CommunityFederation) => communityFederation.community,
+  )
+  @JoinColumn({ name: 'community_id' })
+  federations?: CommunityFederation[]
 }
