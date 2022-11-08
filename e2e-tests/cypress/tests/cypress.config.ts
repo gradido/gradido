@@ -36,6 +36,7 @@ export default defineConfig({
     supportFile: "cypress/support/index.ts",
     viewportHeight: 720,
     viewportWidth: 1280,
+    video: false,
     retries: {
       runMode: 2,
       openMode: 0,
