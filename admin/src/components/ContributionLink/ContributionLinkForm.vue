@@ -112,7 +112,7 @@
         <b-button type="reset" variant="danger" @click.prevent="onReset">
           {{ $t('contributionLink.clear') }}
         </b-button>
-        <b-button @click.prevent="onReset(), $emit('closeContributionForm')">
+        <b-button @click.prevent="$emit('closeContributionForm')">
           {{ $t('contributionLink.close') }}
         </b-button>
       </div>
@@ -208,14 +208,7 @@ export default {
   },
   watch: {
     contributionLinkData() {
-      this.form.name = this.contributionLinkData.name
-      this.form.memo = this.contributionLinkData.memo
-      this.form.amount = this.contributionLinkData.amount
-      this.form.validFrom = this.contributionLinkData.validFrom
-      this.form.validTo = this.contributionLinkData.validTo
-      this.form.cycle = this.contributionLinkData.cycle
-      this.form.maxPerCycle = this.contributionLinkData.maxPerCycle
-      this.form.maxAmountPerMonth = this.contributionLinkData.maxAmountPerMonth
+      this.form = this.contributionLinkData
     },
   },
 }

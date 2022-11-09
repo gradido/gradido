@@ -72,6 +72,7 @@ export default {
       if (this.visible) {
         this.$root.$emit('bv::toggle::collapse', 'newContribution')
         this.editContributionLink = false
+        this.contributionLinkData = {}
       }
     },
     editContributionLinkData(data) {
