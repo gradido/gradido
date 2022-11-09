@@ -4,6 +4,8 @@
 import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
+import { createHomeCommunity } from '@/dao/CommunityDAO'
+import CONFIG from '../config'
 
 function between(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
@@ -32,6 +34,14 @@ export const startDHT = async (
 
     const keyPair = DHT.keyPair()
 
+    const fdcommunity = createHomeCommunity(
+      CONFIG.COMMUNITY_NAME,
+      CONFIG.COMMUNITY_URL,
+      CONFIG.COMMUNITY_DESCRIPTION,
+      keyPair.publicKey,
+      keyPair.secretKey,
+    )
+
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
@@ -49,7 +59,7 @@ export const startDHT = async (
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
 
-    await server.listen()
+    await server.listen(keyPair)
     logger.info(`server.listen...`)
 
     setInterval(async () => {
