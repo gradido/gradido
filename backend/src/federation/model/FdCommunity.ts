@@ -3,7 +3,7 @@
 import { ObjectType, Field } from 'type-graphql'
 
 @ObjectType()
-export class Community {
+export class FdCommunity {
   constructor(name: string, url: string, descript: string) {
     this.name = name
     this.url = url
@@ -28,11 +28,11 @@ export class Community {
   @Field(() => Date)
   createdAt: Date
 
-  @Field(() => Buffer)
-  publicKey: Buffer
+  @Field(() => String)
+  publicKey: string
 
-  @Field(() => Buffer)
-  privKey: Buffer
+  @Field(() => String)
+  privKey: string
 
   @Field(() => String)
   apiVersion: string
