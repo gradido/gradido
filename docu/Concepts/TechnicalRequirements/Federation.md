@@ -127,7 +127,7 @@ The first time a new community infrastructure on a server is started, the start-
 
   * communityFederation.id = next sequence value
   * communityFederation.uuid = community.uuid
-  * communityFederation.foreign = FALSE
+  * communityFederation.remoteFlag = FALSE
   * communityFederation.createdAt = NOW
   * communityFederation.privateKey = null
   * communityFederation.pubKey = null
@@ -146,11 +146,11 @@ The first time a new community infrastructure on a server is started, the start-
 
 For the 1st stage the *hyperswarm dht library*  will be used. It supports an easy way to connect a new community with other existing communities. As shown in the picture above the *hyperswarm dht library* will be part of the component *DHT-Node*  separated from the *apollo server* component. The background for this separation is to keep off the federation activity from the business processes or to enable component specific scaling in the future. In consequence for the inter-component communication between *DHT-Node*, *apollo server* and other components like *database* the interface and security has to be defined during development on using technical standards.
 
-For the first federation release the *DHT-Node* will be part of the *apollo server*, but internally designed and implemented as a logical saparated component.
+For the first federation release the *DHT-Node* will be part of the *apollo server*, but internally designed and implemented as a logical separated component.
 
 #### Sequence join&connect
 
-1. In the own database of community_A the entites *Community*, *CommunityFederation* and *CommunityApiVersion* are initialized
+1. In the own database of community_A the entities *Community*, *CommunityFederation* and *CommunityApiVersion* are initialized
 2. When starting the *DHT-Node* of community_A it search per *apollo-ORM* for the own community entry and check on existing keypair *CommunityFederation.pubKey* and *CommunityFederation.privateKey* in the database. If they not exist, the *DHT-Node* generates the keypair *pubkey* and *privatekey* and writes them per *apollo-ORM* in the database
 3. For joining with the correct channel of *hyperswarm dht* a topic has to be used. The *DHT-Node* reads the configured value of the property *federation.dhtnode.topic*.
 4. with the *CommunityFederation.pubKey* and the *federation.dhtnode.topic* the *DHT-Node* joins the *hyperswarm dht* and listen for other *DHT-nodes* on the topic.
