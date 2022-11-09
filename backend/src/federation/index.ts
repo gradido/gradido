@@ -4,7 +4,7 @@
 import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
-import { createHomeCommunity } from '@/dao/CommunityDAO'
+import { addUnknownFederationCommunity, createHomeCommunity } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
 
 function between(min: number, max: number) {
@@ -16,13 +16,14 @@ const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
 const nodeRand = between(1, 99)
+/*
 const nodeURL = `https://test${nodeRand}.org`
 const nodeAPI = {
   API_1_00: `${nodeURL}/api/1_00/`,
   API_1_01: `${nodeURL}/api/1_01/`,
   API_2_00: `${nodeURL}/graphql/2_00/`,
 }
-
+*/
 export const startDHT = async (
   // connection: Connection,
   topic: string,
@@ -34,14 +35,14 @@ export const startDHT = async (
 
     const keyPair = DHT.keyPair()
 
-    const fdcommunity = createHomeCommunity(
+    const fdCommunity = await createHomeCommunity(
       CONFIG.COMMUNITY_NAME,
       CONFIG.COMMUNITY_URL,
       CONFIG.COMMUNITY_DESCRIPTION,
       keyPair.publicKey,
       keyPair.secretKey,
     )
-
+    logger.info(`fdcommunity=${fdCommunity}`)
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
@@ -53,7 +54,13 @@ export const startDHT = async (
       logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
-      socket.on('data', (data: Buffer) => logger.info(`data: ${data.toString('ascii')}`))
+      socket.on('data', (data: Buffer) => {
+        logger.info(`data: ${data.toString('ascii')}`)
+        const json = JSON.parse(data.toString('ascii'))
+        if (json.api && json.url) {
+          addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)
+        }
+      })
       logger.info(`socket.on...`)
 
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
@@ -121,8 +128,9 @@ export const startDHT = async (
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
           // console.log("writing to socket");
-          socket.write(Buffer.from(`${nodeRand}`))
-          socket.write(Buffer.from(JSON.stringify(nodeAPI)))
+          socket.write(
+            Buffer.from(`{ "api" : "${fdCommunity.apiVersion}", "url" : "${fdCommunity.url}" }`),
+          )
           successfulRequests.push(remotePubKey)
         })
         // pipe it somewhere like any duplex stream
