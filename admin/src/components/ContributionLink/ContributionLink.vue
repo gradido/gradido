@@ -79,7 +79,6 @@ export default {
         this.$root.$emit('bv::toggle::collapse', 'newContribution')
       }
       this.contributionLinkData = data
-      console.log('contributionLinkData', this.contributionLinkData)
       this.editContributionLink = true
     },
   },
