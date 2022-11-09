@@ -54,7 +54,7 @@
         :name="$t('form.amount')"
         :rules="{
           required: true,
-          gddSendAmount: [0.01, balance],
+          gddSendAmount: [0.01, parseInt(maxGddThisMonth)],
         }"
         v-slot="{ errors }"
       >
