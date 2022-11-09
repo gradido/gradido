@@ -208,7 +208,7 @@
   },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "login": "Login",
+  "login": "Sign in",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -296,7 +296,7 @@
       "heading": "Please enter the email address by which you're registered here."
     },
     "login": {
-      "heading": "Log in with your access data. Keep them safe!"
+      "heading": "Sign in with your access data. Keep them safe!"
     },
     "resetPassword": {
       "heading": "Please enter your password and repeat it."

@@ -514,18 +514,20 @@ describe('UserResolver', () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: emailVerificationCode, password: 'not-valid' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
-        expect(result).toEqual(
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: emailVerificationCode, password: 'not-valid' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [
               new GraphQLError(
@@ -544,18 +546,20 @@ describe('UserResolver', () => {
     describe('no valid optin code', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: 'not valid', password: 'Aa12345_' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
-        expect(result).toEqual(
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: 'not valid', password: 'Aa12345_' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
@@ -582,13 +586,9 @@ describe('UserResolver', () => {
     })
 
     describe('no users in database', () => {
-      beforeAll(async () => {
+      it('throws an error', async () => {
         jest.clearAllMocks()
-        result = await mutate({ mutation: login, variables })
-      })
-
-      it('throws an error', () => {
-        expect(result).toEqual(
+        expect(await mutate({ mutation: login, variables })).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
@@ -666,6 +666,7 @@ describe('UserResolver', () => {
   describe('logout', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
@@ -704,6 +705,7 @@ describe('UserResolver', () => {
   describe('verifyLogin', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(query({ query: verifyLogin })).resolves.toEqual(
           expect.objectContaining({
@@ -723,6 +725,7 @@ describe('UserResolver', () => {
       })
 
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(query({ query: verifyLogin })).resolves.toEqual(
           expect.objectContaining({
@@ -883,6 +886,7 @@ describe('UserResolver', () => {
 
     describe('wrong optin code', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         await expect(
           query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
         ).resolves.toEqual(
@@ -919,6 +923,7 @@ describe('UserResolver', () => {
   describe('updateUserInfos', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
           expect.objectContaining({
@@ -976,6 +981,7 @@ describe('UserResolver', () => {
 
       describe('language is not valid', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateUserInfos,
@@ -998,6 +1004,7 @@ describe('UserResolver', () => {
       describe('password', () => {
         describe('wrong old password', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: updateUserInfos,
@@ -1020,6 +1027,7 @@ describe('UserResolver', () => {
 
         describe('invalid new password', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: updateUserInfos,
@@ -1108,6 +1116,7 @@ describe('UserResolver', () => {
   describe('searchAdminUsers', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
           expect.objectContaining({
