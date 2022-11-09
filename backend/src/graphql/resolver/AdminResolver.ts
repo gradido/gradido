@@ -473,8 +473,6 @@ export class AdminResolver {
     await eventProtocol.writeEvent(
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
-    // TODO: Send email
-    // const user = contribution.user
     sendContributionRejectedEmail({
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
