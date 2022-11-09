@@ -6,6 +6,7 @@
         <b-col>
           <b-form-group :label="$t('contributionLink.validFrom')">
             <b-form-datepicker
+              reset-button
               v-model="form.validFrom"
               size="lg"
               :min="min"
@@ -19,6 +20,7 @@
         <b-col>
           <b-form-group :label="$t('contributionLink.validTo')">
             <b-form-datepicker
+              reset-button
               v-model="form.validTo"
               size="lg"
               :min="form.validFrom ? form.validFrom : min"
@@ -109,6 +111,9 @@
         </b-button>
         <b-button type="reset" variant="danger" @click.prevent="onReset">
           {{ $t('contributionLink.clear') }}
+        </b-button>
+        <b-button @click.prevent="onReset(), $emit('closeContributionForm')">
+          {{ $t('contributionLink.close') }}
         </b-button>
       </div>
     </b-form>
