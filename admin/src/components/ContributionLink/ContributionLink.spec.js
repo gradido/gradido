@@ -46,5 +46,10 @@ describe('ContributionLink', () => {
       wrapper.vm.editContributionLinkData()
       expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
     })
+
+    it('emits toggle::collapse close Contribution-Form ', async () => {
+      wrapper.vm.closeContributionForm()
+      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    })
   })
 })
