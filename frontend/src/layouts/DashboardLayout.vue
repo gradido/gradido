@@ -69,12 +69,12 @@
           <b-row>
             <b-col cols="12">
               <b-row class="d-lg-flex" cols="12">
-                <b-col style="background-color: blue; color: white">
+                <b-col>
                   <content-header />
                 </b-col>
               </b-row>
             </b-col>
-            <b-col class="d-block d-lg-none" style="background-color: red">
+            <b-col class="d-block d-lg-none">
               <right-side />
             </b-col>
             <b-col cols="12">
@@ -96,12 +96,7 @@
             </b-col>
           </b-row>
         </b-col>
-        <b-col
-          cols="2"
-          class="d-none d-lg-block"
-          align-self="stretch"
-          style="background-color: red"
-        >
+        <b-col cols="2" class="d-none d-lg-block" align-self="stretch">
           <right-side />
         </b-col>
       </b-row>
@@ -225,11 +220,11 @@ export default {
       this.tunneledEmail = email
     },
     toogleMobilMenu() {
-      console.log(this.$refs.sideMenuRow.classList.contains('position-absolute'))
+      // console.log(this.$refs.sideMenuRow.classList.contains('position-absolute'))
 
       this.$refs.sideMenuRow.classList.toggle('d-none')
       this.$refs.sideMenuRow.classList.toggle('position-absolute')
-      console.log(document.getElementById('component-sidebar'))
+      // console.log(document.getElementById('component-sidebar'))
       document.getElementById('side-menu').classList.toggle('bg-lightgrey')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
     },
