@@ -33,7 +33,7 @@ export const SecretKeyCryptographyEncrypt = (message: Buffer, encryptionKey: Buf
   nonce.fill(31) // static nonce
 
   sodium.crypto_secretbox_easy(encrypted, message, nonce, encryptionKey)
-  logger.debug(`SecretKeyCryptographyEncrypt...successful: ${encrypted}`)
+  logger.debug(`SecretKeyCryptographyEncrypt...successful`)
   return encrypted
 }
 
@@ -48,7 +48,7 @@ export const SecretKeyCryptographyDecrypt = (
 
   sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
 
-  logger.debug(`SecretKeyCryptographyDecrypt...successful: ${message}`)
+  logger.debug(`SecretKeyCryptographyDecrypt...successful`)
   return message
 }
 
@@ -88,9 +88,7 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
   const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
   sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
-  logger.debug(
-    `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
-  )
+  logger.debug(`SecretKeyCryptographyCreateKey...successful`)
   return [encryptionKeyHash, encryptionKey]
 }
 
