@@ -22,7 +22,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE IF NOT EXISTS community_federation (
       id int(10) unsigned NOT NULL AUTO_INCREMENT,
       community_id int(10) unsigned NOT NULL,
-      uuid varchar(36) NOT NULL,
+      uuid varchar(36),
       remote_flag tinyint(4) NOT NULL DEFAULT 0,
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       private_key binary(80),
@@ -30,7 +30,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       public_key_verified_at datetime(3),
       authenticated_at datetime(3),
       PRIMARY KEY (id),
-      UNIQUE KEY uuid (uuid)
+      UNIQUE KEY uuid (uuid),
+      UNIQUE KEY public_key (public_key)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
