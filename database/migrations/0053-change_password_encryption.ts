@@ -1,4 +1,4 @@
-/* MIGRATION TO ADD GRADIDO_ID
+/* MIGRATION TO ADD ENCRYPTION TO PASSWORDS
  *
  * This migration adds and renames columns to and in the table `users`
  */
