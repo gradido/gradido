@@ -9,6 +9,7 @@ global.alert = jest.fn()
 
 const propsData = {
   contributionLinkData: {},
+  editContributionLink: false,
 }
 const apolloMutateMock = jest.fn().mockResolvedValue()
 
@@ -108,6 +109,7 @@ describe('ContributionLinkForm', () => {
             cycle: 'ONCE',
             maxPerCycle: 1,
             maxAmountPerMonth: '0',
+            id: null,
           },
         })
       })
