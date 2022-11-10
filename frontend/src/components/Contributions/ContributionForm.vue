@@ -54,7 +54,7 @@
         :name="$t('form.amount')"
         :rules="{
           required: true,
-          gddSendAmount: [0.01, parseInt(maxGddThisMonth)],
+          gddSendAmount: [0.01, validMaxGDD],
         }"
         v-slot="{ errors }"
       >
@@ -63,8 +63,9 @@
           <b-form-input
             id="contribution-amount"
             v-model="form.amount"
-            type="text"
+            type="number"
             :formatter="numberFormat"
+            :max="validMaxGDD"
             required
           ></b-form-input>
         </b-input-group>
@@ -72,18 +73,6 @@
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
       </validation-provider>
-      <div
-        v-if="isThisMonth && parseInt(form.amount) > parseInt(maxGddThisMonth)"
-        class="text-danger text-right"
-      >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth }) }}
-      </div>
-      <div
-        v-if="!isThisMonth && parseInt(form.amount) > parseInt(maxGddLastMonth)"
-        class="text-danger text-right"
-      >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth }) }}
-      </div>
       <b-row class="mt-3">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
@@ -177,6 +166,9 @@ export default {
       return this.form.id && this.isThisMonth
         ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
         : this.$store.state.creation[2]
+    },
+    validMaxGDD() {
+      return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
     },
   },
 }
