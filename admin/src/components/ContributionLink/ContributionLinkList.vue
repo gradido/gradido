@@ -108,6 +108,7 @@ export default {
               })
               .then(() => {
                 this.toastSuccess(this.$t('contributionLink.deleted'))
+                this.$emit('closeContributionForm')
                 this.$emit('get-contribution-links')
               })
               .catch((err) => {
