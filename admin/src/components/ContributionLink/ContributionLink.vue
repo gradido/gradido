@@ -34,6 +34,7 @@
           :items="items"
           @editContributionLinkData="editContributionLinkData"
           @get-contribution-links="$emit('get-contribution-links')"
+          @closeContributionForm="closeContributionForm"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
       </b-card-text>

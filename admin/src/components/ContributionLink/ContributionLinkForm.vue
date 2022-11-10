@@ -197,6 +197,7 @@ export default {
     },
     onReset() {
       this.$refs.contributionLinkForm.reset()
+      this.form = {}
       this.form.validFrom = null
       this.form.validTo = null
     },
