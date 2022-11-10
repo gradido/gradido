@@ -94,6 +94,7 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "favourites": "Favourites",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -207,7 +208,7 @@
   },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "login": "Login",
+  "login": "Sign in",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -229,13 +230,19 @@
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
+    "favourites": "Favourites",
     "info": "Information",
+    "lightmode": "Lightmode",
     "logout": "Logout",
-    "members_area": "Members area",
+    "members": "Members",
+    "moon": "🌙",
     "overview": "Overview",
     "profile": "My profile",
     "send": "Send",
+    "settings": "Settings",
+    "sun": "☀️",
     "support": "Support",
+    "topStories": "Top Stories",
     "transactions": "Transactions"
   },
   "qrCode": "QR Code",
@@ -289,7 +296,7 @@
       "heading": "Please enter the email address by which you're registered here."
     },
     "login": {
-      "heading": "Log in with your access data. Keep them safe!"
+      "heading": "Sign in with your access data. Keep them safe!"
     },
     "resetPassword": {
       "heading": "Please enter your password and repeat it."

@@ -49,7 +49,7 @@ describe('App', () => {
     })
 
     describe('route requires authorization', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         mocks.$route.meta.requiresAuth = true
         wrapper = Wrapper()
       })

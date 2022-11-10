@@ -1,73 +1,123 @@
 <template>
-  <div>
-    <div class="position-absolute w-100 h-100">
-      <!--<navbar
-        class="main-navbar"
-        :balance="balance"
-        :visible="visible"
-        :pending="pending"
-        :elopageUri="elopageUri"
-        @set-visible="setVisible"
-        @admin="admin"
-        @logout="logout"
-      />-->
-      <navbar-new class="main-navbar" :balance="balance"></navbar-new>
-      <b-container
-        class="d-none d-lg-none d-md-block d-sm-none position-absolute h-100 width70 zindex10 bg-default"
-      >
-        <!-- menu mobil -->
-      </b-container>
-      <div
-        class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex10 bg-default"
-      >
-        <b-button>
-          <span class="navbar-toggler-icon"></span>
+  <div class="main-page">
+    <div v-if="skeleton">
+      <b-row class="text-center">
+        <b-col>
+          <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
+        </b-col>
+        <b-col>
+          <div class="b-right m-4">
+            <b-row>
+              <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
+              <b-col>
+                <b-skeleton></b-skeleton>
+                <b-skeleton></b-skeleton>
+              </b-col>
+            </b-row>
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="text-center mt-5">
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col cols="6">
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+        <b-col>
+          <b-skeleton animation="wave" width="85%"></b-skeleton>
+          <b-skeleton animation="wave" width="55%"></b-skeleton>
+          <b-skeleton animation="wave" width="70%"></b-skeleton>
+        </b-col>
+      </b-row>
+    </div>
+    <div v-else>
+      <!--sm menu mobil hamburger button-->
+      <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
+        <b-button @click="toogleMobilMenu">
+          <span v-if="hamburger" class="navbar-toggler-icon"></span>
+          <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
         </b-button>
       </div>
-      <b-container fluid class="bg-primary pl-0 pl-lg-0 pl-md-6">
-        <b-row>
-          <b-col lg="2" class="d-none d-lg-block position-absolute h-100 bg-default">
-            <sidebar
-              class="main-sidebar"
-              :elopageUri="elopageUri"
-              @admin="admin"
-              @logout="logout"
-            />
-          </b-col>
-          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1 class="bg-warning navbar">
-            <!-- content header -->
-          </b-col>
-          <b-col cols="12" lg="3" offset="0" offset-lg="0" class="bg-info navbar" order-2>
-            <!--rechtebox -->
-          </b-col>
-          <b-col cols="12" lg="7" offset="0" offset-lg="2" order-1>
-            <div class="main-content">
-              <fade-transition :duration="200" origin="center top" mode="out-in">
-                <router-view
-                  ref="router-view"
-                  :balance="balance"
-                  :gdt-balance="GdtBalance"
-                  :transactions="transactions"
-                  :transactionCount="transactionCount"
-                  :transactionLinkCount="transactionLinkCount"
-                  :pending="pending"
-                  @update-transactions="updateTransactions"
-                  @set-tunneled-email="setTunneledEmail"
-                ></router-view>
-              </fade-transition>
-            </div>
-          </b-col>
-        </b-row>
-        <content-footer v-if="!$route.meta.hideFooter"></content-footer>
-        <session-logout-timeout @logout="logout"></session-logout-timeout>
-      </b-container>
+
+      <b-row>
+        <!-- navbar -->
+        <b-col>
+          <navbar-new class="main-navbar" :balance="balance"></navbar-new>
+        </b-col>
+      </b-row>
+      <b-row fluid class="d-flex">
+        <b-col cols="2" ref="sideMenuRow" class="d-none d-lg-block d-md-block zindex1000">
+          <sidebar-new
+            class="main-sidebar"
+            @admin="admin"
+            @logout="logout"
+            @modeToggle="modeToggle"
+          />
+        </b-col>
+        <b-col>
+          <b-row>
+            <b-col cols="12">
+              <b-row class="d-lg-flex" cols="12">
+                <b-col>
+                  <content-header />
+                </b-col>
+              </b-row>
+            </b-col>
+            <b-col class="d-block d-lg-none">
+              <right-side />
+            </b-col>
+            <b-col cols="12">
+              <div class="main-content mt-3">
+                <fade-transition :duration="200" origin="center top" mode="out-in">
+                  <router-view
+                    ref="router-view"
+                    :balance="balance"
+                    :gdt-balance="GdtBalance"
+                    :transactions="transactions"
+                    :transactionCount="transactionCount"
+                    :transactionLinkCount="transactionLinkCount"
+                    :pending="pending"
+                    @update-transactions="updateTransactions"
+                    @set-tunneled-email="setTunneledEmail"
+                  ></router-view>
+                </fade-transition>
+              </div>
+            </b-col>
+          </b-row>
+        </b-col>
+        <b-col cols="2" class="d-none d-lg-block" align-self="stretch">
+          <right-side />
+        </b-col>
+      </b-row>
+      <b-row>
+        <!-- footer -->
+        <b-col>
+          <content-footer v-if="!$route.meta.hideFooter"></content-footer>
+        </b-col>
+      </b-row>
+      <session-logout-timeout @logout="logout"></session-logout-timeout>
     </div>
   </div>
 </template>
 <script>
+
+import ContentHeader from '@/layouts/templates/ContentHeader.vue'
+import RightSide from '@/layouts/templates/RightSide.vue'
 // import Navbar from '@/components/Menu/Navbar.vue'
 import NavbarNew from '@/components/Menu/NavbarNew.vue'
-import Sidebar from '@/components/Menu/Sidebar.vue'
+// import Sidebar from '@/components/Menu/Sidebar.vue'
+import SidebarNew from '@/components/Menu/SidebarNew.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { transactionsQuery } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
@@ -78,9 +128,12 @@ import CONFIG from '@/config'
 export default {
   name: 'DashboardLayout',
   components: {
+    ContentHeader,
+    RightSide,
     // Navbar,
     NavbarNew,
-    Sidebar,
+    // Sidebar,
+    SidebarNew,
     SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
@@ -95,12 +148,20 @@ export default {
       pending: true,
       visible: false,
       tunneledEmail: null,
+      hamburger: true,
+      darkMode: false,
+      skeleton: true,
     }
   },
   provide() {
     return {
       getTunneledEmail: () => this.tunneledEmail,
     }
+  },
+  created() {
+    setTimeout(() => {
+      this.skeleton = false
+    }, 1500)
   },
   methods: {
     async logout() {
@@ -159,22 +220,46 @@ export default {
     setTunneledEmail(email) {
       this.tunneledEmail = email
     },
+    toogleMobilMenu() {
+      // console.log(this.$refs.sideMenuRow.classList.contains('position-absolute'))
+
+      this.$refs.sideMenuRow.classList.toggle('d-none')
+      this.$refs.sideMenuRow.classList.toggle('position-absolute')
+      // console.log(document.getElementById('component-sidebar'))
+      document.getElementById('side-menu').classList.toggle('bg-lightgrey')
+      this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
+    },
+    dark() {
+      document.getElementById('app').classList.add('dark-mode')
+      document.querySelector('#app a').classList.add('dark-mode')
+      this.darkMode = true
+    },
+
+    light() {
+      document.getElementById('app').classList.remove('dark-mode')
+      document.querySelector('#app a').classList.remove('dark-mode')
+      this.darkMode = false
+    },
+
+    modeToggle() {
+      if (this.darkMode || document.getElementById('app').classList.contains('dark-mode')) {
+        this.light()
+      } else {
+        this.dark()
+      }
+    },
   },
   computed: {
-    elopageUri() {
-      const pId = this.$store.state.publisherId
-        ? this.$store.state.publisherId
-        : CONFIG.DEFAULT_PUBLISHER_ID
-      return encodeURI(
-        this.$store.state.hasElopage
-          ? `https://elopage.com/s/gradido/sign_in?locale=${this.$i18n.locale}`
-          : `https://elopage.com/s/gradido/basic-de/payment?locale=${this.$i18n.locale}&prid=111&pid=${pId}&firstName=${this.$store.state.firstName}&lastName=${this.$store.state.lastName}&email=${this.$store.state.email}`,
-      )
+    darkDark() {
+      return this.darkMode && 'darkmode-toggled'
     },
   },
 }
 </script>
 <style>
+.b-right {
+  text-align: -webkit-right;
+}
 .content-gradido {
   display: inline-flex;
   width: 100%;
@@ -193,5 +278,8 @@ export default {
 }
 .width70 {
   width: 70px;
+}
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 </style>

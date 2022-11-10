@@ -1,10 +1,20 @@
 html,
 body {
+  background-color: #fff;
   height: 100%;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 .pointer {
   cursor: pointer;
+}
+
+// .bg-default {
+//   background-color: rgba(245 245 245 / 75%) !important;
+// }
+
+.shadow-default {
+  box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
 }
 
 .c-grey {
@@ -209,6 +219,10 @@ a:hover,
   width: 96%;
 }
 
+.gradido-border-radius {
+  border-radius: 26px;
+}
+
 .gradido-no-border-radius {
   border-radius: 0;
 }
@@ -219,4 +233,8 @@ a:hover,
 
 .gradido-font-15rem {
   font-size: 1.5rem;
+}
+
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0); 
 }
