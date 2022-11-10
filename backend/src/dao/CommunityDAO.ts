@@ -13,31 +13,17 @@ import { decryptCommunityPrivateKey, encryptCommunityPrivateKey } from '@/util/e
 export async function readHomeCommunity(): Promise<FdCommunity> {
   const dbCom = await DbCommunity.findOneOrFail({ name: CONFIG.COMMUNITY_NAME }).catch(() => {
     logger.error(`Community with name=${CONFIG.COMMUNITY_NAME} does not exists`)
-    throw new Error(`Community with name=${CONFIG.COMMUNITY_NAME} does not exists`)
+    throw new Error(`no HomeCommunity exists`)
   })
   // there is only one federation entry for the home community with foreign flag = false
   const dbFed = await DbFederation.findOneOrFail({ communityId: dbCom.id, foreign: false }).catch(
     () => {
       logger.error(`Missing CommunityFederation for Community name=${CONFIG.COMMUNITY_NAME}`)
-      throw new Error(`Missing CommunityFederation for Community name=${CONFIG.COMMUNITY_NAME}`)
+      throw new Error(`Missing federation of HomeCommunity`)
     },
   )
-  // read the entries with the youngest ValidFrom at first
-  const dbApi = await DbApiVersion.find({
-    where: { communityFederationID: dbFed.id },
-    order: { validFrom: 'DESC' },
-  })
-
-  if (!dbApi || !dbApi[0]) {
-    logger.error(
-      `HomeCommunity with malformed configuration! missing ApiVersion for federationid=${dbFed.id}`,
-    )
-    throw new Error(
-      `HomeCommunity with malformed configuration! missing ApiVersion for federationid=${dbFed.id}`,
-    )
-  }
-
-  const community = new FdCommunity(dbCom.name, dbApi[0].url, dbCom.description)
+  const dbApi = await readNewestApiVersion(dbFed.id)
+  const community = new FdCommunity(dbCom.name, dbApi.url, dbCom.description)
   community.id = dbCom.id
   community.name = dbCom.name
   community.description = dbCom.description
@@ -49,9 +35,9 @@ export async function readHomeCommunity(): Promise<FdCommunity> {
     dbCom.uuid,
     CONFIG.LOGIN_SERVER_KEY,
   ).toString('hex')
-  community.url = dbApi[0].url
-  community.apiVersion = dbApi[0].apiVersion
-  community.validFrom = dbApi[0].validFrom
+  community.url = dbApi.url
+  community.apiVersion = dbApi.apiVersion
+  community.validFrom = dbApi.validFrom
 
   return community
 }
@@ -63,10 +49,26 @@ export async function createHomeCommunity(
   publicKey: Buffer,
   privateKey: Buffer,
 ): Promise<FdCommunity> {
+  // first check if HomeCommunity still exists
+  logger.debug(
+    `createHomeCommunity(${name}, ${url}, ${descript}, ${publicKey.toString('hex')}, 
+    ${privateKey.toString('hex')})...`,
+  )
+  try {
+    const fdCom = await readHomeCommunity()
+    logger.debug(`found HomeCommunity: ${JSON.stringify(fdCom)}`)
+    if (url === fdCom.url) {
+      logger.debug(`configured HomeCommunity still exists`)
+      return fdCom
+    }
+  } catch {
+    logger.info(`no HomeCommunity found in database...`)
+  }
   // start federation with empty federation tables
   DbCommunity.clear()
   DbFederation.clear()
   DbApiVersion.clear()
+  logger.debug(`all federation tabels cleared...`)
 
   let dbCom = DbCommunity.create()
   dbCom.name = name
@@ -88,16 +90,14 @@ export async function createHomeCommunity(
   dbApi.url = url
   dbApi.validFrom = new Date()
   dbApi = await dbApi.save()
+  logger.debug(`new HomeCommunity created...`)
 
-  const community = new FdCommunity(name, url, descript)
+  const community = new FdCommunity(name, url, descript, dbFed, dbApi)
   community.id = dbCom.id
   community.uuid = dbCom.uuid
   community.createdAt = dbCom.createdAt
   community.privKey = dbFed.privateKey.toString('hex')
-  community.publicKey = dbFed.pubKey.toString('hex')
-  community.apiVersion = dbApi.apiVersion
-  community.validFrom = dbApi.validFrom
-
+  logger.debug(`new homecommunity=${JSON.stringify(community)} created successfully`)
   return community
 }
 
@@ -135,4 +135,35 @@ export async function addUnknownFederationCommunity(
     return true
   })
   return false
+}
+
+export async function readFederationCommunity(publicKey: string): Promise<FdCommunity> {
+  logger.debug(`readFederationCommunity(${publicKey})...`)
+  const pubKeyBuf = Buffer.from(publicKey, 'hex')
+  const dbFed = await DbFederation.findOneOrFail({ pubKey: pubKeyBuf, foreign: true }).catch(() => {
+    logger.error(`unknown CommunityFederation for pubKey=${publicKey}`)
+    throw new Error(`unknown CommunityFederation for pubKey`)
+  })
+  const dbApi = await readNewestApiVersion(dbFed.id)
+  const community = new FdCommunity('unknown', 'unknown', 'unknown', dbFed, dbApi)
+  logger.debug(
+    `readFederationCommunity(${publicKey})...sccessful: community=${JSON.stringify(community)}`,
+  )
+  return community
+}
+
+async function readNewestApiVersion(fedId: number): Promise<DbApiVersion> {
+  // read the entries with the youngest ValidFrom at first
+  const dbApi = await DbApiVersion.find({
+    where: { communityFederationID: fedId },
+    order: { validFrom: 'DESC' },
+  })
+
+  if (!dbApi || !dbApi[0]) {
+    logger.error(
+      `Community with malformed configuration! missing ApiVersion for federationid=${fedId}`,
+    )
+    throw new Error(`Community with malformed configuration!`)
+  }
+  return dbApi[0]
 }
