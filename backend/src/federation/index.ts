@@ -31,7 +31,6 @@ export const startDHT = async (
   try {
     logger.info(`start DHT-HyperSwarm with topic=${topic}...`)
     const TOPIC = DHT.hash(Buffer.from(topic))
-    logger.info(`Topic=${TOPIC}`)
 
     const keyPair = DHT.keyPair()
 
@@ -42,7 +41,7 @@ export const startDHT = async (
       keyPair.publicKey,
       keyPair.secretKey,
     )
-    logger.info(`fdcommunity=${fdCommunity}`)
+    logger.info(`my Federation HomeCommunity=${JSON.stringify(fdCommunity)}`)
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
