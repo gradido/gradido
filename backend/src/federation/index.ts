@@ -57,7 +57,11 @@ export const startDHT = async (
         logger.info(`data: ${data.toString('ascii')}`)
         const json = JSON.parse(data.toString('ascii'))
         if (json.api && json.url) {
-          addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)
+          if (!addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)) {
+            logger.error(
+              `can't add new and unknown Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
+            )
+          }
         }
       })
       logger.info(`socket.on...`)
