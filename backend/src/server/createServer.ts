@@ -26,8 +26,7 @@ import { apolloLogger } from './logger'
 import { Logger } from 'log4js'
 
 // i18n
-import path from 'path'
-import i18n from 'i18n'
+import { i18n } from './localization'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -38,6 +37,7 @@ const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
+  localization: any = i18n,
 ): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
@@ -68,29 +68,7 @@ const createServer = async (
   app.use(express.urlencoded({ extended: true }))
 
   // i18n
-  app.use(i18n.init)
-  i18n.configure({
-    locales: ['en', 'de'],
-    defaultLocale: 'en',
-    retryInDefaultLocale: false,
-    directory: path.join(__dirname, '..', 'locales'),
-    // autoReload: true, // if this is activated the seeding hangs at the very end
-    updateFiles: false,
-    objectNotation: true,
-    // logDebugFn: logger.debug,
-    // logWarnFn: logger.info,
-    // logErrorFn: logger.error,
-    api: {
-      __: 't', // now req.__ becomes req.t
-      __n: 'tn', // and req.__n can be called as req.tn
-    },
-    register: global,
-    mustacheConfig: {
-      tags: ['{', '}'],
-      disable: false,
-    },
-  })
-  i18n.setLocale('en')
+  app.use(localization.init)
 
   // Elopage Webhook
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)

@@ -60,7 +60,7 @@ export const sendEmailTranslated = async (params: {
     //     wait: false,
     //   },
     // },
-    // i18n, // seems not to be needed
+    // i18n, // is only needed if you don't install i18n
   })
 
   email
