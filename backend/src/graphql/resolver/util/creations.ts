@@ -13,9 +13,10 @@ export const validateContribution = (
   creations: Decimal[],
   amount: Decimal,
   creationDate: Date,
+  timezoneOffset = 0,
 ): void => {
   logger.trace('isContributionValid: ', creations, amount, creationDate)
-  const index = getCreationIndex(creationDate.getMonth())
+  const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
     logger.error(
@@ -38,9 +39,10 @@ export const validateContribution = (
 export const getUserCreations = async (
   ids: number[],
   includePending = true,
+  timezoneOffset = 0,
 ): Promise<CreationMap[]> => {
   logger.trace('getUserCreations:', ids, includePending)
-  const months = getCreationMonths()
+  const months = getCreationMonths(timezoneOffset)
   logger.trace('getUserCreations months', months)
 
   const queryRunner = getConnection().createQueryRunner()
@@ -87,15 +89,20 @@ export const getUserCreations = async (
   })
 }
 
-export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
-  logger.trace('getUserCreation', id, includePending)
-  const creations = await getUserCreations([id], includePending)
+export const getUserCreation = async (
+  id: number,
+  includePending = true,
+  timezoneOffset = 0,
+): Promise<Decimal[]> => {
+  logger.trace('getUserCreation', id, includePending, timezoneOffset)
+  const creations = await getUserCreations([id], includePending, timezoneOffset)
   logger.trace('getUserCreation  creations=', creations)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 
-export const getCreationMonths = (): number[] => {
-  const now = new Date(Date.now())
+const getCreationMonths = (timezoneOffset: number): number[] => {
+  const now = new Date()
+  now.setTime(now.getTime() - timezoneOffset * 60 * 1000)
   return [
     now.getMonth() + 1,
     new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
@@ -103,8 +110,8 @@ export const getCreationMonths = (): number[] => {
   ].reverse()
 }
 
-export const getCreationIndex = (month: number): number => {
-  return getCreationMonths().findIndex((el) => el === month + 1)
+const getCreationIndex = (month: number, timezoneOffset: number): number => {
+  return getCreationMonths(timezoneOffset).findIndex((el) => el === month + 1)
 }
 
 export const isStartEndDateValid = (
@@ -128,8 +135,12 @@ export const isStartEndDateValid = (
   }
 }
 
-export const updateCreations = (creations: Decimal[], contribution: Contribution): Decimal[] => {
-  const index = getCreationIndex(contribution.contributionDate.getMonth())
+export const updateCreations = (
+  creations: Decimal[],
+  contribution: Contribution,
+  timezoneOffset = 0,
+): Decimal[] => {
+  const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')

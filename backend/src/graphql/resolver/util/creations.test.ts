@@ -1,15 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  testEnvironment,
-  resetToken,
-  cleanDB,
-  contributionDateFormatter,
-  setClientRequestTime,
-  toJSTzone,
-  toPSTzone,
-} from '@test/helpers'
+import { testEnvironment, resetToken, cleanDB, contributionDateFormatter } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -17,7 +9,7 @@ import { User } from '@entity/User'
 import { Contribution } from '@entity/Contribution'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
-import { getUserCreation } from './creations'
+import { getUserCreation, validateContribution } from './creations'
 
 let mutate: any, query: any, con: any
 let testEnv: any
@@ -52,7 +44,6 @@ describe('util/creation', () => {
 
   describe('getUserCreations', () => {
     beforeAll(async () => {
-      setClientRequestTime(now.toString())
       await mutate({
         mutation: login,
         variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
@@ -117,7 +108,6 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(now),
-          clientRequestTime: now.toString(),
           amount: expect.decimalEqual(250),
           memo: 'Admin contribution for this month',
           moderatorId: admin.id,
@@ -129,7 +119,6 @@ describe('util/creation', () => {
           contributionDate: setZeroHours(
             new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
           ),
-          clientRequestTime: now.toString(),
           amount: expect.decimalEqual(160),
           memo: 'Admin contribution for the last month',
           moderatorId: admin.id,
@@ -141,7 +130,6 @@ describe('util/creation', () => {
           contributionDate: setZeroHours(
             new Date(now.getFullYear(), now.getMonth() - 2, now.getDate()),
           ),
-          clientRequestTime: now.toString(),
           amount: expect.decimalEqual(450),
           memo: 'Admin contribution for two months ago',
           moderatorId: admin.id,
@@ -151,7 +139,6 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(now),
-          clientRequestTime: now.toString(),
           amount: expect.decimalEqual(400),
           memo: 'Contribution for this month',
           moderatorId: null,
@@ -163,7 +150,6 @@ describe('util/creation', () => {
           contributionDate: setZeroHours(
             new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
           ),
-          clientRequestTime: now.toString(),
           amount: expect.decimalEqual(500),
           memo: 'Contribution for the last month',
           moderatorId: null,
@@ -175,7 +161,7 @@ describe('util/creation', () => {
 
     describe('call getUserCreation now', () => {
       it('returns the expected open contributions', async () => {
-        await expect(getUserCreation(user.id, now.toString())).resolves.toEqual([
+        await expect(getUserCreation(user.id)).resolves.toEqual([
           expect.decimalEqual(550),
           expect.decimalEqual(340),
           expect.decimalEqual(350),
@@ -192,6 +178,10 @@ describe('util/creation', () => {
           jest.runAllTimers()
         })
 
+        afterAll(() => {
+          jest.useRealTimers()
+        })
+
         it('has the clock set correctly', () => {
           expect(new Date().toISOString()).toContain(
             `${targetDate.getFullYear()}-${targetDate.getMonth() + 1}-${targetDate.getDate()}T23:`,
@@ -199,12 +189,8 @@ describe('util/creation', () => {
         })
 
         describe('call getUserCreation with UTC', () => {
-          beforeAll(() => {
-            setClientRequestTime(targetDate.toString())
-          })
-
           it('returns the expected open contributions', async () => {
-            await expect(getUserCreation(user.id, now.toString())).resolves.toEqual([
+            await expect(getUserCreation(user.id)).resolves.toEqual([
               expect.decimalEqual(550),
               expect.decimalEqual(340),
               expect.decimalEqual(350),
@@ -213,14 +199,8 @@ describe('util/creation', () => {
         })
 
         describe('call getUserCreation with JST (GMT+0900)', () => {
-          beforeAll(() => {
-            setClientRequestTime(toJSTzone(targetDate.toString()))
-          })
-
           it('returns the expected open contributions', async () => {
-            await expect(
-              getUserCreation(user.id, toJSTzone(targetDate.toString())),
-            ).resolves.toEqual([
+            await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
               expect.decimalEqual(340),
               expect.decimalEqual(350),
               expect.decimalEqual(1000),
@@ -228,8 +208,61 @@ describe('util/creation', () => {
           })
         })
 
-        afterAll(() => {
-          jest.useRealTimers()
+        describe('call getUserCreation with PST (GMT-0800)', () => {
+          it('returns the expected open contributions', async () => {
+            await expect(getUserCreation(user.id, true, 450)).resolves.toEqual([
+              expect.decimalEqual(550),
+              expect.decimalEqual(340),
+              expect.decimalEqual(350),
+            ])
+          })
+        })
+
+        describe('run two hours forward to be in the next month in UTC', () => {
+          const nextMonthTargetDate = new Date()
+          nextMonthTargetDate.setTime(targetDate.getTime() + 2 * 60 * 60 * 1000)
+
+          beforeAll(() => {
+            /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+            setTimeout(() => {}, 2 * 60 * 60 * 1000)
+            jest.runAllTimers()
+          })
+
+          it('has the clock set correctly', () => {
+            expect(new Date().toISOString()).toContain(
+              `${nextMonthTargetDate.getFullYear()}-${nextMonthTargetDate.getMonth() + 1}-01T01:`,
+            )
+          })
+
+          describe('call getUserCreation with UTC', () => {
+            it('returns the expected open contributions', async () => {
+              await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
+                expect.decimalEqual(340),
+                expect.decimalEqual(350),
+                expect.decimalEqual(1000),
+              ])
+            })
+          })
+
+          describe('call getUserCreation with JST (GMT+0900)', () => {
+            it('returns the expected open contributions', async () => {
+              await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
+                expect.decimalEqual(340),
+                expect.decimalEqual(350),
+                expect.decimalEqual(1000),
+              ])
+            })
+          })
+
+          describe('call getUserCreation with PST (GMT-0800)', () => {
+            it('returns the expected open contributions', async () => {
+              await expect(getUserCreation(user.id, true, 450)).resolves.toEqual([
+                expect.decimalEqual(550),
+                expect.decimalEqual(340),
+                expect.decimalEqual(350),
+              ])
+            })
+          })
         })
       })
     })
