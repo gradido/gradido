@@ -207,7 +207,7 @@
   },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "login": "Login",
+  "login": "Sign in",
   "math": {
     "aprox": "~",
     "asterisk": "*",
