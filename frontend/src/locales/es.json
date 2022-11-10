@@ -288,16 +288,12 @@
     "forgotPassword": {
       "heading": "Por favor, introduce la dirección de correo electrónico con la que estas registrado en Gradido."
     },
-    "login": {
-      "heading": "Inicia sesión con tus datos de acceso. Manténlos seguros en todo momento!"
-    },
     "resetPassword": {
       "heading": "Por favor, introduce tu contraseña y repítela."
     },
     "signup": {
       "agree": "Acepto la <a href='https://gradido.net/de/datenschutz/' target='_blank' >Política de privacidad</a>.",
       "dont_match": "Las contraseñas no coinciden.",
-      "heading": "Regístrate introduciendo todos los datos completos y en los campos correctos.",
       "lowercase": "Se requiere una letra minúscula.",
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",
