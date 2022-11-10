@@ -37,7 +37,7 @@ const createServer = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
-  localization: any = i18n,
+  localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')

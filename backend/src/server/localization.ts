@@ -2,6 +2,7 @@ import path from 'path'
 import { backendLogger } from './logger'
 import i18n from 'i18n'
 
+// Wolle: console.log('i18n – backend/src/server/localization.ts: ', i18n)
 i18n.configure({
   locales: ['en', 'de'],
   defaultLocale: 'en',

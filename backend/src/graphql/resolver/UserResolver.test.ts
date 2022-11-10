@@ -27,7 +27,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger } from '@test/testSetup'
+import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
@@ -71,7 +71,8 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  // Wolle: console.log('beforeAll – localization: ', localization)
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
