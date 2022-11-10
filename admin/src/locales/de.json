@@ -5,6 +5,7 @@
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
     "clear": "Löschen",
+    "close": "Schließen",
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
@@ -97,7 +98,7 @@
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
-    "automaticContributions": "automatische Beiträge",
+    "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
