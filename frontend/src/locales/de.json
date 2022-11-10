@@ -94,6 +94,7 @@
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "favourites": "Favouriten",
   "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
@@ -207,7 +208,7 @@
   },
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
-  "login": "Anmeldung",
+  "login": "Anmelden",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -229,13 +230,19 @@
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
+    "favourites": "Favoriten",
     "info": "Information",
+    "lightmode": "Lightmode",
     "logout": "Abmelden",
-    "members_area": "Mitgliederbereich",
+    "members": "Mitglieder",
+    "moon": "🌙",
     "overview": "Übersicht",
     "profile": "Mein Profil",
     "send": "Senden",
+    "settings": "Einstellung",
+    "sun": "☀️",
     "support": "Support",
+    "topStories": "Top Stories",
     "transactions": "Transaktionen"
   },
   "qrCode": "QR Code",

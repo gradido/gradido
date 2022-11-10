@@ -6,7 +6,6 @@ const localVue = global.localVue
 const propsData = {
   balance: 1234,
   visible: false,
-  elopageUri: 'https://elopage.com',
   pending: false,
 }
 
@@ -49,7 +48,7 @@ describe('Navbar', () => {
       })
 
       it('has thirteen b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(13)
+        expect(wrapper.findAll('.nav-item')).toHaveLength(12)
       })
 
       it('has nav-item "amount GDD" in navbar', () => {
@@ -85,20 +84,13 @@ describe('Navbar', () => {
       })
     })
 
-    describe('navigation Navbar (user has an elopage account)', () => {
-      it('has a link to the members area', () => {
-        expect(wrapper.findAll('.nav-item').at(10).text()).toContain('navigation.members_area')
-        expect(wrapper.findAll('.nav-item').at(10).find('a').attributes('href')).toBe(
-          'https://elopage.com',
-        )
-      })
-
+    describe('navigation Navbar', () => {
       it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.admin_area')
+        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.admin_area')
       })
 
       it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(12).text()).toEqual('navigation.logout')
+        expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.logout')
       })
     })
 
