@@ -49,6 +49,7 @@ import {
   validateContribution,
   isStartEndDateValid,
   updateCreations,
+  isValidDateString,
 } from './util/creations'
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
@@ -237,6 +238,10 @@ export class AdminResolver {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
+    if (!isValidDateString(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,

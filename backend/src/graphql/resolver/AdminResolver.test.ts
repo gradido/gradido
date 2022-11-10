@@ -1066,7 +1066,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toISOString(),
+                  new Date(variables.creationDate).toString(),
                 )
               })
             })
@@ -1091,7 +1091,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  new Date(variables.creationDate).toISOString(),
+                  new Date(variables.creationDate).toString(),
                 )
               })
             })
@@ -1353,7 +1353,7 @@ describe('AdminResolver', () => {
                 expect.objectContaining({
                   errors: [
                     new GraphQLError(
-                      'The amount (1900 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+                      'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
                     ),
                   ],
                 }),
@@ -1362,7 +1362,7 @@ describe('AdminResolver', () => {
 
             it('logs the error thrown', () => {
               expect(logger.error).toBeCalledWith(
-                'The amount (1900 GDD) to be created exceeds the amount (600 GDD) still available for this month.',
+                'The amount (1900 GDD) to be created exceeds the amount (1000 GDD) still available for this month.',
               )
             })
           })

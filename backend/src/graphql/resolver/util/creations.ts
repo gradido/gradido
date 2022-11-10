@@ -137,3 +137,7 @@ export const updateCreations = (creations: Decimal[], contribution: Contribution
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
 }
+
+export const isValidDateString = (dateString: string): boolean => {
+  return new Date(dateString).toString() !== 'Invalid Date'
+}
