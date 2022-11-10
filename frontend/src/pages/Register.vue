@@ -1,9 +1,7 @@
 <template>
   <div id="registerform">
     <b-container v-if="enterData">
-      <div class="pb-5">
-        {{ $t('site.signup.heading') }}
-      </div>
+      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form role="form" @submit.prevent="handleSubmit(onSubmit)">
           <b-row>
