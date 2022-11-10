@@ -12,7 +12,12 @@
 
           <b-col cols="11">
             <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
+            <amount-and-name-row
+              :amount="amount"
+              :linkedUser="linkedUser"
+              v-on="$listeners"
+              :transactionLinkId="transactionLinkId"
+            />
 
             <!-- Nachricht Memo -->
             <memo-row :memo="memo" />
@@ -76,6 +81,10 @@ export default {
     typeId: {
       type: String,
       required: true,
+    },
+    transactionLinkId: {
+      type: Number,
+      required: false,
     },
     previousBookedBalance: {
       type: String,
