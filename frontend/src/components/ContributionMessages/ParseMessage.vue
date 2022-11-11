@@ -1,6 +1,6 @@
 <template>
   <div class="mt-2">
-    <span v-for="({ type, text }, index) in linkifiedMessage" :key="index">
+    <span v-for="({ type, text }, index) in parsedMessage" :key="index">
       <b-link v-if="type === 'link'" :href="text" target="_blank">{{ text }}</b-link>
       <span v-else-if="type === 'date'">
         {{ $d(new Date(text), 'short') }}
@@ -19,7 +19,7 @@
 const LINK_REGEX_PATTERN = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
 
 export default {
-  name: 'LinkifyMessage',
+  name: 'ParseMessage',
   props: {
     message: {
       type: String,
@@ -31,7 +31,7 @@ export default {
     },
   },
   computed: {
-    linkifiedMessage() {
+    parsedMessage() {
       let string = this.message
       const linkified = []
       let amount
