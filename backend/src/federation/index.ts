@@ -6,17 +6,18 @@ import DHT from '@hyperswarm/dht'
 import { backendLogger as logger } from '@/server/logger'
 import { addUnknownFederationCommunity, createHomeCommunity } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
-
-function between(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
+import { startFederationHandshake } from './control/HandshakeControler'
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-const nodeRand = between(1, 99)
 /*
+function between(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+const nodeRand = between(1, 99)
 const nodeURL = `https://test${nodeRand}.org`
 const nodeAPI = {
   API_1_00: `${nodeURL}/api/1_00/`,
@@ -57,10 +58,17 @@ export const startDHT = async (
         logger.info(`data: ${data.toString('ascii')}`)
         const json = JSON.parse(data.toString('ascii'))
         if (json.api && json.url) {
-          if (!addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)) {
-            logger.error(
-              `can't add new and unknown Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
-            )
+          try {
+            if (!addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)) {
+              logger.error(
+                `can't add new and unknown Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
+              )
+            } else {
+              // no await for async function, because handshake runs async from the DHT federation
+              startFederationHandshake(socket.remotePublicKey)
+            }
+          } catch (err) {
+            logger.error(err)
           }
         }
       })
