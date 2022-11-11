@@ -32,6 +32,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "graphql": "^15.5.1",
+    "graphql-request": "^5.0.0",
     "jest": "^27.2.4",
     "jsonwebtoken": "^8.5.1",
     "lodash.clonedeep": "^4.5.0",
