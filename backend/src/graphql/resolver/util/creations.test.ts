@@ -1,23 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { testEnvironment, resetToken, cleanDB, contributionDateFormatter } from '@test/helpers'
-import { logger } from '@test/testSetup'
+import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { User } from '@entity/User'
 import { Contribution } from '@entity/Contribution'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
-import { getUserCreation, validateContribution } from './creations'
+import { getUserCreation } from './creations'
 
-let mutate: any, query: any, con: any
+let mutate: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   con = testEnv.con
   await cleanDB()
 })
@@ -210,7 +208,7 @@ describe('util/creation', () => {
 
         describe('call getUserCreation with PST (GMT-0800)', () => {
           it('returns the expected open contributions', async () => {
-            await expect(getUserCreation(user.id, true, 450)).resolves.toEqual([
+            await expect(getUserCreation(user.id, true, 480)).resolves.toEqual([
               expect.decimalEqual(550),
               expect.decimalEqual(340),
               expect.decimalEqual(350),
