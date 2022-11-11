@@ -14,14 +14,24 @@ export const sendEmailTranslated = async (params: {
   template: string
   locals: Record<string, string>
 }): Promise<boolean> => {
-  i18n.setLocale(params.locals.locale)
+  // Wolle: test this …
+  // because language of receiver can differ from language of current user who triggers the sending
+  const rememberLocaleToRestore = i18n.getLocale()
+  // Wolle:
+  // console.log('sendEmailTranslated – i18n.getLocale, incoming from user: ', i18n.getLocale())
 
+  i18n.setLocale('en') // for logging
+  // Wolle:
+  // console.log('sendEmailTranslated – i18n.getLocale, logging: ', i18n.getLocale())
   logger.info(
-    `send Email: to=${params.receiver.to}` +
+    `send Email: language=${params.locals.locale} to=${params.receiver.to}` +
       (params.receiver.cc ? `, cc=${params.receiver.cc}` : '') +
       `, subject=${i18n.__('emails.' + params.template + '.subject')}`,
   )
 
+  i18n.setLocale(params.locals.locale) // for email
+  // Wolle:
+  // console.log('sendEmailTranslated – i18n.getLocale, email: ', i18n.getLocale())
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
     return false
@@ -63,7 +73,9 @@ export const sendEmailTranslated = async (params: {
     // i18n, // is only needed if you don't install i18n
   })
 
-  email
+  // TESTING: to send emails to yourself set .env "EMAIL_TEST_MODUS=true" and "EMAIL_TEST_RECEIVER" to your preferred email address
+  // ATTENTION: await is needed, because otherwise on send the email gets send in the language from the current user, because below the language gets reset to the current user
+  await email
     .send({
       template: path.join(__dirname, params.template),
       message: params.receiver,
@@ -77,6 +89,11 @@ export const sendEmailTranslated = async (params: {
       logger.error('Error sending notification email: ', error)
       throw new Error('Error sending notification email!')
     })
+
+  // Wolle: !!! if we do this without an await on send the email gets send in the language from the current user !!!
+  i18n.setLocale(rememberLocaleToRestore)
+  // Wolle:
+  // console.log('sendEmailTranslated – i18n.getLocale, reset: ', i18n.getLocale())
 
   return true
 }
