@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v11.2022-10-27',
+    EXPECTED: 'v12.2022-11-10',
     CURRENT: '',
   },
 }
@@ -118,6 +118,12 @@ if (
 
 const federation = {
   DHT_TOPIC: process.env.DHT_TOPIC || null,
+  FEDERATE_COMMUNITY_NAME: process.env.FEDERATE_COMMUNITY_NAME || community.COMMUNITY_NAME,
+  FEDERATE_COMMUNITY_URL: process.env.FEDERATE_COMMUNITY_URL || community.COMMUNITY_URL,
+  FEDERATE_COMMUNITY_PORT: process.env.FEDERATE_COMMUNITY_PORT || server.PORT,
+  FEDERATE_COMMUNITY_UUID:
+    process.env.FEDERATE_COMMUNITY_UUID || '14466b15-4631-4b1b-9110-dd6694356d9c',
+  FEDERATE_KEY_SECRET: process.env.FEDERATE_KEY_SECRET || loginServer.LOGIN_SERVER_KEY,
 }
 
 const CONFIG = {
