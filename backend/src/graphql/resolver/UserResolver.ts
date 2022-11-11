@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
+import i18n from 'i18n'
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
@@ -408,6 +409,7 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
+    i18n.setLocale(language)
 
     // check if user with email still exists?
     email = email.trim().toLowerCase()
@@ -437,7 +439,7 @@ export class UserResolver {
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
-          language,
+          language: foundUser.language, // use language of the emails owner for sending
         })
         const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
         eventSendAccountMultiRegistrationEmail.userId = foundUser.id
@@ -790,6 +792,7 @@ export class UserResolver {
         throw new Error(`"${language}" isn't a valid language`)
       }
       userEntity.language = language
+      i18n.setLocale(language)
     }
 
     if (password && passwordNew) {
