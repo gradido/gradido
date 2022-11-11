@@ -8,7 +8,7 @@
       </span>
       <span v-else-if="type === 'amount'">
         <br />
-        {{ $n(parseFloat(text), 'decimal') }} GDD
+        {{ text | GDD }}
       </span>
       <span v-else>{{ text }}</span>
     </span>
