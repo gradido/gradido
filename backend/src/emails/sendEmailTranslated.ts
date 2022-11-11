@@ -29,9 +29,6 @@ export const sendEmailTranslated = async (params: {
       `, subject=${i18n.__('emails.' + params.template + '.subject')}`,
   )
 
-  i18n.setLocale(params.locals.locale) // for email
-  // Wolle:
-  // console.log('sendEmailTranslated – i18n.getLocale, email: ', i18n.getLocale())
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
     return false
@@ -53,15 +50,16 @@ export const sendEmailTranslated = async (params: {
     },
   })
 
+  i18n.setLocale(params.locals.locale) // for email
+  // Wolle:
+  // console.log('sendEmailTranslated – i18n.getLocale, email: ', i18n.getLocale())
+
   const email = new Email({
     message: {
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
     },
     // uncomment below to send emails in development/test env:
     // send: true,
-    // transport: {
-    //   jsonTransport: true,
-    // },
     transport,
     // uncomment below to open send emails in the browser
     // preview: {
@@ -70,16 +68,17 @@ export const sendEmailTranslated = async (params: {
     //     wait: false,
     //   },
     // },
+    // Wolle
     // i18n, // is only needed if you don't install i18n
   })
 
-  // TESTING: to send emails to yourself set .env "EMAIL_TEST_MODUS=true" and "EMAIL_TEST_RECEIVER" to your preferred email address
-  // ATTENTION: await is needed, because otherwise on send the email gets send in the language from the current user, because below the language gets reset to the current user
+  // TESTING: see 'README.md'
+  // ATTENTION: await is needed, because otherwise on send the email gets send in the language of the current user, because below the language gets reset
   await email
     .send({
       template: path.join(__dirname, params.template),
       message: params.receiver,
-      locals: params.locals,
+      locals: params.locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
     .then((result: unknown) => {
       logger.info('Send email successfully !!!')
