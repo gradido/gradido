@@ -1,24 +1,25 @@
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
 import { backendLogger as logger } from '@/server/logger'
-import {
-  CommunityFederation,
-  CommunityFederation as DbFederation,
-} from '@entity/CommunityFederation'
+import { CommunityFederation as DbFederation } from '@entity/CommunityFederation'
 import { CommunityApiVersion as DbApiVersion } from '@entity/CommunityApiVersion'
 import { v4 as uuidv4 } from 'uuid'
 import { FdCommunity } from '@/federation/model/FdCommunity'
 import { decryptCommunityPrivateKey, encryptCommunityPrivateKey } from '@/util/encryptionTools'
 
 export async function readHomeCommunity(): Promise<FdCommunity> {
-  const dbCom = await DbCommunity.findOneOrFail({ name: CONFIG.COMMUNITY_NAME }).catch(() => {
-    logger.error(`Community with name=${CONFIG.COMMUNITY_NAME} does not exists`)
-    throw new Error(`no HomeCommunity exists`)
-  })
+  const dbCom = await DbCommunity.findOneOrFail({ name: CONFIG.FEDERATE_COMMUNITY_NAME }).catch(
+    () => {
+      logger.error(`Community with name=${CONFIG.FEDERATE_COMMUNITY_NAME} does not exists`)
+      throw new Error(`no HomeCommunity exists`)
+    },
+  )
   // there is only one federation entry for the home community with foreign flag = false
   const dbFed = await DbFederation.findOneOrFail({ communityId: dbCom.id, foreign: false }).catch(
     () => {
-      logger.error(`Missing CommunityFederation for Community name=${CONFIG.COMMUNITY_NAME}`)
+      logger.error(
+        `Missing CommunityFederation for Community name=${CONFIG.FEDERATE_COMMUNITY_NAME}`,
+      )
       throw new Error(`Missing federation of HomeCommunity`)
     },
   )
@@ -33,7 +34,7 @@ export async function readHomeCommunity(): Promise<FdCommunity> {
   community.privKey = decryptCommunityPrivateKey(
     dbFed.privateKey,
     dbCom.uuid,
-    CONFIG.LOGIN_SERVER_KEY,
+    CONFIG.FEDERATE_KEY_SECRET,
   ).toString('hex')
   community.url = dbApi.url
   community.apiVersion = dbApi.apiVersion
@@ -62,10 +63,10 @@ export async function createHomeCommunity(
       return fdCom
     }
   } catch {
-    logger.info(`no HomeCommunity found in database...`)
+    logger.info(`no HomeCommunity found in database, create it per configured properties...`)
   }
   // start federation with empty federation tables
-  DbCommunity.clear()
+  DbCommunity.clear() // TODO clearing community-table not allowed as soon as other attributes than federation exists in it
   DbFederation.clear()
   DbApiVersion.clear()
   logger.debug(`all federation tabels cleared...`)
@@ -73,14 +74,14 @@ export async function createHomeCommunity(
   let dbCom = DbCommunity.create()
   dbCom.name = name
   dbCom.description = descript
-  dbCom.uuid = uuidv4()
+  dbCom.uuid = CONFIG.FEDERATE_COMMUNITY_UUID || uuidv4()
   dbCom = await dbCom.save()
 
   let dbFed = DbFederation.create()
   dbFed.communityId = dbCom.id
   dbFed.uuid = dbCom.uuid
   dbFed.foreign = false
-  dbFed.privateKey = encryptCommunityPrivateKey(privateKey, dbCom.uuid, CONFIG.LOGIN_SERVER_KEY)
+  dbFed.privateKey = encryptCommunityPrivateKey(privateKey, dbCom.uuid, CONFIG.FEDERATE_KEY_SECRET)
   dbFed.pubKey = publicKey
   dbFed = await dbFed.save()
 
@@ -97,7 +98,7 @@ export async function createHomeCommunity(
   community.uuid = dbCom.uuid
   community.createdAt = dbCom.createdAt
   community.privKey = dbFed.privateKey.toString('hex')
-  logger.debug(`new homecommunity=${JSON.stringify(community)} created successfully`)
+  logger.debug(`create new HomeCommunity=${JSON.stringify(community)} successfully`)
   return community
 }
 
@@ -107,10 +108,12 @@ export async function addUnknownFederationCommunity(
   remoteUrl: string,
 ): Promise<boolean> {
   logger.info(`addUnknownFederationCommunity()...`)
-  const dbCom = await DbCommunity.findOneOrFail({ name: CONFIG.COMMUNITY_NAME }).catch(() => {
-    logger.error(`Community with name=${CONFIG.COMMUNITY_NAME} does not exists`)
-    throw new Error(`Community with name=${CONFIG.COMMUNITY_NAME} does not exists`)
-  })
+  const dbCom = await DbCommunity.findOneOrFail({ name: CONFIG.FEDERATE_COMMUNITY_NAME }).catch(
+    () => {
+      logger.error(`Community with name=${CONFIG.FEDERATE_COMMUNITY_NAME} does not exists`)
+      throw new Error(`Community with name=${CONFIG.FEDERATE_COMMUNITY_NAME} does not exists`)
+    },
+  )
   await DbFederation.findOneOrFail({
     communityId: dbCom.id,
     foreign: true,

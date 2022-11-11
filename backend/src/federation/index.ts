@@ -35,8 +35,8 @@ export const startDHT = async (
     const keyPair = DHT.keyPair()
 
     const fdCommunity = await createHomeCommunity(
-      CONFIG.COMMUNITY_NAME,
-      CONFIG.COMMUNITY_URL,
+      CONFIG.FEDERATE_COMMUNITY_NAME,
+      CONFIG.FEDERATE_COMMUNITY_URL,
       CONFIG.COMMUNITY_DESCRIPTION,
       keyPair.publicKey,
       keyPair.secretKey,
