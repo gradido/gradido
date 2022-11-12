@@ -63,8 +63,8 @@
           v-model="form.amount"
           :name="$t('form.amount')"
           :label="$t('form.amount')"
-          :placeholder="'1'"
-          :rules="{ required: true, gddSendAmount: [1, validMaxGDD] }"
+          :placeholder="'20'"
+          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
           typ="ContributionForm"
         ></input-amount>
       </div>
