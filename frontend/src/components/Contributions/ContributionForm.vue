@@ -30,7 +30,16 @@
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
-      <validation-provider
+      <div v-if="validMaxGDD > 0">
+        <input-textarea
+          v-model="form.memo"
+          :name="$t('form.message')"
+          :label="$t('contribution.activity')"
+          :placeholder="$t('contribution.yourActivity')"
+          :rules="{ required: true, min: 5, max: 255 }"
+        />
+
+        <!-- <validation-provider
         :rules="{
           min: minlength,
           max: maxlength,
@@ -49,8 +58,18 @@
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
-      </validation-provider>
-      <validation-provider
+      </validation-provider> -->
+        <input-amount
+          v-model="form.amount"
+          :name="$t('form.amount')"
+          :label="$t('form.amount')"
+          :placeholder="'1'"
+          :rules="{ required: true, gddSendAmount: [1, validMaxGDD] }"
+          typ="ContributionForm"
+        ></input-amount>
+      </div>
+      <div v-else class="mb-5">{{ $t('contribution.exhausted') }}</div>
+      <!-- <validation-provider
         :name="$t('form.amount')"
         :rules="{
           required: true,
@@ -72,7 +91,7 @@
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
-      </validation-provider>
+      </validation-provider> -->
       <b-row class="mt-3">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
@@ -90,10 +109,17 @@
   </div>
 </template>
 <script>
+import InputAmount from '@/components/Inputs/InputAmount.vue'
+import InputTextarea from '@/components/Inputs/InputTextarea.vue'
+
 const PATTERN_NON_DIGIT = /\D/g
 
 export default {
   name: 'ContributionForm',
+  components: {
+    InputAmount,
+    InputTextarea,
+  },
   props: {
     value: { type: Object, required: true },
     updateAmount: { type: String, required: false },

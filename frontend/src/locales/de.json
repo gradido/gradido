@@ -58,7 +58,8 @@
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
     "updated": "Der Beitrag wurde geändert.",
-    "yourActivity": "Bitte trage eine Tätigkeit ein!"
+    "yourActivity": "Bitte trage eine Tätigkeit ein!",
+    "exhausted":"Der ausgewählten Monat ist ausgeschöpft."
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit",

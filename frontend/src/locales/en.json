@@ -58,7 +58,8 @@
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
     "updated": "The contribution was changed.",
-    "yourActivity": "Please enter an activity!"
+    "yourActivity": "Please enter an activity!",
+    "exhausted":"The selected month is exhausted."
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with",
