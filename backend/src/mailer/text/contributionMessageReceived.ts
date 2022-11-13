@@ -1,6 +1,6 @@
 export const contributionMessageReceived = {
   de: {
-    subject: 'Nachricht zu Deinem Gemeinwohl-Beitrag',
+    subject: 'Nachricht zu deinem Gemeinwohl-Beitrag',
     text: (data: {
       senderFirstName: string
       senderLastName: string
