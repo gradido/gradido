@@ -2,7 +2,7 @@
   <div class="community-page">
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')">
+        <b-tab :title="$t('community.submitContribution')" @click="closeAllOpenCollapse">
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
