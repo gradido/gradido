@@ -54,8 +54,7 @@
                 v-b-toggle="collapsId"
                 icon="chat-dots"
                 class="h2 mr-5"
-                @mousedown="$root.$emit('close-all-open-collapse')"
-                @click="getListContributionMessages"
+                @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
               ></b-icon>
             </div>
           </div>
