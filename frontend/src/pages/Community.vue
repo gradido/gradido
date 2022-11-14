@@ -39,6 +39,7 @@
             </b-alert>
           </div>
           <contribution-list
+            @closeAllOpenCollapse="closeAllOpenCollapse"
             :items="items"
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
@@ -70,7 +71,6 @@
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
             @update-contribution-form="updateContributionForm"
-            @close-all-open-collapse="closeAllOpenCollapse"
             :contributionCount="contributionCountAll"
             :showPagination="true"
             :pageSize="pageSizeAll"

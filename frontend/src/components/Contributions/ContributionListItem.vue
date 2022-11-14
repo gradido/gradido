@@ -65,8 +65,7 @@
             v-if="state === 'IN_PROGRESS'"
             v-b-toggle="collapsId"
             variant="warning"
-            @mousedown="$root.$emit('close-all-open-collapse')"
-            @click="getListContributionMessages"
+            @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
