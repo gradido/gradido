@@ -179,9 +179,10 @@ export default {
         if (value) this.$emit('delete-contribution', item)
       })
     },
-    getListContributionMessages() {
-      // console.log('getListContributionMessages', this.contributionId)
-      this.$emit('closeAllOpenCollapse')
+    getListContributionMessages(closeCollapse = true) {
+      if (closeCollapse) {
+        this.$emit('closeAllOpenCollapse')
+      }
       this.$apollo
         .query({
           query: listContributionMessages,
