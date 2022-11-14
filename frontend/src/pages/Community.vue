@@ -49,7 +49,7 @@
             :pageSize="pageSize"
           />
         </b-tab>
-        <b-tab :title="$t('navigation.community')">
+        <b-tab :title="$t('navigation.community')" @click="closeAllOpenCollapse">
           <b-alert show dismissible fade variant="secondary" class="text-dark">
             <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
             <p>
@@ -70,6 +70,7 @@
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
             @update-contribution-form="updateContributionForm"
+            @close-all-open-collapse="closeAllOpenCollapse"
             :contributionCount="contributionCountAll"
             :showPagination="true"
             :pageSize="pageSizeAll"
@@ -112,6 +113,13 @@ export default {
     }
   },
   methods: {
+    closeAllOpenCollapse() {
+      // console.log('Community closeAllOpenCollapse ')
+      // console.log('closeAllOpenCollapse', this.$el.querySelectorAll('.collapse.show'))
+      this.$el.querySelectorAll('.collapse.show').forEach((value) => {
+        this.$root.$emit('bv::toggle::collapse', value.id)
+      })
+    },
     setContribution(data) {
       this.$apollo
         .mutate({

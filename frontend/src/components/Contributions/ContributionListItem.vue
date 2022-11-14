@@ -54,6 +54,7 @@
                 v-b-toggle="collapsId"
                 icon="chat-dots"
                 class="h2 mr-5"
+                @mousedown="$root.$emit('close-all-open-collapse')"
                 @click="getListContributionMessages"
               ></b-icon>
             </div>
@@ -64,6 +65,7 @@
             v-if="state === 'IN_PROGRESS'"
             v-b-toggle="collapsId"
             variant="warning"
+            @mousedown="$root.$emit('close-all-open-collapse')"
             @click="getListContributionMessages"
           >
             {{ $t('contribution.alert.answerQuestion') }}
