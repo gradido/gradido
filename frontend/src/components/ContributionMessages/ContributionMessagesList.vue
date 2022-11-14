@@ -50,9 +50,6 @@ export default {
     },
   },
   methods: {
-    getListContributionMessages() {
-      this.$emit('get-list-contribution-messages')
-    },
     updateState(id) {
       this.$emit('update-state', id)
     },
