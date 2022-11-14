@@ -85,7 +85,6 @@
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
-    "colon": ":",
     "equals": "=",
     "exclaim": "!",
     "pipe": "|",
@@ -129,7 +128,6 @@
     "deletedUsers": "Deleted members",
     "count": "Count",
     "detail": "Detail",
-    "name": "Statistic",
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "Total created GDD",
     "totalGradidoDecayed": "Total GDD decay",

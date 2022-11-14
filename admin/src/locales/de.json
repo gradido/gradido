@@ -85,7 +85,6 @@
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
-    "colon": ":",
     "equals": "=",
     "exclaim": "!",
     "pipe": "|",
@@ -129,7 +128,6 @@
     "count": "Menge",
     "deletedUsers": "Gelöschte Mitglieder",
     "detail": "Detail",
-    "name": "Statistik",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
     "totalGradidoDecayed": "GDD insgesamt verfallen",
