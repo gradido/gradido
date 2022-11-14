@@ -357,6 +357,8 @@ export class UserResolver {
     const user = new User(dbUser, await getUserCreation(dbUser.id))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
 
+    i18n.setLocale(user.language)
+
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage=' + user.hasElopage)
