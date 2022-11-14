@@ -132,6 +132,16 @@ describe('ContributionListItem', () => {
           expect(wrapper.emitted('delete-contribution')).toBeFalsy()
         })
       })
+
+      describe('updateState', () => {
+        beforeEach(async () => {
+          await wrapper.vm.updateState()
+        })
+
+        it('emit update-state', () => {
+          expect(wrapper.vm.$emit('update-state')).toBeTruthy()
+        })
+      })
     })
   })
 })
