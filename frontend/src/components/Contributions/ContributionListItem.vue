@@ -32,12 +32,13 @@
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
               class="pointer ml-5"
               @click="
-                $emit('update-contribution-form', {
-                  id: id,
-                  contributionDate: contributionDate,
-                  memo: memo,
-                  amount: amount,
-                })
+                $emit('closeAllOpenCollapse'),
+                  $emit('update-contribution-form', {
+                    id: id,
+                    contributionDate: contributionDate,
+                    memo: memo,
+                    amount: amount,
+                  })
               "
             >
               <b-icon icon="pencil" class="h2"></b-icon>
@@ -54,7 +55,7 @@
                 v-b-toggle="collapsId"
                 icon="chat-dots"
                 class="h2 mr-5"
-                @click="getListContributionMessages"
+                @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
               ></b-icon>
             </div>
           </div>
@@ -64,7 +65,7 @@
             v-if="state === 'IN_PROGRESS'"
             v-b-toggle="collapsId"
             variant="warning"
-            @click="getListContributionMessages"
+            @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
