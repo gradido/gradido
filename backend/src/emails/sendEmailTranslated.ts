@@ -32,7 +32,8 @@ export const sendEmailTranslated = async (params: {
     logger.info(`Emails are disabled via config...`)
     return null
   }
-  if (CONFIG.EMAIL_TEST_MODUS) {
+  // because 'CONFIG.EMAIL_TEST_MODUS' can be boolean 'true' or string '`false`'
+  if (CONFIG.EMAIL_TEST_MODUS === true) {
     logger.info(
       `Testmodus=ON: change receiver from ${params.receiver.to} to ${CONFIG.EMAIL_TEST_RECEIVER}`,
     )

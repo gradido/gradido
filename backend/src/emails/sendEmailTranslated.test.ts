@@ -78,26 +78,24 @@ describe('sendEmailTranslated', () => {
       })
     })
 
-    it('has "sendEmailTranslated" with result not(!) "null"', () => {
-      expect(result).toBeTruthy()
-    })
-
-    it('has "sendEmailTranslated" with result', () => {
-      expect(result).toMatchObject({
-        envelope: {
-          from: 'info@gradido.net',
-          to: ['stage1@gradido.net', 'support@gradido.net'],
-        },
-        message: expect.any(String),
-        originalMessage: expect.objectContaining({
-          to: 'stage1@gradido.net',
-          cc: 'support@gradido.net',
-          from: 'Gradido (nicht antworten) <info@gradido.net>',
-          attachments: [],
-          subject: 'Gradido: Try To Register Again With Your Email',
-          html: expect.stringContaining('Gradido: Try To Register Again With Your Email'),
-          text: expect.stringContaining('GRADIDO: TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
-        }),
+    describe('call of "sendEmailTranslated"', () => {
+      it('has result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['stage1@gradido.net', 'support@gradido.net'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'stage1@gradido.net',
+            cc: 'support@gradido.net',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Try To Register Again With Your Email',
+            html: expect.stringContaining('Gradido: Try To Register Again With Your Email'),
+            text: expect.stringContaining('GRADIDO: TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
+          }),
+        })
       })
     })
 
