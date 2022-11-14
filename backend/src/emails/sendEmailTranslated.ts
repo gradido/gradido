@@ -13,16 +13,15 @@ export const sendEmailTranslated = async (params: {
   }
   template: string
   locals: Record<string, string>
-}): Promise<boolean> => {
-  // Wolle: test this …
+}): Promise<Record<string, unknown> | null> => {
+  let resultSend: Record<string, unknown> | null = null
+
+  // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
+
   // because language of receiver can differ from language of current user who triggers the sending
   const rememberLocaleToRestore = i18n.getLocale()
-  // Wolle:
-  // console.log('sendEmailTranslated – i18n.getLocale, incoming from user: ', i18n.getLocale())
 
   i18n.setLocale('en') // for logging
-  // Wolle:
-  // console.log('sendEmailTranslated – i18n.getLocale, logging: ', i18n.getLocale())
   logger.info(
     `send Email: language=${params.locals.locale} to=${params.receiver.to}` +
       (params.receiver.cc ? `, cc=${params.receiver.cc}` : '') +
@@ -31,7 +30,7 @@ export const sendEmailTranslated = async (params: {
 
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
-    return false
+    return null
   }
   if (CONFIG.EMAIL_TEST_MODUS) {
     logger.info(
@@ -51,28 +50,17 @@ export const sendEmailTranslated = async (params: {
   })
 
   i18n.setLocale(params.locals.locale) // for email
-  // Wolle:
-  // console.log('sendEmailTranslated – i18n.getLocale, email: ', i18n.getLocale())
 
+  // TESTING: see 'README.md'
   const email = new Email({
     message: {
       from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
     },
-    // uncomment below to send emails in development/test env:
-    // send: true,
     transport,
-    // uncomment below to open send emails in the browser
-    // preview: {
-    //   open: {
-    //     app: 'firefox',
-    //     wait: false,
-    //   },
-    // },
-    // Wolle
+    preview: false,
     // i18n, // is only needed if you don't install i18n
   })
 
-  // TESTING: see 'README.md'
   // ATTENTION: await is needed, because otherwise on send the email gets send in the language of the current user, because below the language gets reset
   await email
     .send({
@@ -80,7 +68,8 @@ export const sendEmailTranslated = async (params: {
       message: params.receiver,
       locals: params.locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
-    .then((result: unknown) => {
+    .then((result: Record<string, unknown>) => {
+      resultSend = result
       logger.info('Send email successfully !!!')
       logger.info('Result: ', result)
     })
@@ -89,10 +78,7 @@ export const sendEmailTranslated = async (params: {
       throw new Error('Error sending notification email!')
     })
 
-  // Wolle: !!! if we do this without an await on send the email gets send in the language from the current user !!!
   i18n.setLocale(rememberLocaleToRestore)
-  // Wolle:
-  // console.log('sendEmailTranslated – i18n.getLocale, reset: ', i18n.getLocale())
 
-  return true
+  return resultSend
 }

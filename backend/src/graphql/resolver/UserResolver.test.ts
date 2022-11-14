@@ -71,7 +71,6 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  // Wolle: console.log('beforeAll – localization: ', localization)
   testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
