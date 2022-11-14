@@ -55,7 +55,7 @@
                 v-b-toggle="collapsId"
                 icon="chat-dots"
                 class="h2 mr-5"
-                @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
+                @click="getListContributionMessages"
               ></b-icon>
             </div>
           </div>
@@ -65,7 +65,7 @@
             v-if="state === 'IN_PROGRESS'"
             v-b-toggle="collapsId"
             variant="warning"
-            @click="$emit('closeAllOpenCollapse'), getListContributionMessages"
+            @click="getListContributionMessages"
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
@@ -181,6 +181,7 @@ export default {
     },
     getListContributionMessages() {
       // console.log('getListContributionMessages', this.contributionId)
+      this.$emit('closeAllOpenCollapse')
       this.$apollo
         .query({
           query: listContributionMessages,
