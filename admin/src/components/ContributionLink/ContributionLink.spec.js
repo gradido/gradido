@@ -5,6 +5,7 @@ const localVue = global.localVue
 
 const mocks = {
   $t: jest.fn((t) => t),
+  $d: jest.fn((d) => d),
 }
 
 const propsData = {
@@ -43,6 +44,11 @@ describe('ContributionLink', () => {
 
     it('emits toggle::collapse new Contribution', async () => {
       wrapper.vm.editContributionLinkData()
+      expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
+    })
+
+    it('emits toggle::collapse close Contribution-Form ', async () => {
+      wrapper.vm.closeContributionForm()
       expect(wrapper.vm.$root.$emit('bv::toggle::collapse', 'newContribution')).toBeTruthy()
     })
   })

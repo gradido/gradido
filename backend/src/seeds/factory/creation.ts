@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { backendLogger as logger } from '@/server/logger'
-import { adminCreateContribution, confirmContribution } from '@/seeds/graphql/mutations'
-import { login } from '@/seeds/graphql/queries'
+import { login, adminCreateContribution, confirmContribution } from '@/seeds/graphql/mutations'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Transaction } from '@entity/Transaction'
@@ -19,9 +18,9 @@ export const creationFactory = async (
   client: ApolloServerTestClient,
   creation: CreationInterface,
 ): Promise<Contribution | void> => {
-  const { mutate, query } = client
+  const { mutate } = client
   logger.trace('creationFactory...')
-  await query({ query: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
+  await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
   logger.trace('creationFactory... after login')
   // TODO it would be nice to have this mutation return the id
   await mutate({ mutation: adminCreateContribution, variables: { ...creation } })

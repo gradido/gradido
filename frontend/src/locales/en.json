@@ -24,12 +24,14 @@
     "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "My contributions to the common good",
-    "openContributionLinks": "open Contribution links list",
+    "noOpenContributionLinkText": "Currently there are no automatic creations.",
+    "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
     "other-communities": "Other communities",
     "submitContribution": "Submit contribution",
     "switch-to-this-community": "Switch to this community"
   },
+  "contact": "Contact",
   "contribution": {
     "activity": "Activity",
     "alert": {
@@ -205,7 +207,7 @@
   },
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
-  "login": "Login",
+  "login": "Sign in",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -286,16 +288,12 @@
     "forgotPassword": {
       "heading": "Please enter the email address by which you're registered here."
     },
-    "login": {
-      "heading": "Log in with your access data. Keep them safe!"
-    },
     "resetPassword": {
       "heading": "Please enter your password and repeat it."
     },
     "signup": {
       "agree": "I agree to the <a href='https://gradido.net/en/datenschutz/' target='_blank' > privacy policy</a>.",
       "dont_match": "Passwords don't match.",
-      "heading": "Register by entering all data completely and in the correct fields.",
       "lowercase": "One lowercase letter required.",
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",

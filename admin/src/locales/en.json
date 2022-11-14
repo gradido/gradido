@@ -3,13 +3,14 @@
   "back": "back",
   "contributionLink": {
     "amount": "Amount",
+    "changeSaved": "Changes saved",
     "clear": "Clear",
+    "close": "Close",
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
     "deleted": "Automatic creation deleted!",
     "deleteNow": "Do you really delete automatic creations '{name}'?",
-    "maximumAmount": "Maximum amount",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -21,13 +22,10 @@
     "options": {
       "cycle": {
         "daily": "daily",
-        "hourly": "hourly",
-        "monthly": "monthly",
-        "once": "once",
-        "weekly": "weekly",
-        "yearly": "yearly"
+        "once": "once"
       }
     },
+    "saveChange": "Save Changes",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
@@ -100,6 +98,7 @@
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",

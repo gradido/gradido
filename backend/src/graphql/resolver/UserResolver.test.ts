@@ -5,6 +5,8 @@ import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/help
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
+  login,
+  logout,
   createUser,
   setPassword,
   forgotPassword,
@@ -12,7 +14,7 @@ import {
   createContribution,
   confirmContribution,
 } from '@/seeds/graphql/mutations'
-import { login, logout, verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
+import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
@@ -359,7 +361,7 @@ describe('UserResolver', () => {
         beforeAll(async () => {
           await userFactory(testEnv, peterLustig)
           await userFactory(testEnv, bobBaumeister)
-          await query({ query: login, variables: bobData })
+          await mutate({ mutation: login, variables: bobData })
 
           // create contribution as user bob
           contribution = await mutate({
@@ -368,7 +370,7 @@ describe('UserResolver', () => {
           })
 
           // login as admin
-          await query({ query: login, variables: peterData })
+          await mutate({ mutation: login, variables: peterData })
 
           // confirm the contribution
           contribution = await mutate({
@@ -377,7 +379,7 @@ describe('UserResolver', () => {
           })
 
           // login as user bob
-          bob = await query({ query: login, variables: bobData })
+          bob = await mutate({ mutation: login, variables: bobData })
 
           // create transaction link
           await transactionLinkFactory(testEnv, {
@@ -513,18 +515,20 @@ describe('UserResolver', () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
         const emailContact = await UserContact.findOneOrFail({ email: createUserVariables.email })
         emailVerificationCode = emailContact.emailVerificationCode.toString()
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: emailVerificationCode, password: 'not-valid' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
-        expect(result).toEqual(
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: emailVerificationCode, password: 'not-valid' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [
               new GraphQLError(
@@ -543,18 +547,20 @@ describe('UserResolver', () => {
     describe('no valid optin code', () => {
       beforeAll(async () => {
         await mutate({ mutation: createUser, variables: createUserVariables })
-        result = await mutate({
-          mutation: setPassword,
-          variables: { code: 'not valid', password: 'Aa12345_' },
-        })
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('throws an error', () => {
-        expect(result).toEqual(
+      it('throws an error', async () => {
+        jest.clearAllMocks()
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: 'not valid', password: 'Aa12345_' },
+          }),
+        ).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('Could not login with emailVerificationCode')],
           }),
@@ -581,13 +587,9 @@ describe('UserResolver', () => {
     })
 
     describe('no users in database', () => {
-      beforeAll(async () => {
+      it('throws an error', async () => {
         jest.clearAllMocks()
-        result = await query({ query: login, variables })
-      })
-
-      it('throws an error', () => {
-        expect(result).toEqual(
+        expect(await mutate({ mutation: login, variables })).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
@@ -604,7 +606,7 @@ describe('UserResolver', () => {
     describe('user is in database and correct login data', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables })
+        result = await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -641,7 +643,7 @@ describe('UserResolver', () => {
     describe('user is in database and wrong password', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        result = await query({ query: login, variables: { ...variables, password: 'wrong' } })
+        result = await mutate({ mutation: login, variables: { ...variables, password: 'wrong' } })
       })
 
       afterAll(async () => {
@@ -665,8 +667,9 @@ describe('UserResolver', () => {
   describe('logout', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
           }),
@@ -682,7 +685,7 @@ describe('UserResolver', () => {
 
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({ query: login, variables })
+        await mutate({ mutation: login, variables })
       })
 
       afterAll(async () => {
@@ -690,7 +693,7 @@ describe('UserResolver', () => {
       })
 
       it('returns true', async () => {
-        await expect(query({ query: logout })).resolves.toEqual(
+        await expect(mutate({ mutation: logout })).resolves.toEqual(
           expect.objectContaining({
             data: { logout: 'true' },
             errors: undefined,
@@ -703,6 +706,7 @@ describe('UserResolver', () => {
   describe('verifyLogin', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(query({ query: verifyLogin })).resolves.toEqual(
           expect.objectContaining({
@@ -722,6 +726,7 @@ describe('UserResolver', () => {
       })
 
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(query({ query: verifyLogin })).resolves.toEqual(
           expect.objectContaining({
@@ -739,7 +744,7 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
-          await query({ query: login, variables })
+          await mutate({ mutation: login, variables })
           user = await User.find()
         })
 
@@ -882,6 +887,7 @@ describe('UserResolver', () => {
 
     describe('wrong optin code', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         await expect(
           query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
         ).resolves.toEqual(
@@ -918,6 +924,7 @@ describe('UserResolver', () => {
   describe('updateUserInfos', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(mutate({ mutation: updateUserInfos })).resolves.toEqual(
           expect.objectContaining({
@@ -930,8 +937,8 @@ describe('UserResolver', () => {
     describe('authenticated', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',
@@ -975,6 +982,7 @@ describe('UserResolver', () => {
 
       describe('language is not valid', () => {
         it('throws an error', async () => {
+          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateUserInfos,
@@ -997,6 +1005,7 @@ describe('UserResolver', () => {
       describe('password', () => {
         describe('wrong old password', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: updateUserInfos,
@@ -1019,6 +1028,7 @@ describe('UserResolver', () => {
 
         describe('invalid new password', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({
                 mutation: updateUserInfos,
@@ -1062,8 +1072,8 @@ describe('UserResolver', () => {
 
           it('can login with new password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Bb12345_',
@@ -1082,8 +1092,8 @@ describe('UserResolver', () => {
 
           it('cannot login with old password', async () => {
             await expect(
-              query({
-                query: login,
+              mutate({
+                mutation: login,
                 variables: {
                   email: 'bibi@bloxberg.de',
                   password: 'Aa12345_',
@@ -1107,6 +1117,7 @@ describe('UserResolver', () => {
   describe('searchAdminUsers', () => {
     describe('unauthenticated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         resetToken()
         await expect(mutate({ mutation: searchAdminUsers })).resolves.toEqual(
           expect.objectContaining({
@@ -1120,8 +1131,8 @@ describe('UserResolver', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
         await userFactory(testEnv, peterLustig)
-        await query({
-          query: login,
+        await mutate({
+          mutation: login,
           variables: {
             email: 'bibi@bloxberg.de',
             password: 'Aa12345_',

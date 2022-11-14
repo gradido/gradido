@@ -24,16 +24,18 @@
     "moderator": "Moderator",
     "moderators": "Moderatoren",
     "myContributions": "Meine Beiträge zum Gemeinwohl",
-    "openContributionLinks": "öffentliche Beitrags-Linkliste",
+    "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
+    "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
     "other-communities": "Weitere Gemeinschaften",
     "submitContribution": "Beitrag einreichen",
     "switch-to-this-community": "zu dieser Gemeinschaft wechseln"
   },
+  "contact": "Kontakt",
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "answerQuestion": "Bitte beantworte die Nachfrage",
+      "answerQuestion": "Bitte beantworte die Rückfrage!",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
@@ -205,7 +207,7 @@
   },
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
-  "login": "Anmeldung",
+  "login": "Anmelden",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -286,16 +288,12 @@
     "forgotPassword": {
       "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
     },
-    "login": {
-      "heading": "Melde dich mit deinen Zugangsdaten an. Bewahre sie stets sicher auf!"
-    },
     "resetPassword": {
       "heading": "Trage bitte dein Passwort ein und wiederhole es."
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",
-      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
