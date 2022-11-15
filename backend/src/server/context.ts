@@ -39,8 +39,12 @@ export const getUser = (context: Context): dbUser => {
 }
 
 export const getClientTimezoneOffset = (context: Context): number => {
-  if (context.clientTimezoneOffset && Math.abs(context.clientTimezoneOffset) <= 27 * 60)
+  if (
+    (context.clientTimezoneOffset || context.clientTimezoneOffset === 0) &&
+    Math.abs(context.clientTimezoneOffset) <= 27 * 60
+  ) {
     return context.clientTimezoneOffset
+  }
   throw new Error('No valid client time zone offset in context!')
 }
 
