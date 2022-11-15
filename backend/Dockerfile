@@ -15,17 +15,17 @@ ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
 ## App relevant Envs
-ENV PORT="4002"
+ENV PORT="4000"
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
-LABEL org.label-schema.name="gradido:backend2"
-LABEL org.label-schema.description="Gradido GraphQL Backend 2"
+LABEL org.label-schema.name="gradido:backend"
+LABEL org.label-schema.description="Gradido GraphQL Backend"
 LABEL org.label-schema.usage="https://github.com/gradido/gradido/blob/master/README.md"
 LABEL org.label-schema.url="https://gradido.net"
 LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido/tree/master/backend"
 LABEL org.label-schema.vcs-ref="${BUILD_COMMIT}"
-LABEL org.label-schema.vendor="Gradido Community 2"
+LABEL org.label-schema.vendor="Gradido Community"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.schema-version="1.0"
 LABEL maintainer="support@gradido.net"

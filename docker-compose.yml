@@ -7,58 +7,58 @@ version: "3.4"
 
 services:
 
-#  ########################################################
-#  # FRONTEND #############################################
-#  ########################################################
-#  frontend:
-#    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-#    image: gradido/frontend:local-production
-#    build:
-#      context: ./frontend
-#      target: production
-#    networks:
-#      - external-net
-#      - internal-net
-#    ports:
-#      - 3002:3002
-#    environment:
-#      # Envs used in Dockerfile
-#      # - DOCKER_WORKDIR="/app"
-#      # - PORT=3000
-#      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-#      # - BUILD_VERSION="0.0.0.0"
-#      # - BUILD_COMMIT="0000000"
-#      - NODE_ENV="production"
-#    # env_file:
-#      # - ./.env
-#      # - ./frontend/.env
-#
-#  ########################################################
-#  # ADMIN INTERFACE ######################################
-#  ########################################################
-#  admin:
-#    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-#    image: gradido/admin:local-production
-#    build:
-#      context: ./admin
-#      target: production
-#    networks:
-#      - external-net
-#      - internal-net
-#    ports:
-#      - 8081:8081
-#    environment:
-#      # Envs used in Dockerfile
-#      # - DOCKER_WORKDIR="/app"
-#      # - PORT=8090
-#      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-#      # - BUILD_VERSION="0.0.0.0"
-#      # - BUILD_COMMIT="0000000"
-#      - NODE_ENV="production"
-#    # env_file:
-#      # - ./.env
-#      # - ./admin/.env
-#
+  ########################################################
+  # FRONTEND #############################################
+  ########################################################
+  frontend:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/frontend:local-production
+    build:
+      context: ./frontend
+      target: production
+    networks:
+      - external-net
+      - internal-net
+    ports:
+      - 3000:3000
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=3000
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
+      - NODE_ENV="production"
+    # env_file:
+      # - ./.env
+      # - ./frontend/.env
+
+  ########################################################
+  # ADMIN INTERFACE ######################################
+  ########################################################
+  admin:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/admin:local-production
+    build:
+      context: ./admin
+      target: production
+    networks:
+      - external-net
+      - internal-net
+    ports:
+      - 8080:8080
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=8090
+      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
+      # - BUILD_VERSION="0.0.0.0"
+      # - BUILD_COMMIT="0000000"
+      - NODE_ENV="production"
+    # env_file:
+      # - ./.env
+      # - ./admin/.env
+
   #########################################################
   ## MARIADB ##############################################
   #########################################################
@@ -69,13 +69,10 @@ services:
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
-      - MYSQL_TCP_PORT=3307
     networks: 
       - internal-net
     ports: 
-      - 3307:3307
-    expose:
-      - 3307
+      - 3306:3306
     volumes: 
       - db_vol:/var/lib/mysql
       
@@ -94,7 +91,7 @@ services:
     networks:
       - internal-net
     ports:
-      - 4002:4002
+      - 4000:4000
     depends_on:
       - mariadb
     restart: always
@@ -107,8 +104,6 @@ services:
       - BUILD_COMMIT
       - NODE_ENV="production"
       - DB_HOST=mariadb
-      - DB_PORT=3307
-      - MYSQL_TCP_PORT=3307
       # Application only envs
     #env_file:
     #  - ./frontend/.env
@@ -125,8 +120,8 @@ services:
     build:
       context: ./database
       target: production_up
-#    depends_on:
-#      - mariadb
+    depends_on:
+      - mariadb
     networks:
       - internal-net
       - external-net # this is required to fetch the packages
@@ -138,30 +133,28 @@ services:
       - BUILD_COMMIT
       - NODE_ENV="production"
       - DB_HOST=mariadb
-      - DB_PORT=3307
-      - MYSQL_TCP_PORT=3307
       # Application only envs
     #env_file:
     #  - ./frontend/.env
     
-#  #########################################################
-#  ## NGINX ################################################
-#  #########################################################
-#  nginx:
-#    build: 
-#      context: ./nginx/
-#    networks:
-#      - external-net
-#      - internal-net
-#    depends_on:
-#      - frontend
-#      - backend
-#      - admin 
-#    ports:
-#      - 80:80
-#    volumes: 
-#      - ./logs/nginx:/var/log/nginx 
-#  
+  #########################################################
+  ## NGINX ################################################
+  #########################################################
+  nginx:
+    build: 
+      context: ./nginx/
+    networks:
+      - external-net
+      - internal-net
+    depends_on:
+      - frontend
+      - backend
+      - admin 
+    ports:
+      - 80:80
+    volumes: 
+      - ./logs/nginx:/var/log/nginx 
+  
 networks:
   external-net:
   internal-net:
