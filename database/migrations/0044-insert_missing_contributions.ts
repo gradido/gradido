@@ -5,7 +5,7 @@
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    `INSERT INTO gradido_community.contributions
+    `INSERT INTO contributions
   (user_id, created_at, contribution_date, memo, amount, moderator_id, confirmed_by, confirmed_at, transaction_id)
 SELECT 
   user_id,
@@ -18,12 +18,12 @@ SELECT
   balance_date AS confirmed_at,
   id
 FROM
-  gradido_community.transactions
+  transactions
 WHERE
   type_id = 1
   AND NOT EXISTS(
-    SELECT * FROM gradido_community.contributions
-    WHERE gradido_community.contributions.transaction_id = gradido_community.transactions.id);`,
+    SELECT * FROM contributions
+    WHERE contributions.transaction_id = transactions.id);`,
   )
 }
 
