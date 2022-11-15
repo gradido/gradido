@@ -67,9 +67,9 @@ describe('ContributionMessagesFormular', () => {
         await wrapper.find('form').trigger('submit')
       })
 
-      it('emitted "get-list-contribution-messages" with data', async () => {
+      it('emitted "get-list-contribution-messages" with false', async () => {
         expect(wrapper.emitted('get-list-contribution-messages')).toEqual(
-          expect.arrayContaining([expect.arrayContaining([42])]),
+          expect.arrayContaining([expect.arrayContaining([false])]),
         )
       })
 
