@@ -146,6 +146,7 @@ describe('UserResolver', () => {
               publisherId: 1234,
               referrerId: null,
               contributionLinkId: null,
+              passwordEncryptionType: 1,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
