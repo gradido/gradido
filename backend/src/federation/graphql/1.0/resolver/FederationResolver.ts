@@ -4,18 +4,22 @@ import { FdCommunity } from '../model/FdCommunity'
 import { readFederationCommunity, readHomeCommunity } from '@/dao/CommunityDAO'
 import OpenConnectionArgs from '../arg/OpenConnectionArgs'
 import { SecretKeyCryptographyDecrypt } from '@/util/encryptionTools'
+import { GetPublicKeyResult } from '../model/GetPublicKeyResult'
+import { backendLogger as logger } from '@/server/logger'
 
 @Resolver()
 export class FederationResolver {
   @Authorized([RIGHTS.FEDERATE_PUBKEY])
-  @Query(() => FdCommunity)
-  async getPublicKey(): Promise<string> {
+  @Query(() => GetPublicKeyResult)
+  async getPublicKey(): Promise<GetPublicKeyResult> {
+    logger.info(`getPublicKey()...`)
     const fdCom = await readHomeCommunity()
-    return fdCom.publicKey
+    logger.info(`getPublicKey()... with publicKey=${fdCom.publicKey}`)
+    return new GetPublicKeyResult(fdCom.publicKey)
   }
 
   @Authorized([RIGHTS.FEDERATE_OPEN_CONNECTION])
-  @Query(() => [FdCommunity])
+  @Query(() => FdCommunity)
   async openConnection(
     @Args()
     { remotePubKey, encryptedSignedRemoteUrl }: OpenConnectionArgs,
