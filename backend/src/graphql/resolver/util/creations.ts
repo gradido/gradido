@@ -13,7 +13,7 @@ export const validateContribution = (
   creations: Decimal[],
   amount: Decimal,
   creationDate: Date,
-  timezoneOffset = 0,
+  timezoneOffset: number,
 ): void => {
   logger.trace('isContributionValid: ', creations, amount, creationDate)
   const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
@@ -38,7 +38,7 @@ export const validateContribution = (
 
 export const getUserCreations = async (
   ids: number[],
-  timezoneOffset = 0,
+  timezoneOffset: number,
   includePending = true,
 ): Promise<CreationMap[]> => {
   logger.trace('getUserCreations:', ids, includePending)
@@ -91,7 +91,7 @@ export const getUserCreations = async (
 
 export const getUserCreation = async (
   id: number,
-  timezoneOffset = 0,
+  timezoneOffset: number,
   includePending = true,
 ): Promise<Decimal[]> => {
   logger.trace('getUserCreation', id, includePending, timezoneOffset)
@@ -138,7 +138,7 @@ export const isStartEndDateValid = (
 export const updateCreations = (
   creations: Decimal[],
   contribution: Contribution,
-  timezoneOffset = 0,
+  timezoneOffset: number,
 ): Decimal[] => {
   const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 

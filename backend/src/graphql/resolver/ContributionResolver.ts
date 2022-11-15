@@ -210,7 +210,7 @@ export class ContributionResolver {
     const creationDateObj = new Date(creationDate)
     let creations = await getUserCreation(user.id, clientTimezoneOffset)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
       logger.error('Currently the month of the contribution cannot change.')
       throw new Error('Currently the month of the contribution cannot change.')
