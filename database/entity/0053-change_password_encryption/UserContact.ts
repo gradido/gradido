@@ -5,8 +5,6 @@ import {
   Column,
   DeleteDateColumn,
   OneToOne,
-  JoinColumn,
-  ManyToOne,
 } from 'typeorm'
 import { User } from './User'
 
@@ -59,8 +57,4 @@ export class UserContact extends BaseEntity {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null
-
-  @ManyToOne(() => User, (user) => user.userContacts)
-  @JoinColumn({ name: 'user_id' })
-  contactUser: User
 }

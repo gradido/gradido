@@ -26,6 +26,8 @@ const communityDbUser: dbUser = {
   isAdmin: null,
   publisherId: 0,
   passphrase: '',
+  // default password encryption type
+  passwordEncryptionType: 2,
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },

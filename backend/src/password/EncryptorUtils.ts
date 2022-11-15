@@ -1,5 +1,7 @@
 import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
+import { User } from '@entity/User'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
@@ -49,4 +51,16 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
     `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
   )
   return [encryptionKeyHash, encryptionKey]
+}
+
+export const getBasicCryptographicKey = (dbUser: User): string | null => {
+  if (dbUser.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD) {
+    return null
+  } else if (dbUser.passwordEncryptionType === PasswordEncryptionType.EMAIL) {
+    return dbUser.emailContact.email
+  } else if (dbUser.passwordEncryptionType === PasswordEncryptionType.GRADIDO_ID) {
+    return dbUser.gradidoID
+  }
+
+  throw new Error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
 }

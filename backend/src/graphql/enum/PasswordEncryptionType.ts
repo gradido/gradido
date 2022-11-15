@@ -1,8 +1,8 @@
 import { registerEnumType } from 'type-graphql'
 
 export enum PasswordEncryptionType {
-  EMAIL = 0,
-  ONE_TIME = 1,
+  NO_PASSWORD = 0,
+  EMAIL = 1,
   GRADIDO_ID = 2,
 }
 
