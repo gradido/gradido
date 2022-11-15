@@ -1,8 +1,8 @@
 import Decimal from 'decimal.js-light'
 
-export const contributionConfirmed = {
+export const contributionRejected = {
   de: {
-    subject: 'Dein Gemeinwohl-Beitrag wurde bestätigt',
+    subject: 'Dein Gemeinwohl-Beitrag wurde abgelehnt',
     text: (data: {
       senderFirstName: string
       senderLastName: string
@@ -14,11 +14,9 @@ export const contributionConfirmed = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-dein Gemeinwohl-Beitrag "${data.contributionMemo}" wurde soeben von ${data.senderFirstName} ${
-        data.senderLastName
-      } bestätigt und in deinem Gradido-Konto gutgeschrieben.
+dein Gemeinwohl-Beitrag "${data.contributionMemo}" wurde von ${data.senderFirstName} ${data.senderLastName} abgelehnt.
 
-Betrag: ${data.contributionAmount.toFixed(2).replace('.', ',')} GDD
+Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü "Gemeinschaft" auf den Tab "Meine Beiträge zum Gemeinwohl"!
 
 Link zu deinem Konto: ${data.overviewURL}
 

@@ -40,16 +40,6 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
     })
 
-    describe('get List Contribution Messages', () => {
-      beforeEach(() => {
-        wrapper.vm.getListContributionMessages()
-      })
-
-      it('emits getListContributionMessages', async () => {
-        expect(wrapper.vm.$emit('get-list-contribution-messages')).toBeTruthy()
-      })
-    })
-
     describe('update State', () => {
       beforeEach(() => {
         wrapper.vm.updateState()

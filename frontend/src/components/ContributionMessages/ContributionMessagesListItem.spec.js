@@ -5,9 +5,11 @@ import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
 const localVue = global.localVue
 let wrapper
 
+const dateMock = jest.fn((d) => d)
+
 const mocks = {
   $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
+  $d: dateMock,
   $store: {
     state: {
       firstName: 'Peter',
@@ -236,6 +238,65 @@ and here is the link to the repository: https://github.com/gradido/gradido`)
         expect(messageField.findAll('a').at(1).attributes('href')).toBe(
           'https://github.com/gradido/gradido',
         )
+      })
+    })
+  })
+
+  describe('contribution message type HISTORY', () => {
+    const propsData = {
+      message: {
+        id: 111,
+        message: `Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time)
+---
+This message also contains a link: https://gradido.net/de/
+---
+350.00`,
+        createdAt: '2022-08-29T12:23:27.000Z',
+        updatedAt: null,
+        type: 'HISTORY',
+        userFirstName: 'Peter',
+        userLastName: 'Lustig',
+        userId: 107,
+        __typename: 'ContributionMessage',
+      },
+    }
+
+    const itemWrapper = () => {
+      return mount(ContributionMessagesListItem, {
+        localVue,
+        mocks,
+        propsData,
+      })
+    }
+
+    let messageField
+
+    describe('render HISTORY message', () => {
+      beforeEach(() => {
+        jest.clearAllMocks()
+        wrapper = itemWrapper()
+        messageField = wrapper.find('div.is-not-moderator.text-right > div:nth-child(4)')
+      })
+
+      it('renders the date', () => {
+        expect(dateMock).toBeCalledWith(
+          new Date('Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time'),
+          'short',
+        )
+      })
+
+      it('renders the amount', () => {
+        expect(messageField.text()).toContain('350.00 GDD')
+      })
+
+      it('contains the link as text', () => {
+        expect(messageField.text()).toContain(
+          'This message also contains a link: https://gradido.net/de/',
+        )
+      })
+
+      it('contains a link to the given address', () => {
+        expect(messageField.find('a').attributes('href')).toBe('https://gradido.net/de/')
       })
     })
   })

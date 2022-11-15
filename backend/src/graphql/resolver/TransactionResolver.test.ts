@@ -67,6 +67,7 @@ describe('send coins', () => {
 
   describe('unknown recipient', () => {
     it('throws an error', async () => {
+      jest.clearAllMocks()
       await mutate({
         mutation: login,
         variables: bobData,
@@ -93,6 +94,7 @@ describe('send coins', () => {
 
     describe('deleted recipient', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         await mutate({
           mutation: login,
           variables: peterData,
@@ -125,6 +127,7 @@ describe('send coins', () => {
 
     describe('recipient account not activated', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         await mutate({
           mutation: login,
           variables: peterData,
@@ -166,6 +169,7 @@ describe('send coins', () => {
 
     describe('sender and recipient are the same', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,
@@ -189,6 +193,7 @@ describe('send coins', () => {
 
     describe('memo text is too long', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,
@@ -212,6 +217,7 @@ describe('send coins', () => {
 
     describe('memo text is too short', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,
@@ -235,6 +241,7 @@ describe('send coins', () => {
 
     describe('user has not enough GDD', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,
@@ -260,6 +267,7 @@ describe('send coins', () => {
 
     describe('sending negative amount', () => {
       it('throws an error', async () => {
+        jest.clearAllMocks()
         expect(
           await mutate({
             mutation: sendCoins,

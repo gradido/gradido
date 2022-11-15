@@ -8,7 +8,11 @@
       header-class="text-center"
       class="mt-5"
     >
-      <b-button v-b-toggle.newContribution class="my-3 d-flex justify-content-left">
+      <b-button
+        v-if="!editContributionLink"
+        v-b-toggle.newContribution
+        class="my-3 d-flex justify-content-left"
+      >
         {{ $t('math.plus') }} {{ $t('contributionLink.newContributionLink') }}
       </b-button>
 
@@ -17,7 +21,9 @@
           <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
             :contributionLinkData="contributionLinkData"
+            :editContributionLink="editContributionLink"
             @get-contribution-links="$emit('get-contribution-links')"
+            @closeContributionForm="closeContributionForm"
           />
         </b-card>
       </b-collapse>
@@ -28,6 +34,7 @@
           :items="items"
           @editContributionLinkData="editContributionLinkData"
           @get-contribution-links="$emit('get-contribution-links')"
+          @closeContributionForm="closeContributionForm"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
       </b-card-text>
@@ -58,12 +65,23 @@ export default {
     return {
       visible: false,
       contributionLinkData: {},
+      editContributionLink: false,
     }
   },
   methods: {
+    closeContributionForm() {
+      if (this.visible) {
+        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+        this.editContributionLink = false
+        this.contributionLinkData = {}
+      }
+    },
     editContributionLinkData(data) {
-      if (!this.visible) this.$root.$emit('bv::toggle::collapse', 'newContribution')
+      if (!this.visible) {
+        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+      }
       this.contributionLinkData = data
+      this.editContributionLink = true
     },
   },
 }

@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { sendContributionConfirmedEmail } from './sendContributionConfirmedEmail'
+import { sendContributionRejectedEmail } from './sendContributionRejectedEmail'
 import { sendEMail } from './sendEMail'
 
 jest.mock('./sendEMail', () => {
@@ -11,7 +11,7 @@ jest.mock('./sendEMail', () => {
 
 describe('sendContributionConfirmedEmail', () => {
   beforeEach(async () => {
-    await sendContributionConfirmedEmail({
+    await sendContributionRejectedEmail({
       senderFirstName: 'Peter',
       senderLastName: 'Lustig',
       recipientFirstName: 'Bibi',
@@ -26,13 +26,12 @@ describe('sendContributionConfirmedEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: 'Bibi Bloxberg <bibi@bloxberg.de>',
-      subject: 'Dein Gemeinwohl-Beitrag wurde bestätigt',
+      subject: 'Dein Gemeinwohl-Beitrag wurde abgelehnt',
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining(
-          'dein Gemeinwohl-Beitrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben von Peter Lustig bestätigt und in deinem Gradido-Konto gutgeschrieben.',
+          'dein Gemeinwohl-Beitrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde von Peter Lustig abgelehnt.',
         ) &&
-        expect.stringContaining('Betrag: 200,00 GDD') &&
         expect.stringContaining('Link zu deinem Konto: http://localhost/overview'),
     })
   })
