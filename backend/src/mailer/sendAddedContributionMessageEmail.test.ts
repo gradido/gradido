@@ -26,12 +26,12 @@ describe('sendAddedContributionMessageEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Bibi Bloxberg <bibi@bloxberg.de>`,
-      subject: 'Rückfrage zu Deinem Gemeinwohl-Beitrag',
+      subject: 'Nachricht zu deinem Gemeinwohl-Beitrag',
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining('Peter Lustig') &&
         expect.stringContaining(
-          'Du hast soeben zu deinem eingereichten Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" eine Rückfrage von Peter Lustig erhalten.',
+          'du hast zu deinem Gemeinwohl-Beitrag "Vielen herzlichen Dank für den neuen Hexenbesen!" eine Nachricht von Peter Lustig erhalten.',
         ) &&
         expect.stringContaining('Was für ein Besen ist es geworden?') &&
         expect.stringContaining('http://localhost/overview'),

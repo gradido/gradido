@@ -2,7 +2,7 @@ import Decimal from 'decimal.js-light'
 
 export const contributionRejected = {
   de: {
-    subject: 'Schöpfung wurde abgelehnt',
+    subject: 'Dein Gemeinwohl-Beitrag wurde abgelehnt',
     text: (data: {
       senderFirstName: string
       senderLastName: string
@@ -14,14 +14,15 @@ export const contributionRejected = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-Dein eingereichter Gemeinwohl-Beitrag "${data.contributionMemo}" wurde soeben von ${data.senderFirstName} ${data.senderLastName} abgelehnt.
-      
+dein Gemeinwohl-Beitrag "${data.contributionMemo}" wurde von ${data.senderFirstName} ${data.senderLastName} abgelehnt.
+
+Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü "Gemeinschaft" auf den Tab "Meine Beiträge zum Gemeinwohl"!
+
+Link zu deinem Konto: ${data.overviewURL}
+
 Bitte antworte nicht auf diese E-Mail!
 
-Mit freundlichen Grüßen,
-dein Gradido-Team
-
-
-Link zu deinem Konto: ${data.overviewURL}`,
+Liebe Grüße
+dein Gradido-Team`,
   },
 }

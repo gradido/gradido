@@ -14,20 +14,20 @@ export const transactionLinkRedeemed = {
       memo: string
       overviewURL: string
     }): string =>
-      `Hallo ${data.recipientFirstName} ${data.recipientLastName}
+      `Hallo ${data.recipientFirstName} ${data.recipientLastName},
   
-  ${data.senderFirstName} ${data.senderLastName} (${
+${data.senderFirstName} ${data.senderLastName} (${
         data.senderEmail
       }) hat soeben deinen Link eingelöst.
-  
-  Betrag: ${data.amount.toFixed(2).replace('.', ',')} GDD,
-  Memo: ${data.memo}
-  
-  Details zur Transaktion findest du in deinem Gradido-Konto: ${data.overviewURL}
-  
-  Bitte antworte nicht auf diese E-Mail!
-  
-  Mit freundlichen Grüßen,
-  dein Gradido-Team`,
+
+Betrag: ${data.amount.toFixed(2).replace('.', ',')} GDD,
+Memo: ${data.memo}
+
+Details zur Transaktion findest du in deinem Gradido-Konto: ${data.overviewURL}
+
+Bitte antworte nicht auf diese E-Mail!
+
+Liebe Grüße
+dein Gradido-Team`,
   },
 }
