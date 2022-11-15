@@ -4,7 +4,7 @@
 import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
-import { addUnknownFederationCommunity, createHomeCommunity } from '@/dao/CommunityDAO'
+import { addFederationCommunity, createHomeCommunity } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
 import { startFederationHandshake } from './control/HandshakeControler'
 
@@ -54,16 +54,18 @@ export const startDHT = async (
       logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
-      socket.on('data', (data: Buffer) => {
+      socket.on('data', async (data: Buffer) => {
         logger.info(`data: ${data.toString('ascii')}`)
         const json = JSON.parse(data.toString('ascii'))
         if (json.api && json.url) {
           try {
-            if (!addUnknownFederationCommunity(socket.remotePublicKey, json.api, json.url)) {
+            const newFed = await addFederationCommunity(socket.remotePublicKey, json.api, json.url)
+            if (!newFed) {
               logger.error(
-                `can't add new and unknown Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
+                `can't add Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
               )
             } else {
+              logger.info(`new Remote-Community stored, start FederationHandshake...`)
               // no await for async function, because handshake runs async from the DHT federation
               startFederationHandshake(socket.remotePublicKey)
             }
