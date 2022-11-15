@@ -9,7 +9,7 @@
       <contribution-messages-formular
         v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
         :contributionId="contributionId"
-        @get-list-contribution-messages="getListContributionMessages"
+        v-on="$listeners"
         @update-state="updateState"
       />
     </b-container>
@@ -50,9 +50,6 @@ export default {
     },
   },
   methods: {
-    getListContributionMessages() {
-      this.$emit('get-list-contribution-messages', this.contributionId)
-    },
     updateState(id) {
       this.$emit('update-state', id)
     },
