@@ -159,7 +159,7 @@ describe('util/creation', () => {
 
     describe('call getUserCreation now', () => {
       it('returns the expected open contributions', async () => {
-        await expect(getUserCreation(user.id)).resolves.toEqual([
+        await expect(getUserCreation(user.id, 0)).resolves.toEqual([
           expect.decimalEqual(550),
           expect.decimalEqual(340),
           expect.decimalEqual(350),
@@ -188,7 +188,7 @@ describe('util/creation', () => {
 
         describe('call getUserCreation with UTC', () => {
           it('returns the expected open contributions', async () => {
-            await expect(getUserCreation(user.id)).resolves.toEqual([
+            await expect(getUserCreation(user.id, 0)).resolves.toEqual([
               expect.decimalEqual(550),
               expect.decimalEqual(340),
               expect.decimalEqual(350),
@@ -198,7 +198,7 @@ describe('util/creation', () => {
 
         describe('call getUserCreation with JST (GMT+0900)', () => {
           it('returns the expected open contributions', async () => {
-            await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
+            await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
               expect.decimalEqual(340),
               expect.decimalEqual(350),
               expect.decimalEqual(1000),
@@ -208,7 +208,7 @@ describe('util/creation', () => {
 
         describe('call getUserCreation with PST (GMT-0800)', () => {
           it('returns the expected open contributions', async () => {
-            await expect(getUserCreation(user.id, true, 480)).resolves.toEqual([
+            await expect(getUserCreation(user.id, 480, true)).resolves.toEqual([
               expect.decimalEqual(550),
               expect.decimalEqual(340),
               expect.decimalEqual(350),
@@ -234,7 +234,7 @@ describe('util/creation', () => {
 
           describe('call getUserCreation with UTC', () => {
             it('returns the expected open contributions', async () => {
-              await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
+              await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
                 expect.decimalEqual(340),
                 expect.decimalEqual(350),
                 expect.decimalEqual(1000),
@@ -244,7 +244,7 @@ describe('util/creation', () => {
 
           describe('call getUserCreation with JST (GMT+0900)', () => {
             it('returns the expected open contributions', async () => {
-              await expect(getUserCreation(user.id, true, -540)).resolves.toEqual([
+              await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
                 expect.decimalEqual(340),
                 expect.decimalEqual(350),
                 expect.decimalEqual(1000),
@@ -254,7 +254,7 @@ describe('util/creation', () => {
 
           describe('call getUserCreation with PST (GMT-0800)', () => {
             it('returns the expected open contributions', async () => {
-              await expect(getUserCreation(user.id, true, 450)).resolves.toEqual([
+              await expect(getUserCreation(user.id, 450, true)).resolves.toEqual([
                 expect.decimalEqual(550),
                 expect.decimalEqual(340),
                 expect.decimalEqual(350),

@@ -38,8 +38,8 @@ export const validateContribution = (
 
 export const getUserCreations = async (
   ids: number[],
-  includePending = true,
   timezoneOffset = 0,
+  includePending = true,
 ): Promise<CreationMap[]> => {
   logger.trace('getUserCreations:', ids, includePending)
   const months = getCreationMonths(timezoneOffset)
@@ -91,11 +91,11 @@ export const getUserCreations = async (
 
 export const getUserCreation = async (
   id: number,
-  includePending = true,
   timezoneOffset = 0,
+  includePending = true,
 ): Promise<Decimal[]> => {
   logger.trace('getUserCreation', id, includePending, timezoneOffset)
-  const creations = await getUserCreations([id], includePending, timezoneOffset)
+  const creations = await getUserCreations([id], timezoneOffset, includePending)
   logger.trace('getUserCreation  creations=', creations)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }

@@ -1,4 +1,4 @@
-import { Context, getUser } from '@/server/context'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
@@ -87,7 +87,9 @@ export class AdminResolver {
   async searchUsers(
     @Args()
     { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userRepository = getCustomRepository(UserRepository)
     const userFields = [
       'id',
@@ -115,7 +117,10 @@ export class AdminResolver {
       }
     }
 
-    const creations = await getUserCreations(users.map((u) => u.id))
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      clientTimezoneOffset,
+    )
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
@@ -238,6 +243,7 @@ export class AdminResolver {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (!isValidDateString(creationDate)) {
       logger.error(`invalid Date for creationDate=${creationDate}`)
       throw new Error(`invalid Date for creationDate=${creationDate}`)
@@ -267,11 +273,11 @@ export class AdminResolver {
     const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(emailContact.userId)
+    const creations = await getUserCreation(emailContact.userId, clientTimezoneOffset)
     logger.trace('creations:', creations)
     const creationDateObj = new Date(creationDate)
     logger.trace('creationDateObj:', creationDateObj)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
@@ -294,7 +300,7 @@ export class AdminResolver {
       event.setEventAdminContributionCreate(eventAdminCreateContribution),
     )
 
-    return getUserCreation(emailContact.userId)
+    return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -330,6 +336,7 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
@@ -370,7 +377,7 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientTimezoneOffset)
 
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
       creations = updateCreations(creations, contributionToUpdate)
@@ -380,7 +387,7 @@ export class AdminResolver {
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -394,7 +401,7 @@ export class AdminResolver {
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(user.id)
+    result.creation = await getUserCreation(user.id, clientTimezoneOffset)
 
     const event = new Event()
     const eventAdminContributionUpdate = new EventAdminContributionUpdate()
@@ -410,7 +417,8 @@ export class AdminResolver {
 
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
-  async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
+  async listUnconfirmedContributions(@Ctx() context: Context): Promise<UnconfirmedContribution[]> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const contributions = await getConnection()
       .createQueryBuilder()
       .select('c')
@@ -424,7 +432,7 @@ export class AdminResolver {
     }
 
     const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds)
+    const userCreations = await getUserCreations(userIds, clientTimezoneOffset)
     const users = await dbUser.find({
       where: { id: In(userIds) },
       withDeleted: true,
@@ -498,6 +506,7 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
@@ -516,8 +525,13 @@ export class AdminResolver {
       logger.error('This user was deleted. Cannot confirm a contribution.')
       throw new Error('This user was deleted. Cannot confirm a contribution.')
     }
-    const creations = await getUserCreation(contribution.userId, false)
-    validateContribution(creations, contribution.amount, contribution.contributionDate)
+    const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
+    validateContribution(
+      creations,
+      contribution.amount,
+      contribution.contributionDate,
+      clientTimezoneOffset,
+    )
 
     const receivedCallDate = new Date()
 
