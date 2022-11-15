@@ -13,7 +13,7 @@ const constants = {
 
 const database = {
   DB_HOST: process.env.DB_HOST || 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3307,
   DB_USER: process.env.DB_USER || 'root',
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_DATABASE: process.env.DB_DATABASE || 'gradido_community',
