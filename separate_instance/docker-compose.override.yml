@@ -1,0 +1,130 @@
+version: "3.4"
+
+services:
+
+#  ########################################################
+#  # FRONTEND #############################################
+#  ########################################################
+#  frontend:
+#    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+#    image: gradido/frontend:local-development
+#    build:
+#      target: development
+#    environment:
+#      - NODE_ENV="development"
+#      # - DEBUG=true
+#    volumes:
+#      # This makes sure the docker container has its own node modules.
+#      # Therefore it is possible to have a different node version on the host machine
+#      - frontend_node_modules:/app/node_modules
+#      # bind the local folder to the docker to allow live reload
+#      - ./frontend:/app
+#
+#  ########################################################
+#  # ADMIN INTERFACE ######################################
+#  ########################################################
+#  admin:
+#    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+#    image: gradido/admin:local-development
+#    build:
+#      target: development
+#    environment:
+#      - NODE_ENV="development"
+#      # - DEBUG=true
+#    volumes:
+#      # This makes sure the docker container has its own node modules.
+#      # Therefore it is possible to have a different node version on the host machine
+#      - admin_node_modules:/app/node_modules
+#      # bind the local folder to the docker to allow live reload
+#      - ./admin:/app
+#
+  ########################################################
+  # BACKEND ##############################################
+  ########################################################
+  backend:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/backend:local-development
+    build:
+      target: development
+    networks:
+      - external-net
+      - internal-net
+    environment:
+      - NODE_ENV="development"
+    volumes:
+      # This makes sure the docker container has its own node modules.
+      # Therefore it is possible to have a different node version on the host machine
+      - backend_node_modules:/app/node_modules
+      - backend_database_node_modules:/database/node_modules
+      - backend_database_build:/database/build
+      # bind the local folder to the docker to allow live reload
+      - ./backend:/app
+      - ./database:/database
+
+  ########################################################
+  # DATABASE ##############################################
+  ########################################################
+  database:
+    # we always run on production here since else the service lingers
+    #  feel free to change this behaviour if it seems useful
+    #  Due to problems with the volume caching the built files
+    #  we changed this to test build. This keeps the service running.
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/database:local-test_up
+    build:
+      target: test_up
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV="development"
+      - DB_HOST=mariadb
+      - DB_PORT=3307
+      - MYSQL_TCP_PORT=3307
+    volumes:
+      # This makes sure the docker container has its own node modules.
+      # Therefore it is possible to have a different node version on the host machine
+      - database_node_modules:/app/node_modules
+      - database_build:/app/build
+      # bind the local folder to the docker to allow live reload
+      - ./database:/app
+
+  #########################################################
+  ## MARIADB ##############################################
+  #########################################################
+  mariadb:
+    networks: 
+      - internal-net
+      - external-net
+
+#  #########################################################
+#  ## NGINX ################################################
+#  #########################################################
+#  # nginx:
+#  
+#  #########################################################
+#  ## PHPMYADMIN ###########################################
+#  #########################################################
+#  phpmyadmin:
+#    image: phpmyadmin
+#    environment:
+#     - PMA_ARBITRARY=1
+#    #restart: always
+#    ports:
+#     - 8074:80
+#    networks: 
+#     - internal-net
+#     - external-net
+#    volumes:
+#     - /sessions
+#
+volumes:
+  frontend_node_modules:
+  admin_node_modules:
+  backend_node_modules:
+  backend_database_node_modules:
+  backend_database_build:
+  database_node_modules:
+  database_build:
