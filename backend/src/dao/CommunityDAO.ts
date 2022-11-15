@@ -127,23 +127,28 @@ export async function addFederationCommunity(
     logger.info(`FedCom does not exists -> a new RemoteCommunity will be added...`)
   })
   if (!dbFed) {
-    dbFed = DbFederation.create()
-    dbFed.communityId = dbCom.id
-    dbFed.foreign = true
-    dbFed.pubKey = remotePublicKey
-    dbFed = await dbFed.save()
-    logger.info(`new dbFed stored: ${JSON.stringify(dbFed)}`)
+    if (!(await checkForExistingApiUrl(remoteUrl))) {
+      dbFed = DbFederation.create()
+      dbFed.communityId = dbCom.id
+      dbFed.foreign = true
+      dbFed.pubKey = remotePublicKey
+      dbFed = await dbFed.save()
+      logger.info(`new dbFed stored: ${JSON.stringify(dbFed)}`)
 
-    let dbApi = DbApiVersion.create()
-    dbApi.communityFederationID = dbFed.id
-    dbApi.apiVersion = remoteApiVersion
-    dbApi.url = remoteUrl
-    dbApi.validFrom = new Date()
-    dbApi = await dbApi.save()
-    logger.info(`new dbApi stored: ${JSON.stringify(dbApi)}`)
+      let dbApi = DbApiVersion.create()
+      dbApi.communityFederationID = dbFed.id
+      dbApi.apiVersion = remoteApiVersion
+      dbApi.url = remoteUrl
+      dbApi.validFrom = new Date()
+      dbApi = await dbApi.save()
+      logger.info(`new dbApi stored: ${JSON.stringify(dbApi)}`)
 
-    return true
+      return true
+    } else {
+      logger.info(`FedCom with Url still exists...`)
+    }
   }
+  logger.info(`FedCom with publicKey still exists...`)
   return false
 }
 
@@ -212,4 +217,17 @@ export async function setFedComPubkeyVerifiedAt(
     }
   }
   return true
+}
+
+async function checkForExistingApiUrl(remoteUrl: string): Promise<boolean> {
+  // read the entries with the youngest ValidFrom at first
+  const dbApi = await DbApiVersion.find({
+    where: { url: remoteUrl },
+  })
+
+  if (dbApi && dbApi[0]) {
+    logger.info(`federated Community with url=${remoteUrl} still exists`)
+    return true
+  }
+  return false
 }

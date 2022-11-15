@@ -60,11 +60,7 @@ export const startDHT = async (
         if (json.api && json.url) {
           try {
             const newFed = await addFederationCommunity(socket.remotePublicKey, json.api, json.url)
-            if (!newFed) {
-              logger.error(
-                `can't add Remote-Community with pubKey=${socket.remotePublicKey} in database!`,
-              )
-            } else {
+            if (newFed) {
               logger.info(`new Remote-Community stored, start FederationHandshake...`)
               // no await for async function, because handshake runs async from the DHT federation
               startFederationHandshake(socket.remotePublicKey)
