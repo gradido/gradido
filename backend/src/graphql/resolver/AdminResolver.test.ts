@@ -1530,8 +1530,8 @@ describe('AdminResolver', () => {
 
         describe('adminDeleteContribution', () => {
           describe('creation id does not exist', () => {
-            jest.clearAllMocks()
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminDeleteContribution,
