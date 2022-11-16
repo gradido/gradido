@@ -145,6 +145,7 @@ describe('AdminResolver', () => {
 
         describe('user to get a new role does not exist', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({ mutation: setUserRole, variables: { userId: admin.id + 1, isAdmin: true } }),
             ).resolves.toEqual(
@@ -201,6 +202,7 @@ describe('AdminResolver', () => {
         describe('change role with error', () => {
           describe('is own role', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({ mutation: setUserRole, variables: { userId: admin.id, isAdmin: false } }),
               ).resolves.toEqual(
@@ -217,6 +219,7 @@ describe('AdminResolver', () => {
           describe('user has already role to be set', () => {
             describe('to admin', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
                   variables: { userId: user.id, isAdmin: true },
@@ -237,6 +240,7 @@ describe('AdminResolver', () => {
 
             describe('to usual user', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await mutate({
                   mutation: setUserRole,
                   variables: { userId: user.id, isAdmin: false },
@@ -313,6 +317,7 @@ describe('AdminResolver', () => {
 
         describe('user to be deleted does not exist', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({ mutation: deleteUser, variables: { userId: admin.id + 1 } }),
             ).resolves.toEqual(
@@ -329,6 +334,7 @@ describe('AdminResolver', () => {
 
         describe('delete self', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({ mutation: deleteUser, variables: { userId: admin.id } }),
             ).resolves.toEqual(
@@ -362,6 +368,7 @@ describe('AdminResolver', () => {
 
           describe('delete deleted user', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({ mutation: deleteUser, variables: { userId: user.id } }),
               ).resolves.toEqual(
@@ -433,6 +440,7 @@ describe('AdminResolver', () => {
 
         describe('user to be undelete does not exist', () => {
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({ mutation: unDeleteUser, variables: { userId: admin.id + 1 } }),
             ).resolves.toEqual(
@@ -453,6 +461,7 @@ describe('AdminResolver', () => {
           })
 
           it('throws an error', async () => {
+            jest.clearAllMocks()
             await expect(
               mutate({ mutation: unDeleteUser, variables: { userId: user.id } }),
             ).resolves.toEqual(
@@ -948,6 +957,7 @@ describe('AdminResolver', () => {
 
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               variables.creationDate = contributionDateFormatter(
                 new Date(now.getFullYear(), now.getMonth() - 1, 1),
               )
@@ -977,6 +987,7 @@ describe('AdminResolver', () => {
             })
 
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
@@ -1005,6 +1016,7 @@ describe('AdminResolver', () => {
             })
 
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
@@ -1032,6 +1044,7 @@ describe('AdminResolver', () => {
 
             describe('date of creation is not a date string', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1098,6 +1111,7 @@ describe('AdminResolver', () => {
 
             describe('amount of creation is too high', () => {
               it('throws an error', async () => {
+                jest.clearAllMocks()
                 variables.creationDate = contributionDateFormatter(now)
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
@@ -1223,6 +1237,7 @@ describe('AdminResolver', () => {
 
           describe('user for creation to update does not exist', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1252,6 +1267,7 @@ describe('AdminResolver', () => {
 
           describe('user for creation to update is deleted', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1277,6 +1293,7 @@ describe('AdminResolver', () => {
 
           describe('creation does not exist', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1302,6 +1319,7 @@ describe('AdminResolver', () => {
 
           describe('user email does not match creation user', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1336,6 +1354,7 @@ describe('AdminResolver', () => {
           describe('creation update is not valid', () => {
             // as this test has not clearly defined that date, it is a false positive
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminUpdateContribution,
@@ -1511,6 +1530,7 @@ describe('AdminResolver', () => {
 
         describe('adminDeleteContribution', () => {
           describe('creation id does not exist', () => {
+            jest.clearAllMocks()
             it('throws an error', async () => {
               await expect(
                 mutate({
@@ -1548,6 +1568,7 @@ describe('AdminResolver', () => {
             })
 
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: adminDeleteContribution,
@@ -1593,6 +1614,7 @@ describe('AdminResolver', () => {
         describe('confirmContribution', () => {
           describe('creation does not exits', () => {
             it('throws an error', async () => {
+              jest.clearAllMocks()
               await expect(
                 mutate({
                   mutation: confirmContribution,

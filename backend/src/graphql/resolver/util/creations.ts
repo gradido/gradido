@@ -104,10 +104,10 @@ const getCreationMonths = (timezoneOffset: number): number[] => {
   const clientNow = new Date()
   clientNow.setTime(clientNow.getTime() - timezoneOffset * 60 * 1000)
   return [
-    clientNow.getMonth() + 1,
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1).getMonth() + 1,
     new Date(clientNow.getFullYear(), clientNow.getMonth() - 2, 1).getMonth() + 1,
-  ].reverse()
+    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1).getMonth() + 1,
+    clientNow.getMonth() + 1,
+  ]
 }
 
 const getCreationIndex = (month: number, timezoneOffset: number): number => {
