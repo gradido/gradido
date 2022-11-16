@@ -171,8 +171,7 @@ describe('util/creation', () => {
 
         beforeAll(() => {
           jest.useFakeTimers()
-          /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-          setTimeout(() => {}, targetDate.getTime() - now.getTime())
+          setTimeout(jest.fn(), targetDate.getTime() - now.getTime())
           jest.runAllTimers()
         })
 
@@ -221,8 +220,7 @@ describe('util/creation', () => {
           nextMonthTargetDate.setTime(targetDate.getTime() + 2 * 60 * 60 * 1000)
 
           beforeAll(() => {
-            /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-            setTimeout(() => {}, 2 * 60 * 60 * 1000)
+            setTimeout(jest.fn(), 2 * 60 * 60 * 1000)
             jest.runAllTimers()
           })
 
@@ -234,7 +232,7 @@ describe('util/creation', () => {
 
           describe('call getUserCreation with UTC', () => {
             it('returns the expected open contributions', async () => {
-              await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
+              await expect(getUserCreation(user.id, 0, true)).resolves.toEqual([
                 expect.decimalEqual(340),
                 expect.decimalEqual(350),
                 expect.decimalEqual(1000),
