@@ -96,7 +96,7 @@ Es kommt zu einem **Fehler im Backend**, da im Schöpfungsmonate-Array kein Sept
 
 * in den HTTP-Request-Header wird generell der aktuelle Timestamp des Clients eingetragen, sodass die aktuelle Uhrzeit des Users ohne weitere Signatur-Änderungen in jedem Aufruf am Backend ankommt. Moritz erstellt Ticket
 * es wird eine Analyse aller Backend-Aufrufe gemacht, die die Auswertung der User-Time und dessen evtl. Timezone-Differenz in der Logik des Backend-Aufrufs benötigt.
-* diese Backend-Methoden müssen fachlich so überarbeitet werden, dass immer aus dem Timezone-Offset die korrekte fachliche Logik als Ergebnis heraus kommt. In der Datanbank wird aber immer die UTC-Zeit gespeichert.
+* diese Backend-Methoden müssen fachlich so überarbeitet werden, dass immer aus dem Timezone-Offset die korrekte fachliche Logik als Ergebnis heraus kommt. In der Datenbank wird aber immer die UTC-Zeit gespeichert.
 * Es werden keine zusätzlichen Datanbank-Attribute zur Speicherung des User-TimeOffsets benötigt.
 
 
