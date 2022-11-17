@@ -207,7 +207,7 @@
   },
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
-  "login": "Anmeldung",
+  "login": "Anmelden",
   "math": {
     "aprox": "~",
     "asterisk": "*",
@@ -288,16 +288,12 @@
     "forgotPassword": {
       "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
     },
-    "login": {
-      "heading": "Melde dich mit deinen Zugangsdaten an. Bewahre sie stets sicher auf!"
-    },
     "resetPassword": {
       "heading": "Trage bitte dein Passwort ein und wiederhole es."
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
       "dont_match": "Die Passwörter stimmen nicht überein.",
-      "heading": "Registriere dich indem du alle Daten vollständig und in die richtigen Felder eingibst.",
       "lowercase": "Ein Kleinbuchstabe erforderlich.",
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
