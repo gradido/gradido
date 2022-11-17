@@ -125,8 +125,8 @@
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",
-    "deletedUsers": "Deleted members",
     "count": "Count",
+    "deletedUsers": "Deleted members",
     "detail": "Detail",
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "Total created GDD",
