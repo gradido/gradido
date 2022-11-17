@@ -4,7 +4,7 @@
 import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
-import { addFederationCommunity, createHomeCommunity } from '@/dao/CommunityDAO'
+import { addFederationCommunity, resetFederationTables } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
 import { startFederationHandshake } from './control/HandshakeControler'
 
@@ -12,19 +12,7 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-/*
-function between(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
 
-const nodeRand = between(1, 99)
-const nodeURL = `https://test${nodeRand}.org`
-const nodeAPI = {
-  API_1_00: `${nodeURL}/api/1_00/`,
-  API_1_01: `${nodeURL}/api/1_01/`,
-  API_2_00: `${nodeURL}/graphql/2_00/`,
-}
-*/
 export const startDHT = async (
   // connection: Connection,
   topic: string,
@@ -35,14 +23,14 @@ export const startDHT = async (
 
     const keyPair = DHT.keyPair()
 
-    const fdCommunity = await createHomeCommunity(
+    const homeCom = await resetFederationTables(
       CONFIG.FEDERATE_COMMUNITY_NAME,
-      CONFIG.FEDERATE_COMMUNITY_URL,
+      `${CONFIG.FEDERATE_COMMUNITY_URL}:${CONFIG.FEDERATE_COMMUNITY_PORT}/`,
       CONFIG.COMMUNITY_DESCRIPTION,
       keyPair.publicKey,
       keyPair.secretKey,
     )
-    logger.info(`my Federation HomeCommunity=${JSON.stringify(fdCommunity)}`)
+    logger.info(`my Federation HomeCommunity=${JSON.stringify(homeCom)}`)
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
@@ -63,7 +51,7 @@ export const startDHT = async (
             if (newFed) {
               logger.info(`new Remote-Community stored, start FederationHandshake...`)
               // no await for async function, because handshake runs async from the DHT federation
-              startFederationHandshake(socket.remotePublicKey)
+              startFederationHandshake(homeCom, socket.remotePublicKey)
             }
           } catch (err) {
             logger.error(err)
@@ -137,9 +125,7 @@ export const startDHT = async (
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
           // console.log("writing to socket");
-          socket.write(
-            Buffer.from(`{ "api" : "${fdCommunity.apiVersion}", "url" : "${fdCommunity.url}" }`),
-          )
+          socket.write(Buffer.from(`{ "api" : "${homeCom.apiVersion}", "url" : "${homeCom.url}" }`))
           successfulRequests.push(remotePubKey)
         })
         // pipe it somewhere like any duplex stream
