@@ -38,7 +38,6 @@ import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { encryptPassword } from '@/password/PasswordEncryptr'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
-import { find } from 'lodash'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
