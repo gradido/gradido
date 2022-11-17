@@ -1,7 +1,11 @@
 <template>
   <div id="component-sidebar">
-    <div id="side-menu" class="pl-lg-1 gradido-border-radius shadow-default pt-2 mt-4">
-     
+    <div
+      id="side-menu"
+      ref="sideMenu"
+      class="pl-lg-1 gradido-border-radius shadow-default pt-2 mt-4"
+    >
+      <!-- @mouseout="$emit('toogleMobilMenu')" -->
       <div class="mb-6 mt-3">
         <b-nav vertical class="w-200">
           <b-nav-item to="/overview" class="mb-3">
@@ -61,6 +65,12 @@
           <b-nav-item class="mb-3" @click="$emit('logout')">
             <b-icon icon="power" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.logout') }}</span>
+          </b-nav-item>
+          <b-nav-item
+            class="mt-4 mb-3 d-block d-md-none d-lg-none"
+            @click="$emit('toogleMobilMenu')"
+          >
+            <b-icon icon="x" aria-hidden="true"></b-icon>
           </b-nav-item>
         </b-nav>
       </div>

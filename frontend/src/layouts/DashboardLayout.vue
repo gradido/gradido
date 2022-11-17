@@ -1,68 +1,39 @@
 <template>
   <div class="main-page">
     <div v-if="skeleton">
-      <b-row class="text-center">
-        <b-col>
-          <b-skeleton-img no-aspect animation="wave" height="118px"></b-skeleton-img>
-        </b-col>
-        <b-col cols="6">
-          <b-skeleton animation="wave" class="mt-4 pt-5"></b-skeleton>
-        </b-col>
-        <b-col>
-          <div class="b-right m-4">
-            <b-row>
-              <b-col><b-skeleton type="avatar"></b-skeleton></b-col>
-              <b-col>
-                <b-skeleton></b-skeleton>
-                <b-skeleton></b-skeleton>
-              </b-col>
-            </b-row>
-          </div>
-        </b-col>
-      </b-row>
-      <b-row class="text-center mt-5">
-        <b-col>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-        <b-col cols="6">
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-        <b-col>
-          <b-skeleton animation="wave" width="85%"></b-skeleton>
-          <b-skeleton animation="wave" width="55%"></b-skeleton>
-          <b-skeleton animation="wave" width="70%"></b-skeleton>
-        </b-col>
-      </b-row>
+      <skeleton-overview />
     </div>
     <div v-else>
       <!--sm menu mobil hamburger button-->
       <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
-        <b-button @click="toogleMobilMenu">
-          <span v-if="hamburger" class="navbar-toggler-icon"></span>
-          <span v-else><b-icon icon="x-square" aria-hidden="true"></b-icon></span>
+        {{ hamburger }}
+        <b-button v-if="hamburger" @click="toogleMobilMenu">
+          <span class="navbar-toggler-icon"></span>
         </b-button>
       </div>
-
       <b-row>
         <!-- navbar -->
         <b-col>
           <navbar-new class="main-navbar" :balance="balance"></navbar-new>
         </b-col>
       </b-row>
+      <div ref="sideMenuRow" class="d-none d-lg-none d-md-none zindex1000">
+        <sidebar-new
+          class="main-sidebar"
+          @admin="admin"
+          @logout="logout"
+          @modeToggle="modeToggle"
+          @toogleMobilMenu="toogleMobilMenu"
+        />
+      </div>
       <b-row fluid class="d-flex">
-        <b-col cols="2" ref="sideMenuRow" class="d-none d-lg-block d-md-block zindex1000">
+        <b-col cols="2" class="d-none d-lg-block d-md-block">
           <sidebar-new
             class="main-sidebar"
             @admin="admin"
             @logout="logout"
             @modeToggle="modeToggle"
+            @toogleMobilMenu="toogleMobilMenu"
           />
         </b-col>
         <b-col>
@@ -113,6 +84,7 @@
 <script>
 import ContentHeader from '@/layouts/templates/ContentHeader.vue'
 import RightSide from '@/layouts/templates/RightSide.vue'
+import SkeletonOverview from '@/components/skeleton/Overview.vue'
 // import Navbar from '@/components/Menu/Navbar.vue'
 import NavbarNew from '@/components/Menu/NavbarNew.vue'
 // import Sidebar from '@/components/Menu/Sidebar.vue'
@@ -127,6 +99,7 @@ import CONFIG from '@/config'
 export default {
   name: 'DashboardLayout',
   components: {
+    SkeletonOverview,
     ContentHeader,
     RightSide,
     // Navbar,
@@ -220,11 +193,10 @@ export default {
       this.tunneledEmail = email
     },
     toogleMobilMenu() {
-      // console.log(this.$refs.sideMenuRow.classList.contains('position-absolute'))
-
-      this.$refs.sideMenuRow.classList.toggle('d-none')
+      console.log(this.$refs.sideMenuRow.classList.value)
+      this.$refs.sideMenuRow.classList.toggle('d-inline')
       this.$refs.sideMenuRow.classList.toggle('position-absolute')
-      // console.log(document.getElementById('component-sidebar'))
+
       document.getElementById('side-menu').classList.toggle('bg-lightgrey')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
     },
@@ -256,6 +228,14 @@ export default {
 }
 </script>
 <style>
+/* frontend/public/img/svg/Gradido_Blaetter_Mainpage.svg */
+.main-page {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url(/img/svg/Gradido_Blaetter_Mainpage.svg) !important;
+}
 .b-right {
   text-align: -webkit-right;
 }
