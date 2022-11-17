@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
@@ -261,8 +261,9 @@ export class UserResolver {
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userEntity = getUser(context)
-    const user = new User(userEntity, await getUserCreation(userEntity.id))
+    const user = new User(userEntity, await getUserCreation(userEntity.id, clientTimezoneOffset))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -279,6 +280,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
@@ -313,7 +315,7 @@ export class UserResolver {
     logger.addContext('user', dbUser.id)
     logger.debug('validation of login credentials successful...')
 
-    const user = new User(dbUser, await getUserCreation(dbUser.id))
+    const user = new User(dbUser, await getUserCreation(dbUser.id, clientTimezoneOffset))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
 
     // Elopage Status & Stored PublisherId
