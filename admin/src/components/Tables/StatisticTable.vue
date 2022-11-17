@@ -13,7 +13,7 @@
         <b-tr>
           <b-th></b-th>
           <b-th class="text-right">{{ $t('statistic.count') }}</b-th>
-          <b-th class="text-right">{{ $t('statistic.detail') }}</b-th>
+          <b-th class="text-right">{{ $t('statistic.details') }}</b-th>
         </b-tr>
       </b-thead>
       <b-tbody>
