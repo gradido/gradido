@@ -10,7 +10,6 @@
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
           <b-nav-item to="/">{{ $t('navbar.overview') }}</b-nav-item>
-          <b-nav-item to="/statistic">{{ $t('navbar.statistic') }}</b-nav-item>
           <b-nav-item to="/user">{{ $t('navbar.user_search') }}</b-nav-item>
           <b-nav-item to="/creation">{{ $t('navbar.multi_creation') }}</b-nav-item>
           <b-nav-item
@@ -23,6 +22,7 @@
           <b-nav-item to="/contribution-links">
             {{ $t('navbar.automaticContributions') }}
           </b-nav-item>
+          <b-nav-item to="/statistic">{{ $t('navbar.statistic') }}</b-nav-item>
           <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
           <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
         </b-navbar-nav>
