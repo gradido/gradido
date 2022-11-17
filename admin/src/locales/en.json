@@ -3,7 +3,9 @@
   "back": "back",
   "contributionLink": {
     "amount": "Amount",
+    "changeSaved": "Changes saved",
     "clear": "Clear",
+    "close": "Close",
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
@@ -23,6 +25,7 @@
         "once": "once"
       }
     },
+    "saveChange": "Save Changes",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
@@ -95,6 +98,7 @@
   "multiple_creation_text": "Please select one or more members for which you would like to perform creations.",
   "name": "Name",
   "navbar": {
+    "automaticContributions": "Automatic Contributions",
     "logout": "Logout",
     "multi_creation": "Multiple creation",
     "my-account": "My Account",

@@ -1,24 +1,29 @@
 <template>
   <div class="contribution-messages-list-item">
     <div v-if="isNotModerator" class="is-not-moderator text-right">
-      <b-avatar :text="initialLetters" variant="info"></b-avatar>
+      <b-avatar variant="info"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
-      <div class="mt-2">{{ message.message }}</div>
+      <parse-message v-bind="message"></parse-message>
     </div>
     <div v-else class="is-moderator text-left">
-      <b-avatar square :text="initialLetters" variant="warning"></b-avatar>
+      <b-avatar square variant="warning"></b-avatar>
       <span class="ml-2 mr-2">{{ message.userFirstName }} {{ message.userLastName }}</span>
       <span class="ml-2">{{ $d(new Date(message.createdAt), 'short') }}</span>
       <small class="ml-4 text-success">{{ $t('community.moderator') }}</small>
-      <div class="mt-2">{{ message.message }}</div>
+      <parse-message v-bind="message"></parse-message>
     </div>
   </div>
 </template>
 
 <script>
+import ParseMessage from '@/components/ContributionMessages/ParseMessage.vue'
+
 export default {
   name: 'ContributionMessagesListItem',
+  components: {
+    ParseMessage,
+  },
   props: {
     message: {
       type: Object,

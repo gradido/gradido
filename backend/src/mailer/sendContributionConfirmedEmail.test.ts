@@ -26,11 +26,11 @@ describe('sendContributionConfirmedEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: 'Bibi Bloxberg <bibi@bloxberg.de>',
-      subject: 'Schöpfung wurde bestätigt',
+      subject: 'Dein Gemeinwohl-Beitrag wurde bestätigt',
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining(
-          'Dein Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben bestätigt.',
+          'dein Gemeinwohl-Beitrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben von Peter Lustig bestätigt und in deinem Gradido-Konto gutgeschrieben.',
         ) &&
         expect.stringContaining('Betrag: 200,00 GDD') &&
         expect.stringContaining('Link zu deinem Konto: http://localhost/overview'),
