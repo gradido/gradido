@@ -1,10 +1,10 @@
 <template>
-  <div class="main-page">
+  <div class="main-page h-100">
     <div v-if="skeleton">
       <skeleton-overview />
     </div>
     <div v-else>
-      <!--sm menu mobil hamburger button-->
+      <!--menu mobil hamburger button-->
       <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
         {{ hamburger }}
         <b-button v-if="hamburger" @click="toogleMobilMenu">
@@ -27,6 +27,7 @@
         />
       </div>
       <b-row fluid class="d-flex">
+        <!-- Sidebar left -->
         <b-col cols="2" class="d-none d-lg-block d-md-block">
           <sidebar-new
             class="main-sidebar"
@@ -36,15 +37,18 @@
             @toogleMobilMenu="toogleMobilMenu"
           />
         </b-col>
+        <!-- ContentHeader && Content -->
         <b-col>
           <b-row>
             <b-col cols="12">
               <b-row class="d-lg-flex" cols="12">
+                <!-- ContentHeader -->
                 <b-col>
                   <content-header />
                 </b-col>
               </b-row>
             </b-col>
+            <!-- RideSide Mobil -->
             <b-col class="d-block d-lg-none">
               <right-side />
             </b-col>
@@ -67,6 +71,7 @@
             </b-col>
           </b-row>
         </b-col>
+        <!-- RightSide Desktop -->
         <b-col cols="2" class="d-none d-lg-block" align-self="stretch">
           <right-side />
         </b-col>
@@ -193,7 +198,7 @@ export default {
       this.tunneledEmail = email
     },
     toogleMobilMenu() {
-      console.log(this.$refs.sideMenuRow.classList.value)
+      // console.log(this.$refs.sideMenuRow.classList.value)
       this.$refs.sideMenuRow.classList.toggle('d-inline')
       this.$refs.sideMenuRow.classList.toggle('position-absolute')
 
