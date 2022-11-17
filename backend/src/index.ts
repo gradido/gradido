@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import createServer from './server/createServer'
-import { startDHT } from '@/federation/index'
 
 // config
 import CONFIG from './config'
@@ -17,11 +16,6 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-
-  // start DHT hyperswarm when DHT_TOPIC is set in .env
-  if (CONFIG.DHT_TOPIC) {
-    await startDHT(CONFIG.DHT_TOPIC) // con,
-  }
 }
 
 main().catch((e) => {

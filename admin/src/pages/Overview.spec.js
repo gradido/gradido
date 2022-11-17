@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Overview from './Overview.vue'
+import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import { communityStatistics } from '@/graphql/communityStatistics.js'
 import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
@@ -32,6 +33,27 @@ const apolloQueryMock = jest
         totalGradidoDecayed: '-1062639.13634129622923372197',
         totalGradidoAvailable: '2513565.869444365732411569',
         totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
+      },
+    },
+  })
+  .mockResolvedValueOnce({
+    data: {
+      listContributionLinks: {
+        links: [
+          {
+            id: 1,
+            name: 'Meditation',
+            memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+            amount: '200',
+            validFrom: '2022-04-01',
+            validTo: '2022-08-01',
+            cycle: 'täglich',
+            maxPerCycle: '3',
+            maxAmountPerMonth: 0,
+            link: 'https://localhost/redeem/CL-1a2345678',
+          },
+        ],
+        count: 1,
       },
     },
   })
@@ -92,6 +114,14 @@ describe('Overview', () => {
       expect(apolloQueryMock).toBeCalledWith(
         expect.objectContaining({
           query: communityStatistics,
+        }),
+      )
+    })
+
+    it('calls listContributionLinks', () => {
+      expect(apolloQueryMock).toBeCalledWith(
+        expect.objectContaining({
+          query: listContributionLinks,
         }),
       )
     })

@@ -288,12 +288,16 @@
     "forgotPassword": {
       "heading": "Veuillez entrer l´adresse email sous laquelle vous êtes enregistré ici svp."
     },
+    "login": {
+      "heading": "Vous connecter avec vos données d´accès. Gardez les en sécurité!"
+    },
     "resetPassword": {
       "heading": "Entrez votre mot de passe et répétez l´action svp."
     },
     "signup": {
       "agree": "J´accepte le <a href='https://gradido.net/en/datenschutz/' target='_blank' > politique de confidentialité </a>.",
       "dont_match": "Les mots de passe ne correspondent pas.",
+      "heading": "Vous enregistrer en entrant toutes les données demandées dans les champs requis.",
       "lowercase": "Une lettre minuscule est requise.",
       "minimum": "8 caractères minimum.",
       "no-whitespace": "Pas d´espace ni d´onglet",

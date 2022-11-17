@@ -1,3 +1,4 @@
+import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { backendLogger as logger } from '@/server/logger'
 import { getConnection } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
@@ -13,10 +14,9 @@ export const validateContribution = (
   creations: Decimal[],
   amount: Decimal,
   creationDate: Date,
-  timezoneOffset: number,
 ): void => {
   logger.trace('isContributionValid: ', creations, amount, creationDate)
-  const index = getCreationIndex(creationDate.getMonth(), timezoneOffset)
+  const index = getCreationIndex(creationDate.getMonth())
 
   if (index < 0) {
     logger.error(
@@ -38,11 +38,10 @@ export const validateContribution = (
 
 export const getUserCreations = async (
   ids: number[],
-  timezoneOffset: number,
   includePending = true,
 ): Promise<CreationMap[]> => {
   logger.trace('getUserCreations:', ids, includePending)
-  const months = getCreationMonths(timezoneOffset)
+  const months = getCreationMonths()
   logger.trace('getUserCreations months', months)
 
   const queryRunner = getConnection().createQueryRunner()
@@ -51,27 +50,27 @@ export const getUserCreations = async (
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'
   logger.trace('getUserCreations dateFilter=', dateFilter)
 
-  const sumAmountContributionPerUserAndLast3MonthQuery = queryRunner.manager
-    .createQueryBuilder(Contribution, 'c')
-    .select('month(contribution_date)', 'month')
-    .addSelect('user_id', 'userId')
-    .addSelect('sum(amount)', 'sum')
-    .where(`user_id in (${ids.toString()})`)
-    .andWhere(`contribution_date >= ${dateFilter}`)
-    .andWhere('deleted_at IS NULL')
-    .andWhere('denied_at IS NULL')
-    .groupBy('month')
-    .addGroupBy('userId')
-    .orderBy('month', 'DESC')
+  const unionString = includePending
+    ? `
+    UNION
+      SELECT contribution_date AS date, amount AS amount, user_id AS userId FROM contributions
+        WHERE user_id IN (${ids.toString()})
+        AND contribution_date >= ${dateFilter}
+        AND confirmed_at IS NULL AND deleted_at IS NULL`
+    : ''
+  logger.trace('getUserCreations unionString=', unionString)
 
-  if (!includePending) {
-    sumAmountContributionPerUserAndLast3MonthQuery.andWhere('confirmed_at IS NOT NULL')
-  }
-
-  const sumAmountContributionPerUserAndLast3Month =
-    await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
-
-  logger.trace(sumAmountContributionPerUserAndLast3Month)
+  const unionQuery = await queryRunner.manager.query(`
+    SELECT MONTH(date) AS month, sum(amount) AS sum, userId AS id FROM
+      (SELECT creation_date AS date, amount AS amount, user_id AS userId FROM transactions
+        WHERE user_id IN (${ids.toString()})
+        AND type_id = ${TransactionTypeId.CREATION}
+        AND creation_date >= ${dateFilter}
+      ${unionString}) AS result
+    GROUP BY month, userId
+    ORDER BY date DESC
+  `)
+  logger.trace('getUserCreations unionQuery=', unionQuery)
 
   await queryRunner.release()
 
@@ -79,9 +78,9 @@ export const getUserCreations = async (
     return {
       id,
       creations: months.map((month) => {
-        const creation = sumAmountContributionPerUserAndLast3Month.find(
-          (raw: { month: string; userId: string; creation: number[] }) =>
-            parseInt(raw.month) === month && parseInt(raw.userId) === id,
+        const creation = unionQuery.find(
+          (raw: { month: string; id: string; creation: number[] }) =>
+            parseInt(raw.month) === month && parseInt(raw.id) === id,
         )
         return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
       }),
@@ -89,29 +88,24 @@ export const getUserCreations = async (
   })
 }
 
-export const getUserCreation = async (
-  id: number,
-  timezoneOffset: number,
-  includePending = true,
-): Promise<Decimal[]> => {
-  logger.trace('getUserCreation', id, includePending, timezoneOffset)
-  const creations = await getUserCreations([id], timezoneOffset, includePending)
+export const getUserCreation = async (id: number, includePending = true): Promise<Decimal[]> => {
+  logger.trace('getUserCreation', id, includePending)
+  const creations = await getUserCreations([id], includePending)
   logger.trace('getUserCreation  creations=', creations)
   return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
 }
 
-const getCreationMonths = (timezoneOffset: number): number[] => {
-  const clientNow = new Date()
-  clientNow.setTime(clientNow.getTime() - timezoneOffset * 60 * 1000)
+export const getCreationMonths = (): number[] => {
+  const now = new Date(Date.now())
   return [
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 2, 1).getMonth() + 1,
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1).getMonth() + 1,
-    clientNow.getMonth() + 1,
-  ]
+    now.getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() + 1,
+    new Date(now.getFullYear(), now.getMonth() - 2, 1).getMonth() + 1,
+  ].reverse()
 }
 
-const getCreationIndex = (month: number, timezoneOffset: number): number => {
-  return getCreationMonths(timezoneOffset).findIndex((el) => el === month + 1)
+export const getCreationIndex = (month: number): number => {
+  return getCreationMonths().findIndex((el) => el === month + 1)
 }
 
 export const isStartEndDateValid = (
@@ -135,20 +129,12 @@ export const isStartEndDateValid = (
   }
 }
 
-export const updateCreations = (
-  creations: Decimal[],
-  contribution: Contribution,
-  timezoneOffset: number,
-): Decimal[] => {
-  const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
+export const updateCreations = (creations: Decimal[], contribution: Contribution): Decimal[] => {
+  const index = getCreationIndex(contribution.contributionDate.getMonth())
 
   if (index < 0) {
     throw new Error('You cannot create GDD for a month older than the last three months.')
   }
   creations[index] = creations[index].plus(contribution.amount.toString())
   return creations
-}
-
-export const isValidDateString = (dateString: string): boolean => {
-  return new Date(dateString).toString() !== 'Invalid Date'
 }

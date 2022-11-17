@@ -63,8 +63,6 @@ export class StatisticsResolver {
       .where('transaction.decay IS NOT NULL')
       .getRawOne()
 
-    await queryRunner.release()
-
     return {
       totalUsers,
       activeUsers,

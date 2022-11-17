@@ -19,9 +19,6 @@
           >
             {{ $store.state.openCreations }} {{ $t('navbar.open_creation') }}
           </b-nav-item>
-          <b-nav-item to="/contribution-links">
-            {{ $t('navbar.automaticContributions') }}
-          </b-nav-item>
           <b-nav-item @click="wallet">{{ $t('navbar.my-account') }}</b-nav-item>
           <b-nav-item @click="logout">{{ $t('navbar.logout') }}</b-nav-item>
         </b-navbar-nav>

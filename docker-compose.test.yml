@@ -1,25 +1,6 @@
 version: "3.4"
 
 services:
-  ########################################################
-  # FRONTEND #############################################
-  ########################################################
-  frontend:
-    image: gradido/frontend:test
-    build:
-      target: test
-    environment:
-      - NODE_ENV="test"
-  
-  ########################################################
-  # ADMIN INTERFACE ######################################
-  ########################################################
-  admin:
-    image: gradido/admin:test
-    build:
-      target: test
-    environment:
-      - NODE_ENV="test"
 
   ########################################################
   # BACKEND ##############################################
@@ -40,19 +21,15 @@ services:
   # DATABASE #############################################
   ########################################################
   database:
-    image: gradido/database:test_up
     build:
       context: ./database
       target: test_up
-    environment:
-      - NODE_ENV="test"
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    image: gradido/mariadb:test
     networks: 
       - internal-net
       - external-net
@@ -74,12 +51,6 @@ services:
      - external-net
     volumes:
      - /sessions
-  
-  #########################################################
-  ## NGINX ################################################
-  #########################################################
-  nginx:
-    image: gradido/nginx:test
 
 networks:
   external-net:

@@ -2,7 +2,7 @@ import Decimal from 'decimal.js-light'
 
 export const contributionConfirmed = {
   de: {
-    subject: 'Dein Gemeinwohl-Beitrag wurde bestätigt',
+    subject: 'Schöpfung wurde bestätigt',
     text: (data: {
       senderFirstName: string
       senderLastName: string
@@ -14,17 +14,18 @@ export const contributionConfirmed = {
     }): string =>
       `Hallo ${data.recipientFirstName} ${data.recipientLastName},
 
-dein Gemeinwohl-Beitrag "${data.contributionMemo}" wurde soeben von ${data.senderFirstName} ${
-        data.senderLastName
-      } bestätigt und in deinem Gradido-Konto gutgeschrieben.
+Dein eingereichter Gemeinwohl-Beitrag "${data.contributionMemo}" wurde soeben von ${
+        data.senderFirstName
+      } ${data.senderLastName} bestätigt.
 
 Betrag: ${data.contributionAmount.toFixed(2).replace('.', ',')} GDD
 
-Link zu deinem Konto: ${data.overviewURL}
-
 Bitte antworte nicht auf diese E-Mail!
 
-Liebe Grüße
-dein Gradido-Team`,
+Mit freundlichen Grüßen,
+dein Gradido-Team
+
+
+Link zu deinem Konto: ${data.overviewURL}`,
   },
 }

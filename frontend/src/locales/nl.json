@@ -288,12 +288,16 @@
     "forgotPassword": {
       "heading": "Geef alsjeblieft jouw email, waarmee je bij Gradido aangemeld bent."
     },
+    "login": {
+      "heading": "Meld je met jouw inloggegevens aan. Sla deze altijd veilig op!"
+    },
     "resetPassword": {
       "heading": "Vul alsjeblieft jouw wachtwoord in, en herhaal het."
     },
     "signup": {
       "agree": "Ik ga akkoord met <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a>.",
       "dont_match": "De wachtwoorden zijn niet gelijk.",
+      "heading": "Schrijf je in door alle gegevens volledig en in de juiste velden in te vullen.",
       "lowercase": "Een kleine letter is noodzakelijk.",
       "minimum": "Minstens 8 tekens.",
       "no-whitespace": "Geen spaties en tabs",

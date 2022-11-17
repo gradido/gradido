@@ -1,7 +1,7 @@
 <template>
   <div class="login-form">
     <b-container v-if="enterData">
-      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
+      <div class="pb-5">{{ $t('site.login.heading') }}</div>
       <validation-observer ref="observer" v-slot="{ handleSubmit }">
         <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
           <b-row>

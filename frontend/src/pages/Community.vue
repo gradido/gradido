@@ -2,7 +2,7 @@
   <div class="community-page">
     <div>
       <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')" @click="closeAllOpenCollapse">
+        <b-tab :title="$t('community.submitContribution')">
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
@@ -39,7 +39,6 @@
             </b-alert>
           </div>
           <contribution-list
-            @closeAllOpenCollapse="closeAllOpenCollapse"
             :items="items"
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
@@ -50,7 +49,7 @@
             :pageSize="pageSize"
           />
         </b-tab>
-        <b-tab :title="$t('navigation.community')" @click="closeAllOpenCollapse">
+        <b-tab :title="$t('navigation.community')">
           <b-alert show dismissible fade variant="secondary" class="text-dark">
             <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
             <p>
@@ -113,13 +112,6 @@ export default {
     }
   },
   methods: {
-    closeAllOpenCollapse() {
-      // console.log('Community closeAllOpenCollapse ')
-      // console.log('closeAllOpenCollapse', this.$el.querySelectorAll('.collapse.show'))
-      this.$el.querySelectorAll('.collapse.show').forEach((value) => {
-        this.$root.$emit('bv::toggle::collapse', value.id)
-      })
-    },
     setContribution(data) {
       this.$apollo
         .mutate({

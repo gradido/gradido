@@ -5,23 +5,15 @@
         <contribution-messages-list-item :message="message" />
       </div>
     </b-container>
-    <b-container>
-      <contribution-messages-formular
-        v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
-        :contributionId="contributionId"
-        v-on="$listeners"
-        @update-state="updateState"
-      />
-    </b-container>
-
-    <div
-      v-b-toggle="'collapse' + String(contributionId)"
-      class="text-center pointer h2 clearboth pt-1"
-    >
-      <b-button variant="outline-primary" block class="mt-4">
-        <b-icon icon="arrow-up-short"></b-icon>
-        {{ $t('form.close') }}
-      </b-button>
+    <contribution-messages-formular
+      v-if="['PENDING', 'IN_PROGRESS'].includes(state)"
+      :contributionId="contributionId"
+      @get-list-contribution-messages="getListContributionMessages"
+      @update-state="updateState"
+    />
+    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer h2">
+      <b-icon icon="arrow-up-short"></b-icon>
+      {{ $t('form.close') }}
     </div>
   </div>
 </template>
@@ -50,6 +42,9 @@ export default {
     },
   },
   methods: {
+    getListContributionMessages() {
+      this.$emit('get-list-contribution-messages', this.contributionId)
+    },
     updateState(id) {
       this.$emit('update-state', id)
     },
@@ -59,8 +54,5 @@ export default {
 <style scoped>
 .temp-message {
   margin-top: 50px;
-}
-.clearboth {
-  clear: both;
 }
 </style>

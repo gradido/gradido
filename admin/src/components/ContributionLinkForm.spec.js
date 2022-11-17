@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import ContributionLinkForm from './ContributionLinkForm.vue'
-import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
+import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
 import { createContributionLink } from '@/graphql/createContributionLink.js'
 
 const localVue = global.localVue
@@ -9,7 +9,6 @@ global.alert = jest.fn()
 
 const propsData = {
   contributionLinkData: {},
-  editContributionLink: false,
 }
 const apolloMutateMock = jest.fn().mockResolvedValue()
 
@@ -109,7 +108,6 @@ describe('ContributionLinkForm', () => {
             cycle: 'ONCE',
             maxPerCycle: 1,
             maxAmountPerMonth: '0',
-            id: null,
           },
         })
       })

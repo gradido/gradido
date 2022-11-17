@@ -74,7 +74,6 @@ describe('ContributionResolver', () => {
 
       describe('input not valid', () => {
         it('throws error when memo length smaller than 5 chars', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -93,11 +92,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < 5`)
+          expect(logger.error).toBeCalledWith(`memo text is too short: memo.length=4 < (5)`)
         })
 
         it('throws error when memo length greater than 255 chars', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -116,11 +114,10 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > 255`)
+          expect(logger.error).toBeCalledWith(`memo text is too long: memo.length=259 > (255)`)
         })
 
         it('throws error when creationDate not-valid', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: createContribution,
@@ -147,7 +144,6 @@ describe('ContributionResolver', () => {
         })
 
         it('throws error when creationDate 3 month behind', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -379,7 +375,6 @@ describe('ContributionResolver', () => {
 
       describe('wrong contribution id', () => {
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -404,7 +399,6 @@ describe('ContributionResolver', () => {
 
       describe('Memo length smaller than 5 chars', () => {
         it('throws error', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -424,13 +418,12 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < 5')
+          expect(logger.error).toBeCalledWith('memo text is too short: memo.length=4 < (5)')
         })
       })
 
       describe('Memo length greater than 255 chars', () => {
         it('throws error', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -450,7 +443,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > 255')
+          expect(logger.error).toBeCalledWith('memo text is too long: memo.length=259 > (255)')
         })
       })
 
@@ -463,7 +456,6 @@ describe('ContributionResolver', () => {
         })
 
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -494,7 +486,6 @@ describe('ContributionResolver', () => {
 
       describe('admin tries to update a user contribution', () => {
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: adminUpdateContribution,
@@ -525,7 +516,6 @@ describe('ContributionResolver', () => {
         })
 
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await expect(
             mutate({
               mutation: updateContribution,
@@ -556,7 +546,6 @@ describe('ContributionResolver', () => {
 
       describe('update creation to a date that is older than 3 months', () => {
         it('throws an error', async () => {
-          jest.clearAllMocks()
           const date = new Date()
           await expect(
             mutate({
@@ -575,7 +564,7 @@ describe('ContributionResolver', () => {
           )
         })
 
-        it.skip('logs the error found', () => {
+        it('logs the error found', () => {
           expect(logger.error).toBeCalledWith(
             'No information for available creations with the given creationDate=',
             'Invalid Date',
@@ -841,7 +830,6 @@ describe('ContributionResolver', () => {
 
       describe('User deletes already confirmed contribution', () => {
         it('throws an error', async () => {
-          jest.clearAllMocks()
           await mutate({
             mutation: login,
             variables: { email: 'peter@lustig.de', password: 'Aa12345_' },

@@ -66,9 +66,6 @@ export class EventTransactionCreation extends EventBasicTx {}
 export class EventTransactionReceive extends EventBasicTxX {}
 export class EventTransactionReceiveRedeem extends EventBasicTxX {}
 export class EventContributionCreate extends EventBasicCt {}
-export class EventAdminContributionCreate extends EventBasicCt {}
-export class EventAdminContributionDelete extends EventBasicCt {}
-export class EventAdminContributionUpdate extends EventBasicCt {}
 export class EventUserCreateContributionMessage extends EventBasicCtMsg {}
 export class EventAdminCreateContributionMessage extends EventBasicCtMsg {}
 export class EventContributionDelete extends EventBasicCt {}
@@ -77,14 +74,6 @@ export class EventContributionConfirm extends EventBasicCtX {}
 export class EventContributionDeny extends EventBasicCtX {}
 export class EventContributionLinkDefine extends EventBasicCt {}
 export class EventContributionLinkActivateRedeem extends EventBasicCt {}
-export class EventDeleteUser extends EventBasicUserId {}
-export class EventUndeleteUser extends EventBasicUserId {}
-export class EventChangeUserRole extends EventBasicUserId {}
-export class EventAdminUpdateContribution extends EventBasicCt {}
-export class EventAdminDeleteContribution extends EventBasicCt {}
-export class EventCreateContributionLink extends EventBasicCt {}
-export class EventDeleteContributionLink extends EventBasicCt {}
-export class EventUpdateContributionLink extends EventBasicCt {}
 
 export class Event {
   constructor()
@@ -300,27 +289,6 @@ export class Event {
     return this
   }
 
-  public setEventAdminContributionCreate(ev: EventAdminContributionCreate): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.ADMIN_CONTRIBUTION_CREATE
-
-    return this
-  }
-
-  public setEventAdminContributionDelete(ev: EventAdminContributionDelete): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.ADMIN_CONTRIBUTION_DELETE
-
-    return this
-  }
-
-  public setEventAdminContributionUpdate(ev: EventAdminContributionUpdate): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.ADMIN_CONTRIBUTION_UPDATE
-
-    return this
-  }
-
   public setEventUserCreateContributionMessage(ev: EventUserCreateContributionMessage): Event {
     this.setByBasicCtMsg(ev.userId, ev.contributionId, ev.amount, ev.messageId)
     this.type = EventProtocolType.USER_CREATE_CONTRIBUTION_MESSAGE
@@ -373,62 +341,6 @@ export class Event {
   public setEventContributionLinkActivateRedeem(ev: EventContributionLinkActivateRedeem): Event {
     this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
     this.type = EventProtocolType.CONTRIBUTION_LINK_ACTIVATE_REDEEM
-
-    return this
-  }
-
-  public setEventDeleteUser(ev: EventDeleteUser): Event {
-    this.setByBasicUser(ev.userId)
-    this.type = EventProtocolType.DELETE_USER
-
-    return this
-  }
-
-  public setEventUndeleteUser(ev: EventUndeleteUser): Event {
-    this.setByBasicUser(ev.userId)
-    this.type = EventProtocolType.UNDELETE_USER
-
-    return this
-  }
-
-  public setEventChangeUserRole(ev: EventChangeUserRole): Event {
-    this.setByBasicUser(ev.userId)
-    this.type = EventProtocolType.CHANGE_USER_ROLE
-
-    return this
-  }
-
-  public setEventAdminUpdateContribution(ev: EventAdminUpdateContribution): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.ADMIN_UPDATE_CONTRIBUTION
-
-    return this
-  }
-
-  public setEventAdminDeleteContribution(ev: EventAdminDeleteContribution): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.ADMIN_DELETE_CONTRIBUTION
-
-    return this
-  }
-
-  public setEventCreateContributionLink(ev: EventCreateContributionLink): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.CREATE_CONTRIBUTION_LINK
-
-    return this
-  }
-
-  public setEventDeleteContributionLink(ev: EventDeleteContributionLink): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.DELETE_CONTRIBUTION_LINK
-
-    return this
-  }
-
-  public setEventUpdateContributionLink(ev: EventUpdateContributionLink): Event {
-    this.setByBasicCt(ev.userId, ev.contributionId, ev.amount)
-    this.type = EventProtocolType.UPDATE_CONTRIBUTION_LINK
 
     return this
   }

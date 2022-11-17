@@ -26,7 +26,7 @@ describe('sendTransactionReceivedEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: `Peter Lustig <peter@lustig.de>`,
-      subject: 'Du hast Gradidos erhalten',
+      subject: 'Gradido Überweisung',
       text:
         expect.stringContaining('Hallo Peter Lustig') &&
         expect.stringContaining('42,00 GDD') &&

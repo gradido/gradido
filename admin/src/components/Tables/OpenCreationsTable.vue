@@ -118,11 +118,12 @@ export default {
   },
   methods: {
     updateCreationData(data) {
-      const row = data.row
-      this.$emit('update-contributions', data)
-      delete data.row
-      this.creationUserData = { ...this.creationUserData, ...data }
-      row.toggleDetails()
+      this.creationUserData = data
+      // this.creationUserData.amount = data.amount
+      // this.creationUserData.date = data.date
+      // this.creationUserData.memo = data.memo
+      // this.creationUserData.moderator = data.moderator
+      data.row.toggleDetails()
     },
     updateUserData(rowItem, newCreation) {
       rowItem.creation = newCreation

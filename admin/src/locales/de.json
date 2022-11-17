@@ -3,9 +3,7 @@
   "back": "zurück",
   "contributionLink": {
     "amount": "Betrag",
-    "changeSaved": "Änderungen gespeichert",
     "clear": "Löschen",
-    "close": "Schließen",
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
@@ -25,7 +23,6 @@
         "once": "einmalig"
       }
     },
-    "saveChange": "Änderungen speichern",
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
@@ -98,7 +95,6 @@
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
-    "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",

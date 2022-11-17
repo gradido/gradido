@@ -88,8 +88,6 @@
   </div>
 </template>
 <script>
-const PATTERN_NON_DIGIT = /\D/g
-
 export default {
   name: 'ContributionForm',
   props: {
@@ -106,10 +104,10 @@ export default {
   },
   methods: {
     numberFormat(value) {
-      return value.replace(PATTERN_NON_DIGIT, '')
+      return value.replace(/\D/g, '')
     },
     submit() {
-      this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
+      this.form.amount = this.numberFormat(this.form.amount)
       // spreading is needed for testing
       this.$emit(this.form.id ? 'update-contribution' : 'set-contribution', { ...this.form })
       this.reset()
@@ -131,8 +129,10 @@ export default {
   },
   computed: {
     minimalDate() {
-      const date = new Date(this.maximalDate)
-      return new Date(date.setMonth(date.getMonth() - 1, 1))
+      // sets the date to the 1st of the previous month
+      let date = new Date(this.maximalDate) // has to be a new object, because of 'setMonth' changes the objects date
+      date = new Date(date.setMonth(date.getMonth() - 1))
+      return new Date(date.getFullYear(), date.getMonth(), 1)
     },
     disabled() {
       return (

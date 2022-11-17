@@ -9,7 +9,6 @@ describe('ContributionListItem', () => {
   const mocks = {
     $t: jest.fn((t) => t),
     $d: jest.fn((d) => d),
-    $apollo: { query: jest.fn().mockResolvedValue() },
   }
 
   const propsData = {
@@ -132,27 +131,6 @@ describe('ContributionListItem', () => {
         it('does not emit delete contribution', () => {
           expect(wrapper.emitted('delete-contribution')).toBeFalsy()
         })
-      })
-
-      describe('updateState', () => {
-        beforeEach(async () => {
-          await wrapper.vm.updateState()
-        })
-
-        it('emit update-state', () => {
-          expect(wrapper.vm.$emit('update-state')).toBeTruthy()
-        })
-      })
-    })
-
-    describe('getListContributionMessages', () => {
-      beforeEach(() => {
-        wrapper
-          .findComponent({ name: 'ContributionMessagesList' })
-          .vm.$emit('get-list-contribution-messages')
-      })
-      it('emits closeAllOpenCollapse', () => {
-        expect(wrapper.emitted('closeAllOpenCollapse')).toBeTruthy()
       })
     })
   })

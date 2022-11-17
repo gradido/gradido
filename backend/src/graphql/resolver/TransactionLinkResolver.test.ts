@@ -6,15 +6,8 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
-import {
-  login,
-  createContributionLink,
-  redeemTransactionLink,
-  createContribution,
-  updateContribution,
-} from '@/seeds/graphql/mutations'
+import { login, createContributionLink, redeemTransactionLink } from '@/seeds/graphql/mutations'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
@@ -39,7 +32,6 @@ describe('TransactionLinkResolver', () => {
   describe('redeem daily Contribution Link', () => {
     const now = new Date()
     let contributionLink: DbContributionLink | undefined
-    let contribution: UnconfirmedContribution | undefined
 
     beforeAll(async () => {
       await mutate({
@@ -87,59 +79,56 @@ describe('TransactionLinkResolver', () => {
       )
     })
 
-    describe('user has pending contribution of 1000 GDD', () => {
-      beforeAll(async () => {
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        const result = await mutate({
-          mutation: createContribution,
+    it('allows the user to redeem the contribution link', async () => {
+      await expect(
+        mutate({
+          mutation: redeemTransactionLink,
           variables: {
-            amount: new Decimal(1000),
-            memo: 'I was brewing potions for the community the whole month',
-            creationDate: now.toISOString(),
+            code: 'CL-' + (contributionLink ? contributionLink.code : ''),
           },
-        })
-        contribution = result.data.createContribution
-      })
-
-      it('does not allow the user to redeem the contribution link', async () => {
-        await expect(
-          mutate({
-            mutation: redeemTransactionLink,
-            variables: {
-              code: 'CL-' + (contributionLink ? contributionLink.code : ''),
-            },
-          }),
-        ).resolves.toMatchObject({
-          errors: [
-            new GraphQLError(
-              'Creation from contribution link was not successful. Error: The amount (5 GDD) to be created exceeds the amount (0 GDD) still available for this month.',
-            ),
-          ],
-        })
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          redeemTransactionLink: true,
+        },
+        errors: undefined,
       })
     })
 
-    describe('user has no pending contributions that would not allow to redeem the link', () => {
+    it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
+      await expect(
+        mutate({
+          mutation: redeemTransactionLink,
+          variables: {
+            code: 'CL-' + (contributionLink ? contributionLink.code : ''),
+          },
+        }),
+      ).resolves.toMatchObject({
+        errors: [
+          new GraphQLError(
+            'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
+          ),
+        ],
+      })
+    })
+
+    describe('after one day', () => {
       beforeAll(async () => {
+        jest.useFakeTimers()
+        /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+        setTimeout(() => {}, 1000 * 60 * 60 * 24)
+        jest.runAllTimers()
         await mutate({
           mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        await mutate({
-          mutation: updateContribution,
-          variables: {
-            contributionId: contribution ? contribution.id : -1,
-            amount: new Decimal(800),
-            memo: 'I was brewing potions for the community the whole month',
-            creationDate: now.toISOString(),
-          },
+          variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
         })
       })
 
-      it('allows the user to redeem the contribution link', async () => {
+      afterAll(() => {
+        jest.useRealTimers()
+      })
+
+      it('allows the user to redeem the contribution link again', async () => {
         await expect(
           mutate({
             mutation: redeemTransactionLink,
@@ -169,56 +158,6 @@ describe('TransactionLinkResolver', () => {
               'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
             ),
           ],
-        })
-      })
-
-      describe('after one day', () => {
-        beforeAll(async () => {
-          jest.useFakeTimers()
-          /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-          setTimeout(() => {}, 1000 * 60 * 60 * 24)
-          jest.runAllTimers()
-          await mutate({
-            mutation: login,
-            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-          })
-        })
-
-        afterAll(() => {
-          jest.useRealTimers()
-        })
-
-        it('allows the user to redeem the contribution link again', async () => {
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-' + (contributionLink ? contributionLink.code : ''),
-              },
-            }),
-          ).resolves.toMatchObject({
-            data: {
-              redeemTransactionLink: true,
-            },
-            errors: undefined,
-          })
-        })
-
-        it('does not allow the user to redeem the contribution link a second time on the same day', async () => {
-          await expect(
-            mutate({
-              mutation: redeemTransactionLink,
-              variables: {
-                code: 'CL-' + (contributionLink ? contributionLink.code : ''),
-              },
-            }),
-          ).resolves.toMatchObject({
-            errors: [
-              new GraphQLError(
-                'Creation from contribution link was not successful. Error: Contribution link already redeemed today',
-              ),
-            ],
-          })
         })
       })
     })

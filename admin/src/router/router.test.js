@@ -45,7 +45,7 @@ describe('router', () => {
 
     describe('routes', () => {
       it('has seven routes defined', () => {
-        expect(routes).toHaveLength(8)
+        expect(routes).toHaveLength(7)
       })
 
       it('has "/overview" as default', async () => {
@@ -78,13 +78,6 @@ describe('router', () => {
         it('loads the "CreationConfirm" component', async () => {
           const component = await routes.find((r) => r.path === '/creation-confirm').component()
           expect(component.default.name).toBe('CreationConfirm')
-        })
-      })
-
-      describe('contribution-links', () => {
-        it('loads the "ContributionLinks" component', async () => {
-          const component = await routes.find((r) => r.path === '/contribution-links').component()
-          expect(component.default.name).toBe('ContributionLinks')
         })
       })
 

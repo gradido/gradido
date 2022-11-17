@@ -28,21 +28,31 @@
         </b-link>
       </b-card-text>
     </b-card>
+    <contribution-link
+      :items="items"
+      :count="count"
+      @get-contribution-links="getContributionLinks"
+    />
     <community-statistic class="mt-5" v-model="statistics" />
   </div>
 </template>
 <script>
+import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import { communityStatistics } from '@/graphql/communityStatistics.js'
+import ContributionLink from '../components/ContributionLink.vue'
 import CommunityStatistic from '../components/CommunityStatistic.vue'
 import { listUnconfirmedContributions } from '@/graphql/listUnconfirmedContributions.js'
 
 export default {
   name: 'overview',
   components: {
+    ContributionLink,
     CommunityStatistic,
   },
   data() {
     return {
+      items: [],
+      count: 0,
       statistics: {
         totalUsers: null,
         activeUsers: null,
@@ -63,6 +73,20 @@ export default {
         })
         .then((result) => {
           this.$store.commit('setOpenCreations', result.data.listUnconfirmedContributions.length)
+        })
+    },
+    getContributionLinks() {
+      this.$apollo
+        .query({
+          query: listContributionLinks,
+          fetchPolicy: 'network-only',
+        })
+        .then((result) => {
+          this.count = result.data.listContributionLinks.count
+          this.items = result.data.listContributionLinks.links
+        })
+        .catch(() => {
+          this.toastError('listContributionLinks has no result, use default data')
         })
     },
     getCommunityStatistics() {
@@ -90,6 +114,7 @@ export default {
   created() {
     this.getPendingCreations()
     this.getCommunityStatistics()
+    this.getContributionLinks()
   },
 }
 </script>

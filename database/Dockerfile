@@ -18,7 +18,7 @@ ENV NODE_ENV="production"
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.name="gradido:database"
-LABEL org.label-schema.description="Gradido Database Migration Service"
+LABEL org.label-schema.description="Gradido GraphQL Backend"
 LABEL org.label-schema.usage="https://github.com/gradido/gradido/blob/master/README.md"
 LABEL org.label-schema.url="https://gradido.net"
 LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido/tree/master/database"

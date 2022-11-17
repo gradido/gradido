@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-link-list">
-    <b-table :items="items" :fields="fields" striped hover stacked="lg">
+    <b-table striped hover :items="items" :fields="fields">
       <template #cell(delete)="data">
         <b-button
           variant="danger"
@@ -46,7 +46,7 @@
 </template>
 <script>
 import { deleteContributionLink } from '@/graphql/deleteContributionLink.js'
-import FigureQrCode from '../FigureQrCode.vue'
+import FigureQrCode from './FigureQrCode.vue'
 
 export default {
   name: 'ContributionLinkList',
@@ -108,7 +108,6 @@ export default {
               })
               .then(() => {
                 this.toastSuccess(this.$t('contributionLink.deleted'))
-                this.$emit('closeContributionForm')
                 this.$emit('get-contribution-links')
               })
               .catch((err) => {

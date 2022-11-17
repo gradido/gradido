@@ -29,7 +29,6 @@ const context = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     forEach: (): void => {},
   },
-  clientTimezoneOffset: 0,
 }
 
 export const cleanDB = async () => {
