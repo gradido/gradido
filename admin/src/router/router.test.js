@@ -44,8 +44,8 @@ describe('router', () => {
     })
 
     describe('routes', () => {
-      it('has seven routes defined', () => {
-        expect(routes).toHaveLength(8)
+      it('has eight routes defined', () => {
+        expect(routes).toHaveLength(9)
       })
 
       it('has "/overview" as default', async () => {
