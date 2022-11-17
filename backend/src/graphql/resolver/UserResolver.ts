@@ -39,16 +39,14 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { v4 as uuidv4 } from 'uuid'
+import { isValidPassword, SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptr'
+import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
-
-// We will reuse this for changePassword
-const isPassword = (password: string): boolean => {
-  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
-}
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -104,48 +102,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   logger.debug(`KeyPair creation ready. pubKey=${pubKey}`)
 
   return [pubKey, privKey]
-}
-
-const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace('SecretKeyCryptographyCreateKey...')
-  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
-  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
-    logger.error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-    throw new Error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-  }
-
-  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
-  sodium.crypto_hash_sha512_init(state)
-  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
-  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
-  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  sodium.crypto_hash_sha512_final(state, hash)
-
-  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
-  const opsLimit = 10
-  const memLimit = 33554432
-  const algo = 2
-  sodium.crypto_pwhash(
-    encryptionKey,
-    Buffer.from(password),
-    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
-    opsLimit,
-    memLimit,
-    algo,
-  )
-
-  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
-  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
-
-  logger.debug(
-    `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
-  )
-  return [encryptionKeyHash, encryptionKey]
 }
 
 /*
@@ -343,11 +299,15 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no private or publicKey')
     }
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    const loginUserPassword = BigInt(dbUser.password.toString())
-    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+
+    if (!verifyPassword(dbUser, password)) {
       logger.error('The User has no valid credentials.')
       throw new Error('No user with this credentials')
+    }
+
+    if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+      dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      dbUser.password = encryptPassword(dbUser, password)
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
@@ -623,7 +583,7 @@ export class UserResolver {
   ): Promise<boolean> {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
-    if (!isPassword(password)) {
+    if (!isValidPassword(password)) {
       logger.error('Password entered is lexically invalid')
       throw new Error(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
@@ -681,10 +641,11 @@ export class UserResolver {
     userContact.emailChecked = true
 
     // Update Password
+    user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     const passwordHash = SecretKeyCryptographyCreateKey(userContact.email, password) // return short and long hash
     const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    user.password = encryptPassword(user, password)
     user.pubKey = keyPair[0]
     user.privKey = encryptedPrivkey
     logger.debug('User credentials updated ...')
@@ -789,7 +750,7 @@ export class UserResolver {
 
     if (password && passwordNew) {
       // Validate Password
-      if (!isPassword(passwordNew)) {
+      if (!isValidPassword(passwordNew)) {
         logger.error('newPassword does not fullfil the rules')
         throw new Error(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
@@ -801,7 +762,7 @@ export class UserResolver {
         userEntity.emailContact.email,
         password,
       )
-      if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
+      if (!verifyPassword(userEntity, password)) {
         logger.error(`Old password is invalid`)
         throw new Error(`Old password is invalid`)
       }
@@ -817,7 +778,7 @@ export class UserResolver {
       logger.debug('PrivateKey encrypted...')
 
       // Save new password hash and newly encrypted private key
-      userEntity.password = newPasswordHash[0].readBigUInt64LE()
+      userEntity.password = encryptPassword(userEntity, passwordNew)
       userEntity.privKey = encryptedPrivkey
     }
 

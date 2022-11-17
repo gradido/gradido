@@ -36,6 +36,10 @@ import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { encryptPassword } from '@/password/PasswordEncryptr'
+import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
+import { find } from 'lodash'
+import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -491,7 +495,8 @@ describe('UserResolver', () => {
       })
 
       it('updates the password', () => {
-        expect(newUser.password).toEqual('3917921995996627700')
+        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+        expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
       /*
@@ -1154,6 +1159,64 @@ describe('UserResolver', () => {
                 ]),
               },
             },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('password encryption type', () => {
+    describe('user just registered', () => {
+      let bibi: User
+
+      it('password type should be gradido id', async () => {
+        const users = await User.find()
+        bibi = users[1]
+
+        expect(bibi).toEqual(
+          expect.objectContaining({
+            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+              .readBigUInt64LE()
+              .toString(),
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          }),
+        )
+      })
+    })
+
+    describe('user has encryption type email', () => {
+      const variables = {
+        email: 'bibi@bloxberg.de',
+        password: 'Aa12345_',
+        publisherId: 1234,
+      }
+
+      let bibi: User
+      beforeAll(async () => {
+        const users = await User.find()
+        bibi = users[1]
+
+        bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
+        bibi.password = SecretKeyCryptographyCreateKey(
+          'bibi@bloxberg.de',
+          'Aa12345_',
+        )[0].readBigUInt64LE()
+
+        await bibi.save()
+      })
+
+      it('changes to gradidoID on login', async () => {
+        await mutate({ mutation: login, variables: variables })
+
+        const users = await User.find()
+        bibi = users[0]
+
+        expect(bibi).toEqual(
+          expect.objectContaining({
+            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+              .readBigUInt64LE()
+              .toString(),
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
       })
