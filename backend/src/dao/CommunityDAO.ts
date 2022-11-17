@@ -3,9 +3,8 @@ import { Community as DbCommunity } from '@entity/Community'
 import { backendLogger as logger } from '@/server/logger'
 import { CommunityFederation as DbFederation } from '@entity/CommunityFederation'
 import { CommunityApiVersion as DbApiVersion } from '@entity/CommunityApiVersion'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { decryptCommunityPrivateKey, encryptCommunityPrivateKey } from '@/util/encryptionTools'
-import { getConnection } from '@dbTools/typeorm'
 import { FdCommunity } from '@/federation/graphql/1.0/model/FdCommunity'
 
 export async function readHomeCommunity(): Promise<FdCommunity> {
@@ -44,7 +43,7 @@ export async function readHomeCommunity(): Promise<FdCommunity> {
   return community
 }
 
-export async function createHomeCommunity(
+export async function resetFederationTables(
   name: string,
   url: string,
   descript: string,
@@ -53,21 +52,27 @@ export async function createHomeCommunity(
 ): Promise<FdCommunity> {
   // first check if HomeCommunity still exists
   logger.debug(
-    `createHomeCommunity(${name}, ${url}, ${descript}, ${publicKey.toString('hex')}, 
+    `resetFederationTables(${name}, ${url}, ${descript}, ${publicKey.toString('hex')}, 
     ${privateKey.toString('hex')})...`,
   )
-  try {
-    const fdCom = await readHomeCommunity()
-    logger.debug(`found HomeCommunity: ${JSON.stringify(fdCom)}`)
-    if (url === fdCom.url) {
-      logger.debug(`configured HomeCommunity still exists`)
-      return fdCom
+  let fdCom: FdCommunity
+  // in case a fix UUID is configured, the home community must match the given url and uuid
+  if (CONFIG.FEDERATE_COMMUNITY_UUID) {
+    try {
+      fdCom = await readHomeCommunity()
+      logger.debug(`found HomeCommunity: ${JSON.stringify(fdCom)}`)
+      if (url === fdCom.url && CONFIG.FEDERATE_COMMUNITY_UUID === fdCom.uuid) {
+        logger.debug(`configured HomeCommunity still exists`)
+        await deleteForeignFedComAndApiVersionEntries()
+        return fdCom
+      }
+    } catch {
+      logger.info(`no HomeCommunity found in database, create it per configured properties...`)
     }
-  } catch {
-    logger.info(`no HomeCommunity found in database, create it per configured properties...`)
   }
-  // start federation with empty federation tables
-  DbCommunity.clear() // TODO clearing community-table not allowed as soon as other attributes than federation exists in it
+
+  // TODO clearing community-table not allowed as soon as other attributes than federation exists in it
+  DbCommunity.clear()
   DbFederation.clear()
   DbApiVersion.clear()
   logger.debug(`all federation tabels cleared...`)
@@ -98,6 +103,7 @@ export async function createHomeCommunity(
   community.id = dbCom.id
   community.uuid = dbCom.uuid
   community.createdAt = dbCom.createdAt
+  community.publicKey = publicKey.toString('hex')
   community.privKey = dbFed.privateKey.toString('hex')
   logger.debug(`create new HomeCommunity=${JSON.stringify(community)} successfully`)
   return community
@@ -152,8 +158,8 @@ export async function addFederationCommunity(
   return false
 }
 
-export async function readFederationCommunity(publicKey: string): Promise<FdCommunity> {
-  logger.debug(`readFederationCommunity(publicKey=${publicKey})...`)
+export async function readFederationCommunityByPubKey(publicKey: string): Promise<FdCommunity> {
+  logger.debug(`readFederationCommunityByPubKey(publicKey=${publicKey})...`)
   const pubKeyBuf = Buffer.from(publicKey, 'hex')
   const dbFed = await DbFederation.findOneOrFail({ pubKey: pubKeyBuf, foreign: true }).catch(() => {
     logger.error(`unknown CommunityFederation for pubKey=${publicKey}`)
@@ -161,13 +167,27 @@ export async function readFederationCommunity(publicKey: string): Promise<FdComm
   })
   const dbApi = await readNewestApiVersion(dbFed.id)
   const community = new FdCommunity('unknown', 'unknown', 'unknown', dbFed, dbApi)
-  logger.debug(
-    `readFederationCommunity(${publicKey})...successful: community=${JSON.stringify(community)}`,
-  )
+  logger.debug(`readFederationCommunityByPubKey(${publicKey})...successful`)
+  return community
+}
+
+export async function readFederationCommunityByUrl(url: string): Promise<FdCommunity> {
+  logger.debug(`readFederationCommunityByUrl(url=${url})...`)
+  const dbApi = await readNewestApiVersionByUrl(url)
+  const dbFed = await DbFederation.findOneOrFail({
+    id: dbApi.communityFederationID,
+    foreign: true,
+  }).catch(() => {
+    logger.error(`unknown CommunityFederation for url=${url}`)
+    throw new Error(`unknown CommunityFederation for url`)
+  })
+  const community = new FdCommunity('unknown', 'unknown', 'unknown', dbFed, dbApi)
+  logger.debug(`readFederationCommunityByUrl(${url})...successful`)
   return community
 }
 
 async function readNewestApiVersion(fedId: number): Promise<DbApiVersion> {
+  logger.debug(`readNewestApiVersion(fedId=${fedId})...`)
   // read the entries with the youngest ValidFrom at first
   const dbApi = await DbApiVersion.find({
     where: { communityFederationID: fedId },
@@ -180,6 +200,25 @@ async function readNewestApiVersion(fedId: number): Promise<DbApiVersion> {
     )
     throw new Error(`Community with malformed configuration!`)
   }
+  logger.debug(`readNewestApiVersion(fedId=${fedId})...successful: apiVersion=${dbApi[0]}`)
+  return dbApi[0]
+}
+
+async function readNewestApiVersionByUrl(url: string): Promise<DbApiVersion> {
+  logger.debug(`readNewestApiVersionByUrl(url=${url})...`)
+  // read the entries with the youngest ValidFrom at first
+  const dbApi = await DbApiVersion.find({
+    where: { url: url },
+    order: { validFrom: 'DESC' },
+  })
+
+  if (!dbApi || !dbApi[0]) {
+    logger.error(
+      `Community with malformed configuration! missing ApiVersion for federation-url=${url}`,
+    )
+    throw new Error(`Community with malformed configuration!`)
+  }
+  logger.debug(`readNewestApiVersion(url=${url})...successful: apiVersion=${dbApi[0]}`)
   return dbApi[0]
 }
 
@@ -187,6 +226,7 @@ export async function setFedComPubkeyVerifiedAt(
   comId: number,
   remotePubKey: string,
 ): Promise<boolean> {
+  logger.debug(`setFedComPubkeyVerifiedAt(comId=${comId}, remotePubKey=${remotePubKey})...`)
   const pubKeyBuf = Buffer.from(remotePubKey, 'hex')
   const dbFed = await DbFederation.findOneOrFail({
     communityId: comId,
@@ -196,10 +236,16 @@ export async function setFedComPubkeyVerifiedAt(
     logger.error(`Federated Community with publicKey=${remotePubKey} does not exists`)
   })
   if (dbFed) {
+    dbFed.pubKeyVerifiedAt = new Date()
+    logger.debug(`dbFed set pubkeyVerifiedAt=${dbFed.pubKeyVerifiedAt.toISOString()}`)
+    await DbFederation.save(dbFed)
+    /*
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
     dbFed.pubKeyVerifiedAt = new Date()
+    DbFederation.save(dbFed)
+    logger.debug(`dbFed set pubkeyVerifiedAt=${dbFed.pubKeyVerifiedAt.toISOString()}`)
     try {
       // Save user
       await queryRunner.manager.save(dbFed).catch((error) => {
@@ -215,7 +261,11 @@ export async function setFedComPubkeyVerifiedAt(
     } finally {
       await queryRunner.release()
     }
+    */
   }
+  logger.debug(
+    `setFedComPubkeyVerifiedAt(comId=${comId}, remotePubKey=${remotePubKey})...successful`,
+  )
   return true
 }
 
@@ -229,5 +279,46 @@ async function checkForExistingApiUrl(remoteUrl: string): Promise<boolean> {
     logger.info(`federated Community with url=${remoteUrl} still exists`)
     return true
   }
+  return false
+}
+
+export async function deleteForeignFedComAndApiVersionEntries(fedComId?: number) {
+  logger.debug(`deleteForeignFedComAndApiVersionEntries(fedComId=${fedComId})...`)
+  let fedComs: DbFederation[]
+  if (fedComId) {
+    fedComs = await DbFederation.find({ id: fedComId, foreign: true })
+  } else {
+    fedComs = await DbFederation.find({ foreign: true })
+  }
+  fedComs.forEach(async (fedCom) => {
+    const apiVersions = await DbApiVersion.find({ communityFederationID: fedCom.id })
+    apiVersions.forEach(async (apiVer) => {
+      await apiVer.remove()
+    })
+    await fedCom.remove()
+  })
+  logger.debug(`deleteForeignFedComAndApiVersionEntries()...successful`)
+}
+
+export async function setFedComUUID(fedCom: FdCommunity): Promise<boolean> {
+  logger.debug(`setFedComUUID(fedCom=${JSON.stringify(fedCom)})...`)
+  const dbFed = await DbFederation.findOneOrFail({
+    id: fedCom.id,
+    foreign: true,
+  }).catch(async () => {
+    logger.error(`Federated Community with id=${fedCom.id} does not exists`)
+  })
+  if (dbFed) {
+    dbFed.uuid = fedCom.uuid
+    logger.debug(`dbFed set UUID=${dbFed.uuid}`)
+    // only set authenticatedAt in case the uuid is a valid V4-UUID
+    if (validateUUID(dbFed.uuid) && versionUUID(dbFed.uuid) === 4) {
+      dbFed.authenticatedAt = new Date()
+    }
+    await DbFederation.save(dbFed)
+    logger.debug(`setFedComUUID()...successful`)
+    return true
+  }
+  logger.error(`setFedComUUID()...FAIL`)
   return false
 }
