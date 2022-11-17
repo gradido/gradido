@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { objectValuesToArray } from '@/util/utilities'
-import { testEnvironment, resetToken, cleanDB } from '@test/helpers'
+import { testEnvironment, resetToken, cleanDB, contributionDateFormatter } from '@test/helpers'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
@@ -82,6 +82,12 @@ let admin: User
 let user: User
 let creation: Contribution | void
 let result: any
+
+describe('contributionDateFormatter', () => {
+  it('formats the date correctly', () => {
+    expect(contributionDateFormatter(new Date('Thu Feb 29 2024 13:12:11'))).toEqual('2/29/2024')
+  })
+})
 
 describe('AdminResolver', () => {
   describe('set user role', () => {
@@ -751,7 +757,7 @@ describe('AdminResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: new Decimal(300),
                 memo: 'Danke Bibi!',
-                creationDate: new Date().toString(),
+                creationDate: contributionDateFormatter(new Date()),
               },
             }),
           ).resolves.toEqual(
@@ -861,7 +867,7 @@ describe('AdminResolver', () => {
                   email: 'bibi@bloxberg.de',
                   amount: new Decimal(300),
                   memo: 'Danke Bibi!',
-                  creationDate: new Date().toString(),
+                  creationDate: contributionDateFormatter(new Date()),
                 },
               }),
             ).resolves.toEqual(
@@ -936,19 +942,25 @@ describe('AdminResolver', () => {
         })
 
         describe('adminCreateContribution', () => {
+          const now = new Date()
+
           beforeAll(async () => {
-            const now = new Date()
             creation = await creationFactory(testEnv, {
               email: 'peter@lustig.de',
               amount: 400,
               memo: 'Herzlich Willkommen bei Gradido!',
-              creationDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+              creationDate: contributionDateFormatter(
+                new Date(now.getFullYear(), now.getMonth() - 1, 1),
+              ),
             })
           })
 
           describe('user to create for does not exist', () => {
             it('throws an error', async () => {
               jest.clearAllMocks()
+              variables.creationDate = contributionDateFormatter(
+                new Date(now.getFullYear(), now.getMonth() - 1, 1),
+              )
               await expect(
                 mutate({ mutation: adminCreateContribution, variables }),
               ).resolves.toEqual(
@@ -969,6 +981,9 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, stephenHawking)
               variables.email = 'stephen@hawking.uk'
+              variables.creationDate = contributionDateFormatter(
+                new Date(now.getFullYear(), now.getMonth() - 1, 1),
+              )
             })
 
             it('throws an error', async () => {
@@ -995,6 +1010,9 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, garrickOllivander)
               variables.email = 'garrick@ollivander.com'
+              variables.creationDate = contributionDateFormatter(
+                new Date(now.getFullYear(), now.getMonth() - 1, 1),
+              )
             })
 
             it('throws an error', async () => {
@@ -1021,6 +1039,7 @@ describe('AdminResolver', () => {
             beforeAll(async () => {
               user = await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
+              variables.creationDate = 'invalid-date'
             })
 
             describe('date of creation is not a date string', () => {
@@ -1030,30 +1049,22 @@ describe('AdminResolver', () => {
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
-                    errors: [
-                      new GraphQLError('No information for available creations for the given date'),
-                    ],
+                    errors: [new GraphQLError(`invalid Date for creationDate=invalid-date`)],
                   }),
                 )
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith(
-                  'No information for available creations with the given creationDate=',
-                  'Invalid Date',
-                )
+                expect(logger.error).toBeCalledWith(`invalid Date for creationDate=invalid-date`)
               })
             })
 
             describe('date of creation is four months ago', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()
-                const now = new Date()
-                variables.creationDate = new Date(
-                  now.getFullYear(),
-                  now.getMonth() - 4,
-                  1,
-                ).toString()
+                variables.creationDate = contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 4, 1),
+                )
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1068,7 +1079,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  variables.creationDate,
+                  new Date(variables.creationDate).toString(),
                 )
               })
             })
@@ -1076,12 +1087,9 @@ describe('AdminResolver', () => {
             describe('date of creation is in the future', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()
-                const now = new Date()
-                variables.creationDate = new Date(
-                  now.getFullYear(),
-                  now.getMonth() + 4,
-                  1,
-                ).toString()
+                variables.creationDate = contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() + 4, 1),
+                )
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1096,7 +1104,7 @@ describe('AdminResolver', () => {
               it('logs the error thrown', () => {
                 expect(logger.error).toBeCalledWith(
                   'No information for available creations with the given creationDate=',
-                  variables.creationDate,
+                  new Date(variables.creationDate).toString(),
                 )
               })
             })
@@ -1104,7 +1112,7 @@ describe('AdminResolver', () => {
             describe('amount of creation is too high', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()
-                variables.creationDate = new Date().toString()
+                variables.creationDate = contributionDateFormatter(now)
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1192,7 +1200,7 @@ describe('AdminResolver', () => {
               email,
               amount: new Decimal(500),
               memo: 'Grundeinkommen',
-              creationDate: new Date().toString(),
+              creationDate: contributionDateFormatter(new Date()),
             }
           })
 
@@ -1238,7 +1246,7 @@ describe('AdminResolver', () => {
                     email: 'bob@baumeister.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
-                    creationDate: new Date().toString(),
+                    creationDate: contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1268,7 +1276,7 @@ describe('AdminResolver', () => {
                     email: 'stephen@hawking.uk',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
-                    creationDate: new Date().toString(),
+                    creationDate: contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1294,7 +1302,7 @@ describe('AdminResolver', () => {
                     email: 'bibi@bloxberg.de',
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
-                    creationDate: new Date().toString(),
+                    creationDate: contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1321,8 +1329,8 @@ describe('AdminResolver', () => {
                     amount: new Decimal(300),
                     memo: 'Danke Bibi!',
                     creationDate: creation
-                      ? creation.contributionDate.toString()
-                      : new Date().toString(),
+                      ? contributionDateFormatter(creation.contributionDate)
+                      : contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1356,8 +1364,8 @@ describe('AdminResolver', () => {
                     amount: new Decimal(1900),
                     memo: 'Danke Peter!',
                     creationDate: creation
-                      ? creation.contributionDate.toString()
-                      : new Date().toString(),
+                      ? contributionDateFormatter(creation.contributionDate)
+                      : contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1390,8 +1398,8 @@ describe('AdminResolver', () => {
                     amount: new Decimal(300),
                     memo: 'Danke Peter!',
                     creationDate: creation
-                      ? creation.contributionDate.toString()
-                      : new Date().toString(),
+                      ? contributionDateFormatter(creation.contributionDate)
+                      : contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1430,8 +1438,8 @@ describe('AdminResolver', () => {
                     amount: new Decimal(200),
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
-                      ? creation.contributionDate.toString()
-                      : new Date().toString(),
+                      ? contributionDateFormatter(creation.contributionDate)
+                      : contributionDateFormatter(new Date()),
                   },
                 }),
               ).resolves.toEqual(
@@ -1554,7 +1562,7 @@ describe('AdminResolver', () => {
                 variables: {
                   amount: 100.0,
                   memo: 'Test env contribution',
-                  creationDate: new Date().toString(),
+                  creationDate: contributionDateFormatter(new Date()),
                 },
               })
             })
@@ -1633,7 +1641,9 @@ describe('AdminResolver', () => {
                 email: 'peter@lustig.de',
                 amount: 400,
                 memo: 'Herzlich Willkommen bei Gradido!',
-                creationDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(),
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 1, 1),
+                ),
               })
             })
 
@@ -1664,7 +1674,9 @@ describe('AdminResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 450,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 2, 1),
+                ),
               })
             })
 
@@ -1735,13 +1747,17 @@ describe('AdminResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 2, 1),
+                ),
               })
               c2 = await creationFactory(testEnv, {
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(),
+                creationDate: contributionDateFormatter(
+                  new Date(now.getFullYear(), now.getMonth() - 2, 1),
+                ),
               })
             })
 
