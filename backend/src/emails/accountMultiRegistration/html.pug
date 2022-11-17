@@ -1,0 +1,22 @@
+doctype html
+html(lang=locale)
+  head
+    title= t('emails.accountMultiRegistration.subject')
+  body
+    h1(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.subject')
+    #container.col
+      p(style='margin-bottom: 24px;')= t('emails.accountMultiRegistration.helloName', { firstName, lastName })
+      p= t('emails.accountMultiRegistration.emailReused')
+        br
+        span= t('emails.accountMultiRegistration.emailExists')
+      p= t('emails.accountMultiRegistration.onForgottenPasswordClickLink')
+        br
+        a(href=resendLink) #{resendLink}
+        br
+        span= t('emails.accountMultiRegistration.onForgottenPasswordCopyLink')
+      p= t('emails.accountMultiRegistration.ifYouAreNotTheOne')
+        br
+        a(href='https://gradido.net/de/contact/') https://gradido.net/de/contact/
+      p(style='margin-top: 24px;')= t('emails.accountMultiRegistration.sincerelyYours')
+        br
+        span= t('emails.accountMultiRegistration.yourGradidoTeam')
