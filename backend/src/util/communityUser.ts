@@ -15,8 +15,6 @@ const communityDbUser: dbUser = {
   emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
-  pubKey: Buffer.from(''),
-  privKey: Buffer.from(''),
   deletedAt: null,
   password: BigInt(0),
   //  emailHash: Buffer.from(''),
@@ -25,9 +23,8 @@ const communityDbUser: dbUser = {
   language: '',
   isAdmin: null,
   publisherId: 0,
-  passphrase: '',
   // default password encryption type
-  passwordEncryptionType: 2,
+  passwordEncryptionType: 0,
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },

@@ -368,8 +368,9 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.pubKey),
+      value: encode(Buffer.from(dbUser.gradidoID)),
     })
+
     const ev = new EventLogin()
     ev.userId = user.id
     eventProtocol.writeEvent(new Event().setEventLogin(ev))
@@ -453,8 +454,6 @@ export class UserResolver {
         return user
       }
     }
-
-    const passphrase = PassphraseGenerate()
     // const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     // const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
     // const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
@@ -471,7 +470,6 @@ export class UserResolver {
     dbUser.lastName = lastName
     dbUser.language = language
     dbUser.publisherId = publisherId
-    dbUser.passphrase = passphrase.join(' ')
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
@@ -664,23 +662,6 @@ export class UserResolver {
 
     // set password encryption type
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-
-    // Generate Passphrase if needed
-    if (!user.passphrase) {
-      const passphrase = PassphraseGenerate()
-      user.passphrase = passphrase.join(' ')
-      logger.debug('new Passphrase generated...')
-    }
-
-    const passphrase = user.passphrase.split(' ')
-    if (passphrase.length < PHRASE_WORD_COUNT) {
-      logger.error('Could not load a correct passphrase')
-      // TODO if this can happen we cannot recover from that
-      // this seem to be good on production data, if we dont
-      // make a coding mistake we do not have a problem here
-      throw new Error('Could not load a correct passphrase')
-    }
-    logger.debug('Passphrase is valid...')
 
     // Activate EMail
     userContact.emailChecked = true

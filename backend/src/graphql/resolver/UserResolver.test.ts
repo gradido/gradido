@@ -36,6 +36,7 @@ import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { encryptPassword } from '@/password/PasswordEncryptr'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -134,19 +135,16 @@ describe('UserResolver', () => {
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
-              pubKey: null,
-              privKey: null,
               // emailHash: expect.any(Buffer),
               createdAt: expect.any(Date),
               // emailChecked: false,
-              passphrase: expect.any(String),
               language: 'de',
               isAdmin: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
               contributionLinkId: null,
-              passwordEncryptionType: 1,
+              passwordEncryptionType: 0,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -491,7 +489,8 @@ describe('UserResolver', () => {
       })
 
       it('updates the password', () => {
-        expect(newUser.password).toEqual('3917921995996627700')
+        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+        expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
       /*

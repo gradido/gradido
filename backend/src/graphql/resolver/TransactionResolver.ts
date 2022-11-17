@@ -326,10 +326,12 @@ export class TransactionResolver {
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
+    /*
     if (senderUser.pubKey.length !== 32) {
       logger.error(`invalid sender public key:${senderUser.pubKey}`)
       throw new Error('invalid sender public key')
     }
+  */
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
@@ -358,10 +360,12 @@ export class TransactionResolver {
       logger.error(`The recipient account is not activated: recipientUser=${recipientUser}`)
       throw new Error('The recipient account is not activated')
     }
+    /*
     if (!isHexPublicKey(recipientUser.pubKey.toString('hex'))) {
       logger.error(`invalid recipient public key: recipientUser=${recipientUser}`)
       throw new Error('invalid recipient public key')
     }
+    */
 
     await executeTransaction(amount, memo, senderUser, recipientUser)
     logger.info(
