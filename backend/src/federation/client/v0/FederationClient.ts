@@ -1,11 +1,10 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
-import { setFedComPubkeyVerifiedAt } from '@/dao/CommunityDAO'
-import { FdCommunity } from '@/federation/graphql/1.0/model/FdCommunity'
+import { FdCommunity } from '@/federation/graphql/v0/model/FdCommunity'
 
-export async function requestGetPublicKey(fdCom: FdCommunity): Promise<void> {
+export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | undefined> {
   let endpoint = fdCom.url.endsWith('/') ? fdCom.url : fdCom.url + '/'
-  endpoint = endpoint + 'graphql/getPublicKey' // + fdCom.apiVersion + '/getPublicKey'
+  endpoint = `${endpoint}graphql/v${fdCom.apiVersion}_getPublicKey`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
   const graphQLClient = new GraphQLClient(endpoint, {
@@ -32,10 +31,7 @@ export async function requestGetPublicKey(fdCom: FdCommunity): Promise<void> {
     if (data) {
       const json = JSON.parse(data.toString('ascii'))
       logger.info(`Response-Data: ${json}`)
-      if (json.publicKey === fdCom.publicKey) {
-        logger.info(`Identic PubKey from RemoteCommunity...`)
-        setFedComPubkeyVerifiedAt(fdCom.id, json.pubKey)
-      }
+      return json.publicKey
     }
     logger.info(`requestGetPublicKey processed successfully`)
   } catch (err) {
