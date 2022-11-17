@@ -1,0 +1,20 @@
+doctype html
+html(lang=locale)
+  head
+    title= t('emails.sendAccountActivation.subject')
+  body
+    h1(style='margin-bottom: 24px;')= t('emails.sendAccountActivation.subject')
+    #container.col
+      p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
+      p= t('emails.sendAccountActivation.emailRegistered')
+      p= t('emails.sendAccountActivation.pleaseClickLink')
+        br
+        a(href=activationLink) #{activationLink}
+        br
+        span= t('emails.sendAccountActivation.orCopyLink')
+      p= t('emails.sendAccountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+        br
+        a(href=resendLink) #{resendLink}
+      p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')
+        br
+        span= t('emails.general.yourGradidoTeam')

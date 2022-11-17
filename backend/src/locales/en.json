@@ -1,15 +1,24 @@
 {
-	"emails": {
-		"accountMultiRegistration": {
+  "emails": {
+    "accountMultiRegistration": {
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
-			"helloName": "Hello {firstName} {lastName}",
       "ifYouAreNotTheOne": "If you are not the one who tried to register again, please contact our support:",
       "onForgottenPasswordClickLink": "Please click on the following link if you have forgotten your password:",
       "onForgottenPasswordCopyLink": "or copy the link above into your browser window.",
+      "subject": "Gradido: Try To Register Again With Your Email"
+    },
+    "general": {
+      "helloName": "Hello {firstName} {lastName}",
       "sincerelyYours": "Sincerely yours,",
-			"subject": "Gradido: Try To Register Again With Your Email",
       "yourGradidoTeam": "your Gradido team"
-		}
-	}
+    },
+    "sendAccountActivation": {
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:",
+      "emailRegistered": "Your email address has just been registered with Gradido.",
+      "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
+      "orCopyLink": "or copy the link above into your browser window.",
+      "subject": "Gradido: Email Verification"
+    }
+  }
 }

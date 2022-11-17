@@ -12,7 +12,7 @@ export const sendEmailTranslated = async (params: {
     cc?: string
   }
   template: string
-  locals: Record<string, string>
+  locals: Record<string, unknown>
 }): Promise<Record<string, unknown> | null> => {
   let resultSend: Record<string, unknown> | null = null
 
@@ -50,7 +50,7 @@ export const sendEmailTranslated = async (params: {
     },
   })
 
-  i18n.setLocale(params.locals.locale) // for email
+  i18n.setLocale(params.locals.locale as string) // for email
 
   // TESTING: see 'README.md'
   const email = new Email({

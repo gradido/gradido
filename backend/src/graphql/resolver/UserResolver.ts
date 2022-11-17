@@ -18,8 +18,10 @@ import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { OptInType } from '@enum/OptInType'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+} from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -543,11 +545,12 @@ export class UserResolver {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emailSent = await sendAccountActivationEmail({
-        link: activationLink,
         firstName,
         lastName,
         email,
-        duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+        language,
+        activationLink,
+        timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
       eventSendConfirmEmail.userId = dbUser.id
