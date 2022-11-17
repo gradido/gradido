@@ -16,6 +16,7 @@ const context = {
     push: headerPushMock,
     forEach: jest.fn(),
   },
+  clientTimezoneOffset: 0,
 }
 
 export const cleanDB = async () => {
@@ -45,4 +46,13 @@ export const resetEntity = async (entity: any) => {
 
 export const resetToken = () => {
   context.token = ''
+}
+
+// format date string as it comes from the frontend for the contribution date
+export const contributionDateFormatter = (date: Date): string => {
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+}
+
+export const setClientTimezoneOffset = (offset: number): void => {
+  context.clientTimezoneOffset = offset
 }
