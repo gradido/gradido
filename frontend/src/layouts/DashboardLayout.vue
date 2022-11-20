@@ -50,7 +50,6 @@
             </b-col>
             <!-- Right Side Mobil -->
             <b-col class="d-block d-lg-none">
-              {{ transactions }}
               <right-side
                 :transactions="transactions"
                 :transactionCount="transactionCount"
