@@ -38,7 +38,7 @@ describe('sendEMail', () => {
       })
     })
 
-    it('logs warining', () => {
+    it('logs warning', () => {
       expect(logger.info).toBeCalledWith('Emails are disabled via config...')
     })
 

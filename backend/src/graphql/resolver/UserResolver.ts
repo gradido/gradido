@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
+import i18n from 'i18n'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
@@ -18,7 +19,7 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { OptInType } from '@enum/OptInType'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -318,6 +319,8 @@ export class UserResolver {
     const user = new User(dbUser, await getUserCreation(dbUser.id, clientTimezoneOffset))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
 
+    i18n.setLocale(user.language)
+
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage=' + user.hasElopage)
@@ -370,6 +373,7 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
+    i18n.setLocale(language)
 
     // check if user with email still exists?
     email = email.trim().toLowerCase()
@@ -378,8 +382,11 @@ export class UserResolver {
       logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
 
       if (foundUser) {
-        // ATTENTION: this logger-message will be exactly expected during tests
+        // ATTENTION: this logger-message will be exactly expected during tests, next line
         logger.info(`User already exists with this email=${email}`)
+        logger.info(
+          `Specified username when trying to register multiple times with this email: firstName=${firstName}, lastName=${lastName}`,
+        )
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
@@ -392,18 +399,20 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user=' + user)
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const emailSent = await sendAccountMultiRegistrationEmail({
-          firstName,
-          lastName,
+          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
+          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
+          language: foundUser.language, // use language of the emails owner for sending
         })
         const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
         eventSendAccountMultiRegistrationEmail.userId = foundUser.id
         eventProtocol.writeEvent(
           event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail),
         )
-        logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
+        logger.info(
+          `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
+        )
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
         if (!emailSent) {
@@ -749,6 +758,7 @@ export class UserResolver {
         throw new Error(`"${language}" isn't a valid language`)
       }
       userEntity.language = language
+      i18n.setLocale(language)
     }
 
     if (password && passwordNew) {

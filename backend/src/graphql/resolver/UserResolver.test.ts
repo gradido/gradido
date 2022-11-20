@@ -19,7 +19,7 @@ import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -29,7 +29,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger } from '@test/testSetup'
+import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
@@ -49,7 +49,7 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   }
 })
 
-jest.mock('@/mailer/sendAccountMultiRegistrationEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
     sendAccountMultiRegistrationEmail: jest.fn(),
@@ -76,7 +76,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -217,6 +217,7 @@ describe('UserResolver', () => {
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
+          language: 'de',
         })
       })
 
