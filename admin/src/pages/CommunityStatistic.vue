@@ -25,30 +25,18 @@ export default {
       },
     }
   },
-  methods: {
-    getCommunityStatistics() {
-      this.$apollo
-        .query({
-          query: communityStatistics,
-        })
-        .then((result) => {
-          this.statistics.totalUsers = result.data.communityStatistics.totalUsers
-          this.statistics.activeUsers = result.data.communityStatistics.activeUsers
-          this.statistics.deletedUsers = result.data.communityStatistics.deletedUsers
-          this.statistics.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-          this.statistics.totalGradidoDecayed = result.data.communityStatistics.totalGradidoDecayed
-          this.statistics.totalGradidoAvailable =
-            result.data.communityStatistics.totalGradidoAvailable
-          this.statistics.totalGradidoUnbookedDecayed =
-            result.data.communityStatistics.totalGradidoUnbookedDecayed
-        })
-        .catch(() => {
-          this.toastError('communityStatistics has no result, use default data')
-        })
+  apollo: {
+    CommunityStatistics: {
+      query() {
+        return communityStatistics
+      },
+      update({ communityStatistics }) {
+        this.statistics = communityStatistics
+      },
+      error({ message }) {
+        this.toastError(message)
+      },
     },
-  },
-  created() {
-    this.getCommunityStatistics()
   },
 }
 </script>
