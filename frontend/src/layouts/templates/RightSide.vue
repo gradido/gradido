@@ -36,7 +36,7 @@
         </b-col>
       </b-row>
     </b-container>
-    <b-container v-if="path === '/favourites'">favourites ride side</b-container>
+    <b-container v-if="path === '/addresses'">favourites ride side</b-container>
     <b-container v-if="path === '/send'">
       <b-row>
         <b-col>
@@ -85,7 +85,9 @@
         </b-col>
       </b-row>
     </b-container>
-    <b-container v-if="path === '/community'">community ride side</b-container>
+    <b-container v-if="path === '/community'">
+      <last-contributions />
+    </b-container>
     <b-container v-if="path === '/settings'">settings ride side</b-container>
   </div>
 </template>
@@ -93,6 +95,7 @@
 import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
 import Favourites from '@/components/Template/RightSide/Favourites.vue'
 import TopStorysByMonth from '@/components/Template/RightSide/TopStorysByMonth.vue'
+import LastContributions from '@/components/Template/RightSide/LastContributions.vue'
 import YourOverview from '@/components/Template/RightSide/YourOverview.vue'
 
 export default {
@@ -101,6 +104,7 @@ export default {
     LastTransactions,
     Favourites,
     TopStorysByMonth,
+    LastContributions,
     YourOverview,
   },
   props: {

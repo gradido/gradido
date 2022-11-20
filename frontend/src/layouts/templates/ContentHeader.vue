@@ -16,7 +16,7 @@
         </b-row>
       </b-container>
       <b-container v-if="path === '/storys'"><h2>Deine Community im Überblick</h2></b-container>
-      <b-container v-if="path === '/favourites'">Deine Favoriten im Überblick</b-container>
+      <b-container v-if="path === '/addresses'">Deine Favoriten im Überblick</b-container>
       <b-container v-if="path === '/send'">
         <b-row>
           <b-col cols="6">
@@ -61,7 +61,7 @@
           </b-col>
         </b-row>
       </b-container>
-      <b-container v-if="path === '/community'">community content header</b-container>
+      <b-container v-if="path === '/community'"><my-community /></b-container>
       <b-container v-if="path === '/settings'">settings content header</b-container>
     </div>
   </div>
@@ -71,12 +71,14 @@
 import GddAmount from '@/components/Template/ContentHeader/GddAmount.vue'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
+import MyCommunity from '@/components/Template/ContentHeader/MyCommunity.vue'
 export default {
   name: 'ContentHeader',
   components: {
     GddAmount,
     GdtAmount,
     CommunityMember,
+    MyCommunity,
   },
   props: {
     balance: { type: Number, required: true },
