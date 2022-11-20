@@ -40,7 +40,7 @@ import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { v4 as uuidv4 } from 'uuid'
 import { isValidPassword, SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
-import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptr'
+import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -432,6 +432,7 @@ export class UserResolver {
     dbUser.lastName = lastName
     dbUser.language = language
     dbUser.publisherId = publisherId
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     dbUser.passphrase = passphrase.join(' ')
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
@@ -780,6 +781,7 @@ export class UserResolver {
       logger.debug('PrivateKey encrypted...')
 
       // Save new password hash and newly encrypted private key
+      userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       userEntity.password = encryptPassword(userEntity, passwordNew)
       userEntity.privKey = encryptedPrivkey
     }

@@ -47,20 +47,23 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
   const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
   sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
-  logger.debug(
-    `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
-  )
   return [encryptionKeyHash, encryptionKey]
 }
 
-export const getBasicCryptographicKey = (dbUser: User): string | null => {
-  if (dbUser.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD) {
-    return null
-  } else if (dbUser.passwordEncryptionType === PasswordEncryptionType.EMAIL) {
-    return dbUser.emailContact.email
-  } else if (dbUser.passwordEncryptionType === PasswordEncryptionType.GRADIDO_ID) {
-    return dbUser.gradidoID
+export const getUserCryptographicSalt = (dbUser: User): string => {
+  switch (dbUser.passwordEncryptionType) {
+    case PasswordEncryptionType.NO_PASSWORD: {
+      throw new Error('Password not set for user ' + dbUser.id) // user has no password
+    }
+    case PasswordEncryptionType.EMAIL: {
+      return dbUser.emailContact.email
+      break
+    }
+    case PasswordEncryptionType.GRADIDO_ID: {
+      return dbUser.gradidoID
+      break
+    }
+    default:
+      throw new Error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
   }
-
-  throw new Error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
 }

@@ -36,7 +36,7 @@ import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { encryptPassword } from '@/password/PasswordEncryptr'
+import { encryptPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
@@ -149,7 +149,7 @@ describe('UserResolver', () => {
               publisherId: 1234,
               referrerId: null,
               contributionLinkId: null,
-              passwordEncryptionType: 1,
+              passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -1168,7 +1168,7 @@ describe('UserResolver', () => {
     describe('user just registered', () => {
       let bibi: User
 
-      it('password type should be gradido id', async () => {
+      it('has password type gradido id', async () => {
         const users = await User.find()
         bibi = users[1]
 

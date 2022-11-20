@@ -88,7 +88,7 @@ export class User extends BaseEntity {
     type: 'int',
     unsigned: true,
     nullable: false,
-    default: 1,
+    default: 0,
   })
   passwordEncryptionType: number
 

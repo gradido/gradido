@@ -1,0 +1,17 @@
+import { User } from '@entity/User'
+// import { logger } from '@test/testSetup' getting error "jest is not defined"
+import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
+
+export const encryptPassword = (dbUser: User, password: string): bigint => {
+  const basicKey = getUserCryptographicSalt(dbUser)
+  const keyBuffer = SecretKeyCryptographyCreateKey(basicKey, password) // return short and long hash
+  const passwordHash = keyBuffer[0].readBigUInt64LE()
+  return passwordHash
+}
+
+export const verifyPassword = (dbUser: User, password: string): boolean => {
+  if (dbUser.password.toString() !== encryptPassword(dbUser, password).toString()) {
+    return false
+  }
+  return true
+}
