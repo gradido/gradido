@@ -44,13 +44,18 @@
               <b-row class="d-lg-flex" cols="12">
                 <!-- ContentHeader -->
                 <b-col>
-                  <content-header />
+                  <content-header :balance="balance" />
                 </b-col>
               </b-row>
             </b-col>
-            <!-- RideSide Mobil -->
+            <!-- Right Side Mobil -->
             <b-col class="d-block d-lg-none">
-              <right-side />
+              {{ transactions }}
+              <right-side
+                :transactions="transactions"
+                :transactionCount="transactionCount"
+                :transactionLinkCount="transactionLinkCount"
+              />
             </b-col>
             <b-col cols="12">
               <div class="main-content mt-3">
@@ -72,8 +77,12 @@
           </b-row>
         </b-col>
         <!-- RightSide Desktop -->
-        <b-col cols="2" class="d-none d-lg-block" align-self="stretch">
-          <right-side />
+        <b-col cols="3" class="d-none d-lg-block" align-self="stretch">
+          <right-side
+            :transactions="transactions"
+            :transactionCount="transactionCount"
+            :transactionLinkCount="transactionLinkCount"
+          />
         </b-col>
       </b-row>
       <b-row>

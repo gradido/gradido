@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="container-fluid">
+      <community-news class="mb-5 shadow" />
       <gdd-transaction-list
         :transactions="transactions"
         :pageSize="5"
@@ -8,7 +9,6 @@
         :transaction-count="transactionCount"
         :transactionLinkCount="transactionLinkCount"
         :pending="pending"
-        @update-transactions="updateTransactions"
         v-on="$listeners"
       />
       <gdd-transaction-list-footer :count="transactionCount" />
@@ -16,12 +16,14 @@
   </div>
 </template>
 <script>
+import CommunityNews from '@/components/Overview/CommunityNews.vue'
 import GddTransactionList from '@/components/GddTransactionList.vue'
 import GddTransactionListFooter from '@/components/GddTransactionListFooter.vue'
 
 export default {
   name: 'Overview',
   components: {
+    CommunityNews,
     GddTransactionList,
     GddTransactionListFooter,
   },
@@ -42,9 +44,9 @@ export default {
     },
   },
   methods: {
-    updateTransactions(pagination) {
-      this.$emit('update-transactions', pagination)
-    },
+    // updateTransactions(pagination) {
+    //   this.$emit('update-transactions', pagination)
+    // },
   },
 }
 </script>

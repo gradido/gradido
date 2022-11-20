@@ -3,15 +3,19 @@
     <b-container v-if="path === '/overview'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-light rounded">a ride side overview</div>
+          <div class="p-4 bg-white shadow rounded">
+            <favourites />
+          </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-light rounded h-100">
-            <div>b ride side overview</div>
-            <div>b ride side overview</div>
-            <div>b ride side overview</div>
+          <div class="p-4 bg-white shadow rounded h-100">
+            <last-transactions
+              :transactions="transactions"
+              :transactionCount="transactionCount"
+              :transactionLinkCount="transactionLinkCount"
+            />
           </div>
         </b-col>
       </b-row>
@@ -19,15 +23,15 @@
     <b-container v-if="path === '/storys'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-light rounded">a storys ride side</div>
+          <div class="p-4 bg-white shadow rounded">
+            <favourites />
+          </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-light rounded h-100">
-            <div>b storys ride side</div>
-            <div>b storys ride side</div>
-            <div>b storys ride side</div>
+          <div class="p-4 bg-white shadow rounded h-100">
+            <top-storys-by-month />
           </div>
         </b-col>
       </b-row>
@@ -36,28 +40,76 @@
     <b-container v-if="path === '/send'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-light rounded">a ride side send</div>
+          <div class="p-4 bg-white shadow rounded">
+            <favourites />
+          </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-light rounded h-100">
-            <div>b ride side send</div>
-            <div>b ride side send</div>
-            <div>b ride side send</div>
+          <div class="p-4 bg-white shadow rounded h-100">
+            <last-transactions />
           </div>
         </b-col>
       </b-row>
     </b-container>
-    <b-container v-if="path === '/transactions'">transactions ride side</b-container>
-    <b-container v-if="path === '/profile'">profile ride side</b-container>
+    <b-container v-if="path === '/transactions'">
+      <b-row>
+        <b-col>
+          <div class="p-4 bg-white shadow rounded">
+            <favourites />
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="mt-3 mt-lg-5">
+        <b-col>
+          <div class="p-4 bg-white shadow rounded h-100">
+            <last-transactions />
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/profile'">
+      <b-row>
+        <b-col>
+          <div class="p-4 bg-white rounded">
+            <favourites />
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="mt-3 mt-lg-5">
+        <b-col>
+          <div class="p-4 bg-white shadow rounded h-100">
+            <your-overview />
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
     <b-container v-if="path === '/community'">community ride side</b-container>
     <b-container v-if="path === '/settings'">settings ride side</b-container>
   </div>
 </template>
 <script>
+import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
+import Favourites from '@/components/Template/RightSide/Favourites.vue'
+import TopStorysByMonth from '@/components/Template/RightSide/TopStorysByMonth.vue'
+import YourOverview from '@/components/Template/RightSide/YourOverview.vue'
+
 export default {
   name: 'RightSide',
+  components: {
+    LastTransactions,
+    Favourites,
+    TopStorysByMonth,
+    YourOverview,
+  },
+  props: {
+    transactions: {
+      default: () => [],
+    },
+    transactionCount: { type: Number, default: 0 },
+    transactionLinkCount: { type: Number, default: 0 },
+  },
   computed: {
     path() {
       return this.$route.path

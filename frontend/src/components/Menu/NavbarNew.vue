@@ -22,17 +22,21 @@
           <div class="mb-2">
             <router-link to="/profile">
               <div>
-                <div>
-                  <b-avatar
-                    button
-                    variant="primary"
-                    :text="avatarShortName"
-                    class="align-baseline"
-                  ></b-avatar>
-                  {{ avatarLongName }}
+                <div class="d-flex">
+                  <div class="mr-3">
+                    <b-avatar
+                      button
+                      variant="primary"
+                      :text="avatarShortName"
+                      class="align-baseline"
+                    ></b-avatar>
+                  </div>
+                  <div>
+                    <div>{{ avatarLongName }}</div>
 
-                  <div class="text-right">
-                    <small>{{ balance | GDD }}</small>
+                    <div class="text-right m">
+                      <small>{{ $store.state.email }}</small>
+                    </div>
                   </div>
                 </div>
               </div>
