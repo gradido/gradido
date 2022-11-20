@@ -1,8 +1,8 @@
 <template>
   <div class="community-page">
     <div>
-      <b-tabs v-model="tabIndex" content-class="mt-3" align="center">
-        <b-tab :title="$t('community.submitContribution')">
+      <b-tabs no-nav-style v-model="tabIndex" content-class="mt-3" align="center">
+        <b-tab>
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
@@ -10,34 +10,8 @@
             :updateAmount="updateAmount"
           />
         </b-tab>
-        <b-tab :title="$t('community.myContributions')">
-          <div>
-            <b-alert show dismissible fade variant="secondary" class="text-dark">
-              <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
-              <p>
-                {{ $t('contribution.alert.myContributionNoteList') }}
-              </p>
-              <ul class="h2">
-                <li>
-                  <b-icon icon="bell-fill" variant="primary"></b-icon>
-                  {{ $t('contribution.alert.pending') }}
-                </li>
-                <li>
-                  <b-icon icon="question-square" variant="warning"></b-icon>
-                  {{ $t('contribution.alert.in_progress') }}
-                </li>
-                <li>
-                  <b-icon icon="check" variant="success"></b-icon>
-                  {{ $t('contribution.alert.confirm') }}
-                </li>
-                <li>
-                  <b-icon icon="x-circle" variant="danger"></b-icon>
-                  {{ $t('contribution.alert.rejected') }}
-                </li>
-              </ul>
-              <hr />
-            </b-alert>
-          </div>
+        <b-tab>
+          <contribution-list-info list="my" />
           <contribution-list
             :items="items"
             @update-list-contributions="updateListContributions"
@@ -49,23 +23,8 @@
             :pageSize="pageSize"
           />
         </b-tab>
-        <b-tab :title="$t('navigation.community')">
-          <b-alert show dismissible fade variant="secondary" class="text-dark">
-            <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
-            <p>
-              {{ $t('contribution.alert.communityNoteList') }}
-            </p>
-            <ul class="h2">
-              <li>
-                <b-icon icon="bell-fill" variant="primary"></b-icon>
-                {{ $t('contribution.alert.pending') }}
-              </li>
-              <li>
-                <b-icon icon="check" variant="success"></b-icon>
-                {{ $t('contribution.alert.confirm') }}
-              </li>
-            </ul>
-          </b-alert>
+        <b-tab>
+          <contribution-list-info list="all" />
           <contribution-list
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
@@ -83,17 +42,20 @@
 <script>
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
+import ContributionListInfo from '@/components/Contributions/ContributionListInfo.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
   name: 'Community',
   components: {
+    ContributionListInfo,
     ContributionForm,
     ContributionList,
   },
   data() {
     return {
+      tabLinkHashes: ['#edit', '#my', '#all'],
       tabIndex: 0,
       items: [],
       itemsAll: [],
@@ -110,6 +72,21 @@ export default {
       },
       updateAmount: '',
     }
+  },
+  computed: {
+    hashLink() {
+      return this.$root.hash
+    },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
+    })
+  },
+  watch: {
+    $route(to, from) {
+      this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
+    },
   },
   methods: {
     setContribution(data) {
@@ -268,6 +245,7 @@ export default {
       this.items.find((item) => item.id === id).state = 'PENDING'
     },
   },
+
   created() {
     // verifyLogin is important at this point so that creation is updated on reload if they are deleted in a session in the admin area.
     this.verifyLogin()

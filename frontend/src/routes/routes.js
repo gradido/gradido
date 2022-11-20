@@ -69,8 +69,8 @@ const routes = [
     },
   },
   {
-    path: '/favourites',
-    component: () => import('@/pages/Favourites.vue'),
+    path: '/addresses',
+    component: () => import('@/pages/Addresses.vue'),
     meta: {
       requiresAuth: true,
     },

@@ -16,9 +16,9 @@
             <b-icon icon="card-heading" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.topStories') }}</span>
           </b-nav-item>
-          <b-nav-item to="/favourites" class="mb-3">
+          <b-nav-item to="/addresses" class="mb-3">
             <b-icon icon="bookmark" aria-hidden="true"></b-icon>
-            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.favourites') }}</span>
+            <span class="d-none d-lg-inline ml-2">{{ $t('navigation.adresses') }}</span>
           </b-nav-item>
 
           <b-nav-item to="/send" class="mb-3">
