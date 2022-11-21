@@ -28,13 +28,16 @@ export default {
 #app {
   font-size: 1rem;
   font-family: 'WorkSans', sans-serif !important;
-  /* justify-content: center; */
 }
 .appContent {
   min-width: 360px;
   max-width: 1320px;
   margin-right: auto;
   margin-left: auto;
+}
+.appBoxShadow {
+  -webkit-box-shadow: 20pt 20pt 50pt 0 #3838384f;
+  box-shadow: 20pt 20pt 50pt 0 #3838384f;
 }
 @media screen and (max-width: 500px) {
   #app {

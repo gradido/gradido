@@ -3,14 +3,14 @@
     <b-container v-if="path === '/overview'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-white shadow rounded">
+          <div class="p-4">
             <favourites />
           </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-white shadow rounded h-100">
+          <div class="p-4 h-100">
             <last-transactions
               :transactions="transactions"
               :transactionCount="transactionCount"
@@ -23,14 +23,14 @@
     <b-container v-if="path === '/storys'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-white shadow rounded">
+          <div class="p-4">
             <favourites />
           </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-white shadow rounded h-100">
+          <div class="p-4 h-100">
             <top-storys-by-month />
           </div>
         </b-col>
@@ -40,14 +40,14 @@
     <b-container v-if="path === '/send'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-white shadow rounded">
+          <div class="p-4">
             <favourites />
           </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-white shadow rounded h-100">
+          <div class="p-4 h-100">
             <last-transactions />
           </div>
         </b-col>
@@ -56,14 +56,14 @@
     <b-container v-if="path === '/transactions'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-white shadow rounded">
+          <div class="p-4">
             <favourites />
           </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-white shadow rounded h-100">
+          <div class="p-4 h-100">
             <last-transactions />
           </div>
         </b-col>
@@ -72,14 +72,14 @@
     <b-container v-if="path === '/profile'">
       <b-row>
         <b-col>
-          <div class="p-4 bg-white rounded">
+          <div class="p-4">
             <favourites />
           </div>
         </b-col>
       </b-row>
       <b-row class="mt-3 mt-lg-5">
         <b-col>
-          <div class="p-4 bg-white shadow rounded h-100">
+          <div class="p-4 h-100">
             <your-overview />
           </div>
         </b-col>

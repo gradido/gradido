@@ -11,8 +11,8 @@
           <span class="navbar-toggler-icon"></span>
         </b-button>
       </div>
+      <!-- navbar -->
       <b-row>
-        <!-- navbar -->
         <b-col>
           <navbar-new class="main-navbar" :balance="balance"></navbar-new>
         </b-col>
