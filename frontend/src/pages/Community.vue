@@ -1,5 +1,6 @@
 <template>
   <div class="community-page">
+    <open-creations-amount v-if="hashLink === '#edit'" />
     <div>
       <b-tabs no-nav-style v-model="tabIndex" content-class="mt-3" align="center">
         <b-tab>
@@ -44,6 +45,7 @@
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import ContributionListInfo from '@/components/Contributions/ContributionListInfo.vue'
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
@@ -53,9 +55,11 @@ export default {
     ContributionListInfo,
     ContributionForm,
     ContributionList,
+    OpenCreationsAmount,
   },
   data() {
     return {
+      hashLink: '',
       tabLinkHashes: ['#edit', '#my', '#all'],
       tabIndex: 0,
       items: [],
@@ -74,19 +78,16 @@ export default {
       updateAmount: '',
     }
   },
-  computed: {
-    hashLink() {
-      return this.$root.hash
-    },
-  },
   mounted() {
     this.$nextTick(() => {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === this.$route.hash)
+      this.hashLink = this.$route.hash
     })
   },
   watch: {
     $route(to, from) {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
+      this.hashLink = to.hash
     },
   },
   methods: {

@@ -1,5 +1,8 @@
 <template>
-  <div class="wallet-amount">GDT Amount components</div>
+  <div class="wallet-amount">
+    <div>GDT Amount components</div>
+    <div>0.00 GDT</div>
+  </div>
 </template>
 <script>
 export default {
