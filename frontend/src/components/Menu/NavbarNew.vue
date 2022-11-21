@@ -3,17 +3,12 @@
     <b-navbar toggleable="lg" class="pr-4">
       <b-navbar-brand>
         <b-img
-          class="imgLogo position-absolute ml--3 mt-lg--2 mt-3 p-2 zindex1000"
+          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 zindex1000"
           :src="logo"
           width="200"
           alt="..."
         />
-        <b-img
-          class="imgLogoBack mt--3 ml--3"
-          src="/img/template/gradido_background_header.png"
-          width="230"
-          alt="start background image"
-        ></b-img>
+        
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute zindex1000" :src="sheet"></b-img>
 
@@ -77,6 +72,11 @@ export default {
 </script>
 
 <style lang="scss">
+.auth-header {
+  font-family: 'Open Sans', sans-serif !important;
+  height: 150px;
+}
+
 .authNavbar > .nav-link {
   color: #383838 !important;
 }
@@ -91,10 +91,6 @@ export default {
 
 button.navbar-toggler > span.navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-
-.auth-header {
-  font-family: 'Open Sans', sans-serif !important;
 }
 
 .sheet-img {

@@ -4,12 +4,12 @@
       <b-container v-if="path === '/overview'">
         <b-row>
           <b-col cols="5">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <gdd-amount :balance="balance" />
             </div>
           </b-col>
           <b-col cols="7">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <community-member />
             </div>
           </b-col>
@@ -20,12 +20,12 @@
       <b-container v-if="path === '/send'">
         <b-row>
           <b-col cols="6">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <gdd-amount :balance="balance" />
             </div>
           </b-col>
           <b-col cols="6">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <gdt-amount />
             </div>
           </b-col>
@@ -34,12 +34,12 @@
       <b-container v-if="path === '/transactions'">
         <b-row>
           <b-col cols="6">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <gdd-amount :balance="balance" />
             </div>
           </b-col>
           <b-col cols="6">
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <gdt-amount />
             </div>
           </b-col>
@@ -48,7 +48,7 @@
       <b-container v-if="path === '/profile'">
         <b-row>
           <b-col>
-            <div class="p-4 bg-white shadow rounded">
+            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
               <b-row>
                 <b-col cols="8" class="h3">Zeige deiner Community wer du bist.</b-col>
                 <b-col cols="4" class="text-small text-muted">vor 4 Stunden geändert</b-col>
