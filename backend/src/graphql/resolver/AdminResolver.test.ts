@@ -36,7 +36,7 @@ import {
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountActivationEmail } from '@/emails/sendEmailVariants'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -47,9 +47,10 @@ import { EventProtocolType } from '@/event/EventProtocolType'
 import { logger } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
-jest.mock('@/mailer/sendAccountActivationEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
+    // TODO: test the call of …
     sendAccountActivationEmail: jest.fn(),
   }
 })

@@ -18,15 +18,16 @@ import { verifyLogin, queryOptIn, searchAdminUsers } from '@/seeds/graphql/queri
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
+import {
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+} from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
-
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
 import { logger, i18n as localization } from '@test/testSetup'
@@ -39,16 +40,10 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
-jest.mock('@/mailer/sendAccountActivationEmail', () => {
-  return {
-    __esModule: true,
-    sendAccountActivationEmail: jest.fn(),
-  }
-})
-
 jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
+    sendAccountActivationEmail: jest.fn(),
     sendAccountMultiRegistrationEmail: jest.fn(),
   }
 })
@@ -180,11 +175,15 @@ describe('UserResolver', () => {
           emailVerificationCode,
         ).replace(/{code}/g, '')
         expect(sendAccountActivationEmail).toBeCalledWith({
-          link: activationLink,
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
-          duration: expect.any(String),
+          language: 'de',
+          activationLink,
+          timeDurationObject: expect.objectContaining({
+            hours: expect.any(Number),
+            minutes: expect.any(Number),
+          }),
         })
       })
 

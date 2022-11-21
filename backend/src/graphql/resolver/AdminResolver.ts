@@ -39,8 +39,8 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { findUserByEmail, activationLink, printTimeDuration } from './UserResolver'
-import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { findUserByEmail, activationLink, getTimeDurationObject } from './UserResolver'
+import { sendAccountActivationEmail } from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
@@ -656,11 +656,12 @@ export class AdminResolver {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emailSent = await sendAccountActivationEmail({
-      link: activationLink(emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      activationLink: activationLink(emailContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     // In case EMails are disabled log the activation link for the user
