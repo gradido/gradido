@@ -113,7 +113,11 @@ a:hover,
   height: 50px;
 }
 
-.rounded-right {
+// .rounded-right-17 {
+//   border-top-right-radius: 17px !important;
+//   border-bottom-right-radius: 17px !important;
+// }
+.input-group .rounded-right {
   border-top-right-radius: 17px !important;
   border-bottom-right-radius: 17px !important;
 }

@@ -61,7 +61,7 @@
           </b-col>
         </b-row>
       </b-container>
-      <b-container v-if="path === '/community'"><my-community /></b-container>
+      <b-container v-if="path === '/community'"><nav-community /></b-container>
       <b-container v-if="path === '/settings'">settings content header</b-container>
     </div>
   </div>
@@ -71,14 +71,14 @@
 import GddAmount from '@/components/Template/ContentHeader/GddAmount.vue'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount.vue'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember.vue'
-import MyCommunity from '@/components/Template/ContentHeader/MyCommunity.vue'
+import NavCommunity from '@/components/Template/ContentHeader/NavCommunity.vue'
 export default {
   name: 'ContentHeader',
   components: {
     GddAmount,
     GdtAmount,
     CommunityMember,
-    MyCommunity,
+    NavCommunity,
   },
   props: {
     balance: { type: Number, required: true },
