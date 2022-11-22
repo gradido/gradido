@@ -1,5 +1,9 @@
 import CONFIG from '@/config'
-import { sendAccountActivationEmail, sendAccountMultiRegistrationEmail } from './sendEmailVariants'
+import {
+  sendAddedContributionMessageEmail,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+} from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 CONFIG.EMAIL = true
@@ -19,6 +23,78 @@ jest.mock('./sendEmailTranslated', () => {
 describe('sendEmailVariants', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let result: any
+
+  describe('sendAddedContributionMessageEmail', () => {
+    beforeAll(async () => {
+      result = await sendAddedContributionMessageEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'addedContributionMessage',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            contributionMemo: 'My contribution.',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Message about your common good contribution',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: MESSAGE ABOUT YOUR COMMON GOOD CONTRIBUTION'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: Message about your common good contribution</title>',
+        )
+        expect(result.originalMessage.html).toContain(
+          '>Gradido: Message about your common good contribution</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'you have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
+        )
+        expect(result.originalMessage.html).toContain(
+          'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My Contributions to the Common Good” tab!',
+        )
+        expect(result.originalMessage.html).toContain(
+          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
 
   describe('sendAccountActivationEmail', () => {
     beforeAll(async () => {
@@ -66,6 +142,8 @@ describe('sendEmailVariants', () => {
             text: expect.stringContaining('GRADIDO: EMAIL VERIFICATION'),
           }),
         })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
         expect(result.originalMessage.html).toContain('<title>Gradido: Email Verification</title>')
         expect(result.originalMessage.html).toContain('>Gradido: Email Verification</h1>')
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
@@ -87,7 +165,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
         )
-        expect(result.originalMessage.html).toContain('Sincerely yours,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
       })
     })
   })
@@ -134,6 +212,8 @@ describe('sendEmailVariants', () => {
             text: expect.stringContaining('GRADIDO: TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
           }),
         })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
         expect(result.originalMessage.html).toContain(
           '<title>Gradido: Try To Register Again With Your Email</title>',
         )
@@ -159,7 +239,7 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you are not the one who tried to register again, please contact our support:',
         )
-        expect(result.originalMessage.html).toContain('Sincerely yours,<br><span>your Gradido team')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
       })
     })
   })
