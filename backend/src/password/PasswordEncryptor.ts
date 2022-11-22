@@ -3,8 +3,8 @@ import { User } from '@entity/User'
 import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
 
 export const encryptPassword = (dbUser: User, password: string): bigint => {
-  const basicKey = getUserCryptographicSalt(dbUser)
-  const keyBuffer = SecretKeyCryptographyCreateKey(basicKey, password) // return short and long hash
+  const salt = getUserCryptographicSalt(dbUser)
+  const keyBuffer = SecretKeyCryptographyCreateKey(salt, password) // return short and long hash
   const passwordHash = keyBuffer[0].readBigUInt64LE()
   return passwordHash
 }

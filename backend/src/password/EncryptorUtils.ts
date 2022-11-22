@@ -53,6 +53,7 @@ export const SecretKeyCryptographyCreateKey = (salt: string, password: string): 
 export const getUserCryptographicSalt = (dbUser: User): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD: {
+      logger.error('Password not set for user ' + dbUser.id)
       throw new Error('Password not set for user ' + dbUser.id) // user has no password
     }
     case PasswordEncryptionType.EMAIL: {
@@ -64,6 +65,7 @@ export const getUserCryptographicSalt = (dbUser: User): string => {
       break
     }
     default:
+      logger.error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
       throw new Error(`Unknown password encryption type: ${dbUser.passwordEncryptionType}`)
   }
 }

@@ -39,6 +39,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { tokenToString } from 'typescript'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -1217,6 +1218,29 @@ describe('UserResolver', () => {
               .readBigUInt64LE()
               .toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          }),
+        )
+      })
+
+      it('can login after password change', async () => {
+        resetToken()
+        expect(await mutate({ mutation: login, variables: variables })).toEqual(
+          expect.objectContaining({
+            data: {
+              login: {
+                email: 'bibi@bloxberg.de',
+                firstName: 'Bibi',
+                hasElopage: false,
+                id: expect.any(Number),
+                isAdmin: null,
+                klickTipp: {
+                  newsletterState: false,
+                },
+                language: 'de',
+                lastName: 'Bloxberg',
+                publisherId: 1234,
+              },
+            },
           }),
         )
       })
