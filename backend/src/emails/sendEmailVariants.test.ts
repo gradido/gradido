@@ -38,7 +38,7 @@ describe('sendEmailVariants', () => {
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
-          template: 'sendAccountActivation',
+          template: 'accountActivation',
           locals: {
             firstName: 'Peter',
             lastName: 'Lustig',

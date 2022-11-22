@@ -1,5 +1,19 @@
 {
   "emails": {
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "linkToYourAccount": "Link to your account:",
+      "pleaseDoNotReply": "Please do not reply to this email!",
+      "subject": "Gradido: Message about your common good contribution",
+      "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My Contributions to the Common Good” tab!"
+    },
+    "accountActivation": {
+      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:",
+      "emailRegistered": "Your email address has just been registered with Gradido.",
+      "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
+      "orCopyLink": "or copy the link above into your browser window.",
+      "subject": "Gradido: Email Verification"
+    },
     "accountMultiRegistration": {
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
@@ -10,15 +24,8 @@
     },
     "general": {
       "helloName": "Hello {firstName} {lastName}",
-      "sincerelyYours": "Sincerely yours,",
+      "sincerelyYours": "Kind regards,",
       "yourGradidoTeam": "your Gradido team"
-    },
-    "sendAccountActivation": {
-      "duration": "The link has a validity of {hours} hours and {minutes} minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:",
-      "emailRegistered": "Your email address has just been registered with Gradido.",
-      "pleaseClickLink": "Please click on this link to complete the registration and activate your Gradido account:",
-      "orCopyLink": "or copy the link above into your browser window.",
-      "subject": "Gradido: Email Verification"
     }
   }
 }
