@@ -1,6 +1,6 @@
 import { backendLogger as logger } from '@/server/logger'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
-import { getConnection } from '@dbTools/typeorm'
+import { getConnection, MoreThan, FindOperator, IsNull } from '@dbTools/typeorm'
 import {
   Resolver,
   Args,
@@ -12,9 +12,8 @@ import {
   Int,
   createUnionType,
 } from 'type-graphql'
-import { TransactionLink } from '@model/TransactionLink'
 import { ContributionLink } from '@model/ContributionLink'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as dbUser } from '@entity/User'
 import TransactionLinkArgs from '@arg/TransactionLinkArgs'
@@ -30,11 +29,22 @@ import { ContributionType } from '@enum/ContributionType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { getUserCreation, validateContribution } from './util/creations'
+import { getUserCreation, validateContribution, isStartEndDateValid } from './util/creations'
 import { Decay } from '@model/Decay'
 import Decimal from 'decimal.js-light'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
+import TransactionLinkFilters from '@arg/TransactionLinkFilters'
+import {
+  CONTRIBUTIONLINK_NAME_MAX_CHARS,
+  CONTRIBUTIONLINK_NAME_MIN_CHARS,
+  MEMO_MAX_CHARS,
+  MEMO_MIN_CHARS,
+} from './const/const'
+import ContributionLinkArgs from '@arg/ContributionLinkArgs'
+import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
+import { ContributionLinkList } from '@model/ContributionLinkList'
 
 const QueryLinkResult = createUnionType({
   name: 'QueryLinkResult', // the name of the GraphQL union
@@ -76,7 +86,7 @@ export class TransactionLinkResolver {
     // validate amount
     await calculateBalance(user.id, holdAvailableAmount, createdDate)
 
-    const transactionLink = dbTransactionLink.create()
+    const transactionLink = DbTransactionLink.create()
     transactionLink.userId = user.id
     transactionLink.amount = amount
     transactionLink.memo = memo
@@ -84,7 +94,7 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
-    await dbTransactionLink.save(transactionLink).catch(() => {
+    await DbTransactionLink.save(transactionLink).catch(() => {
       throw new Error('Unable to save transaction link')
     })
 
@@ -99,7 +109,7 @@ export class TransactionLinkResolver {
   ): Promise<boolean> {
     const user = getUser(context)
 
-    const transactionLink = await dbTransactionLink.findOne({ id })
+    const transactionLink = await DbTransactionLink.findOne({ id })
     if (!transactionLink) {
       throw new Error('Transaction Link not found!')
     }
@@ -129,7 +139,7 @@ export class TransactionLinkResolver {
       )
       return new ContributionLink(contributionLink)
     } else {
-      const transactionLink = await dbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
+      const transactionLink = await DbTransactionLink.findOneOrFail({ code }, { withDeleted: true })
       const user = await dbUser.findOneOrFail({ id: transactionLink.userId })
       let redeemedBy: User | null = null
       if (transactionLink && transactionLink.redeemedBy) {
@@ -148,7 +158,7 @@ export class TransactionLinkResolver {
   ): Promise<TransactionLink[]> {
     const user = getUser(context)
     // const now = new Date()
-    const transactionLinks = await dbTransactionLink.find({
+    const transactionLinks = await DbTransactionLink.find({
       where: {
         userId: user.id,
         redeemedBy: null,
@@ -318,7 +328,7 @@ export class TransactionLinkResolver {
       }
       return true
     } else {
-      const transactionLink = await dbTransactionLink.findOneOrFail({ code })
+      const transactionLink = await DbTransactionLink.findOneOrFail({ code })
       const linkedUser = await dbUser.findOneOrFail(
         { id: transactionLink.userId },
         { relations: ['emailContact'] },
@@ -346,5 +356,172 @@ export class TransactionLinkResolver {
 
       return true
     }
+  }
+
+  @Authorized([RIGHTS.LIST_TRANSACTION_LINKS_ADMIN])
+  @Query(() => TransactionLinkResult)
+  async listTransactionLinksAdmin(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Arg('filters', () => TransactionLinkFilters, { nullable: true })
+    filters: TransactionLinkFilters,
+    @Arg('userId', () => Int)
+    userId: number,
+  ): Promise<TransactionLinkResult> {
+    const user = await dbUser.findOneOrFail({ id: userId })
+    const where: {
+      userId: number
+      redeemedBy?: number | null
+      validUntil?: FindOperator<Date> | null
+    } = {
+      userId,
+      redeemedBy: null,
+      validUntil: MoreThan(new Date()),
+    }
+    if (filters) {
+      if (filters.withRedeemed) delete where.redeemedBy
+      if (filters.withExpired) delete where.validUntil
+    }
+    const [transactionLinks, count] = await DbTransactionLink.findAndCount({
+      where,
+      withDeleted: filters ? filters.withDeleted : false,
+      order: {
+        createdAt: order,
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+
+    return {
+      linkCount: count,
+      linkList: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    }
+  }
+
+  @Authorized([RIGHTS.CREATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async createContributionLink(
+    @Args()
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+  ): Promise<ContributionLink> {
+    isStartEndDateValid(validFrom, validTo)
+    if (!name) {
+      logger.error(`The name must be initialized!`)
+      throw new Error(`The name must be initialized!`)
+    }
+    if (
+      name.length < CONTRIBUTIONLINK_NAME_MIN_CHARS ||
+      name.length > CONTRIBUTIONLINK_NAME_MAX_CHARS
+    ) {
+      const msg = `The value of 'name' with a length of ${name.length} did not fulfill the requested bounderies min=${CONTRIBUTIONLINK_NAME_MIN_CHARS} and max=${CONTRIBUTIONLINK_NAME_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (!memo) {
+      logger.error(`The memo must be initialized!`)
+      throw new Error(`The memo must be initialized!`)
+    }
+    if (memo.length < MEMO_MIN_CHARS || memo.length > MEMO_MAX_CHARS) {
+      const msg = `The value of 'memo' with a length of ${memo.length} did not fulfill the requested bounderies min=${MEMO_MIN_CHARS} and max=${MEMO_MAX_CHARS}`
+      logger.error(`${msg}`)
+      throw new Error(`${msg}`)
+    }
+    if (!amount) {
+      logger.error(`The amount must be initialized!`)
+      throw new Error('The amount must be initialized!')
+    }
+    if (!new Decimal(amount).isPositive()) {
+      logger.error(`The amount=${amount} must be initialized with a positiv value!`)
+      throw new Error(`The amount=${amount} must be initialized with a positiv value!`)
+    }
+    const dbContributionLink = new DbContributionLink()
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.createdAt = new Date()
+    dbContributionLink.code = contributionLinkCode(dbContributionLink.createdAt)
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    await dbContributionLink.save()
+    logger.debug(`createContributionLink successful!`)
+    return new ContributionLink(dbContributionLink)
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTION_LINKS])
+  @Query(() => ContributionLinkList)
+  async listContributionLinks(
+    @Args()
+    { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+  ): Promise<ContributionLinkList> {
+    const [links, count] = await DbContributionLink.findAndCount({
+      where: [{ validTo: MoreThan(new Date()) }, { validTo: IsNull() }],
+      order: { createdAt: order },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    })
+    return {
+      links: links.map((link: DbContributionLink) => new ContributionLink(link)),
+      count,
+    }
+  }
+
+  @Authorized([RIGHTS.DELETE_CONTRIBUTION_LINK])
+  @Mutation(() => Date, { nullable: true })
+  async deleteContributionLink(@Arg('id', () => Int) id: number): Promise<Date | null> {
+    const contributionLink = await DbContributionLink.findOne(id)
+    if (!contributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    await contributionLink.softRemove()
+    logger.debug(`deleteContributionLink successful!`)
+    const newContributionLink = await DbContributionLink.findOne({ id }, { withDeleted: true })
+    return newContributionLink ? newContributionLink.deletedAt : null
+  }
+
+  @Authorized([RIGHTS.UPDATE_CONTRIBUTION_LINK])
+  @Mutation(() => ContributionLink)
+  async updateContributionLink(
+    @Args()
+    {
+      amount,
+      name,
+      memo,
+      cycle,
+      validFrom,
+      validTo,
+      maxAmountPerMonth,
+      maxPerCycle,
+    }: ContributionLinkArgs,
+    @Arg('id', () => Int) id: number,
+  ): Promise<ContributionLink> {
+    const dbContributionLink = await DbContributionLink.findOne(id)
+    if (!dbContributionLink) {
+      logger.error(`Contribution Link not found to given id: ${id}`)
+      throw new Error('Contribution Link not found to given id.')
+    }
+    dbContributionLink.amount = amount
+    dbContributionLink.name = name
+    dbContributionLink.memo = memo
+    dbContributionLink.cycle = cycle
+    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
+    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxPerCycle = maxPerCycle
+    await dbContributionLink.save()
+    logger.debug(`updateContributionLink successful!`)
+    return new ContributionLink(dbContributionLink)
   }
 }
