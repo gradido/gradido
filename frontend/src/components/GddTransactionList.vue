@@ -13,7 +13,10 @@
       </div>
 
       <div v-for="({ id, typeId }, index) in transactions" :key="id">
-        <transaction-list-item :typeId="typeId" class="pointer">
+        <transaction-list-item
+          :typeId="typeId"
+          class="pointer appBoxShadow gradido-border-radius mb-3"
+        >
           <template #DECAY>
             <transaction-decay
               class="list-group-item"

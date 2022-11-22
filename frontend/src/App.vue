@@ -56,4 +56,8 @@ export default {
   );
   height: 13px;
 }
+
+.text-color-gdd-yellow {
+  color: rgb(197 141 56);
+}
 </style>

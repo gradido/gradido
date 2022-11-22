@@ -1,55 +1,46 @@
 <template>
   <div class="transaction-slot-creation">
-    <div @click="visible = !visible">
-      <!-- Collaps Icon  -->
-      <collapse-icon class="text-right" :visible="visible" />
-      <div>
-        <b-row>
-          <!-- ICON  -->
-          <b-col cols="1">
-            <type-icon color="gradido-global-color-accent" icon="gift" />
-          </b-col>
 
-          <b-col cols="11">
-            <!-- Amount / Name || Text -->
-            <amount-and-name-row :amount="amount" :linkedUser="linkedUser" v-on="$listeners" />
+    <b-row @click="visible = !visible" class="">
+      <b-col cols="2">
+        <b-avatar icon="gift" variant="success" size="4em"></b-avatar>
+      </b-col>
+      <b-col>
+        <div>{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
+        <div class="small">{{ balanceDate }}</div>
+        <div class="small">{{ balanceDate }}</div>
+      </b-col>
+      <b-col cols="3">
+        <div class="small">Empfangen</div>
+        <div class="small">{{ amount | GDD }}</div>
+      </b-col>
+      <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+    </b-row>
+    <b-collapse class="pb-4 pt-5" v-model="visible">
+      <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
+    </b-collapse>
 
-            <!-- Nachricht Memo -->
-            <memo-row :memo="memo" />
-
-            <!-- Datum -->
-            <date-row :date="balanceDate" />
-
-            <!-- Decay -->
-            <decay-row :decay="decay.decay" />
-          </b-col>
-        </b-row>
-      </div>
-
-      <b-collapse class="pb-4 pt-5" v-model="visible">
-        <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
-      </b-collapse>
-    </div>
+ 
   </div>
 </template>
 <script>
 import CollapseIcon from '../TransactionRows/CollapseIcon'
-import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-import MemoRow from '../TransactionRows/MemoRow'
-import DateRow from '../TransactionRows/DateRow'
-import DecayRow from '../TransactionRows/DecayRow'
+// import TypeIcon from '../TransactionRows/TypeIcon'
+// import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
+// import MemoRow from '../TransactionRows/MemoRow'
+// import DateRow from '../TransactionRows/DateRow'
+// import DecayRow from '../TransactionRows/DecayRow'
 import DecayInformation from '../DecayInformations/DecayInformation'
 
 export default {
   name: 'TransactionCreation',
   components: {
     CollapseIcon,
-    TypeIcon,
-    AmountAndNameRow,
-    MemoRow,
-    DateRow,
-    DecayRow,
+    // TypeIcon,
+    // AmountAndNameRow,
+    // MemoRow,
+    // DateRow,
+    // DecayRow,
     DecayInformation,
   },
   props: {
