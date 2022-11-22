@@ -650,8 +650,8 @@ export class AdminResolver {
     }
     const emailContact = user.emailContact
     if (emailContact.deletedAt) {
-      logger.error(`The emailContact: ${email} of htis User is deleted.`)
-      throw new Error(`The emailContact: ${email} of htis User is deleted.`)
+      logger.error(`The emailContact: ${email} of this User is deleted.`)
+      throw new Error(`The emailContact: ${email} of this User is deleted.`)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
