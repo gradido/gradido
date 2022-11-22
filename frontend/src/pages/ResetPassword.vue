@@ -95,22 +95,14 @@ export default {
           }
         })
         .catch((error) => {
-          let errorMessage
-          if (
-            error.message.match(
-              /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
-            )
-          ) {
-            errorMessage = error.message
-          } else {
-            errorMessage = error.message
-          }
           this.showPageMessage = true
           this.messageHeadline = this.$t('message.errorTitle')
-          this.messageSubtitle = errorMessage
+          this.messageSubtitle = error.message
           this.messageButtonText = this.$t('settings.password.reset')
-          this.messageButtonLinktTo = '/forgot-password/resetPassword'
-          this.toastError(errorMessage)
+          this.messageButtonLinktTo = this.$route.params.code
+            ? `/forgot-password/resetPassword/${this.$route.params.code}`
+            : '/forgot-password/resetPassword'
+          this.toastError(error.message)
         })
     },
     checkOptInCode() {
@@ -124,7 +116,11 @@ export default {
         .then()
         .catch((error) => {
           this.toastError(error.message)
-          this.$router.push('/forgot-password/resetPassword')
+          if (this.$route.params.code) {
+            this.$router.push(`/forgot-password/resetPassword/${this.$route.params.code}`)
+          } else {
+            this.$router.push('/forgot-password/resetPassword')
+          }
         })
     },
     setDisplaySetup() {

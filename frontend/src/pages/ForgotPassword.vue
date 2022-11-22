@@ -61,6 +61,7 @@ export default {
           mutation: forgotPassword,
           variables: {
             email: this.form.email,
+            code: this.$route.params.code,
           },
         })
         .then(() => {
