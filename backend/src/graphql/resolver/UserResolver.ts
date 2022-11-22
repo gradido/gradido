@@ -280,8 +280,10 @@ export const checkEmailVerificationCode = async (
   return emailContact
 }
 
-export const activationLink = (verificationCode: BigInt): string => {
-  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
+export const activationLink = (verificationCode: BigInt, code: string | null = null): string => {
+  return CONFIG.EMAIL_LINK_SETPASSWORD
+    .replace(/{optin}/g, verificationCode.toString())
+    .replace(/{code}/g, code ? '/' + code : '')
 }
 
 const newGradidoID = async (): Promise<string> => {
@@ -582,7 +584,7 @@ export class UserResolver {
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
-  async forgotPassword(@Arg('email') email: string, @Arg('code') code?: string): Promise<boolean> {
+  async forgotPassword(@Arg('email') email: string, @Arg('code', { nullable: true }) code?: string): Promise<boolean> {
     logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
@@ -608,13 +610,10 @@ export class UserResolver {
     logger.info(`optInCode for ${email}=${dbUserContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-    const activationLink = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
-      /{optin}/g,
-      dbUserContact.emailVerificationCode.toString(),
-    ).replace(/{code}/g, code ? '/' + code : '')
+    const link = activationLink(dbUserContact.emailVerificationCode, code ? code : null)
 
     const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink,
+      link,
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -624,7 +623,7 @@ export class UserResolver {
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink}`)
+      logger.debug(`Reset password link: ${link}`)
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
