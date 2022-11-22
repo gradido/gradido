@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
@@ -30,7 +31,6 @@ import { ContributionLink } from '@model/ContributionLink'
 import { TransactionLink } from '@entity/TransactionLink'
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
@@ -44,10 +44,14 @@ import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
 jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
-    sendAccountActivationEmail: jest.fn(),
-    sendAccountMultiRegistrationEmail: jest.fn(),
+    ...originalModule,
+    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendAccountMultiRegistrationEmail: jest.fn((a) =>
+      originalModule.sendAccountMultiRegistrationEmail(a),
+    ),
   }
 })
 

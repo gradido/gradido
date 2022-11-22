@@ -3,6 +3,7 @@
 
 import { objectValuesToArray } from '@/util/utilities'
 import { testEnvironment, resetToken, cleanDB, contributionDateFormatter } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { creationFactory } from '@/seeds/factory/creation'
 import { creations } from '@/seeds/creation/index'
@@ -44,14 +45,15 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
-import { logger } from '@test/testSetup'
 
 // mock account activation email to avoid console spam
 jest.mock('@/emails/sendEmailVariants', () => {
+  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
     __esModule: true,
+    ...originalModule,
     // TODO: test the call of …
-    sendAccountActivationEmail: jest.fn(),
+    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
   }
 })
 
@@ -67,7 +69,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment()
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
