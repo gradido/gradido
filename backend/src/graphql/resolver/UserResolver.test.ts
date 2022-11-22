@@ -21,7 +21,7 @@ import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
 import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink } from './UserResolver'
+import { printTimeDuration } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
@@ -804,12 +804,8 @@ describe('UserResolver', () => {
     })
 
     describe('user exists in DB', () => {
-      let emailContact: UserContact
-
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        // await resetEntity(LoginEmailOptIn)
-        emailContact = await UserContact.findOneOrFail(variables)
       })
 
       afterAll(async () => {
@@ -818,7 +814,7 @@ describe('UserResolver', () => {
       })
 
       describe('duration not expired', () => {
-        it('returns true', async () => {
+        it('throws an error', async () => {
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
               errors: [
@@ -844,15 +840,15 @@ describe('UserResolver', () => {
             }),
           )
         })
-      })
 
-      it('sends reset password email', () => {
-        expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(emailContact.emailVerificationCode),
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          duration: expect.any(String),
+        it('sends reset password email', () => {
+          expect(sendResetPasswordEmail).toBeCalledWith({
+            link: expect.any(String),
+            firstName: 'Bibi',
+            lastName: 'Bloxberg',
+            email: 'bibi@bloxberg.de',
+            duration: expect.any(String),
+          })
         })
       })
 
