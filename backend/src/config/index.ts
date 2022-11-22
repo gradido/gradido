@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v11.2022-10-27',
+    EXPECTED: 'v12.2022-11-22',
     CURRENT: '',
   },
 }
@@ -77,7 +77,7 @@ const email = {
   EMAIL_LINK_VERIFICATION:
     process.env.EMAIL_LINK_VERIFICATION || 'http://localhost/checkEmail/{optin}{code}',
   EMAIL_LINK_SETPASSWORD:
-    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}',
+    process.env.EMAIL_LINK_SETPASSWORD || 'http://localhost/reset-password/{optin}{code}',
   EMAIL_LINK_FORGOTPASSWORD:
     process.env.EMAIL_LINK_FORGOTPASSWORD || 'http://localhost/forgot-password',
   EMAIL_LINK_OVERVIEW: process.env.EMAIL_LINK_OVERVIEW || 'http://localhost/overview',
