@@ -27,9 +27,9 @@
                     ></b-avatar>
                   </div>
                   <div>
-                    <div>{{ avatarLongName }}</div>
+                    <div class="small">{{ avatarLongName }}</div>
 
-                    <div class="text-right m">
+                    <div class="text-right small">
                       <small>{{ $store.state.email }}</small>
                     </div>
                   </div>
@@ -40,11 +40,11 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <div class="alertBox">
+    <!-- <div class="alertBox">
       <b-alert show dismissible variant="light" class="nav-alert text-dark">
         <small>{{ $t('1000thanks') }}</small>
       </b-alert>
-    </div>
+    </div> -->
   </div>
 </template>
 

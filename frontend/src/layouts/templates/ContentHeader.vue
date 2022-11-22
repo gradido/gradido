@@ -4,12 +4,12 @@
       <b-container v-if="path === '/overview'">
         <b-row>
           <b-col cols="5">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
+            <div>
               <gdd-amount :balance="balance" />
             </div>
           </b-col>
           <b-col cols="7">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
+            <div>
               <community-member />
             </div>
           </b-col>
@@ -20,12 +20,12 @@
       <b-container v-if="path === '/send'">
         <b-row>
           <b-col cols="6">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
-              <gdd-amount :balance="balance" />
+            <div>
+              <gdd-amount :balance="balance" :badge="true" />
             </div>
           </b-col>
           <b-col cols="6">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
+            <div>
               <gdt-amount />
             </div>
           </b-col>
@@ -34,12 +34,12 @@
       <b-container v-if="path === '/transactions'">
         <b-row>
           <b-col cols="6">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
-              <gdd-amount :balance="balance" />
+            <div>
+              <gdd-amount :balance="balance" :badge="true" />
             </div>
           </b-col>
           <b-col cols="6">
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
+            <div>
               <gdt-amount />
             </div>
           </b-col>

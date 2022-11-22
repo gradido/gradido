@@ -1,6 +1,6 @@
 <template>
   <div class="community-news">
-    <b-card class="bg-white">CommunityNews</b-card>
+    <b-card class="bg-white appBoxShadow gradido-border-radius">CommunityNews</b-card>
   </div>
 </template>
 <script>

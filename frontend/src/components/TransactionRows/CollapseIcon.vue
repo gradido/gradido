@@ -1,7 +1,7 @@
 <template>
   <div class="collapse-icon">
     <b-icon
-      :icon="visible ? 'caret-up-square' : 'caret-down-square'"
+      :icon="visible ? 'arrow-up-circle' : 'arrow-down-circle'"
       :class="visible ? 'text-black' : 'text-muted'"
     />
   </div>

@@ -178,6 +178,9 @@ a:hover,
   font-size: 1.5em;
 }
 
+.zindex1 {
+  z-index: 1;
+}
 .zindex10 {
   z-index: 10;
 }
@@ -196,6 +199,13 @@ a:hover,
 
 .zindex100000 {
   z-index: 100000;
+}
+
+.opacity-1 {
+  opacity: 1;
+}
+.opacity-05 {
+  opacity: 0.5;
 }
 
 .gradido-global-color-blue {
