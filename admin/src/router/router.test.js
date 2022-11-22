@@ -44,7 +44,7 @@ describe('router', () => {
     })
 
     describe('routes', () => {
-      it('has eight routes defined', () => {
+      it('has nine routes defined', () => {
         expect(routes).toHaveLength(9)
       })
 
