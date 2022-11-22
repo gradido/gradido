@@ -281,9 +281,10 @@ export const checkEmailVerificationCode = async (
 }
 
 export const activationLink = (verificationCode: BigInt, code: string | null = null): string => {
-  return CONFIG.EMAIL_LINK_SETPASSWORD
-    .replace(/{optin}/g, verificationCode.toString())
-    .replace(/{code}/g, code ? '/' + code : '')
+  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString()).replace(
+    /{code}/g,
+    code ? '/' + code : '',
+  )
 }
 
 const newGradidoID = async (): Promise<string> => {
@@ -584,7 +585,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
-  async forgotPassword(@Arg('email') email: string, @Arg('code', { nullable: true }) code?: string): Promise<boolean> {
+  async forgotPassword(
+    @Arg('email') email: string,
+    @Arg('code', { nullable: true }) code?: string,
+  ): Promise<boolean> {
     logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
@@ -610,7 +614,7 @@ export class UserResolver {
     logger.info(`optInCode for ${email}=${dbUserContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-    const link = activationLink(dbUserContact.emailVerificationCode, code ? code : null)
+    const link = activationLink(dbUserContact.emailVerificationCode, code || null)
 
     const emailSent = await sendResetPasswordEmailMailer({
       link,
