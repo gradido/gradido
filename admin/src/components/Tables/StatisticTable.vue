@@ -1,14 +1,7 @@
 <!-- eslint-disable vue/no-static-inline-styles -->
 <template>
   <div class="statistic-table">
-    <b-table-simple
-      style="width: auto"
-      class="mt-5"
-      :items="items"
-      :fields="fields"
-      striped
-      stacked="md"
-    >
+    <b-table-simple style="width: auto" class="mt-5" striped stacked="md">
       <b-thead>
         <b-tr>
           <b-th></b-th>
