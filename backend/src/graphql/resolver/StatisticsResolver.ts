@@ -1,10 +1,13 @@
-import { Resolver, Query, Authorized } from 'type-graphql'
-import { RIGHTS } from '@/auth/RIGHTS'
-import { CommunityStatistics } from '@model/CommunityStatistics'
-import { User as DbUser } from '@entity/User'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { getConnection } from '@dbTools/typeorm'
 import Decimal from 'decimal.js-light'
+import { Resolver, Query, Authorized } from 'type-graphql'
+import { getConnection } from '@dbTools/typeorm'
+
+import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User as DbUser } from '@entity/User'
+
+import { CommunityStatistics } from '@model/CommunityStatistics'
+
+import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

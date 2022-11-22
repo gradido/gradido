@@ -1,7 +1,6 @@
 import fs from 'fs'
-import { backendLogger as logger } from '@/server/logger'
 import i18n from 'i18n'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { v4 as uuidv4 } from 'uuid'
 import {
   Resolver,
   Query,
@@ -14,25 +13,34 @@ import {
   Int,
 } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
-import CONFIG from '@/config'
-import { User } from '@model/User'
+
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { communityDbUser } from '@/util/communityUser'
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
-import { encode } from '@/auth/JWT'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { UserRepository } from '@repository/User'
+
+import { User } from '@model/User'
+import { SearchAdminUsersResult } from '@model/AdminUser'
+import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { OptInType } from '@enum/OptInType'
+import { Order } from '@enum/Order'
+import { UserContactType } from '@enum/UserContactType'
 import CreateUserArgs from '@arg/CreateUserArgs'
 import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
+import Paginated from '@arg/Paginated'
+import SearchUsersArgs from '@arg/SearchUsersArgs'
+
+import { backendLogger as logger } from '@/server/logger'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import CONFIG from '@/config'
+import { communityDbUser } from '@/util/communityUser'
+import { encode } from '@/auth/JWT'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
-import { OptInType } from '@enum/OptInType'
-import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
+import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
+import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -47,14 +55,6 @@ import {
   EventActivateAccount,
 } from '@/event/Event'
 import { getUserCreation, getUserCreations } from './util/creations'
-import { UserContactType } from '../enum/UserContactType'
-import { UserRepository } from '@/typeorm/repository/User'
-import { SearchAdminUsersResult } from '@model/AdminUser'
-import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
-import Paginated from '@arg/Paginated'
-import { Order } from '@enum/Order'
-import { v4 as uuidv4 } from 'uuid'
-import SearchUsersArgs from '@arg/SearchUsersArgs'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -460,7 +460,7 @@ export class UserResolver {
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
-        const contributionLink = await dbContributionLink.findOne({
+        const contributionLink = await DbContributionLink.findOne({
           code: redeemCode.replace('CL-', ''),
         })
         logger.info('redeemCode found contributionLink=' + contributionLink)
@@ -469,7 +469,7 @@ export class UserResolver {
           eventRedeemRegister.contributionId = contributionLink.id
         }
       } else {
-        const transactionLink = await dbTransactionLink.findOne({ code: redeemCode })
+        const transactionLink = await DbTransactionLink.findOne({ code: redeemCode })
         logger.info('redeemCode found transactionLink=' + transactionLink)
         if (transactionLink) {
           dbUser.referrerId = transactionLink.userId
