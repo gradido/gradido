@@ -47,7 +47,7 @@
     </b-container>
     <b-container>
       <div class="h3">{{ $t('contact') }}</div>
-      <b-link href="mailto: abc@example.com">{{ supportMail }}</b-link>
+      <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
     </b-container>
     <!-- 
     <hr />
