@@ -281,7 +281,6 @@ export const checkEmailVerificationCode = async (
 }
 
 export const activationLink = (verificationCode: BigInt): string => {
-  logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
 }
 
@@ -583,7 +582,7 @@ export class UserResolver {
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
-  async forgotPassword(@Arg('email') email: string): Promise<boolean> {
+  async forgotPassword(@Arg('email') email: string, @Arg('code') code?: string): Promise<boolean> {
     logger.addContext('user', 'unknown')
     logger.info(`forgotPassword(${email})...`)
     email = email.trim().toLowerCase()
@@ -608,8 +607,14 @@ export class UserResolver {
     // optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
     logger.info(`optInCode for ${email}=${dbUserContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+    const activationLink = CONFIG.EMAIL_LINK_SETPASSWORD.replace(
+      /{optin}/g,
+      dbUserContact.emailVerificationCode.toString(),
+    ).replace(/{code}/g, code ? '/' + code : '')
+
     const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink(dbUserContact.emailVerificationCode),
+      link: activationLink,
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -619,7 +624,7 @@ export class UserResolver {
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(dbUserContact.emailVerificationCode)}`)
+      logger.debug(`Reset password link: ${activationLink}`)
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
