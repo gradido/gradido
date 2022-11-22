@@ -1,5 +1,19 @@
 {
   "emails": {
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
+      "linkToYourAccount": "Link zu deinem Konto:",
+      "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
+      "subject": "Gradido: Nachricht zu deinem Gemeinwohl-Beitrag",
+      "toSeeAndAnswerMessage": "Um die Nachricht zu sehen und darauf zu antworten, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+    },
+    "accountActivation": {
+      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
+      "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
+      "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
+      "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
+      "subject": "Gradido: E-Mail Überprüfung"
+    },
     "accountMultiRegistration": {
       "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
       "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
@@ -10,15 +24,8 @@
     },
     "general": {
       "helloName": "Hallo {firstName} {lastName},",
-      "sincerelyYours": "Mit freundlichen Grüßen,",
+      "sincerelyYours": "Liebe Grüße",
       "yourGradidoTeam": "dein Gradido-Team"
-    },
-    "sendAccountActivation": {
-      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
-      "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
-      "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
-      "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
-      "subject": "Gradido: E-Mail Überprüfung"
     }
   }
 }

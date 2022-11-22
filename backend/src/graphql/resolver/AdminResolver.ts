@@ -40,7 +40,10 @@ import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
 import { findUserByEmail, activationLink, getTimeDurationObject } from './UserResolver'
-import { sendAccountActivationEmail } from '@/emails/sendEmailVariants'
+import {
+  sendAddedContributionMessageEmail,
+  sendAccountActivationEmail,
+} from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
 import {
@@ -65,7 +68,6 @@ import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
-import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
@@ -896,15 +898,13 @@ export class AdminResolver {
       }
 
       await sendAddedContributionMessageEmail({
+        firstName: contribution.user.firstName,
+        lastName: contribution.user.lastName,
+        email: contribution.user.emailContact.email,
+        language: contribution.user.language,
         senderFirstName: user.firstName,
         senderLastName: user.lastName,
-        recipientFirstName: contribution.user.firstName,
-        recipientLastName: contribution.user.lastName,
-        recipientEmail: contribution.user.emailContact.email,
-        senderEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
-        message,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
       await queryRunner.commitTransaction()
     } catch (e) {
