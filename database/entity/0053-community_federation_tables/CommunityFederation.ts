@@ -33,8 +33,8 @@ export class CommunityFederation extends BaseEntity {
   @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
   pubKey: Buffer
 
-  @Column({ name: 'public_key_verified_at', default: null, nullable: true })
-  pubKeyVerifiedAt: Date
+  @Column({ name: 'public_key_verified_at', type: 'datetime', nullable: true, default: null })
+  pubKeyVerifiedAt: Date | null
 
   @Column({ name: 'authenticated_at', default: null, nullable: true })
   authenticatedAt: Date
