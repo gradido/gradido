@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
 import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
@@ -27,7 +28,7 @@ const communityDbUser: dbUser = {
   publisherId: 0,
   passphrase: '',
   // default password encryption type
-  passwordEncryptionType: 0,
+  passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },
