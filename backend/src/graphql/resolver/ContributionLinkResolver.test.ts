@@ -110,7 +110,7 @@ describe('Contribution Links', () => {
   describe('authenticated', () => {
     describe('without admin rights', () => {
       beforeAll(async () => {
-        user = await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, bibiBloxberg)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
