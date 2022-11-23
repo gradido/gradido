@@ -13,8 +13,42 @@ import {
   requestOpenConnectOneTime,
   requestOpenConnectRedirect,
 } from '../client/v0/OpenConnectClient'
+import {
+  decryptMessage,
+  encryptMessage,
+  SecretKeyCryptographyDecrypt,
+  SecretKeyCryptographyEncrypt,
+  testEncryptDecrypt,
+} from '@/util/encryptionTools'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
+
+export async function testKeyPairCryptography(
+  homeCom: FdCommunity,
+  publicKey: Buffer,
+  privateKey: Buffer,
+): Promise<void> {
+  logger.debug(
+    `testKeyPairCryptography(pubKey=${publicKey.toString('hex')}, privKey=${privateKey.toString(
+      'hex',
+    )})`,
+  )
+
+  testEncryptDecrypt(homeCom.uuid, publicKey, privateKey)
+  /*
+  const encryptedUuid = await encryptMessage(privateKey, Buffer.from(homeCom.uuid)) // encryptMessage(privateKey, publicKey, homeCom.uuid)
+  logger.debug(`encryptedUuid = ${encryptedUuid.toString('hex')}=${encryptedUuid.length}`)
+  logger.debug(`homeCom.uuid  = ${homeCom.uuid}`)
+
+  const decryptedUuid = await decryptMessage(publicKey, encryptedUuid) // await decryptMessage(privateKey, publicKey, encryptedUuid)
+  logger.debug(`decryptedUUid = ${decryptedUuid}`)
+  logger.debug(`homeCom.uuid  = ${homeCom.uuid}`)
+  if (homeCom.uuid !== decryptedUuid.toString('hex')) {
+    logger.debug(`!!! gryptography of privateKey is not identic !!!`)
+  }
+  */
+  logger.debug(`testKeyPairCryptography()...successful`)
+}
 
 export async function startFederationHandshake(
   homeCom: FdCommunity,
@@ -28,20 +62,29 @@ export async function startFederationHandshake(
     const respondedPubKey = await requestGetPublicKey(fedCom)
     if (respondedPubKey && respondedPubKey === fedCom.publicKey) {
       logger.info(`## Federation-Handshake: received identic PubKey from RemoteCommunity...`)
-      setFedComPubkeyVerifiedAt(fedCom.id, respondedPubKey)
+      await setFedComPubkeyVerifiedAt(respondedPubKey, new Date())
       logger.info(`## Federation-Handshake: store PublicKey VerificationTime...`)
+    } else {
+      logger.warn(`## Federation-Handshake: received NOT an identic PubKey from RemoteCommunity...`)
+      // fedCom url doesn't match with publicKey, so remove fedCom from database
+      await deleteForeignFedComAndApiVersionEntries(fedCom.id)
+      return
     }
 
-    logger.info(`## FederationHandshake: requestOpenConnect...`)
-    const respondedOpenConnect = await requestOpenConnect(homeCom, fedCom)
-    if (!respondedOpenConnect) {
-      logger.error(`## Federation-Handshake: requestOpenConnect... FALSE`)
-      // fedCom doesn't know homeCome, so remove fedCom from database
-      await deleteForeignFedComAndApiVersionEntries(fedCom.id)
+    if (CONFIG.FEDERATE_WITH_OPENCONNECT) {
+      logger.info(`## FederationHandshake: requestOpenConnect...`)
+      const respondedOpenConnect = await requestOpenConnect(homeCom, fedCom)
+      if (!respondedOpenConnect) {
+        logger.error(`## Federation-Handshake: requestOpenConnect... FALSE`)
+        // fedCom doesn't know homeComes publicKey yet, so reset fedCom.pubKeyVerifiedAt to enable Handshake again
+        await setFedComPubkeyVerifiedAt(respondedPubKey, null)
+      } else {
+        logger.info(`## Federation-Handshake: requestOpenConnect... successful`)
+      }
+      // further handshake actions per request-response loops in FederationClient and -Resolver
     } else {
-      logger.info(`## Federation-Handshake: requestOpenConnect... successful`)
+      logger.info(`Federation OpenConnect switched off per configuration...`)
     }
-    // further handshake actions per request-response loops in FederationClient and -Resolver
   } catch (err) {
     logger.error(`error during federationHandshake: err=${JSON.stringify(err)}`)
   }
@@ -62,7 +105,7 @@ export async function startRedirectRequestLoop(
     logger.error(`Error on storing OneTimeCode in FedCom=${JSON.stringify(fedCom)}`)
   }
 
-  const redirectUrl = `${CONFIG.FEDERATE_COMMUNITY_REDIRECT_URL}:${CONFIG.FEDERATE_COMMUNITY_REDIRECT_PORT}/${CONFIG.FEDERATE_COMMUNITY_REDIRECT_ENDPOINT}`
+  const redirectUrl = `${CONFIG.FEDERATE_COMMUNITY_REDIRECT_URL}:${CONFIG.FEDERATE_COMMUNITY_REDIRECT_PORT}/${CONFIG.FEDERATE_COMMUNITY_APIVERSION}_${CONFIG.FEDERATE_COMMUNITY_REDIRECT_ENDPOINT}`
   const respondedOpenConnectRedirect = await requestOpenConnectRedirect(
     oneTimeCode,
     redirectUrl,
@@ -86,13 +129,17 @@ export async function startOneTimeRequestLoop(
   logger.info(
     `## Federation-OneTimeLoop: startOneTimeRequestLoop(homeComId=${homeCom.id}, oneTimeCode=${oneTimeCode}, decryptedRemoteUrl=${decryptedRedirectUrl})...`,
   )
-  const respondedOpenConnectOneTime = await requestOpenConnectOneTime(
+  const respondedRemoteUuid = await requestOpenConnectOneTime(
     homeCom,
     fedCom,
     oneTimeCode,
     decryptedRedirectUrl,
   )
-  if (!respondedOpenConnectOneTime) {
+  if (respondedRemoteUuid) {
+    logger.debug(`respondedRemoteUuid=${respondedRemoteUuid}`)
+    fedCom.uuid = respondedRemoteUuid
+    await setFedComUUID(fedCom)
+  } else {
     logger.error(`## Federation-OneTimeLoop: requestOpenConnectOneTime()...FALSE`)
   }
   logger.info(`## ## Federation-OneTimeLoop: requestOpenConnectOneTime()()... successful`)
