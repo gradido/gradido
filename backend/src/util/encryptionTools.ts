@@ -41,19 +41,20 @@ export const SecretKeyCryptographyDecrypt = (
   encryptedMessage: Buffer,
   encryptionKey: Buffer,
 ): Buffer => {
-  logger.trace('SecretKeyCryptographyDecrypt...')
+  logger.debug('SecretKeyCryptographyDecrypt...')
   const message = Buffer.alloc(encryptedMessage.length - sodium.crypto_secretbox_MACBYTES)
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   nonce.fill(31) // static nonce
-
+  logger.debug(`message=${message}, nonce=${nonce}`)
   sodium.crypto_secretbox_open_easy(message, encryptedMessage, nonce, encryptionKey)
+  logger.debug(`decrypted message=${message}`)
 
   logger.debug(`SecretKeyCryptographyDecrypt...successful`)
   return message
 }
 
 export const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace('SecretKeyCryptographyCreateKey...')
+  logger.debug(`SecretKeyCryptographyCreateKey(salt=${salt}, password=${password})...`)
   const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
   const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
   if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
@@ -128,6 +129,180 @@ export const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
+export async function createKeyPair(uuid: string): Promise<{ publicKey: any; privateKey: any }> {
+  const keypair = {
+    publicKey: sodium.sodium_malloc(sodium.crypto_box_PUBLICKEYBYTES),
+    privateKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
+  }
+  const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
+  logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
+  const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
+  seed.write(uuidAsSeed, 'hex')
+  sodium.crypto_box_seed_keypair(keypair.publicKey, keypair.privateKey, seed)
+  logger.debug(`createKeyPair(seed=${uuid})...successful`)
+  return keypair
+}
+
+export const uuidAsSeed = (uuid: string): Buffer => {
+  const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
+  logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
+  const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
+  seed.write(uuidAsSeed, 'hex')
+  return seed
+}
+
+export async function testEncryptDecrypt(
+  uuid: string,
+  pubKey: Buffer,
+  privKey: Buffer,
+): Promise<void> {
+  logger.debug(`uuid=${uuid}, pubKey=${pubKey.toString('hex')}, privKey=${privKey.toString('hex')}`)
+
+  // Generate keys
+  const skeypair = {
+    publicKey: sodium.sodium_malloc(sodium.crypto_box_PUBLICKEYBYTES),
+    privateKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
+  }
+  const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
+  logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
+  const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
+  seed.write(uuidAsSeed, 'hex')
+
+  const sender = sodium.crypto_box_seed_keypair(skeypair.publicKey, skeypair.privateKey, seed) // crypto_box_keypair()
+
+  const rkeypair = {
+    publicKey: sodium.sodium_malloc(sodium.crypto_box_PUBLICKEYBYTES),
+    privateKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
+  }
+  const receiver = sodium.crypto_box_seed_keypair(rkeypair.publicKey, rkeypair.privateKey, seed)
+
+  // Generate random nonce
+  const nonce = Buffer.allocUnsafe(sodium.crypto_box_NONCEBYTES)
+  sodium.randombytes_buf(nonce)
+
+  // Encrypt
+  const plainText = Buffer.from(uuid, 'hex')
+  const cipherMsg = Buffer.alloc(plainText.length + sodium.crypto_box_MACBYTES)
+  sodium.crypto_box_easy(cipherMsg, plainText, nonce, rkeypair.publicKey, skeypair.privateKey)
+
+  // Decrypt
+  const plainBuffer = Buffer.alloc(cipherMsg.length - sodium.crypto_box_MACBYTES)
+  sodium.crypto_box_open_easy(
+    plainBuffer,
+    cipherMsg,
+    nonce,
+    skeypair.publicKey,
+    rkeypair.privateKey,
+  )
+
+  // We should get the same plainText!
+  if (plainBuffer.toString() === plainText.toString()) {
+    logger.debug(`Message decrypted correctly`)
+  }
+}
+
+export async function encryptMessage(
+  ownPrivKey: Buffer,
+  foreignPubKey: Buffer,
+  msgBuf: Buffer,
+): Promise<Buffer> {
+  logger.debug(
+    `encryptMessage(privKey=${ownPrivKey.toString('hex')}, foreignPubKey=${foreignPubKey.toString(
+      'hex',
+    )}, msgBuf=${msgBuf.toString('hex')})...`,
+  )
+
+  logger.debug(`msgBuf=${msgBuf.toString('hex')}=${msgBuf.length}`)
+  logger.debug(`crypto_secretbox_MACBYTES=${sodium.crypto_secretbox_MACBYTES}`)
+  logger.debug(`msgBuf=${JSON.stringify(msgBuf)}=${msgBuf.length}`)
+
+  // Generate random nonce
+  const nonce = Buffer.allocUnsafe(sodium.crypto_box_NONCEBYTES)
+  sodium.randombytes_buf(nonce)
+
+  // Encrypt
+  const cipherMsg = Buffer.alloc(msgBuf.length + sodium.crypto_box_MACBYTES)
+  sodium.crypto_box_easy(cipherMsg, msgBuf, nonce, foreignPubKey, ownPrivKey)
+
+  /*
+  const decryptedMsgBuf = sodium.sodium_malloc(msgBuf.length + sodium.crypto_secretbox_MACBYTES) // Buffer.alloc(msg.length + sodium.crypto_box_MACBYTES) // Buffer length of any length
+  const nonceBuf = sodium.sodium_malloc(sodium.crypto_secretbox_NONCEBYTES) // Buffer.alloc(sodium.crypto_box_NONCEBYTES).fill(31) // static nonce
+  sodium.randombytes_buf(nonceBuf) // insert random data into nonce
+  logger.debug(`nonceBuf=${nonceBuf.toString('hex')}=${nonceBuf.length}`)
+
+  // sodium.crypto_secretbox_easy(c, m, n, sk)
+  sodium.crypto_secretbox_easy(decryptedMsgBuf, msgBuf, nonceBuf, privKey)
+  logger.debug(`decryptedMsgBuf=${decryptedMsgBuf.toString('hex')}=${decryptedMsgBuf.length}`)
+  */
+  const returnBuf = sodium.sodium_malloc(nonce.length + cipherMsg.length)
+  returnBuf.write(nonce.toString('hex') + cipherMsg.toString('hex'), 'hex')
+
+  logger.debug(`nonceBuf=${nonce.toString('hex')}=${nonce.length}`)
+  logger.debug(`returnBuf=${returnBuf.toString('hex')}=${returnBuf.length}`)
+  return returnBuf
+}
+
+export async function decryptMessage(
+  ownPrivKey: Buffer,
+  foreignPubKey: Buffer,
+  msgBuf: Buffer,
+): Promise<Buffer> {
+  logger.debug(
+    `decryptMessage(ownPrivKey=${ownPrivKey.toString(
+      'hex',
+    )}, foreignPubKey=${foreignPubKey.toString('hex')}, msgBuf=${msgBuf.toString('hex')}=${
+      msgBuf.length
+    })...`,
+  )
+  logger.debug(
+    `msgBuf=${msgBuf.toString('hex')}=${msgBuf.length}, NONCEBYTES=${
+      sodium.crypto_secretbox_NONCEBYTES
+    }`,
+  )
+
+  const nonce = sodium.sodium_malloc(sodium.crypto_secretbox_NONCEBYTES)
+  nonce.write(msgBuf.toString('hex').slice(0, sodium.crypto_secretbox_NONCEBYTES), 'hex')
+  const encryptedMsgBuf = sodium.sodium_malloc(msgBuf.length - sodium.crypto_secretbox_NONCEBYTES)
+  encryptedMsgBuf.write(
+    msgBuf.toString('hex').slice(sodium.crypto_secretbox_NONCEBYTES, msgBuf.length),
+    'hex',
+  )
+  logger.debug(`nonceBuf=${nonce.toString('hex')}=${nonce.length}`)
+  logger.debug(`encryptedMsgBuf  =${encryptedMsgBuf.toString('hex')}=${encryptedMsgBuf.length}`)
+
+  // Decrypt
+  const plainBuffer = Buffer.alloc(msgBuf.length - sodium.crypto_box_MACBYTES)
+  sodium.crypto_box_open_easy(plainBuffer, msgBuf, nonce, foreignPubKey, ownPrivKey)
+
+  /*
+  const decryptedMsgBuf = sodium.sodium_malloc(
+    encryptedMsgBuf.length - sodium.crypto_secretbox_MACBYTES,
+  ) // Buffer.alloc(msg.length - sodium.crypto_box_MACBYTES)
+  if (!sodium.crypto_secretbox_open_easy(decryptedMsgBuf, encryptedMsgBuf, nonceBuf, pubKey)) {
+    logger.debug('Decryption failed!')
+  } else {
+    logger.debug('Decrypted message:', decryptedMsgBuf, '(' + decryptedMsgBuf.toString() + ')')
+  }
+  */
+
+  // const bool = sodium.crypto_box_open_easy(decryptedMsgBuf, msgBuf, nonceBuf, pubKey, privKey)
+  //           sodium.crypto_box_open_easy(m, c, n, pk, sk)
+  /*
+  var nonce = payload.slice(0, sodium.crypto_box_NONCEBYTES);
+  var encodedMessage = payload.slice(nonce.length, payload.length);
+
+  var decodedMessage = sodium.crypto_box_open_easy(encodedMessage, nonce, publicKey, secretKey);
+
+  var string = bytes_to_utf8(decodedMessage);
+  // return toJSON ? JSON.parse(string) : string;
+  logger.debug(
+    `decryptMessage()...successful=${bool}: encryptedMsgBuf=${decryptedMsgBuf.toString()})`,
+  )
+  */
+  return plainBuffer
+}
+
+/*
 export const encryptCommunityPrivateKey = (
   privKey: Buffer,
   uuid: string,
@@ -150,3 +325,4 @@ export const decryptCommunityPrivateKey = (
   logger.trace('Community privateKey decrypted ...')
   return privKey
 }
+*/
