@@ -4,7 +4,7 @@ import { FdCommunity } from '@/federation/graphql/v0/model/FdCommunity'
 
 export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | undefined> {
   let endpoint = fdCom.url.endsWith('/') ? fdCom.url : fdCom.url + '/'
-  endpoint = `${endpoint}graphql/v${fdCom.apiVersion}_getPublicKey`
+  endpoint = `${endpoint}graphql/${fdCom.apiVersion}_getPublicKey`
   logger.info(`requestGetPublicKey with endpoint='${endpoint}'...`)
 
   const graphQLClient = new GraphQLClient(endpoint, {
@@ -17,7 +17,7 @@ export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | 
   logger.info(`graphQLClient=${JSON.stringify(graphQLClient)}`)
   const query = gql`
     query {
-      getPublicKey {
+      v0_getPublicKey {
         publicKey
       }
     }
@@ -26,14 +26,24 @@ export async function requestGetPublicKey(fdCom: FdCommunity): Promise<string | 
   const variables = {}
 
   try {
-    const data = await graphQLClient.request(query, variables)
-    logger.info(`Response-Data: ${JSON.stringify(data)}`)
+    const { data, errors, extensions, headers, status } = await graphQLClient.rawRequest(
+      query,
+      variables,
+    )
+    logger.debug(
+      `Response-Data: ${JSON.stringify(
+        { data, errors, extensions, headers, status },
+        undefined,
+        2,
+      )}`,
+    )
     if (data) {
-      const json = JSON.parse(data.toString('ascii'))
-      logger.info(`Response-Data: ${json}`)
-      return json.publicKey
+      logger.debug(`Response-PublicKey: ${data.v0_getPublicKey.publicKey}`)
+      logger.info(`requestGetPublicKey processed successfully`)
+      return data.v0_getPublicKey.publicKey
     }
-    logger.info(`requestGetPublicKey processed successfully`)
+    logger.warn(`requestGetPublicKey processed without response data`)
+    return undefined
   } catch (err) {
     logger.error(`Request-Error: ${JSON.stringify(err)}`)
   }
