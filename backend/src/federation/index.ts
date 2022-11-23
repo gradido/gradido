@@ -6,7 +6,8 @@ import DHT from '@hyperswarm/dht'
 import { backendLogger as logger } from '@/server/logger'
 import { addFederationCommunity, resetFederationTables } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
-import { startFederationHandshake } from './control/HandshakeControler'
+import { startFederationHandshake, testKeyPairCryptography } from './control/HandshakeControler'
+import { uuidAsSeed } from '@/util/encryptionTools'
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -21,16 +22,28 @@ export const startDHT = async (
     logger.info(`start DHT-HyperSwarm with topic=${topic}...`)
     const TOPIC = DHT.hash(Buffer.from(topic))
 
-    const keyPair = DHT.keyPair()
+    // const keyPair = DHT.keyPair()
 
     const homeCom = await resetFederationTables(
       CONFIG.FEDERATE_COMMUNITY_NAME,
       `${CONFIG.FEDERATE_COMMUNITY_URL}:${CONFIG.FEDERATE_COMMUNITY_PORT}/`,
       CONFIG.COMMUNITY_DESCRIPTION,
-      keyPair.publicKey,
-      keyPair.secretKey,
     )
     logger.info(`my Federation HomeCommunity=${JSON.stringify(homeCom)}`)
+    const pubKey = Buffer.from(homeCom.publicKey, 'hex')
+    const privKey = Buffer.from(homeCom.privKey, 'hex')
+    const keyPair = DHT.keyPair(uuidAsSeed(homeCom.uuid))
+    logger.debug(`homeCom: pubKey=${pubKey}, privKey=${privKey}`)
+    logger.debug(`keyPair: ${JSON.stringify(keyPair)}`)
+    /*
+    const keyPair = {
+      publicKey: Buffer.from(homeCom.publicKey, 'hex'),
+      privateKey: Buffer.from(homeCom.privKey, 'hex'),
+    }
+    */
+    // const keyPair = [pubKey, privKey]
+    await testKeyPairCryptography(homeCom, keyPair.publicKey, keyPair.secretKey)
+
     const node = new DHT({ keyPair })
 
     const server = node.createServer()
@@ -47,9 +60,21 @@ export const startDHT = async (
         const json = JSON.parse(data.toString('ascii'))
         if (json.api && json.url) {
           try {
-            const newFed = await addFederationCommunity(socket.remotePublicKey, json.api, json.url)
-            if (newFed) {
-              logger.info(`new Remote-Community stored, start FederationHandshake...`)
+            const startHandshake = await addFederationCommunity(
+              socket.remotePublicKey,
+              json.api,
+              json.url,
+            )
+            logger.debug(
+              `addFederationCommunity with pubKey=${Buffer.from(
+                socket.remotePublicKey,
+                'hex',
+              )}, url=${json.url} and api=${json.api}`,
+            )
+            if (startHandshake) {
+              logger.info(
+                `remote Community exists in database and has to be verified per FederationHandshake...`,
+              )
               // no await for async function, because handshake runs async from the DHT federation
               startFederationHandshake(homeCom, socket.remotePublicKey)
             }
