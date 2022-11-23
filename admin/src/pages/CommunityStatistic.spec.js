@@ -64,16 +64,34 @@ describe('CommunityStatistic', () => {
     })
 
     describe('server response for getting statistics is success', () => {
-      it('has received the correct data', () => {
-        expect(wrapper.vm.statistics.activeUsers).toEqual(1057)
-        expect(wrapper.vm.statistics.deletedUsers).toEqual(35)
-        expect(wrapper.vm.statistics.totalGradidoAvailable).toEqual('2513565.869444365732411569')
-        expect(wrapper.vm.statistics.totalGradidoCreated).toEqual('4083774.05000000000000000000')
-        expect(wrapper.vm.statistics.totalGradidoDecayed).toEqual('-1062639.13634129622923372197')
-        expect(wrapper.vm.statistics.totalGradidoUnbookedDecayed).toEqual(
+      it('renders the data correctly', () => {
+        expect(wrapper.findAll('tr').at(1).findAll('td').at(1).text()).toEqual('3113')
+        expect(wrapper.findAll('tr').at(2).findAll('td').at(1).text()).toEqual('1057')
+        expect(wrapper.findAll('tr').at(3).findAll('td').at(1).text()).toEqual('35')
+        expect(wrapper.findAll('tr').at(4).findAll('td').at(1).text()).toEqual(
+          '4083774.05000000000000000000 GDD',
+        )
+        expect(wrapper.findAll('tr').at(4).findAll('td').at(2).text()).toEqual(
+          '4083774.05000000000000000000',
+        )
+        expect(wrapper.findAll('tr').at(5).findAll('td').at(1).text()).toEqual(
+          '-1062639.13634129622923372197 GDD',
+        )
+        expect(wrapper.findAll('tr').at(5).findAll('td').at(2).text()).toEqual(
+          '-1062639.13634129622923372197',
+        )
+        expect(wrapper.findAll('tr').at(6).findAll('td').at(1).text()).toEqual(
+          '2513565.869444365732411569 GDD',
+        )
+        expect(wrapper.findAll('tr').at(6).findAll('td').at(2).text()).toEqual(
+          '2513565.869444365732411569',
+        )
+        expect(wrapper.findAll('tr').at(7).findAll('td').at(1).text()).toEqual(
+          '-500474.6738366222166261272 GDD',
+        )
+        expect(wrapper.findAll('tr').at(7).findAll('td').at(2).text()).toEqual(
           '-500474.6738366222166261272',
         )
-        expect(wrapper.vm.statistics.totalUsers).toEqual(3113)
       })
     })
   })
