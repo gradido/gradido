@@ -46,7 +46,6 @@ jest.mock('@/mailer/sendContributionConfirmedEmail', () => {
 let mutate: any, query: any, con: any
 let testEnv: any
 let creation: Contribution | void
-let user: User
 let admin: User
 let result: any
 
@@ -1009,7 +1008,7 @@ describe('ContributionResolver', () => {
     describe('authenticated', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
-          user = await userFactory(testEnv, bibiBloxberg)
+          await userFactory(testEnv, bibiBloxberg)
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -1168,7 +1167,7 @@ describe('ContributionResolver', () => {
 
           describe('user to create for is deleted', () => {
             beforeAll(async () => {
-              user = await userFactory(testEnv, stephenHawking)
+              await userFactory(testEnv, stephenHawking)
               variables.email = 'stephen@hawking.uk'
               variables.creationDate = contributionDateFormatter(
                 new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -1197,7 +1196,7 @@ describe('ContributionResolver', () => {
 
           describe('user to create for has email not confirmed', () => {
             beforeAll(async () => {
-              user = await userFactory(testEnv, garrickOllivander)
+              await userFactory(testEnv, garrickOllivander)
               variables.email = 'garrick@ollivander.com'
               variables.creationDate = contributionDateFormatter(
                 new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -1226,7 +1225,7 @@ describe('ContributionResolver', () => {
 
           describe('valid user to create for', () => {
             beforeAll(async () => {
-              user = await userFactory(testEnv, bibiBloxberg)
+              await userFactory(testEnv, bibiBloxberg)
               variables.email = 'bibi@bloxberg.de'
               variables.creationDate = 'invalid-date'
             })

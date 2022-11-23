@@ -28,7 +28,6 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 let user: User
-let admin: User
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -296,7 +295,7 @@ describe('TransactionLinkResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           // admin 'peter@lustig.de' has to exists for 'creationFactory'
-          admin = await userFactory(testEnv, peterLustig)
+          await userFactory(testEnv, peterLustig)
 
           user = await userFactory(testEnv, bibiBloxberg)
           variables.userId = user.id
