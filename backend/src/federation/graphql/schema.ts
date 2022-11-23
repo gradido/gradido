@@ -17,4 +17,4 @@ const schema = async (): Promise<GraphQLSchema> => {
 
 export default schema
 */
-export const federationResolvers = path.join(__dirname, './1.0/resolver/*Resolver.{ts,js}')
+export const federationResolvers = path.join(__dirname, './v0/resolver/*Resolver.{ts,js}')
