@@ -16,11 +16,13 @@ import {
 import OpenConnectRedirectArgs from '../arg/OpenConnectRedirectArgs'
 import OpenConnectOneTimeArgs from '../arg/OpenConnectOneTimeArgs'
 
+/* eslint camelcase: ["error", {allow: ["^v0_"]}] */
+
 @Resolver()
 export class OpenConnectResolver {
   @Authorized([RIGHTS.FEDERATE_OPEN_CONNECTION])
   @Query(() => Boolean)
-  async openConnect(
+  async v0_openConnect(
     @Args()
     { pubKey, encryptedUrl }: OpenConnectArgs,
   ): Promise<boolean> {
@@ -28,12 +30,24 @@ export class OpenConnectResolver {
     // first check if pubKey of rmoteCom exists in my database
     const fedCom = await readFederationCommunityByPubKey(pubKey)
     if (fedCom) {
+      logger.debug(`found fedCom=${JSON.stringify(fedCom)}`)
       const homeCom = await readHomeCommunity()
-      const decryptedRemoteUrl = SecretKeyCryptographyDecrypt(
+      logger.debug(`decrypt(encryptedUrl=${encryptedUrl}, privKey=${homeCom.privKey})`)
+
+      const decryptedRemoteUrlBuf = SecretKeyCryptographyDecrypt(
         Buffer.from(encryptedUrl, 'hex'),
         Buffer.from(homeCom.privKey, 'hex'),
-      ).toString('hex')
+      )
+      logger.debug(
+        `decryptedRemoteUrlBuf=${decryptedRemoteUrlBuf.toString('hex')} === fedCom.url=${
+          fedCom.url
+        }`,
+      )
+      const decryptedRemoteUrl = decryptedRemoteUrlBuf.toString('hex')
+      logger.debug(`decryptedRemoteUrlBuf=${decryptedRemoteUrl}`)
+
       if (decryptedRemoteUrl && decryptedRemoteUrl === fedCom.url) {
+        logger.debug(`matching PubKey and Url of remote fedCom...`)
         // here NO AWAIT to run in background
         startRedirectRequestLoop(homeCom, fedCom)
         return true
@@ -45,7 +59,7 @@ export class OpenConnectResolver {
 
   @Authorized([RIGHTS.FEDERATE_OPEN_CONNECTION_REDIRECT])
   @Query(() => Boolean)
-  async openConnectRedirect(
+  async v0_openConnectRedirect(
     @Args()
     { oneTimeCode, url, encryptedRedirectUrl }: OpenConnectRedirectArgs,
   ): Promise<boolean> {
@@ -65,7 +79,7 @@ export class OpenConnectResolver {
 
   @Authorized([RIGHTS.FEDERATE_OPEN_CONNECTION_ONETIME])
   @Query(() => Boolean)
-  async openConnectOneTime(
+  async v0_openConnectOneTime(
     @Args()
     { oneTimeCode, encryptedUuid }: OpenConnectOneTimeArgs,
   ): Promise<boolean> {
