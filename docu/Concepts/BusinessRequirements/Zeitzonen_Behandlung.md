@@ -247,7 +247,6 @@ Hier muss der User-TimeOffset berücksichtigt werden, um die korrekten drei Sch�
 
 Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem User-TimeOffset unterliegt. Auch dieses muss entsprechend beachtet und beim internen Aufruf von *validateContribution()* und dem Update der Contribution berücksichtigt werden.
 
-
 ### GdtResolver
 
 #### - existPid
