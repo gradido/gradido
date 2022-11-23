@@ -18,6 +18,8 @@ export class FdCommunity {
     this.description = descript
     if (dbFed) {
       this.publicKey = dbFed.pubKey.toString('hex')
+      this.verifiedAt = dbFed.pubKeyVerifiedAt
+      this.authenticatedAt = dbFed.authenticatedAt
     }
     if (dbApi) {
       this.apiVersion = dbApi.apiVersion
@@ -43,6 +45,12 @@ export class FdCommunity {
 
   @Field(() => Date)
   createdAt: Date
+
+  @Field(() => Date, { nullable: true })
+  verifiedAt: Date | null
+
+  @Field(() => Date, { nullable: true })
+  authenticatedAt: Date
 
   @Field(() => String)
   publicKey: string
