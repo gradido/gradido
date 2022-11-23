@@ -85,7 +85,6 @@
   "hide_details": "Hide details",
   "lastname": "Lastname",
   "math": {
-    "colon": ":",
     "equals": "=",
     "exclaim": "!",
     "pipe": "|",
@@ -104,6 +103,7 @@
     "my-account": "My Account",
     "open_creation": "Open creations",
     "overview": "Overview",
+    "statistic": "Statistic",
     "user_search": "User search"
   },
   "not_open_creations": "No open creations",
@@ -125,8 +125,9 @@
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Active members",
+    "count": "Count",
     "deletedUsers": "Deleted members",
-    "name": "Statistic",
+    "details": "Details",
     "totalGradidoAvailable": "Total GDD in circulation",
     "totalGradidoCreated": "Total created GDD",
     "totalGradidoDecayed": "Total GDD decay",

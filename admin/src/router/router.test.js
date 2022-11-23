@@ -44,8 +44,8 @@ describe('router', () => {
     })
 
     describe('routes', () => {
-      it('has seven routes defined', () => {
-        expect(routes).toHaveLength(8)
+      it('has nine routes defined', () => {
+        expect(routes).toHaveLength(9)
       })
 
       it('has "/overview" as default', async () => {
@@ -82,9 +82,16 @@ describe('router', () => {
       })
 
       describe('contribution-links', () => {
-        it('loads the "ContributionLinks" component', async () => {
+        it('loads the "ContributionLinks" page', async () => {
           const component = await routes.find((r) => r.path === '/contribution-links').component()
           expect(component.default.name).toBe('ContributionLinks')
+        })
+      })
+
+      describe('statistics', () => {
+        it('loads the "CommunityStatistic" page', async () => {
+          const component = await routes.find((r) => r.path === '/statistic').component()
+          expect(component.default.name).toBe('CommunityStatistic')
         })
       })
 
