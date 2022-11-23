@@ -39,7 +39,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       id int(10) unsigned NOT NULL AUTO_INCREMENT,
       community_federation_id int(10) unsigned NOT NULL,
       url varchar(255) NOT NULL,
-      api_version varchar(255) NOT NULL,
+      api_version varchar(10) NOT NULL,
       valid_from datetime(3) NOT NULL,
       verified_at datetime(3),
       PRIMARY KEY (id)
