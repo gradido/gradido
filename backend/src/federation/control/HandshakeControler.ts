@@ -1,7 +1,7 @@
 import {
   deleteForeignFedComAndApiVersionEntries,
-  readFederationCommunityByPubKey,
-  setFedComPubkeyVerifiedAt,
+  readFederationCommunityByDhtPubKey,
+  setFedComDhtPubkeyVerifiedAt,
   setFedComUUID,
 } from '@/dao/CommunityDAO'
 import { requestGetPublicKey } from '../client/v0/FederationClient'
@@ -52,18 +52,18 @@ export async function testKeyPairCryptography(
 
 export async function startFederationHandshake(
   homeCom: FdCommunity,
-  remotePublicKey: Buffer,
+  remoteDhtPublicKey: Buffer,
 ): Promise<void> {
   logger.info(`## Federation-Handshake: startFederationHandshake...`)
   try {
-    const fedCom = await readFederationCommunityByPubKey(remotePublicKey.toString('hex'))
+    const fedCom = await readFederationCommunityByDhtPubKey(remoteDhtPublicKey)
     logger.info(`## Federation-Handshake: Federation with fedCom=${JSON.stringify(fedCom)}...`)
 
-    const respondedPubKey = await requestGetPublicKey(fedCom)
-    if (respondedPubKey && respondedPubKey === fedCom.publicKey) {
+    const respondedDhtPubKey = await requestGetPublicKey(fedCom)
+    if (respondedDhtPubKey && respondedDhtPubKey === fedCom.dhtPublicKey) {
       logger.info(`## Federation-Handshake: received identic PubKey from RemoteCommunity...`)
-      await setFedComPubkeyVerifiedAt(respondedPubKey, new Date())
-      logger.info(`## Federation-Handshake: store PublicKey VerificationTime...`)
+      await setFedComDhtPubkeyVerifiedAt(Buffer.from(fedCom.dhtPublicKey), new Date())
+      logger.info(`## Federation-Handshake: store DhtPublicKey VerificationTime...`)
     } else {
       logger.warn(`## Federation-Handshake: received NOT an identic PubKey from RemoteCommunity...`)
       // fedCom url doesn't match with publicKey, so remove fedCom from database
@@ -77,7 +77,7 @@ export async function startFederationHandshake(
       if (!respondedOpenConnect) {
         logger.error(`## Federation-Handshake: requestOpenConnect... FALSE`)
         // fedCom doesn't know homeComes publicKey yet, so reset fedCom.pubKeyVerifiedAt to enable Handshake again
-        await setFedComPubkeyVerifiedAt(respondedPubKey, null)
+        await setFedComDhtPubkeyVerifiedAt(Buffer.from(fedCom.dhtPublicKey), null)
       } else {
         logger.info(`## Federation-Handshake: requestOpenConnect... successful`)
       }
