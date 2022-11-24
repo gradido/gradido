@@ -13,7 +13,7 @@ export class FederationResolver {
   async v0_getPublicKey(): Promise<GetPublicKeyResult> {
     logger.info(`getPublicKey()...`)
     const fdCom = await readHomeCommunity()
-    logger.info(`getPublicKey()... with publicKey=${fdCom.publicKey}`)
-    return new GetPublicKeyResult(fdCom.publicKey)
+    logger.info(`getPublicKey()... with dhtPublicKey=${fdCom.dhtPublicKey}`)
+    return new GetPublicKeyResult(fdCom.dhtPublicKey.toString())
   }
 }
