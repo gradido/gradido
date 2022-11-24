@@ -19,7 +19,7 @@ import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
 import CONFIG from '@/config'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { printTimeDuration, activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -29,13 +29,16 @@ import { TransactionLink } from '@entity/TransactionLink'
 
 import { EventProtocolType } from '@/event/EventProtocolType'
 import { EventProtocol } from '@entity/EventProtocol'
-import { logger } from '@test/testSetup'
+import { logger, i18n as localization } from '@test/testSetup'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { UserContact } from '@entity/UserContact'
 import { OptInType } from '../enum/OptInType'
 import { UserContactType } from '../enum/UserContactType'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { encryptPassword } from '@/password/PasswordEncryptor'
+import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
+import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 
 // import { klicktippSignIn } from '@/apis/KlicktippController'
 
@@ -46,7 +49,7 @@ jest.mock('@/mailer/sendAccountActivationEmail', () => {
   }
 })
 
-jest.mock('@/mailer/sendAccountMultiRegistrationEmail', () => {
+jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
     sendAccountMultiRegistrationEmail: jest.fn(),
@@ -73,7 +76,7 @@ let mutate: any, query: any, con: any
 let testEnv: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment(logger, localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -146,6 +149,7 @@ describe('UserResolver', () => {
               publisherId: 1234,
               referrerId: null,
               contributionLinkId: null,
+              passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
             },
           ])
           const valUUID = validateUUID(user[0].gradidoID)
@@ -213,6 +217,7 @@ describe('UserResolver', () => {
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
+          language: 'de',
         })
       })
 
@@ -490,7 +495,8 @@ describe('UserResolver', () => {
       })
 
       it('updates the password', () => {
-        expect(newUser.password).toEqual('3917921995996627700')
+        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+        expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
       /*
@@ -1151,6 +1157,93 @@ describe('UserResolver', () => {
                     lastName: 'Lustig',
                   }),
                 ]),
+              },
+            },
+          }),
+        )
+      })
+    })
+  })
+
+  describe('password encryption type', () => {
+    describe('user just registered', () => {
+      let bibi: User
+
+      it('has password type gradido id', async () => {
+        const users = await User.find()
+        bibi = users[1]
+
+        expect(bibi).toEqual(
+          expect.objectContaining({
+            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+              .readBigUInt64LE()
+              .toString(),
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          }),
+        )
+      })
+    })
+
+    describe('user has encryption type email', () => {
+      const variables = {
+        email: 'bibi@bloxberg.de',
+        password: 'Aa12345_',
+        publisherId: 1234,
+      }
+
+      let bibi: User
+      beforeAll(async () => {
+        const usercontact = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        bibi = usercontact.user
+        bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
+        bibi.password = SecretKeyCryptographyCreateKey(
+          'bibi@bloxberg.de',
+          'Aa12345_',
+        )[0].readBigUInt64LE()
+
+        await bibi.save()
+      })
+
+      it('changes to gradidoID on login', async () => {
+        await mutate({ mutation: login, variables: variables })
+
+        const usercontact = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        bibi = usercontact.user
+
+        expect(bibi).toEqual(
+          expect.objectContaining({
+            firstName: 'Bibi',
+            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+              .readBigUInt64LE()
+              .toString(),
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          }),
+        )
+      })
+
+      it('can login after password change', async () => {
+        resetToken()
+        expect(await mutate({ mutation: login, variables: variables })).toEqual(
+          expect.objectContaining({
+            data: {
+              login: {
+                email: 'bibi@bloxberg.de',
+                firstName: 'Bibi',
+                hasElopage: false,
+                id: expect.any(Number),
+                isAdmin: null,
+                klickTipp: {
+                  newsletterState: false,
+                },
+                language: 'de',
+                lastName: 'Bloxberg',
+                publisherId: 1234,
               },
             },
           }),
