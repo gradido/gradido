@@ -30,7 +30,16 @@
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
       </b-form-datepicker>
-      <validation-provider
+      <div v-if="validMaxGDD > 0">
+        <input-textarea
+          v-model="form.memo"
+          :name="$t('form.message')"
+          :label="$t('contribution.activity')"
+          :placeholder="$t('contribution.yourActivity')"
+          :rules="{ required: true, min: 5, max: 255 }"
+        />
+
+        <!-- <validation-provider
         :rules="{
           min: minlength,
           max: maxlength,
@@ -49,28 +58,40 @@
         <b-col v-if="errors">
           <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
         </b-col>
-      </validation-provider>
-      <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
-      <b-input-group size="lg" prepend="GDD">
-        <b-form-input
-          id="contribution-amount"
+      </validation-provider> -->
+        <input-amount
           v-model="form.amount"
-          type="text"
-          :formatter="numberFormat"
-        ></b-form-input>
-      </b-input-group>
-      <div
-        v-if="isThisMonth && parseInt(form.amount) > parseInt(maxGddThisMonth)"
-        class="text-danger text-right"
-      >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddThisMonth }) }}
+          :name="$t('form.amount')"
+          :label="$t('form.amount')"
+          :placeholder="'20'"
+          :rules="{ required: true, gddSendAmount: [20, validMaxGDD] }"
+          typ="ContributionForm"
+        ></input-amount>
       </div>
-      <div
-        v-if="!isThisMonth && parseInt(form.amount) > parseInt(maxGddLastMonth)"
-        class="text-danger text-right"
+      <div v-else class="mb-5">{{ $t('contribution.exhausted') }}</div>
+      <!-- <validation-provider
+        :name="$t('form.amount')"
+        :rules="{
+          required: true,
+          gddSendAmount: [0.01, validMaxGDD],
+        }"
+        v-slot="{ errors }"
       >
-        {{ $t('contribution.formText.maxGDDforMonth', { amount: maxGddLastMonth }) }}
-      </div>
+        <label class="mt-3">{{ $t('form.amount') }} {{ $t('math.asterisk') }}</label>
+        <b-input-group size="lg" prepend="GDD">
+          <b-form-input
+            id="contribution-amount"
+            v-model="form.amount"
+            type="number"
+            :formatter="numberFormat"
+            :max="validMaxGDD"
+            required
+          ></b-form-input>
+        </b-input-group>
+        <b-col v-if="errors">
+          <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
+        </b-col>
+      </validation-provider> -->
       <b-row class="mt-3">
         <b-col>
           <b-button type="reset" variant="secondary" @click="reset" data-test="button-cancel">
@@ -88,10 +109,17 @@
   </div>
 </template>
 <script>
+import InputAmount from '@/components/Inputs/InputAmount.vue'
+import InputTextarea from '@/components/Inputs/InputTextarea.vue'
+
 const PATTERN_NON_DIGIT = /\D/g
 
 export default {
   name: 'ContributionForm',
+  components: {
+    InputAmount,
+    InputTextarea,
+  },
   props: {
     value: { type: Object, required: true },
     updateAmount: { type: String, required: false },
@@ -139,6 +167,7 @@ export default {
         this.form.date === '' ||
         this.form.memo.length < this.minlength ||
         this.form.memo.length > this.maxlength ||
+        this.form.amount === '' ||
         parseInt(this.form.amount) <= 0 ||
         parseInt(this.form.amount) > 1000 ||
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
@@ -163,6 +192,9 @@ export default {
       return this.form.id && this.isThisMonth
         ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
         : this.$store.state.creation[2]
+    },
+    validMaxGDD() {
+      return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)
     },
   },
 }

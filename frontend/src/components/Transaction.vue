@@ -1,80 +1,42 @@
 <template>
   <div>
     <div class="list-group">
-      <div class="list-group-item gdt-transaction-list-item" v-b-toggle="collapseId">
-        <!-- icon  -->
-        <div class="text-right position-absolute">
-          <b-icon :icon="getLinesByType.icon" :class="getLinesByType.iconclasses"></b-icon>
-        </div>
+      <b-row @click="visible = !visible" class="">
+        <b-col cols="2">
+          <b-avatar :icon="getLinesByType.icon" variant="light" size="4em"></b-avatar>
+        </b-col>
+        <b-col>
+          <div>
+            {{ getLinesByType }}
+          </div>
+        </b-col>
+        <b-col cols="3">
+          <div class="small">Gesendet</div>
+          <div class="small">{{ amount | GDT }}</div>
+        </b-col>
+        <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
+      </b-row>
 
-        <!-- collaps Button  -->
-        <div class="text-right gradido-width-96 position-absolute">
-          <b-icon
-            :icon="getCollapseState(id) ? 'caret-up-square' : 'caret-down-square'"
-            :class="getCollapseState(id) ? 'text-black' : 'text-muted'"
-          />
-        </div>
-
-        <!-- type  -->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            {{ getLinesByType.description }}
-          </b-col>
-          <b-col cols="6">
-            {{ getLinesByType.descriptiontext }}
-          </b-col>
-        </b-row>
-
-        <!-- credit -->
-        <b-row>
-          <b-col cols="6" class="text-right">
-            {{ $t('gdt.credit') }}
-          </b-col>
-          <b-col cols="6">
-            {{ getLinesByType.credittext }}
-          </b-col>
-        </b-row>
-
-        <!-- Message-->
-        <b-row v-if="comment && !isGlobalModificator">
-          <b-col cols="6" class="text-right">
-            {{ $t('form.memo') }}
-          </b-col>
-          <b-col cols="6">
-            {{ comment }}
-          </b-col>
-        </b-row>
-
-        <!-- date-->
-        <b-row class="gdt-list-row text-header">
-          <b-col cols="6" class="text-right">
-            {{ $t('form.date') }}
-          </b-col>
-          <b-col cols="6">
-            {{ $d(new Date(date), 'long') }}
-          </b-col>
-        </b-row>
-
-        <!-- collaps trancaction info-->
-        <b-collapse :id="collapseId" class="mt-2 pb-4">
-          <transaction-collapse
-            :amount="amount"
-            :gdtEntryType="gdtEntryType"
-            :factor="factor"
-            :gdt="gdt"
-          ></transaction-collapse>
-        </b-collapse>
-      </div>
+      <b-collapse :id="collapseId" class="mt-2 pb-4" v-model="visible">
+        <transaction-collapse
+          :amount="amount"
+          :gdtEntryType="gdtEntryType"
+          :factor="factor"
+          :gdt="gdt"
+        ></transaction-collapse>
+      </b-collapse>
     </div>
   </div>
 </template>
 <script>
+import CollapseIcon from './TransactionRows/CollapseIcon'
 import TransactionCollapse from './TransactionCollapse.vue'
 import { GdtEntryType } from '../graphql/enums'
 
 export default {
   name: 'Transaction',
   components: {
+    CollapseIcon,
     TransactionCollapse,
   },
   props: {
@@ -89,6 +51,7 @@ export default {
   data() {
     return {
       collapseStatus: [],
+      visible: false,
     }
   },
   methods: {

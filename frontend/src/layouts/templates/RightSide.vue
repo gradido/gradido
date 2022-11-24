@@ -69,6 +69,22 @@
         </b-col>
       </b-row>
     </b-container>
+    <b-container v-if="path === '/gdt'">
+      <b-row>
+        <b-col>
+          <div class="p-4">
+            <favourites />
+          </div>
+        </b-col>
+      </b-row>
+      <b-row class="mt-3 mt-lg-5">
+        <b-col>
+          <div class="p-4 h-100">
+            <last-transactions />
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
     <b-container v-if="path === '/profile'">
       <b-row>
         <b-col>

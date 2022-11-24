@@ -9,7 +9,13 @@
                 <b-row>
                   <b-col cols="12">
                     <div v-if="radioSelected === sendTypes.send">
-                      <validation-provider
+                      <input-email
+                        :name="$t('form.recipient')"
+                        :label="$t('form.recipient')"
+                        :placeholder="$t('form.email')"
+                        v-model="form.email"
+                      />
+                      <!-- <validation-provider
                         name="Email"
                         :rules="{
                           required: radioSelected === sendTypes.send ? true : false,
@@ -45,11 +51,20 @@
                             {{ error }}
                           </span>
                         </b-col>
-                      </validation-provider>
+                      </validation-provider> -->
                     </div>
                   </b-col>
                   <b-col cols="12">
-                    <validation-provider
+                    <input-amount
+                      v-model="form.amount"
+                      :name="$t('form.amount')"
+                      :label="$t('form.amount')"
+                      :placeholder="'0.01'"
+                      :rules="{ required: true, gddSendAmount: [0.01, balance] }"
+                      typ="TransactionForm"
+                    ></input-amount>
+
+                    <!-- <validation-provider
                       :name="$t('form.amount')"
                       :rules="{
                         required: true,
@@ -82,7 +97,7 @@
                       <b-col v-if="errors">
                         <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                       </b-col>
-                    </validation-provider>
+                    </validation-provider> -->
                   </b-col>
                 </b-row>
               </b-col>
@@ -122,7 +137,14 @@
 
             <b-row>
               <b-col>
-                <validation-provider
+                <input-textarea
+                  v-model="form.memo"
+                  :name="$t('form.message')"
+                  :label="$t('form.message')"
+                  :placeholder="$t('form.message')"
+                  :rules="{ required: true, min: 5, max: 255 }"
+                />
+                <!-- <validation-provider
                   :rules="{
                     required: true,
                     min: 5,
@@ -147,13 +169,13 @@
                   <b-col v-if="errors">
                     <span v-for="error in errors" class="errors" :key="error">{{ error }}</span>
                   </b-col>
-                </validation-provider>
+                </validation-provider> -->
               </b-col>
             </b-row>
-            <div v-if="!!isBalanceDisabled" class="text-danger">
+            <div v-if="!!isBalanceDisabled" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
-            <b-row v-else class="test-buttons">
+            <b-row v-else class="test-buttons mt-5">
               <b-col>
                 <b-button type="reset" variant="secondary" @click="onReset">
                   {{ $t('form.cancel') }}
@@ -172,13 +194,19 @@
   </b-row>
 </template>
 <script>
-import { BIcon } from 'bootstrap-vue'
+// import { BIcon } from 'bootstrap-vue'
 import { SEND_TYPES } from '@/pages/Send.vue'
+import InputEmail from '@/components/Inputs/InputEmail.vue'
+import InputAmount from '@/components/Inputs/InputAmount.vue'
+import InputTextarea from '@/components/Inputs/InputTextarea.vue'
 
 export default {
   name: 'TransactionForm',
   components: {
-    BIcon,
+    // BIcon,
+    InputEmail,
+    InputAmount,
+    InputTextarea,
   },
   props: {
     balance: { type: Number, default: 0 },
