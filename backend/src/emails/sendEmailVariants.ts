@@ -124,3 +124,25 @@ export const sendContributionRejectedEmail = (data: {
     },
   })
 }
+
+export const sendResetPasswordEmail = (data: {
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  resetLink: string
+  timeDurationObject: Record<string, unknown>
+}): Promise<Record<string, unknown> | null> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'resetPassword',
+    locals: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      locale: data.language,
+      resetLink: data.resetLink,
+      timeDurationObject: data.timeDurationObject,
+      resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+    },
+  })
+}

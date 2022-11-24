@@ -18,10 +18,10 @@ import UnsecureLoginArgs from '@arg/UnsecureLoginArgs'
 import UpdateUserInfosArgs from '@arg/UpdateUserInfosArgs'
 import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddleware'
 import { OptInType } from '@enum/OptInType'
-import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -574,12 +574,13 @@ export class UserResolver {
     // optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
     logger.info(`optInCode for ${email}=${dbUserContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmailMailer({
-      link: activationLink(dbUserContact.emailVerificationCode),
+    const emailSent = await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
-      duration: printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME),
+      language: user.language,
+      resetLink: activationLink(dbUserContact.emailVerificationCode),
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
     /*  uncomment this, when you need the activation link on the console */
