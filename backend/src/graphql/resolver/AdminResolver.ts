@@ -39,7 +39,8 @@ import { Decay } from '@model/Decay'
 import Paginated from '@arg/Paginated'
 import TransactionLinkFilters from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { findUserByEmail, activationLink, getTimeDurationObject } from './UserResolver'
+import { getTimeDurationObject } from '@/util/time'
+import { findUserByEmail, activationLink } from './UserResolver'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
