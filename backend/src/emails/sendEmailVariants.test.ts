@@ -1,16 +1,30 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import Decimal from 'decimal.js-light'
+import { testEnvironment } from '@test/helpers'
+import { logger, i18n as localization } from '@test/testSetup'
 import CONFIG from '@/config'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendContributionConfirmedEmail,
 } from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
-CONFIG.EMAIL = true
-CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
-CONFIG.EMAIL_SMTP_PORT = '1234'
-CONFIG.EMAIL_USERNAME = 'user'
-CONFIG.EMAIL_PASSWORD = 'pwd'
+let con: any
+let testEnv: any
+
+beforeAll(async () => {
+  testEnv = await testEnvironment(logger, localization)
+  con = testEnv.con
+  // await cleanDB()
+})
+
+afterAll(async () => {
+  // await cleanDB()
+  await con.close()
+})
 
 jest.mock('./sendEmailTranslated', () => {
   const originalModule = jest.requireActual('./sendEmailTranslated')
@@ -239,6 +253,78 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           'If you are not the one who tried to register again, please contact our support:',
         )
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
+
+  describe('sendContributionConfirmedEmail', () => {
+    beforeAll(async () => {
+      result = await sendContributionConfirmedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+        contributionAmount: new Decimal(23.54),
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'contributionConfirmed',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            contributionMemo: 'My contribution.',
+            contributionAmount: '23.54',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Your common good contribution was confirmed',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: YOUR COMMON GOOD CONTRIBUTION WAS CONFIRMED'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: Your common good contribution was confirmed</title>',
+        )
+        expect(result.originalMessage.html).toContain(
+          '>Gradido: Your common good contribution was confirmed</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'your public good contribution “My contribution.” has just been confirmed by Bibi Bloxberg and credited to your Gradido account.',
+        )
+        expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
+        expect(result.originalMessage.html).toContain(
+          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
       })
     })

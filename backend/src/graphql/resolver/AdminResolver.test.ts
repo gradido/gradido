@@ -36,13 +36,14 @@ import {
 } from '@/seeds/graphql/queries'
 import { GraphQLError } from 'graphql'
 import { User } from '@entity/User'
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import { sendAccountActivationEmail } from '@/emails/sendEmailVariants'
+import {
+  // sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
+} from '@/emails/sendEmailVariants'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { EventProtocol } from '@entity/EventProtocol'
 import { EventProtocolType } from '@/event/EventProtocolType'
 
@@ -53,15 +54,10 @@ jest.mock('@/emails/sendEmailVariants', () => {
     __esModule: true,
     ...originalModule,
     // TODO: test the call of …
-    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-  }
-})
-
-// mock account activation email to avoid console spam
-jest.mock('@/mailer/sendContributionConfirmedEmail', () => {
-  return {
-    __esModule: true,
-    sendContributionConfirmedEmail: jest.fn(),
+    // sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
+    sendContributionConfirmedEmail: jest.fn((a) =>
+      originalModule.sendContributionConfirmedEmail(a),
+    ),
   }
 })
 
@@ -1718,17 +1714,16 @@ describe('AdminResolver', () => {
             })
 
             it('calls sendContributionConfirmedEmail', async () => {
-              expect(sendContributionConfirmedEmail).toBeCalledWith(
-                expect.objectContaining({
-                  contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                  overviewURL: 'http://localhost/overview',
-                  recipientEmail: 'bibi@bloxberg.de',
-                  recipientFirstName: 'Bibi',
-                  recipientLastName: 'Bloxberg',
-                  senderFirstName: 'Peter',
-                  senderLastName: 'Lustig',
-                }),
-              )
+              expect(sendContributionConfirmedEmail).toBeCalledWith({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                email: 'bibi@bloxberg.de',
+                language: 'de',
+                senderFirstName: 'Peter',
+                senderLastName: 'Lustig',
+                contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
+                contributionAmount: expect.decimalEqual(450),
+              })
             })
 
             it('stores the send confirmation email event in the database', async () => {
