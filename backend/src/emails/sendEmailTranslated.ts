@@ -1,10 +1,9 @@
+import CONFIG from '@/config'
 import { backendLogger as logger } from '@/server/logger'
 import path from 'path'
 import { createTransport } from 'nodemailer'
 import Email from 'email-templates'
 import i18n from 'i18n'
-
-import CONFIG from '@/config'
 
 export const sendEmailTranslated = async (params: {
   receiver: {

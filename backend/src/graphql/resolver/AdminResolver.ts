@@ -43,6 +43,7 @@ import { findUserByEmail, activationLink, getTimeDurationObject } from './UserRe
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
+  sendContributionConfirmedEmail,
 } from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
@@ -66,7 +67,6 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
 import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
@@ -584,14 +584,14 @@ export class AdminResolver {
       await queryRunner.commitTransaction()
       logger.info('creation commited successfuly.')
       sendContributionConfirmedEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
         senderFirstName: moderatorUser.firstName,
         senderLastName: moderatorUser.lastName,
-        recipientFirstName: user.firstName,
-        recipientLastName: user.lastName,
-        recipientEmail: user.emailContact.email,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
-        overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       })
     } catch (e) {
       await queryRunner.rollbackTransaction()
