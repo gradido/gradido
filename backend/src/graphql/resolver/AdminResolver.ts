@@ -1,4 +1,4 @@
-import { Context, getUser } from '@/server/context'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Resolver, Query, Arg, Args, Authorized, Mutation, Ctx, Int } from 'type-graphql'
 import {
@@ -49,6 +49,7 @@ import {
   validateContribution,
   isStartEndDateValid,
   updateCreations,
+  isValidDateString,
 } from './util/creations'
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
@@ -63,7 +64,17 @@ import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
 import { sendContributionConfirmedEmail } from '@/mailer/sendContributionConfirmedEmail'
+import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
 import { sendAddedContributionMessageEmail } from '@/mailer/sendAddedContributionMessageEmail'
+import { eventProtocol } from '@/event/EventProtocolEmitter'
+import {
+  Event,
+  EventAdminContributionCreate,
+  EventAdminContributionDelete,
+  EventAdminContributionUpdate,
+  EventContributionConfirm,
+  EventSendConfirmationEmail,
+} from '@/event/Event'
 import { ContributionListResult } from '../model/Contribution'
 
 // const EMAIL_OPT_IN_REGISTER = 1
@@ -76,7 +87,9 @@ export class AdminResolver {
   async searchUsers(
     @Args()
     { searchText, currentPage = 1, pageSize = 25, filters }: SearchUsersArgs,
+    @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userRepository = getCustomRepository(UserRepository)
     const userFields = [
       'id',
@@ -104,7 +117,10 @@ export class AdminResolver {
       }
     }
 
-    const creations = await getUserCreations(users.map((u) => u.id))
+    const creations = await getUserCreations(
+      users.map((u) => u.id),
+      clientTimezoneOffset,
+    )
 
     const adminUsers = await Promise.all(
       users.map(async (user) => {
@@ -145,11 +161,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // administrator user changes own role?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Administrator can not change his own role!')
       throw new Error('Administrator can not change his own role!')
     }
     // change isAdmin
@@ -158,6 +176,7 @@ export class AdminResolver {
         if (isAdmin === true) {
           user.isAdmin = new Date()
         } else {
+          logger.error('User is already a usual user!')
           throw new Error('User is already a usual user!')
         }
         break
@@ -165,6 +184,7 @@ export class AdminResolver {
         if (isAdmin === false) {
           user.isAdmin = null
         } else {
+          logger.error('User is already admin!')
           throw new Error('User is already admin!')
         }
         break
@@ -183,11 +203,13 @@ export class AdminResolver {
     const user = await dbUser.findOne({ id: userId })
     // user exists ?
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     // moderator user disabled own account?
     const moderatorUser = getUser(context)
     if (moderatorUser.id === userId) {
+      logger.error('Moderator can not delete his own account!')
       throw new Error('Moderator can not delete his own account!')
     }
     // soft-delete user
@@ -201,9 +223,11 @@ export class AdminResolver {
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
     const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
     if (!user) {
+      logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
     }
     if (!user.deletedAt) {
+      logger.error('User is not deleted')
       throw new Error('User is not deleted')
     }
     await user.recover()
@@ -219,6 +243,11 @@ export class AdminResolver {
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount}, memo=${memo}, creationDate=${creationDate})`,
     )
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    if (!isValidDateString(creationDate)) {
+      logger.error(`invalid Date for creationDate=${creationDate}`)
+      throw new Error(`invalid Date for creationDate=${creationDate}`)
+    }
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
@@ -240,13 +269,15 @@ export class AdminResolver {
       logger.error('Contribution could not be saved, Email is not activated')
       throw new Error('Contribution could not be saved, Email is not activated')
     }
+
+    const event = new Event()
     const moderator = getUser(context)
     logger.trace('moderator: ', moderator.id)
-    const creations = await getUserCreation(emailContact.userId)
+    const creations = await getUserCreation(emailContact.userId, clientTimezoneOffset)
     logger.trace('creations:', creations)
     const creationDateObj = new Date(creationDate)
     logger.trace('creationDateObj:', creationDateObj)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
     contribution.amount = amount
@@ -258,8 +289,18 @@ export class AdminResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
 
     logger.trace('contribution to save', contribution)
+
     await DbContribution.save(contribution)
-    return getUserCreation(emailContact.userId)
+
+    const eventAdminCreateContribution = new EventAdminContributionCreate()
+    eventAdminCreateContribution.userId = moderator.id
+    eventAdminCreateContribution.amount = amount
+    eventAdminCreateContribution.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionCreate(eventAdminCreateContribution),
+    )
+
+    return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTIONS])
@@ -295,6 +336,7 @@ export class AdminResolver {
     @Args() { id, email, amount, memo, creationDate }: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
@@ -319,7 +361,6 @@ export class AdminResolver {
     const contributionToUpdate = await DbContribution.findOne({
       where: { id, confirmedAt: IsNull() },
     })
-
     if (!contributionToUpdate) {
       logger.error('No contribution found to given id.')
       throw new Error('No contribution found to given id.')
@@ -336,16 +377,17 @@ export class AdminResolver {
     }
 
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientTimezoneOffset)
+
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
       logger.error('Currently the month of the contribution cannot change.')
       throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
@@ -353,19 +395,30 @@ export class AdminResolver {
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
 
     await DbContribution.save(contributionToUpdate)
+
     const result = new AdminUpdateContribution()
     result.amount = amount
     result.memo = contributionToUpdate.memo
     result.date = contributionToUpdate.contributionDate
 
-    result.creation = await getUserCreation(user.id)
+    result.creation = await getUserCreation(user.id, clientTimezoneOffset)
+
+    const event = new Event()
+    const eventAdminContributionUpdate = new EventAdminContributionUpdate()
+    eventAdminContributionUpdate.userId = user.id
+    eventAdminContributionUpdate.amount = amount
+    eventAdminContributionUpdate.contributionId = contributionToUpdate.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionUpdate(eventAdminContributionUpdate),
+    )
 
     return result
   }
 
   @Authorized([RIGHTS.LIST_UNCONFIRMED_CONTRIBUTIONS])
   @Query(() => [UnconfirmedContribution])
-  async listUnconfirmedContributions(): Promise<UnconfirmedContribution[]> {
+  async listUnconfirmedContributions(@Ctx() context: Context): Promise<UnconfirmedContribution[]> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const contributions = await getConnection()
       .createQueryBuilder()
       .select('c')
@@ -379,7 +432,7 @@ export class AdminResolver {
     }
 
     const userIds = contributions.map((p) => p.userId)
-    const userCreations = await getUserCreations(userIds)
+    const userCreations = await getUserCreations(userIds, clientTimezoneOffset)
     const users = await dbUser.find({
       where: { id: In(userIds) },
       withDeleted: true,
@@ -416,10 +469,34 @@ export class AdminResolver {
     ) {
       throw new Error('Own contribution can not be deleted as admin')
     }
+    const user = await dbUser.findOneOrFail(
+      { id: contribution.userId },
+      { relations: ['emailContact'] },
+    )
     contribution.contributionStatus = ContributionStatus.DELETED
     contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
+
+    const event = new Event()
+    const eventAdminContributionDelete = new EventAdminContributionDelete()
+    eventAdminContributionDelete.userId = contribution.userId
+    eventAdminContributionDelete.amount = contribution.amount
+    eventAdminContributionDelete.contributionId = contribution.id
+    await eventProtocol.writeEvent(
+      event.setEventAdminContributionDelete(eventAdminContributionDelete),
+    )
+    sendContributionRejectedEmail({
+      senderFirstName: moderator.firstName,
+      senderLastName: moderator.lastName,
+      recipientEmail: user.emailContact.email,
+      recipientFirstName: user.firstName,
+      recipientLastName: user.lastName,
+      contributionMemo: contribution.memo,
+      contributionAmount: contribution.amount,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    })
+
     return !!res
   }
 
@@ -429,6 +506,7 @@ export class AdminResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const contribution = await DbContribution.findOne(id)
     if (!contribution) {
       logger.error(`Contribution not found for given id: ${id}`)
@@ -447,8 +525,13 @@ export class AdminResolver {
       logger.error('This user was deleted. Cannot confirm a contribution.')
       throw new Error('This user was deleted. Cannot confirm a contribution.')
     }
-    const creations = await getUserCreation(contribution.userId, false)
-    validateContribution(creations, contribution.amount, contribution.contributionDate)
+    const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
+    validateContribution(
+      creations,
+      contribution.amount,
+      contribution.contributionDate,
+      clientTimezoneOffset,
+    )
 
     const receivedCallDate = new Date()
 
@@ -515,6 +598,13 @@ export class AdminResolver {
     } finally {
       await queryRunner.release()
     }
+
+    const event = new Event()
+    const eventContributionConfirm = new EventContributionConfirm()
+    eventContributionConfirm.userId = user.id
+    eventContributionConfirm.amount = contribution.amount
+    eventContributionConfirm.contributionId = contribution.id
+    await eventProtocol.writeEvent(event.setEventContributionConfirm(eventContributionConfirm))
     return true
   }
 
@@ -576,6 +666,13 @@ export class AdminResolver {
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
       logger.info(`Account confirmation link: ${activationLink}`)
+    } else {
+      const event = new Event()
+      const eventSendConfirmationEmail = new EventSendConfirmationEmail()
+      eventSendConfirmationEmail.userId = user.id
+      await eventProtocol.writeEvent(
+        event.setEventSendConfirmationEmail(eventSendConfirmationEmail),
+      )
     }
 
     return true
@@ -768,9 +865,11 @@ export class AdminResolver {
         relations: ['user'],
       })
       if (!contribution) {
+        logger.error('Contribution not found')
         throw new Error('Contribution not found')
       }
       if (contribution.userId === user.id) {
+        logger.error('Admin can not answer on own contribution')
         throw new Error('Admin can not answer on own contribution')
       }
       if (!contribution.user.emailContact) {

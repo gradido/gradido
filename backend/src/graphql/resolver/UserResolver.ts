@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
+import i18n from 'i18n'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, UseMiddleware, Mutation } from 'type-graphql'
 import { getConnection, getCustomRepository, IsNull, Not } from '@dbTools/typeorm'
 import CONFIG from '@/config'
@@ -18,7 +19,7 @@ import { klicktippNewsletterStateMiddleware } from '@/middleware/klicktippMiddle
 import { OptInType } from '@enum/OptInType'
 import { sendResetPasswordEmail as sendResetPasswordEmailMailer } from '@/mailer/sendResetPasswordEmail'
 import { sendAccountActivationEmail } from '@/mailer/sendAccountActivationEmail'
-import { sendAccountMultiRegistrationEmail } from '@/mailer/sendAccountMultiRegistrationEmail'
+import { sendAccountMultiRegistrationEmail } from '@/emails/sendEmailVariants'
 import { klicktippSignIn } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -39,16 +40,14 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { v4 as uuidv4 } from 'uuid'
+import { isValidPassword, SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sodium = require('sodium-native')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const random = require('random-bigint')
-
-// We will reuse this for changePassword
-const isPassword = (password: string): boolean => {
-  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
-}
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -104,48 +103,6 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   logger.debug(`KeyPair creation ready. pubKey=${pubKey}`)
 
   return [pubKey, privKey]
-}
-
-const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace('SecretKeyCryptographyCreateKey...')
-  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
-  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-  if (configLoginServerKey.length !== sodium.crypto_shorthash_KEYBYTES) {
-    logger.error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-    throw new Error(
-      `ServerKey has an invalid size. The size must be ${sodium.crypto_shorthash_KEYBYTES} bytes.`,
-    )
-  }
-
-  const state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
-  sodium.crypto_hash_sha512_init(state)
-  sodium.crypto_hash_sha512_update(state, Buffer.from(salt))
-  sodium.crypto_hash_sha512_update(state, configLoginAppSecret)
-  const hash = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  sodium.crypto_hash_sha512_final(state, hash)
-
-  const encryptionKey = Buffer.alloc(sodium.crypto_box_SEEDBYTES)
-  const opsLimit = 10
-  const memLimit = 33554432
-  const algo = 2
-  sodium.crypto_pwhash(
-    encryptionKey,
-    Buffer.from(password),
-    hash.slice(0, sodium.crypto_pwhash_SALTBYTES),
-    opsLimit,
-    memLimit,
-    algo,
-  )
-
-  const encryptionKeyHash = Buffer.alloc(sodium.crypto_shorthash_BYTES)
-  sodium.crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
-
-  logger.debug(
-    `SecretKeyCryptographyCreateKey...successful: encryptionKeyHash= ${encryptionKeyHash}, encryptionKey= ${encryptionKey}`,
-  )
-  return [encryptionKeyHash, encryptionKey]
 }
 
 /*
@@ -305,8 +262,9 @@ export class UserResolver {
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const userEntity = getUser(context)
-    const user = new User(userEntity, await getUserCreation(userEntity.id))
+    const user = new User(userEntity, await getUserCreation(userEntity.id, clientTimezoneOffset))
     // user.pubkey = userEntity.pubKey.toString('hex')
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
@@ -323,6 +281,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
@@ -343,18 +302,25 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no private or publicKey')
     }
-    const passwordHash = SecretKeyCryptographyCreateKey(email, password) // return short and long hash
-    const loginUserPassword = BigInt(dbUser.password.toString())
-    if (loginUserPassword !== passwordHash[0].readBigUInt64LE()) {
+
+    if (!verifyPassword(dbUser, password)) {
       logger.error('The User has no valid credentials.')
       throw new Error('No user with this credentials')
+    }
+
+    if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+      dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      dbUser.password = encryptPassword(dbUser, password)
+      await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
     logger.debug('validation of login credentials successful...')
 
-    const user = new User(dbUser, await getUserCreation(dbUser.id))
+    const user = new User(dbUser, await getUserCreation(dbUser.id, clientTimezoneOffset))
     logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
+
+    i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
@@ -408,6 +374,7 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
+    i18n.setLocale(language)
 
     // check if user with email still exists?
     email = email.trim().toLowerCase()
@@ -416,8 +383,11 @@ export class UserResolver {
       logger.info(`DbUser.findOne(email=${email}) = ${foundUser}`)
 
       if (foundUser) {
-        // ATTENTION: this logger-message will be exactly expected during tests
+        // ATTENTION: this logger-message will be exactly expected during tests, next line
         logger.info(`User already exists with this email=${email}`)
+        logger.info(
+          `Specified username when trying to register multiple times with this email: firstName=${firstName}, lastName=${lastName}`,
+        )
         // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
@@ -430,18 +400,20 @@ export class UserResolver {
         user.publisherId = publisherId
         logger.debug('partly faked user=' + user)
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const emailSent = await sendAccountMultiRegistrationEmail({
-          firstName,
-          lastName,
+          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
+          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
+          language: foundUser.language, // use language of the emails owner for sending
         })
         const eventSendAccountMultiRegistrationEmail = new EventSendAccountMultiRegistrationEmail()
         eventSendAccountMultiRegistrationEmail.userId = foundUser.id
         eventProtocol.writeEvent(
           event.setEventSendConfirmationEmail(eventSendAccountMultiRegistrationEmail),
         )
-        logger.info(`sendAccountMultiRegistrationEmail of ${firstName}.${lastName} to ${email}`)
+        logger.info(
+          `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
+        )
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
         if (!emailSent) {
@@ -470,6 +442,7 @@ export class UserResolver {
     dbUser.lastName = lastName
     dbUser.language = language
     dbUser.publisherId = publisherId
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
     dbUser.passphrase = passphrase.join(' ')
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
@@ -623,7 +596,7 @@ export class UserResolver {
   ): Promise<boolean> {
     logger.info(`setPassword(${code}, ***)...`)
     // Validate Password
-    if (!isPassword(password)) {
+    if (!isValidPassword(password)) {
       logger.error('Password entered is lexically invalid')
       throw new Error(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
@@ -681,10 +654,11 @@ export class UserResolver {
     userContact.emailChecked = true
 
     // Update Password
+    user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     const passwordHash = SecretKeyCryptographyCreateKey(userContact.email, password) // return short and long hash
     const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
     const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
-    user.password = passwordHash[0].readBigUInt64LE() // using the shorthash
+    user.password = encryptPassword(user, password)
     user.pubKey = keyPair[0]
     user.privKey = encryptedPrivkey
     logger.debug('User credentials updated ...')
@@ -785,11 +759,12 @@ export class UserResolver {
         throw new Error(`"${language}" isn't a valid language`)
       }
       userEntity.language = language
+      i18n.setLocale(language)
     }
 
     if (password && passwordNew) {
       // Validate Password
-      if (!isPassword(passwordNew)) {
+      if (!isValidPassword(passwordNew)) {
         logger.error('newPassword does not fullfil the rules')
         throw new Error(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
@@ -801,7 +776,7 @@ export class UserResolver {
         userEntity.emailContact.email,
         password,
       )
-      if (BigInt(userEntity.password.toString()) !== oldPasswordHash[0].readBigUInt64LE()) {
+      if (!verifyPassword(userEntity, password)) {
         logger.error(`Old password is invalid`)
         throw new Error(`Old password is invalid`)
       }
@@ -817,7 +792,8 @@ export class UserResolver {
       logger.debug('PrivateKey encrypted...')
 
       // Save new password hash and newly encrypted private key
-      userEntity.password = newPasswordHash[0].readBigUInt64LE()
+      userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      userEntity.password = encryptPassword(userEntity, passwordNew)
       userEntity.privKey = encryptedPrivkey
     }
 

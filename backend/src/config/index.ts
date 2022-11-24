@@ -10,14 +10,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0051-add_delete_by_to_contributions',
+  DB_VERSION: '0053-change_password_encryption',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v10.2022-09-20',
+    EXPECTED: 'v11.2022-10-27',
     CURRENT: '',
   },
 }
@@ -116,6 +116,10 @@ if (
   )
 }
 
+const federation = {
+  DHT_TOPIC: process.env.DHT_TOPIC || null,
+}
+
 const CONFIG = {
   ...constants,
   ...server,
@@ -126,6 +130,7 @@ const CONFIG = {
   ...loginServer,
   ...webhook,
   ...eventProtocol,
+  ...federation,
 }
 
 export default CONFIG

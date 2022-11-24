@@ -1,5 +1,5 @@
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context, getUser } from '@/server/context'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -13,6 +13,8 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { validateContribution, getUserCreation, updateCreations } from './util/creations'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
+import { ContributionMessage } from '@entity/ContributionMessage'
+import { ContributionMessageType } from '@enum/MessageType'
 import {
   Event,
   EventContributionCreate,
@@ -29,23 +31,24 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS})`)
+      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
     }
 
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS})`)
+      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
       throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
     }
 
     const event = new Event()
 
     const user = getUser(context)
-    const creations = await getUserCreation(user.id)
+    const creations = await getUserCreation(user.id, clientTimezoneOffset)
     logger.trace('creations', creations)
     const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
 
     const contribution = dbContribution.create()
     contribution.userId = user.id
@@ -169,13 +172,14 @@ export class ContributionResolver {
     @Args() { amount, memo, creationDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     if (memo.length > MEMO_MAX_CHARS) {
-      logger.error(`memo text is too long: memo.length=${memo.length} > (${MEMO_MAX_CHARS}`)
+      logger.error(`memo text is too long: memo.length=${memo.length} > ${MEMO_MAX_CHARS}`)
       throw new Error(`memo text is too long (${MEMO_MAX_CHARS} characters maximum)`)
     }
 
     if (memo.length < MEMO_MIN_CHARS) {
-      logger.error(`memo text is too short: memo.length=${memo.length} < (${MEMO_MIN_CHARS}`)
+      logger.error(`memo text is too short: memo.length=${memo.length} < ${MEMO_MIN_CHARS}`)
       throw new Error(`memo text is too short (${MEMO_MIN_CHARS} characters minimum)`)
     }
 
@@ -192,22 +196,50 @@ export class ContributionResolver {
       logger.error('user of the pending contribution and send user does not correspond')
       throw new Error('user of the pending contribution and send user does not correspond')
     }
-
+    if (
+      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+    ) {
+      logger.error(
+        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
+      )
+      throw new Error(
+        `Contribution can not be updated since the state is ${contributionToUpdate.contributionStatus}`,
+      )
+    }
     const creationDateObj = new Date(creationDate)
-    let creations = await getUserCreation(user.id)
+    let creations = await getUserCreation(user.id, clientTimezoneOffset)
     if (contributionToUpdate.contributionDate.getMonth() === creationDateObj.getMonth()) {
-      creations = updateCreations(creations, contributionToUpdate)
+      creations = updateCreations(creations, contributionToUpdate, clientTimezoneOffset)
     } else {
       logger.error('Currently the month of the contribution cannot change.')
       throw new Error('Currently the month of the contribution cannot change.')
     }
 
     // all possible cases not to be true are thrown in this function
-    validateContribution(creations, amount, creationDateObj)
+    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
+
+    const contributionMessage = ContributionMessage.create()
+    contributionMessage.contributionId = contributionId
+    contributionMessage.createdAt = contributionToUpdate.updatedAt
+      ? contributionToUpdate.updatedAt
+      : contributionToUpdate.createdAt
+    const changeMessage = `${contributionToUpdate.contributionDate}
+    ---
+    ${contributionToUpdate.memo}
+    ---
+    ${contributionToUpdate.amount}`
+    contributionMessage.message = changeMessage
+    contributionMessage.isModerator = false
+    contributionMessage.userId = user.id
+    contributionMessage.type = ContributionMessageType.HISTORY
+    ContributionMessage.save(contributionMessage)
+
     contributionToUpdate.amount = amount
     contributionToUpdate.memo = memo
     contributionToUpdate.contributionDate = new Date(creationDate)
     contributionToUpdate.contributionStatus = ContributionStatus.PENDING
+    contributionToUpdate.updatedAt = new Date()
     dbContribution.save(contributionToUpdate)
 
     const event = new Event()

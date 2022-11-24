@@ -1,5 +1,5 @@
 import { backendLogger as logger } from '@/server/logger'
-import { Context, getUser } from '@/server/context'
+import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { getConnection } from '@dbTools/typeorm'
 import {
   Resolver,
@@ -169,6 +169,7 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
     const user = getUser(context)
     const now = new Date()
 
@@ -258,9 +259,9 @@ export class TransactionLinkResolver {
           }
         }
 
-        const creations = await getUserCreation(user.id, false)
+        const creations = await getUserCreation(user.id, clientTimezoneOffset)
         logger.info('open creations', creations)
-        validateContribution(creations, contributionLink.amount, now)
+        validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now

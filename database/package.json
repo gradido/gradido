@@ -1,6 +1,6 @@
 {
   "name": "gradido-database",
-  "version": "1.13.1",
+  "version": "1.14.1",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
