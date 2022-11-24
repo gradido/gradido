@@ -1,7 +1,69 @@
 <template>
-  <div class="contribution-list-item">
+  <div class="contribution-list-item bg-white appBoxShadow gradido-border-radius p-3">
     <slot>
-      <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
+      <div class="">
+        <b-row>
+          <b-col cols="2">
+            <b-avatar :icon="icon" :variant="variant" size="4em"></b-avatar>
+          </b-col>
+          <b-col>
+            <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
+            <div class="small">
+              contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
+            </div>
+            <div class="mt-3 h5">Beitragstext</div>
+            <div>{{ memo }}</div>
+            <!-- <div class="small">
+            contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
+          </div>
+          <div class="small">createdAt {{ createdAt }}</div> -->
+          </b-col>
+          <b-col cols="3">
+            <div class="small">Schöpfung</div>
+            <div class="small">{{ amount | GDD }}</div>
+          </b-col>
+          <b-col cols="1" @click="visible = !visible">
+            <collapse-icon class="text-right" :visible="visible" v-if="messagesCount > 0" />
+          </b-col>
+        </b-row>
+        <b-row class="mt-2">
+          <b-col>
+            <div
+              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+              class="pointer mr-3"
+              @click="deleteContribution({ id })"
+            >
+              <b-icon icon="trash"></b-icon>
+              löschen
+            </div>
+          </b-col>
+          <b-col>
+            <div
+              v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
+              class="pointer mr-3"
+              @click="
+                $emit('update-contribution-form', {
+                  id: id,
+                  contributionDate: contributionDate,
+                  memo: memo,
+                  amount: amount,
+                })
+              "
+            >
+              <b-icon icon="pencil"></b-icon>
+              bearbeiten
+            </div>
+          </b-col>
+
+          <b-col>
+            <div v-if="messagesCount > 0" class="pointer">
+              <b-icon icon="chat-dots" @click="visible = !visible"></b-icon>
+              Moderatorchat
+            </div>
+          </b-col>
+        </b-row>
+      </div>
+      <!-- <div class="border p-3 w-100 mb-1" :class="`border-${variant}`">
         <div>
           <div class="d-inline-flex">
             <div class="mr-2">
@@ -68,7 +130,7 @@
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </b-button>
-          <b-collapse :id="collapsId" class="mt-2">
+          <b-collapse :id="collapsId" class="mt-2" v-model="visible">
             <b-card>
               <contribution-messages-list
                 :messages="messages_get"
@@ -80,17 +142,30 @@
             </b-card>
           </b-collapse>
         </div>
-      </div>
+      </div> -->
+      <b-collapse :id="collapsId" class="mt-2" v-model="visible">
+        <b-card>
+          <contribution-messages-list
+            :messages="messages_get"
+            :state="state"
+            :contributionId="contributionId"
+            @get-list-contribution-messages="getListContributionMessages"
+            @update-state="updateState"
+          />
+        </b-card>
+      </b-collapse>
     </slot>
   </div>
 </template>
 <script>
+import CollapseIcon from '../TransactionRows/CollapseIcon'
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList.vue'
 import { listContributionMessages } from '../../graphql/queries.js'
 
 export default {
   name: 'ContributionListItem',
   components: {
+    CollapseIcon,
     ContributionMessagesList,
   },
   props: {
@@ -132,6 +207,7 @@ export default {
     state: {
       type: String,
       required: false,
+      default: '',
     },
     messagesCount: {
       type: Number,
@@ -151,12 +227,14 @@ export default {
     return {
       inProcess: true,
       messages_get: [],
+      visible: false,
     }
   },
   computed: {
     icon() {
       if (this.deletedAt) return 'x-circle'
       if (this.confirmedAt) return 'check'
+      if (this.state === 'IN_PROGRESS') return 'question-square'
       return 'bell-fill'
     },
     variant() {
@@ -198,6 +276,11 @@ export default {
     },
     updateState(id) {
       this.$emit('update-state', id)
+    },
+  },
+  watch: {
+    visible() {
+      if (this.visible) this.getListContributionMessages()
     },
   },
 }

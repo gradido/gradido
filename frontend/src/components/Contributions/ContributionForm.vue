@@ -12,7 +12,11 @@
         <b>{{ $t('contribution.formText.describeYourCommunity') }}</b>
       </div>
     </div>
-    <b-form ref="form" @submit.prevent="submit" class="border p-3">
+    <b-form
+      ref="form"
+      @submit.prevent="submit"
+      class="border p-3 bg-white appBoxShadow gradido-border-radius"
+    >
       <label>{{ $t('contribution.selectDate') }} {{ $t('math.asterisk') }}</label>
       <b-form-datepicker
         id="contribution-date"

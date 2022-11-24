@@ -1,5 +1,5 @@
 <template>
-  <div class="open-creations-amount">
+  <div class="open-creations-amount bg-white appBoxShadow gradido-border-radius p-4">
     <b-table striped hover :items="items"></b-table>
   </div>
 </template>

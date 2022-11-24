@@ -1,9 +1,9 @@
 <template>
   <div class="community-page">
-    <open-creations-amount v-if="hashLink === '#edit'" />
     <div>
       <b-tabs no-nav-style v-model="tabIndex" content-class="mt-3" align="center">
         <b-tab>
+          <open-creations-amount />
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
@@ -41,10 +41,10 @@
   </div>
 </template>
 <script>
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
 import ContributionListInfo from '@/components/Contributions/ContributionListInfo.vue'
-import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
