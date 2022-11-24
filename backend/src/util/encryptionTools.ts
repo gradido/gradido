@@ -129,16 +129,16 @@ export const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
   return [pubKey, privKey]
 }
 
-export async function createKeyPair(uuid: string): Promise<{ publicKey: any; privateKey: any }> {
+export async function createKeyPair(uuid: string): Promise<{ publicKey: any; secretKey: any }> {
   const keypair = {
     publicKey: sodium.sodium_malloc(sodium.crypto_box_PUBLICKEYBYTES),
-    privateKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
+    secretKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
   }
   const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
   logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
   const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
   seed.write(uuidAsSeed, 'hex')
-  sodium.crypto_box_seed_keypair(keypair.publicKey, keypair.privateKey, seed)
+  sodium.crypto_box_seed_keypair(keypair.publicKey, keypair.secretKey, seed)
   logger.debug(`createKeyPair(seed=${uuid})...successful`)
   return keypair
 }
@@ -148,6 +148,13 @@ export const uuidAsSeed = (uuid: string): Buffer => {
   logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
   const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
   seed.write(uuidAsSeed, 'hex')
+  return seed
+}
+
+export const getSeed = (): Buffer => {
+  const secret = CONFIG.FEDERATE_KEY_SECRET || random(64)
+  const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
+  seed.write(secret, 'hex')
   return seed
 }
 
@@ -163,10 +170,10 @@ export async function testEncryptDecrypt(
     publicKey: sodium.sodium_malloc(sodium.crypto_box_PUBLICKEYBYTES),
     privateKey: sodium.sodium_malloc(sodium.crypto_box_SECRETKEYBYTES),
   }
-  const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
-  logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
+  // const uuidAsSeed = uuid.replace('-', '').replace('-', '').replace('-', '').replace('-', '')
+  // logger.debug(`uuid=${uuid}=${uuid.length}, uuidAsSeed=${uuidAsSeed}=${uuidAsSeed.length}`)
   const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
-  seed.write(uuidAsSeed, 'hex')
+  seed.write(uuidAsSeed(uuid).toString(), 'hex')
 
   const sender = sodium.crypto_box_seed_keypair(skeypair.publicKey, skeypair.privateKey, seed) // crypto_box_keypair()
 
@@ -197,7 +204,9 @@ export async function testEncryptDecrypt(
 
   // We should get the same plainText!
   if (plainBuffer.toString() === plainText.toString()) {
-    logger.debug(`Message decrypted correctly`)
+    logger.debug(
+      `Message decrypted correctly ${plainBuffer.toString('hex')} === ${plainText.toString('hex')}`,
+    )
   }
 }
 
