@@ -1,18 +1,18 @@
 doctype html
 html(lang=locale)
   head
-    title= t('emails.accountActivation.subject')
+    title= t('emails.resetPassword.subject')
   body
-    h1(style='margin-bottom: 24px;')= t('emails.accountActivation.subject')
+    h1(style='margin-bottom: 24px;')= t('emails.resetPassword.subject')
     #container.col
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
-      p= t('emails.accountActivation.emailRegistered')
-      p= t('emails.accountActivation.pleaseClickLink')
+      p= t('emails.resetPassword.youOrSomeoneResetPassword')
+      p= t('emails.resetPassword.pleaseClickLink')
         br
-        a(href=activationLink) #{activationLink}
+        a(href=resetLink) #{resetLink}
         br
         span= t('emails.general.orCopyLink')
-      p= t('emails.accountActivation.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+      p= t('emails.resetPassword.duration', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
         br
         a(href=resendLink) #{resendLink}
       p(style='margin-top: 24px;')= t('emails.general.sincerelyYours')

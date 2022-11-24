@@ -9,7 +9,6 @@
       "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
       "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
       "pleaseClickLink": "Klicke bitte auf diesen Link, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren:",
-      "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
       "subject": "Gradido: E-Mail Überprüfung"
     },
     "accountMultiRegistration": {
@@ -30,10 +29,17 @@
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
     },
+    "resetPassword": {
+      "duration": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten. Sollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen, in dem du deine E-Mail-Adresse eingibst:",
+      "pleaseClickLink": "Wenn du es warst, klicke bitte auf den Link:",
+      "subject": "Gradido: Passwort zurücksetzen",
+      "youOrSomeoneResetPassword": "du, oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
+    },
     "general": {
       "decimalSeparator": ",",
       "helloName": "Hallo {firstName} {lastName},",
       "linkToYourAccount": "Link zu deinem Konto:",
+      "orCopyLink": "oder kopiere den obigen Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail!",
       "sincerelyYours": "Liebe Grüße",
       "yourGradidoTeam": "dein Gradido-Team"
