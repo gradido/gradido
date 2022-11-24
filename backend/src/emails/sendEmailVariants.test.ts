@@ -9,6 +9,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendContributionConfirmedEmail,
+  sendContributionRejectedEmail,
 } from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
@@ -99,7 +100,7 @@ describe('sendEmailVariants', () => {
           'you have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.',
         )
         expect(result.originalMessage.html).toContain(
-          'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My Contributions to the Common Good” tab!',
+          'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
         )
         expect(result.originalMessage.html).toContain(
           'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
@@ -321,6 +322,78 @@ describe('sendEmailVariants', () => {
           'your public good contribution “My contribution.” has just been confirmed by Bibi Bloxberg and credited to your Gradido account.',
         )
         expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
+        expect(result.originalMessage.html).toContain(
+          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
+
+  describe('sendContributionRejectedEmail', () => {
+    beforeAll(async () => {
+      result = await sendContributionRejectedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        contributionMemo: 'My contribution.',
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'contributionRejected',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            contributionMemo: 'My contribution.',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Your common good contribution was rejected',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: YOUR COMMON GOOD CONTRIBUTION WAS REJECTED'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: Your common good contribution was rejected</title>',
+        )
+        expect(result.originalMessage.html).toContain(
+          '>Gradido: Your common good contribution was rejected</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
+        )
+        expect(result.originalMessage.html).toContain(
+          'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
+        )
         expect(result.originalMessage.html).toContain(
           'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
         )

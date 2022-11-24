@@ -39,6 +39,7 @@ import { User } from '@entity/User'
 import {
   // sendAccountActivationEmail,
   sendContributionConfirmedEmail,
+  // sendContributionRejectedEmail,
 } from '@/emails/sendEmailVariants'
 import Decimal from 'decimal.js-light'
 import { Contribution } from '@entity/Contribution'
@@ -58,6 +59,8 @@ jest.mock('@/emails/sendEmailVariants', () => {
     sendContributionConfirmedEmail: jest.fn((a) =>
       originalModule.sendContributionConfirmedEmail(a),
     ),
+    // TODO: test the call of …
+    // sendContributionRejectedEmail: jest.fn((a) => originalModule.sendContributionRejectedEmail(a)),
   }
 })
 
