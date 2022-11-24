@@ -23,8 +23,8 @@ import CONFIG from '@/config'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
-import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
 import { activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
@@ -53,13 +53,7 @@ jest.mock('@/emails/sendEmailVariants', () => {
     sendAccountMultiRegistrationEmail: jest.fn((a) =>
       originalModule.sendAccountMultiRegistrationEmail(a),
     ),
-  }
-})
-
-jest.mock('@/mailer/sendResetPasswordEmail', () => {
-  return {
-    __esModule: true,
-    sendResetPasswordEmail: jest.fn(),
+    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
   }
 })
 
@@ -857,11 +851,15 @@ describe('UserResolver', () => {
 
       it('sends reset password email', () => {
         expect(sendResetPasswordEmail).toBeCalledWith({
-          link: activationLink(emailContact.emailVerificationCode),
           firstName: 'Bibi',
           lastName: 'Bloxberg',
           email: 'bibi@bloxberg.de',
-          duration: expect.any(String),
+          language: 'de',
+          resetLink: activationLink(emailContact.emailVerificationCode),
+          timeDurationObject: expect.objectContaining({
+            hours: expect.any(Number),
+            minutes: expect.any(Number),
+          }),
         })
       })
 
