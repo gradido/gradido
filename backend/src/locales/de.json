@@ -25,6 +25,11 @@
       "contributionAmount": "Betrag: {contributionAmount} GDD",
       "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
+    "contributionRejected": {
+      "commonGoodContributionRejected": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
+      "subject": "Gradido: Dein Gemeinwohl-Beitrag wurde abgelehnt",
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Gemeinschaft“ auf den Tab „Meine Beiträge zum Gemeinwohl“!"
+    },
     "general": {
       "decimalSeparator": ",",
       "helloName": "Hallo {firstName} {lastName},",

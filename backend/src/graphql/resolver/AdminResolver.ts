@@ -44,6 +44,7 @@ import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
   sendContributionConfirmedEmail,
+  sendContributionRejectedEmail,
 } from '@/emails/sendEmailVariants'
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import CONFIG from '@/config'
@@ -67,7 +68,6 @@ import { ContributionMessage as DbContributionMessage } from '@entity/Contributi
 import ContributionMessageArgs from '@arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@enum/MessageType'
 import { ContributionMessage } from '@model/ContributionMessage'
-import { sendContributionRejectedEmail } from '@/mailer/sendContributionRejectedEmail'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import {
   Event,
@@ -489,14 +489,13 @@ export class AdminResolver {
       event.setEventAdminContributionDelete(eventAdminContributionDelete),
     )
     sendContributionRejectedEmail({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.emailContact.email,
+      language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
-      recipientEmail: user.emailContact.email,
-      recipientFirstName: user.firstName,
-      recipientLastName: user.lastName,
       contributionMemo: contribution.memo,
-      contributionAmount: contribution.amount,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     })
 
     return !!res
