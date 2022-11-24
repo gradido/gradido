@@ -32,10 +32,12 @@ export async function readHomeCommunity(): Promise<FdCommunity> {
   community.description = dbCom.description
   community.uuid = dbCom.uuid
   community.createdAt = dbCom.createdAt
-  community.verifiedAt = dbFed.pubKeyVerifiedAt || null
   community.authenticatedAt = dbFed.authenticatedAt
-  community.publicKey = dbFed.pubKey.toString('hex')
+  community.publicKey = dbFed.publicKey.toString('hex')
   community.privKey = dbFed.privateKey.toString('hex')
+  community.dhtPublicKey = dbFed.dhtPublicKey.toString('hex')
+  community.dhtSecretKey = dbFed.dhtSecretKey.toString('hex')
+  community.dhtVerifiedAt = dbFed.dhtPubKeyVerifiedAt || null
   community.url = dbApi.url
   community.apiVersion = dbApi.apiVersion
   community.validFrom = dbApi.validFrom
@@ -48,6 +50,8 @@ export async function resetFederationTables(
   name: string,
   url: string,
   descript: string,
+  dhtPublicKey: any,
+  dhtSecretKey: any,
 ): Promise<FdCommunity> {
   // first check if HomeCommunity still exists
   logger.debug(`resetFederationTables(${name}, ${url}, ${descript}`) //, ${publicKey.toString('hex')}, ${privateKey.toString('hex')})...`,
@@ -74,52 +78,70 @@ export async function resetFederationTables(
   DbApiVersion.clear()
   logger.debug(`all federation tabels cleared...`)
 
+  /*
   const queryRunner = getConnection().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')
   try {
-    let dbCom = DbCommunity.create()
-    dbCom.name = name
-    dbCom.description = descript
-    dbCom.uuid = CONFIG.FEDERATE_COMMUNITY_UUID || uuidv4()
-    dbCom = await dbCom.save()
-    dbCom = await queryRunner.manager.save(dbCom).catch((error) => {
-      logger.error('Error while saving dbCom', error)
-      throw new Error('error saving Community')
-    })
+  */
+  let dbCom = DbCommunity.create()
+  dbCom.name = name
+  dbCom.description = descript
+  dbCom.uuid = CONFIG.FEDERATE_COMMUNITY_UUID || uuidv4()
+  dbCom = await DbCommunity.save(dbCom)
+  /*
+  dbCom = await queryRunner.manager.save(dbCom).catch((error) => {
+    logger.error('Error while saving dbCom', error)
+    throw new Error('error saving Community')
+  })
+  */
+  const comKeyPair = await createKeyPair(dbCom.uuid)
+  logger.debug(`Com.keyPair: publicKey=${comKeyPair.publicKey.toString('hex')}`)
+  logger.debug(`Com.keyPair: secretKey=${comKeyPair.secretKey.toString('hex')}`)
+  // const dhtKeyPair = await createDHTKeyPair(dbCom.uuid)
+  // logger.debug(`DHT.keyPair: publicKey=${dhtKeyPair.publicKey.toString('hex')}`)
+  // logger.debug(`DHT.keyPair: secretKey=${dhtKeyPair.secretKey.toString('hex')}`)
 
-    const keyPair = await createKeyPair(dbCom.uuid)
+  let dbFed = DbFederation.create()
+  dbFed.communityId = dbCom.id
+  dbFed.uuid = dbCom.uuid
+  dbFed.foreign = false
+  dbFed.privateKey = comKeyPair.secretKey
+  dbFed.publicKey = comKeyPair.publicKey
+  dbFed.dhtSecretKey = dhtSecretKey
+  dbFed.dhtPublicKey = dhtPublicKey
+  dbFed = await DbFederation.save(dbFed)
+  /*
+  dbFed = await queryRunner.manager.save(dbFed).catch((error) => {
+    logger.error('Error while saving dbFed', error)
+    throw new Error('error saving FederationCommunity')
+  })
+  */
+  let dbApi = DbApiVersion.create()
+  dbApi.communityFederationID = dbFed.id
+  dbApi.apiVersion = CONFIG.FEDERATE_COMMUNITY_APIVERSION
+  dbApi.url = url
+  dbApi.validFrom = new Date()
+  dbApi = await DbApiVersion.save(dbApi)
+  /*
+  dbApi = await queryRunner.manager.save(dbApi).catch((error) => {
+    logger.error('Error while saving dbApi', error)
+    throw new Error('error saving CommunityApiVersion')
+  })
+  */
+  logger.debug(`new HomeCommunity created...`)
 
-    let dbFed = DbFederation.create()
-    dbFed.communityId = dbCom.id
-    dbFed.uuid = dbCom.uuid
-    dbFed.foreign = false
-    dbFed.privateKey = keyPair.privateKey
-    dbFed.pubKey = keyPair.publicKey
-    dbFed = await queryRunner.manager.save(dbFed).catch((error) => {
-      logger.error('Error while saving dbFed', error)
-      throw new Error('error saving FederationCommunity')
-    })
-
-    let dbApi = DbApiVersion.create()
-    dbApi.communityFederationID = dbFed.id
-    dbApi.apiVersion = CONFIG.FEDERATE_COMMUNITY_APIVERSION
-    dbApi.url = url
-    dbApi.validFrom = new Date()
-    dbApi = await queryRunner.manager.save(dbApi).catch((error) => {
-      logger.error('Error while saving dbApi', error)
-      throw new Error('error saving CommunityApiVersion')
-    })
-    logger.debug(`new HomeCommunity created...`)
-
-    const community = new FdCommunity(name, url, descript, dbFed, dbApi)
-    community.id = dbCom.id
-    community.uuid = dbCom.uuid
-    community.createdAt = dbCom.createdAt
-    community.publicKey = keyPair.publicKey.toString('hex')
-    community.privKey = keyPair.privateKey.toString('hex')
-    logger.debug(`create new HomeCommunity=${JSON.stringify(community)} successfully`)
-    return community
+  const community = new FdCommunity(name, url, descript, dbFed, dbApi)
+  community.id = dbCom.id
+  community.uuid = dbCom.uuid
+  community.createdAt = dbCom.createdAt
+  community.publicKey = comKeyPair.publicKey
+  community.privKey = comKeyPair.secretKey
+  community.dhtPublicKey = dhtPublicKey
+  community.dhtSecretKey = dhtSecretKey
+  logger.debug(`create new HomeCommunity=${JSON.stringify(community)} successfully`)
+  return community
+  /*  
   } catch (e) {
     logger.error(`error during reset federation tables with ${e}`)
     await queryRunner.rollbackTransaction()
@@ -127,15 +149,16 @@ export async function resetFederationTables(
   } finally {
     await queryRunner.release()
   }
+  */
 }
 
 export async function addFederationCommunity(
-  remotePublicKey: Buffer,
+  remoteDhtPublicKey: Buffer,
   remoteApiVersion: string,
   remoteUrl: string,
 ): Promise<boolean> {
   logger.info(
-    `addFederationCommunity(remotePublicKey=${remotePublicKey.toString(
+    `addFederationCommunity(remotePublicKey=${remoteDhtPublicKey.toString(
       'hex',
     )}, remoteApiVersion=${remoteApiVersion}, remoteUrl=${remoteUrl}, )...`,
   )
@@ -148,9 +171,9 @@ export async function addFederationCommunity(
   let dbFed = await DbFederation.findOneOrFail({
     communityId: dbCom.id,
     foreign: true,
-    pubKey: remotePublicKey,
+    dhtPublicKey: remoteDhtPublicKey,
   }).catch(async () => {
-    logger.info(`FedCom with this publicKey does not exists...`)
+    logger.info(`FedCom with this dhtPublicKey does not exists...`)
   })
   if (!dbFed) {
     if (!(await checkForExistingApiUrl(remoteUrl))) {
@@ -164,7 +187,7 @@ export async function addFederationCommunity(
       dbFed = DbFederation.create()
       dbFed.communityId = dbCom.id
       dbFed.foreign = true
-      dbFed.pubKey = remotePublicKey
+      dbFed.dhtPublicKey = remoteDhtPublicKey
       dbFed = await DbFederation.save(dbFed)
       /*
       dbFed = await queryRunner.manager.save(dbFed).catch((error) => {
@@ -202,7 +225,7 @@ export async function addFederationCommunity(
       return false
     }
   }
-  if (!dbFed.pubKeyVerifiedAt) {
+  if (!dbFed.dhtPubKeyVerifiedAt) {
     logger.info(`the publicKey of the existing federated Community is still not verified...`)
     return true
   }
@@ -210,12 +233,18 @@ export async function addFederationCommunity(
   return false
 }
 
-export async function readFederationCommunityByPubKey(publicKey: string): Promise<FdCommunity> {
-  logger.debug(`readFederationCommunityByPubKey(publicKey=${publicKey})...`)
-  const pubKeyBuf = Buffer.from(publicKey, 'hex')
-  const dbFed = await DbFederation.findOneOrFail({ pubKey: pubKeyBuf, foreign: true }).catch(() => {
-    logger.error(`unknown CommunityFederation for pubKey=${publicKey}`)
-    throw new Error(`unknown CommunityFederation for pubKey`)
+export async function readFederationCommunityByDhtPubKey(
+  dhtPublicKey: Buffer,
+): Promise<FdCommunity> {
+  logger.debug(
+    `readFederationCommunityByDhtPubKey(dhtPublicKey=${dhtPublicKey.toString('hex')})...`,
+  )
+  const dbFed = await DbFederation.findOneOrFail({
+    dhtPublicKey: dhtPublicKey,
+    foreign: true,
+  }).catch(() => {
+    logger.error(`unknown CommunityFederation for dhtPublicKey=${dhtPublicKey.toString('hex')}`)
+    throw new Error(`unknown CommunityFederation for dhtPublicKey`)
   })
   const dbApi = await readNewestApiVersion(dbFed.id)
   logger.debug(`found dbFed=${JSON.stringify(dbFed)} and dbApi=${JSON.stringify(dbApi)}`)
@@ -273,32 +302,41 @@ async function readNewestApiVersionByUrl(url: string): Promise<DbApiVersion> {
     )
     throw new Error(`Community with malformed configuration!`)
   }
+  dbApi.forEach((dba) => {
+    if (dba.communityFederationID !== dbApi[0].communityFederationID) {
+      logger.error(
+        `found ApiVersions of different FederationCommunities ${dba.communityFederationID} != ${dbApi[0].communityFederationID}`,
+      )
+      throw new Error(`found ApiVersions of different FederationCommunities!`)
+    }
+  })
   logger.debug(`readNewestApiVersion(url=${url})...successful: apiVersion=${dbApi[0]}`)
   return dbApi[0]
 }
 
-export async function setFedComPubkeyVerifiedAt(
-  remotePubKey: string,
+export async function setFedComDhtPubkeyVerifiedAt(
+  remoteDhtPubKey: Buffer,
   verifiedDate: Date | null,
 ): Promise<boolean> {
-  logger.debug(`setFedComPubkeyVerifiedAt(remotePubKey=${remotePubKey})...`)
-  const pubKeyBuf = Buffer.from(remotePubKey, 'hex')
+  logger.debug(
+    `setFedComDhtPubkeyVerifiedAt(remoteDhtPubKey=${remoteDhtPubKey.toString('hex')})...`,
+  )
   const dbFed = await DbFederation.findOneOrFail({
-    pubKey: pubKeyBuf,
+    dhtPublicKey: remoteDhtPubKey,
     foreign: true,
   }).catch(async () => {
-    logger.error(`Federated Community with publicKey=${remotePubKey} does not exists`)
+    logger.error(`Federated Community with publicKey=${remoteDhtPubKey} does not exists`)
   })
   if (dbFed) {
-    dbFed.pubKeyVerifiedAt = verifiedDate
+    dbFed.dhtPubKeyVerifiedAt = verifiedDate
     logger.debug(
-      `dbFed set pubkeyVerifiedAt=${
-        dbFed.pubKeyVerifiedAt ? dbFed.pubKeyVerifiedAt.toISOString() : 'null'
+      `dbFed set dhtPubKeyVerifiedAt=${
+        dbFed.dhtPubKeyVerifiedAt ? dbFed.dhtPubKeyVerifiedAt.toISOString() : 'null'
       }`,
     )
     await DbFederation.save(dbFed)
   }
-  logger.info(`setFedComPubkeyVerifiedAt()...successful`)
+  logger.info(`setFedComDhtPubkeyVerifiedAt()...successful`)
   return true
 }
 
@@ -328,9 +366,9 @@ export async function deleteForeignFedComAndApiVersionEntries(fedComId?: number)
   fedComs.forEach(async (fedCom) => {
     const apiVersions = await DbApiVersion.find({ communityFederationID: fedCom.id })
     apiVersions.forEach(async (apiVer) => {
-      await apiVer.remove()
+      await DbApiVersion.remove(apiVer)
     })
-    await fedCom.remove()
+    await DbFederation.remove(fedCom)
   })
   logger.info(`deleteForeignFedComAndApiVersionEntries()...successful`)
 }
