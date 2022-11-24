@@ -1,3 +1,5 @@
+import i18n from 'i18n'
+import Decimal from 'decimal.js-light'
 import CONFIG from '@/config'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
@@ -63,6 +65,38 @@ export const sendAccountMultiRegistrationEmail = (data: {
       lastName: data.lastName,
       locale: data.language,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+    },
+  })
+}
+
+export const sendContributionConfirmedEmail = (data: {
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  senderFirstName: string
+  senderLastName: string
+  contributionMemo: string
+  contributionAmount: Decimal
+}): Promise<Record<string, unknown> | null> => {
+  const rememberLocaleToRestore = i18n.getLocale()
+  i18n.setLocale(data.language)
+  const contributionAmount = data.contributionAmount
+    .toFixed(2)
+    .replace('.', i18n.__('emails.general.decimalSeparator'))
+  i18n.setLocale(rememberLocaleToRestore)
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'contributionConfirmed',
+    locals: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      locale: data.language,
+      senderFirstName: data.senderFirstName,
+      senderLastName: data.senderLastName,
+      contributionMemo: data.contributionMemo,
+      contributionAmount,
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     },
   })
 }

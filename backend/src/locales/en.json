@@ -2,8 +2,6 @@
   "emails": {
     "addedContributionMessage": {
       "commonGoodContributionMessage": "you have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
-      "linkToYourAccount": "Link to your account:",
-      "pleaseDoNotReply": "Please do not reply to this email!",
       "subject": "Gradido: Message about your common good contribution",
       "toSeeAndAnswerMessage": "To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My Contributions to the Common Good” tab!"
     },
@@ -22,8 +20,16 @@
       "onForgottenPasswordCopyLink": "or copy the link above into your browser window.",
       "subject": "Gradido: Try To Register Again With Your Email"
     },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "your public good contribution “{contributionMemo}” has just been confirmed by {senderFirstName} {senderLastName} and credited to your Gradido account.",
+      "contributionAmount": "Amount: {contributionAmount} GDD",
+      "subject": "Gradido: Your common good contribution was confirmed"
+    },
     "general": {
+      "decimalSeparator": ".",
       "helloName": "Hello {firstName} {lastName}",
+      "linkToYourAccount": "Link to your account:",
+      "pleaseDoNotReply": "Please do not reply to this email!",
       "sincerelyYours": "Kind regards,",
       "yourGradidoTeam": "your Gradido team"
     }
