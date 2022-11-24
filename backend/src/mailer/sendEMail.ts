@@ -29,7 +29,7 @@ export const sendEMail = async (emailDef: {
     host: CONFIG.EMAIL_SMTP_URL,
     port: Number(CONFIG.EMAIL_SMTP_PORT),
     secure: false, // true for 465, false for other ports
-    requireTLS: true,
+    requireTLS: CONFIG.EMAIL_TLS,
     auth: {
       user: CONFIG.EMAIL_USERNAME,
       pass: CONFIG.EMAIL_PASSWORD,
