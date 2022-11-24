@@ -7,7 +7,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { addFederationCommunity, resetFederationTables } from '@/dao/CommunityDAO'
 import CONFIG from '../config'
 import { startFederationHandshake, testKeyPairCryptography } from './control/HandshakeControler'
-import { uuidAsSeed } from '@/util/encryptionTools'
+import { getSeed, uuidAsSeed } from '@/util/encryptionTools'
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -20,40 +20,43 @@ export const startDHT = async (
 ): Promise<void> => {
   try {
     logger.info(`start DHT-HyperSwarm with topic=${topic}...`)
+
     const TOPIC = DHT.hash(Buffer.from(topic))
 
-    // const keyPair = DHT.keyPair()
+    const keyPairDHT = DHT.keyPair(getSeed())
+    logger.debug(`keyPairDHT: publicKey=${keyPairDHT.publicKey.toString('hex')}`)
+    logger.debug(`keyPairDHT: secretKey=${keyPairDHT.secretKey.toString('hex')}`)
 
     const homeCom = await resetFederationTables(
       CONFIG.FEDERATE_COMMUNITY_NAME,
       `${CONFIG.FEDERATE_COMMUNITY_URL}:${CONFIG.FEDERATE_COMMUNITY_PORT}/`,
       CONFIG.COMMUNITY_DESCRIPTION,
+      keyPairDHT.publicKey,
+      keyPairDHT.secretKey,
     )
     logger.info(`my Federation HomeCommunity=${JSON.stringify(homeCom)}`)
-    const pubKey = Buffer.from(homeCom.publicKey, 'hex')
-    const privKey = Buffer.from(homeCom.privKey, 'hex')
-    const keyPair = DHT.keyPair(uuidAsSeed(homeCom.uuid))
-    logger.debug(`homeCom: pubKey=${pubKey}, privKey=${privKey}`)
-    logger.debug(`keyPair: ${JSON.stringify(keyPair)}`)
-    /*
-    const keyPair = {
-      publicKey: Buffer.from(homeCom.publicKey, 'hex'),
-      privateKey: Buffer.from(homeCom.privKey, 'hex'),
+    const keyPairCom = {
+      publicKey: homeCom.publicKey,
+      secretKey: homeCom.privKey,
     }
-    */
-    // const keyPair = [pubKey, privKey]
-    await testKeyPairCryptography(homeCom, keyPair.publicKey, keyPair.secretKey)
+    logger.debug(`Com.keyPair: JSON=${JSON.stringify(keyPairCom)}`)
+    logger.debug(`DHT.keyPair: JSON=${JSON.stringify(keyPairDHT)}`)
 
-    const node = new DHT({ keyPair })
+    // await testKeyPairCryptography(homeCom, Buffer.from(keyPairCom.publicKey), Buffer.from(keyPairCom.secretKey))
+
+    const node = new DHT({ keyPair: keyPairDHT })
+    // const node = new DHT({ keyPairCom })
 
     const server = node.createServer()
+    logger.debug(`server.adress: ${JSON.stringify(server.address())}`)
 
     server.on('connection', function (socket: any) {
       logger.info(`server.on...`)
+
       // noiseSocket is E2E between you and the other peer
       // pipe it somewhere like any duplex stream
-      logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
-      // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
+      logger.debug(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
+      logger.debug(`Local  public key: ${socket.publicKey.toString('hex')}`) // same as keyPair.publicKey
 
       socket.on('data', async (data: Buffer) => {
         logger.info(`data: ${data.toString('ascii')}`)
@@ -65,12 +68,7 @@ export const startDHT = async (
               json.api,
               json.url,
             )
-            logger.debug(
-              `addFederationCommunity with pubKey=${Buffer.from(
-                socket.remotePublicKey,
-                'hex',
-              )}, url=${json.url} and api=${json.api}`,
-            )
+            logger.debug(`adding FederationCommunity successful...`)
             if (startHandshake) {
               logger.info(
                 `remote Community exists in database and has to be verified per FederationHandshake...`,
@@ -88,12 +86,13 @@ export const startDHT = async (
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
 
-    await server.listen(keyPair)
+    await server.listen(keyPairDHT)
+
     logger.info(`server.listen...`)
 
     setInterval(async () => {
       logger.info(`Announcing on topic: ${TOPIC.toString('hex')}`)
-      await node.announce(TOPIC, keyPair).finished()
+      await node.announce(TOPIC, keyPairDHT).finished()
     }, ANNOUNCETIME)
 
     let successfulRequests: string[] = []
@@ -118,7 +117,7 @@ export const startDHT = async (
         data.peers.forEach((peer: any) => {
           const pubKey = peer.publicKey.toString('hex')
           if (
-            pubKey !== keyPair.publicKey.toString('hex') &&
+            pubKey !== keyPairDHT.publicKey &&
             !successfulRequests.includes(pubKey) &&
             !errorfulRequests.includes(pubKey) &&
             !collectedPubKeys.includes(pubKey)
@@ -133,6 +132,9 @@ export const startDHT = async (
       collectedPubKeys.forEach((remotePubKey) => {
         // publicKey here is keyPair.publicKey from above
         const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
+        logger.debug(`collectedPubKey        =${remotePubKey}`)
+        logger.debug(`socket: pubKey         =${socket.publicKey.toString('hex')}`)
+        logger.debug(`socket: remotepublicKey=${socket.remotePublicKey.toString('hex')}`)
 
         // socket.once("connect", function () {
         // console.log("client side emitted connect");
