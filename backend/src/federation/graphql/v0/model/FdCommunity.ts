@@ -17,9 +17,14 @@ export class FdCommunity {
     this.url = url
     this.description = descript
     if (dbFed) {
-      this.publicKey = dbFed.pubKey.toString('hex')
-      this.verifiedAt = dbFed.pubKeyVerifiedAt
+      if (dbFed.publicKey) {
+        this.publicKey = dbFed.publicKey.toString('hex')
+      }
       this.authenticatedAt = dbFed.authenticatedAt
+      if (dbFed.dhtPublicKey) {
+        this.dhtPublicKey = dbFed.dhtPublicKey.toString('hex')
+      }
+      this.dhtVerifiedAt = dbFed.dhtPubKeyVerifiedAt
     }
     if (dbApi) {
       this.apiVersion = dbApi.apiVersion
@@ -47,9 +52,6 @@ export class FdCommunity {
   createdAt: Date
 
   @Field(() => Date, { nullable: true })
-  verifiedAt: Date | null
-
-  @Field(() => Date, { nullable: true })
   authenticatedAt: Date
 
   @Field(() => String)
@@ -57,6 +59,15 @@ export class FdCommunity {
 
   @Field(() => String, { nullable: true })
   privKey: string
+
+  @Field(() => String)
+  dhtPublicKey: string
+
+  @Field(() => String, { nullable: true })
+  dhtSecretKey: string
+
+  @Field(() => Date, { nullable: true })
+  dhtVerifiedAt: Date | null
 
   @Field(() => String)
   apiVersion: string
