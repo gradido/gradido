@@ -10,6 +10,7 @@ import {
   sendAccountMultiRegistrationEmail,
   sendContributionConfirmedEmail,
   sendContributionRejectedEmail,
+  sendResetPasswordEmail,
 } from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
@@ -319,7 +320,7 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(
-          'your public good contribution “My contribution.” has just been confirmed by Bibi Bloxberg and credited to your Gradido account.',
+          'Your public good contribution “My contribution.” has just been confirmed by Bibi Bloxberg and credited to your Gradido account.',
         )
         expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
         expect(result.originalMessage.html).toContain(
@@ -389,7 +390,7 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Hello Peter Lustig')
         expect(result.originalMessage.html).toContain(
-          'your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
+          'Your public good contribution “My contribution.” was rejected by Bibi Bloxberg.',
         )
         expect(result.originalMessage.html).toContain(
           'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
@@ -398,6 +399,78 @@ describe('sendEmailVariants', () => {
           'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
+
+  describe('sendResetPasswordEmail', () => {
+    beforeAll(async () => {
+      result = await sendResetPasswordEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        resetLink: 'http://localhost/reset-password/3762660021544901417',
+        timeDurationObject: { hours: 23, minutes: 30 },
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'resetPassword',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            resetLink: 'http://localhost/reset-password/3762660021544901417',
+            timeDurationObject: { hours: 23, minutes: 30 },
+            resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Reset password',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: RESET PASSWORD'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain('<title>Gradido: Reset password</title>')
+        expect(result.originalMessage.html).toContain('>Gradido: Reset password</h1>')
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'You, or someone else, requested a password reset for this account.',
+        )
+        expect(result.originalMessage.html).toContain('If it was you, please click on the link:')
+        expect(result.originalMessage.html).toContain(
+          '<a href="http://localhost/reset-password/3762660021544901417">http://localhost/reset-password/3762660021544901417</a>',
+        )
+        expect(result.originalMessage.html).toContain(
+          'or copy the link above into your browser window.',
+        )
+        expect(result.originalMessage.html).toContain(
+          'The link has a validity of 23 hours and 30 minutes. If the validity of the link has already expired, you can have a new link sent to you here by entering your email address:',
+        )
+        expect(result.originalMessage.html).toContain(
+          `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
+        )
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
       })
     })
