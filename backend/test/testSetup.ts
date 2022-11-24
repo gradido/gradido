@@ -1,4 +1,5 @@
 import { backendLogger as logger } from '@/server/logger'
+import { i18n } from '@/server/localization'
 
 jest.setTimeout(1000000)
 
@@ -19,4 +20,18 @@ jest.mock('@/server/logger', () => {
   }
 })
 
-export { logger }
+jest.mock('@/server/localization', () => {
+  const originalModule = jest.requireActual('@/server/localization')
+  return {
+    __esModule: true,
+    ...originalModule,
+    i18n: {
+      init: jest.fn(),
+      // configure: jest.fn(),
+      // __: jest.fn(),
+      // setLocale: jest.fn(),
+    },
+  }
+})
+
+export { logger, i18n }
