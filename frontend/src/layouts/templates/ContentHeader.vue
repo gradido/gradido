@@ -5,7 +5,7 @@
         <b-row>
           <b-col cols="5">
             <div>
-              <gdd-amount :balance="balance" />
+              <gdd-amount :balance="balance" :showStatus="false" />
             </div>
           </b-col>
           <b-col cols="7">
@@ -21,7 +21,7 @@
         <b-row>
           <b-col cols="6">
             <div>
-              <gdd-amount :balance="balance" :badge="true" />
+              <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
             </div>
           </b-col>
           <b-col cols="6">
@@ -35,12 +35,34 @@
         <b-row>
           <b-col cols="6">
             <div>
-              <gdd-amount :balance="balance" :badge="true" />
+              <router-link to="transaction">
+                <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
+              </router-link>
             </div>
           </b-col>
           <b-col cols="6">
             <div>
-              <gdt-amount />
+              <router-link to="gdt">
+                <gdt-amount />
+              </router-link>
+            </div>
+          </b-col>
+        </b-row>
+      </b-container>
+      <b-container v-if="path === '/gdt'">
+        <b-row>
+          <b-col cols="6">
+            <div>
+              <router-link to="transactions">
+                <gdd-amount :balance="balance" />
+              </router-link>
+            </div>
+          </b-col>
+          <b-col cols="6">
+            <div>
+              <router-link to="gdt">
+                <gdt-amount :badge="true" />
+              </router-link>
             </div>
           </b-col>
         </b-row>

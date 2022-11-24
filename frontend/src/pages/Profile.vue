@@ -1,6 +1,6 @@
 <template>
   <div class="profile break">
-    <b-card class="justify-content-center">
+    <b-card class="justify-content-center bg-white appBoxShadow gradido-border-radius">
       <b-form @submit.prevent="submit">
         <b-row>
           <b-col>

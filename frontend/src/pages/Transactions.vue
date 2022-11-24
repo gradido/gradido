@@ -1,6 +1,6 @@
 <template>
   <div class="pb-4">
-    <b-tabs v-model="tabIndex" content-class="" justified>
+    <!-- <b-tabs v-model="tabIndex" content-class="" justified>
       <b-tab
         :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
         class="px-4"
@@ -31,7 +31,29 @@
           :pageSize="pageSize"
         />
       </b-tab>
-    </b-tabs>
+    </b-tabs> -->
+
+    <div v-if="gdt">
+      <div>{{ titleGdt }}</div>
+
+      <gdt-transaction-list
+        v-model="currentPage"
+        :transactionsGdt="transactionsGdt"
+        :transactionGdtCount="transactionGdtCount"
+        :pageSize="pageSize"
+      />
+    </div>
+    <div v-else>
+      <gdd-transaction-list
+        :timestamp="timestamp"
+        :transactionCount="transactionCount"
+        :transactionLinkCount="transactionLinkCount"
+        :transactions="transactions"
+        :showPagination="true"
+        @update-transactions="updateTransactions"
+        v-on="$listeners"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -95,18 +117,14 @@ export default {
     },
   },
   computed: {
-    titleGdt(boolean) {
-      if (this.tabIndex === 1)
-        return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
+    titleGdt() {
+      if (this.gdt) return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
       return this.$t('gdt.gdt')
     },
   },
   created() {
     if (this.gdt) {
-      this.tabIndex = 1
       this.updateGdt()
-    } else {
-      this.tabIndex = 0
     }
   },
   watch: {
@@ -115,10 +133,7 @@ export default {
     },
     gdt() {
       if (this.gdt) {
-        this.tabIndex = 1
         this.updateGdt()
-      } else {
-        this.tabIndex = 0
       }
     },
   },
