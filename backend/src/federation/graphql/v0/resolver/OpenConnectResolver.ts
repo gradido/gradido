@@ -1,13 +1,13 @@
 import { Resolver, Query, Authorized, Mutation, Args } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
-  readFederationCommunityByPubKey,
+  readFederationCommunityByDhtPubKey,
   readFederationCommunityByUrl,
   readHomeCommunity,
   setFedComUUID,
 } from '@/dao/CommunityDAO'
 import OpenConnectArgs from '../arg/OpenConnectArgs'
-import { SecretKeyCryptographyDecrypt } from '@/util/encryptionTools'
+import { decryptMessage, SecretKeyCryptographyDecrypt } from '@/util/encryptionTools'
 import { backendLogger as logger } from '@/server/logger'
 import {
   startOneTimeRequestLoop,
@@ -28,22 +28,21 @@ export class OpenConnectResolver {
   ): Promise<boolean> {
     logger.debug(`openConnect(pubKey=${pubKey}, encryptedUrl=${encryptedUrl})`)
     // first check if pubKey of rmoteCom exists in my database
-    const fedCom = await readFederationCommunityByPubKey(pubKey)
+    const fedCom = await readFederationCommunityByDhtPubKey(Buffer.from(pubKey, 'hex'))
     if (fedCom) {
       logger.debug(`found fedCom=${JSON.stringify(fedCom)}`)
       const homeCom = await readHomeCommunity()
       logger.debug(`decrypt(encryptedUrl=${encryptedUrl}, privKey=${homeCom.privKey})`)
 
-      const decryptedRemoteUrlBuf = SecretKeyCryptographyDecrypt(
-        Buffer.from(encryptedUrl, 'hex'),
+      const decryptedRemoteUrlBuf = decryptMessage(
         Buffer.from(homeCom.privKey, 'hex'),
+        Buffer.from(fedCom.publicKey, 'hex'),
+        Buffer.from(encryptedUrl, 'hex'),
       )
       logger.debug(
-        `decryptedRemoteUrlBuf=${decryptedRemoteUrlBuf.toString('hex')} === fedCom.url=${
-          fedCom.url
-        }`,
+        `decryptedRemoteUrlBuf=${decryptedRemoteUrlBuf.toString()} === fedCom.url=${fedCom.url}`,
       )
-      const decryptedRemoteUrl = decryptedRemoteUrlBuf.toString('hex')
+      const decryptedRemoteUrl = decryptedRemoteUrlBuf.toString()
       logger.debug(`decryptedRemoteUrlBuf=${decryptedRemoteUrl}`)
 
       if (decryptedRemoteUrl && decryptedRemoteUrl === fedCom.url) {
@@ -68,12 +67,13 @@ export class OpenConnectResolver {
     )
     const homeCom = await readHomeCommunity()
     const fedCom = await readFederationCommunityByUrl(url)
-    const decryptedRedirectUrl = SecretKeyCryptographyDecrypt(
-      Buffer.from(encryptedRedirectUrl, 'hex'),
+    const decryptedRedirectUrl = decryptMessage(
+      Buffer.from(homeCom.privKey, 'hex'),
       Buffer.from(fedCom.publicKey, 'hex'),
-    ).toString('hex')
+      Buffer.from(encryptedRedirectUrl, 'hex'),
+    )
     // here NO AWAIT to run in background
-    startOneTimeRequestLoop(homeCom, fedCom, oneTimeCode, decryptedRedirectUrl)
+    startOneTimeRequestLoop(homeCom, fedCom, oneTimeCode, decryptedRedirectUrl.toString())
     return true
   }
 
@@ -87,12 +87,13 @@ export class OpenConnectResolver {
       `openConnectOneTime(oneTimeCode=${oneTimeCode}, encryptedUuid=${encryptedUuid})...`,
     )
     const homeCom = await readHomeCommunity()
-    const fedCom = await readFederationCommunityByPubKey(oneTimeCode)
-    const decryptedUuid = SecretKeyCryptographyDecrypt(
-      Buffer.from(encryptedUuid, 'hex'),
+    const fedCom = await readFederationCommunityByDhtPubKey(Buffer.from(oneTimeCode, 'hex'))
+    const decryptedUuid = decryptMessage(
+      Buffer.from(homeCom.privKey, 'hex'),
       Buffer.from(fedCom.publicKey, 'hex'),
-    ).toString('hex')
-    fedCom.uuid = decryptedUuid
+      Buffer.from(encryptedUuid, 'hex'),
+    )
+    fedCom.uuid = decryptedUuid.toString()
     logger.debug(`decrypted uuid=${decryptedUuid}`)
     await setFedComUUID(fedCom)
     logger.debug(`openConnectOneTime()...successful`)
