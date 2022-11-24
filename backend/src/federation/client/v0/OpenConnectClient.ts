@@ -1,7 +1,7 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { backendLogger as logger } from '@/server/logger'
 import { FdCommunity } from '@/federation/graphql/v0/model/FdCommunity'
-import { SecretKeyCryptographyDecrypt, SecretKeyCryptographyEncrypt } from '@/util/encryptionTools'
+import { decryptMessage, encryptMessage } from '@/util/encryptionTools'
 
 export async function requestOpenConnect(
   homeCom: FdCommunity,
@@ -24,11 +24,12 @@ export async function requestOpenConnect(
       v0_openConnect(pubKey: $pubKey, encryptedUrl: $encryptedUrl)
     }
   `
-  const encryptedUrlBuf = SecretKeyCryptographyEncrypt(
-    Buffer.from(homeCom.url),
+  const encryptedUrlBuf = encryptMessage(
+    Buffer.from(homeCom.privKey, 'hex'),
     Buffer.from(fedCom.publicKey, 'hex'),
+    Buffer.from(homeCom.url),
   )
-  const encryptedUrl = encryptedUrlBuf.toString('hex')
+  const encryptedUrl = encryptedUrlBuf.toString()
   const variables = { pubKey: homeCom.publicKey, encryptedUrl: encryptedUrl }
   logger.debug(`variables=${JSON.stringify(variables)}`)
 
@@ -82,10 +83,12 @@ export async function requestOpenConnectRedirect(
       )
     }
   `
-  const encryptedUrl = SecretKeyCryptographyEncrypt(
-    Buffer.from(homeComRedirectUrl),
+  const encryptedUrl = encryptMessage(
+    Buffer.from(homeCom.privKey, 'hex'),
     Buffer.from(fedCom.publicKey, 'hex'),
-  ).toString('hex')
+    Buffer.from(homeComRedirectUrl),
+  )
+
   const variables = {
     oneTimeCode: oneTimeCode,
     url: homeCom.url,
@@ -138,10 +141,12 @@ export async function requestOpenConnectOneTime(
       encryptedUuid
     }
   `
-  const encryptedUuid = SecretKeyCryptographyEncrypt(
-    Buffer.from(homeCom.uuid),
+  const encryptedUuid = encryptMessage(
+    Buffer.from(homeCom.privKey, 'hex'),
     Buffer.from(fedCom.publicKey, 'hex'),
-  ).toString('hex')
+    Buffer.from(homeCom.uuid),
+  )
+
   const variables = { oneTimeCode: oneTimeCode, encryptedUuid: encryptedUuid }
 
   try {
@@ -157,13 +162,14 @@ export async function requestOpenConnectOneTime(
       )}`,
     )
     if (data) {
-      const decryptedUuid = SecretKeyCryptographyDecrypt(
-        Buffer.from(data.v0_openConnectOneTime.encryptedUuid),
+      const decryptedUuid = decryptMessage(
         Buffer.from(homeCom.privKey, 'hex'),
-      ).toString('hex')
+        Buffer.from(fedCom.publicKey, 'hex'),
+        Buffer.from(data.v0_openConnectOneTime.encryptedUuid),
+      )
       logger.debug(`Response-Data: uuid=${decryptedUuid}`)
       logger.info(`requestOpenConnectOneTime processed successfully`)
-      return decryptedUuid
+      return decryptedUuid.toString()
     }
     logger.error(`requestOpenConnectOneTime processed without response data`)
   } catch (err) {
