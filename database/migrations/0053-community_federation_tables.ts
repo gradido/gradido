@@ -27,11 +27,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       private_key binary(80),
       public_key binary(32),
-      public_key_verified_at datetime(3),
       authenticated_at datetime(3),
+      dht_secret_key binary(80),
+      dht_public_key binary(32),
+      dht_public_key_verified_at datetime(3),
       PRIMARY KEY (id),
       UNIQUE KEY uuid (uuid),
-      UNIQUE KEY public_key (public_key)
+      UNIQUE KEY public_key (public_key),
+      UNIQUE KEY dht_public_key (dht_public_key)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
   await queryFn(`
