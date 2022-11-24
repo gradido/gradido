@@ -31,13 +31,19 @@ export class CommunityFederation extends BaseEntity {
   privateKey: Buffer
 
   @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
-  pubKey: Buffer
-
-  @Column({ name: 'public_key_verified_at', type: 'datetime', nullable: true, default: null })
-  pubKeyVerifiedAt: Date | null
+  publicKey: Buffer
 
   @Column({ name: 'authenticated_at', default: null, nullable: true })
   authenticatedAt: Date
+
+  @Column({ name: 'dht_secret_key', type: 'binary', length: 80, default: null, nullable: true })
+  dhtSecretKey: Buffer
+
+  @Column({ name: 'dht_public_key', type: 'binary', length: 32, default: null, nullable: true })
+  dhtPublicKey: Buffer
+
+  @Column({ name: 'dht_public_key_verified_at', type: 'datetime', nullable: true, default: null })
+  dhtPubKeyVerifiedAt: Date | null
 
   @ManyToOne(() => Community, (community) => community.federations)
   @JoinColumn({ name: 'community_id' })
