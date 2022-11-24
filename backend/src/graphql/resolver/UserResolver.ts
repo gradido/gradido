@@ -311,6 +311,7 @@ export class UserResolver {
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       dbUser.password = encryptPassword(dbUser, password)
+      await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)

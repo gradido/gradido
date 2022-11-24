@@ -1193,9 +1193,11 @@ describe('UserResolver', () => {
 
       let bibi: User
       beforeAll(async () => {
-        const users = await User.find()
-        bibi = users[1]
-
+        const usercontact = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
         bibi.password = SecretKeyCryptographyCreateKey(
           'bibi@bloxberg.de',
@@ -1208,11 +1210,15 @@ describe('UserResolver', () => {
       it('changes to gradidoID on login', async () => {
         await mutate({ mutation: login, variables: variables })
 
-        const users = await User.find()
-        bibi = users[0]
+        const usercontact = await UserContact.findOneOrFail(
+          { email: 'bibi@bloxberg.de' },
+          { relations: ['user'] },
+        )
+        bibi = usercontact.user
 
         expect(bibi).toEqual(
           expect.objectContaining({
+            firstName: 'Bibi',
             password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
               .readBigUInt64LE()
               .toString(),

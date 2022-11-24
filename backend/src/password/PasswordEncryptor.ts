@@ -10,8 +10,5 @@ export const encryptPassword = (dbUser: User, password: string): bigint => {
 }
 
 export const verifyPassword = (dbUser: User, password: string): boolean => {
-  if (dbUser.password.toString() !== encryptPassword(dbUser, password).toString()) {
-    return false
-  }
-  return true
+  return dbUser.password.toString() === encryptPassword(dbUser, password).toString()
 }
