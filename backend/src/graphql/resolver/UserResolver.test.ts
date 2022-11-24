@@ -3,6 +3,7 @@
 
 import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
 import { logger, i18n as localization } from '@test/testSetup'
+import { printTimeDuration } from '@/util/time'
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
@@ -24,7 +25,7 @@ import {
   sendAccountMultiRegistrationEmail,
 } from '@/emails/sendEmailVariants'
 import { sendResetPasswordEmail } from '@/mailer/sendResetPasswordEmail'
-import { printTimeDuration, activationLink } from './UserResolver'
+import { activationLink } from './UserResolver'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { ContributionLink } from '@model/ContributionLink'
