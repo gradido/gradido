@@ -105,7 +105,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     const transactions = await queryFn(
       `SELECT *, CONVERT(balance, CHAR) as dec_balance, CONVERT(decay, CHAR) as dec_decay FROM transactions WHERE user_id = ${userId} ORDER BY balance_date ASC;`,
     )
-  
+
     let previous = null
     let affectedTransactions = 0
     let balance = new Decimal(0)
@@ -137,7 +137,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         if (t === transactions.length - 1) {
           fs.appendFile(
             logFile,
-            `${userEmail};${userFirstName};${userLastName};${affectedTransactions};${balance};${decay.decay ? decay.decay : 0};${transaction.dec_balance};${transaction.dec_decay};${balance.sub(transaction.dec_balance)};\n`,
+            `${userEmail};${userFirstName};${userLastName};${affectedTransactions};${balance};${
+              decay.decay ? decay.decay : 0
+            };${transaction.dec_balance};${transaction.dec_decay};${balance.sub(
+              transaction.dec_balance,
+            )};\n`,
             (err) => {
               if (err) throw err
             },
