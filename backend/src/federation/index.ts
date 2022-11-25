@@ -38,7 +38,6 @@ export const startDHT = async (
 ): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-    logger.debug(`getSeed='${getSeed()}'`)
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
