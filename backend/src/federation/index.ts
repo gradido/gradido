@@ -10,15 +10,9 @@ function between(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-const getSeed = (): Buffer | null => {
-  if (CONFIG.FEDERATION_DHT_SEED) {
-    logger.debug(`with seed='${CONFIG.FEDERATION_DHT_SEED}'`)
-    return Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
-  }
-  return null
-}
-
 const KEY_SECRET_SEEDBYTES = 32
+const getSeed = (): Buffer | null =>
+  CONFIG.FEDERATION_DHT_SEED ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED) : null
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
