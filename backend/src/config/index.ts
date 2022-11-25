@@ -10,14 +10,14 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0053-change_password_encryption',
+  DB_VERSION: '0054-add_communities_table',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v12.2022-11-10',
+    EXPECTED: 'v13.2022-11-25',
     CURRENT: '',
   },
 }
@@ -119,6 +119,7 @@ if (
 const federation = {
   FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
   FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
+  FEDERATION_COMMUNITY_URL: process.env.FEDERATION_COMMUNITY_URL || null,
 }
 
 const CONFIG = {
