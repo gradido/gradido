@@ -13,6 +13,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import fs from 'fs'
 import Decimal from 'decimal.js-light'
 
 // Set precision value
@@ -86,30 +87,63 @@ function calculateDecay(
 }
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // Write log file
+  const logFile = 'log/0054-recalculate_balance_and_decay.log.csv'
+  await fs.writeFile(
+    logFile,
+    `email;first_name;last_name;affected_transactions;new_balance;new_decay;old_balance;old_decay;delta;\n`,
+    (err) => {
+      if (err) throw err
+    },
+  )
+
   // Find all users & loop over them
   const users = await queryFn('SELECT user_id FROM transactions GROUP BY user_id;')
   for (let u = 0; u < users.length; u++) {
+    const userId = users[u].user_id
     // find all transactions for a user
     const transactions = await queryFn(
-      `SELECT * FROM transactions WHERE user_id = ${users[u].user_id} ORDER BY balance_date ASC;`,
+      `SELECT *, CONVERT(balance, CHAR) as dec_balance, CONVERT(decay, CHAR) as dec_decay FROM transactions WHERE user_id = ${userId} ORDER BY balance_date ASC;`,
     )
+  
     let previous = null
+    let affectedTransactions = 0
     let balance = new Decimal(0)
     for (let t = 0; t < transactions.length; t++) {
       const transaction = transactions[t]
-
       const decayStartDate = previous ? previous.balance_date : transaction.balance_date
       const amount = new Decimal(transaction.amount)
       const decay = calculateDecay(balance, decayStartDate, transaction.balance_date)
       balance = decay.balance.add(amount)
 
-      // Update
-      await queryFn(`
-        UPDATE transactions SET
-          balance = ${balance},
-          decay = ${decay.decay ? decay.decay : 0}
-        WHERE id = ${transaction.id};
-      `)
+      const userContact = await queryFn(
+        `SELECT email, first_name, last_name FROM users LEFT JOIN user_contacts ON users.email_id = user_contacts.id WHERE users.id = ${userId}`,
+      )
+      const userEmail = userContact.length === 1 ? userContact[0].email : userId
+      const userFirstName = userContact.length === 1 ? userContact[0].first_name : ''
+      const userLastName = userContact.length === 1 ? userContact[0].last_name : ''
+
+      // Update if needed
+      if (!balance.eq(transaction.dec_balance)) {
+        await queryFn(`
+          UPDATE transactions SET
+            balance = ${balance},
+            decay = ${decay.decay ? decay.decay : 0}
+          WHERE id = ${transaction.id};
+        `)
+        affectedTransactions++
+
+        // Log on last entry
+        if (t === transactions.length - 1) {
+          fs.appendFile(
+            logFile,
+            `${userEmail};${userFirstName};${userLastName};${affectedTransactions};${balance};${decay.decay ? decay.decay : 0};${transaction.dec_balance};${transaction.dec_decay};${balance.sub(transaction.dec_balance)};\n`,
+            (err) => {
+              if (err) throw err
+            },
+          )
+        }
+      }
 
       // previous
       previous = transaction
