@@ -29,7 +29,6 @@ async function calculateBalance(
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 
-  // TODO why we have to use toString() here?
   const balance = decay.balance.add(amount.toString())
   const transactionLinkRepository = getCustomRepository(TransactionLinkRepository)
   const { sumHoldAvailableAmount } = await transactionLinkRepository.summary(userId, time)
