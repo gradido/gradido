@@ -22,6 +22,7 @@
         <b-tab>
           <gradido-notification list="my" />
           <contribution-list
+            @closeAllOpenCollapse="closeAllOpenCollapse"
             :items="items"
             @update-list-contributions="updateListContributions"
             @update-contribution-form="updateContributionForm"
@@ -96,6 +97,7 @@ export default {
     $route(to, from) {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
       this.hashLink = to.hash
+      this.closeAllOpenCollapse()
     },
   },
   computed: {
@@ -124,6 +126,11 @@ export default {
     },
   },
   methods: {
+    closeAllOpenCollapse() {
+      this.$el.querySelectorAll('.collapse.show').forEach((value) => {
+        this.$root.$emit('bv::toggle::collapse', value.id)
+      })
+    },
     setContribution(data) {
       this.$apollo
         .mutate({

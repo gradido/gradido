@@ -94,12 +94,13 @@
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
               class="pointer ml-5"
               @click="
-                $emit('update-contribution-form', {
-                  id: id,
-                  contributionDate: contributionDate,
-                  memo: memo,
-                  amount: amount,
-                })
+                $emit('closeAllOpenCollapse'),
+                  $emit('update-contribution-form', {
+                    id: id,
+                    contributionDate: contributionDate,
+                    memo: memo,
+                    amount: amount,
+                  })
               "
             >
               <b-icon icon="pencil" class="h2"></b-icon>
@@ -256,8 +257,10 @@ export default {
         if (value) this.$emit('delete-contribution', item)
       })
     },
-    getListContributionMessages() {
-      // console.log('getListContributionMessages', this.contributionId)
+    getListContributionMessages(closeCollapse = true) {
+      if (closeCollapse) {
+        this.$emit('closeAllOpenCollapse')
+      }
       this.$apollo
         .query({
           query: listContributionMessages,

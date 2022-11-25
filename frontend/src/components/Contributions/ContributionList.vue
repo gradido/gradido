@@ -3,6 +3,7 @@
     <div class="mb-5" v-for="item in items" :key="item.id">
       <contribution-list-item
         v-bind="item"
+        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
         :contributionId="item.id"
         :allContribution="allContribution"
         @update-contribution-form="updateContributionForm"

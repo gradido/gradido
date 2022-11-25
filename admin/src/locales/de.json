@@ -85,7 +85,6 @@
   "hide_details": "Details verbergen",
   "lastname": "Nachname",
   "math": {
-    "colon": ":",
     "equals": "=",
     "exclaim": "!",
     "pipe": "|",
@@ -98,12 +97,13 @@
   "multiple_creation_text": "Bitte wähle ein oder mehrere Mitglieder aus für die du Schöpfen möchtest.",
   "name": "Name",
   "navbar": {
-    "automaticContributions": "automatische Beiträge",
+    "automaticContributions": "Automatische Beiträge",
     "logout": "Abmelden",
     "multi_creation": "Mehrfachschöpfung",
     "my-account": "Mein Konto",
     "open_creation": "Offene Schöpfungen",
     "overview": "Übersicht",
+    "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
   "not_open_creations": "Keine offenen Schöpfungen",
@@ -125,8 +125,9 @@
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
+    "count": "Menge",
     "deletedUsers": "Gelöschte Mitglieder",
-    "name": "Statistik",
+    "details": "Details",
     "totalGradidoAvailable": "GDD insgesamt im Umlauf",
     "totalGradidoCreated": "GDD insgesamt geschöpft",
     "totalGradidoDecayed": "GDD insgesamt verfallen",

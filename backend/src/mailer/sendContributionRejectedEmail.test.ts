@@ -26,11 +26,11 @@ describe('sendContributionConfirmedEmail', () => {
   it('calls sendEMail', () => {
     expect(sendEMail).toBeCalledWith({
       to: 'Bibi Bloxberg <bibi@bloxberg.de>',
-      subject: 'Schöpfung wurde abgelehnt',
+      subject: 'Dein Gemeinwohl-Beitrag wurde abgelehnt',
       text:
         expect.stringContaining('Hallo Bibi Bloxberg') &&
         expect.stringContaining(
-          'Dein Gradido Schöpfungsantrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde soeben von Peter Lustig abgelehnt.',
+          'dein Gemeinwohl-Beitrag "Vielen herzlichen Dank für den neuen Hexenbesen!" wurde von Peter Lustig abgelehnt.',
         ) &&
         expect.stringContaining('Link zu deinem Konto: http://localhost/overview'),
     })
