@@ -34,7 +34,11 @@
     </b-tabs> -->
 
     <div v-if="gdt">
-      <div>{{ titleGdt }}</div>
+      <div
+        class="gradido-global-color-accent appBoxShadow gradido-border-radius p-3 mb-3 text-right blurtext"
+      >
+        {{ titleGdt }}
+      </div>
 
       <gdt-transaction-list
         v-model="currentPage"
@@ -140,6 +144,17 @@ export default {
 }
 </script>
 <style>
+.blurtext {
+  color: transparent;
+  text-shadow: #047006 0 0 15px;
+  transition: 0.4s;
+}
+.blurtext:hover {
+  transition: 0.4s;
+  color: #047006;
+  text-shadow: none;
+}
+
 .nav-tabs > li > a {
   padding-top: 14px;
   margin-bottom: 14px;

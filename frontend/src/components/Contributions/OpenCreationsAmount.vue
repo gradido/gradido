@@ -1,18 +1,30 @@
 <template>
   <div class="open-creations-amount bg-white appBoxShadow gradido-border-radius p-4">
-    <b-table striped hover :items="items"></b-table>
+    <div class="my-3">
+      <ul class="my-3">
+        <li v-html="textForMonth(new Date(minimalDate), maxGddLastMonth)"></li>
+        <li v-html="textForMonth(new Date(), maxGddThisMonth)"></li>
+      </ul>
+    </div>
   </div>
 </template>
 <script>
 export default {
   name: 'OpenCreationsAmount',
-  data() {
-    return {
-      items: [
-        { monat: 'Oktober', status: 'Max. erreicht', eingereicht: '50 h', stundenOffen: '0 h' },
-        { monat: 'November', status: 'einreichen', eingereicht: '20 h', stundenOffen: '30 h' },
-      ],
-    }
+  props: {
+    minimalDate: { type: Date, required: true },
+    maxGddLastMonth: { type: Number, required: true },
+    maxGddThisMonth: { type: Number, required: true },
+  },
+
+  methods: {
+    textForMonth(date, availableAmount) {
+      const obj = {
+        monthAndYear: this.$d(date, 'monthAndYear'),
+        creation: availableAmount,
+      }
+      return this.$t('contribution.formText.openAmountForMonth', obj)
+    },
   },
 }
 </script>

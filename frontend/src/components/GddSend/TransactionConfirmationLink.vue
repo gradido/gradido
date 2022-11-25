@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-confirm-link">
+  <div class="transaction-confirm-link bg-white appBoxShadow gradido-border-radius p-3">
     <b-row class="confirm-box-link">
       <b-col class="text-right mt-4 mb-3">
         <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
@@ -9,7 +9,7 @@
       </b-col>
     </b-row>
 
-    <b-container class="bv-example-row mt-3 mb-3 gray-background p-2">
+    <b-container class="bv-example-row mt-3 mb-5">
       <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>

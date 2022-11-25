@@ -102,7 +102,8 @@
       </b-row>
     </b-container>
     <b-container v-if="path === '/community'">
-      <last-contributions />
+      <contribution-info />
+      <last-contributions class="mt-5" />
     </b-container>
     <b-container v-if="path === '/settings'">settings ride side</b-container>
   </div>
@@ -111,6 +112,7 @@
 import LastTransactions from '@/components/Template/RightSide/LastTransactions.vue'
 import Favourites from '@/components/Template/RightSide/Favourites.vue'
 import TopStorysByMonth from '@/components/Template/RightSide/TopStorysByMonth.vue'
+import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 import LastContributions from '@/components/Template/RightSide/LastContributions.vue'
 import YourOverview from '@/components/Template/RightSide/YourOverview.vue'
 
@@ -121,6 +123,7 @@ export default {
     Favourites,
     TopStorysByMonth,
     LastContributions,
+    ContributionInfo,
     YourOverview,
   },
   props: {

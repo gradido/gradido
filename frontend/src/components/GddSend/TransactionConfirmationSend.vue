@@ -1,5 +1,5 @@
 <template>
-  <div class="transaction-confirm-send">
+  <div class="transaction-confirm-send bg-white appBoxShadow gradido-border-radius p-3">
     <b-row class="confirm-box-send">
       <b-col>
         <div class="display-4 pb-4">{{ $t('form.send_check') }}</div>
@@ -33,7 +33,7 @@
       </b-col>
     </b-row>
 
-    <b-container class="bv-example-row mt-3 mb-3 gray-background p-2">
+    <b-container class="bv-example-row mt-5 mb-5">
       <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>

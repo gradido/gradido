@@ -10,8 +10,8 @@
     </div>
 
     <div
-      class="wallet-amount bg-white appBoxShadow gradido-border-radius p-4 border opacity-05"
-      :class="badge ? 'border-success' : 'border-light'"
+      class="wallet-amount bg-white appBoxShadow gradido-border-radius p-4 border"
+      :class="showStatus ? 'gradido-global-border-color-accent' : 'border-light opacity-05'"
     >
       <b-row>
         <b-col cols="9" class="h4">GDT Konto</b-col>
@@ -19,7 +19,7 @@
           <div>
             <b-icon
               :icon="badge ? 'check-circle' : 'circle'"
-              :variant="badge ? 'success' : 'light'"
+              class="gradido-global-border-color-accent"
             ></b-icon>
             <div class="small">{{ badge ? 'aktiv' : 'inaktiv' }}</div>
           </div>
@@ -37,6 +37,7 @@ export default {
   name: 'GdtAmount',
   props: {
     badge: { type: Boolean, default: false },
+    showStatus: { type: Boolean, default: false },
   },
 }
 </script>

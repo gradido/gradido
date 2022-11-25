@@ -1,18 +1,32 @@
 <template>
   <div>
-    <div class="list-group">
+    <div class="list-group bg-white appBoxShadow gradido-border-radius p-3">
       <b-row @click="visible = !visible" class="">
         <b-col cols="2">
-          <b-avatar :icon="getLinesByType.icon" variant="light" size="4em"></b-avatar>
+          <b-avatar
+            :icon="getLinesByType.icon"
+            variant="light"
+            size="4em"
+            :class="getLinesByType.iconclasses"
+          ></b-avatar>
         </b-col>
         <b-col>
-          <div>
+          <!-- <div>
             {{ getLinesByType }}
+          </div> -->
+          <div>
+            {{ date }}
+          </div>
+          <div>
+            {{ getLinesByType.description }}
+          </div>
+          <div class="small">
+            {{ getLinesByType.descriptiontext }}
           </div>
         </b-col>
         <b-col cols="3">
-          <div class="small">Gesendet</div>
-          <div class="small">{{ amount | GDT }}</div>
+          <div class="small mt-2">GDT erhalten</div>
+          <div class="">{{ getLinesByType.credittext }}</div>
         </b-col>
         <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
       </b-row>
@@ -75,7 +89,7 @@ export default {
         case GdtEntryType.CVS2: {
           return {
             icon: 'heart',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            iconclasses: 'gradido-global-color-accent',
             description: this.$t('gdt.contribution'),
             descriptiontext: this.$n(this.amount, 'decimal') + ' €',
             credittext: this.$n(this.gdt, 'decimal') + ' GDT',
@@ -84,7 +98,7 @@ export default {
         case GdtEntryType.ELOPAGE_PUBLISHER: {
           return {
             icon: 'person-check',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            iconclasses: 'gradido-global-color-accent',
             description: this.$t('gdt.recruited-member'),
             descriptiontext: '5%',
             credittext: this.$n(this.amount, 'decimal') + ' GDT',
@@ -93,7 +107,7 @@ export default {
         case GdtEntryType.GLOBAL_MODIFICATOR: {
           return {
             icon: 'gift',
-            iconclasses: 'gradido-global-color-accent m-mb-1 font2em',
+            iconclasses: 'gradido-global-color-accent',
             description: this.$t('gdt.gdt-received'),
             descriptiontext: this.comment,
             credittext: this.$n(this.gdt, 'decimal') + ' GDT',

@@ -3,12 +3,20 @@
     <div>
       <b-tabs no-nav-style v-model="tabIndex" content-class="mt-3" align="center">
         <b-tab>
-          <open-creations-amount />
+          <open-creations-amount
+            :minimalDate="minimalDate"
+            :maxGddThisMonth="maxGddThisMonth"
+            :maxGddLastMonth="maxGddLastMonth"
+          />
+          <div class="mb-3"></div>
           <contribution-form
             @set-contribution="setContribution"
             @update-contribution="updateContribution"
             v-model="form"
-            :updateAmount="updateAmount"
+            :isThisMonth="isThisMonth"
+            :minimalDate="minimalDate"
+            :maxGddLastMonth="maxGddLastMonth"
+            :maxGddThisMonth="maxGddThisMonth"
           />
         </b-tab>
         <b-tab>
@@ -76,6 +84,7 @@ export default {
         amount: '',
       },
       updateAmount: '',
+      maximalDate: new Date(),
     }
   },
   mounted() {
@@ -88,6 +97,31 @@ export default {
     $route(to, from) {
       this.tabIndex = this.tabLinkHashes.findIndex((hashLink) => hashLink === to.hash)
       this.hashLink = to.hash
+    },
+  },
+  computed: {
+    minimalDate() {
+      const date = new Date(this.maximalDate)
+      return new Date(date.setMonth(date.getMonth() - 1, 1))
+    },
+    isThisMonth() {
+      const formDate = new Date(this.form.date)
+      return (
+        formDate.getFullYear() === this.maximalDate.getFullYear() &&
+        formDate.getMonth() === this.maximalDate.getMonth()
+      )
+    },
+    maxGddLastMonth() {
+      // when existing contribution is edited, the amount is added back on top of the amount
+      return this.form.id && !this.isThisMonth
+        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
+        : parseInt(this.$store.state.creation[1])
+    },
+    maxGddThisMonth() {
+      // when existing contribution is edited, the amount is added back on top of the amount
+      return this.form.id && this.isThisMonth
+        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
+        : parseInt(this.$store.state.creation[2])
     },
   },
   methods: {

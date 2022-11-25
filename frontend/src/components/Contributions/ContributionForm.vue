@@ -1,6 +1,6 @@
 <template>
-  <div class="container contribution-form">
-    <div class="my-3">
+  <div class="contribution-form">
+    <!-- <div class="my-3">
       <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
       {{ $t('contribution.formText.bringYourTalentsTo') }}
       <ul class="my-3">
@@ -11,7 +11,7 @@
       <div class="my-3">
         <b>{{ $t('contribution.formText.describeYourCommunity') }}</b>
       </div>
-    </div>
+    </div> -->
     <b-form
       ref="form"
       @submit.prevent="submit"
@@ -126,7 +126,10 @@ export default {
   },
   props: {
     value: { type: Object, required: true },
-    updateAmount: { type: String, required: false },
+    isThisMonth: { type: Boolean, required: true },
+    minimalDate: { type: Date, required: true },
+    maxGddLastMonth: { type: Number, required: true },
+    maxGddThisMonth: { type: Number, required: true },
   },
   data() {
     return {
@@ -137,9 +140,9 @@ export default {
     }
   },
   methods: {
-    numberFormat(value) {
-      return value.replace(PATTERN_NON_DIGIT, '')
-    },
+    // numberFormat(value) {
+    //   return value.replace(PATTERN_NON_DIGIT, '')
+    // },
     submit() {
       this.form.amount = this.form.amount.replace(PATTERN_NON_DIGIT, '')
       // spreading is needed for testing
@@ -153,19 +156,15 @@ export default {
       this.form.memo = ''
       this.form.amount = ''
     },
-    textForMonth(date, availableAmount) {
-      const obj = {
-        monthAndYear: this.$d(date, 'monthAndYear'),
-        creation: availableAmount,
-      }
-      return this.$t('contribution.formText.openAmountForMonth', obj)
-    },
+    // textForMonth(date, availableAmount) {
+    //   const obj = {
+    //     monthAndYear: this.$d(date, 'monthAndYear'),
+    //     creation: availableAmount,
+    //   }
+    //   return this.$t('contribution.formText.openAmountForMonth', obj)
+    // },
   },
   computed: {
-    minimalDate() {
-      const date = new Date(this.maximalDate)
-      return new Date(date.setMonth(date.getMonth() - 1, 1))
-    },
     disabled() {
       return (
         this.form.date === '' ||
@@ -177,25 +176,6 @@ export default {
         (this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddThisMonth)) ||
         (!this.isThisMonth && parseInt(this.form.amount) > parseInt(this.maxGddLastMonth))
       )
-    },
-    isThisMonth() {
-      const formDate = new Date(this.form.date)
-      return (
-        formDate.getFullYear() === this.maximalDate.getFullYear() &&
-        formDate.getMonth() === this.maximalDate.getMonth()
-      )
-    },
-    maxGddLastMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && !this.isThisMonth
-        ? parseInt(this.$store.state.creation[1]) + parseInt(this.updateAmount)
-        : this.$store.state.creation[1]
-    },
-    maxGddThisMonth() {
-      // when existing contribution is edited, the amount is added back on top of the amount
-      return this.form.id && this.isThisMonth
-        ? parseInt(this.$store.state.creation[2]) + parseInt(this.updateAmount)
-        : this.$store.state.creation[2]
     },
     validMaxGDD() {
       return Number(this.isThisMonth ? this.maxGddThisMonth : this.maxGddLastMonth)

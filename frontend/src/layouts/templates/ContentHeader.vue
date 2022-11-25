@@ -1,91 +1,89 @@
 <template>
   <div>
-    <div>
-      <b-container v-if="path === '/overview'">
-        <b-row>
-          <b-col cols="5">
-            <div>
-              <gdd-amount :balance="balance" :showStatus="false" />
-            </div>
-          </b-col>
-          <b-col cols="7">
-            <div>
-              <community-member />
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-      <b-container v-if="path === '/storys'"><h2>Deine Community im Überblick</h2></b-container>
-      <b-container v-if="path === '/addresses'">Deine Favoriten im Überblick</b-container>
-      <b-container v-if="path === '/send'">
-        <b-row>
-          <b-col cols="6">
-            <div>
+    <b-container v-if="path === '/overview'">
+      <b-row>
+        <b-col cols="5">
+          <div>
+            <gdd-amount :balance="balance" :showStatus="false" />
+          </div>
+        </b-col>
+        <b-col cols="7">
+          <div>
+            <community-member />
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/storys'"><h2>Deine Community im Überblick</h2></b-container>
+    <b-container v-if="path === '/addresses'">Deine Favoriten im Überblick</b-container>
+    <b-container v-if="path === '/send'">
+      <b-row>
+        <b-col cols="6">
+          <div>
+            <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
+          </div>
+        </b-col>
+        <b-col cols="6">
+          <div>
+            <gdt-amount />
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/transactions'">
+      <b-row>
+        <b-col cols="6">
+          <div>
+            <router-link to="transaction">
               <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
-            </div>
-          </b-col>
-          <b-col cols="6">
-            <div>
+            </router-link>
+          </div>
+        </b-col>
+        <b-col cols="6">
+          <div>
+            <router-link to="gdt">
               <gdt-amount />
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-      <b-container v-if="path === '/transactions'">
-        <b-row>
-          <b-col cols="6">
-            <div>
-              <router-link to="transaction">
-                <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
-              </router-link>
-            </div>
-          </b-col>
-          <b-col cols="6">
-            <div>
-              <router-link to="gdt">
-                <gdt-amount />
-              </router-link>
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-      <b-container v-if="path === '/gdt'">
-        <b-row>
-          <b-col cols="6">
-            <div>
-              <router-link to="transactions">
-                <gdd-amount :balance="balance" />
-              </router-link>
-            </div>
-          </b-col>
-          <b-col cols="6">
-            <div>
-              <router-link to="gdt">
-                <gdt-amount :badge="true" />
-              </router-link>
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-      <b-container v-if="path === '/profile'">
-        <b-row>
-          <b-col>
-            <div class="p-4 bg-white appBoxShadow gradido-border-radius">
-              <b-row>
-                <b-col cols="8" class="h3">Zeige deiner Community wer du bist.</b-col>
-                <b-col cols="4" class="text-small text-muted">vor 4 Stunden geändert</b-col>
-              </b-row>
-              <b-row>
-                <b-col cols="2" class=""><b-avatar size="72px" rounded="lg"></b-avatar></b-col>
-                <b-col cols="10" class="">Text</b-col>
-              </b-row>
-            </div>
-          </b-col>
-        </b-row>
-      </b-container>
-      <b-container v-if="path === '/community'"><nav-community /></b-container>
-      <b-container v-if="path === '/settings'">settings content header</b-container>
-    </div>
+            </router-link>
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/gdt'">
+      <b-row>
+        <b-col cols="6">
+          <div>
+            <router-link to="transactions">
+              <gdd-amount :balance="balance" :badge="true" :showStatus="false" />
+            </router-link>
+          </div>
+        </b-col>
+        <b-col cols="6">
+          <div>
+            <router-link to="gdt">
+              <gdt-amount :badge="true" :showStatus="true" />
+            </router-link>
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/profile'">
+      <b-row>
+        <b-col>
+          <div class="p-4 bg-white appBoxShadow gradido-border-radius">
+            <b-row>
+              <b-col cols="8" class="h3">Zeige deiner Community wer du bist.</b-col>
+              <b-col cols="4" class="text-small text-muted">vor 4 Stunden geändert</b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="2" class=""><b-avatar size="72px" rounded="lg"></b-avatar></b-col>
+              <b-col cols="10" class="">Text</b-col>
+            </b-row>
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container v-if="path === '/community'"><nav-community /></b-container>
+    <b-container v-if="path === '/settings'">settings content header</b-container>
   </div>
 </template>
 
