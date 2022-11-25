@@ -8,11 +8,11 @@
             <b-icon icon="house" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.overview') }}</span>
           </b-nav-item>
-          <b-nav-item to="/storys" class="mb-3">
+          <b-nav-item to="/storys" class="mb-3 HIDE_FOR_WORK_IN_PROCESS">
             <b-icon icon="card-heading" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.topStories') }}</span>
           </b-nav-item>
-          <b-nav-item to="/addresses" class="mb-3">
+          <b-nav-item to="/addresses" class="mb-3 HIDE_FOR_WORK_IN_PROCESS">
             <b-icon icon="bookmark" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.adresses') }}</span>
           </b-nav-item>
@@ -25,7 +25,7 @@
             <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.transactions') }}</span>
           </b-nav-item>
-          <b-nav-item to="/profile" class="mb-3">
+          <b-nav-item to="/profile" class="mb-3 HIDE_FOR_WORK_IN_PROCESS">
             <b-icon icon="person" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.profile') }}</span>
           </b-nav-item>
@@ -41,7 +41,7 @@
               lightmode = !lightmode
               $emit('modeToggle')
             "
-            class="mb-3"
+            class="mb-3 HIDE_FOR_WORK_IN_PROCESS"
           >
             <b-icon :icon="lightmode ? 'toggle-on' : 'toggle-off'" aria-hidden="true"></b-icon>
             <span class="d-none d-lg-inline ml-2">{{ $t('navigation.lightmode') }}</span>
