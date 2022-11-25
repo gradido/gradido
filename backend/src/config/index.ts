@@ -117,8 +117,8 @@ if (
 }
 
 const federation = {
-  FEDERATE_DHT_TOPIC: process.env.FEDERATE_DHT_TOPIC || null,
-  FEDERATE_DHT_SEED: process.env.FEDERATE_DHT_SEED || null,
+  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
+  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
 }
 
 const CONFIG = {
