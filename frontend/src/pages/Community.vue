@@ -20,7 +20,7 @@
           />
         </b-tab>
         <b-tab>
-          <contribution-list-info list="my" />
+          <gradido-notification list="my" />
           <contribution-list
             :items="items"
             @update-list-contributions="updateListContributions"
@@ -33,7 +33,7 @@
           />
         </b-tab>
         <b-tab>
-          <contribution-list-info list="all" />
+          <gradido-notification list="all" />
           <contribution-list
             :items="itemsAll"
             @update-list-contributions="updateListAllContributions"
@@ -52,14 +52,14 @@
 import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import ContributionForm from '@/components/Contributions/ContributionForm.vue'
 import ContributionList from '@/components/Contributions/ContributionList.vue'
-import ContributionListInfo from '@/components/Contributions/ContributionListInfo.vue'
+import GradidoNotification from '@/components/Contributions/GradidoNotification.vue'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, verifyLogin } from '@/graphql/queries'
 
 export default {
   name: 'Community',
   components: {
-    ContributionListInfo,
+    GradidoNotification,
     ContributionForm,
     ContributionList,
     OpenCreationsAmount,
