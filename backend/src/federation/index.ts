@@ -5,10 +5,7 @@ import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
-
-function between(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
+import { ApiVersionType } from './enum/ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
@@ -18,12 +15,20 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-const nodeRand = between(1, 99)
-const nodeURL = `https://test${nodeRand}.org`
-const nodeAPI = {
-  API_1_00: `${nodeURL}/api/1_00/`,
-  API_1_01: `${nodeURL}/api/1_01/`,
-  API_2_00: `${nodeURL}/graphql/2_00/`,
+const nodeURL = CONFIG.FEDERATION_COMMUNITY_URL || 'not configured'
+type CommunityApi = {
+  api: string
+  url: string
+}
+
+const prepareCommunityApiList = (): CommunityApi[] => {
+  const apiEnumList = Object.keys(ApiVersionType)
+  const communityApiList = new Array<CommunityApi>()
+  apiEnumList.forEach((apiEnum) => {
+    const communityApi = { api: apiEnum, url: nodeURL }
+    communityApiList.push(communityApi)
+  })
+  return communityApiList
 }
 
 export const startDHT = async (
@@ -35,6 +40,8 @@ export const startDHT = async (
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
+    const apiList = prepareCommunityApiList()
+    logger.debug(`ApiList: ${JSON.stringify(apiList)}`)
 
     const node = new DHT({ keyPair })
 
@@ -112,8 +119,9 @@ export const startDHT = async (
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
           // console.log("writing to socket");
-          socket.write(Buffer.from(`${nodeRand}`))
-          socket.write(Buffer.from(JSON.stringify(nodeAPI)))
+          apiList.forEach((apiVersion) => {
+            socket.write(Buffer.from(JSON.stringify(apiVersion)))
+          })
           successfulRequests.push(remotePubKey)
         })
         // pipe it somewhere like any duplex stream
