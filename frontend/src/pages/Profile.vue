@@ -70,10 +70,7 @@ export default {
   },
   methods: {
     submit() {
-      console.log('submit')
-      console.log(this.firstName)
-      console.log(this.lastName)
-      console.log(this.job)
+      // console.log('submit')
     },
     updateTransactions(pagination) {
       this.$emit('update-transactions', pagination)

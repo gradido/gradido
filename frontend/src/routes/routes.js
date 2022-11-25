@@ -24,13 +24,13 @@ const routes = [
       requiresAuth: true,
     },
   },
-  {
-    path: '/profile',
-    component: () => import('@/pages/Profile.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
+  // {
+  //   path: '/profile',
+  //   component: () => import('@/pages/Profile.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
   {
     path: '/transactions',
     component: () => import('@/pages/Transactions.vue'),
@@ -61,20 +61,20 @@ const routes = [
       requiresAuth: true,
     },
   },
-  {
-    path: '/storys',
-    component: () => import('@/pages/TopStorys.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: '/addresses',
-    component: () => import('@/pages/Addresses.vue'),
-    meta: {
-      requiresAuth: true,
-    },
-  },
+  // {
+  //   path: '/storys',
+  //   component: () => import('@/pages/TopStorys.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
+  // {
+  //   path: '/addresses',
+  //   component: () => import('@/pages/Addresses.vue'),
+  //   meta: {
+  //     requiresAuth: true,
+  //   },
+  // },
   {
     path: '/settings',
     component: () => import('@/pages/Settings.vue'),

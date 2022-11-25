@@ -1,7 +1,9 @@
 <template>
   <div class="rightside-favourites">
     <b-row>
-      <b-col>Favorit</b-col>
+      <b-col>
+        <!-- Favorit -->
+      </b-col>
       <b-col cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
       </b-col>
