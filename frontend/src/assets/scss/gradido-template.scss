@@ -181,6 +181,7 @@ a:hover,
 .zindex1 {
   z-index: 1;
 }
+
 .zindex10 {
   z-index: 10;
 }
@@ -204,6 +205,7 @@ a:hover,
 .opacity-1 {
   opacity: 1;
 }
+
 .opacity-05 {
   opacity: 0.5;
 }
@@ -215,6 +217,7 @@ a:hover,
 .gradido-global-color-accent {
   color: #047006;
 }
+
 .gradido-global-border-color-accent {
   border-color: #047006 !important;
 }
@@ -253,5 +256,5 @@ a:hover,
 }
 
 .list-group-item {
-  background-color: rgba(255, 255, 255, 0); 
+  background-color: rgb(255 255 255 / 0%);
 }
