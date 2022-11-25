@@ -5,22 +5,20 @@ import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sodium = require('sodium-native')
 
 function between(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 const getSeed = (): Buffer | null => {
-  if (CONFIG.FEDERATE_DHT_SEED) {
-    const secret = CONFIG.FEDERATE_DHT_SEED
-    const seed = sodium.sodium_malloc(sodium.crypto_box_SEEDBYTES)
-    seed.write(secret, 'hex')
-    return seed
+  if (CONFIG.FEDERATION_DHT_SEED) {
+    logger.debug(`with seed='${CONFIG.FEDERATION_DHT_SEED}'`)
+    return Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
   }
   return null
 }
+
+const KEY_SECRET_SEEDBYTES = 32
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -40,10 +38,10 @@ export const startDHT = async (
 ): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-
+    logger.debug(`getSeed='${getSeed()}'`)
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
-    logger.info(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
+    logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
     const node = new DHT({ keyPair })
 
