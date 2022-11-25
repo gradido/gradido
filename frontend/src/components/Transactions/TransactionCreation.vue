@@ -1,6 +1,5 @@
 <template>
   <div class="transaction-slot-creation">
-
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
         <b-avatar icon="gift" variant="success" size="4em"></b-avatar>
@@ -19,8 +18,6 @@
     <b-collapse class="pb-4 pt-5" v-model="visible">
       <decay-information :typeId="typeId" :decay="decay" :amount="amount" />
     </b-collapse>
-
- 
   </div>
 </template>
 <script>

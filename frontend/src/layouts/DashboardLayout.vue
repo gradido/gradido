@@ -14,11 +14,11 @@
       <!-- navbar -->
       <b-row>
         <b-col>
-          <navbar-new class="main-navbar" :balance="balance"></navbar-new>
+          <navbar class="main-navbar" :balance="balance"></navbar>
         </b-col>
       </b-row>
       <div ref="sideMenuRow" class="d-none d-lg-none d-md-none zindex1000">
-        <sidebar-new
+        <sidebar
           class="main-sidebar"
           @admin="admin"
           @logout="logout"
@@ -29,7 +29,7 @@
       <b-row fluid class="d-flex">
         <!-- Sidebar left -->
         <b-col cols="2" class="d-none d-lg-block d-md-block">
-          <sidebar-new
+          <sidebar
             class="main-sidebar"
             @admin="admin"
             @logout="logout"
@@ -57,6 +57,7 @@
               />
             </b-col>
             <b-col cols="12">
+              <!-- router-view -->
               <div class="main-content mt-3">
                 <fade-transition :duration="200" origin="center top" mode="out-in">
                   <router-view
@@ -98,10 +99,8 @@
 import ContentHeader from '@/layouts/templates/ContentHeader.vue'
 import RightSide from '@/layouts/templates/RightSide.vue'
 import SkeletonOverview from '@/components/skeleton/Overview.vue'
-// import Navbar from '@/components/Menu/Navbar.vue'
-import NavbarNew from '@/components/Menu/NavbarNew.vue'
-// import Sidebar from '@/components/Menu/Sidebar.vue'
-import SidebarNew from '@/components/Menu/SidebarNew.vue'
+import Navbar from '@/components/Menu/Navbar.vue'
+import Sidebar from '@/components/Menu/Sidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { transactionsQuery } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
@@ -115,10 +114,8 @@ export default {
     SkeletonOverview,
     ContentHeader,
     RightSide,
-    // Navbar,
-    NavbarNew,
-    // Sidebar,
-    SidebarNew,
+    Navbar,
+    Sidebar,
     SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,

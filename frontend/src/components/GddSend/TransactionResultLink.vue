@@ -1,7 +1,7 @@
 <template>
-  <b-row>
-    <b-col>
-      <b-card class="p-0 gradido-custom-background">
+  <div class="bg-white appBoxShadow gradido-border-radius p-4">
+    <b-row>
+      <b-col>
         <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
         <clipboard-copy
           :link="link"
@@ -18,9 +18,9 @@
             {{ $t('form.close') }}
           </b-button>
         </div>
-      </b-card>
-    </b-col>
-  </b-row>
+      </b-col>
+    </b-row>
+  </div>
 </template>
 <script>
 import ClipboardCopy from '../ClipboardCopy.vue'

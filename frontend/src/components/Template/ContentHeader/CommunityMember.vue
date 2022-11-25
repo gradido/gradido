@@ -13,10 +13,10 @@
           <div class="small">{{ CONFIG.COMMUNITY_NAME }}</div>
         </b-col>
         <b-col cols="4" class="border-left border-light">
-          <b-icon icon="people" class="ml-3 mr-3"></b-icon> 1240
+          <b-icon icon="people" class="ml-3 mr-3"></b-icon>
+          1240
         </b-col>
       </b-row>
-       
     </div>
   </div>
 </template>
