@@ -326,7 +326,7 @@ describe('send coins', () => {
             variables: {
               email: 'peter@lustig.de',
               amount: 50,
-              memo: 'unrepeateable memo',
+              memo: 'unrepeatable memo',
             },
           }),
         ).toEqual(
@@ -342,7 +342,7 @@ describe('send coins', () => {
         // Find the exact transaction (sent one is the one with user[1] as user)
         const transaction = await Transaction.find({
           userId: user[1].id,
-          memo: 'unrepeateable memo',
+          memo: 'unrepeatable memo',
         })
 
         expect(EventProtocol.find()).resolves.toContainEqual(
@@ -359,7 +359,7 @@ describe('send coins', () => {
         // Find the exact transaction (received one is the one with user[0] as user)
         const transaction = await Transaction.find({
           userId: user[0].id,
-          memo: 'unrepeateable memo',
+          memo: 'unrepeatable memo',
         })
 
         expect(EventProtocol.find()).resolves.toContainEqual(
