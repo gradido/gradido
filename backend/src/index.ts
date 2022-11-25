@@ -21,13 +21,8 @@ async function main() {
   // start DHT hyperswarm when DHT_TOPIC is set in .env
   if (CONFIG.FEDERATION_DHT_TOPIC) {
     // eslint-disable-next-line no-console
-<<<<<<< HEAD
     console.log(`Federation active on ${CONFIG.FEDERATION_DHT_TOPIC}`)
     await startDHT(CONFIG.FEDERATION_DHT_TOPIC) // con,
-=======
-    console.log(`Federation active on ${CONFIG.FEDERATE_DHT_TOPIC}`)
-    await startDHT(CONFIG.FEDERATE_DHT_TOPIC) // con,
->>>>>>> 192ab67817a12f0a765caa48c0e13272b7310b25
   }
 }
 
