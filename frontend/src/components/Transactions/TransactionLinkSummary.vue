@@ -6,10 +6,10 @@
       </b-col>
       <b-col>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
-        <div class="small">{{ transactionLinkCount }} offene Links</div>
+        <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
       </b-col>
       <b-col cols="3">
-        <div class="small">Insgesamt</div>
+        <div class="small">{{ $t('send_per_link') }}</div>
         <div class="small">{{ amount | GDD }}</div>
       </b-col>
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>

@@ -17,7 +17,7 @@
         <div class="small">{{ balanceDate }}</div>
       </b-col>
       <b-col cols="3">
-        <div class="small">Gesendet</div>
+        <div class="small">{{ $t('decay.types.send') }}</div>
         <div class="small">{{ amount | GDD }}</div>
       </b-col>
       <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>

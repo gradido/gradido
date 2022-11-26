@@ -5,7 +5,7 @@
         class="position-absolute mt--2 ml--4 px-3 zindex1"
         :variant="badge ? 'success' : 'light'"
       >
-        GDT
+        {{ $t('GDT') }}
       </b-badge>
     </div>
 
@@ -14,20 +14,20 @@
       :class="showStatus ? 'gradido-global-border-color-accent' : 'border-light opacity-05'"
     >
       <b-row>
-        <b-col cols="9" class="h4">GDT Konto</b-col>
+        <b-col cols="9" class="h4">{{ $t('gdt.gdtKonto') }}</b-col>
         <b-col cols="3" class="text-center">
           <div>
             <b-icon
               :icon="badge ? 'check-circle' : 'circle'"
               class="gradido-global-border-color-accent"
             ></b-icon>
-            <div class="small">{{ badge ? 'aktiv' : 'inaktiv' }}</div>
+            <div class="small">{{ badge ? $t('active') : $t('inactive') }}</div>
           </div>
         </b-col>
       </b-row>
       <div>
         <b-icon icon="layers" class="mr-3" :variant="badge ? 'success' : 'light'"></b-icon>
-        <span :class="badge ? 'text-success' : 'text-light'">0,00 GDT</span>
+        <span :class="badge ? 'text-success' : 'text-light'">{{ $t('GDT') }}</span>
       </div>
     </div>
   </div>

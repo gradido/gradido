@@ -1,7 +1,7 @@
 <template>
   <div class="rightside-last-transactions">
     <b-row>
-      <b-col>Letzte Transaktionen:</b-col>
+      <b-col>{{ $t('transaction.lastTransactions') }}</b-col>
       <b-col cols="1" class="text-right">
         <b-icon icon="three-dots-vertical"></b-icon>
       </b-col>

@@ -102,10 +102,10 @@
                 </b-row>
               </b-col>
               <b-col>
-                <div class="h3">Versandart</div>
+                <div class="h3">{{ $t('sendMethod') }}</div>
                 <b-form-radio-group v-model="radioSelected">
                   <b-row>
-                    <b-col cols="9">Gdd versenden</b-col>
+                    <b-col cols="9">{{ $t('send_gdd') }}</b-col>
                     <b-col cols="3">
                       <b-form-radio
                         name="shipping"
@@ -116,7 +116,7 @@
                     </b-col>
                   </b-row>
                   <b-row>
-                    <b-col cols="9">Gdd versenden per Link</b-col>
+                    <b-col cols="9">{{ $t('send_per_link') }}</b-col>
                     <b-col cols="3">
                       <b-form-radio
                         name="shipping"

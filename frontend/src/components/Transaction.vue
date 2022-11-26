@@ -25,7 +25,7 @@
           </div>
         </b-col>
         <b-col cols="3">
-          <div class="small mt-2">GDT erhalten</div>
+          <div class="small mt-2">{{ $t('gdt.credit') }}</div>
           <div class="">{{ getLinesByType.credittext }}</div>
         </b-col>
         <b-col cols="1"><collapse-icon class="text-right" :visible="visible" /></b-col>
