@@ -1,9 +1,10 @@
 {
   "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
+  "1234": "1234",
   "125": "125%",
   "85": "85%",
-  "1234": "1234",
+  "active": "active",
   "advanced-calculation": "Advanced calculation",
   "auth": {
     "left": {
@@ -16,14 +17,12 @@
       "oneGratitude": "For each other, for all people, for nature."
     }
   },
-  "active": "active",
-  "inactive": "inactive",
   "back": "Back",
   "community": {
-    "communityMember": "You are an active member",
-    "city": "City",
     "choose-another-community": "Choose another community",
+    "city": "City",
     "community": "Community",
+    "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
     "moderator": "Moderator",
@@ -39,7 +38,6 @@
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",
-    "lastContribution": "Last Contributions",
     "alert": {
       "answerQuestion": "Please answer the question",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
@@ -51,6 +49,7 @@
     },
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
+    "exhausted": "You cannot create anything more for this month.",
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! Your voluntary commitment will be rewarded with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity with hours and enter an amount of 20 GDD per hour! After confirmation by a moderator, the amount will be credited to your account.",
@@ -58,18 +57,20 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your contribution to the common good"
     },
+    "lastContribution": "Last Contributions",
     "noDateSelected": "Choose any date in the month",
     "selectDate": "When was your contribution?",
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
     "updated": "The contribution was changed.",
-    "yourActivity": "Please enter an activity!",
-    "exhausted": "You cannot create anything more for this month."
+    "yourActivity": "Please enter an activity!"
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with",
     "unique": "(unique)"
   },
+  "contributionText": "Contribution Text",
+  "creation": "Creation",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
@@ -89,6 +90,7 @@
     }
   },
   "delete": "Delete",
+  "edit": "edit",
   "em-dash": "—",
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
@@ -205,15 +207,16 @@
     "factor": "Factor",
     "formula": "Calculation formula",
     "funding": "To the funding contributions",
-    "gdtKonto": "GDT Konto",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
+    "gdtKonto": "GDT Konto",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
     "not-reachable": "The GDT Server is not reachable.",
     "publisher": "A member you referred has paid a contribution",
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "inactive": "inactive",
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
   "login": "Sign in",
@@ -235,6 +238,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
@@ -249,13 +253,9 @@
     "transactions": "Transactions"
   },
   "qrCode": "QR Code",
+  "sendMethod": "Send Methods",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
-  "sendMethod": "Send Methods",
-  "contributionText": "Contribution Text",
-  "creation": "Creation",
-  "edit": "edit",
-  "moderatorChat": "Moderator Chat",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
@@ -328,11 +328,11 @@
     "years": "Year"
   },
   "transaction": {
+    "lastTransactions": "Last Transactions",
     "nullTransactions": "You don't have any transactions on your account yet.",
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
-    "show_all": "View all <strong>{count}</strong> transactions.",
-    "lastTransactions": "Last Transactions"
+    "show_all": "View all <strong>{count}</strong> transactions."
   },
   "transaction-link": {
     "send_you": "wants to send you"
