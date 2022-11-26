@@ -36,7 +36,7 @@ import Decimal from 'decimal.js-light'
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
-import { sendTransactionLinkRedeemedEmail } from '@/mailer/sendTransactionLinkRedeemed'
+import { sendTransactionLinkRedeemedEmail } from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { Decay } from '../model/Decay'
@@ -182,15 +182,15 @@ export const executeTransaction = async (
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
+      firstName: sender.firstName,
+      lastName: sender.lastName,
+      email: sender.emailContact.email,
+      language: sender.language,
       senderFirstName: recipient.firstName,
       senderLastName: recipient.lastName,
-      recipientFirstName: sender.firstName,
-      recipientLastName: sender.lastName,
-      email: sender.emailContact.email,
       senderEmail: recipient.emailContact.email,
-      amount,
-      memo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+      transactionAmount: amount,
+      transactionMemo: memo,
     })
   }
   logger.info(`finished executeTransaction successfully`)

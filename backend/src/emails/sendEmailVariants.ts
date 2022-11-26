@@ -1,6 +1,6 @@
-import i18n from 'i18n'
 import Decimal from 'decimal.js-light'
 import CONFIG from '@/config'
+import { decimalSeparatorByLanguage } from '@/util/utilities'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 export const sendAddedContributionMessageEmail = (data: {
@@ -79,12 +79,6 @@ export const sendContributionConfirmedEmail = (data: {
   contributionMemo: string
   contributionAmount: Decimal
 }): Promise<Record<string, unknown> | null> => {
-  const rememberLocaleToRestore = i18n.getLocale()
-  i18n.setLocale(data.language)
-  const contributionAmount = data.contributionAmount
-    .toFixed(2)
-    .replace('.', i18n.__('emails.general.decimalSeparator'))
-  i18n.setLocale(rememberLocaleToRestore)
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionConfirmed',
@@ -95,7 +89,7 @@ export const sendContributionConfirmedEmail = (data: {
       senderFirstName: data.senderFirstName,
       senderLastName: data.senderLastName,
       contributionMemo: data.contributionMemo,
-      contributionAmount,
+      contributionAmount: decimalSeparatorByLanguage(data.contributionAmount, data.language),
       overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     },
   })
@@ -143,6 +137,34 @@ export const sendResetPasswordEmail = (data: {
       resetLink: data.resetLink,
       timeDurationObject: data.timeDurationObject,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
+    },
+  })
+}
+
+export const sendTransactionLinkRedeemedEmail = (data: {
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  senderFirstName: string
+  senderLastName: string
+  senderEmail: string
+  transactionMemo: string
+  transactionAmount: Decimal
+}): Promise<Record<string, unknown> | null> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'transactionLinkRedeemed',
+    locals: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      locale: data.language,
+      senderFirstName: data.senderFirstName,
+      senderLastName: data.senderLastName,
+      senderEmail: data.senderEmail,
+      transactionMemo: data.transactionMemo,
+      transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
     },
   })
 }
