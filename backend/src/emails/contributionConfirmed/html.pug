@@ -7,7 +7,7 @@ html(lang=locale)
     #container.col
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
       p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { senderFirstName, senderLastName, contributionMemo })
-      p= t('emails.contributionConfirmed.contributionAmount', { contributionAmount })
+      p= t('emails.general.amountGDD', { amountGDD: contributionAmount })
       p= t('emails.general.linkToYourAccount')
         span= " "
         a(href=overviewURL) #{overviewURL}
