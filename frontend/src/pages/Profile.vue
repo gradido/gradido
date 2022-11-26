@@ -69,15 +69,12 @@ export default {
     }
   },
   methods: {
-    submit() {
-      // console.log('submit')
-    },
-    updateTransactions(pagination) {
-      this.$emit('update-transactions', pagination)
-    },
+    // updateTransactions(pagination) {
+    //   this.$emit('update-transactions', pagination)
+    // },
   },
   created() {
-    this.updateTransactions(0)
+    // this.updateTransactions(0)
   },
 }
 </script>
