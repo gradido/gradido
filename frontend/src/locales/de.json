@@ -1,9 +1,10 @@
 {
   "100": "100%",
   "1000thanks": "1000 Dank, weil du bei uns bist!",
+  "1234": "1234",
   "125": "125%",
   "85": "85%",
-  "1234": "1234",
+  "active": "aktiv",
   "advanced-calculation": "Vorausberechnung",
   "auth": {
     "left": {
@@ -16,14 +17,12 @@
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     }
   },
-  "active": "aktiv",
-  "inactive": "inaktiv",
   "back": "Zurück",
   "community": {
-    "communityMember": "Du bist aktives Mitglied",
-    "city": "Stadt",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
+    "city": "Stadt",
     "community": "Gemeinschaft",
+    "communityMember": "Du bist aktives Mitglied",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
     "moderator": "Moderator",
@@ -39,7 +38,6 @@
   "contact": "Kontakt",
   "contribution": {
     "activity": "Tätigkeit",
-    "lastContribution": "Letzte Beiträge",
     "alert": {
       "answerQuestion": "Bitte beantworte die Rückfrage!",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
@@ -51,6 +49,7 @@
     },
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen.",
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
       "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit mit Angabe der Stunden und trage einen Betrag von 20 GDD pro Stunde ein! Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
@@ -58,18 +57,20 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
+    "lastContribution": "Letzte Beiträge",
     "noDateSelected": "Wähle irgendein Datum im Monat",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
     "updated": "Der Beitrag wurde geändert.",
-    "yourActivity": "Bitte trage eine Tätigkeit ein!",
-    "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen."
+    "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit",
     "unique": "(einmalig)"
   },
+  "contributionText": "Beitragstext",
+  "creation": "Schöpfung",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
@@ -89,6 +90,7 @@
     }
   },
   "delete": "Löschen",
+  "edit": "bearbeiten",
   "em-dash": "—",
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
@@ -205,15 +207,16 @@
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
-    "gdtKonto": "GDT Konto",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
+    "gdtKonto": "GDT Konto",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
     "not-reachable": "Der GDT Server ist nicht erreichbar.",
     "publisher": "Dein geworbenes Mitglied hat einen Beitrag bezahlt",
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "inactive": "inaktiv",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
@@ -235,6 +238,7 @@
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
   },
+  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
@@ -249,13 +253,9 @@
     "transactions": "Transaktionen"
   },
   "qrCode": "QR Code",
+  "sendMethod": "Versandart",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
-  "sendMethod": "Versandart",
-  "contributionText": "Beitragstext",
-  "creation": "Schöpfung",
-  "edit": "bearbeiten",
-  "moderatorChat": "Moderator Chat",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
@@ -328,11 +328,11 @@
     "years": "Jahr"
   },
   "transaction": {
+    "lastTransactions": "Letzte Transaktionen",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
-    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen",
-    "lastTransactions": "Letzte Transaktionen"
+    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },
   "transaction-link": {
     "send_you": "sendet dir"
