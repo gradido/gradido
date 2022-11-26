@@ -14,8 +14,8 @@
         </b-col>
       </b-row>
     </b-container>
-    <b-container v-if="path === '/storys'"><h2>Deine Community im Überblick</h2></b-container>
-    <b-container v-if="path === '/addresses'">Deine Favoriten im Überblick</b-container>
+    <!-- <b-container v-if="path === '/storys'"></b-container>
+    <b-container v-if="path === '/addresses'"></b-container> -->
     <b-container v-if="path === '/send'">
       <b-row>
         <b-col cols="6">
@@ -34,7 +34,7 @@
       <b-row>
         <b-col cols="6">
           <div>
-            <router-link to="transaction">
+            <router-link to="transactions">
               <gdd-amount :balance="balance" :badge="true" :showStatus="true" />
             </router-link>
           </div>
@@ -66,7 +66,7 @@
         </b-col>
       </b-row>
     </b-container>
-    <b-container v-if="path === '/profile'">
+    <!-- <b-container v-if="path === '/profile'">
       <b-row>
         <b-col>
           <div class="p-4 bg-white appBoxShadow gradido-border-radius">
@@ -81,9 +81,9 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
+    </b-container> -->
     <b-container v-if="path === '/community'"><nav-community /></b-container>
-    <b-container v-if="path === '/settings'">settings content header</b-container>
+    <b-container v-if="path === '/settings'"></b-container>
   </div>
 </template>
 

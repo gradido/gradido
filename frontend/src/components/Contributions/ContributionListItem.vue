@@ -9,17 +9,20 @@
           <b-col>
             <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
             <div class="small">
-              contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
+              {{ $d(new Date(contributionDate), 'monthAndYear') }}
             </div>
-            <div class="mt-3 h5">Beitragstext</div>
+            <div class="mt-3 h5">{{ $t('contributionText') }}</div>
             <div>{{ memo }}</div>
+            <div v-if="state === 'IN_PROGRESS'" class="text-danger">
+              {{ $t('contribution.alert.answerQuestion') }}
+            </div>
             <!-- <div class="small">
             contributionDate {{ $d(new Date(contributionDate), 'monthAndYear') }}
           </div>
           <div class="small">createdAt {{ createdAt }}</div> -->
           </b-col>
           <b-col cols="3">
-            <div class="small">Schöpfung</div>
+            <div class="small">{{ $t('creation') }}</div>
             <div class="small">{{ amount | GDD }}</div>
           </b-col>
           <b-col cols="1" @click="visible = !visible">
@@ -34,7 +37,7 @@
               @click="deleteContribution({ id })"
             >
               <b-icon icon="trash"></b-icon>
-              löschen
+              {{ $t('delete') }}
             </div>
           </b-col>
           <b-col>
@@ -51,14 +54,14 @@
               "
             >
               <b-icon icon="pencil"></b-icon>
-              bearbeiten
+              {{ $t('edit') }}
             </div>
           </b-col>
 
           <b-col>
             <div v-if="messagesCount > 0" class="pointer">
               <b-icon icon="chat-dots" @click="visible = !visible"></b-icon>
-              Moderatorchat
+              {{ $t('moderatorChat') }}
             </div>
           </b-col>
         </b-row>

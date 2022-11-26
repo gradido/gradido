@@ -141,6 +141,7 @@ export default {
     }
   },
   created() {
+    this.updateTransactions(0)
     setTimeout(() => {
       this.skeleton = false
     }, 1500)

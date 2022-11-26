@@ -3,6 +3,7 @@
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
+  "1234": "1234",
   "advanced-calculation": "Vorausberechnung",
   "auth": {
     "left": {
@@ -15,15 +16,19 @@
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     }
   },
+  "active": "aktiv",
+  "inactive": "inaktiv",
   "back": "Zurück",
   "community": {
+    "communityMember": "Du bist aktives Mitglied",
+    "city": "Stadt",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
     "community": "Gemeinschaft",
     "continue-to-registration": "Weiter zur Registrierung",
     "current-community": "Aktuelle Gemeinschaft",
     "moderator": "Moderator",
     "moderators": "Moderatoren",
-    "myContributions": "Meine Beiträge zum Gemeinwohl",
+    "myContributions": "Meine Beiträge",
     "noOpenContributionLinkText": "Zur Zeit gibt es keine automatischen Schöpfungen.",
     "openContributionLinks": "Öffentliche Beitrags-Linkliste",
     "openContributionLinkText": "Folgende {count} automatische Schöpfungen werden zur Zeit durch die Gemeinschaft „{name}“ bereitgestellt.",
@@ -34,6 +39,7 @@
   "contact": "Kontakt",
   "contribution": {
     "activity": "Tätigkeit",
+    "lastContribution": "Letzte Beiträge",
     "alert": {
       "answerQuestion": "Bitte beantworte die Rückfrage!",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
@@ -43,7 +49,6 @@
       "pending": "Eingereicht und wartet auf Bestätigung",
       "rejected": "abgelehnt"
     },
-    "date": "Beitrag für:",
     "delete": "Beitrag löschen! Bist du sicher?",
     "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
     "formText": {
@@ -58,7 +63,8 @@
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
     "updated": "Der Beitrag wurde geändert.",
-    "yourActivity": "Bitte trage eine Tätigkeit ein!"
+    "yourActivity": "Bitte trage eine Tätigkeit ein!",
+    "exhausted": "Für diesen Monat kannst du nichts mehr schöpfen."
   },
   "contribution-link": {
     "thanksYouWith": "dankt dir mit",
@@ -94,7 +100,6 @@
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekannter Fehler: "
   },
-  "favourites": "Favouriten",
   "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
@@ -156,6 +161,7 @@
     "your_amount": "Dein Betrag"
   },
   "GDD": "GDD",
+  "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Wähle einen Betrag aus, welchen du per Link versenden möchtest. Du kannst auch noch eine Nachricht eintragen. Beim Klick „Jetzt generieren“ wird ein Link erstellt, den du versenden kannst.",
     "copy-link": "Link kopieren",
@@ -189,6 +195,7 @@
     "validUntil": "Gültig bis",
     "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
@@ -198,6 +205,7 @@
     "factor": "Faktor",
     "formula": "Berechnungsformel",
     "funding": "Zu den Förderbeiträgen",
+    "gdtKonto": "GDT Konto",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) erhalten",
     "no-transactions": "Du hast noch keine Gradido Transform (GDT).",
@@ -229,19 +237,13 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
-    "adresses": "Addressen",
     "community": "Gemeinschaft",
-    "favourites": "Favoriten",
     "info": "Information",
-    "lightmode": "Lightmode",
     "logout": "Abmelden",
     "members": "Mitglieder",
-    "moon": "🌙",
     "overview": "Übersicht",
-    "profile": "Mein Profil",
     "send": "Senden",
     "settings": "Einstellung",
-    "sun": "☀️",
     "support": "Support",
     "topStories": "Top Stories",
     "transactions": "Transaktionen"
@@ -249,6 +251,11 @@
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
+  "sendMethod": "Versandart",
+  "contributionText": "Beitragstext",
+  "creation": "Schöpfung",
+  "edit": "bearbeiten",
+  "moderatorChat": "Moderator Chat",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
@@ -321,12 +328,11 @@
     "years": "Jahr"
   },
   "transaction": {
-    "gdd-text": "Gradido Transaktionen",
-    "gdt-text": "GradidoTransform Transaktionen",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
-    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
+    "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen",
+    "lastTransactions": "Letzte Transaktionen"
   },
   "transaction-link": {
     "send_you": "sendet dir"

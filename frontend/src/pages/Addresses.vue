@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-card v-if="skeleton">
+    <!-- <b-card v-if="skeleton">
       {{ $t('addresses') }}
       <b-skeleton animation="wave" width="85%"></b-skeleton>
       <b-skeleton animation="wave" width="55%"></b-skeleton>
@@ -8,7 +8,7 @@
     </b-card>
     <b-card v-else>
       {{ $t('addresses') }}
-    </b-card>
+    </b-card> -->
   </div>
 </template>
 <script>

@@ -1,7 +1,7 @@
 <template>
   <div class="profile break">
     <b-card class="justify-content-center bg-white appBoxShadow gradido-border-radius">
-      <b-form @submit.prevent="submit">
+      <!-- <b-form @submit.prevent="submit">
         <b-row>
           <b-col>
             <first-name v-model="firstName" />
@@ -34,27 +34,27 @@
           <b-col><b-form-checkbox switch size="lg"></b-form-checkbox></b-col>
         </b-row>
         <b-button type="submit" class="mt-5">speichern</b-button>
-      </b-form>
+      </b-form> -->
     </b-card>
   </div>
 </template>
 <script>
-import FirstName from '@/components/Inputs/FirstName.vue'
-import LastName from '@/components/Inputs/LastName.vue'
-import LanguageSwitch from '@/components/LanguageSwitch.vue'
-import Job from '@/components/Inputs/Job.vue'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import InputPassword from '@/components/Inputs/InputPassword.vue'
+// import FirstName from '@/components/Inputs/FirstName.vue'
+// import LastName from '@/components/Inputs/LastName.vue'
+// import LanguageSwitch from '@/components/LanguageSwitch.vue'
+// import Job from '@/components/Inputs/Job.vue'
+// import InputEmail from '@/components/Inputs/InputEmail.vue'
+// import InputPassword from '@/components/Inputs/InputPassword.vue'
 
 export default {
   name: 'Profile',
   components: {
-    FirstName,
-    LastName,
-    LanguageSwitch,
-    Job,
-    InputEmail,
-    InputPassword,
+    // FirstName,
+    // LastName,
+    // LanguageSwitch,
+    // Job,
+    // InputEmail,
+    // InputPassword,
   },
   props: {
     balance: { type: Number, default: 0 },

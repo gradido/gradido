@@ -3,6 +3,7 @@
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
+  "1234": "1234",
   "advanced-calculation": "Advanced calculation",
   "auth": {
     "left": {
@@ -15,15 +16,19 @@
       "oneGratitude": "For each other, for all people, for nature."
     }
   },
+  "active": "active",
+  "inactive": "inactive",
   "back": "Back",
   "community": {
+    "communityMember": "You are an active member",
+    "city": "City",
     "choose-another-community": "Choose another community",
     "community": "Community",
     "continue-to-registration": "Continue to registration",
     "current-community": "Current community",
     "moderator": "Moderator",
     "moderators": "Moderators",
-    "myContributions": "My contributions to the common good",
+    "myContributions": "My contributions",
     "noOpenContributionLinkText": "Currently there are no automatic creations.",
     "openContributionLinks": "Open contribution-link list",
     "openContributionLinkText": "The following {count} automatic creations are currently provided by the \"{name}\" community.",
@@ -34,6 +39,7 @@
   "contact": "Contact",
   "contribution": {
     "activity": "Activity",
+    "lastContribution": "Last Contributions",
     "alert": {
       "answerQuestion": "Please answer the question",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
@@ -43,7 +49,6 @@
       "pending": "Submitted and waiting for confirmation",
       "rejected": "deleted"
     },
-    "date": "Contribution for:",
     "delete": "Delete Contribution! Are you sure?",
     "deleted": "The contribution has been deleted! But it will remain visible.",
     "formText": {
@@ -58,7 +63,8 @@
     "submit": "Submit",
     "submitted": "The contribution was submitted.",
     "updated": "The contribution was changed.",
-    "yourActivity": "Please enter an activity!"
+    "yourActivity": "Please enter an activity!",
+    "exhausted": "You cannot create anything more for this month."
   },
   "contribution-link": {
     "thanksYouWith": "thanks you with",
@@ -94,7 +100,6 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
-  "favourites": "Favourites",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -156,6 +161,7 @@
     "your_amount": "Your amount"
   },
   "GDD": "GDD",
+  "gddKonto": "GDD Konto",
   "gdd_per_link": {
     "choose-amount": "Select an amount that you would like to send via link. You can also enter a message. Click 'Generate now' to create a link that you can share.",
     "copy-link": "Copy link",
@@ -189,6 +195,7 @@
     "validUntil": "Valid until",
     "validUntilDate": "The link is valid until {date}."
   },
+  "GDT": "GDT",
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
     "contribution": "Contribution",
@@ -198,6 +205,7 @@
     "factor": "Factor",
     "formula": "Calculation formula",
     "funding": "To the funding contributions",
+    "gdtKonto": "GDT Konto",
     "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) received",
     "no-transactions": "You do not have Gradido Transform (GDT) yet.",
@@ -229,19 +237,13 @@
   },
   "navigation": {
     "admin_area": "Admin Area",
-    "adresses": "Addresses",
     "community": "Community",
-    "favourites": "Favourites",
     "info": "Information",
-    "lightmode": "Lightmode",
     "logout": "Logout",
     "members": "Members",
-    "moon": "🌙",
     "overview": "Overview",
-    "profile": "My profile",
     "send": "Send",
     "settings": "Settings",
-    "sun": "☀️",
     "support": "Support",
     "topStories": "Top Stories",
     "transactions": "Transactions"
@@ -249,6 +251,11 @@
   "qrCode": "QR Code",
   "send_gdd": "GDD send",
   "send_per_link": "GDD send via link",
+  "sendMethod": "Send Methods",
+  "contributionText": "Contribution Text",
+  "creation": "Creation",
+  "edit": "edit",
+  "moderatorChat": "Moderator Chat",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
@@ -321,12 +328,11 @@
     "years": "Year"
   },
   "transaction": {
-    "gdd-text": "Gradido Transactions",
-    "gdt-text": "GradidoTransform Transactions",
     "nullTransactions": "You don't have any transactions on your account yet.",
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
-    "show_all": "View all <strong>{count}</strong> transactions."
+    "show_all": "View all <strong>{count}</strong> transactions.",
+    "lastTransactions": "Last Transactions"
   },
   "transaction-link": {
     "send_you": "wants to send you"
