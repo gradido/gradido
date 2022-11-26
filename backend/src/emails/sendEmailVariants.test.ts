@@ -11,6 +11,7 @@ import {
   sendContributionConfirmedEmail,
   sendContributionRejectedEmail,
   sendResetPasswordEmail,
+  sendTransactionLinkRedeemedEmail,
 } from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
@@ -104,7 +105,7 @@ describe('sendEmailVariants', () => {
           'To view and reply to the message, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
         )
         expect(result.originalMessage.html).toContain(
-          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
@@ -324,7 +325,7 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Amount: 23.54 GDD')
         expect(result.originalMessage.html).toContain(
-          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
@@ -396,7 +397,7 @@ describe('sendEmailVariants', () => {
           'To see your common good contributions and related messages, go to the “Community” menu in your Gradido account and click on the “My contributions to the common good” tab!',
         )
         expect(result.originalMessage.html).toContain(
-          'Link to your account:<span> </span><a href="http://localhost/overview">http://localhost/overview</a>',
+          `Link to your account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
         expect(result.originalMessage.html).toContain('Please do not reply to this email!')
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
@@ -471,6 +472,81 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toContain(
           `<a href="${CONFIG.EMAIL_LINK_FORGOTPASSWORD}">${CONFIG.EMAIL_LINK_FORGOTPASSWORD}</a>`,
         )
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
+
+  describe('sendTransactionLinkRedeemedEmail', () => {
+    beforeAll(async () => {
+      result = await sendTransactionLinkRedeemedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        senderEmail: 'bibi@bloxberg.de',
+        transactionMemo: 'You deserve it! 🙏🏼',
+        transactionAmount: new Decimal(17.65),
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'transactionLinkRedeemed',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            senderEmail: 'bibi@bloxberg.de',
+            transactionMemo: 'You deserve it! 🙏🏼',
+            transactionAmount: '17.65',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: Your Gradido link has been redeemed',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: YOUR GRADIDO LINK HAS BEEN REDEEMED'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: Your Gradido link has been redeemed</title>',
+        )
+        expect(result.originalMessage.html).toContain(
+          '>Gradido: Your Gradido link has been redeemed</h1>',
+        )
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'Bibi Bloxberg (bibi@bloxberg.de) has just redeemed your link.',
+        )
+        expect(result.originalMessage.html).toContain('Amount: 17.65 GDD')
+        expect(result.originalMessage.html).toContain('Memo: You deserve it! 🙏🏼')
+        expect(result.originalMessage.html).toContain(
+          `You can find transaction details in your Gradido account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
         expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
       })
     })
