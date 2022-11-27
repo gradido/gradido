@@ -14,8 +14,6 @@
           transaction.typeId !== 'LINK_SUMMARY' &&
           transaction.typeId !== 'CREATION'
         "
-        class="bg-white appBoxShadow gradido-border-radius p-1 border"
-        :class="transaction.typeId === 'SEND' ? 'border-danger' : 'border-success'"
       >
         <b-row>
           <b-col cols="3">
@@ -37,7 +35,7 @@
                 <b-icon icon="bookmark-plus" variant="black"></b-icon>
               </b-col>
             </b-row>
-            <b-row class="mt-2">
+            <b-row class="mb-2">
               <b-col class="small">{{ transaction.amount | GDD }}</b-col>
               <b-col class="small">{{ $d(new Date(transaction.balanceDate), 'short') }}</b-col>
             </b-row>
