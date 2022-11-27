@@ -3,11 +3,14 @@
     <b-navbar toggleable="lg" class="pr-4">
       <b-navbar-brand>
         <b-img
-          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 zindex1000"
+          class="imgLogo ml--3 mt-lg--2 mt-3 p-2 mb-3 zindex1000 d-none d-lg-block"
           :src="logo"
           width="200"
           alt="..."
         />
+        <b-button v-b-toggle.sidebar-1 class="d-block d-lg-none">
+          <span class="navbar-toggler-icon"></span>
+        </b-button>
       </b-navbar-brand>
       <b-img class="sheet-img position-absolute zindex1000" :src="sheet"></b-img>
 
