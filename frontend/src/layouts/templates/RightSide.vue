@@ -1,6 +1,6 @@
 <template>
   <div class="right-side mt-3 mt-lg-0">
-    <b-container v-if="path === '/overview'">
+    <div v-if="path === '/overview'">
       <!-- <b-row>
         <b-col>
           <div class="p-4">
@@ -19,7 +19,7 @@
           </div>
         </b-col>
       </b-row>
-    </b-container>
+    </div>
     <!-- <b-container v-if="path === '/storys'">
       <b-row>
         <b-col>
