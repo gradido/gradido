@@ -4,20 +4,14 @@
       <skeleton-overview />
     </div>
     <div v-else>
-      <!--menu mobil hamburger button-->
-      <div class="d-block d-lg-none d-md-none d-sm-block fixed-bottom h-15 width70 zindex1000">
-        {{ hamburger }}
-        <b-button v-if="hamburger" @click="toogleMobilMenu">
-          <span class="navbar-toggler-icon"></span>
-        </b-button>
-      </div>
       <!-- navbar -->
       <b-row>
         <b-col>
           <navbar class="main-navbar" :balance="balance"></navbar>
         </b-col>
       </b-row>
-      <div ref="sideMenuRow" class="d-none d-lg-none d-md-none zindex1000">
+      <mobile-sidebar />
+      <!-- <div ref="sideMenuRow" class="d-none d-lg-none d-md-none zindex1000">
         <sidebar
           class="main-sidebar"
           @admin="admin"
@@ -25,10 +19,10 @@
           @modeToggle="modeToggle"
           @toogleMobilMenu="toogleMobilMenu"
         />
-      </div>
+      </div> -->
       <b-row fluid class="d-flex">
         <!-- Sidebar left -->
-        <b-col cols="2" class="d-none d-lg-block d-md-block">
+        <b-col cols="2" class="d-none d-lg-block">
           <sidebar
             class="main-sidebar"
             @admin="admin"
@@ -101,6 +95,7 @@ import RightSide from '@/layouts/templates/RightSide.vue'
 import SkeletonOverview from '@/components/skeleton/Overview.vue'
 import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
+import MobileSidebar from '@/components/MobileSidebar/MobileSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
 import { transactionsQuery } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
@@ -116,6 +111,7 @@ export default {
     RightSide,
     Navbar,
     Sidebar,
+    MobileSidebar,
     SessionLogoutTimeout,
     ContentFooter,
     FadeTransition,
