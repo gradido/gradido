@@ -5,7 +5,7 @@ import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
-import { ApiVersionType } from './enum/ApiVersionType'
+import { Community as DbCommunity } from '@entity/Community'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
@@ -16,18 +16,29 @@ const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
 const nodeURL = CONFIG.FEDERATION_COMMUNITY_URL || 'not configured'
+
+enum ApiVersionType {
+  V1 = 'v1',
+  V1_1 = 'v1_1',
+  V2 = 'v2',
+}
+
 type CommunityApi = {
   api: string
   url: string
 }
+type CommunityApiList = {
+  apiVersions: CommunityApi[]
+}
 
-const prepareCommunityApiList = (): CommunityApi[] => {
-  const apiEnumList = Object.keys(ApiVersionType)
-  const communityApiList = new Array<CommunityApi>()
+const prepareCommunityApiList = (): CommunityApiList => {
+  const apiEnumList = Object.values(ApiVersionType)
+  const communityApiArray = new Array<CommunityApi>()
   apiEnumList.forEach((apiEnum) => {
     const communityApi = { api: apiEnum, url: nodeURL }
-    communityApiList.push(communityApi)
+    communityApiArray.push(communityApi)
   })
+  const communityApiList = { apiVersions: communityApiArray }
   return communityApiList
 }
 
@@ -40,6 +51,7 @@ export const startDHT = async (
     const keyPair = DHT.keyPair(getSeed())
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
+
     const apiList = prepareCommunityApiList()
     logger.debug(`ApiList: ${JSON.stringify(apiList)}`)
 
@@ -50,11 +62,37 @@ export const startDHT = async (
     server.on('connection', function (socket: any) {
       // noiseSocket is E2E between you and the other peer
       // pipe it somewhere like any duplex stream
-      logger.info(`Remote public key: ${socket.remotePublicKey.toString('hex')}`)
+      logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
-      socket.on('data', (data: Buffer) => logger.info(`data: ${data.toString('ascii')}`))
+      socket.on('data', async (data: Buffer) => {
+        logger.info(`data: ${data.toString('ascii')}`)
+        const json = JSON.parse(data.toString('ascii'))
 
+        if (json.apiVersions && json.apiVersions.length > 0) {
+          const communities = new Array<DbCommunity>()
+
+          for (let i = 0; i < json.apiVersions.length; i++) {
+            const apiVersion = json.apiVersions[i]
+            let community = await DbCommunity.findOne({
+              publicKey: socket.remotePublicKey.toString('hex'),
+              apiVersion: apiVersion.api,
+            })
+            if (!community) {
+              community = DbCommunity.create()
+              logger.debug(`new federation community...`)
+            }
+            community.apiVersion = apiVersion.api
+            community.endPoint = apiVersion.url
+            community.publicKey = socket.remotePublicKey.toString('hex')
+            community.lastAnnouncedAt = new Date()
+            communities.push(community)
+          }
+
+          await DbCommunity.save(communities)
+          logger.debug(`federation communities stored: ${JSON.stringify(communities)}`)
+        }
+      })
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
 
@@ -119,9 +157,7 @@ export const startDHT = async (
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
           // console.log("writing to socket");
-          apiList.forEach((apiVersion) => {
-            socket.write(Buffer.from(JSON.stringify(apiVersion)))
-          })
+          socket.write(Buffer.from(JSON.stringify(apiList)))
           successfulRequests.push(remotePubKey)
         })
         // pipe it somewhere like any duplex stream
