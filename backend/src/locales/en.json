@@ -31,6 +31,7 @@
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
+      "doNotAnswer": "do not answer",
       "helloName": "Hello {firstName} {lastName}",
       "linkToYourAccount": "Link to your account:",
       "orCopyLink": "or copy the link above into your browser window.",

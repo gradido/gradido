@@ -83,7 +83,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Message about your common good contribution',
             html: expect.any(String),
@@ -153,7 +153,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Email Verification',
             html: expect.any(String),
@@ -223,7 +223,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Try To Register Again With Your Email',
             html: expect.any(String),
@@ -305,7 +305,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your common good contribution was confirmed',
             html: expect.any(String),
@@ -375,7 +375,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your common good contribution was rejected',
             html: expect.any(String),
@@ -445,7 +445,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Reset password',
             html: expect.any(String),
@@ -523,7 +523,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: Your Gradido link has been redeemed',
             html: expect.any(String),
@@ -596,7 +596,7 @@ describe('sendEmailVariants', () => {
           message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            from: 'Gradido (do not answer) <info@gradido.net>',
             attachments: [],
             subject: 'Gradido: You have received Gradidos',
             html: expect.any(String),
