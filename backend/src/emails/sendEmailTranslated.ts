@@ -53,7 +53,7 @@ export const sendEmailTranslated = async (params: {
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
-      from: `Gradido (nicht antworten) <${CONFIG.EMAIL_SENDER}>`,
+      from: `Gradido (${i18n.__('emails.general.doNotAnswer')}) <${CONFIG.EMAIL_SENDER}>`,
     },
     transport,
     preview: false,
