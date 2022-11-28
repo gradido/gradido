@@ -168,3 +168,29 @@ export const sendTransactionLinkRedeemedEmail = (data: {
     },
   })
 }
+
+export const sendTransactionReceivedEmail = (data: {
+  firstName: string
+  lastName: string
+  email: string
+  language: string
+  senderFirstName: string
+  senderLastName: string
+  senderEmail: string
+  transactionAmount: Decimal
+}): Promise<Record<string, unknown> | null> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'transactionReceived',
+    locals: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      locale: data.language,
+      senderFirstName: data.senderFirstName,
+      senderLastName: data.senderLastName,
+      senderEmail: data.senderEmail,
+      transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
+      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    },
+  })
+}

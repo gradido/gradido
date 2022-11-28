@@ -1,15 +1,12 @@
 doctype html
 html(lang=locale)
   head
-    title= t('emails.transactionLinkRedeemed.subject')
+    title= t('emails.transactionReceived.subject')
   body
-    h1(style='margin-bottom: 24px;')= t('emails.transactionLinkRedeemed.subject')
+    h1(style='margin-bottom: 24px;')= t('emails.transactionReceived.subject')
     #container.col
       p(style='margin-bottom: 24px;')= t('emails.general.helloName', { firstName, lastName })
-      p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
-      p= t('emails.general.amountGDD', { amountGDD: transactionAmount })
-        br
-        span= t('emails.transactionLinkRedeemed.memo', { transactionMemo })
+      p= t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName, senderEmail })
       p= t('emails.general.detailsYouFindOnLinkToYourAccount')
         span= " "
         a(href=overviewURL) #{overviewURL}

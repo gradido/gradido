@@ -2,13 +2,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { backendLogger as logger } from '@/server/logger'
-import CONFIG from '@/config'
 
 import { Context, getUser } from '@/server/context'
 import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
 import { getCustomRepository, getConnection, In } from '@dbTools/typeorm'
-
-import { sendTransactionReceivedEmail } from '@/mailer/sendTransactionReceivedEmail'
 
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -36,7 +33,10 @@ import Decimal from 'decimal.js-light'
 import { BalanceResolver } from './BalanceResolver'
 import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from './const/const'
 import { findUserByEmail } from './UserResolver'
-import { sendTransactionLinkRedeemedEmail } from '@/emails/sendEmailVariants'
+import {
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
+} from '@/emails/sendEmailVariants'
 import { Event, EventTransactionReceive, EventTransactionSend } from '@/event/Event'
 import { eventProtocol } from '@/event/EventProtocolEmitter'
 import { Decay } from '../model/Decay'
@@ -168,17 +168,15 @@ export const executeTransaction = async (
     await queryRunner.release()
   }
   logger.debug(`prepare Email for transaction received...`)
-  // send notification email
-  // TODO: translate
   await sendTransactionReceivedEmail({
+    firstName: recipient.firstName,
+    lastName: recipient.lastName,
+    email: recipient.emailContact.email,
+    language: recipient.language,
     senderFirstName: sender.firstName,
     senderLastName: sender.lastName,
-    recipientFirstName: recipient.firstName,
-    recipientLastName: recipient.lastName,
-    email: recipient.emailContact.email,
     senderEmail: sender.emailContact.email,
-    amount,
-    overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+    transactionAmount: amount,
   })
   if (transactionLink) {
     await sendTransactionLinkRedeemedEmail({
