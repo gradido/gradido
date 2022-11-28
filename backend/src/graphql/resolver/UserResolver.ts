@@ -297,11 +297,6 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new Error('User has no password set yet')
     }
-    if (!dbUser.pubKey || !dbUser.privKey) {
-      logger.error('The User has no private or publicKey.')
-      // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new Error('User has no private or publicKey')
-    }
 
     if (!verifyPassword(dbUser, password)) {
       logger.error('The User has no valid credentials.')
@@ -333,7 +328,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.pubKey),
+      value: encode(dbUser.gradidoID),
     })
     const ev = new EventLogin()
     ev.userId = user.id
@@ -443,7 +438,6 @@ export class UserResolver {
     dbUser.language = language
     dbUser.publisherId = publisherId
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    dbUser.passphrase = passphrase.join(' ')
     logger.debug('new dbUser=' + dbUser)
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
@@ -633,34 +627,12 @@ export class UserResolver {
     const user = userContact.user
     logger.debug('user with EmailVerificationCode found...')
 
-    // Generate Passphrase if needed
-    if (!user.passphrase) {
-      const passphrase = PassphraseGenerate()
-      user.passphrase = passphrase.join(' ')
-      logger.debug('new Passphrase generated...')
-    }
-
-    const passphrase = user.passphrase.split(' ')
-    if (passphrase.length < PHRASE_WORD_COUNT) {
-      logger.error('Could not load a correct passphrase')
-      // TODO if this can happen we cannot recover from that
-      // this seem to be good on production data, if we dont
-      // make a coding mistake we do not have a problem here
-      throw new Error('Could not load a correct passphrase')
-    }
-    logger.debug('Passphrase is valid...')
-
     // Activate EMail
     userContact.emailChecked = true
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    const passwordHash = SecretKeyCryptographyCreateKey(userContact.email, password) // return short and long hash
-    const keyPair = KeyPairEd25519Create(passphrase) // return pub, priv Key
-    const encryptedPrivkey = SecretKeyCryptographyEncrypt(keyPair[1], passwordHash[1])
     user.password = encryptPassword(user, password)
-    user.pubKey = keyPair[0]
-    user.privKey = encryptedPrivkey
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
@@ -771,30 +743,14 @@ export class UserResolver {
         )
       }
 
-      // TODO: This had some error cases defined - like missing private key. This is no longer checked.
-      const oldPasswordHash = SecretKeyCryptographyCreateKey(
-        userEntity.emailContact.email,
-        password,
-      )
       if (!verifyPassword(userEntity, password)) {
         logger.error(`Old password is invalid`)
         throw new Error(`Old password is invalid`)
       }
 
-      const privKey = SecretKeyCryptographyDecrypt(userEntity.privKey, oldPasswordHash[1])
-      logger.debug('oldPassword decrypted...')
-      const newPasswordHash = SecretKeyCryptographyCreateKey(
-        userEntity.emailContact.email,
-        passwordNew,
-      ) // return short and long hash
-      logger.debug('newPasswordHash created...')
-      const encryptedPrivkey = SecretKeyCryptographyEncrypt(privKey, newPasswordHash[1])
-      logger.debug('PrivateKey encrypted...')
-
       // Save new password hash and newly encrypted private key
       userEntity.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       userEntity.password = encryptPassword(userEntity, passwordNew)
-      userEntity.privKey = encryptedPrivkey
     }
 
     const queryRunner = getConnection().createQueryRunner()
