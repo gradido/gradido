@@ -27,7 +27,9 @@
       </b-row>
       <div>
         <b-icon icon="layers" class="mr-3" :variant="badge ? 'success' : 'light'"></b-icon>
-        <span :class="badge ? 'text-success' : 'text-light'">{{ $t('GDT') }}</span>
+        <span :class="badge ? 'text-success' : 'text-light'">
+          {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
+        </span>
       </div>
     </div>
   </div>
@@ -36,6 +38,7 @@
 export default {
   name: 'GdtAmount',
   props: {
+    GdtBalance: { type: Number, required: true },
     badge: { type: Boolean, default: false },
     showStatus: { type: Boolean, default: false },
   },

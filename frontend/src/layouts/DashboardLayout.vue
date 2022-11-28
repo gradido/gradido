@@ -38,7 +38,7 @@
               <b-row class="d-lg-flex" cols="12">
                 <!-- ContentHeader -->
                 <b-col>
-                  <content-header :balance="balance" />
+                  <content-header :balance="balance" :GdtBalance="GdtBalance" />
                 </b-col>
               </b-row>
             </b-col>
@@ -57,7 +57,7 @@
                   <router-view
                     ref="router-view"
                     :balance="balance"
-                    :gdt-balance="GdtBalance"
+                    :GdtBalance="GdtBalance"
                     :transactions="transactions"
                     :transactionCount="transactionCount"
                     :transactionLinkCount="transactionLinkCount"

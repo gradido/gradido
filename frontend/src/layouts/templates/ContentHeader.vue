@@ -25,7 +25,7 @@
         </b-col>
         <b-col cols="6">
           <div>
-            <gdt-amount />
+            <gdt-amount :GdtBalance="GdtBalance" />
           </div>
         </b-col>
       </b-row>
@@ -42,7 +42,7 @@
         <b-col cols="6">
           <div>
             <router-link to="gdt">
-              <gdt-amount />
+              <gdt-amount :GdtBalance="GdtBalance" />
             </router-link>
           </div>
         </b-col>
@@ -60,7 +60,7 @@
         <b-col cols="6">
           <div>
             <router-link to="gdt">
-              <gdt-amount :badge="true" :showStatus="true" />
+              <gdt-amount :badge="true" :showStatus="true" :GdtBalance="GdtBalance" />
             </router-link>
           </div>
         </b-col>
@@ -102,6 +102,7 @@ export default {
   },
   props: {
     balance: { type: Number, required: true },
+    GdtBalance: { type: Number, required: true },
   },
 
   computed: {
