@@ -1,11 +1,11 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
-@Entity('community')
+@Entity('communities')
 export class Community extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
+  @Column({ name: 'public_key', type: 'binary', length: 64, default: null, nullable: true })
   publicKey: Buffer
 
   @Column({ name: 'api_version', length: 10, nullable: false })

@@ -10,7 +10,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE IF NOT EXISTS communities (
       id int unsigned NOT NULL AUTO_INCREMENT,
-      public_key binary(32),
+      public_key binary(64),
       api_version varchar(10) NOT NULL,
       endpoint varchar(255) NOT NULL,
       last_announced_at datetime(3) NOT NULL,
