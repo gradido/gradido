@@ -12,6 +12,7 @@ import {
   sendContributionRejectedEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail,
 } from './sendEmailVariants'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
@@ -543,6 +544,75 @@ describe('sendEmailVariants', () => {
         )
         expect(result.originalMessage.html).toContain('Amount: 17.65 GDD')
         expect(result.originalMessage.html).toContain('Memo: You deserve it! 🙏🏼')
+        expect(result.originalMessage.html).toContain(
+          `You can find transaction details in your Gradido account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
+        )
+        expect(result.originalMessage.html).toContain('Please do not reply to this email!')
+        expect(result.originalMessage.html).toContain('Kind regards,<br><span>your Gradido team')
+      })
+    })
+  })
+
+  describe('sendTransactionReceivedEmail', () => {
+    beforeAll(async () => {
+      result = await sendTransactionReceivedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderFirstName: 'Bibi',
+        senderLastName: 'Bloxberg',
+        senderEmail: 'bibi@bloxberg.de',
+        transactionAmount: new Decimal(37.4),
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslated).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'transactionReceived',
+          locals: {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            locale: 'en',
+            senderFirstName: 'Bibi',
+            senderLastName: 'Bloxberg',
+            senderEmail: 'bibi@bloxberg.de',
+            transactionAmount: '37.40',
+            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+          },
+        })
+      })
+
+      it('has expected result', () => {
+        expect(result).toMatchObject({
+          envelope: {
+            from: 'info@gradido.net',
+            to: ['peter@lustig.de'],
+          },
+          message: expect.any(String),
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido (nicht antworten) <info@gradido.net>',
+            attachments: [],
+            subject: 'Gradido: You have received Gradidos',
+            html: expect.any(String),
+            text: expect.stringContaining('GRADIDO: YOU HAVE RECEIVED GRADIDOS'),
+          }),
+        })
+        expect(result.originalMessage.html).toContain('<!DOCTYPE html>')
+        expect(result.originalMessage.html).toContain('<html lang="en">')
+        expect(result.originalMessage.html).toContain(
+          '<title>Gradido: You have received Gradidos</title>',
+        )
+        expect(result.originalMessage.html).toContain('>Gradido: You have received Gradidos</h1>')
+        expect(result.originalMessage.html).toContain('Hello Peter Lustig')
+        expect(result.originalMessage.html).toContain(
+          'You have just received 37.40 GDD from Bibi Bloxberg (bibi@bloxberg.de).',
+        )
         expect(result.originalMessage.html).toContain(
           `You can find transaction details in your Gradido account:<span> </span><a href="${CONFIG.EMAIL_LINK_OVERVIEW}">${CONFIG.EMAIL_LINK_OVERVIEW}</a>`,
         )
