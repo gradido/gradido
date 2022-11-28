@@ -10,7 +10,11 @@
     </div>
     <div
       class="wallet-amount bg-white appBoxShadow gradido-border-radius p-4 border"
-      :class="showStatus ? 'gradido-global-border-color-accent' : 'border-light opacity-05'"
+      :class="
+        showStatus || path === '/overview'
+          ? 'gradido-global-border-color-accent'
+          : 'border-light opacity-05'
+      "
     >
       <b-row>
         <b-col cols="9" class="h4">{{ $t('gddKonto') }}</b-col>
@@ -26,7 +30,7 @@
       </b-row>
       <div>
         <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent"></b-icon>
-        <span :class="badge ? 'gradido-global-color-accent' : 'text-light'">
+        <span class="font-weight-bold gradido-global-color-accent">
           {{ balance | GDD }}
         </span>
       </div>
