@@ -28,7 +28,7 @@
           </b-col>
           <b-col>
             <b-row>
-              <b-col class="small">
+              <b-col class="small font-weight-bold">
                 {{ transaction.linkedUser.firstName }} {{ transaction.linkedUser.lastName }}
               </b-col>
               <b-col cols="2" class="mr-4">
