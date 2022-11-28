@@ -30,6 +30,7 @@
     },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
+      "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
       "helloName": "Hello {firstName} {lastName}",
       "linkToYourAccount": "Link to your account:",
       "orCopyLink": "or copy the link above into your browser window.",
@@ -44,10 +45,13 @@
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
     },
     "transactionLinkRedeemed": {
-      "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account:",
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
       "memo": "Memo: {transactionMemo}",
       "subject": "Gradido: Your Gradido link has been redeemed"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
+      "subject": "Gradido: You have received Gradidos"
     }
   },
   "general": {
