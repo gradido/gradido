@@ -27,7 +27,7 @@
       </b-row>
       <div>
         <b-icon icon="layers" class="mr-3" :variant="badge ? 'success' : 'light'"></b-icon>
-        <span :class="badge ? 'text-success' : 'text-light'">
+        <span class="font-weight-bold" :class="badge ? 'gradido-global-border-color-accent' : 'text-light'">
           {{ $n(GdtBalance, 'decimal') }} {{ $t('GDT') }}
         </span>
       </div>

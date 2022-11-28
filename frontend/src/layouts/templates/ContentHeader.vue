@@ -4,7 +4,7 @@
       <b-row>
         <b-col cols="5">
           <div>
-            <gdd-amount :balance="balance" :showStatus="false" />
+            <gdd-amount :balance="balance" :showStatus="false" :path="path" />
           </div>
         </b-col>
         <b-col cols="7">

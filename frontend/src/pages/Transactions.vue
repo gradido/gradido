@@ -1,45 +1,6 @@
 <template>
   <div class="pb-4">
-    <!-- <b-tabs v-model="tabIndex" content-class="" justified>
-      <b-tab
-        :title="`Gradido  (${$n(balance, 'decimal')} GDD)`"
-        class="px-4"
-        @click="$router.replace('/transactions')"
-      >
-        <p class="tab-tex">{{ $t('transaction.gdd-text') }}</p>
-
-        <gdd-transaction-list
-          :timestamp="timestamp"
-          :transactionCount="transactionCount"
-          :transactionLinkCount="transactionLinkCount"
-          :transactions="transactions"
-          :showPagination="true"
-          @update-transactions="updateTransactions"
-          v-on="$listeners"
-        />
-      </b-tab>
-
-      <b-tab :title="titleGdt" class="px-4" @click="updateGdt()">
-        <b-row class="mb-3">
-          <b-col>{{ $t('transaction.gdt-text') }}</b-col>
-          <b-col class="text-right">{{ `${$n(GdtBalance, 'decimal')} GDT` }}</b-col>
-        </b-row>
-        <gdt-transaction-list
-          v-model="currentPage"
-          :transactionsGdt="transactionsGdt"
-          :transactionGdtCount="transactionGdtCount"
-          :pageSize="pageSize"
-        />
-      </b-tab>
-    </b-tabs> -->
-
     <div v-if="gdt">
-      <div
-        class="gradido-global-color-accent appBoxShadow gradido-border-radius p-3 mb-3 text-right blurtext"
-      >
-        {{ titleGdt }}
-      </div>
-
       <gdt-transaction-list
         v-model="currentPage"
         :transactionsGdt="transactionsGdt"
@@ -73,8 +34,6 @@ export default {
   },
   props: {
     gdt: { type: Boolean, default: false },
-    balance: { type: Number, default: 0 },
-    GdtBalance: { type: Number, default: 0 },
     transactions: {
       default: () => [],
     },
@@ -120,21 +79,15 @@ export default {
       this.$emit('update-transactions', pagination)
     },
   },
-  computed: {
-    titleGdt() {
-      if (this.gdt) return `${this.$t('gdt.gdt')} (${this.$n(this.GdtBalance, 'decimal')} GDT)`
-      return this.$t('gdt.gdt')
-    },
-  },
   created() {
     if (this.gdt) {
       this.updateGdt()
     }
   },
   watch: {
-    currentPage() {
-      this.updateGdt()
-    },
+    // currentPage() {
+    //   this.updateGdt()
+    // },
     gdt() {
       if (this.gdt) {
         this.updateGdt()
@@ -144,17 +97,6 @@ export default {
 }
 </script>
 <style>
-.blurtext {
-  color: transparent;
-  text-shadow: #047006 0 0 15px;
-  transition: 0.4s;
-}
-.blurtext:hover {
-  transition: 0.4s;
-  color: #047006;
-  text-shadow: none;
-}
-
 .nav-tabs > li > a {
   padding-top: 14px;
   margin-bottom: 14px;
