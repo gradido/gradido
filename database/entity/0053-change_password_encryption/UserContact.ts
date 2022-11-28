@@ -40,9 +40,6 @@ export class UserContact extends BaseEntity {
   @Column({ name: 'email_resend_count' })
   emailResendCount: number
 
-  // @Column({ name: 'email_hash', type: 'binary', length: 32, default: null, nullable: true })
-  // emailHash: Buffer
-
   @Column({ name: 'email_checked', type: 'bool', nullable: false, default: false })
   emailChecked: boolean
 
