@@ -1,4 +1,3 @@
-import fs from 'fs'
 import { backendLogger as logger } from '@/server/logger'
 import i18n from 'i18n'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -40,7 +39,7 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import Paginated from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { v4 as uuidv4 } from 'uuid'
-import { isValidPassword, SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { PasswordEncryptionType } from '../enum/PasswordEncryptionType'
 

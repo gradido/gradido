@@ -14,10 +14,6 @@ function isStringBoolean(value: string): boolean {
   return false
 }
 
-function isHexPublicKey(publicKey: string): boolean {
-  return /^[0-9A-Fa-f]{64}$/i.test(publicKey)
-}
-
 async function calculateBalance(
   userId: number,
   amount: Decimal,
