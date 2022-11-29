@@ -11,7 +11,6 @@ import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { TransactionRepository } from '@repository/Transaction'
 import { TransactionLinkRepository } from '@repository/TransactionLink'
 
-import { Decay } from '@model/Decay'
 import { User } from '@model/User'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
