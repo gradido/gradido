@@ -1,10 +1,28 @@
-# Docker More Closely
+# Contributing
 
-## Apple M1 Platform
+If you contribute to our project, please consider the following points.
+
+## Localization
+
+### Quotation Marks
+
+The following characters are different from the programming quotation mark:
+
+`"` or `\"`
+
+Please copy and paste the following quotes for the languages:
+
+- de: „Dies ist ein Beispielsatz.“
+- en: “This is a sample sentence.”
+  - See <https://grammar.collinsdictionary.com/easy-learning/when-do-you-use-quotation-marks-or-in-english>
+
+## Docker – More Closely
+
+### Apple M1 Platform
 
 ***Attention:** For using Docker commands in Apple M1 environments!*
 
-### Environment Variable For Apple M1 Platform
+#### Environment Variable For Apple M1 Platform
 
 To set the Docker platform environment variable in your terminal tab, run:
 
@@ -13,7 +31,7 @@ To set the Docker platform environment variable in your terminal tab, run:
 $ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 ```
 
-### Docker Compose Override File For Apple M1 Platform
+#### Docker Compose Override File For Apple M1 Platform
 
 For Docker compose `up` or `build` commands, you can use our Apple M1 override file that specifies the M1 platform:
 
@@ -27,7 +45,7 @@ $ docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-
 $ docker compose -f docker-compose.yml -f docker-compose.apple-m1.override.yml up
 ```
 
-## Analyzing Docker Builds
+### Analyzing Docker Builds
 
 To analyze a Docker build, there is a wonderful tool called [dive](https://github.com/wagoodman/dive). Please sponsor if you're using it!
 
