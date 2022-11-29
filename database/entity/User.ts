@@ -1,1 +1,1 @@
-export { User } from './0049-add_user_contacts_table/User'
+export { User } from './0053-change_password_encryption/User'
