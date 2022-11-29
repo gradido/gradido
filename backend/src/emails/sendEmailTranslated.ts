@@ -63,7 +63,7 @@ export const sendEmailTranslated = async (params: {
   // ATTENTION: await is needed, because otherwise on send the email gets send in the language of the current user, because below the language gets reset
   await email
     .send({
-      template: path.join(__dirname, params.template),
+      template: path.join(__dirname, 'templates', params.template),
       message: params.receiver,
       locals: params.locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
