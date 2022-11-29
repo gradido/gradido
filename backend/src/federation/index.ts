@@ -18,9 +18,9 @@ const ANNOUNCETIME = 30000
 const nodeURL = CONFIG.FEDERATION_COMMUNITY_URL || 'not configured'
 
 enum ApiVersionType {
-  V1 = 'v1',
+  V1_0 = 'v1_0',
   V1_1 = 'v1_1',
-  V2 = 'v2',
+  V2_0 = 'v2_0',
 }
 
 type CommunityApi = {
@@ -32,14 +32,19 @@ type CommunityApiList = {
 }
 
 const prepareCommunityApiList = (): CommunityApiList => {
-  const apiEnumList = Object.values(ApiVersionType)
+  /*
+  const communityApiArray = Object.values(ApiVersionType)
   const communityApiArray = new Array<CommunityApi>()
   apiEnumList.forEach((apiEnum) => {
     const communityApi = { api: apiEnum, url: nodeURL }
     communityApiArray.push(communityApi)
   })
-  const communityApiList = { apiVersions: communityApiArray }
-  return communityApiList
+  */
+  return {
+    apiVersions: Object.values(ApiVersionType).map(function (apiEnum) {
+      return { api: apiEnum, url: nodeURL }
+    }),
+  }
 }
 
 export const startDHT = async (
