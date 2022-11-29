@@ -328,7 +328,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: encode(dbUser.gradidoID),
+      value: encode(Buffer.from(dbUser.gradidoID)),
     })
     const ev = new EventLogin()
     ev.userId = user.id
