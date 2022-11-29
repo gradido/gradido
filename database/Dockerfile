@@ -100,6 +100,8 @@ COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
 # Copy Mnemonic files
 COPY --from=build ${DOCKER_WORKDIR}/src/config/*.txt ./src/config/
+# Copy log folder
+COPY --from=build ${DOCKER_WORKDIR}/log ./log
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
