@@ -1,1 +1,1 @@
-export { User } from './0053-change_password_encryption/User'
+export { User } from './0055-clear_old_password_junk/User'

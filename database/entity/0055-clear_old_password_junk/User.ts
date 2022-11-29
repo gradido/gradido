@@ -34,21 +34,6 @@ export class User extends BaseEntity {
   })
   alias: string
 
-  @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
-  pubKey: Buffer
-
-  @Column({ name: 'privkey', type: 'binary', length: 80, default: null, nullable: true })
-  privKey: Buffer
-
-  @Column({
-    type: 'text',
-    name: 'passphrase',
-    collation: 'utf8mb4_unicode_ci',
-    nullable: true,
-    default: null,
-  })
-  passphrase: string
-
   @OneToOne(() => UserContact, (emailContact: UserContact) => emailContact.user)
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact

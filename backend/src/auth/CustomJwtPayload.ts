@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken'
 
 export interface CustomJwtPayload extends JwtPayload {
-  gradidoID: string
+  gradidoID: Buffer
 }
