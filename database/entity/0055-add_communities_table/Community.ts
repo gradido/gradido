@@ -11,7 +11,7 @@ export class Community extends BaseEntity {
   @Column({ name: 'api_version', length: 10, nullable: false })
   apiVersion: string
 
-  @Column({ name: 'endpoint', length: 255, nullable: false })
+  @Column({ name: 'end_point', length: 255, nullable: false })
   endPoint: string
 
   @Column({ name: 'last_announced_at', type: 'datetime', nullable: false })
