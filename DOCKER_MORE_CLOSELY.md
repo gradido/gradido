@@ -4,7 +4,7 @@
 
 ***Attention:** For using Docker commands in Apple M1 environments!*
 
-### Enviroment Variable For Apple M1 Platform
+### Environment Variable For Apple M1 Platform
 
 To set the Docker platform environment variable in your terminal tab, run:
 
@@ -27,7 +27,7 @@ $ docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-
 $ docker compose -f docker-compose.yml -f docker-compose.apple-m1.override.yml up
 ```
 
-## Analysing Docker Builds
+## Analyzing Docker Builds
 
 To analyze a Docker build, there is a wonderful tool called [dive](https://github.com/wagoodman/dive). Please sponsor if you're using it!
 
