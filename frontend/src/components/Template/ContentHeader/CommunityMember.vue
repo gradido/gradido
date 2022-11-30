@@ -2,7 +2,7 @@
   <div>
     <div class="text-center">
       <b-badge class="position-absolute mt--2 ml--5 px-3" variant="success">
-        {{ $t('community.community') }}
+        {{ $t('member') }}
       </b-badge>
     </div>
     <div
@@ -11,7 +11,7 @@
       <b-row>
         <b-col cols="8">
           <div class="h4">{{ $t('community.communityMember') }}</div>
-          <div class="small">{{ CONFIG.COMMUNITY_NAME }}</div>
+          <div>{{ CONFIG.COMMUNITY_NAME }}</div>
         </b-col>
         <b-col cols="4" class="border-left border-light p-3">
           <b-icon icon="people"></b-icon>

@@ -26,12 +26,17 @@ export const copyLinks = {
       navigator.clipboard
         .writeText(
           `${this.link}
-${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${this.amount} Gradido.
-"${this.memo}"
-${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t('gdd_per_link.validUntilDate', {
-            date: this.$d(new Date(this.validUntil), 'short'),
-          })}
-${this.$t('gdd_per_link.link-hint')}`,
+            ${this.$store.state.firstName} ${this.$t('transaction-link.send_you')} ${
+            this.amount
+          } Gradido.
+            "${this.memo}"
+            ${this.$t('gdd_per_link.credit-your-gradido')} ${this.$t(
+            'gdd_per_link.validUntilDate',
+            {
+              date: this.$d(new Date(this.validUntil), 'short'),
+            },
+          )}
+          ${this.$t('gdd_per_link.link-hint')}`,
         )
         .then(() => {
           this.toastSuccess(this.$t('gdd_per_link.link-and-text-copied'))

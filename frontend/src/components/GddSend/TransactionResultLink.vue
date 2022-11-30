@@ -1,6 +1,23 @@
 <template>
   <div class="bg-white appBoxShadow gradido-border-radius p-4">
-    <b-row>
+    <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
+
+    <clipboard-copy
+      :link="link"
+      :amount="amount"
+      :memo="memo"
+      :validUntil="validUntil"
+    ></clipboard-copy>
+    <div class="text-center">
+      <div><figure-qr-code :link="link" /></div>
+      <div>
+        <b-button variant="secondary" @click="$emit('on-reset')" class="mt-4">
+          {{ $t('form.close') }}
+        </b-button>
+      </div>
+    </div>
+
+    <!-- <b-row>
       <b-col>
         <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
         <clipboard-copy
@@ -19,7 +36,7 @@
           </b-button>
         </div>
       </b-col>
-    </b-row>
+    </b-row> -->
   </div>
 </template>
 <script>
@@ -40,7 +57,7 @@ export default {
   },
   data() {
     return {
-      showQrcode: false,
+      // showQrcode: false,
     }
   },
   methods: {

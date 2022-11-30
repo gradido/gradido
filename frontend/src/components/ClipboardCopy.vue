@@ -1,19 +1,21 @@
 <template>
   <div class="clipboard-copy">
-    <b-input-group v-if="canCopyLink" size="lg" class="mb-3" prepend="Link">
-      <b-form-input :value="link" type="text" readonly></b-form-input>
-      <b-input-group-append>
-        <b-button size="sm" text="Button" variant="primary" @click="copyLinkWithText">
-          {{ $t('gdd_per_link.copy-link-with-text') }}
-        </b-button>
-        <b-button size="sm" text="Button" variant="primary" @click="copyLink">
+    <div v-if="canCopyLink" size="lg" class="mb-3">
+      <div class="text-center h2">
+        {{ link }}
+      </div>
+
+      <div class="text-center mt-5">
+        <b-button size="sm" text="Button" variant="gradido" @click="copyLink">
           {{ $t('gdd_per_link.copy-link') }}
         </b-button>
-        <b-button variant="primary" class="text-light" @click="$emit('show-qr-code-button')">
-          <b-img src="img/svg/qr-code.svg" width="19" class="svg"></b-img>
+        <hr />
+        <b-button size="sm" text="Button" variant="gradido" @click="copyLinkWithText">
+          {{ $t('gdd_per_link.copy-link-with-text') }}
         </b-button>
-      </b-input-group-append>
-    </b-input-group>
+        <hr />
+      </div>
+    </div>
     <div v-else>
       <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
       <div class="alert-muted h3 p-3">{{ link }}</div>
