@@ -52,16 +52,16 @@
       </b-row>
     </div>
 
-    <b-row class="confirm-box-link">
+    <!-- <b-row class="confirm-box-link">
       <b-col class="text-right mt-4 mb-3">
         <div class="alert-heading text-left h3">{{ $t('gdd_per_link.header') }}</div>
 
         <h1>{{ (amount * -1) | GDD }}</h1>
         <b class="mt-2">{{ memo }}</b>
       </b-col>
-    </b-row>
+    </b-row> -->
 
-    <b-container class="bv-example-row mt-3 mb-5">
+    <!-- <b-container class="bv-example-row mt-3 mb-5">
       <div class="alert-heading text-left h3">{{ $t('advanced-calculation') }}</div>
       <b-row class="pr-3">
         <b-col class="text-right">{{ $t('form.current_balance') }}</b-col>
@@ -87,9 +87,9 @@
         <b-col class="text-right">{{ $t('form.new_balance') }}</b-col>
         <b-col class="text-right">{{ $t('math.aprox') }} {{ totalBalance | GDD }}</b-col>
       </b-row>
-    </b-container>
+    </b-container> -->
 
-    <b-row class="mt-4">
+    <!-- <b-row class="mt-4">
       <b-col>
         <b-button @click="$emit('on-reset')">{{ $t('back') }}</b-button>
       </b-col>
@@ -103,7 +103,7 @@
           {{ $t('form.generate_now') }}
         </b-button>
       </b-col>
-    </b-row>
+    </b-row> -->
   </div>
 </template>
 <script>
