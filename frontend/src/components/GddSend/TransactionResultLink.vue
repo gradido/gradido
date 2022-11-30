@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white appBoxShadow gradido-border-radius p-4">
+  <div class="bg-white appBoxShadow gradido-border-radius p-5">
     <div class="h3 mb-4">{{ $t('gdd_per_link.created') }}</div>
 
     <clipboard-copy
