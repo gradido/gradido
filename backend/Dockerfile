@@ -98,10 +98,18 @@ COPY --from=build ${DOCKER_WORKDIR}/../database/build ../database/build
 # We also copy the node_modules express and serve-static for the run script
 COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --from=build ${DOCKER_WORKDIR}/../database/node_modules ../database/node_modules
+
 # Copy static files
 # COPY --from=build ${DOCKER_WORKDIR}/public ./public
 # Copy package.json for script definitions (lock file should not be needed)
 COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
+# Copy tsconfig.json to provide alias path definitions
+COPY --from=build ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+# Copy log4js-config.json to provide log configuration
+COPY --from=build ${DOCKER_WORKDIR}/log4js-config.json ./log4js-config.json
+# Copy memonic type since its referenced in the sources
+# TODO: remove
+COPY --from=build ${DOCKER_WORKDIR}/src/config/mnemonic.uncompressed_buffer13116.txt ./src/config/mnemonic.uncompressed_buffer13116.txt
 # Copy run scripts run/
 # COPY --from=build ${DOCKER_WORKDIR}/run ./run
 
