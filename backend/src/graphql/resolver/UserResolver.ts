@@ -196,35 +196,6 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
-export const checkEmailVerificationCode = async (
-  emailContact: DbUserContact,
-  optInType: OptInType = OptInType.EMAIL_OPT_IN_REGISTER,
-): Promise<DbUserContact> => {
-  logger.info(`checkEmailVerificationCode... ${emailContact}`)
-  if (!canEmailResend(emailContact.updatedAt || emailContact.createdAt)) {
-    logger.error(
-      `email already sent less than ${printTimeDuration(
-        CONFIG.EMAIL_CODE_REQUEST_TIME,
-      )} minutes ago`,
-    )
-    throw new Error(
-      `email already sent less than ${printTimeDuration(
-        CONFIG.EMAIL_CODE_REQUEST_TIME,
-      )} minutes ago`,
-    )
-  }
-  emailContact.updatedAt = new Date()
-  emailContact.emailResendCount++
-  emailContact.emailVerificationCode = random(64)
-  emailContact.emailOptInTypeId = optInType
-  await DbUserContact.save(emailContact).catch(() => {
-    logger.error('Unable to save email verification code= ' + emailContact)
-    throw new Error('Unable to save email verification code.')
-  })
-  logger.info(`checkEmailVerificationCode...successful: ${emailContact}`)
-  return emailContact
-}
-
 export const activationLink = (verificationCode: BigInt): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
@@ -548,20 +519,32 @@ export class UserResolver {
       return true
     }
 
-    // can be both types: REGISTER and RESET_PASSWORD
-    // let optInCode = await LoginEmailOptIn.findOne({
-    //  userId: user.id,
-    // })
-    // let optInCode = user.emailContact.emailVerificationCode
-    const dbUserContact = await checkEmailVerificationCode(
-      user.emailContact,
-      OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
-    )
+    if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
+      logger.error(
+        `email already sent less than ${printTimeDuration(
+        CONFIG.EMAIL_CODE_REQUEST_TIME,
+      )} minutes ago`,
+      )
+      throw new Error(
+        `email already sent less than ${printTimeDuration(
+        CONFIG.EMAIL_CODE_REQUEST_TIME,
+      )} minutes ago`,
+      )
+    }
+    
+    user.emailContact.updatedAt = new Date()
+    user.emailContact.emailResendCount++
+    user.emailContact.emailVerificationCode = random(64)
+    user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
+    await user.emailContact.save().catch(() => {
+      logger.error('Unable to save email verification code= ' + user.emailContact)
+      throw new Error('Unable to save email verification code.')
+    })
 
-    // optInCode = await checkOptInCode(optInCode, user, OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
-    logger.info(`optInCode for ${email}=${dbUserContact}`)
+    logger.info(`optInCode for ${email}=${user.emailContact}`)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emailSent = await sendResetPasswordEmail({
+    const emailSent = await sendResetPasswordEmailMailer({
+      link: activationLink(user.emailContact.emailVerificationCode),
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -573,7 +556,7 @@ export class UserResolver {
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(dbUserContact.emailVerificationCode)}`)
+      logger.debug(`Reset password link: ${activationLink(user.emailContact.emailVerificationCode)}`)
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
