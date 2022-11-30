@@ -38,10 +38,12 @@ export default {
       form: {
         text: '',
       },
+      isSubmitting: false,
     }
   },
   methods: {
     onSubmit() {
+      this.isSubmitting = true
       this.$apollo
         .mutate({
           mutation: createContributionMessage,
@@ -55,9 +57,11 @@ export default {
           this.$emit('update-state', this.contributionId)
           this.form.text = ''
           this.toastSuccess(this.$t('message.reply'))
+          this.isSubmitting = false
         })
         .catch((error) => {
           this.toastError(error.message)
+          this.isSubmitting = false
         })
     },
     onReset() {
@@ -66,10 +70,7 @@ export default {
   },
   computed: {
     disabled() {
-      if (this.form.text !== '') {
-        return false
-      }
-      return true
+      return this.form.text === '' || this.isSubmitting
     },
   },
 }
