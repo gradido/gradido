@@ -61,8 +61,6 @@ export const startDHT = async (
             typeof json.apiVersions[0].api === 'string' &&
             typeof json.apiVersions[0].url === 'string'
           ) {
-            const communities = new Array<DbCommunity>()
-
             for (let i = 0; i < json.apiVersions.length; i++) {
               const apiVersion = json.apiVersions[i]
 
@@ -73,6 +71,7 @@ export const startDHT = async (
                 lastAnnouncedAt: new Date(),
               }
               logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+              // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
               await DbCommunity.createQueryBuilder()
                 .insert()
                 .into(DbCommunity)
@@ -84,12 +83,6 @@ export const startDHT = async (
                 .execute()
             }
             logger.info(`federation community apiVersions stored...`)
-            const entity = await DbCommunity.findOne({ id: 147 })
-            if (entity) {
-              entity.endPoint = 'test'
-              DbCommunity.save(entity)
-              logger.debug(`updated entity...`)
-            }
           }
         } catch (e) {
           logger.error(`Error on receiving data from socket: ${JSON.stringify(e)}`)
