@@ -1,6 +1,6 @@
 <template>
   <div class="info-statistic">
-    <b-container>
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
       <div class="h3">{{ $t('community.community') }}</div>
       <div class="h1">{{ CONFIG.COMMUNITY_NAME }}</div>
       <div>
@@ -12,7 +12,7 @@
     </b-container>
 
     <hr />
-    <b-container>
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
       <div class="h3">{{ $t('community.openContributionLinks') }}</div>
       <small v-if="count > 0">
         {{
@@ -37,7 +37,7 @@
       </ul>
     </b-container>
     <hr />
-    <b-container>
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
       <div class="h3">{{ $t('community.moderators') }}</div>
       <ul>
         <li v-for="item in itemsAdminUser" v-bind:key="item.id">
@@ -45,7 +45,8 @@
         </li>
       </ul>
     </b-container>
-    <b-container>
+    <hr />
+    <b-container class="bg-white appBoxShadow gradido-border-radius p-4">
       <div class="h3">{{ $t('contact') }}</div>
       <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
     </b-container>

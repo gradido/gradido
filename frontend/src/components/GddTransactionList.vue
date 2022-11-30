@@ -15,11 +15,10 @@
       <div v-for="({ id, typeId }, index) in transactions" :key="id">
         <transaction-list-item
           :typeId="typeId"
-          class="pointer appBoxShadow gradido-border-radius mb-3"
+          class="pointer mb-3 bg-white appBoxShadow gradido-border-radius p-4"
         >
           <template #DECAY>
             <transaction-decay
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
             />
@@ -27,7 +26,6 @@
 
           <template #SEND>
             <transaction-send
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -36,7 +34,6 @@
 
           <template #RECEIVE>
             <transaction-receive
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -45,7 +42,6 @@
 
           <template #CREATION>
             <transaction-creation
-              class="list-group-item"
               v-bind="transactions[index]"
               :previousBookedBalance="previousBookedBalance(index)"
               v-on="$listeners"
@@ -54,7 +50,6 @@
 
           <template #LINK_SUMMARY>
             <transaction-link-summary
-              class="list-group-item"
               v-bind="transactions[index]"
               :transactionLinkCount="transactionLinkCount"
               @update-transactions="updateTransactions"

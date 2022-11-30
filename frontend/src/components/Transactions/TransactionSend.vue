@@ -2,11 +2,12 @@
   <div class="transaction-slot-send">
     <b-row @click="visible = !visible" class="">
       <b-col cols="2">
-        <b-avatar icon="arrow-left-circle" variant="danger" size="4em"></b-avatar>
+        <b-avatar :text="avatarText" variant="danger" size="4em"></b-avatar>
       </b-col>
       <b-col>
         <div>
           <name
+            class="font-weight-bold"
             v-on="$listeners"
             :amount="amount"
             :linkedUser="linkedUser"
@@ -85,6 +86,11 @@ export default {
     return {
       visible: false,
     }
+  },
+  computed: {
+    avatarText() {
+      return this.linkedUser.firstName[0] + this.linkedUser.lastName[0]
+    },
   },
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div id="component-sidebar ">
-    <div id="side-menu" ref="sideMenu" class="pl-lg-1 gradido-border-radius appBoxShadow pt-2 mt-4">
+    <div id="side-menu" ref="sideMenu" class="gradido-border-radius appBoxShadow pt-2 mt-4">
       <!-- @mouseout="$emit('toogleMobilMenu')" -->
       <div class="mb-6 mt-3">
         <b-nav vertical class="w-200">
@@ -24,6 +24,10 @@
           <b-nav-item to="/transactions" class="mb-3" active-class="activeRoute">
             <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.transactions') }}</span>
+          </b-nav-item>
+          <b-nav-item to="/gdt" class="mb-3" active-class="activeRoute">
+            <b-icon icon="layout-text-sidebar-reverse" aria-hidden="true"></b-icon>
+            <span class="ml-2">{{ $t('gdt.gdt') }}</span>
           </b-nav-item>
           <!-- <b-nav-item to="/profile" class="mb-3 HIDE_FOR_WORK_IN_PROCESS">
             <b-icon icon="person" aria-hidden="true"></b-icon>
@@ -96,7 +100,7 @@ export default {
 .activeRoute {
   font-weight: bold;
   color: rgb(219, 129, 19);
-  border-left: 1rem solid;
+  border-left: 1px solid;
 }
 
 /* .component-navbar .active, */
@@ -106,6 +110,9 @@ export default {
 } */
 #component-sidebar {
   min-width: 53px;
-  max-width: 200px;
+  max-width: 210px;
+}
+#side-menu {
+  max-width: 210px;
 }
 </style>
