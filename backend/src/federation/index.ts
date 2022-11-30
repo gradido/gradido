@@ -4,10 +4,15 @@
 import DHT from '@hyperswarm/dht'
 // import { Connection } from '@dbTools/typeorm'
 import { backendLogger as logger } from '@/server/logger'
+import CONFIG from '@/config'
 
 function between(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
+
+const KEY_SECRET_SEEDBYTES = 32
+const getSeed = (): Buffer | null =>
+  CONFIG.FEDERATION_DHT_SEED ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED) : null
 
 const POLLTIME = 20000
 const SUCCESSTIME = 120000
@@ -27,8 +32,9 @@ export const startDHT = async (
 ): Promise<void> => {
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-
-    const keyPair = DHT.keyPair()
+    const keyPair = DHT.keyPair(getSeed())
+    logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
+    logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
     const node = new DHT({ keyPair })
 
