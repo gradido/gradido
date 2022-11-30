@@ -9,7 +9,7 @@
         </b-col>
         <b-col cols="7">
           <div>
-            <community-member />
+            <community-member :totalUsers="totalUsers" />
           </div>
         </b-col>
       </b-row>
@@ -25,7 +25,9 @@
         </b-col>
         <b-col cols="6">
           <div>
-            <gdt-amount :GdtBalance="GdtBalance" />
+            <router-link to="gdt">
+              <gdt-amount :GdtBalance="GdtBalance" />
+            </router-link>
           </div>
         </b-col>
       </b-row>
@@ -103,6 +105,7 @@ export default {
   props: {
     balance: { type: Number, required: true },
     GdtBalance: { type: Number, required: true },
+    totalUsers: { type: Number, required: true },
   },
 
   computed: {

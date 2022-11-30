@@ -38,7 +38,11 @@
               <b-row class="d-lg-flex" cols="12">
                 <!-- ContentHeader -->
                 <b-col>
-                  <content-header :balance="balance" :GdtBalance="GdtBalance" />
+                  <content-header
+                    :balance="balance"
+                    :GdtBalance="GdtBalance"
+                    :totalUsers="totalUsers"
+                  />
                 </b-col>
               </b-row>
             </b-col>
@@ -97,7 +101,7 @@ import Navbar from '@/components/Menu/Navbar.vue'
 import Sidebar from '@/components/Menu/Sidebar.vue'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout.vue'
-import { transactionsQuery } from '@/graphql/queries'
+import { transactionsQuery, communityStatistics } from '@/graphql/queries'
 import { logout } from '@/graphql/mutations'
 import ContentFooter from '@/components/ContentFooter.vue'
 import { FadeTransition } from 'vue2-transitions'
@@ -129,6 +133,7 @@ export default {
       hamburger: true,
       darkMode: false,
       skeleton: true,
+      totalUsers: null,
     }
   },
   provide() {
@@ -138,6 +143,7 @@ export default {
   },
   created() {
     this.updateTransactions(0)
+    this.getCommunityStatistics()
     setTimeout(() => {
       this.skeleton = false
     }, 1500)
@@ -187,6 +193,23 @@ export default {
           this.transactionCount = -1
           this.toastError(error.message)
           // what to do when loading balance fails?
+        })
+    },
+    async getCommunityStatistics() {
+      this.$apollo
+        .query({
+          query: communityStatistics,
+        })
+        .then((result) => {
+          this.totalUsers = result.data.communityStatistics.totalUsers
+          // this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
+          // this.totalGradidoDecayed =
+          // Number(result.data.communityStatistics.totalGradidoDecayed) +
+          // Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
+          // this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
+        })
+        .catch(() => {
+          this.toastError('communityStatistics has no result, use default data')
         })
     },
     admin() {

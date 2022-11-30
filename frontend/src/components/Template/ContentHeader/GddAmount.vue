@@ -17,8 +17,8 @@
       "
     >
       <b-row>
-        <b-col cols="9" class="h4">{{ $t('gddKonto') }}</b-col>
-        <b-col cols="3" class="text-center">
+        <b-col class="h4">{{ $t('gddKonto') }}</b-col>
+        <!-- <b-col cols="3" class="text-center">
           <div>
             <b-icon
               :icon="showStatus ? 'check-circle' : 'circle'"
@@ -26,7 +26,7 @@
             ></b-icon>
             <div class="small">{{ badge ? $t('active') : $t('inactive') }}</div>
           </div>
-        </b-col>
+        </b-col> -->
       </b-row>
       <div>
         <b-icon icon="layers" class="mr-3 gradido-global-border-color-accent"></b-icon>

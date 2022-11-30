@@ -6,6 +6,7 @@
   "85": "85%",
   "active": "aktiv",
   "advanced-calculation": "Vorausberechnung",
+  "member": "Mitglied",
   "auth": {
     "left": {
       "dignity": "Würde",
@@ -199,6 +200,7 @@
   },
   "GDT": "GDT",
   "gdt": {
+    "gdt":"Gradido Transform",
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
     "conversion": "Umrechnung",
