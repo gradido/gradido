@@ -1,10 +1,8 @@
 {
   "100": "100%",
   "1000thanks": "1000 Dank, weil du bei uns bist!",
-  "1234": "1234",
   "125": "125%",
   "85": "85%",
-  "active": "aktiv",
   "advanced-calculation": "Vorausberechnung",
   "member": "Mitglied",
   "auth": {
@@ -21,7 +19,6 @@
   "back": "Zurück",
   "community": {
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
-    "city": "Stadt",
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",
     "continue-to-registration": "Weiter zur Registrierung",
@@ -200,7 +197,7 @@
   },
   "GDT": "GDT",
   "gdt": {
-    "gdt":"Gradido Transform",
+    "gdt": "Gradido Transform",
     "calculation": "Berechnung der Gradido Transform",
     "contribution": "Beitrag",
     "conversion": "Umrechnung",
@@ -217,7 +214,7 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
-  "inactive": "inaktiv",
+
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
   "login": "Anmelden",
