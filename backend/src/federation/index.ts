@@ -15,36 +15,11 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-const nodeURL = CONFIG.FEDERATION_COMMUNITY_URL || 'not configured'
 
 enum ApiVersionType {
   V1_0 = 'v1_0',
   V1_1 = 'v1_1',
   V2_0 = 'v2_0',
-}
-
-type CommunityApi = {
-  api: string
-  url: string
-}
-type CommunityApiList = {
-  apiVersions: CommunityApi[]
-}
-
-const prepareCommunityApiList = (): CommunityApiList => {
-  /*
-  const communityApiArray = Object.values(ApiVersionType)
-  const communityApiArray = new Array<CommunityApi>()
-  apiEnumList.forEach((apiEnum) => {
-    const communityApi = { api: apiEnum, url: nodeURL }
-    communityApiArray.push(communityApi)
-  })
-  */
-  return {
-    apiVersions: Object.values(ApiVersionType).map(function (apiEnum) {
-      return { api: apiEnum, url: nodeURL }
-    }),
-  }
 }
 
 export const startDHT = async (
@@ -57,7 +32,11 @@ export const startDHT = async (
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const apiList = prepareCommunityApiList()
+    const apiList = {
+      apiVersions: Object.values(ApiVersionType).map(function (apiEnum) {
+        return { api: apiEnum, url: CONFIG.FEDERATION_COMMUNITY_URL }
+      }),
+    }
     logger.debug(`ApiList: ${JSON.stringify(apiList)}`)
 
     const node = new DHT({ keyPair })
@@ -71,31 +50,40 @@ export const startDHT = async (
       // console.log("Local public key", noiseSocket.publicKey.toString("hex")); // same as keyPair.publicKey
 
       socket.on('data', async (data: Buffer) => {
-        logger.info(`data: ${data.toString('ascii')}`)
-        const json = JSON.parse(data.toString('ascii'))
+        try {
+          logger.info(`data: ${data.toString('ascii')}`)
+          const json = JSON.parse(data.toString('ascii'))
+          if (
+            json.apiVersions &&
+            Object.prototype.toString.call(json.apiVersions) === '[object Array]' &&
+            json.apiVersions.length > 0 &&
+            Object.prototype.toString.call(json.apiVersions[0].api) === '[object String]' &&
+            Object.prototype.toString.call(json.apiVersions[0].url) === '[object String]'
+          ) {
+            const communities = new Array<DbCommunity>()
 
-        if (json.apiVersions && json.apiVersions.length > 0) {
-          const communities = new Array<DbCommunity>()
-
-          for (let i = 0; i < json.apiVersions.length; i++) {
-            const apiVersion = json.apiVersions[i]
-            let community = await DbCommunity.findOne({
-              publicKey: socket.remotePublicKey.toString('hex'),
-              apiVersion: apiVersion.api,
-            })
-            if (!community) {
-              community = DbCommunity.create()
-              logger.debug(`new federation community...`)
+            for (let i = 0; i < json.apiVersions.length; i++) {
+              const apiVersion = json.apiVersions[i]
+              let community = await DbCommunity.findOne({
+                publicKey: socket.remotePublicKey.toString('hex'),
+                apiVersion: apiVersion.api,
+              })
+              if (!community) {
+                community = DbCommunity.create()
+                logger.debug(`new federation community...`)
+              }
+              community.apiVersion = apiVersion.api
+              community.endPoint = apiVersion.url
+              community.publicKey = socket.remotePublicKey.toString('hex')
+              community.lastAnnouncedAt = new Date()
+              communities.push(community)
             }
-            community.apiVersion = apiVersion.api
-            community.endPoint = apiVersion.url
-            community.publicKey = socket.remotePublicKey.toString('hex')
-            community.lastAnnouncedAt = new Date()
-            communities.push(community)
-          }
 
-          await DbCommunity.save(communities)
-          logger.debug(`federation communities stored: ${JSON.stringify(communities)}`)
+            await DbCommunity.save(communities)
+            logger.debug(`federation communities stored: ${JSON.stringify(communities)}`)
+          }
+        } catch (e) {
+          logger.error(`Error on receiving data from socket: ${JSON.stringify(e)}`)
         }
       })
       // process.stdin.pipe(noiseSocket).pipe(process.stdout);
