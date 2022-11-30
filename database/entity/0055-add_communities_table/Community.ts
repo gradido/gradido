@@ -1,4 +1,11 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm'
 
 @Entity('communities')
 export class Community extends BaseEntity {
@@ -17,9 +24,19 @@ export class Community extends BaseEntity {
   @Column({ name: 'last_announced_at', type: 'datetime', nullable: false })
   lastAnnouncedAt: Date
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP', nullable: false })
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP(3)',
+    nullable: false,
+  })
   createdAt: Date
 
-  @Column({ name: 'updated_at', type: 'datetime', nullable: true, default: null })
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'datetime',
+    onUpdate: 'CURRENT_TIMESTAMP(3)',
+    nullable: true,
+  })
   updatedAt: Date | null
 }

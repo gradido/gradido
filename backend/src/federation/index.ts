@@ -6,6 +6,7 @@ import DHT from '@hyperswarm/dht'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
+import { getConnection } from '@dbTools/typeorm'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
@@ -55,38 +56,45 @@ export const startDHT = async (
           const json = JSON.parse(data.toString('ascii'))
           if (
             json.apiVersions &&
-            Object.prototype.toString.call(json.apiVersions) === '[object Array]' &&
+            Array.isArray(json.apiVersions) &&
             json.apiVersions.length > 0 &&
-            Object.prototype.toString.call(json.apiVersions[0].api) === '[object String]' &&
-            Object.prototype.toString.call(json.apiVersions[0].url) === '[object String]'
+            typeof json.apiVersions[0].api === 'string' &&
+            typeof json.apiVersions[0].url === 'string'
           ) {
             const communities = new Array<DbCommunity>()
 
             for (let i = 0; i < json.apiVersions.length; i++) {
               const apiVersion = json.apiVersions[i]
-              let community = await DbCommunity.findOne({
-                publicKey: socket.remotePublicKey.toString('hex'),
-                apiVersion: apiVersion.api,
-              })
-              if (!community) {
-                community = DbCommunity.create()
-                logger.debug(`new federation community...`)
-              }
-              community.apiVersion = apiVersion.api
-              community.endPoint = apiVersion.url
-              community.publicKey = socket.remotePublicKey.toString('hex')
-              community.lastAnnouncedAt = new Date()
-              communities.push(community)
-            }
 
-            await DbCommunity.save(communities)
-            logger.debug(`federation communities stored: ${JSON.stringify(communities)}`)
+              const variables = {
+                apiVersion: apiVersion.api,
+                endPoint: apiVersion.url,
+                publicKey: socket.remotePublicKey.toString('hex'),
+                lastAnnouncedAt: new Date(),
+              }
+              logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+              await DbCommunity.createQueryBuilder()
+                .insert()
+                .into(DbCommunity)
+                .values(variables)
+                .orUpdate({
+                  conflict_target: ['id', 'publicKey', 'apiVersion'],
+                  overwrite: ['end_point', 'last_announced_at'],
+                })
+                .execute()
+            }
+            logger.info(`federation community apiVersions stored...`)
+            const entity = await DbCommunity.findOne({ id: 147 })
+            if (entity) {
+              entity.endPoint = 'test'
+              DbCommunity.save(entity)
+              logger.debug(`updated entity...`)
+            }
           }
         } catch (e) {
           logger.error(`Error on receiving data from socket: ${JSON.stringify(e)}`)
         }
       })
-      // process.stdin.pipe(noiseSocket).pipe(process.stdout);
     })
 
     await server.listen()
