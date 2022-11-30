@@ -466,16 +466,16 @@ export class UserResolver {
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       logger.error(
         `email already sent less than ${printTimeDuration(
-        CONFIG.EMAIL_CODE_REQUEST_TIME,
-      )} minutes ago`,
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
       )
       throw new Error(
         `email already sent less than ${printTimeDuration(
-        CONFIG.EMAIL_CODE_REQUEST_TIME,
-      )} minutes ago`,
+          CONFIG.EMAIL_CODE_REQUEST_TIME,
+        )} minutes ago`,
       )
     }
-    
+
     user.emailContact.updatedAt = new Date()
     user.emailContact.emailResendCount++
     user.emailContact.emailVerificationCode = random(64)
@@ -498,7 +498,9 @@ export class UserResolver {
     /*  uncomment this, when you need the activation link on the console */
     // In case EMails are disabled log the activation link for the user
     if (!emailSent) {
-      logger.debug(`Reset password link: ${activationLink(user.emailContact.emailVerificationCode)}`)
+      logger.debug(
+        `Reset password link: ${activationLink(user.emailContact.emailVerificationCode)}`,
+      )
     }
     logger.info(`forgotPassword(${email}) successful...`)
 
