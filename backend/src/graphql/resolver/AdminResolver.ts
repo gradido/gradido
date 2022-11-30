@@ -200,7 +200,7 @@ export class AdminResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await dbUser.findOne({ id: userId })
+    const user = await dbUser.findOne({ where: { id: userId }, relations: ['emailContact'] })
     // user exists ?
     if (!user) {
       logger.error(`Could not find user with userId: ${userId}`)
@@ -214,6 +214,7 @@ export class AdminResolver {
     }
     // soft-delete user
     await user.softRemove()
+    await user.emailContact.softRemove()
     const newUser = await dbUser.findOne({ id: userId }, { withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
@@ -221,7 +222,10 @@ export class AdminResolver {
   @Authorized([RIGHTS.UNDELETE_USER])
   @Mutation(() => Date, { nullable: true })
   async unDeleteUser(@Arg('userId', () => Int) userId: number): Promise<Date | null> {
-    const user = await dbUser.findOne({ id: userId }, { withDeleted: true })
+    const user = await dbUser.findOne(
+      { id: userId },
+      { withDeleted: true, relations: ['emailContact'] },
+    )
     if (!user) {
       logger.error(`Could not find user with userId: ${userId}`)
       throw new Error(`Could not find user with userId: ${userId}`)
@@ -231,6 +235,7 @@ export class AdminResolver {
       throw new Error('User is not deleted')
     }
     await user.recover()
+    await user.emailContact.recover()
     return null
   }
 
