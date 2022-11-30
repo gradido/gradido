@@ -67,7 +67,7 @@ const loginServer = {
 
 const email = {
   // eslint-disable-next-line no-unneeded-ternary
-  EMAIL: process.env.EMAIL === 'false' ? false : true,
+  EMAIL: process.env.EMAIL === 'false' ? false : process.env.NODE_ENV !== 'development',
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER || 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME || 'null',
