@@ -206,7 +206,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
+      { order: { balanceDate: 'DESC' } },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -313,10 +313,6 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
-    if (amount.lte(0)) {
-      logger.error(`Amount to send must be positive`)
-      throw new Error('Amount to send must be positive')
-    }
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
@@ -327,7 +323,6 @@ export class TransactionResolver {
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
-
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
