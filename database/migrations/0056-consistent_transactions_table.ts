@@ -25,11 +25,13 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       VALUES
       ('EMAIL', ${missingUserIds[i].user_id}, 'deleted.user${missingUserIds[i].user_id}@gradido.net', 0, NOW(), NOW());`)
 
+    const emaiId = Object.values(userContact)[Object.keys(userContact).indexOf('insertId')]
+
     await queryFn(`
       INSERT INTO users
       (id, gradido_id, email_id, first_name, last_name, deleted_at, password_encryption_type, created_at, language)
       VALUES
-      (${missingUserIds[i].user_id}, '${gradidoId}', ${userContact[0].insertId}, 'DELETED', 'USER', NOW(), 0, NOW(), 'de');`)
+      (${missingUserIds[i].user_id}, '${gradidoId}', ${emaiId}, 'DELETED', 'USER', NOW(), 0, NOW(), 'de');`)
   }
 }
 
