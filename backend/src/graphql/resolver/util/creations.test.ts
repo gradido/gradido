@@ -170,8 +170,11 @@ describe('util/creation', () => {
         const targetDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 0, 0)
 
         beforeAll(() => {
+          const halfMsToRun = (targetDate.getTime() - now.getTime()) / 2
           jest.useFakeTimers()
-          setTimeout(jest.fn(), targetDate.getTime() - now.getTime())
+          setTimeout(jest.fn(), halfMsToRun)
+          jest.runAllTimers()
+          setTimeout(jest.fn(), halfMsToRun)
           jest.runAllTimers()
         })
 
@@ -225,8 +228,10 @@ describe('util/creation', () => {
           })
 
           it('has the clock set correctly', () => {
+            const targetMonth = nextMonthTargetDate.getMonth() + 1
+            const targetMonthString = (targetMonth < 10 ? '0' : '') + String(targetMonth)
             expect(new Date().toISOString()).toContain(
-              `${nextMonthTargetDate.getFullYear()}-${nextMonthTargetDate.getMonth() + 1}-01T01:`,
+              `${nextMonthTargetDate.getFullYear()}-${targetMonthString}-01T01:`,
             )
           })
 
