@@ -265,6 +265,7 @@ export class TransactionLinkResolver {
         const creations = await getUserCreation(user.id, clientTimezoneOffset)
         logger.info('open creations', creations)
         validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
+
         const contribution = new DbContribution()
         contribution.userId = user.id
         contribution.createdAt = now
@@ -274,19 +275,16 @@ export class TransactionLinkResolver {
         contribution.contributionLinkId = contributionLink.id
         contribution.contributionType = ContributionType.LINK
         contribution.contributionStatus = ContributionStatus.CONFIRMED
-
         await queryRunner.manager.insert(DbContribution, contribution)
 
         const lastTransaction = await queryRunner.manager
           .createQueryBuilder()
           .select('transaction')
           .from(DbTransaction, 'transaction')
-          .innerJoinAndSelect('transaction.contribution', 'c')
           .where('transaction.userId = :id', { id: user.id })
           .orderBy('transaction.balanceDate', 'DESC')
           .getOne()
         let newBalance = new Decimal(0)
-
         let decay: Decay | null = null
         if (lastTransaction) {
           decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
@@ -305,7 +303,6 @@ export class TransactionLinkResolver {
         transaction.balanceDate = now
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
-        transaction.contribution = contribution
         await queryRunner.manager.insert(DbTransaction, transaction)
 
         contribution.confirmedAt = now
