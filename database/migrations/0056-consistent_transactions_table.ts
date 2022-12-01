@@ -29,7 +29,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       INSERT INTO users
       (id, gradido_id, email_id, first_name, last_name, deleted_at, password_encryption_type, created_at, language)
       VALUES
-      (${missingUserIds[i].user_id}, '${gradidoId}', ${userContact.insertId}, 'DELETED', 'USER', NOW(), 0, NOW(), 'de');`)
+      (${missingUserIds[i].user_id}, '${gradidoId}', ${userContact.insertId ? userContact.insertId : 0}, 'DELETED', 'USER', NOW(), 0, NOW(), 'de');`)
   }
 }
 
