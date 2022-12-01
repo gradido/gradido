@@ -1,4 +1,5 @@
 import { EntityRepository, Repository } from '@dbTools/typeorm'
+import { Contribution } from '@entity/Contribution'
 import { Transaction } from '@entity/Transaction'
 import { Order } from '@enum/Order'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -14,6 +15,11 @@ export class TransactionRepository extends Repository<Transaction> {
   ): Promise<[Transaction[], number]> {
     if (onlyCreation) {
       return this.createQueryBuilder('userTransaction')
+        .innerJoinAndSelect(
+          'userTransaction.contribution',
+          'c',
+          'userTransaction.id = c.transactionId',
+        )
         .where('userTransaction.userId = :userId', { userId })
         .andWhere('userTransaction.typeId = :typeId', {
           typeId: TransactionTypeId.CREATION,
@@ -24,6 +30,11 @@ export class TransactionRepository extends Repository<Transaction> {
         .getManyAndCount()
     }
     return this.createQueryBuilder('userTransaction')
+      .innerJoinAndSelect(
+        'userTransaction.contribution',
+        'c',
+        'userTransaction.id = c.transactionId',
+      )
       .where('userTransaction.userId = :userId', { userId })
       .orderBy('userTransaction.balanceDate', order)
       .limit(limit)
@@ -33,6 +44,12 @@ export class TransactionRepository extends Repository<Transaction> {
 
   findLastForUser(userId: number): Promise<Transaction | undefined> {
     return this.createQueryBuilder('userTransaction')
+      .innerJoinAndMapOne(
+        'userTransaction.contribution',
+        Contribution,
+        'c',
+        'userTransaction.id = c.transactionId',
+      )
       .where('userTransaction.userId = :userId', { userId })
       .orderBy('userTransaction.balanceDate', 'DESC')
       .getOne()

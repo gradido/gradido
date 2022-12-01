@@ -42,7 +42,9 @@ export class Transaction {
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
     this.linkedTransactionId = transaction.linkedTransactionId
-    this.transactionLinkId = transaction.transactionLinkId
+    this.transactionLinkId = transaction.contribution
+      ? transaction.contribution.contributionLinkId
+      : transaction.transactionLinkId
   }
 
   @Field(() => Number)

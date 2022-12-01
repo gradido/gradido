@@ -281,6 +281,7 @@ export class TransactionLinkResolver {
           .createQueryBuilder()
           .select('transaction')
           .from(DbTransaction, 'transaction')
+          .innerJoinAndSelect('transaction.contribution', 'c')
           .where('transaction.userId = :id', { id: user.id })
           .orderBy('transaction.balanceDate', 'DESC')
           .getOne()
@@ -304,7 +305,7 @@ export class TransactionLinkResolver {
         transaction.balanceDate = now
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
-        transaction.transactionLinkId = contributionLink.id
+        transaction.contribution = contribution
         await queryRunner.manager.insert(DbTransaction, transaction)
 
         contribution.confirmedAt = now
