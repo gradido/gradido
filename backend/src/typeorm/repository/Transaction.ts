@@ -15,7 +15,7 @@ export class TransactionRepository extends Repository<Transaction> {
   ): Promise<[Transaction[], number]> {
     if (onlyCreation) {
       return this.createQueryBuilder('userTransaction')
-        .innerJoinAndSelect(
+        .leftJoinAndSelect(
           'userTransaction.contribution',
           'c',
           'userTransaction.id = c.transactionId',
@@ -30,7 +30,7 @@ export class TransactionRepository extends Repository<Transaction> {
         .getManyAndCount()
     }
     return this.createQueryBuilder('userTransaction')
-      .innerJoinAndSelect(
+      .leftJoinAndSelect(
         'userTransaction.contribution',
         'c',
         'userTransaction.id = c.transactionId',
@@ -44,7 +44,7 @@ export class TransactionRepository extends Repository<Transaction> {
 
   findLastForUser(userId: number): Promise<Transaction | undefined> {
     return this.createQueryBuilder('userTransaction')
-      .innerJoinAndMapOne(
+      .leftJoinAndMapOne(
         'userTransaction.contribution',
         Contribution,
         'c',
