@@ -6,7 +6,6 @@ import DHT from '@hyperswarm/dht'
 import { backendLogger as logger } from '@/server/logger'
 import CONFIG from '@/config'
 import { Community as DbCommunity } from '@entity/Community'
-import { getConnection } from '@dbTools/typeorm'
 
 const KEY_SECRET_SEEDBYTES = 32
 const getSeed = (): Buffer | null =>
