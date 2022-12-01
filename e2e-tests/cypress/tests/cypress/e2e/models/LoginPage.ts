@@ -4,6 +4,7 @@ export class LoginPage {
   // selectors
   emailInput = "input[type=email]";
   passwordInput = "input[type=password]";
+  forgotPasswordLink = '[data-test="forgot-password-link"]';
   submitBtn = "[type=submit]";
   emailHint = "#vee_Email";
   passwordHint = "#vee_Password";
@@ -26,5 +27,9 @@ export class LoginPage {
   submitLogin() {
     cy.get(this.submitBtn).click();
     return this;
+  }
+
+  openForgotPasswordPage() {
+    cy.get(this.forgotPasswordLink).click();
   }
 }

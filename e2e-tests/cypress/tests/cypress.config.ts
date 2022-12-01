@@ -15,6 +15,15 @@ async function setupNodeEvents(
     })
   );
 
+  on("task", {
+    setResetPasswordLink: (val) => {
+      return (resetPasswordLink = val);
+    },
+    getResetPasswordLink: () => {
+      return resetPasswordLink;
+    },
+  });
+
   on("after:run", (results) => {
     if (results) {
       // results will be undefined in interactive mode
@@ -30,6 +39,7 @@ export default defineConfig({
   e2e: {
     specPattern: "**/*.feature",
     excludeSpecPattern: "*.js",
+    experimentalSessionAndOrigin: true,
     baseUrl: "http://localhost:3000",
     chromeWebSecurity: false,
     defaultCommandTimeout: 10000,
@@ -43,6 +53,7 @@ export default defineConfig({
     },
     env: {
       backendURL: "http://localhost:4000",
+      mailserverURL: "http://localhost:1080",
       loginQuery: `query ($email: String!, $password: String!, $publisherId: Int) {
   login(email: $email, password: $password, publisherId: $publisherId) {
     email
