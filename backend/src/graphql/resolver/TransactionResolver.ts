@@ -215,7 +215,7 @@ export class TransactionResolver {
     // find current balance
     const lastTransaction = await dbTransaction.findOne(
       { userId: user.id },
-      { order: { balanceDate: 'DESC' } },
+      { order: { balanceDate: 'DESC' }, relations: ['contribution'] },
     )
     logger.debug(`lastTransaction=${lastTransaction}`)
 
@@ -238,7 +238,6 @@ export class TransactionResolver {
       order,
     )
     context.transactionCount = userTransactionsCount
-
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     userTransactions.forEach((transaction: dbTransaction) => {
