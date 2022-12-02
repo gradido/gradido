@@ -291,7 +291,6 @@ describe('send coins', () => {
       await cleanDB()
     })
 
-    /*
     describe('trying to send negative amount', () => {
       it('throws an error', async () => {
         expect(
@@ -305,18 +304,15 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError(`user hasn't enough GDD or amount is < 0`)],
+            errors: [new GraphQLError(`Amount to send must be positive`)],
           }),
         )
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          `user hasn't enough GDD or amount is < 0 : balance=null`,
-        )
+        expect(logger.error).toBeCalledWith(`Amount to send must be positive`)
       })
     })
-    */
 
     describe('good transaction', () => {
       it('sends the coins', async () => {
