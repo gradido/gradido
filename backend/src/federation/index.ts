@@ -21,6 +21,13 @@ enum ApiVersionType {
   V1_1 = 'v1_1',
   V2_0 = 'v2_0',
 }
+type CommunityApi = {
+  api: string
+  url: string
+}
+type CommunityApiList = {
+  apiVersions: CommunityApi[]
+}
 
 export const startDHT = async (
   // connection: Connection,
@@ -32,9 +39,13 @@ export const startDHT = async (
     logger.info(`keyPairDHT: publicKey=${keyPair.publicKey.toString('hex')}`)
     logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
 
-    const apiList = {
+    const apiList: CommunityApiList = {
       apiVersions: Object.values(ApiVersionType).map(function (apiEnum) {
-        return { api: apiEnum, url: CONFIG.FEDERATION_COMMUNITY_URL }
+        const comApi: CommunityApi = {
+          api: apiEnum,
+          url: CONFIG.FEDERATION_COMMUNITY_URL || 'not configured',
+        }
+        return comApi
       }),
     }
     logger.debug(`ApiList: ${JSON.stringify(apiList)}`)
@@ -52,16 +63,10 @@ export const startDHT = async (
       socket.on('data', async (data: Buffer) => {
         try {
           logger.info(`data: ${data.toString('ascii')}`)
-          const json = JSON.parse(data.toString('ascii'))
-          if (
-            json.apiVersions &&
-            Array.isArray(json.apiVersions) &&
-            json.apiVersions.length > 0 &&
-            typeof json.apiVersions[0].api === 'string' &&
-            typeof json.apiVersions[0].url === 'string'
-          ) {
-            for (let i = 0; i < json.apiVersions.length; i++) {
-              const apiVersion = json.apiVersions[i]
+          const apiVersionList: CommunityApiList = JSON.parse(data.toString('ascii'))
+          if (apiVersionList && apiVersionList.apiVersions) {
+            for (let i = 0; i < apiVersionList.apiVersions.length; i++) {
+              const apiVersion = apiVersionList.apiVersions[i]
 
               const variables = {
                 apiVersion: apiVersion.api,
@@ -149,12 +154,9 @@ export const startDHT = async (
 
         socket.on('open', function () {
           // noiseSocket fully open with the other peer
-          // console.log("writing to socket");
           socket.write(Buffer.from(JSON.stringify(apiList)))
           successfulRequests.push(remotePubKey)
         })
-        // pipe it somewhere like any duplex stream
-        // process.stdin.pipe(noiseSocket).pipe(process.stdout)
       })
     }, POLLTIME)
   } catch (err) {
