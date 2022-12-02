@@ -19,6 +19,7 @@
       :subtitle="messageSubtitle"
       :buttonText="messageButtonText"
       :linkTo="messageButtonLinktTo"
+      data-test="reset-password-message"
     />
   </div>
 </template>
