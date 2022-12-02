@@ -25,10 +25,11 @@ describe('Overview', () => {
       wrapper = Wrapper()
     })
 
-    it('has a transactions table', () => {
-      expect(wrapper.find('div.gdd-transaction-list').exists()).toBeTruthy()
+    it('has a community news element', () => {
+      expect(wrapper.find('div.community-news').exists()).toBeTruthy()
     })
 
+    /*
     describe('timestamp updates', () => {
       it('emits update transactions', async () => {
         expect(wrapper.emitted('update-transactions')).toHaveLength(1)
@@ -36,5 +37,6 @@ describe('Overview', () => {
         expect(wrapper.emitted('update-transactions')).toHaveLength(2)
       })
     })
+    */
   })
 })
