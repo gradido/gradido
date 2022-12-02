@@ -1,17 +1,16 @@
 import { Then, When } from "@badeball/cypress-cucumber-preprocessor";
-import { ForgotPasswordPage } from "../../e2e/models/ForgotPasswordPage";
+import { ResetPasswordPage } from "../../e2e/models/ResetPasswordPage";
 import { UserEMailSite } from "../../e2e/models/UserEMailSite";
 
 const userEMailSite = new UserEMailSite();
-// const forgotPasswordPage = ForgotPasswordPage();
+const resetPasswordPage = new ResetPasswordPage();
 
 Then("the user receives an e-mail containing the password reset link", () => {
   cy.origin(
     Cypress.env("mailserverURL"),
     { args: userEMailSite },
     (userEMailSite) => {
-      // const linkPattern = /http:\/\/localhost\/reset-password\/[0-9]{19}/;
-      const linkPattern = /\/reset-password\/[0-9]{19}/;
+      const linkPattern = /\/reset-password\/[0-9]+\d/;
 
       cy.visit("/"); // navigate to user's e-maile site (on fake mail server)
       cy.get(userEMailSite.emailInbox).should("be.visible");
@@ -39,9 +38,8 @@ Then("the user receives an e-mail containing the password reset link", () => {
 });
 
 When("the user opens the password reset link in the browser", () => {
-  // cy.visit("/");
   cy.task("getResetPasswordLink").then((passwordResetLink) => {
     cy.visit(passwordResetLink);
   });
-  // TODO: expect
+  cy.get(resetPasswordPage.newPasswordRepeatBlock).should("be.visible");
 });

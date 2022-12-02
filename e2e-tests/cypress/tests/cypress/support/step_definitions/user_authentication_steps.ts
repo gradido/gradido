@@ -1,10 +1,11 @@
-import { When } from "@badeball/cypress-cucumber-preprocessor";
-import { And } from "../../../node_modules/@badeball/cypress-cucumber-preprocessor/lib/methods";
+import { When, And } from "@badeball/cypress-cucumber-preprocessor";
 import { ForgotPasswordPage } from "../../e2e/models/ForgotPasswordPage";
 import { LoginPage } from "../../e2e/models/LoginPage";
+import { ResetPasswordPage } from "../../e2e/models/ResetPasswordPage";
 
 const loginPage = new LoginPage();
 const forgotPasswordPage = new ForgotPasswordPage();
+const resetPasswordPage = new ResetPasswordPage();
 
 // login related
 
@@ -35,4 +36,22 @@ When("the user enters the e-mail address {string}", (email: string) => {
 And("the user submits the e-mail form", () => {
   forgotPasswordPage.submitEmail();
   cy.get(forgotPasswordPage.successComponent).should("be.visible");
+});
+
+And("the user enters the password {string}", (password: string) => {
+  resetPasswordPage.enterNewPassword(password);
+});
+
+And("the user repeats the password {string}", (password: string) => {
+  resetPasswordPage.repeatNewPassword(password);
+});
+
+And("the user submits the new password", () => {
+  resetPasswordPage.submitNewPassword();
+  cy.get(resetPasswordPage.resetPasswordMessageBlock).should("be.visible");
+});
+
+And("the user clicks the sign in button", () => {
+  resetPasswordPage.openSigninPage();
+  cy.url().should("contain", "/login");
 });
