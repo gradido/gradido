@@ -5,8 +5,8 @@ const localVue = global.localVue
 
 const propsData = {
   balance: 1234,
-  visible: false,
-  pending: false,
+//  visible: false,
+//  pending: false,
 }
 
 const mocks = {
@@ -39,8 +39,8 @@ describe('Navbar', () => {
     })
 
     describe('navigation Navbar (general elements)', () => {
-      it('has .navbar-brand in the navbar', () => {
-        expect(wrapper.find('.navbar-brand').exists()).toBeTruthy()
+      it.only('has .navbar-brand in the navbar', () => {
+        expect(wrapper.find('div.navbar-brand').exists()).toBeTruthy()
       })
 
       it('has b-navbar-toggle in the navbar', () => {
