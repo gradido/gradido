@@ -3,7 +3,7 @@
 export class ForgotPasswordPage {
   // selectors
   emailInput = "input[type=email]";
-  submitBtn = "[type=submit]";
+  submitBtn = "button[type=submit]";
   successComponent = "[data-test='forgot-password-success']";
 
   enterEmail(email: string) {
