@@ -33,7 +33,7 @@
             <b-icon icon="person" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.profile') }}</span>
           </b-nav-item> -->
-          <b-nav-item to="/community" class="mb-3" active-class="activeRoute">
+          <b-nav-item to="/community#my" class="mb-3" active-class="activeRoute">
             <b-icon icon="people" aria-hidden="true"></b-icon>
             <span class="ml-2">{{ $t('navigation.members') }}</span>
           </b-nav-item>
