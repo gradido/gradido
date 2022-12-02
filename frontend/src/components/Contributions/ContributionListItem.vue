@@ -4,10 +4,19 @@
       <div class="">
         <b-row>
           <b-col cols="2">
-            <b-avatar :icon="icon" :variant="variant" size="4em"></b-avatar>
+            <b-avatar
+              v-if="firstName"
+              :text="avatarText"
+              :badge-variant="variant"
+              size="4em"
+              class="font-weight-bold"
+            >
+              <template #badge><b-icon :icon="icon"></b-icon></template>
+            </b-avatar>
+            <b-avatar v-else :icon="icon" :variant="variant" size="4em"></b-avatar>
           </b-col>
           <b-col>
-            <div v-if="firstName" class="mr-3">{{ firstName }} {{ lastName }}</div>
+            <div v-if="firstName" class="mr-3 font-weight-bold">{{ firstName }} {{ lastName }}</div>
             <div class="small">
               {{ $d(new Date(contributionDate), 'monthAndYear') }}
             </div>
@@ -23,7 +32,7 @@
           </b-col>
           <b-col cols="3">
             <div class="small">{{ $t('creation') }}</div>
-            <div class="small">{{ amount | GDD }}</div>
+            <div class="font-weight-bold h2">{{ amount | GDD }}</div>
           </b-col>
           <b-col cols="1" @click="visible = !visible">
             <collapse-icon class="text-right" :visible="visible" v-if="messagesCount > 0" />
@@ -252,6 +261,9 @@ export default {
     },
     collapsId() {
       return 'collapse' + String(this.id)
+    },
+    avatarText() {
+      return this.firstName[0] + this.lastName[0]
     },
   },
   methods: {
