@@ -249,13 +249,14 @@
   },
   "settings": {
     "language": {
-      "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
-      "success": "Tu idioma ha sido cambiado con éxito."
+      "ru": "Русский",
+      "success": "Tu idioma ha sido cambiado con éxito.",
+      "tr": "Türkçe"
     },
     "name": {
       "change-name": "Cambiar nombre",

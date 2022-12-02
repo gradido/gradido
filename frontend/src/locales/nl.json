@@ -255,7 +255,9 @@
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
-      "success": "Jouw taal werd succesvol veranderd."
+      "ru": "Русский",
+      "success": "Jouw taal werd succesvol veranderd.",
+      "tr": "Türkçe"
     },
     "name": {
       "change-name": "Naam veranderen",

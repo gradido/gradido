@@ -255,7 +255,9 @@
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
-      "success": "Votre langue de préférence a bien été actualisée."
+      "ru": "Русский",
+      "success": "Votre langue de préférence a bien été actualisée.",
+      "tr": "Türkçe"
     },
     "name": {
       "change-name": "Changer le nom",

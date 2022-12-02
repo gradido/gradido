@@ -255,7 +255,9 @@
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
-      "success": "Your language has been successfully updated."
+      "ru": "Русский",
+      "success": "Your language has been successfully updated.",
+      "tr": "Türkçe"
     },
     "name": {
       "change-name": "Change name",
