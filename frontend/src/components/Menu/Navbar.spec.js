@@ -1,12 +1,14 @@
 import { mount } from '@vue/test-utils'
-import Navbar from './Navbar'
+import VueRouter from 'vue-router'
+import AuthNavbar from './Navbar.vue'
 
 const localVue = global.localVue
+localVue.use(VueRouter)
+
+const router = new VueRouter()
 
 const propsData = {
   balance: 1234,
-//  visible: false,
-//  pending: false,
 }
 
 const mocks = {
@@ -16,17 +18,18 @@ const mocks = {
   $t: jest.fn((t) => t),
   $store: {
     state: {
-      hasElopage: true,
-      isAdmin: true,
+      firstName: 'Testy',
+      lastName: 'User',
+      email: 'testy.user@example.com',
     },
   },
 }
 
-describe('Navbar', () => {
+describe('AuthNavbar', () => {
   let wrapper
 
   const Wrapper = () => {
-    return mount(Navbar, { localVue, propsData, mocks })
+    return mount(AuthNavbar, { localVue, router, propsData, mocks })
   }
 
   describe('mount', () => {
@@ -35,98 +38,35 @@ describe('Navbar', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.component-navbar').exists()).toBeTruthy()
+      expect(wrapper.find('div.auth-header').exists()).toBeTruthy()
     })
 
-    describe('navigation Navbar (general elements)', () => {
-      it.only('has .navbar-brand in the navbar', () => {
-        expect(wrapper.find('div.navbar-brand').exists()).toBeTruthy()
+    it('has a .navbar-brand element', () => {
+      expect(wrapper.find('div.navbar-brand').exists()).toBeTruthy()
+    })
+
+    describe('.b-avatar element', () => {
+      it('is rendered', () => {
+        expect(wrapper.find('button.b-avatar').exists()).toBeTruthy()
       })
 
-      it('has b-navbar-toggle in the navbar', () => {
-        expect(wrapper.find('.navbar-toggler').exists()).toBeTruthy()
-      })
-
-      it('has thirteen b-nav-item in the navbar', () => {
-        expect(wrapper.findAll('.nav-item')).toHaveLength(12)
-      })
-
-      it('has nav-item "amount GDD" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('1234 GDD')
-      })
-
-      it('has nav-item "navigation.overview" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('navigation.overview')
-      })
-
-      it('has nav-item "navigation.send" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toEqual('navigation.send')
-      })
-
-      it('has nav-item "navigation.transactions" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toEqual('navigation.transactions')
-      })
-
-      it('has nav-item "gdt.gdt" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toEqual('gdt.gdt')
-      })
-
-      it('has nav-item "navigation.community" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(7).text()).toEqual('navigation.community')
-      })
-
-      it('has nav-item "navigation.profile" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(8).text()).toEqual('navigation.profile')
-      })
-
-      it('has nav-item "navigation.info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(9).text()).toEqual('navigation.info')
+      it("has the user's initials", () => {
+        expect(
+          wrapper.find('button.b-avatar').find('.b-avatar-text > span:nth-child(1)').text(),
+        ).toBe(`${wrapper.vm.$store.state.firstName[0]}${wrapper.vm.$store.state.lastName[0]}`)
       })
     })
 
-    describe('navigation Navbar', () => {
-      it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.admin_area')
+    describe('user info', () => {
+      it('has the full name', () => {
+        expect(wrapper.find('div.small').text()).toBe(
+          `${wrapper.vm.$store.state.firstName} ${wrapper.vm.$store.state.lastName}`,
+        )
       })
 
-      it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.logout')
+      it('has the email address', () => {
+        expect(wrapper.find('div.small:nth-child(2)').text()).toBe(wrapper.vm.$store.state.email)
       })
-    })
-
-    describe('navigation Navbar (user has no elopage account)', () => {
-      beforeAll(() => {
-        mocks.$store.state.hasElopage = false
-        wrapper = Wrapper()
-      })
-
-      it('has nav-item "navigation.admin_area" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(10).text()).toEqual('navigation.admin_area')
-      })
-
-      it('has nav-item "navigation.logout" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(11).text()).toEqual('navigation.logout')
-      })
-    })
-  })
-
-  describe('check watch visible true', () => {
-    beforeEach(async () => {
-      await wrapper.setProps({ visible: true })
-    })
-
-    it('has visibleCollapse == visible', () => {
-      expect(wrapper.vm.visibleCollapse).toBe(true)
-    })
-  })
-
-  describe('check watch visible false', () => {
-    beforeEach(async () => {
-      await wrapper.setProps({ visible: false })
-    })
-
-    it('has visibleCollapse == visible', () => {
-      expect(wrapper.vm.visibleCollapse).toBe(false)
     })
   })
 })
