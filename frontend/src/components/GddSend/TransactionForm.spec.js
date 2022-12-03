@@ -46,13 +46,17 @@ describe('TransactionForm', () => {
 
     describe('transaction form disable because balance 0,0 GDD', () => {
       it('has a disabled input field of type email', () => {
-        expect(wrapper.find('#input-group-1').find('input').attributes('disabled')).toBe('disabled')
+        expect(wrapper.findAll('div.form-group').at(0).find('input').attributes('disabled')).toBe(
+          'disabled',
+        )
       })
       it('has a disabled input field for amount', () => {
-        expect(wrapper.find('#input-2').find('input').attributes('disabled')).toBe('disabled')
+        expect(wrapper.findAll('div.form-group').at(1).find('input').attributes('disabled')).toBe('disabled')
       })
       it('has a disabled textarea field ', () => {
-        expect(wrapper.find('#input-3').find('textarea').attributes('disabled')).toBe('disabled')
+        expect(
+          wrapper.findAll('div.form-group').at(2).find('textarea').attributes('disabled'),
+        ).toBe('disabled')
       })
       it('has a message indicating that there are no GDDs to send ', () => {
         expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
@@ -96,40 +100,46 @@ describe('TransactionForm', () => {
 
         describe('email field', () => {
           it('has an input field of type email', () => {
-            expect(wrapper.find('#input-group-1').find('input').attributes('type')).toBe('email')
-          })
-
-          it('has an envelope icon', () => {
-            expect(wrapper.find('#input-group-1').find('svg').attributes('aria-label')).toBe(
-              'envelope',
+            expect(wrapper.findAll('div.form-group').at(0).find('input').attributes('type')).toBe(
+              'email',
             )
           })
 
           it('has a label form.receiver', () => {
-            expect(wrapper.find('label.input-1').text()).toBe('form.recipient')
-          })
-
-          it('has a placeholder "E-Mail"', () => {
-            expect(wrapper.find('#input-group-1').find('input').attributes('placeholder')).toBe(
-              'E-Mail',
+            expect(wrapper.findAll('div.form-group').at(0).find('label').text()).toBe(
+              'form.recipient',
             )
           })
 
+          it('has a placeholder "E-Mail"', () => {
+            expect(
+              wrapper.findAll('div.form-group').at(0).find('input').attributes('placeholder'),
+            ).toBe('form.email')
+          })
+
           it('flushes an error message when no valid email is given', async () => {
-            await wrapper.find('#input-group-1').find('input').setValue('a')
+            await wrapper.findAll('div.form-group').at(0).find('input').setValue('a')
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('validations.messages.email')
+            expect(
+              wrapper.findAll('div.form-group').at(0).find('div.invalid-feedback').text(),
+            ).toBe('validations.messages.email')
           })
 
           it('flushes an error message when email is the email of logged in user', async () => {
-            await wrapper.find('#input-group-1').find('input').setValue('user@example.org')
+            await wrapper.findAll('div.form-group').at(0).find('input').setValue('user@example.org')
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('form.validation.is-not')
+            expect(
+              wrapper.findAll('div.form-group').at(0).find('div.invalid-feedback').text(),
+            ).toBe('form.validation.is-not')
           })
 
           it('trims the email after blur', async () => {
-            await wrapper.find('#input-group-1').find('input').setValue('  valid@email.com  ')
-            await wrapper.find('#input-group-1').find('input').trigger('blur')
+            await wrapper
+              .findAll('div.form-group')
+              .at(0)
+              .find('input')
+              .setValue('  valid@email.com  ')
+            await wrapper.findAll('div.form-group').at(0).find('input').trigger('blur')
             await flushPromises()
             expect(wrapper.vm.form.email).toBe('valid@email.com')
           })
@@ -137,72 +147,67 @@ describe('TransactionForm', () => {
 
         describe('amount field', () => {
           it('has an input field of type text', () => {
-            expect(wrapper.find('#input-group-2').find('input').attributes('type')).toBe('text')
-          })
-
-          it('has an GDD text icon', () => {
-            expect(wrapper.find('#input-group-2').find('div.m-1').text()).toBe('GDD')
-          })
-
-          it('has a label form.amount', () => {
-            expect(wrapper.find('label.input-2').text()).toBe('form.amount')
+            expect(wrapper.findAll('div.form-group').at(1).find('input').attributes('type')).toBe('text')
           })
 
           it('has a placeholder "0.01"', () => {
-            expect(wrapper.find('#input-group-2').find('input').attributes('placeholder')).toBe(
-              '0.01',
-            )
+            expect(
+              wrapper.findAll('div.form-group').at(1).find('input').attributes('placeholder')).toBe('0.01')
           })
 
           it('does not update form amount when invalid', async () => {
-            await wrapper.find('#input-group-2').find('input').setValue('invalid')
-            await wrapper.find('#input-group-2').find('input').trigger('blur')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('invalid')
+            await wrapper.findAll('div.form-group').at(1).find('input').trigger('blur')
             await flushPromises()
             expect(wrapper.vm.form.amountValue).toBe(0)
           })
 
           it('flushes an error message when no valid amount is given', async () => {
-            await wrapper.find('#input-group-2').find('input').setValue('a')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('a')
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('form.validation.gddSendAmount')
+            expect(
+              wrapper.findAll('div.form-group').at(1).find('div.invalid-feedback').text(),
+            ).toBe('form.validation.gddSendAmount')
           })
 
           it('flushes an error message when amount is too high', async () => {
-            await wrapper.find('#input-group-2').find('input').setValue('123.34')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('123.34')
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('form.validation.gddSendAmount')
+            expect(
+              wrapper.findAll('div.form-group').at(1).find('div.invalid-feedback').text(),
+            ).toBe('form.validation.gddSendAmount')
           })
 
           it('flushes no errors when amount is valid', async () => {
-            await wrapper.find('#input-group-2').find('input').setValue('87.34')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('87.34')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBe(false)
+            expect(
+              wrapper.findAll('div.form-group').at(1).find('div.invalid-feedback').text(),
+            ).toBe('')
           })
         })
 
         describe('message text box', () => {
           it('has an textarea field', () => {
-            expect(wrapper.find('#input-group-3').find('textarea').exists()).toBe(true)
-          })
-
-          it('has an chat-right-text icon', () => {
-            expect(wrapper.find('#input-group-3').find('svg').attributes('aria-label')).toBe(
-              'chat right text',
-            )
+            expect(wrapper.findAll('div.form-group').at(2).find('textarea').exists()).toBe(true)
           })
 
           it('has a label form.message', () => {
-            expect(wrapper.find('label.input-3').text()).toBe('form.message')
+            expect(wrapper.findAll('div.form-group').at(2).find('label').text()).toBe(
+              'form.message',
+            )
           })
 
           it('flushes an error message when memo is less than 5 characters', async () => {
-            await wrapper.find('#input-group-3').find('textarea').setValue('a')
+            await wrapper.findAll('div.form-group').at(2).find('textarea').setValue('a')
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('validations.messages.min')
+            expect(
+              wrapper.findAll('div.form-group').at(2).find('div.invalid-feedback').text(),
+            ).toBe('validations.messages.min')
           })
 
           it('flushes an error message when memo is more than 255 characters', async () => {
-            await wrapper.find('#input-group-3').find('textarea').setValue(`
+            await wrapper.findAll('div.form-group').at(2).find('textarea').setValue(`
 Es ist ein König in Thule, der trinkt
 Champagner, es geht ihm nichts drüber;
 Und wenn er seinen Champagner trinkt,
@@ -233,13 +238,17 @@ Mir später weit besser gelingen;
 Dann werde ich, taumelnd von Krug zu Krug,
 Die ganze Welt bezwingen.“`)
             await flushPromises()
-            expect(wrapper.find('span.errors').text()).toBe('validations.messages.max')
+            expect(
+              wrapper.findAll('div.form-group').at(2).find('div.invalid-feedback').text(),
+            ).toBe('validations.messages.max')
           })
 
           it('flushes no error message when memo is valid', async () => {
-            await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
+            await wrapper.findAll('div.form-group').at(2).find('textarea').setValue('Long enough')
             await flushPromises()
-            expect(wrapper.find('span.errors').exists()).toBe(false)
+            expect(
+              wrapper.findAll('div.form-group').at(2).find('div.invalid-feedback').text(),
+            ).toBe('')
           })
         })
 
@@ -253,9 +262,13 @@ Die ganze Welt bezwingen.“`)
           })
 
           it('clears all fields on click', async () => {
-            await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
-            await wrapper.find('#input-group-2').find('input').setValue('87.23')
-            await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
+            await wrapper
+              .findAll('div.form-group')
+              .at(0)
+              .find('input')
+              .setValue('someone@watches.tv')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('87.23')
+            await wrapper.findAll('div.form-group').at(2).find('textarea').setValue('Long enough')
             await flushPromises()
             expect(wrapper.vm.form.email).toBe('someone@watches.tv')
             expect(wrapper.vm.form.amount).toBe('87.23')
@@ -270,9 +283,13 @@ Die ganze Welt bezwingen.“`)
 
         describe('submit', () => {
           beforeEach(async () => {
-            await wrapper.find('#input-group-1').find('input').setValue('someone@watches.tv')
-            await wrapper.find('#input-group-2').find('input').setValue('87.23')
-            await wrapper.find('#input-group-3').find('textarea').setValue('Long enough')
+            await wrapper
+              .findAll('div.form-group')
+              .at(0)
+              .find('input')
+              .setValue('someone@watches.tv')
+            await wrapper.findAll('div.form-group').at(1).find('input').setValue('87.23')
+            await wrapper.findAll('div.form-group').at(2).find('textarea').setValue('Long enough')
             await wrapper.find('form').trigger('submit')
             await flushPromises()
           })
