@@ -55,15 +55,15 @@ export default {
     memo: { type: String, required: true },
     validUntil: { type: String, required: true },
   },
-  data() {
-    return {
-      // showQrcode: false,
-    }
-  },
-  methods: {
-    showQrCodeButton() {
-      this.showQrcode = !this.showQrcode
-    },
-  },
+  // data() {
+  //  return {
+  //    showQrcode: false,
+  //  }
+  // },
+  // methods: {
+  //   showQrCodeButton() {
+  //     this.showQrcode = !this.showQrcode
+  //   },
+  // },
 }
 </script>
