@@ -17,7 +17,7 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v11.2022-10-27',
+    EXPECTED: 'v12.2022-11-10',
     CURRENT: '',
   },
 }
@@ -117,7 +117,8 @@ if (
 }
 
 const federation = {
-  DHT_TOPIC: process.env.DHT_TOPIC || null,
+  FEDERATION_DHT_TOPIC: process.env.FEDERATION_DHT_TOPIC || null,
+  FEDERATION_DHT_SEED: process.env.FEDERATION_DHT_SEED || null,
 }
 
 const CONFIG = {
