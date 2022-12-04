@@ -230,17 +230,17 @@ export default {
       document.getElementById('side-menu').classList.toggle('bg-lightgrey')
       this.hamburger ? (this.hamburger = false) : (this.hamburger = true)
     },
-    dark() {
-      document.getElementById('app').classList.add('dark-mode')
-      document.querySelector('#app a').classList.add('dark-mode')
-      this.darkMode = true
-    },
+    // dark() {
+    //   document.getElementById('app').classList.add('dark-mode')
+    //   document.querySelector('#app a').classList.add('dark-mode')
+    //   this.darkMode = true
+    // },
 
-    light() {
-      document.getElementById('app').classList.remove('dark-mode')
-      document.querySelector('#app a').classList.remove('dark-mode')
-      this.darkMode = false
-    },
+    // light() {
+    //   document.getElementById('app').classList.remove('dark-mode')
+    //   document.querySelector('#app a').classList.remove('dark-mode')
+    //   this.darkMode = false
+    // },
 
     modeToggle() {
       if (this.darkMode || document.getElementById('app').classList.contains('dark-mode')) {
