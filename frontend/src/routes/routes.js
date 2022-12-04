@@ -102,10 +102,10 @@ const routes = [
     path: '/register-community',
     component: () => import('@/pages/RegisterCommunity.vue'),
   },
-  {
-    path: '/select-community',
-    component: () => import('@/pages/SelectCommunity.vue'),
-  },
+  // {
+  //   path: '/select-community',
+  //   component: () => import('@/pages/SelectCommunity.vue'),
+  // },
   {
     path: '/reset-password/:optin',
     component: () => import('@/pages/ResetPassword.vue'),
