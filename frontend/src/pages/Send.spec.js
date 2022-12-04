@@ -58,7 +58,7 @@ describe('Send', () => {
       expect(wrapper.find('div.gdd-send').exists()).toBe(true)
     })
 
-    describe('fill transaction form for send coins', () => {
+    describe.skip('fill transaction form for send coins', () => {
       beforeEach(async () => {
         const transactionForm = wrapper.findComponent({ name: 'TransactionForm' })
         await transactionForm.findAll('input[type="radio"]').at(0).setChecked()
@@ -182,7 +182,7 @@ describe('Send', () => {
         expect(wrapper.findComponent({ name: 'TransactionConfirmationLink' }).exists()).toBe(true)
       })
 
-      describe('transaction is confirmed and server response is success', () => {
+      describe.skip('transaction is confirmed and server response is success', () => {
         beforeEach(async () => {
           jest.clearAllMocks()
           await wrapper
@@ -311,7 +311,7 @@ describe('Send', () => {
         })
       })
 
-      describe('apollo call returns error', () => {
+      describe.skip('apollo call returns error', () => {
         beforeEach(async () => {
           apolloMutationMock.mockRejectedValue({ message: 'OUCH!' })
           await wrapper
