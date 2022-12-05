@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-header position-sticky">
+  <div class="navbar-component position-sticky">
     <b-navbar toggleable="lg" class="pr-4">
       <b-navbar-brand>
         <b-img
@@ -52,7 +52,7 @@
 
 <script>
 export default {
-  name: 'AuthNavbar',
+  name: 'Navbar',
   props: {
     balance: { type: Number, required: true },
   },

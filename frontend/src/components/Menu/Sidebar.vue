@@ -88,7 +88,7 @@
 </template>
 <script>
 export default {
-  name: 'sidebar',
+  name: 'Sidebar',
   data() {
     return {
       lightmode: false,
