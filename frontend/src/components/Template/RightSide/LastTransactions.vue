@@ -72,10 +72,5 @@ export default {
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
   },
-  computed: {
-    avatarText() {
-      return this.linkedUser.firstName[0] + this.linkedUser.lastName[0]
-    },
-  },
 }
 </script>
