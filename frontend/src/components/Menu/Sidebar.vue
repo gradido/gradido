@@ -1,5 +1,5 @@
 <template>
-  <div id="component-sidebar ">
+  <div id="component-sidebar">
     <div id="side-menu" ref="sideMenu" class="gradido-border-radius appBoxShadow pt-2 mt-4">
       <!-- @mouseout="$emit('toogleMobilMenu')" -->
       <div class="mb-6 mt-3">
