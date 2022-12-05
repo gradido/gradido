@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-4">
+  <div class="transactions pb-4">
     <div v-if="gdt">
       <gdt-transaction-list
         v-model="currentPage"
