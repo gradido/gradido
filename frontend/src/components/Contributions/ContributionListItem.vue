@@ -42,7 +42,7 @@
           <b-col>
             <div
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="pointer mr-3"
+              class="test-delete-contribution pointer mr-3"
               @click="deleteContribution({ id })"
             >
               <b-icon icon="trash"></b-icon>
@@ -52,7 +52,7 @@
           <b-col>
             <div
               v-if="!['CONFIRMED', 'DELETED'].includes(state) && !allContribution"
-              class="pointer mr-3"
+              class="test-edit-contribution pointer mr-3"
               @click="
                 $emit('update-contribution-form', {
                   id: id,
