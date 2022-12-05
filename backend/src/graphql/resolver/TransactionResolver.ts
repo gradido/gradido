@@ -314,6 +314,10 @@ export class TransactionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     logger.info(`sendCoins(email=${email}, amount=${amount}, memo=${memo})`)
+    if (amount.lte(0)) {
+      logger.error(`Amount to send must be positive`)
+      throw new Error('Amount to send must be positive')
+    }
 
     // TODO this is subject to replay attacks
     const senderUser = getUser(context)
@@ -324,22 +328,7 @@ export class TransactionResolver {
 
     // validate recipient user
     const recipientUser = await findUserByEmail(email)
-    /*
-    const emailContact = await UserContact.findOne({ email }, { withDeleted: true })
-    if (!emailContact) {
-      logger.error(`Could not find UserContact with email: ${email}`)
-      throw new Error(`Could not find UserContact with email: ${email}`)
-    }
-    */
-    // const recipientUser = await dbUser.findOne({ id: emailContact.userId })
 
-    /* Code inside this if statement is unreachable (useless by so), 
-    in findUserByEmail() an error is already thrown if the user is not found
-    */
-    if (!recipientUser) {
-      logger.error(`unknown recipient to UserContact: email=${email}`)
-      throw new Error('unknown recipient')
-    }
     if (recipientUser.deletedAt) {
       logger.error(`The recipient account was deleted: recipientUser=${recipientUser}`)
       throw new Error('The recipient account was deleted')
